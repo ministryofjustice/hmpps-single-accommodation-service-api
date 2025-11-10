@@ -2,16 +2,22 @@
 # Per environment values which override defaults in hmpps-single-accommodation-service-api/values.yaml
 
 generic-service:
+  serviceAccountName: hmpps-community-accommodation-api-service-account
   replicaCount: 2
 
   ingress:
     host: single-accommodation-service-api-dev.hmpps.service.justice.gov.uk
+    tlsSecretName: hmpps-single-accommodation-service-api-dev-cert
 
   env:
-    APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.dev.json"
-    HMPPS_AUTH_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+    JAVA_OPTS: "-Xmx1000m"
+    SPRING_PROFILES_ACTIVE: dev
+    HMPPS_AUTH_URL: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: hmpps-approved-premises
+
+  env_details:
+      production_env: false
