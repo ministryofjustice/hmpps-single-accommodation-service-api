@@ -5,5 +5,13 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-hmpps-auth:
-  url: "http://localhost:8090/auth"
+hmpps:
+  auth:
+    url: http://localhost:#WIREMOCK_PORT/auth
+    client-id: integration-test-client-id
+    client-secret: secret
+
+services:
+  approved-premises-api:
+    base-url: http://localhost:#WIREMOCK_PORT/
+    timeout-ms: 14000

@@ -20,6 +20,7 @@ class ResourceSecurityTest : IntegrationTestBase() {
     "GET /v3/api-docs/swagger-config",
     " /error",
     "GET /hello-world",
+    "GET /premises/summary",
     "GET /cases",
   )
 

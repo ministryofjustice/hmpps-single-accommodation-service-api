@@ -15,12 +15,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
+          jwk-set-uri: ${hmpps.auth.url}/.well-known/jwks.json
 
       client:
         provider:
           hmpps-auth:
-            token-uri: ${hmpps-auth.url}/oauth/token
+            token-uri: ${hmpps.auth.url}/oauth/token
+        registration:
+          approved-premises-api:
+            provider: hmpps-auth
+            client-id: single-service-accommodation-api
+            client-secret: clientsecret
+            authorization-grant-type: client_credentials
   http:
     codecs:
       max-in-memory-size: 10MB
@@ -56,3 +62,8 @@ management:
     info:
       cache:
         time-to-live: 2000ms
+
+services:
+  approved-premises-api:
+    base-url: "SOMETHING"
+    timeout-ms: 14000
