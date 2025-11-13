@@ -65,5 +65,5 @@ management:
 
 services:
   approved-premises-api:
-    base-url: "SOMETHING"
+    base-url: http://localhost:8080
     timeout-ms: 14000

@@ -7,7 +7,7 @@ management.endpoint:
 
 hmpps:
   auth:
-    url: http://localhost:#WIREMOCK_PORT/auth
+    url: http://localhost:8090/auth
     client-id: integration-test-client-id
     client-secret: secret
 

@@ -21,12 +21,12 @@ class TestPropertiesInitializer : ApplicationContextInitializer<ConfigurableAppl
       .forEach { propertyFile ->
         propertyFile.source.forEach { (propertyName, propertyValue) ->
           if (propertyName.startsWith("services.") && (propertyValue as? OriginTrackedValue)?.value is String) {
-            upstreamServiceUrlsToOverride[propertyName] = ((propertyValue as OriginTrackedValue).value as String).replace("#WIREMOCK_PORT", wiremockPort.toString())
+            upstreamServiceUrlsToOverride[propertyName] = (propertyValue.value as String).replace("#WIREMOCK_PORT", wiremockPort.toString())
             return@forEach
           }
 
           if (propertyName == "hmpps.auth.url" && (propertyValue as? OriginTrackedValue)?.value is String) {
-            upstreamServiceUrlsToOverride[propertyName] = ((propertyValue as OriginTrackedValue).value as String).replace("#WIREMOCK_PORT", wiremockPort.toString())
+            upstreamServiceUrlsToOverride[propertyName] = (propertyValue.value as String).replace("#WIREMOCK_PORT", wiremockPort.toString())
           }
         }
       }
