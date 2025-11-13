@@ -8,10 +8,9 @@ import org.junit.jupiter.api.Test
 class DummyTest : IntegrationTestBase() {
   @Test
   fun `Get hello world`() {
-    val jwt = jwtAuthHelper.createJwtAccessToken()
     webTestClient.get()
       .uri("/hello-world")
-      .header("Authorization", "Bearer $jwt")
+      .headers(setAuthorisation())
       .exchange()
       .expectStatus()
       .isOk
@@ -21,8 +20,6 @@ class DummyTest : IntegrationTestBase() {
   fun `Get premises`() {
     val username = "TEST"
     mockClientCredentialsJwtRequest(username, listOf("ROLE_PROBATION"), authSource = "delius")
-
-    val jwt = jwtAuthHelper.createJwtAccessToken()
 
     wiremockServer.stubFor(
       get(WireMock.urlEqualTo("/premises/summary"))
@@ -39,7 +36,7 @@ class DummyTest : IntegrationTestBase() {
     )
     webTestClient.get()
       .uri("/premises/summary")
-      .header("Authorization", "Bearer $jwt")
+      .headers(setAuthorisation())
       .exchange()
       .expectStatus()
       .isOk
