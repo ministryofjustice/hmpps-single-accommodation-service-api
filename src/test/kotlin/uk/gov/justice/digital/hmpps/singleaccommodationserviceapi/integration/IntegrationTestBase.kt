@@ -17,16 +17,16 @@ import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WiremockManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestPropertiesInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WiremockManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.model.GetTokenResponse
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 import java.util.TimeZone
 import java.util.UUID
 
-//@ExtendWith(HmppsAuthApiExtension::class)
+// @ExtendWith(HmppsAuthApiExtension::class)
 @ContextConfiguration(initializers = [TestPropertiesInitializer::class])
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -50,7 +50,6 @@ abstract class IntegrationTestBase {
   val wiremockServer: WireMockServer by lazy {
     wiremockManager.wiremockServer
   }
-
 
   @BeforeEach
   fun beforeEach(info: TestInfo) {
