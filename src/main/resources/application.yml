@@ -3,6 +3,8 @@ info.app:
   version: 1.0
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: hmpps-single-accommodation-service-api
 
@@ -38,6 +40,9 @@ server:
   shutdown: graceful
   error:
     include-message: always
+
+redisson:
+  config: classpath:redisson.yaml
 
 management:
   endpoints:

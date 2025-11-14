@@ -1,0 +1,12 @@
+threads: 4
+nettyThreads: 4
+
+singleServerConfig:
+  address: "redis://127.0.0.1:6379"
+  password: null
+  database: 0
+  connectionMinimumIdleSize: 5
+  connectionPoolSize: 10
+  timeout: 3000
+  retryAttempts: 3
+  retryInterval: 1500

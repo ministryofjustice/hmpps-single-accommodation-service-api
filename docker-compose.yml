@@ -1,19 +1,13 @@
 version: "3"
 services:
-  hmpps-single-accommodation-service-api:
-    build:
-      context: .
-    networks:
-      - hmpps
-    container_name: hmpps-single-accommodation-service-api
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
+  redis:
+    image: "redis:latest"
+    container_name: redis
     environment:
-      - SERVER_PORT=8080
-      - HMPPS_AUTH_URL=http://hmpps-auth:8080/auth
-      - SPRING_PROFILES_ACTIVE=dev
+      - JAVA_TOOL_OPTIONS=-XX:UseSVE=0
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
 
   hmpps-auth:
     image: quay.io/hmpps/hmpps-auth:latest
