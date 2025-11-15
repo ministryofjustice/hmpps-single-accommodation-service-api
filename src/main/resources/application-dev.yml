@@ -1,2 +1,5 @@
 hmpps-auth:
   url: "http://localhost:8090/auth"
+
+castlemock-api:
+  url: "http://localhost:9000/castlemock/mock/rest/project/lKY4gi/application/WXzI02"

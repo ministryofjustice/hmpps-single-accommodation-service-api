@@ -23,5 +23,13 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - APPLICATION_AUTHENTICATION_UI_ALLOWLIST=0.0.0.0/0
 
+  castlemock:
+    image: castlemock/castlemock:latest
+    container_name: castlemock
+    ports:
+      - "9000:8080"
+    environment:
+      CASTLEMOCK_PERSISTENCE: file
+
 networks:
   hmpps:
