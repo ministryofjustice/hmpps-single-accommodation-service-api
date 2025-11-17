@@ -2,18 +2,18 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.model.CasesResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.model.MockCasesResponse
 
 class CasesTest : IntegrationTestBase() {
 
   @Test
-  fun `GET cases returns list of cases with mock data`() {
+  fun `GET cases returns mock cases data`() {
     val response = webTestClient.get()
       .uri("/cases")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
-      .expectBody(CasesResponse::class.java)
+      .expectBody(MockCasesResponse::class.java)
       .returnResult()
       .responseBody!!
 

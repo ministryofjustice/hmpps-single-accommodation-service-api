@@ -18,6 +18,12 @@ spring:
           jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
 
       client:
+        registration:
+          delius-backed-apis:
+            provider: hmpps-auth
+            client-id: approved-premises-api
+            client-secret: clientsecret
+            authorization-grant-type: client_credentials
         provider:
           hmpps-auth:
             token-uri: ${hmpps-auth.url}/oauth/token
@@ -56,3 +62,14 @@ management:
     info:
       cache:
         time-to-live: 2000ms
+
+services:
+  default:
+    # 0.7MB
+    max-response-in-memory-size-bytes: 750000
+    timeout-ms: 10000
+  ap-delius-context-api:
+    base-url: http://localhost:8181
+
+hmpps-auth:
+  url: http://localhost:8090/auth
