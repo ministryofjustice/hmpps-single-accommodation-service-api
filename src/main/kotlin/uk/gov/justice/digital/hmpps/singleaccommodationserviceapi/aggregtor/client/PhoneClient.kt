@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregtor.mode
 
 @Service
 class PhoneClient(
-    @Qualifier("phoneApiWebClient") private val webClient: WebClient,
+  @Qualifier("phoneApiWebClient") private val webClient: WebClient,
 ) {
   @Cacheable("phoneCache", key = "#id")
   fun getPhoneById(id: Long): Phone? {

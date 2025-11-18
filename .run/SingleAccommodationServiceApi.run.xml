@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SingleAccommodationServiceApi" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="ACTIVE_PROFILES" value="dev" />
+    <module name="hmpps-single-accommodation-service-api.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.SingleAccommodationServiceApi" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

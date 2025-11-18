@@ -14,11 +14,10 @@ class CastleMockClient(
   private val webClient: WebClient =
     builder.baseUrl(castleMockApiBaseUrl).build()
 
-  fun callEndpoint(path: String): Mono<String> =
-    webClient.get()
-      .uri(path)
-      .retrieve()
-      .bodyToMono(String::class.java)
-      .timeout(Duration.ofMillis(500))
-      .onErrorResume { Mono.empty() }
+  fun callEndpoint(path: String): Mono<String> = webClient.get()
+    .uri(path)
+    .retrieve()
+    .bodyToMono(String::class.java)
+    .timeout(Duration.ofMillis(500))
+    .onErrorResume { Mono.empty() }
 }

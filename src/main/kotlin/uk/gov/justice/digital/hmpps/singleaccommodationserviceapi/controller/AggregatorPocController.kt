@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.model.Redi
 
 @RestController
 class AggregatorPocController(
-  private val aggregatorPocService: AggregatorPocService
+  private val aggregatorPocService: AggregatorPocService,
 ) {
 
   @GetMapping("/redis-integration", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -21,5 +21,4 @@ class AggregatorPocController(
 
   @GetMapping("/webflux-resilience", produces = [MediaType.APPLICATION_JSON_VALUE])
   fun webfluxResiliencePOC(): Flux<String> = aggregatorPocService.webfluxResilience()
-
 }

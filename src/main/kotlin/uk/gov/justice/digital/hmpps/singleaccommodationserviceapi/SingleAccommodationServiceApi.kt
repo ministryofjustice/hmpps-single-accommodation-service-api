@@ -7,5 +7,6 @@ import org.springframework.boot.runApplication
 class SingleAccommodationServiceApi
 
 fun main(args: Array<String>) {
+  println("App starting up...")
   runApplication<SingleAccommodationServiceApi>(*args)
 }
