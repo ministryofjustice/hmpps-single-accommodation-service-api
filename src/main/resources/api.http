@@ -12,3 +12,7 @@ Authorization: Bearer {{bearerToken}}
 
 ###
 
+GET http://localhost:8080/aggregator/group/dashboardData?userId=1&postId=1
+accept: application/json
+###
+
