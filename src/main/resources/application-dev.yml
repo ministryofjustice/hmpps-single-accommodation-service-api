@@ -1,2 +1,6 @@
 hmpps-auth:
-  url: "http://localhost:8090/auth"
+  url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
+
+services:
+  ap-delius-context-api:
+    base-url: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
