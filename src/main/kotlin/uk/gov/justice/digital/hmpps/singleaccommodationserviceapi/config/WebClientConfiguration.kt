@@ -82,4 +82,34 @@ class WebClientConfiguration(
       retryOnReadTimeout = true,
     )
   }
+
+  @Bean(name = ["approvedPremisesApiWebClient"])
+  fun approvedPremisesApiWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    @Value("\${services.approved-premises-api.base-url}") approvedPremisesApiBaseUrl: String,
+  ): WebClientConfig {
+    val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
+    oauth2Client.setDefaultClientRegistrationId("approved-premises-api")
+
+    return WebClientConfig(
+      WebClient.builder()
+        .baseUrl(approvedPremisesApiBaseUrl)
+        .filter(oauth2Client)
+        .clientConnector(
+          ReactorClientHttpConnector(
+            HttpClient
+              .create()
+              .responseTimeout(Duration.ofMillis(defaultUpstreamTimeoutMs))
+              .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, Duration.ofMillis(defaultUpstreamTimeoutMs).toMillis().toInt()),
+          ),
+        )
+        .exchangeStrategies(
+          ExchangeStrategies.builder().codecs {
+            it.defaultCodecs().maxInMemorySize(defaultMaxResponseInMemorySizeBytes)
+          }.build(),
+        )
+        .build(),
+      retryOnReadTimeout = true,
+    )
+  }
 }

@@ -21,7 +21,12 @@ spring:
         registration:
           delius-backed-apis:
             provider: hmpps-auth
-            client-id: approved-premises-api
+            client-id: clientId
+            client-secret: clientsecret
+            authorization-grant-type: client_credentials
+          approved-premises-api:
+            provider: hmpps-auth
+            client-id: clientId
             client-secret: clientsecret
             authorization-grant-type: client_credentials
         provider:
@@ -32,7 +37,7 @@ spring:
       max-in-memory-size: 10MB
 
 server:
-  port: 8080
+  port: 8090
   servlet:
     context-path: /
   forward-headers-strategy: native
@@ -68,8 +73,3 @@ services:
     # 0.7MB
     max-response-in-memory-size-bytes: 750000
     timeout-ms: 10000
-  ap-delius-context-api:
-    base-url: http://localhost:8181
-
-hmpps-auth:
-  url: http://localhost:8090/auth
