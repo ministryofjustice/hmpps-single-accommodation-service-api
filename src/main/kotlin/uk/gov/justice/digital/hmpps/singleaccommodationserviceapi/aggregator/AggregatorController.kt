@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatedResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.EndpointResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregtor.service.AggregatorService
 
 @RestController
@@ -23,7 +23,7 @@ class AggregatorController(
     @PathVariable endpointName: String,
     @RequestParam(required = false) userId: String?,
     @RequestParam(required = false) postId: String?,
-  ): Mono<ResponseEntity<EndpointResult<*>>> {
+  ): Mono<ResponseEntity<CallResult<*>>> {
     val params = buildMap<String, Any?> {
       userId?.let { put("userId", it) }
       postId?.let { put("postId", it) }

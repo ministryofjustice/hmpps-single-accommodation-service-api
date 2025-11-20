@@ -44,59 +44,69 @@ data class RetryConfig(
   val retryOnResult: ((Any?) -> Boolean)? = null,
 )
 
-data class EndpointError(
-  val endpointName: String,
-  val message: String,
-  val errorType: ErrorType,
-  val timestamp: Instant = Instant.now(),
-  val cause: String? = null,
-) {
-  enum class ErrorType {
-    TIMEOUT,
-    NETWORK_ERROR,
-    HTTP_ERROR,
-    UNKNOWN_ERROR, // / other error types?
-  }
+enum class ErrorType {
+  NETWORK,
+  TIMEOUT,
+  CIRCUIT_BREAKER,
+  VALIDATION,
+  CACHE,
+  AUTH,
+  RETRY_EXHAUSTED,
+  UNKNOWN
 }
 
-sealed class EndpointResult<out T> {
-  data class Success<T>(val data: T) : EndpointResult<T>()
-  data class Failure(val error: EndpointError) : EndpointResult<Nothing>()
+enum class CircuitBreakerState {
+  CLOSED,
+  OPEN,
+  HALF_OPEN
+}
 
-  val isSuccess: Boolean
+data class CallMeta(
+  val endpoint: String,
+  val fromCache: Boolean,
+  val duration: Long, // milliseconds
+  val timestamp: Long, // milliseconds since epoch
+  val retries: Int? = null,
+  val circuitBreakerState: CircuitBreakerState? = null,
+  val attempt: Int? = null,
+  val cacheId: String? = null
+)
+
+data class ErrorInfo(
+  val type: ErrorType,
+  val message: String,
+  val endpoint: String? = null,
+  val originalError: Throwable? = null
+)
+
+sealed class CallResult<out T> {
+  data class Success<out T>(
+    val data: T,
+    val meta: CallMeta
+  ) : CallResult<T>()
+
+  data class Error(
+    val error: ErrorInfo,
+    val meta: CallMeta
+  ) : CallResult<Nothing>()
+
+  val success: Boolean
     get() = this is Success
 
-  val isFailure: Boolean
-    get() = this is Failure
-
-  fun getOrNull(): T? = when (this) {
-    is Success -> data
-    is Failure -> null
+  inline fun <R> fold(
+    onSuccess: (T, CallMeta) -> R,
+    onError: (ErrorInfo, CallMeta) -> R
+  ): R = when (this) {
+    is Success -> onSuccess(data, meta)
+    is Error -> onError(error, meta)
   }
 }
 
 data class AggregatedResponse(
-  val results: Map<String, EndpointResult<*>>,
-  val timestamp: Instant = Instant.now(),
-  val totalEndpoints: Int = results.size,
-  val successfulEndpoints: Int = results.values.count { it.isSuccess },
-  val failedEndpoints: Int = results.values.count { it.isFailure },
-) {
-
-  inline fun <reified T> getResult(endpointName: String): EndpointResult<T>? = results[endpointName] as? EndpointResult<T>
-
-  @Suppress("UNCHECKED_CAST")
-  fun getSuccessfulResults(): Map<String, Any> = results
-    .filterValues { it.isSuccess }
-    .mapValues { (_, value) ->
-      @Suppress("UNCHECKED_CAST")
-      (value as EndpointResult.Success<Any>).data
-    }
-
-  fun getFailedResults(): Map<String, EndpointError> = results
-    .filterValues { it.isFailure }
-    .mapValues { (_, value) -> (value as EndpointResult.Failure).error }
-}
+  val data: Map<String, Any>,
+  val meta: Map<String, CallMeta>,
+  val errors: Map<String, ErrorInfo>? = null
+)
 
 typealias CacheKeyStrategy = (Map<String, Any?>) -> String
 

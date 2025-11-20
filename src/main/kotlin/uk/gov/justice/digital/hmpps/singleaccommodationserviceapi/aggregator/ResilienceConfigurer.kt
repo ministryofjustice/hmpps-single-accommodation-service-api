@@ -24,6 +24,23 @@ class ResilienceConfigurer {
   private val retryRegistry = RetryRegistry.ofDefaults()
 
   /**
+   * Get circuit breaker state for an endpoint (if circuit breaker is configured)
+   */
+  fun getCircuitBreakerState(endpoint: EndpointDefinition): CircuitBreakerState? {
+    val circuitBreaker = getCircuitBreaker(endpoint) ?: return null
+    return when (circuitBreaker.state) {
+      CircuitBreaker.State.CLOSED -> CircuitBreakerState.CLOSED
+      CircuitBreaker.State.OPEN -> CircuitBreakerState.OPEN
+      CircuitBreaker.State.HALF_OPEN -> CircuitBreakerState.HALF_OPEN
+      CircuitBreaker.State.DISABLED -> CircuitBreakerState.CLOSED
+      CircuitBreaker.State.FORCED_OPEN -> CircuitBreakerState.OPEN
+      else -> null
+    }
+  }
+
+
+
+  /**
    * Get or create a circuit breaker for an endpoint.
    */
   fun getCircuitBreaker(endpoint: EndpointDefinition): CircuitBreaker? {
@@ -87,5 +104,16 @@ class ResilienceConfigurer {
     }
 
     return result
+  }
+
+  /**
+   * Get retry metrics for an endpoint (if retry is configured)
+   */
+  fun getRetryMetrics(endpoint: EndpointDefinition): Pair<Int?, Int?>? {
+    val retry = getRetry(endpoint) ?: return null
+    val metrics = retry.metrics
+    val numberOfRetryAttempts = metrics.numberOfSuccessfulCallsWithoutRetryAttempt + metrics.numberOfSuccessfulCallsWithRetryAttempt + metrics.numberOfFailedCallsWithoutRetryAttempt + metrics.numberOfFailedCallsWithRetryAttempt
+    val numberOfFailedCallsWithRetryAttempt = metrics.numberOfFailedCallsWithRetryAttempt.toInt()
+    return Pair(numberOfFailedCallsWithRetryAttempt.takeIf { it > 0 }, numberOfRetryAttempts.toInt())
   }
 }

@@ -5,10 +5,12 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatedResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorRegistry
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.EndpointError
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallMeta
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.EndpointExecutor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.EndpointRegistry
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.EndpointResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.ErrorInfo
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.ErrorType
 
 @Service
 class AggregatorService(
@@ -28,7 +30,8 @@ class AggregatorService(
     if (endpoints.isEmpty()) {
       return Mono.just(
         AggregatedResponse(
-          results = emptyMap(),
+          data = emptyMap(),
+          meta = emptyMap(),
         ),
       )
     }
@@ -42,23 +45,46 @@ class AggregatorService(
       .flatMap { it }
       .collectMap({ it.first }, { it.second })
       .map { results ->
+        val data = mutableMapOf<String, Any>()
+        val meta = mutableMapOf<String, CallMeta>()
+        val errors = mutableMapOf<String, ErrorInfo>()
+
+        results.forEach { (endpointName, callResult) ->
+          when (callResult) {
+            is CallResult.Success -> {
+              data[endpointName] = callResult.data
+              meta[endpointName] = callResult.meta
+            }
+            is CallResult.Error -> {
+              meta[endpointName] = callResult.meta
+              errors[endpointName] = callResult.error
+            }
+          }
+        }
+
         AggregatedResponse(
-          results = results,
+          data = data,
+          meta = meta,
+          errors = errors.takeIf { it.isNotEmpty() },
         )
       }
       .onErrorResume { error ->
         // This should never happen, but ensure we never fail
+        val errorMap =
+          endpoints.associate { (name, _) ->
+            name to
+              ErrorInfo(
+                type = ErrorType.UNKNOWN,
+                message = "Unexpected error: ${error.message}",
+                endpoint = name,
+                originalError = error,
+              )
+          }
         Mono.just(
           AggregatedResponse(
-            results = endpoints.associate { (name, _) ->
-              name to EndpointResult.Failure(
-                EndpointError(
-                  endpointName = name,
-                  message = "Unexpected error: ${error.message}",
-                  errorType = EndpointError.ErrorType.UNKNOWN_ERROR,
-                ),
-              )
-            },
+            data = emptyMap(),
+            meta = emptyMap(),
+            errors = errorMap,
           ),
         )
       }
@@ -75,7 +101,7 @@ class AggregatorService(
   fun <T> executeSingle(
     endpointName: String,
     params: Map<String, Any?> = emptyMap(),
-  ): Mono<EndpointResult<T>> {
+  ): Mono<CallResult<T>> {
     val endpoint = endpointRegistry.getRequired(endpointName)
     return endpointExecutor.execute(endpoint, params)
   }
