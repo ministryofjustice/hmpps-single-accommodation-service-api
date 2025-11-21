@@ -18,12 +18,22 @@ spring:
           jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
 
       client:
+        registration:
+          default:
+            provider: hmpps-auth
+            client-id: approved-premises-api
+            client-secret: clientsecret
+            authorization-grant-type: client_credentials
         provider:
           hmpps-auth:
             token-uri: ${hmpps-auth.url}/oauth/token
   http:
     codecs:
       max-in-memory-size: 10MB
+
+  threads:
+    virtual:
+      enabled: true
 
 server:
   port: 8080

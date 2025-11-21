@@ -26,8 +26,11 @@ generic-service:
   #     [name of environment variable as seen by app]: [key of kubernetes secret to load]
 
   namespace_secrets:
-    hmpps-single-accommodation-service-api-application-insights:
+    hmpps-single-accommodation-service-api:
       APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-ID: "SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-SECRET: "SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET"
+      SENTRY_DSN: "SENTRY_DSN"
 
   allowlist:
     groups:
