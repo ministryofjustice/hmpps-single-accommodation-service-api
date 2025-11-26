@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.case
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.LocalDate

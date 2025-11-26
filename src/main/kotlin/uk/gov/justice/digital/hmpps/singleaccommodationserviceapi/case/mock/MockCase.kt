@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.mock
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.case.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.Case
 import java.time.LocalDate
 
 class MockCase {

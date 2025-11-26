@@ -2,27 +2,33 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probat
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedTo
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.NextAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummaries
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshSummary
 import java.time.LocalDate
 
 @Service
 class CaseService(
   val aggregatorService: AggregatorService,
-  val probationIntegrationDeliusClient: ProbationIntegrationDeliusClient,
-  val corePersonRecordClient: CorePersonRecordClient,
-  val probationIntegrationOasysClient: ProbationIntegrationOasysClient,
+  val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
+  val corePersonRecordCachingService: CorePersonRecordCachingService,
+  val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
 ) {
   fun getCases(crns: List<String>): List<Case> {
     val res = aggregatorService.orchestrateAsyncCalls(
       crns,
       mapOf(
-        "delius" to { crn -> probationIntegrationDeliusClient.postCaseSummaries(listOf(crn)) },
-        "corePersonRecord" to { crn -> corePersonRecordClient.getCorePersonRecord(crn) },
-        "oasys" to { crn -> probationIntegrationOasysClient.getRoshSummary(crn) },
+        "delius" to { crn -> probationIntegrationDeliusCachingService.getCaseSummary(crn) },
+        "corePersonRecord" to { crn -> corePersonRecordCachingService.getCorePersonRecord(crn) },
+        "oasys" to { crn -> probationIntegrationOasysCachingService.getRoshSummary(crn) },
       ),
     )
 
@@ -37,9 +43,9 @@ class CaseService(
   fun getCase(crn: String): Case {
     val res = aggregatorService.orchestrateAsyncCalls(
       mapOf(
-        "delius" to { probationIntegrationDeliusClient.postCaseSummaries(listOf(crn)) },
-        "corePersonRecord" to { corePersonRecordClient.getCorePersonRecord(crn) },
-        "oasys" to { probationIntegrationOasysClient.getRoshSummary(crn) },
+        "delius" to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
+        "corePersonRecord" to { corePersonRecordCachingService.getCorePersonRecord(crn) },
+        "oasys" to { probationIntegrationOasysCachingService.getRoshSummary(crn) },
       ),
     )
 
