@@ -67,6 +67,12 @@ jobs:
       environment: 'development'
       app_version: '${{ needs.build.outputs.app_version }}'
       slack_notification: 'false' # if 'true', it needs a valid NONPROD_RELEASES_SLACK_CHANNEL variable to be set
+  sas_generate_types:
+    needs: deploy_dev
+    name: Run the generate types job for the SAS UI
+    uses: ./.github/workflows/generate-sas-ui-types.yml
+    secrets: inherit
+  
   # deploy_preprod:
   #   name: Deploy to pre-production environment
   #   needs:
