@@ -22,9 +22,9 @@ class CaseController(
       "X966926",
       "X969031",
     ),
-  ): ResponseEntity<SasResponse<List<Case>>> {
+  ): ResponseEntity<List<Case>> {
     val cases = caseService.getCases(crns)
-    return ResponseEntity.ok(SasResponse(cases))
+    return ResponseEntity.ok(cases)
   }
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
