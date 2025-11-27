@@ -4,13 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.FinalResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
@@ -20,7 +19,6 @@ import java.time.OffsetDateTime
 class RulesEngineTest {
   private val sTierRule = STierRule()
   private val femaleRiskRule = FemaleRiskRule()
-  private val maleRiskRule = MaleRiskRule()
   private val referralTimingGuidanceRule = ReferralTimingGuidanceRule()
   val ruleSet = Cas1RuleSet()
   private val male = Sex(
@@ -39,20 +37,14 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      referralDate = null,
+      releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
 
-    val expectedResult = RuleSetResult(
-      listOf(
-        RuleResult(sTierRule.description, RuleStatus.PASS, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
-      ),
-      RuleSetStatus.PASS,
-    )
+    val expectedResult = FinalResult(listOf(), RuleSetStatus.PASS)
+
     assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -61,20 +53,20 @@ class RulesEngineTest {
     val data = DomainData(
       "C1S",
       sex = female,
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      referralDate = null,
+      releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
 
-    val expectedResult = RuleSetResult(
-      results = listOf(
+    val expectedResult = FinalResult(
+      failedResults = listOf(
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
       ),
       ruleSetStatus = RuleSetStatus.FAIL,
     )
+
     assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -83,20 +75,19 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(4),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
 
-    val expectedResult = RuleSetResult(
+    val expectedResult = FinalResult(
       listOf(
-        RuleResult(sTierRule.description, RuleStatus.PASS, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true),
       ),
       RuleSetStatus.GUIDANCE_FAIL,
     )
+
     assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -105,20 +96,20 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1S",
       sex = male,
+      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(4),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
 
-    val expectedResult = RuleSetResult(
+    val expectedResult = FinalResult(
       listOf(
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true),
       ),
       RuleSetStatus.FAIL,
     )
+
     assertThat(result).isEqualTo(expectedResult)
   }
 }

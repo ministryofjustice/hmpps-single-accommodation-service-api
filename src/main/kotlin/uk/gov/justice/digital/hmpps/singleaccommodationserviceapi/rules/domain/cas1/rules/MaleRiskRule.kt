@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.S
 
 class MaleRiskRule : Rule {
   override val services = listOf(ServiceType.CAS1)
-  override val description = "FAIL if candidate is Male and is not Tier A3 - B1"
+  override val description = "Is Male and is Tier A3 - B1"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
     ruleStatus = if (data.sex?.code == "M" && !data.tier.matches(regex = Regex("^(A[1-3]|B[1-3])S?$"))) {

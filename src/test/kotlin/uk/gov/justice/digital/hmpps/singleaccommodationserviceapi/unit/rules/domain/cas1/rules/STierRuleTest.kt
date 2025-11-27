@@ -21,6 +21,7 @@ class STierRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
     val result = sTierRule.evaluate(data)
@@ -33,6 +34,7 @@ class STierRuleTest {
     val data = DomainData(
       tier = "B2S",
       sex = male,
+      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
     val result = sTierRule.evaluate(data)
@@ -49,6 +51,6 @@ class STierRuleTest {
   @Test
   fun `rule has correct description`() {
     val result = sTierRule.description
-    assertThat(result).isEqualTo("FAIL if candidate is S Tier")
+    assertThat(result).isEqualTo("Not S Tier candidate")
   }
 }
