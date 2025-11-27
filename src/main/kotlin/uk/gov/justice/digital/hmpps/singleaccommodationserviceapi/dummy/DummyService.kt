@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.coreper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
 
 @Service
 class DummyService(
@@ -25,7 +25,7 @@ class DummyService(
 
   fun getDelius(crn: String): List<CaseSummary> = probationIntegrationDeliusClient.postCaseSummaries(listOf(crn)).cases
 
-  fun getOasys(crn: String): RoshSummary = probationIntegrationOasysClient.getRoshSummary(crn)
+  fun getOasys(crn: String): RoshDetails = probationIntegrationOasysClient.getRoshDetails(crn)
 
   fun getCorePersonRecord(crn: String): CorePersonRecord {
 //    Thread.sleep(500)

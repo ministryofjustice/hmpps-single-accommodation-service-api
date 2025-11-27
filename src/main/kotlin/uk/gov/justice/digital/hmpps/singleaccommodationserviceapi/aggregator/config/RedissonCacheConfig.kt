@@ -85,6 +85,7 @@ class RedissonCacheConfig {
       "getRoshSummaryByCrn" to CacheConfig(60_000, 30_000),
       "getCaseSummaryByCrn" to CacheConfig(120_000, 60_000),
       "getCorePersonRecordByCrn" to CacheConfig(180_000, 120_000),
+      "getTierByCrn" to CacheConfig(180_000, 120_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

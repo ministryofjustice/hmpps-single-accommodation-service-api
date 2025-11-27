@@ -12,7 +12,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probati
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierCachingService
 import java.time.LocalDate
 
 @Service
@@ -21,6 +23,7 @@ class CaseService(
   val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
+  val tierCachingService: TierCachingService,
 ) {
   fun getCases(crns: List<String>): List<Case> {
     val res = aggregatorService.orchestrateAsyncCalls(
@@ -28,15 +31,17 @@ class CaseService(
       mapOf(
         "delius" to { crn -> probationIntegrationDeliusCachingService.getCaseSummary(crn) },
         "corePersonRecord" to { crn -> corePersonRecordCachingService.getCorePersonRecord(crn) },
-        "oasys" to { crn -> probationIntegrationOasysCachingService.getRoshSummary(crn) },
+        "roshDetails" to { crn -> probationIntegrationOasysCachingService.getRoshSummary(crn) },
+        "tier" to { crn -> tierCachingService.getTier(crn) },
       ),
     )
 
     return res.entries.map { it ->
       val cpr = it.value["corePersonRecord"] as CorePersonRecord
-      val oasys = it.value["oasys"] as RoshSummary
+      val roshDetails = it.value["roshDetails"] as RoshDetails
+      val tier = it.value["tier"] as Tier
       val delius = (it.value["delius"] as CaseSummaries).cases[0]
-      buildCase(it.key, cpr, oasys, delius)
+      buildCase(it.key, cpr, roshDetails, tier, delius)
     }
   }
 
@@ -45,23 +50,25 @@ class CaseService(
       mapOf(
         "delius" to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
         "corePersonRecord" to { corePersonRecordCachingService.getCorePersonRecord(crn) },
-        "oasys" to { probationIntegrationOasysCachingService.getRoshSummary(crn) },
+        "roshDetails" to { probationIntegrationOasysCachingService.getRoshSummary(crn) },
+        "tier" to { tierCachingService.getTier(crn) },
       ),
     )
 
     val cpr = res["corePersonRecord"] as CorePersonRecord
-    val oasys = res["oasys"] as RoshSummary
+    val roshDetails = res["roshDetails"] as RoshDetails
+    val tier = res["tier"] as Tier
     val delius = (res["delius"] as CaseSummaries).cases[0]
-    return buildCase(crn, cpr, oasys, delius)
+    return buildCase(crn, cpr, roshDetails, tier, delius)
   }
 
-  fun buildCase(crn: String, cpr: CorePersonRecord, oasys: RoshSummary, delius: CaseSummary): Case = Case(
+  fun buildCase(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, delius: CaseSummary): Case = Case(
     name = "${delius.name.forename} ${cpr.lastName}",
     dateOfBirth = delius.dateOfBirth,
     crn = crn,
     prisonNumber = cpr.identifiers?.prisonNumbers[0],
-    tier = oasys.assessmentId.toString(),
-    rosh = "TODO()",
+    tier = tier.tierScore,
+    riskLevel = roshDetails.rosh.determineOverallRiskLevel(),
     pncReference = delius.pnc,
     assignedTo = AssignedTo(1L, delius.manager.team.name),
     currentAccommodation = CurrentAccommodation("AIRBNB", LocalDate.now().plusDays(10)),

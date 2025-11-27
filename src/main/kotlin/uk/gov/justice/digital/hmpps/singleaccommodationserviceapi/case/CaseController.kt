@@ -7,15 +7,20 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 
 @RestController
 class CaseController(
   val caseService: CaseService,
 ) {
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("permitAll()")
   @GetMapping("/cases")
   fun getCases(
+    @RequestParam(required = false) searchTerm: String?,
+    @RequestParam(required = false) status: Status?,
+    @RequestParam(required = false) assignedTo: Long?,
+    @RequestParam(required = false) riskLevel: RiskLevel?,
     // these crns are added temporarily
     @RequestParam(required = false) crns: List<String> = listOf(
       "X371199",
@@ -25,6 +30,7 @@ class CaseController(
     ),
   ): ResponseEntity<List<Case>> {
     val cases = caseService.getCases(crns)
+      .filter { riskLevel == null || it.riskLevel == riskLevel }
     return ResponseEntity.ok(cases)
   }
 
@@ -34,4 +40,8 @@ class CaseController(
     val cases = caseService.getCase(crn)
     return ResponseEntity.ok(cases)
   }
+}
+
+enum class Status {
+  TBC,
 }
