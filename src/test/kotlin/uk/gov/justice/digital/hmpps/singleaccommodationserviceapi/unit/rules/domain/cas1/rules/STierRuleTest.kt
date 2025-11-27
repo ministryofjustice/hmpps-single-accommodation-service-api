@@ -2,34 +2,50 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.rules.do
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 
 class STierRuleTest {
+  private val sTierRule = STierRule()
+  private val male = Sex(
+    code = "M",
+    description = "Male",
+  )
+
   @Test
   fun `candidate is not S tier`() {
-    val data = DomainData("A1")
-    val result = STierRule().evaluate(data)
+    val data = DomainData(
+      tier = "A1",
+      sex = male,
+    )
+    val result = sTierRule.evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `candidate is S tier`() {
-    val data = DomainData("B2S")
-    val result = STierRule().evaluate(data)
+    val data = DomainData(
+      tier = "B2S",
+      sex = male,
+    )
+    val result = sTierRule.evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule is applicable to CAS 1`() {
-    val result = STierRule().services
-
+    val result = sTierRule.services
     assertThat(result).contains(ServiceType.CAS1)
   }
 
-
+  @Test
+  fun `rule has correct description`() {
+    val result = sTierRule.description
+    assertThat(result).isEqualTo("Not S Tier candidate")
+  }
 }
