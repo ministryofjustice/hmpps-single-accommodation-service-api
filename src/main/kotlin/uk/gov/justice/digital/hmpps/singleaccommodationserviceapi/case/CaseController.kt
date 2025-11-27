@@ -14,7 +14,15 @@ class CaseController(
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("/cases")
-  fun getCases(@RequestParam crns: List<String> = emptyList()): ResponseEntity<List<Case>> {
+  fun getCases(
+    // these crns are added temporarily
+    @RequestParam(required = false) crns: List<String> = listOf(
+      "X371199",
+      "X968879",
+      "X966926",
+      "X969031",
+    ),
+  ): ResponseEntity<List<Case>> {
     val cases = caseService.getCases(crns)
     return ResponseEntity.ok(cases)
   }

@@ -11,12 +11,13 @@ import java.time.LocalDate
 
 @Service
 class CaseService(
+  val aggregatorService: AggregatorService,
   val probationIntegrationDeliusClient: ProbationIntegrationDeliusClient,
   val corePersonRecordClient: CorePersonRecordClient,
   val probationIntegrationOasysClient: ProbationIntegrationOasysClient,
 ) {
   fun getCases(crns: List<String>): List<Case> {
-    val res = AggregatorService.orchestrateAsyncCalls(
+    val res = aggregatorService.orchestrateAsyncCalls(
       crns,
       mapOf(
         "delius" to { crn -> probationIntegrationDeliusClient.postCaseSummaries(listOf(crn)) },
@@ -34,7 +35,7 @@ class CaseService(
   }
 
   fun getCase(crn: String): Case {
-    val res = AggregatorService.orchestrateAsyncCalls(
+    val res = aggregatorService.orchestrateAsyncCalls(
       mapOf(
         "delius" to { probationIntegrationDeliusClient.postCaseSummaries(listOf(crn)) },
         "corePersonRecord" to { corePersonRecordClient.getCorePersonRecord(crn) },
