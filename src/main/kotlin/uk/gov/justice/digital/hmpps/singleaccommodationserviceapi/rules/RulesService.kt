@@ -14,7 +14,7 @@ class RulesService {
   fun calculateEligibilityForCas1(): FinalResult {
     // Loaded domain data (Out of scope for current ticket)
     val data = DomainData(
-      tier = "A1S",
+      tier = "A1",
     )
 
 // 1. Set what evaluator we are going to use default is just a proxy

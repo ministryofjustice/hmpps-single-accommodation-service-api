@@ -11,7 +11,7 @@ class STierRule : Rule {
   override val description = "Not S Tier candidate"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.tier.matches(regex = Regex("^S$"))) {
+    ruleStatus = if (data.tier.endsWith("S")) {
       RuleStatus.FAIL
     } else {
       RuleStatus.PASS
