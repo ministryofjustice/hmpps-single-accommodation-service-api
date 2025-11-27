@@ -16,7 +16,7 @@ class CaseController(
   @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("/cases")
   fun getCases(
-    @RequestParam crns: List<String> = listOf(
+    @RequestParam(required = false) crns: List<String> = listOf(
       "X371199",
       "X968879",
       "X966926",
