@@ -3,11 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.FinalResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
@@ -16,7 +12,7 @@ import java.time.OffsetDateTime
 @Service
 class RulesService {
 
-  fun calculateEligibilityForCas1(crn: String): ServiceResult {
+  fun calculateEligibilityForCas1(crn: String): FinalResult {
     // Loaded domain data (Out of scope for current ticket)
     val data = buildDomainData(crn)
 
@@ -30,38 +26,7 @@ class RulesService {
     val engine = RulesEngine(ruleSetEvaluator)
 
 // 4. run the ruleset
-    val ruleSetResult = engine.execute(ruleSet, data)
-
-// build results
-    return buildCas1Results(ruleSetResult)
-  }
-
-  fun buildCas1Results(ruleSetResult: RuleSetResult): ServiceResult {
-    val failedResults = ruleSetResult.results.filter { it.ruleStatus == RuleStatus.FAIL }
-    val actions = ruleSetResult.results.filter { it.potentialAction != null }.map { it.potentialAction!! }
-    return when (ruleSetResult.ruleSetStatus) {
-      RuleSetStatus.FAIL -> {
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          actions = listOf(),
-          failedResults = failedResults,
-        )
-      }
-      RuleSetStatus.PASS -> {
-        ServiceResult(
-          serviceStatus = ServiceStatus.UPCOMING,
-          actions = actions,
-          failedResults = listOf(),
-        )
-      }
-      RuleSetStatus.GUIDANCE_FAIL -> {
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          actions = actions,
-          failedResults = failedResults,
-        )
-      }
-    }
+    return engine.execute(ruleSet, data)
   }
 
   private fun buildDomainData(crn: String) = DomainData(
@@ -70,6 +35,7 @@ class RulesService {
       code = "M",
       description = "Male",
     ),
+    referralDate = null,
     releaseDate = OffsetDateTime.now().plusMonths(6),
   )
 }
