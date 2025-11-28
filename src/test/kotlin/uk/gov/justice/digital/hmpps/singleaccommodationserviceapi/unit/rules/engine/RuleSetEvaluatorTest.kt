@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.D
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.D
 class RuleSetEvaluatorTest {
   private val sTierRule = STierRule()
   private val maleRiskRule = MaleRiskRule()
+  private val femaleRiskRule = FemaleRiskRule()
   private val defaultRuleSetEvaluator = DefaultRuleSetEvaluator()
   private val circuitBreakRuleSetEvaluator = CircuitBreakRuleSetEvaluator()
   val ruleSet = Cas1RuleSet()
@@ -28,7 +30,7 @@ class RuleSetEvaluatorTest {
   )
 
   @Test
-  fun `default rule set evaluator everything passes`() {
+  fun `default rule set evaluator everything passes (male)`() {
     val data = DomainData(
       tier = "A1",
       sex = male,
@@ -45,16 +47,16 @@ class RuleSetEvaluatorTest {
   }
 
   @Test
-  fun `default rule set evaluator everything fails`() {
+  fun `default rule set evaluator everything fails (female)`() {
     val data = DomainData(
-      tier = "A1S",
+      tier = "C2S",
       sex = female,
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
     val expectedResult = listOf(
       RuleResult(sTierRule.description, RuleStatus.FAIL),
-      RuleResult(maleRiskRule.description, RuleStatus.FAIL),
+      RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -79,14 +81,14 @@ class RuleSetEvaluatorTest {
   @Test
   fun `default rule set evaluator first passes, second fails`() {
     val data = DomainData(
-      tier = "A1",
+      tier = "C1",
       sex = female,
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
     val expectedResult = listOf(
       RuleResult(sTierRule.description, RuleStatus.PASS),
-      RuleResult(maleRiskRule.description, RuleStatus.FAIL),
+      RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -139,15 +141,35 @@ class RuleSetEvaluatorTest {
   @Test
   fun `circuit breaker rule set evaluator first passes, second fails`() {
     val data = DomainData(
-      tier = "A1",
+      tier = "D1",
       sex = female,
     )
     val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 
     val expectedResult = listOf(
-      RuleResult(maleRiskRule.description, RuleStatus.FAIL),
+      RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
     )
 
     assertThat(result).isEqualTo(expectedResult)
+  }
+
+  @Test
+  fun `male risk rule is not evaluated for female data`() {
+    val data = DomainData(
+      tier = "A1",
+      sex = female,
+    )
+    val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
+    assertThat(result.any { it.description == maleRiskRule.description }).isFalse()
+  }
+
+  @Test
+  fun `female risk rule is not evaluated for male data`() {
+    val data = DomainData(
+      tier = "A1",
+      sex = male,
+    )
+    val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
+    assertThat(result.any { it.description == femaleRiskRule.description }).isFalse()
   }
 }

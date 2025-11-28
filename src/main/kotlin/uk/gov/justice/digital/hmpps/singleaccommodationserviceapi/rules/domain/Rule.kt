@@ -4,6 +4,7 @@ interface Rule {
   val services: List<ServiceType>
   val description: String
   fun evaluate(data: DomainData): RuleResult
+  fun appliesTo(data: DomainData): Boolean = true
 }
 
 enum class ServiceType(val value: String) {

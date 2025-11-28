@@ -6,16 +6,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 
-class MaleRiskRule : Rule {
+class FemaleRiskRule : Rule {
   override val services = listOf(ServiceType.CAS1)
-  override val description = "Is Male and is Tier A3 - B1"
+  override val description = "Is Female and is Tier A3 - C3"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.sex.code == "M" && data.tier.matches(regex = Regex("^[A-B].*"))) {
+    ruleStatus = if (data.sex.code == "F" && data.tier.matches(regex = Regex("^(A[1-3]|B[1-3]|C3)S?$"))) {
       RuleStatus.PASS
     } else {
       RuleStatus.FAIL
     },
   )
-  override fun appliesTo(data: DomainData) = data.sex.code == "M"
+  override fun appliesTo(data: DomainData) = data.sex.code == "F"
 }

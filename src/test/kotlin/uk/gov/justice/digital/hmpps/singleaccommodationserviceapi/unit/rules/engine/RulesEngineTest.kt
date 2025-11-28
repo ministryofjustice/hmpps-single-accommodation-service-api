@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.R
 class RulesEngineTest {
   private val sTierRule = STierRule()
   private val maleRiskRule = MaleRiskRule()
+  private val femaleRiskRule = FemaleRiskRule()
   private val defaultRuleSetEvaluator = DefaultRuleSetEvaluator()
   private val circuitBreakerRuleSetEvaluator = CircuitBreakRuleSetEvaluator()
   val ruleSet = Cas1RuleSet()
@@ -47,7 +49,7 @@ class RulesEngineTest {
   @Test
   fun `rules engine fails all cas1 rules with default rule set evaluator`() {
     val data = DomainData(
-      "A1S",
+      "C1S",
       sex = female,
     )
 
@@ -56,7 +58,7 @@ class RulesEngineTest {
     val expectedResult = FinalResult(
       failedResults = listOf(
         RuleResult(sTierRule.description, RuleStatus.FAIL),
-        RuleResult(maleRiskRule.description, RuleStatus.FAIL),
+        RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
       ),
       ruleSetStatus = RuleSetStatus.FAIL,
     )
@@ -86,7 +88,7 @@ class RulesEngineTest {
   @Test
   fun `rules engine fail second cas1 rule with default rule set evaluator`() {
     val data = DomainData(
-      "A1",
+      "C1",
       sex = female,
     )
 
@@ -94,7 +96,7 @@ class RulesEngineTest {
 
     val expectedResult = FinalResult(
       failedResults = listOf(
-        RuleResult(maleRiskRule.description, RuleStatus.FAIL),
+        RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
       ),
       ruleSetStatus = RuleSetStatus.FAIL,
     )
@@ -157,7 +159,7 @@ class RulesEngineTest {
   @Test
   fun `rules engine fail second cas1 rule with circuit breaker rule set evaluator`() {
     val data = DomainData(
-      "A1",
+      "C1",
       sex = female,
     )
 
@@ -165,7 +167,7 @@ class RulesEngineTest {
 
     val expectedResult = FinalResult(
       failedResults = listOf(
-        RuleResult(maleRiskRule.description, RuleStatus.FAIL),
+        RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
       ),
       ruleSetStatus = RuleSetStatus.FAIL,
     )
