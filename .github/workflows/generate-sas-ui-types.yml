@@ -14,6 +14,9 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            hmpps-single-accommodation-service-ui
       - name: Trigger SAS UI Type Generation Workflow
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: actions/github-script@v8
