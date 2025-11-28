@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.config
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config
 
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
