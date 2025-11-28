@@ -79,6 +79,8 @@ redisson:
     minimum-idle-size: 5
 
 redis:
+  replica:
+    host:
   host:
   port: 6379
   auth:

@@ -33,6 +33,7 @@ generic-service:
 #      SENTRY_DSN: "SENTRY_DSN"
     elasticache-redis:
       REDIS_HOST: 'primary_endpoint_address'
+      REDIS_REPLICA_HOST: 'reader_endpoint_address'
       REDIS_AUTH_TOKEN: 'auth_token'
 
   allowlist:
