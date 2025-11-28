@@ -9,14 +9,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
+import java.time.LocalDate
 
 class RuleSetEvaluatorTest {
   private val sTierRule = STierRule()
   private val maleRiskRule = MaleRiskRule()
   private val femaleRiskRule = FemaleRiskRule()
+  private val referralTimingGuidanceRule = ReferralTimingGuidanceRule()
   private val defaultRuleSetEvaluator = DefaultRuleSetEvaluator()
   private val circuitBreakRuleSetEvaluator = CircuitBreakRuleSetEvaluator()
   val ruleSet = Cas1RuleSet()
@@ -34,6 +37,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
@@ -41,6 +46,7 @@ class RuleSetEvaluatorTest {
     val expectedResult = listOf(
       RuleResult(sTierRule.description, RuleStatus.PASS),
       RuleResult(maleRiskRule.description, RuleStatus.PASS),
+      RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS),
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -51,12 +57,15 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "C2S",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(2),
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
     val expectedResult = listOf(
       RuleResult(sTierRule.description, RuleStatus.FAIL),
       RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
+      RuleResult(referralTimingGuidanceRule.description, RuleStatus.GUIDANCE),
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -67,12 +76,15 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1S",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
     val expectedResult = listOf(
       RuleResult(sTierRule.description, RuleStatus.FAIL),
       RuleResult(maleRiskRule.description, RuleStatus.PASS),
+      RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS),
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -83,12 +95,15 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "C1",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(3),
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
     val expectedResult = listOf(
       RuleResult(sTierRule.description, RuleStatus.PASS),
       RuleResult(femaleRiskRule.description, RuleStatus.FAIL),
+      RuleResult(referralTimingGuidanceRule.description, RuleStatus.GUIDANCE),
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -99,6 +114,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
@@ -113,6 +130,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1S",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
     val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -128,6 +147,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1S",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
     val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -143,6 +164,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "D1",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
     val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -158,6 +181,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
     assertThat(result.any { it.description == maleRiskRule.description }).isFalse()
@@ -168,6 +193,8 @@ class RuleSetEvaluatorTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
     val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
     assertThat(result.any { it.description == femaleRiskRule.description }).isFalse()

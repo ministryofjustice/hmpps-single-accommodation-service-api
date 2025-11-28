@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 
 class Cas1RuleSetTest {
@@ -12,6 +13,7 @@ class Cas1RuleSetTest {
   private val sTierRule = STierRule()
   private val maleRiskRule = MaleRiskRule()
   private val femaleRiskRule = FemaleRiskRule()
+  private val referralTimingGuidanceRule = ReferralTimingGuidanceRule()
 
   @Test
   fun `check ruleset contains STierRule`() {
@@ -35,5 +37,13 @@ class Cas1RuleSetTest {
 
     assertThat(result.any { it is FemaleRiskRule }).isTrue()
     assertThat(result.find { it.description == femaleRiskRule.description }).isNotNull
+  }
+
+  @Test
+  fun `check ruleset contains ReferralTimingGuidanceRule`() {
+    val result = cas1RuleSet.getRules()
+
+    assertThat(result.any { it is ReferralTimingGuidanceRule }).isTrue()
+    assertThat(result.find { it.description == referralTimingGuidanceRule.description }).isNotNull
   }
 }

@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.F
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
+import java.time.LocalDate
 
 @Service
 class RulesService {
@@ -19,6 +20,8 @@ class RulesService {
         code = "M",
         description = "Male",
       ),
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(4),
     )
 
 // 1. Set what evaluator we are going to use default is just a proxy

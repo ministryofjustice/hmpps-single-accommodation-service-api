@@ -8,4 +8,5 @@ data class RuleResult(
 enum class RuleStatus(val value: String) {
   PASS("Pass"),
   FAIL("Fail"),
+  GUIDANCE("Guidance"),
 }

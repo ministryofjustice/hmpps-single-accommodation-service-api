@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 
 class Cas1RuleSet : RuleSet {
@@ -11,5 +12,6 @@ class Cas1RuleSet : RuleSet {
     STierRule(),
     MaleRiskRule(),
     FemaleRiskRule(),
+    ReferralTimingGuidanceRule(),
   )
 }

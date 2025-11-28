@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
+import java.time.LocalDate
 
 class RulesEngineTest {
   private val sTierRule = STierRule()
@@ -37,6 +38,8 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -51,6 +54,8 @@ class RulesEngineTest {
     val data = DomainData(
       "C1S",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -71,6 +76,8 @@ class RulesEngineTest {
     val data = DomainData(
       "A1S",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -90,6 +97,8 @@ class RulesEngineTest {
     val data = DomainData(
       "C1",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -109,6 +118,8 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(circuitBreakerRuleSetEvaluator).execute(ruleSet, data)
@@ -123,6 +134,8 @@ class RulesEngineTest {
     val data = DomainData(
       "A1S",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(circuitBreakerRuleSetEvaluator).execute(ruleSet, data)
@@ -142,6 +155,8 @@ class RulesEngineTest {
     val data = DomainData(
       "A1S",
       sex = male,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(circuitBreakerRuleSetEvaluator).execute(ruleSet, data)
@@ -161,6 +176,8 @@ class RulesEngineTest {
     val data = DomainData(
       "C1",
       sex = female,
+      referralDate = null,
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = RulesEngine(circuitBreakerRuleSetEvaluator).execute(ruleSet, data)
