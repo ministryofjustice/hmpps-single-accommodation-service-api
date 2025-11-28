@@ -12,16 +12,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 
 class RulesEngineTest {
   private val sTierRule = STierRule()
   private val maleRiskRule = MaleRiskRule()
-  private val ruleEvaluator = DefaultRuleEvaluator()
-  private val defaultRuleSetEvaluator = DefaultRuleSetEvaluator(ruleEvaluator)
-  private val circuitBreakerRuleSetEvaluator = CircuitBreakRuleSetEvaluator(ruleEvaluator)
+  private val defaultRuleSetEvaluator = DefaultRuleSetEvaluator()
+  private val circuitBreakerRuleSetEvaluator = CircuitBreakRuleSetEvaluator()
   val ruleSet = Cas1RuleSet()
   private val male = Sex(
     code = "M",

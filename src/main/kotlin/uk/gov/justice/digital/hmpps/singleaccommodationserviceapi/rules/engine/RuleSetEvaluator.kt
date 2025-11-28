@@ -9,14 +9,14 @@ interface RuleSetEvaluator {
   fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult>
 }
 
-class DefaultRuleSetEvaluator(private val evaluator: RuleEvaluator) : RuleSetEvaluator {
-  override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> = ruleset.getRules().map { rule -> evaluator.evaluate(rule, data) }
+class DefaultRuleSetEvaluator : RuleSetEvaluator {
+  override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> = ruleset.getRules().map { rule -> rule.evaluate(data) }
 }
 
-class CircuitBreakRuleSetEvaluator(private val evaluator: RuleEvaluator) : RuleSetEvaluator {
+class CircuitBreakRuleSetEvaluator : RuleSetEvaluator {
   override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> {
     ruleset.getRules().map { rule ->
-      val result = evaluator.evaluate(rule, data)
+      val result = rule.evaluate(data)
       if (result.ruleStatus == RuleStatus.FAIL) {
         return listOf(result)
       }

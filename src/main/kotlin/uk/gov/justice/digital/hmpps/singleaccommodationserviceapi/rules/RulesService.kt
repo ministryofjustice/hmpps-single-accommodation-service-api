@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.coreper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.FinalResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 
@@ -23,18 +22,15 @@ class RulesService {
     )
 
 // 1. Set what evaluator we are going to use default is just a proxy
-    val ruleEvaluator = DefaultRuleEvaluator()
+    val ruleSetEvaluator = DefaultRuleSetEvaluator()
 
-// 2. Set what evaluator we are going to use default is just a proxy
-    val ruleSetEvaluator = DefaultRuleSetEvaluator(ruleEvaluator)
-
-// 3. get the ruleSet
+// 2. get the ruleSet
     val ruleSet = Cas1RuleSet()
 
-// 4. get the engine
+// 3. get the engine
     val engine = RulesEngine(ruleSetEvaluator)
 
-// 5. run the ruleset
+// 4. run the ruleset
     return engine.execute(ruleSet, data)
   }
 }
