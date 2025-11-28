@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import java.time.LocalDate
 
 data class Case(
@@ -8,7 +9,7 @@ data class Case(
   val crn: String?,
   val prisonNumber: String?,
   val tier: String?,
-  val rosh: String?,
+  val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedTo?,
   val currentAccommodation: CurrentAccommodation?,

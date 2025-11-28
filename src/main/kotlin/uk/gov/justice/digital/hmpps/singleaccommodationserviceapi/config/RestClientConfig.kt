@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierClient
 import java.net.http.HttpClient
 import java.time.Duration
 import kotlin.reflect.KClass
@@ -45,6 +46,12 @@ class RestClientConfig(
   fun corePersonRecordClient(@Value($$"${service.core-person-record.base-url}") baseUrl: String) = createClient(
     baseUrl,
     CorePersonRecordClient::class,
+  )
+
+  @Bean
+  fun tierClient(@Value($$"${service.tier.base-url}") baseUrl: String) = createClient(
+    baseUrl,
+    TierClient::class,
   )
 
   private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {

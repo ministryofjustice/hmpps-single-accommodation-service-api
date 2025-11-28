@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 
 interface ProbationIntegrationOasysClient {
-  @GetExchange(value = "/rosh-summary/{crn}")
-  fun getRoshSummary(@PathVariable crn: String): RoshSummary
+  @GetExchange(value = "/rosh/{crn}")
+  fun getRoshDetails(@PathVariable crn: String): RoshDetails
 }
 
 @Service
@@ -15,5 +15,5 @@ class ProbationIntegrationOasysCachingService(
   val probationIntegrationOasysClient: ProbationIntegrationOasysClient,
 ) {
   @Cacheable("getRoshSummaryByCrn", key = "#crn")
-  fun getRoshSummary(crn: String) = probationIntegrationOasysClient.getRoshSummary(crn)
+  fun getRoshSummary(crn: String) = probationIntegrationOasysClient.getRoshDetails(crn)
 }

@@ -14,7 +14,7 @@ class MockCase {
           crn = "CRN000$count",
           prisonNumber = "PRN000$count",
           tier = "TODO()",
-          rosh = "TODO()",
+          riskLevel = MockRosh.getMockedRoshDetails().rosh.determineOverallRiskLevel(),
           pncReference = "TODO()",
           assignedTo = null,
           currentAccommodation = null,
