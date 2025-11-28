@@ -1,5 +1,5 @@
 hmpps-auth:
-  url: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+  url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 
 service:
   probation-integration-delius:
@@ -11,3 +11,5 @@ service:
   core-person-record:
     base-url: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
 
+redis:
+  host: localhost
