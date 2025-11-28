@@ -19,6 +19,7 @@ class RedissonMasterSlaveServersConfig {
   @Bean(name = ["redissonClient"], destroyMethod = "shutdown")
   fun redissonClient(
     @Value($$"${redis.host}") redisHost: String,
+    @Value($$"${redis.replica.host}") redisReplicaHost: String,
     @Value($$"${redis.port}") redisPort: Int,
     @Value($$"${redis.auth.token}") authToken: String,
     @Value($$"${redisson.timeout}") redissonTimeout: Int,
@@ -28,8 +29,7 @@ class RedissonMasterSlaveServersConfig {
     @Value($$"${redisson.connnection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
   ): RedissonClient {
     val masterAddress = "rediss://$redisHost:$redisPort"
-    // todo: aware the below replace() technique is hacky - if we go with this approach then we will need to introduce extra secrets to k8s
-    val replicaAddress = masterAddress.replace("master", "replica")
+    val replicaAddress = "rediss://$redisReplicaHost:$redisPort"
     val config = Config()
     config.useMasterSlaveServers()
       .setMasterAddress(masterAddress)
