@@ -14,7 +14,7 @@ class CaseController(
   val caseService: CaseService,
 ) {
 
-  @PreAuthorize("permitAll()")
+  @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("/cases")
   fun getCases(
     @RequestParam(required = false) searchTerm: String?,
