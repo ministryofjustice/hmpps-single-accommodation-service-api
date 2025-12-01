@@ -1,11 +1,9 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.case
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedTo
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.Case
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.NextAccommodation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallsPerIdentifier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummaries
@@ -16,6 +14,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probati
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierCachingService
 import java.time.LocalDate
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 @Service
 class CaseService(
@@ -26,51 +26,70 @@ class CaseService(
   val tierCachingService: TierCachingService,
 ) {
   fun getCases(crns: List<String>): List<Case> {
-    val res = aggregatorService.orchestrateAsyncCalls(
-      crns,
-      mapOf(
-        "delius" to { crn -> probationIntegrationDeliusCachingService.getCaseSummary(crn) },
-        "corePersonRecord" to { crn -> corePersonRecordCachingService.getCorePersonRecord(crn) },
-        "roshDetails" to { crn -> probationIntegrationOasysCachingService.getRoshSummary(crn) },
-        "tier" to { crn -> tierCachingService.getTier(crn) },
+    val bulkCall = mapOf(
+      ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },
+    )
+    val callsPerIdentifier = mapOf(
+      ApiCallKeys.GET_CORE_PERSON_RECORD to { crn: String -> corePersonRecordCachingService.getCorePersonRecord(crn) },
+      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
+      ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
+    )
+    val results = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = bulkCall,
+      callsPerIdentifier = CallsPerIdentifier(
+        identifiersToIterate = crns,
+        calls = callsPerIdentifier,
       ),
     )
+    val call1Results = results.standardCallsNoIterationResults
+      ?.get(ApiCallKeys.GET_CASE_SUMMARIES) as? CaseSummaries
+      ?: error("${ApiCallKeys.GET_CASE_SUMMARIES} failed")
 
-    return res.entries.map { it ->
-      val cpr = it.value["corePersonRecord"] as CorePersonRecord
-      val roshDetails = it.value["roshDetails"] as RoshDetails
-      val tier = it.value["tier"] as Tier
-      val delius = (it.value["delius"] as CaseSummaries).cases[0]
-      buildCase(it.key, cpr, roshDetails, tier, delius)
+    return results.callsPerIdentifierResults!!.map { (crn, calls) ->
+      val caseSummary = call1Results.cases.first { it.crn == crn }
+
+      val cpr = calls[ApiCallKeys.GET_CORE_PERSON_RECORD] as? CorePersonRecord
+        ?: error("${ApiCallKeys.GET_CORE_PERSON_RECORD} failed for $crn")
+      val roshDetails = calls[ApiCallKeys.GET_ROSH_DETAIL] as? RoshDetails
+        ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
+      val tier = calls[ApiCallKeys.GET_TIER] as? Tier
+        ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
+
+      buildCase(crn, cpr, roshDetails, tier, caseSummary)
     }
   }
 
   fun getCase(crn: String): Case {
-    val res = aggregatorService.orchestrateAsyncCalls(
-      mapOf(
-        "delius" to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
-        "corePersonRecord" to { corePersonRecordCachingService.getCorePersonRecord(crn) },
-        "roshDetails" to { probationIntegrationOasysCachingService.getRoshSummary(crn) },
-        "tier" to { tierCachingService.getTier(crn) },
-      ),
+    val calls = mapOf(
+      ApiCallKeys.GET_CASE_SUMMARY to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
+      ApiCallKeys.GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
+      ApiCallKeys.GET_ROSH_DETAIL to { probationIntegrationOasysCachingService.getRoshDetails(crn) },
+      ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
+    )
+    val results = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = calls,
     )
 
-    val cpr = res["corePersonRecord"] as CorePersonRecord
-    val roshDetails = res["roshDetails"] as RoshDetails
-    val tier = res["tier"] as Tier
-    val delius = (res["delius"] as CaseSummaries).cases[0]
-    return buildCase(crn, cpr, roshDetails, tier, delius)
+    val caseSummary = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CASE_SUMMARY] as? CaseSummaries
+      ?: error("${ApiCallKeys.GET_CASE_SUMMARY} failed for $crn")
+    val cpr = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CORE_PERSON_RECORD] as? CorePersonRecord
+      ?: error("${ApiCallKeys.GET_CORE_PERSON_RECORD} failed for $crn")
+    val roshDetails = results.standardCallsNoIterationResults!![ApiCallKeys.GET_ROSH_DETAIL] as? RoshDetails
+      ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
+    val tier = results.standardCallsNoIterationResults!![ApiCallKeys.GET_TIER] as? Tier
+      ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
+    return buildCase(crn, cpr, roshDetails, tier, caseSummary.cases[0])
   }
 
-  fun buildCase(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, delius: CaseSummary): Case = Case(
+  fun buildCase(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, caseSummary: CaseSummary): Case = Case(
     name = cpr.fullName,
-    dateOfBirth = delius.dateOfBirth,
+    dateOfBirth = caseSummary.dateOfBirth,
     crn = crn,
     prisonNumber = cpr.identifiers?.prisonNumbers[0],
     tier = tier.tierScore,
     riskLevel = roshDetails.rosh.determineOverallRiskLevel(),
-    pncReference = delius.pnc,
-    assignedTo = AssignedTo(1L, delius.manager.team.name),
+    pncReference = caseSummary.pnc,
+    assignedTo = AssignedTo(1L, caseSummary.manager.team.name),
     currentAccommodation = CurrentAccommodation("AIRBNB", LocalDate.now().plusDays(10)),
     nextAccommodation = NextAccommodation("PRISON", LocalDate.now().plusDays(100)),
   )

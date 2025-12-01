@@ -16,4 +16,6 @@ class ProbationIntegrationDeliusCachingService(
 ) {
   @Cacheable("getCaseSummaryByCrn", key = "#crn")
   fun getCaseSummary(crn: String) = probationIntegrationDeliusClient.postCaseSummaries(listOf(crn))
+
+  fun getCaseSummaries(crns: List<String>) = probationIntegrationDeliusClient.postCaseSummaries(crns)
 }

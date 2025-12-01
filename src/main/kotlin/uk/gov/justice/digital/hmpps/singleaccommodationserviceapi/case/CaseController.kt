@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.case.CaseService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 
 @RestController
@@ -35,7 +34,7 @@ class CaseController(
   }
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
-  @GetMapping("/case/{crn}")
+  @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<Any> {
     val cases = caseService.getCase(crn)
     return ResponseEntity.ok(cases)

@@ -15,5 +15,5 @@ class ProbationIntegrationOasysCachingService(
   val probationIntegrationOasysClient: ProbationIntegrationOasysClient,
 ) {
   @Cacheable("getRoshSummaryByCrn", key = "#crn")
-  fun getRoshSummary(crn: String) = probationIntegrationOasysClient.getRoshDetails(crn)
+  fun getRoshDetails(crn: String) = probationIntegrationOasysClient.getRoshDetails(crn)
 }
