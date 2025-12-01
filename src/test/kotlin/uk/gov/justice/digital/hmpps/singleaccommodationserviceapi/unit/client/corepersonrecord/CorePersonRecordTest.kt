@@ -8,7 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.orchestration.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusCachingService
@@ -33,7 +33,7 @@ class CorePersonRecordTest {
   lateinit var tierCachingService: TierCachingService
 
   @InjectMockKs
-  lateinit var caseService: CaseService
+  lateinit var caseOrchestrationService: CaseOrchestrationService
 
   @ParameterizedTest
   @CsvSource(

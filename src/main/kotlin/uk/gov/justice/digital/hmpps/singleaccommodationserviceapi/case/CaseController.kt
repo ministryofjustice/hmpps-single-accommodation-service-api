@@ -28,8 +28,7 @@ class CaseController(
       "X969031",
     ),
   ): ResponseEntity<List<Case>> {
-    val cases = caseService.getCases(crns)
-      .filter { riskLevel == null || it.riskLevel == riskLevel }
+    val cases = caseService.getCases(crns, riskLevel)
     return ResponseEntity.ok(cases)
   }
 

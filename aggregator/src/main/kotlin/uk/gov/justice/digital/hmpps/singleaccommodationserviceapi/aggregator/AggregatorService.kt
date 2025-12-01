@@ -48,9 +48,9 @@ class AggregatorService {
       standardCallsNoIterationResults = if (standardCallsNoIteration.isNotEmpty()) {
         asyncResults["standardCallsNoIteration"] as Map<String, Any>
       } else null,
-      callsPerIdentifierResults = if (callsPerIdentifier != null) {
+      callsPerIdentifierResults = callsPerIdentifier?.let {
         asyncResults["callsPerIdentifier"] as Map<String, Map<String, Any>>
-      } else null
+      }
     )
   }
 
