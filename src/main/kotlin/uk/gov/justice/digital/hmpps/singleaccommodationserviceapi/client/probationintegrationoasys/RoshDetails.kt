@@ -1,31 +1,31 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys
 
-import java.time.Instant
+import java.time.ZonedDateTime
 
 data class RoshDetails(
-  val assessmentId: Int,
+  val assessmentId: Long,
   val assessmentType: String,
-  val dateCompleted: Instant,
-  val assessorSignedDate: Instant,
-  val initiationDate: Instant,
+  val dateCompleted: ZonedDateTime? = null,
+  val assessorSignedDate: ZonedDateTime? = null,
+  val initiationDate: ZonedDateTime,
   val assessmentStatus: String,
-  val superStatus: String,
-  val laterWIPAssessmentExists: Boolean,
+  val superStatus: String? = null,
+  val laterWIPAssessmentExists: Boolean? = null,
   val limitedAccessOffender: Boolean,
-  val lastUpdatedDate: Instant,
+  val lastUpdatedDate: ZonedDateTime? = null,
   val rosh: Rosh,
 )
 
 data class Rosh(
-  val riskChildrenCommunity: RiskLevel,
-  val riskPrisonersCustody: RiskLevel,
-  val riskStaffCustody: RiskLevel,
-  val riskStaffCommunity: RiskLevel,
-  val riskKnownAdultCustody: RiskLevel,
-  val riskKnownAdultCommunity: RiskLevel,
-  val riskPublicCustody: RiskLevel,
-  val riskPublicCommunity: RiskLevel,
-  val riskChildrenCustody: RiskLevel,
+  val riskChildrenCommunity: RiskLevel? = null,
+  val riskPrisonersCustody: RiskLevel? = null,
+  val riskStaffCustody: RiskLevel? = null,
+  val riskStaffCommunity: RiskLevel? = null,
+  val riskKnownAdultCustody: RiskLevel? = null,
+  val riskKnownAdultCommunity: RiskLevel? = null,
+  val riskPublicCustody: RiskLevel? = null,
+  val riskPublicCommunity: RiskLevel? = null,
+  val riskChildrenCustody: RiskLevel? = null,
 ) {
   fun determineOverallRiskLevel(): RiskLevel? {
     val levels = listOf(
@@ -39,7 +39,7 @@ data class Rosh(
       riskPublicCustody,
     )
 
-    return levels.maxByOrNull { it.priority }
+    return levels.filter { it != null }.maxByOrNull { it!!.priority }
   }
 }
 

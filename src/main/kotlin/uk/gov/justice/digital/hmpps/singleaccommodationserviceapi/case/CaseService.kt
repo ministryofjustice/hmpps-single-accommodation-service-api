@@ -63,7 +63,7 @@ class CaseService(
   }
 
   fun buildCase(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, delius: CaseSummary): Case = Case(
-    name = "${delius.name.forename} ${cpr.lastName}",
+    name = cpr.fullName,
     dateOfBirth = delius.dateOfBirth,
     crn = crn,
     prisonNumber = cpr.identifiers?.prisonNumbers[0],
