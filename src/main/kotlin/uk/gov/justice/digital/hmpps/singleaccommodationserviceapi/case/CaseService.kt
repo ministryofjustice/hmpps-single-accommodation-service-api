@@ -63,7 +63,7 @@ class CaseService(
   }
 
   fun buildCase(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, delius: CaseSummary): Case = Case(
-    name = formatName(cpr),
+    name = cpr.fullName,
     dateOfBirth = delius.dateOfBirth,
     crn = crn,
     prisonNumber = cpr.identifiers?.prisonNumbers[0],
@@ -74,11 +74,4 @@ class CaseService(
     currentAccommodation = CurrentAccommodation("AIRBNB", LocalDate.now().plusDays(10)),
     nextAccommodation = NextAccommodation("PRISON", LocalDate.now().plusDays(100)),
   )
-
-  fun formatName(cpr: CorePersonRecord) = listOfNotNull(
-    cpr.firstName,
-    cpr.middleNames?.takeIf { it.isNotBlank() },
-    cpr.lastName,
-  )
-    .joinToString(" ")
 }
