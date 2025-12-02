@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probati
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import java.time.LocalDate
 
 data class CaseDto(
@@ -16,7 +17,7 @@ data class CaseDto(
   val crn: String?,
   val prisonNumber: String?,
   val photoUrl: String?,
-  val tier: String?,
+  val tier: TierScore?,
   val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedToDto?,

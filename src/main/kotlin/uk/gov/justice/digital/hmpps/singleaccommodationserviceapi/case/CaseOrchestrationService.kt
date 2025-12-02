@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.Agg
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovdedPremisesCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummaries
@@ -23,7 +23,7 @@ class CaseOrchestrationService(
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
-  val approvdedPremisesCachingService: ApprovdedPremisesCachingService,
+  val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
   fun getCases(crns: List<String>): List<CaseOrchestrationDto> {
     val bulkCall = mapOf(
@@ -34,7 +34,7 @@ class CaseOrchestrationService(
       ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
       ApiCallKeys.GET_ACCOMMODATION_STATUS to { crn: String ->
-        approvdedPremisesCachingService.getAccommodationStatus(crn)
+        approvedPremisesCachingService.getAccommodationStatus(crn)
       },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
@@ -78,7 +78,7 @@ class CaseOrchestrationService(
       ApiCallKeys.GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
       ApiCallKeys.GET_ROSH_DETAIL to { probationIntegrationOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
-      ApiCallKeys.GET_ACCOMMODATION_STATUS to { approvdedPremisesCachingService.getAccommodationStatus(crn) },
+      ApiCallKeys.GET_ACCOMMODATION_STATUS to { approvedPremisesCachingService.getAccommodationStatus(crn) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
