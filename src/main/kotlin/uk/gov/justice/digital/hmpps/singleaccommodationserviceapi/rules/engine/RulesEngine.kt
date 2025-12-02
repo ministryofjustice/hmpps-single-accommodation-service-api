@@ -18,7 +18,7 @@ class RulesEngine(
   private fun aggregateResults(results: List<RuleResult>): RuleSetResult {
     val failedResults = results.filter { it.ruleStatus == RuleStatus.FAIL }
     return RuleSetResult(
-      failedResults = failedResults,
+      results = results,
       ruleSetStatus = if (failedResults.isEmpty()) {
         RuleSetStatus.PASS
       } else {

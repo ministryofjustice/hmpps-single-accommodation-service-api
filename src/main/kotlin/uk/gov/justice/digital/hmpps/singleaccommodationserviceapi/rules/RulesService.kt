@@ -5,13 +5,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.coreper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 import java.time.OffsetDateTime
-import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class RulesService {
@@ -33,37 +33,34 @@ class RulesService {
     val ruleSetResult = engine.execute(ruleSet, data)
 
 // build results
-    return buildCas1Results(ruleSetResult, data)
+    return buildCas1Results(ruleSetResult)
   }
 
-  private fun buildCas1Results(ruleSetResult: RuleSetResult, data: DomainData): ServiceResult {
-    val actionText = "Start approved premise referral"
-    var action = ""
-    var cas1RuleSetStatus = ServiceStatus.NOT_ELIGIBLE
-    if (ruleSetResult.ruleSetStatus == RuleSetStatus.PASS) {
-      cas1RuleSetStatus = ServiceStatus.NOT_STARTED
-      action = "$actionText ${getDaysUntilReleaseDateString(data.releaseDate)}"
-    } else if (ruleSetResult.ruleSetStatus == RuleSetStatus.GUIDANCE_FAIL) {
-      cas1RuleSetStatus = ServiceStatus.UPCOMING
-      action = actionText
-    }
-    return ServiceResult(
-      serviceStatus = cas1RuleSetStatus,
-      action = action,
-      failedResults = ruleSetResult.failedResults,
-    )
-  }
-
-  private fun getDaysUntilReleaseDateString(releaseDate: OffsetDateTime): String {
-    val daysUntilRelease = DAYS.between(OffsetDateTime.now(), releaseDate).toInt()
-    return if (daysUntilRelease == 0) {
-      "in 1 day"
-    } else if (daysUntilRelease == 1) {
-      "in 1 day"
-    } else if (daysUntilRelease > 1) {
-      "in $daysUntilRelease days"
-    } else {
-      throw error("Days until release is negative, status should be Cas1RuleSetStatus.NOT_STARTED")
+  fun buildCas1Results(ruleSetResult: RuleSetResult): ServiceResult {
+    val failedResults = ruleSetResult.results.filter { it.ruleStatus == RuleStatus.FAIL }
+    val actions = ruleSetResult.results.filter { it.potentialAction != null }.map { it.potentialAction!! }
+    return when (ruleSetResult.ruleSetStatus) {
+      RuleSetStatus.FAIL -> {
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+          actions = listOf(),
+          failedResults = failedResults,
+        )
+      }
+      RuleSetStatus.PASS -> {
+        ServiceResult(
+          serviceStatus = ServiceStatus.UPCOMING,
+          actions = actions,
+          failedResults = listOf(),
+        )
+      }
+      RuleSetStatus.GUIDANCE_FAIL -> {
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          actions = actions,
+          failedResults = failedResults,
+        )
+      }
     }
   }
 
