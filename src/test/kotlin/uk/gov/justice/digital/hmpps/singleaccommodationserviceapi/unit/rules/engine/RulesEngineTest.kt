@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
@@ -19,6 +20,7 @@ import java.time.OffsetDateTime
 class RulesEngineTest {
   private val sTierRule = STierRule()
   private val femaleRiskRule = FemaleRiskRule()
+  private val maleRiskRule = MaleRiskRule()
   private val referralTimingGuidanceRule = ReferralTimingGuidanceRule()
   val ruleSet = Cas1RuleSet()
   private val male = Sex(
@@ -37,13 +39,20 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = OffsetDateTime.now().plusMonths(7),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
 
-    val expectedResult = RuleSetResult(listOf(), RuleSetStatus.PASS)
-
+    val expectedResult = RuleSetResult(
+      listOf(
+        RuleResult(sTierRule.description, RuleStatus.PASS, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+      ),
+      RuleSetStatus.PASS,
+    )
     assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -52,19 +61,20 @@ class RulesEngineTest {
     val data = DomainData(
       "C1S",
       sex = female,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = OffsetDateTime.now().plusMonths(7),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
 
     val expectedResult = RuleSetResult(
-      failedResults = listOf(
+      results = listOf(
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
+        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
       ),
       ruleSetStatus = RuleSetStatus.FAIL,
     )
-
     assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -80,11 +90,13 @@ class RulesEngineTest {
 
     val expectedResult = RuleSetResult(
       listOf(
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true),
+        RuleResult(sTierRule.description, RuleStatus.PASS, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       ),
       RuleSetStatus.GUIDANCE_FAIL,
     )
-
     assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -101,11 +113,12 @@ class RulesEngineTest {
     val expectedResult = RuleSetResult(
       listOf(
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       ),
       RuleSetStatus.FAIL,
     )
-
     assertThat(result).isEqualTo(expectedResult)
   }
 }
