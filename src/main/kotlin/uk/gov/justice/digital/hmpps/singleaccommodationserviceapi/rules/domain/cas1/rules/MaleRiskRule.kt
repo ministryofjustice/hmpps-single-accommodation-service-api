@@ -4,10 +4,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.D
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 
 class MaleRiskRule : Rule {
-  override val services = listOf(ServiceType.CAS1)
   override val description = "FAIL if candidate is Male and is not Tier A3 - B1"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
@@ -16,6 +14,6 @@ class MaleRiskRule : Rule {
     } else {
       RuleStatus.PASS
     },
-    isGuidance = this.isGuidance,
+    actionable = this.actionable,
   )
 }

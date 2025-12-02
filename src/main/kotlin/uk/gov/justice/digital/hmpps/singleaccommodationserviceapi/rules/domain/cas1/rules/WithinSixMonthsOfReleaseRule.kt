@@ -4,15 +4,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.D
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MONTHS
 
-class ReferralTimingGuidanceRule : Rule {
-  override val services = listOf(ServiceType.CAS1)
+class WithinSixMonthsOfReleaseRule : Rule {
   override val description = "FAIL if candidate is within 6 months of release date"
-  override val isGuidance = true
+  override val actionable = true
   val actionText = "Start approved premise referral"
 
   fun buildAction(isCandidateWithin6Months: Boolean, data: DomainData) = if (isCandidateWithin6Months) {
@@ -40,7 +38,7 @@ class ReferralTimingGuidanceRule : Rule {
     return RuleResult(
       description = description,
       ruleStatus = if (isCandidateWithin6Months) RuleStatus.FAIL else RuleStatus.PASS,
-      isGuidance = isGuidance,
+      actionable = actionable,
       potentialAction = buildAction(isCandidateWithin6Months, data),
     )
   }

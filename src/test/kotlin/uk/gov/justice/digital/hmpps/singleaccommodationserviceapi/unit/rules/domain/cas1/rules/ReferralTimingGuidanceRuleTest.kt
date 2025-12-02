@@ -6,12 +6,11 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import java.time.OffsetDateTime
 
-class ReferralTimingGuidanceRuleTest {
-  private val rule = ReferralTimingGuidanceRule()
+class WithinSixMonthsOfReleaseRuleTest {
+  private val rule = WithinSixMonthsOfReleaseRule()
   private val male = Sex(code = "M", description = "Male")
 
   @Test
@@ -61,11 +60,6 @@ class ReferralTimingGuidanceRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(rule.description).isEqualTo("FAIL if candidate is within 6 months of release date")
-  }
-
-  @Test
-  fun `rule is applicable to CAS 1`() {
-    assertThat(rule.services).contains(ServiceType.CAS1)
   }
 
   @Nested

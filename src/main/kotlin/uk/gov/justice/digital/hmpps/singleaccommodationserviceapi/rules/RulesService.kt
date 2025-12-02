@@ -2,65 +2,70 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 import java.time.OffsetDateTime
+import java.util.UUID
 
 @Service
 class RulesService {
+  private val ruleSetEvaluator = DefaultRuleSetEvaluator()
+  private val engine = RulesEngine(ruleSetEvaluator)
+  private val cas1EligibilityRuleSet = Cas1EligibilityRuleSet()
 
-  fun calculateEligibilityForCas1(crn: String): ServiceResult {
-    // Loaded domain data (Out of scope for current ticket)
-    val data = buildDomainData(crn)
-
-// 1. Set what evaluator we are going to use default is just a proxy
-    val ruleSetEvaluator = DefaultRuleSetEvaluator()
-
-// 2. get the ruleSet
-    val ruleSet = Cas1RuleSet()
-
-// 3. get the engine
-    val engine = RulesEngine(ruleSetEvaluator)
-
-// 4. run the ruleset
-    val ruleSetResult = engine.execute(ruleSet, data)
-
-// build results
-    return buildCas1Results(ruleSetResult)
+  fun calculateResultForCas1(crn: String): ServiceResult {
+    val cas1Application = getSuitableCas1Application(crn)
+    if (cas1Application != null) {
+      return buildStatusServiceResult(cas1Application)
+    } else {
+      val data = buildDomainData(crn)
+      val eligibilityRuleSetResult = engine.execute(cas1EligibilityRuleSet, data)
+      return buildEligibilityServiceResult(eligibilityRuleSetResult)
+    }
   }
 
-  fun buildCas1Results(ruleSetResult: RuleSetResult): ServiceResult {
+  fun buildStatusServiceResult(cas1Application: Cas1Application): ServiceResult {
+    val actions = mutableListOf<String>()
+    if (cas1Application.status == ApprovedPremisesApplicationStatus.PlacementAllocated && (cas1Application.placementStatus == Cas1PlacementStatus.UPCOMING || cas1Application.placementStatus == Cas1PlacementStatus.ARRIVED)) {
+      actions.add("Create a placement request.")
+    }
+
+    return ServiceResult(
+      failedResults = listOf(),
+      serviceStatus = cas1Application.status.toString(),
+      actions = actions,
+    )
+  }
+
+  fun buildEligibilityServiceResult(ruleSetResult: RuleSetResult): ServiceResult {
     val failedResults = ruleSetResult.results.filter { it.ruleStatus == RuleStatus.FAIL }
     val actions = ruleSetResult.results.filter { it.potentialAction != null }.map { it.potentialAction!! }
     return when (ruleSetResult.ruleSetStatus) {
-      RuleSetStatus.FAIL -> {
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          actions = listOf(),
-          failedResults = failedResults,
-        )
-      }
-      RuleSetStatus.PASS -> {
-        ServiceResult(
-          serviceStatus = ServiceStatus.UPCOMING,
-          actions = actions,
-          failedResults = listOf(),
-        )
-      }
-      RuleSetStatus.GUIDANCE_FAIL -> {
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          actions = actions,
-          failedResults = failedResults,
-        )
-      }
+      RuleSetStatus.FAIL -> ServiceResult(
+        serviceStatus = ServiceStatus.NOT_ELIGIBLE.toString(),
+        actions = listOf(),
+        failedResults = failedResults,
+      )
+      RuleSetStatus.PASS -> ServiceResult(
+        serviceStatus = ServiceStatus.UPCOMING.toString(),
+        actions = actions,
+        failedResults = listOf(),
+      )
+      RuleSetStatus.ACTION_NEEDED -> ServiceResult(
+        serviceStatus = ServiceStatus.NOT_STARTED.toString(),
+        actions = actions,
+        failedResults = failedResults,
+      )
     }
   }
 
@@ -71,5 +76,9 @@ class RulesService {
       description = "Male",
     ),
     releaseDate = OffsetDateTime.now().plusMonths(6),
+  )
+
+  private fun getSuitableCas1Application(crn: String): Cas1Application? = Cas1Application(
+    id = UUID.randomUUID(),
   )
 }

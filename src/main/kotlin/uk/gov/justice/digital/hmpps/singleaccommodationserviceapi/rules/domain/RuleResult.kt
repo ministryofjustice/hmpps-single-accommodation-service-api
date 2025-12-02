@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain
 data class RuleResult(
   val description: String,
   val ruleStatus: RuleStatus,
-  val isGuidance: Boolean,
+  val actionable: Boolean,
   val potentialAction: String? = null,
 )
 
-enum class RuleStatus(val value: String) {
-  PASS("Pass"),
-  FAIL("Fail"),
+enum class RuleStatus {
+  PASS,
+  FAIL,
 }

@@ -7,7 +7,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
 import java.time.OffsetDateTime
 
@@ -79,12 +78,6 @@ class MaleRiskRuleTest {
     val result = maleRiskRule.evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
-  }
-
-  @Test
-  fun `rule is applicable to CAS 1`() {
-    val result = maleRiskRule.services
-    assertThat(result).contains(ServiceType.CAS1)
   }
 
   @Test

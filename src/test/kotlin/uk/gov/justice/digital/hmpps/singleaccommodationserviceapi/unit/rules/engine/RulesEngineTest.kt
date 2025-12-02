@@ -8,11 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 import java.time.OffsetDateTime
@@ -21,8 +21,8 @@ class RulesEngineTest {
   private val sTierRule = STierRule()
   private val femaleRiskRule = FemaleRiskRule()
   private val maleRiskRule = MaleRiskRule()
-  private val referralTimingGuidanceRule = ReferralTimingGuidanceRule()
-  val ruleSet = Cas1RuleSet()
+  private val withinSixMonthsOfReleaseRule = WithinSixMonthsOfReleaseRule()
+  val ruleSet = Cas1EligibilityRuleSet()
   private val male = Sex(
     code = "M",
     description = "Male",
@@ -49,7 +49,7 @@ class RulesEngineTest {
         RuleResult(sTierRule.description, RuleStatus.PASS, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
       ),
       RuleSetStatus.PASS,
     )
@@ -71,7 +71,7 @@ class RulesEngineTest {
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
       ),
       ruleSetStatus = RuleSetStatus.FAIL,
     )
@@ -79,7 +79,7 @@ class RulesEngineTest {
   }
 
   @Test
-  fun `rules engine fails just with a fail of guidance rule so should return GUIDANCE_FAIL`() {
+  fun `rules engine fails just with a fail of actionable rule so should return ACTION_NEEDED`() {
     val data = DomainData(
       tier = "A1",
       sex = male,
@@ -93,15 +93,15 @@ class RulesEngineTest {
         RuleResult(sTierRule.description, RuleStatus.PASS, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       ),
-      RuleSetStatus.GUIDANCE_FAIL,
+      RuleSetStatus.ACTION_NEEDED,
     )
     assertThat(result).isEqualTo(expectedResult)
   }
 
   @Test
-  fun `rules engine fails with a fail of guidance rule and a fail of non guidance rule so should return FAIL`() {
+  fun `rules engine fails with a fail of actionable rule and a fail of non guidance rule so should return FAIL`() {
     val data = DomainData(
       tier = "A1S",
       sex = male,
@@ -115,7 +115,7 @@ class RulesEngineTest {
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       ),
       RuleSetStatus.FAIL,
     )
