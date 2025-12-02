@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain
 data class ServiceResult(
   val failedResults: List<RuleResult>,
   val serviceStatus: ServiceStatus,
-  val actions: List<String>,
+  val action: String,
 )
 
 enum class ServiceStatus(val value: String) {
