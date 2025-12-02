@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import java.time.LocalDate
 
-data class Case(
+data class CaseDto(
   val name: String,
   val dateOfBirth: LocalDate?,
   val crn: String?,
@@ -11,11 +11,11 @@ data class Case(
   val tier: String?,
   val riskLevel: RiskLevel?,
   val pncReference: String?,
-  val assignedTo: AssignedTo?,
-  val currentAccommodation: CurrentAccommodation?,
-  val nextAccommodation: NextAccommodation?,
+  val assignedTo: AssignedToDto?,
+  val currentAccommodation: CurrentAccommodationDto?,
+  val nextAccommodation: NextAccommodationDto?,
 )
 
-data class AssignedTo(val id: Long, val name: String)
-data class CurrentAccommodation(val type: String, val endDate: LocalDate)
-data class NextAccommodation(val type: String, val startDate: LocalDate)
+data class AssignedToDto(val id: Long, val name: String)
+data class CurrentAccommodationDto(val type: String, val endDate: LocalDate)
+data class NextAccommodationDto(val type: String, val startDate: LocalDate)
