@@ -22,10 +22,8 @@ class CaseController(
     @RequestParam(required = false) riskLevel: RiskLevel?,
     // these crns are added temporarily
     @RequestParam(required = false) crns: List<String> = listOf(
-      "X371199",
-      "X968879",
-      "X966926",
-      "X969031",
+      "XY12345Z",
+      "XX12345X",
     ),
   ): ResponseEntity<List<CaseDto>> {
     val cases = caseService.getCases(crns, riskLevel)
