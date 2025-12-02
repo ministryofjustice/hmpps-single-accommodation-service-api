@@ -4,13 +4,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.D
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MONTHS
 
 class ReferralTimingGuidanceRule : Rule {
-  override val services = listOf(ServiceType.CAS1)
   override val description = "FAIL if candidate is within 6 months of release date"
   override val isGuidance = true
   val actionText = "Start approved premise referral"

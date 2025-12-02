@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 
-class Cas1RuleSet : RuleSet {
+class Cas1EligibilityRuleSet : RuleSet {
   override fun getRules(): List<Rule> = listOf(
     STierRule(),
     MaleRiskRule(),

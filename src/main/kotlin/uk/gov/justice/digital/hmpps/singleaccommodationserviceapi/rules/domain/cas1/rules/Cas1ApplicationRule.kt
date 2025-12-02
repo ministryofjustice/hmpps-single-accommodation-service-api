@@ -5,11 +5,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 
-class MaleRiskRule : Rule {
-  override val description = "FAIL if candidate is Male and is not Tier A3 - B1"
+class Cas1ApplicationRule : Rule {
+  override val description = "FAIL if candidate has no submitted Cas1 application"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.sex.code == "M" && !data.tier.matches(regex = Regex("^(A[1-3]|B[1-3])S?$"))) {
+    ruleStatus = if (data.cas1Application?.submittedAt == null) {
       RuleStatus.FAIL
     } else {
       RuleStatus.PASS
