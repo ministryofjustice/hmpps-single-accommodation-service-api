@@ -10,13 +10,13 @@ hmpps-auth:
 
 service:
   probation-integration-delius:
-    base-url: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
+    base-url: http://localhost:9990
   probation-integration-oasys:
-    base-url: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
+    base-url: http://localhost:9991
   approved-premises-api:
-    base-url: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
+    base-url: http://localhost:9992
   core-person-record:
-    base-url: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
+    base-url: http://localhost:9993
   tier:
-    base-url: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
+    base-url: http://localhost:9994
 
