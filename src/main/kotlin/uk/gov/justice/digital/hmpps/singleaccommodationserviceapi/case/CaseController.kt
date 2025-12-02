@@ -27,7 +27,7 @@ class CaseController(
       "X966926",
       "X969031",
     ),
-  ): ResponseEntity<List<Case>> {
+  ): ResponseEntity<List<CaseDto>> {
     val cases = caseService.getCases(crns, riskLevel)
     return ResponseEntity.ok(cases)
   }
