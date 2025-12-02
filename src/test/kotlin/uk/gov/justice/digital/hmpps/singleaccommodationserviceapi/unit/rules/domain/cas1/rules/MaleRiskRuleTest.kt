@@ -27,7 +27,6 @@ class MaleRiskRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = female,
-      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
@@ -51,7 +50,6 @@ class MaleRiskRuleTest {
     val data = DomainData(
       tier = tier,
       sex = male,
-      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
@@ -75,7 +73,6 @@ class MaleRiskRuleTest {
     val data = DomainData(
       tier = tier,
       sex = male,
-      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
@@ -93,6 +90,6 @@ class MaleRiskRuleTest {
   @Test
   fun `rule has correct description`() {
     val result = maleRiskRule.description
-    assertThat(result).isEqualTo("Is Male and is Tier A3 - B1")
+    assertThat(result).isEqualTo("FAIL if candidate is Male and is not Tier A3 - B1")
   }
 }

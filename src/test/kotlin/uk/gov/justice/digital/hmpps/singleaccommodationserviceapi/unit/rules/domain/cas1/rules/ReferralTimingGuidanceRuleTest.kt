@@ -18,7 +18,6 @@ class ReferralTimingGuidanceRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(4),
     )
     val result = rule.evaluate(data)
@@ -30,7 +29,6 @@ class ReferralTimingGuidanceRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      referralDate = null,
       releaseDate = OffsetDateTime.now().plusMonths(7),
     )
     val result = rule.evaluate(data)
@@ -42,7 +40,6 @@ class ReferralTimingGuidanceRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      referralDate = OffsetDateTime.now(),
       releaseDate = OffsetDateTime.now().plusMonths(5),
     )
     val result = rule.evaluate(data)
@@ -54,7 +51,6 @@ class ReferralTimingGuidanceRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      referralDate = OffsetDateTime.now(),
       releaseDate = OffsetDateTime.now().plusMonths(8),
     )
     val result = rule.evaluate(data)
@@ -63,7 +59,7 @@ class ReferralTimingGuidanceRuleTest {
 
   @Test
   fun `rule has correct description`() {
-    assertThat(rule.description).isEqualTo("Referral should be completed 6 months prior to release date")
+    assertThat(rule.description).isEqualTo("FAIL if candidate is within 6 months of release date")
   }
 
   @Test

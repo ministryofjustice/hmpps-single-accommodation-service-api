@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.S
 
 class STierRule : Rule {
   override val services = listOf(ServiceType.CAS1)
-  override val description = "Not S Tier candidate"
+  override val description = "FAIL if candidate is S Tier"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
     ruleStatus = if (data.tier.endsWith("S")) {

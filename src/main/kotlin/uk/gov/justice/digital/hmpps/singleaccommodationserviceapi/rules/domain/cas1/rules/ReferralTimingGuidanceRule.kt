@@ -10,7 +10,7 @@ import java.time.temporal.ChronoUnit
 
 class ReferralTimingGuidanceRule : Rule {
   override val services = listOf(ServiceType.CAS1)
-  override val description = "Referral should be completed 6 months prior to release date"
+  override val description = "FAIL if candidate is within 6 months of release date"
   override val isGuidance = true
 
   override fun evaluate(data: DomainData): RuleResult {

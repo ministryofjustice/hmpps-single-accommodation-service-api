@@ -40,7 +40,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1",
         sex = male,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(6),
       )
 
@@ -61,7 +60,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "C2S",
         sex = female,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(2),
       )
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
@@ -81,7 +79,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1S",
         sex = male,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(6),
       )
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
@@ -101,7 +98,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "C1",
         sex = female,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(3),
       )
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
@@ -126,7 +122,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1",
         sex = male,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(6),
       )
 
@@ -142,7 +137,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1S",
         sex = female,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(6),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
@@ -159,7 +153,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1S",
         sex = male,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(6),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
@@ -176,7 +169,6 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "D1",
         sex = female,
-        referralDate = null,
         releaseDate = OffsetDateTime.now().plusMonths(6),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
