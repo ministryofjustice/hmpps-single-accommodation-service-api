@@ -20,3 +20,8 @@ service:
   tier:
     base-url: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
 
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
