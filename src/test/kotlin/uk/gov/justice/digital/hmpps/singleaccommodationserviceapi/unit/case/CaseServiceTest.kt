@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
@@ -64,22 +64,10 @@ class CaseServiceTest {
       val orchestrationOne = orchestrationDtoList.first()
       val orchestrationTwo = orchestrationDtoList[1]
       assertThat(result.first()).isEqualTo(
-        CaseDto(
-          crn = crnOne,
-          cpr = orchestrationOne.cpr,
-          roshDetails = orchestrationOne.roshDetails,
-          tier = orchestrationOne.tier,
-          caseSummaries = orchestrationOne.cases,
-        ),
+        CaseAggregate.hydrate(orchestrationOne).getCaseDto(),
       )
       assertThat(result[1]).isEqualTo(
-        CaseDto(
-          crn = crnTwo,
-          cpr = orchestrationTwo.cpr,
-          roshDetails = orchestrationTwo.roshDetails,
-          tier = orchestrationTwo.tier,
-          caseSummaries = orchestrationTwo.cases,
-        ),
+        CaseAggregate.hydrate(orchestrationTwo).getCaseDto(),
       )
     }
 
@@ -144,13 +132,7 @@ class CaseServiceTest {
 
       val orchestrationOne = orchestrationDtoList.first()
       assertThat(result.first()).isEqualTo(
-        CaseDto(
-          crn = crnOne,
-          cpr = orchestrationOne.cpr,
-          roshDetails = orchestrationOne.roshDetails,
-          tier = orchestrationOne.tier,
-          caseSummaries = orchestrationOne.cases,
-        ),
+        CaseAggregate.hydrate(orchestrationOne).getCaseDto(),
       )
     }
   }
@@ -163,13 +145,7 @@ class CaseServiceTest {
       every { caseOrchestrationService.getCase(crnOne) } returns caseOrchestrationDto
 
       assertThat(caseService.getCase(crnOne)).isEqualTo(
-        CaseDto(
-          crn = crnOne,
-          cpr = caseOrchestrationDto.cpr,
-          roshDetails = caseOrchestrationDto.roshDetails,
-          tier = caseOrchestrationDto.tier,
-          caseSummaries = caseOrchestrationDto.cases,
-        ),
+        CaseAggregate.hydrate(caseOrchestrationDto).getCaseDto(),
       )
     }
   }

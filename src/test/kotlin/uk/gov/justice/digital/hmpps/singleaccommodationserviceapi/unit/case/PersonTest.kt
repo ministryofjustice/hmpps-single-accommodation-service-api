@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.client.corepersonrecord
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.case
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.Person
 
-class CorePersonRecordTest {
+class PersonTest {
 
   @ParameterizedTest
   @CsvSource(
@@ -28,8 +28,15 @@ class CorePersonRecordTest {
     lastName: String?,
     expected: String,
   ) {
-    val cpr = CorePersonRecord(firstName = firstname, middleNames = middleNames, lastName = lastName)
+    val cpr = Person(
+      firstName = firstname,
+      middleNames = middleNames,
+      lastName = lastName,
+      dateOfBirth = null,
 
+      prisonNumbers = emptyList(),
+      pncReferences = emptyList(),
+    )
     assertThat(cpr.fullName).isEqualTo(expected)
   }
 }
