@@ -34,9 +34,29 @@ class RulesService {
       data,
       ServiceStatus.CONFIRMED,
       ServiceStatus.SUBMITTED,
-      calculateEligibilityRuleSet,
+      cas1StatusFailFunc,
     )
   }
+
+  private val cas1StatusFailFunc = fun (
+    failedResults: List<RuleResult>,
+    data: DomainData,
+  ): ServiceResult {
+    val eligibilityRuleset = engine.execute(cas1EligibilityRuleSet, data)
+    return buildResults(
+      eligibilityRuleset,
+      data,
+      ServiceStatus.UPCOMING,
+      ServiceStatus.NOT_STARTED,
+      cas1EligibilityFailFunc,
+    )
+  }
+
+  private val cas1EligibilityFailFunc = fun (failedResults: List<RuleResult>, data: DomainData) = ServiceResult(
+    serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+    actions = listOf(),
+    failedResults = failedResults,
+  )
 
   fun buildResults(
     ruleSetResult: RuleSetResult,
@@ -45,8 +65,8 @@ class RulesService {
     guidanceFailStatus: ServiceStatus,
     failFunc: (failedResults: List<RuleResult>, data: DomainData) -> ServiceResult,
   ): ServiceResult {
-    val failedResults = filterForFailedResults(ruleSetResult)
-    val actions = filterForRuleSetActions(ruleSetResult)
+    val failedResults = ruleSetResult.results.filter { it.ruleStatus == RuleStatus.FAIL }
+    val actions = ruleSetResult.results.filter { it.potentialAction != null }.map { it.potentialAction!! }
     return when (ruleSetResult.ruleSetStatus) {
       RuleSetStatus.FAIL -> failFunc(failedResults, data)
       RuleSetStatus.PASS -> ServiceResult(
@@ -61,32 +81,6 @@ class RulesService {
       )
     }
   }
-
-  private val eligibilityFailFunc = fun (failedResults: List<RuleResult>, data: DomainData) = ServiceResult(
-    serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-    actions = listOf(),
-    failedResults = failedResults,
-  )
-
-  private val calculateEligibilityRuleSet = fun (
-    failedResults: List<RuleResult>,
-    data: DomainData,
-  ): ServiceResult {
-    val eligibilityRuleset = engine.execute(cas1EligibilityRuleSet, data)
-    return buildResults(
-      eligibilityRuleset,
-      data,
-      ServiceStatus.UPCOMING,
-      ServiceStatus.NOT_STARTED,
-      eligibilityFailFunc,
-    )
-  }
-
-  private fun filterForRuleSetActions(rulSetResult: RuleSetResult) = rulSetResult.results
-    .filter { it.potentialAction != null }
-    .map { it.potentialAction!! }
-  private fun filterForFailedResults(rulSetResult: RuleSetResult) = rulSetResult.results
-    .filter { it.ruleStatus == RuleStatus.FAIL }
 
   private fun buildDomainData(crn: String) = DomainData(
     tier = "A1",
