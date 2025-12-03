@@ -1,3 +1,5 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.client.probationintegrationoasys
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

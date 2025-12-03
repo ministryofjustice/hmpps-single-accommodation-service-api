@@ -1,9 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import java.time.LocalDate
 
-data class Case(
+data class CaseDto(
   val name: String,
   val dateOfBirth: LocalDate?,
   val crn: String?,
@@ -11,11 +15,24 @@ data class Case(
   val tier: String?,
   val riskLevel: RiskLevel?,
   val pncReference: String?,
-  val assignedTo: AssignedTo?,
-  val currentAccommodation: CurrentAccommodation?,
-  val nextAccommodation: NextAccommodation?,
-)
+  val assignedTo: AssignedToDto?,
+  val currentAccommodation: CurrentAccommodationDto?,
+  val nextAccommodation: NextAccommodationDto?,
+) {
+  constructor(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, caseSummaries: List<CaseSummary>) : this(
+    name = cpr.fullName,
+    dateOfBirth = caseSummaries[0].dateOfBirth,
+    crn = crn,
+    prisonNumber = cpr.identifiers?.prisonNumbers[0],
+    tier = tier.tierScore,
+    riskLevel = roshDetails.rosh.determineOverallRiskLevel(),
+    pncReference = caseSummaries[0].pnc,
+    assignedTo = AssignedToDto(1L, caseSummaries[0].manager.team.name),
+    currentAccommodation = CurrentAccommodationDto("AIRBNB", LocalDate.now().plusDays(10)),
+    nextAccommodation = NextAccommodationDto("PRISON", LocalDate.now().plusDays(100)),
+  )
+}
 
-data class AssignedTo(val id: Long, val name: String)
-data class CurrentAccommodation(val type: String, val endDate: LocalDate)
-data class NextAccommodation(val type: String, val startDate: LocalDate)
+data class AssignedToDto(val id: Long, val name: String)
+data class CurrentAccommodationDto(val type: String, val endDate: LocalDate)
+data class NextAccommodationDto(val type: String, val startDate: LocalDate)
