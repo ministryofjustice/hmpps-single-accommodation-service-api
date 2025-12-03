@@ -1,7 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
@@ -11,14 +12,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.S
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.orchestration.RulesOrchestrationService
 import java.time.OffsetDateTime
 
 @Service
-class RulesService {
+class RulesService(
+  val rulesOrchestrationService: RulesOrchestrationService,
+) {
 
   fun calculateEligibilityForCas1(crn: String): ServiceResult {
     // Loaded domain data (Out of scope for current ticket)
-    val data = buildDomainData(crn)
+    val data = getDomainData(crn)
 
 // 1. Set what evaluator we are going to use default is just a proxy
     val ruleSetEvaluator = DefaultRuleSetEvaluator()
@@ -64,12 +68,14 @@ class RulesService {
     }
   }
 
-  private fun buildDomainData(crn: String) = DomainData(
-    tier = "A1",
-    sex = Sex(
-      code = "M",
-      description = "Male",
-    ),
-    releaseDate = OffsetDateTime.now().plusMonths(6),
+  private fun buildDomainData(cpr: CorePersonRecord, tier: Tier, releaseDate: OffsetDateTime) = DomainData(
+    tier = tier.tierScore,
+    sex = cpr.sex,
+    releaseDate,
   )
+
+  fun getDomainData(crn: String): DomainData {
+    val domainData = rulesOrchestrationService.getEligibilityDomainData(crn)
+    return buildDomainData(domainData.cpr, domainData.tier, OffsetDateTime.now().plusMonths(6))
+  }
 }

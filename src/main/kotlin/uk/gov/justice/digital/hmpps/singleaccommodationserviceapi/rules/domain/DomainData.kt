@@ -5,6 +5,6 @@ import java.time.OffsetDateTime
 
 data class DomainData(
   val tier: String,
-  val sex: Sex,
+  val sex: Sex?,
   val releaseDate: OffsetDateTime,
 )
