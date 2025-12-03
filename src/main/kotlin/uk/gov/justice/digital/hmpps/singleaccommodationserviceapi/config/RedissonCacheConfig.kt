@@ -87,7 +87,7 @@ class RedissonCacheConfig {
       "getCorePersonRecordByCrn" to CacheConfig(180_000, 120_000),
       "getTierByCrn" to CacheConfig(180_000, 120_000),
       "getAccommodationStatus" to CacheConfig(180_000, 120_000),
-
+      "getPrisonerByPrisonerNumber" to CacheConfig(180_000, 120_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

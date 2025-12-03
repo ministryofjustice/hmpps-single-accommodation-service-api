@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
@@ -11,14 +13,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.S
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
-import java.time.OffsetDateTime
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.orchestration.RulesOrchestrationService
 
 @Service
-class RulesService {
+class RulesService(
+  val rulesOrchestrationService: RulesOrchestrationService,
+) {
 
   fun calculateEligibilityForCas1(crn: String): ServiceResult {
     // Loaded domain data (Out of scope for current ticket)
-    val data = buildDomainData(crn)
+    val data = getDomainData(crn)
 
 // 1. Set what evaluator we are going to use default is just a proxy
     val ruleSetEvaluator = DefaultRuleSetEvaluator()
@@ -64,12 +68,20 @@ class RulesService {
     }
   }
 
-  private fun buildDomainData(crn: String) = DomainData(
-    tier = "A1",
-    sex = Sex(
-      code = "M",
-      description = "Male",
-    ),
-    releaseDate = OffsetDateTime.now().plusMonths(6),
-  )
+  fun buildDomainData(cpr: CorePersonRecord, tier: Tier, prisoner: Prisoner) = DomainData(cpr, tier, prisoner)
+
+  fun getPrisonerNumberFromCprData(crn: String, cpr: CorePersonRecord): String {
+    val prisonNumbers = cpr.identifiers?.prisonNumbers
+    if (prisonNumbers.isNullOrEmpty()) {
+      error("No prisoner number found for crn $crn")
+    }
+    return prisonNumbers.last()
+  }
+
+  fun getDomainData(crn: String): DomainData {
+    val tierAndCprData = rulesOrchestrationService.getCprAndTier(crn)
+    val prisoner = rulesOrchestrationService.getPrisoner(getPrisonerNumberFromCprData(crn, tierAndCprData.cpr))
+
+    return buildDomainData(tierAndCprData.cpr, tierAndCprData.tier, prisoner)
+  }
 }
