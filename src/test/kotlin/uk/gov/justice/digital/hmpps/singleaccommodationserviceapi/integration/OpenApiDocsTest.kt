@@ -78,7 +78,7 @@ class OpenApiDocsTest : IntegrationTestBase() {
 
   @ParameterizedTest
   @Disabled("TODO Enable this test once you have added security schema to OpenApiConfiguration.OpenAPi().components(). Add the security scheme / roles to @CsvSource")
-  @CsvSource(value = ["security-scheme-name, ROLE_"])
+  @CsvSource(value = ["security-scheme-name, ROLE_PROBATION"])
   fun `the security scheme is setup for bearer tokens`(key: String, role: String) {
     webTestClient.get()
       .uri("/v3/api-docs")

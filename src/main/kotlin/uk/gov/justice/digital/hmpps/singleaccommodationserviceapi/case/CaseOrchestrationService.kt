@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.Agg
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovdedPremisesCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummaries
@@ -23,7 +23,7 @@ class CaseOrchestrationService(
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
-  val approvdedPremisesCachingService: ApprovdedPremisesCachingService,
+  val approvdedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
   fun getCases(crns: List<String>): List<CaseOrchestrationDto> {
     val bulkCall = mapOf(
