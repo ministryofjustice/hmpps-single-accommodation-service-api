@@ -121,4 +121,22 @@ class RulesServiceTest {
       assertThat(result).isEqualTo(expectedResult)
     }
   }
+
+  @Nested
+  inner class BuildDomainData {
+    @Test
+    fun `getDomainData returns correct DomainData from rules orchestration service`() {
+      val crn = "X12345"
+      val corePersonRecord = CorePersonRecord(sex = Sex("M", "Male"))
+      val tier = Tier(tierScore = "A1", UUID.randomUUID(), LocalDateTime.now(), null)
+      val orchestrationDto = RulesOrchestrationDto(crn, corePersonRecord, tier)
+      every { rulesOrchestrationService.getEligibilityDomainData(crn) } returns orchestrationDto
+
+      val result = rulesService.getDomainData(crn)
+
+      assertThat(result.tier).isEqualTo("A1")
+      assertThat(result.sex).isEqualTo(corePersonRecord.sex)
+      //TODO assert release date is correct once this exists
+    }
+  }
 }
