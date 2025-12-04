@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import java.time.LocalDate
 
-fun getExpectedCaseDtoResponseMultipleJson(
+fun expectedGetCasesResponse(
   currentAccommodationEndDate: LocalDate,
   nextAccommodationStartDate: LocalDate,
 ): String = """
@@ -34,7 +34,7 @@ fun getExpectedCaseDtoResponseMultipleJson(
     "crn": "XY12345Z",
     "prisonNumber": "PRI1",
     "tier": "Tier 1",
-    "riskLevel": "VERY_HIGH",
+    "riskLevel": "MEDIUM",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
       "id": 1,

@@ -8,11 +8,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelp
 
 class ProbationIntegrationDeliusMockServer : WireMockServer(9990) {
 
-  fun stubPostCaseSummariesOKResponse(body: List<String>, response: CaseSummaries) {
+  fun stubPostCaseSummariesOKResponse(response: CaseSummaries) {
     stubFor(
       WireMock
         .post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
-//        .withRequestBody(containing(objectMapper.writeValueAsString(body)))
         .willReturn(
           WireMock
             .aResponse()
