@@ -19,7 +19,7 @@ class CaseIntegrationTest : IntegrationTestBase() {
 
   @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
-  fun `returns correctly populated CaseDtos`() {
+  fun `should get cases`() {
     val crn = "XX12345X"
     val crn2 = "XY12345Z"
     val corePersonRecord = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
