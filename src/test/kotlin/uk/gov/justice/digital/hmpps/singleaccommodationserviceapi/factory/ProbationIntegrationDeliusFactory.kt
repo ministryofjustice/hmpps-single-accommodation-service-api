@@ -56,7 +56,7 @@ fun buildManager(team: Team = buildTeam()) = Manager(
 
 fun buildTeam() = Team(
   code = "TODO(code)",
-  name = "TODO(name)",
+  name = "Team 1",
   ldu = Ldu(
     code = "TODO(code)",
     name = "TODO(name)",

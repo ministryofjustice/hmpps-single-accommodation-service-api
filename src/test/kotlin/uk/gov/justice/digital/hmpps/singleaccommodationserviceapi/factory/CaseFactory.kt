@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 fun buildCaseDto(
   name: String = "Case Name",
-  dateOfBirth: LocalDate = LocalDate.now().minusYears(20),
+  dateOfBirth: LocalDate = LocalDate.of(2000, 12, 3),
   crn: String = "CR12345N",
   prisonNumber: String = "PR98765N",
   tier: String = "Tier1",

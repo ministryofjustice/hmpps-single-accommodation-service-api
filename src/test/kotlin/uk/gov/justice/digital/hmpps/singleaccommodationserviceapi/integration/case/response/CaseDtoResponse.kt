@@ -1,26 +1,31 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response
 
-val expectedCaseDtoResponseMultipleJson = """
+import java.time.LocalDate
+
+fun getExpectedCaseDtoResponseMultipleJson(
+  currentAccommodationEndDate: LocalDate,
+  nextAccommodationStartDate: LocalDate,
+): String = """
 [
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
     "crn": "XX12345X",
     "prisonNumber": "PRI1",
-    "tier": "TODO()",
+    "tier": "Tier 1",
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
       "id": 1,
-      "name": "TODO(name)"
+      "name": "Team 1"
     },
     "currentAccommodation": {
       "type": "AIRBNB",
-      "endDate": "2025-12-13"
+      "endDate": "$currentAccommodationEndDate"
     },
     "nextAccommodation": {
       "type": "PRISON",
-      "startDate": "2026-03-13"
+      "startDate": "$nextAccommodationStartDate"
     }
   },
   {
@@ -28,20 +33,20 @@ val expectedCaseDtoResponseMultipleJson = """
     "dateOfBirth": "2000-12-03",
     "crn": "XY12345Z",
     "prisonNumber": "PRI1",
-    "tier": "TODO()",
+    "tier": "Tier 1",
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
       "id": 1,
-      "name": "TODO(name)"
+      "name": "Team 1"
     },
     "currentAccommodation": {
       "type": "AIRBNB",
-      "endDate": "2025-12-13"
+      "endDate": "$currentAccommodationEndDate"
     },
     "nextAccommodation": {
       "type": "PRISON",
-      "startDate": "2026-03-13"
+      "startDate": "$nextAccommodationStartDate"
     }
   }
 ]

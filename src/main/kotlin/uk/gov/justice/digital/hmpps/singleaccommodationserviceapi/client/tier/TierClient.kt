@@ -15,6 +15,6 @@ interface TierClient {
 class TierCachingService(
   val tierClient: TierClient,
 ) {
-  @Cacheable("getTierByCrn", key = "#crn")
+  @Cacheable("getTierByCrn", key = "#crn", sync = true)
   fun getTier(crn: String) = tierClient.getTier(crn)
 }

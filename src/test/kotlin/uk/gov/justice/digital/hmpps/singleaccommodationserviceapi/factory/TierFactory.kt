@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 fun buildTier() = Tier(
-  tierScore = "TODO()",
+  tierScore = "Tier 1",
   calculationId = UUID.randomUUID(),
   calculationDate = LocalDateTime.now(),
   changeReason = "TODO()",
