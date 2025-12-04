@@ -1,9 +1,9 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.factory
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedTo
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.Case
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.NextAccommodation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import java.time.LocalDate
 
@@ -15,16 +15,16 @@ fun buildCaseDto(
   tier: String = "Tier1",
   riskLevel: RiskLevel = RiskLevel.MEDIUM,
   pncReference: String = "pncReference",
-  assignedTo: AssignedTo = AssignedTo(id = 123456, name = "Assigned To"),
-  currentAccommodation: CurrentAccommodation = CurrentAccommodation(
+  assignedTo: AssignedToDto = AssignedToDto(id = 123456, name = "Assigned To"),
+  currentAccommodation: CurrentAccommodationDto = CurrentAccommodationDto(
     type = "Type1",
     endDate = LocalDate.now().plusDays(5),
   ),
-  nextAccommodation: NextAccommodation = NextAccommodation(
+  nextAccommodation: NextAccommodationDto = NextAccommodationDto(
     type = "Type2",
     startDate = LocalDate.now().plusDays(10),
   ),
-) = Case(
+) = CaseDto(
   name = name,
   dateOfBirth = dateOfBirth,
   crn = crn,
