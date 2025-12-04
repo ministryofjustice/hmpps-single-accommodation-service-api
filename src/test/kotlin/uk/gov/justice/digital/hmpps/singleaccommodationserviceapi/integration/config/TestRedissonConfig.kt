@@ -26,18 +26,15 @@ class TestRedissonConfig {
   fun startRedis() {
     redisServer = RedisServer(redisPort.toInt())
     redisServer.start()
-    println("Embedded Redis started on $redisHost:$redisPort")
   }
 
   @PreDestroy
   fun stopRedis() {
     if (::redissonClientInstance.isInitialized) {
       redissonClientInstance.shutdown()
-      println("RedissonClient shutdown")
     }
     if (::redisServer.isInitialized) {
       redisServer.stop()
-      println("Embedded Redis stopped")
     }
   }
 
