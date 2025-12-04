@@ -7,7 +7,7 @@ data class RuleResult(
   val potentialAction: String? = null,
 )
 
-enum class RuleStatus(val value: String) {
-  PASS("Pass"),
-  FAIL("Fail"),
+enum class RuleStatus {
+  PASS,
+  FAIL,
 }

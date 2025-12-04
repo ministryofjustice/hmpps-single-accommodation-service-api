@@ -5,8 +5,8 @@ data class RuleSetResult(
   val ruleSetStatus: RuleSetStatus,
 )
 
-enum class RuleSetStatus(val value: String) {
-  PASS("Pass"),
-  FAIL("Fail"),
-  GUIDANCE_FAIL("Guidance Fail"),
+enum class RuleSetStatus {
+  PASS,
+  FAIL,
+  GUIDANCE_FAIL,
 }

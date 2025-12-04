@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.MaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import java.time.OffsetDateTime
@@ -20,7 +20,7 @@ class RuleSetEvaluatorTest {
   private val sTierRule = STierRule()
   private val maleRiskRule = MaleRiskRule()
   private val femaleRiskRule = FemaleRiskRule()
-  private val referralTimingGuidanceRule = ReferralTimingGuidanceRule()
+  private val withinSixMonthsOfReleaseRule = WithinSixMonthsOfReleaseRule()
   val ruleSet = Cas1EligibilityRuleSet()
   private val female = Sex(
     code = "F",
@@ -49,7 +49,7 @@ class RuleSetEvaluatorTest {
         RuleResult(sTierRule.description, RuleStatus.PASS, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -68,7 +68,7 @@ class RuleSetEvaluatorTest {
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -87,7 +87,7 @@ class RuleSetEvaluatorTest {
         RuleResult(sTierRule.description, RuleStatus.FAIL, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -106,7 +106,7 @@ class RuleSetEvaluatorTest {
         RuleResult(sTierRule.description, RuleStatus.PASS, false),
         RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
-        RuleResult(referralTimingGuidanceRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       )
 
       assertThat(result).isEqualTo(expectedResult)

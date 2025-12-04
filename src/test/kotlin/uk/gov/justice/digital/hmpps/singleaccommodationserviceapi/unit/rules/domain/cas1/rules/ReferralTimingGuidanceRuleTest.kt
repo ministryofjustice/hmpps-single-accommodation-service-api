@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.ReferralTimingGuidanceRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import java.time.OffsetDateTime
 
 class ReferralTimingGuidanceRuleTest {
-  private val rule = ReferralTimingGuidanceRule()
+  private val rule = WithinSixMonthsOfReleaseRule()
   private val male = Sex(code = "M", description = "Male")
 
   @Test
