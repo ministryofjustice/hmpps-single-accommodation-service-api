@@ -1,9 +1,48 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises
 
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.models.Referral
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.models.generated.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.models.generated.Cas2ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.models.generated.Cas2v2ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.models.generated.Cas3ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.models.toReferral
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS1_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2V2_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS3_REFERRAL
 
 interface ApprovedPremisesClient {
 
-  @GetExchange(value = "/info")
-  fun getInfo(): String
+  @GetExchange(value = "/cas1/external/referrals/{crn}")
+  fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
+
+  @GetExchange(value = "/cas2/external/referrals/{crn}")
+  fun getCas2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
+
+  @GetExchange(value = "/cas2v2/external/referrals/{crn}")
+  fun getCas2v2Referral(@PathVariable crn: String): List<Cas2v2ReferralHistory>
+
+  @GetExchange(value = "/cas3/external/referrals/{crn}")
+  fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
+}
+
+@Service
+class ApprovedPremisesCachingService(
+  private val approvedPremisesClient: ApprovedPremisesClient,
+) {
+  @Cacheable(GET_CAS1_REFERRAL, key = "#crn")
+  fun getCas1Referral(crn: String) = approvedPremisesClient.getCas1Referral(crn).map { toReferral(it) }
+
+  @Cacheable(GET_CAS2_REFERRAL, key = "#crn")
+  fun getCas2Referral(crn: String) = approvedPremisesClient.getCas2Referral(crn).map { toReferral(it) }
+
+  @Cacheable(GET_CAS2V2_REFERRAL, key = "#crn")
+  fun getCas2v2Referral(crn: String) = approvedPremisesClient.getCas2v2Referral(crn).map { toReferral(it) }
+
+  @Cacheable(GET_CAS3_REFERRAL, key = "#crn")
+  fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn).map { toReferral(it) }
 }
