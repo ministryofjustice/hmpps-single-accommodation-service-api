@@ -13,4 +13,11 @@ object ApiCallKeys {
 
   // tier service
   const val GET_TIER = "getTier"
+
+  // approved-premises service - referrals
+  const val GET_CAS1_REFERRAL = "getCas1Referral"
+  const val GET_CAS2_REFERRAL = "getCas2Referral"
+  const val GET_CAS2V2_REFERRAL = "getCas2v2Referral"
+  const val GET_CAS3_REFERRAL = "getCas3Referral"
+
 }
