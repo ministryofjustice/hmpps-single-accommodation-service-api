@@ -13,4 +13,7 @@ object ApiCallKeys {
 
   // tier service
   const val GET_TIER = "getTier"
+
+  // prisoner-search service
+  const val GET_PRISONER = "getPrisoner"
 }
