@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult

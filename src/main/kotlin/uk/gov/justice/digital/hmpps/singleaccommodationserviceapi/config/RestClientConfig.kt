@@ -11,7 +11,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.HmppsAuthInterceptor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierClient

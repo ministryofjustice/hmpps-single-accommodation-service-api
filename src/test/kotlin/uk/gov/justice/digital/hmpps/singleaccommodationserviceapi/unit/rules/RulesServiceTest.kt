@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.RulesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult

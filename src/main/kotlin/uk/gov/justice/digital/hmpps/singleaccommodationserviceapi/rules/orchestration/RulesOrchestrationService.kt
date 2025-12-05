@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCall
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_TIER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.Prisoner
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.PrisonerSearchCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.PrisonerSearchCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierCachingService
 

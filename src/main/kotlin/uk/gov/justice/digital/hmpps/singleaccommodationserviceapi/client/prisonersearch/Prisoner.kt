@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch
 
 import java.time.LocalDate
 import java.time.LocalDateTime

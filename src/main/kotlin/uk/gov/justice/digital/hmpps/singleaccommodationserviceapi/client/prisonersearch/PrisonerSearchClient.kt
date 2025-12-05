@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch
 
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
