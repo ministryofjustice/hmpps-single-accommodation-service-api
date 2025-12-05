@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.CircuitBreakRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 class RuleSetEvaluatorTest {
   private val sTierRule = STierRule()
@@ -40,7 +40,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1",
         sex = male,
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
 
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
@@ -60,7 +60,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "C2S",
         sex = female,
-        releaseDate = OffsetDateTime.now().plusMonths(2),
+        releaseDate = LocalDate.now().plusMonths(2),
       )
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -79,7 +79,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1S",
         sex = male,
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -98,7 +98,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "C1",
         sex = female,
-        releaseDate = OffsetDateTime.now().plusMonths(3),
+        releaseDate = LocalDate.now().plusMonths(3),
       )
       val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -122,7 +122,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1",
         sex = male,
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
 
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
@@ -137,7 +137,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1S",
         sex = female,
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -153,7 +153,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "A1S",
         sex = male,
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 
@@ -169,7 +169,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         tier = "D1",
         sex = female,
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
 

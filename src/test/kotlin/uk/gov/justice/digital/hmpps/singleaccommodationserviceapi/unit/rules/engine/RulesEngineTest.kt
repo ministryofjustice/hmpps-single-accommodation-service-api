@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 class RulesEngineTest {
   private val sTierRule = STierRule()
@@ -39,7 +39,7 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      releaseDate = LocalDate.now().plusMonths(7),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -61,7 +61,7 @@ class RulesEngineTest {
     val data = DomainData(
       "C1S",
       sex = female,
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      releaseDate = LocalDate.now().plusMonths(7),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -83,7 +83,7 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(4),
+      releaseDate = LocalDate.now().plusMonths(4),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)
@@ -105,7 +105,7 @@ class RulesEngineTest {
     val data = DomainData(
       tier = "A1S",
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(4),
+      releaseDate = LocalDate.now().plusMonths(4),
     )
 
     val result = RulesEngine(defaultRuleSetEvaluator).execute(ruleSet, data)

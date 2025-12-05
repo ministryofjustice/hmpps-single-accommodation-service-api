@@ -11,6 +11,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.HmppsAuthInterceptor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.ProbationIntegrationOasysClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierClient
@@ -52,6 +53,12 @@ class RestClientConfig(
   fun tierClient(@Value($$"${service.tier.base-url}") baseUrl: String) = createClient(
     baseUrl,
     TierClient::class,
+  )
+
+  @Bean
+  fun prisonerSearchClient(@Value($$"${service.prisoner-search.base-url}") baseUrl: String) = createClient(
+    baseUrl,
+    PrisonerSearchClient::class,
   )
 
   private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
