@@ -54,8 +54,8 @@ class CaseIntegrationTest : IntegrationTestBase() {
     assertThatJson(result).matchesExpectedJson(
       expectedGetCasesResponse(
         // these two dates are currently dynamically populated and will change with the call for real data.
-        LocalDate.now().plusDays(10),
-        LocalDate.now().plusDays(100),
+        currentAccommodationEndDate = LocalDate.now().plusDays(10),
+        nextAccommodationStartDate = LocalDate.now().plusDays(100),
       ),
     )
   }
