@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.RulesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
@@ -20,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.S
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.orchestration.RulesOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.orchestration.RulesOrchestrationService
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -36,24 +39,37 @@ class RulesServiceTest {
     @Test
     fun `calculate eligibility for cas 1`() {
       val crn = "X12345"
+      val prisonerNumber = "A1234BC"
+      val expectedTier = "A1"
+      val expectedSex = Sex("M", "Male")
+      val expectedReleaseDate = LocalDate.now().plusMonths(6)
+      val expectedActions = listOf("Start approved premise referral")
+      val expectedServiceStatus = ServiceStatus.UPCOMING
+
       val corePersonRecord = CorePersonRecord(
-        sex = Sex("M", "Male"),
+        sex = expectedSex,
+        identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)),
       )
       val tier = Tier(
-        tierScore = "A1",
+        tierScore = expectedTier,
         UUID.randomUUID(),
         LocalDateTime.now(),
         null,
       )
-      val mockDomainData = RulesOrchestrationDto(
+      val prisoner = Prisoner(
+        releaseDate = expectedReleaseDate,
+      )
+      val cprAndTierData = RulesOrchestrationDto(
         crn = crn,
         cpr = corePersonRecord,
         tier = tier,
       )
-      every { rulesOrchestrationService.getEligibilityDomainData(crn) } returns mockDomainData
+      every { rulesOrchestrationService.getCprAndTier(crn) } returns cprAndTierData
+      every { rulesOrchestrationService.getPrisoner(prisonerNumber) } returns prisoner
 
       val result = rulesService.calculateEligibilityForCas1(crn)
-      val expectedResult = ServiceResult(listOf(), ServiceStatus.UPCOMING, listOf("Start approved premise referral"))
+
+      val expectedResult = ServiceResult(listOf(), expectedServiceStatus, expectedActions)
       assertThat(result).isEqualTo(expectedResult)
     }
   }
@@ -127,16 +143,24 @@ class RulesServiceTest {
     @Test
     fun `getDomainData returns correct DomainData from rules orchestration service`() {
       val crn = "X12345"
-      val corePersonRecord = CorePersonRecord(sex = Sex("M", "Male"))
-      val tier = Tier(tierScore = "A1", UUID.randomUUID(), LocalDateTime.now(), null)
+      val prisonerNumber = "A1234BC"
+      val expectedTier = "A1"
+      val expectedSex = Sex("M", "Male")
+      val expectedReleaseDate = LocalDate.now().plusMonths(10)
+
+      val corePersonRecord = CorePersonRecord(sex = expectedSex, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
+      val tier = Tier(tierScore = expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
+      val prisoner = Prisoner(releaseDate = expectedReleaseDate)
       val orchestrationDto = RulesOrchestrationDto(crn, corePersonRecord, tier)
-      every { rulesOrchestrationService.getEligibilityDomainData(crn) } returns orchestrationDto
+
+      every { rulesOrchestrationService.getCprAndTier(crn) } returns orchestrationDto
+      every { rulesOrchestrationService.getPrisoner(prisonerNumber) } returns prisoner
 
       val result = rulesService.getDomainData(crn)
 
-      assertThat(result.tier).isEqualTo("A1")
-      assertThat(result.sex).isEqualTo(corePersonRecord.sex)
-      //TODO assert release date is correct once this exists
+      assertThat(result.tier).isEqualTo(expectedTier)
+      assertThat(result.sex).isEqualTo(expectedSex)
+      assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
   }
 }

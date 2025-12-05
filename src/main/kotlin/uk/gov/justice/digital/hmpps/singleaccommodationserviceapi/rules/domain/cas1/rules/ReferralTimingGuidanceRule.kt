@@ -18,7 +18,7 @@ class ReferralTimingGuidanceRule : Rule {
   fun buildAction(isCandidateWithin6Months: Boolean, data: DomainData) = if (isCandidateWithin6Months) {
     actionText
   } else {
-    val dateToStartReferral = data.releaseDate.minusMonths(6)
+    val dateToStartReferral = data.releaseDate!!.minusMonths(6)
     val daysUntilReferralMustStart = DAYS.between(OffsetDateTime.now().toLocalDate(), dateToStartReferral).toInt()
     if (daysUntilReferralMustStart > 1) {
       "$actionText in $daysUntilReferralMustStart days"
@@ -32,7 +32,7 @@ class ReferralTimingGuidanceRule : Rule {
   override fun evaluate(data: DomainData): RuleResult {
     val monthsUntilRelease = MONTHS.between(
       OffsetDateTime.now().toLocalDate(),
-      data.releaseDate.toLocalDate(),
+      data.releaseDate,
     )
 
     val isCandidateWithin6Months = monthsUntilRelease < 6

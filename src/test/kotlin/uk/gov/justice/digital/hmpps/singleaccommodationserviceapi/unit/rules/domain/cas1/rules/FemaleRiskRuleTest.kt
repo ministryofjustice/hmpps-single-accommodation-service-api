@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.D
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.FemaleRiskRule
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 class FemaleRiskRuleTest {
   private val femaleRiskRule = FemaleRiskRule()
@@ -27,7 +27,7 @@ class FemaleRiskRuleTest {
     val data = DomainData(
       tier = "A1",
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = femaleRiskRule.evaluate(data)
@@ -52,7 +52,7 @@ class FemaleRiskRuleTest {
     val data = DomainData(
       tier = tier,
       sex = female,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = femaleRiskRule.evaluate(data)
@@ -74,7 +74,7 @@ class FemaleRiskRuleTest {
     val data = DomainData(
       tier = tier,
       sex = female,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = femaleRiskRule.evaluate(data)

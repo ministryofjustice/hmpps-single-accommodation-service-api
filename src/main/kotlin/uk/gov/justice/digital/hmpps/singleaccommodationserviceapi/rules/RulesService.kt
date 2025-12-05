@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonerseach.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
@@ -13,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.orchestration.RulesOrchestrationService
-import java.time.OffsetDateTime
 
 @Service
 class RulesService(
@@ -68,14 +68,19 @@ class RulesService(
     }
   }
 
-  private fun buildDomainData(cpr: CorePersonRecord, tier: Tier, releaseDate: OffsetDateTime) = DomainData(
+  private fun buildDomainData(cpr: CorePersonRecord, tier: Tier, prisoner: Prisoner) = DomainData(
     tier = tier.tierScore,
     sex = cpr.sex,
-    releaseDate,
+    releaseDate = prisoner.releaseDate,
   )
 
+  private fun getPrisonerNumberFromCprData(crn: String, cpr: CorePersonRecord): String = cpr.identifiers?.prisonNumbers?.last()
+    ?: error("No prisoner number found for crn $crn")
+
   fun getDomainData(crn: String): DomainData {
-    val domainData = rulesOrchestrationService.getEligibilityDomainData(crn)
-    return buildDomainData(domainData.cpr, domainData.tier, OffsetDateTime.now().plusMonths(6))
+    val tierAndCprData = rulesOrchestrationService.getCprAndTier(crn)
+    val prisoner = rulesOrchestrationService.getPrisoner(getPrisonerNumberFromCprData(crn, tierAndCprData.cpr))
+
+    return buildDomainData(tierAndCprData.cpr, tierAndCprData.tier, prisoner)
   }
 }
