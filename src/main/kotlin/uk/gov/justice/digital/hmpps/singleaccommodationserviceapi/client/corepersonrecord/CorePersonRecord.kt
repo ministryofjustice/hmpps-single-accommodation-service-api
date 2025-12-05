@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class CorePersonRecord(
-  val cprUUID: String? = null,
+  val cprUUID: UUID? = null,
   val firstName: String? = null,
   val middleNames: String? = null,
   val lastName: String? = null,

@@ -14,6 +14,6 @@ interface CorePersonRecordClient {
 class CorePersonRecordCachingService(
   private val corePersonRecordClient: CorePersonRecordClient,
 ) {
-  @Cacheable("getCorePersonRecordByCrn", key = "#crn")
+  @Cacheable("getCorePersonRecordByCrn", key = "#crn", sync = true)
   fun getCorePersonRecord(crn: String) = corePersonRecordClient.getCorePersonRecord(crn)
 }

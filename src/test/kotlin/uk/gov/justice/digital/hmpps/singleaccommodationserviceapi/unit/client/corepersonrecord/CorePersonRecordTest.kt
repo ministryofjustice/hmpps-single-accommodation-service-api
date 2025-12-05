@@ -1,13 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.client.corepersonrecord
 
-import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 
-@ExtendWith(MockKExtension::class)
 class CorePersonRecordTest {
 
   @ParameterizedTest

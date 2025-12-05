@@ -21,13 +21,15 @@ data class CaseDto(
 ) {
   constructor(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, caseSummaries: List<CaseSummary>) : this(
     name = cpr.fullName,
-    dateOfBirth = caseSummaries[0].dateOfBirth,
+    dateOfBirth = cpr.dateOfBirth,
     crn = crn,
-    prisonNumber = cpr.identifiers?.prisonNumbers[0],
+    prisonNumber = cpr.identifiers?.prisonNumbers?.firstOrNull(),
     tier = tier.tierScore,
     riskLevel = roshDetails.rosh.determineOverallRiskLevel(),
-    pncReference = caseSummaries[0].pnc,
-    assignedTo = AssignedToDto(1L, caseSummaries[0].manager.team.name),
+    pncReference = cpr.identifiers?.pncs?.firstOrNull(),
+    assignedTo = caseSummaries.firstOrNull()?.manager?.team?.name?.let {
+      AssignedToDto(1L, name = it)
+    },
     currentAccommodation = CurrentAccommodationDto("AIRBNB", LocalDate.now().plusDays(10)),
     nextAccommodation = NextAccommodationDto("PRISON", LocalDate.now().plusDays(100)),
   )

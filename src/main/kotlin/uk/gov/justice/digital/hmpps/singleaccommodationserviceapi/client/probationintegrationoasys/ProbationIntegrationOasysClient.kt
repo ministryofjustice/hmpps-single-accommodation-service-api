@@ -14,6 +14,6 @@ interface ProbationIntegrationOasysClient {
 class ProbationIntegrationOasysCachingService(
   val probationIntegrationOasysClient: ProbationIntegrationOasysClient,
 ) {
-  @Cacheable("getRoshSummaryByCrn", key = "#crn")
+  @Cacheable("getRoshSummaryByCrn", key = "#crn", sync = true)
   fun getRoshDetails(crn: String) = probationIntegrationOasysClient.getRoshDetails(crn)
 }
