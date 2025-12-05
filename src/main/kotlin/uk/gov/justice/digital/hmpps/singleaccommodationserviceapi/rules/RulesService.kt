@@ -68,14 +68,19 @@ class RulesService(
     }
   }
 
-  private fun buildDomainData(cpr: CorePersonRecord, tier: Tier, prisoner: Prisoner) = DomainData(
+  fun buildDomainData(cpr: CorePersonRecord, tier: Tier, prisoner: Prisoner) = DomainData(
     tier = tier.tierScore,
     sex = cpr.sex,
     releaseDate = prisoner.releaseDate,
   )
 
-  private fun getPrisonerNumberFromCprData(crn: String, cpr: CorePersonRecord): String = cpr.identifiers?.prisonNumbers?.last()
-    ?: error("No prisoner number found for crn $crn")
+  fun getPrisonerNumberFromCprData(crn: String, cpr: CorePersonRecord): String {
+    val prisonNumbers = cpr.identifiers?.prisonNumbers
+    if (prisonNumbers.isNullOrEmpty()) {
+      error("No prisoner number found for crn $crn")
+    }
+    return prisonNumbers.last()
+  }
 
   fun getDomainData(crn: String): DomainData {
     val tierAndCprData = rulesOrchestrationService.getCprAndTier(crn)
