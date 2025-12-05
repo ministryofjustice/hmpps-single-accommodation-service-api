@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodationDto
@@ -16,23 +17,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildI
 import java.time.LocalDate
 import java.util.stream.Stream
 
-class CaseDtoTest {
+class CaseAggregateTest {
 
   @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.case.CaseDtoTest#caseTransformationCases")
-  fun `should transform from case orchestration dto to case dto`(
+  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.case.CaseAggregateTest#caseTransformationCases")
+  fun `should hydrate case-aggregate from case-orchestration dto and convert to case dto`(
     caseOrchestrationDto: CaseOrchestrationDto,
     expectedCaseDto: CaseDto,
   ) {
-    assertThat(
-      CaseDto(
-        crn = caseOrchestrationDto.crn,
-        cpr = caseOrchestrationDto.cpr,
-        roshDetails = caseOrchestrationDto.roshDetails,
-        tier = caseOrchestrationDto.tier,
-        caseSummaries = caseOrchestrationDto.cases,
-      ),
-    ).isEqualTo(expectedCaseDto)
+    val caseAggregate = CaseAggregate.hydrate(caseOrchestrationDto)
+    assertThat(caseAggregate.getCaseDto()).isEqualTo(expectedCaseDto)
   }
 
   private companion object {

@@ -7,17 +7,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probati
 class CaseService(
   val caseOrchestrationService: CaseOrchestrationService,
 ) {
-  fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {
-    val list = caseOrchestrationService.getCases(crns)
-    return list.map {
-      CaseDto(it.crn, it.cpr, it.roshDetails, it.tier, it.cases)
+  fun getCases(crns: List<String>, riskLevel: RiskLevel?) = caseOrchestrationService.getCases(crns).let {
+    it.map { caseOrchestrationDto ->
+      val caseAggregate = CaseAggregate.hydrate(caseOrchestrationDto)
+      caseAggregate.getCaseDto()
     }
-      .filter { riskLevel == null || it.riskLevel == riskLevel }
-      .sortedBy { it.name }
+      .filter { caseDto -> riskLevel == null || caseDto.riskLevel == riskLevel }
+      .sortedBy { caseDto -> caseDto.name }
   }
 
-  fun getCase(crn: String): CaseDto {
-    val case = caseOrchestrationService.getCase(crn)
-    return CaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
+  fun getCase(crn: String) = caseOrchestrationService.getCase(crn).let {
+    val caseAggregate = CaseAggregate.hydrate(it)
+    caseAggregate.getCaseDto()
   }
 }

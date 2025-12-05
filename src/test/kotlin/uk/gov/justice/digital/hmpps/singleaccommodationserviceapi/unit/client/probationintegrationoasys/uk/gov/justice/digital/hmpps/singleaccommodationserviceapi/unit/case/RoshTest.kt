@@ -1,13 +1,13 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.client.probationintegrationoasys
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.case
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.Rosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.Rosh
 
-class RoshDetailsTest {
+class RoshTest {
   @ParameterizedTest(name = "determineOverallRiskLevel() should return {0}")
   @EnumSource(RiskLevel::class)
   fun `overall risk level test`(expectedOverallRiskLevel: RiskLevel) {
