@@ -51,3 +51,32 @@ fun expectedGetCasesResponse(
   }
 ]
 """.trimIndent()
+
+fun expectedGetCasesWithFilterResponse(
+  currentAccommodationEndDate: LocalDate,
+  nextAccommodationStartDate: LocalDate,
+): String = """
+[  
+  {
+    "name": "Zack Middle Smith",
+    "dateOfBirth": "2000-12-03",
+    "crn": "XY12345Z",
+    "prisonNumber": "PRI1",
+    "tier": "Tier 1",
+    "riskLevel": "MEDIUM",
+    "pncReference": "Some PNC Reference",
+    "assignedTo": {
+      "id": 1,
+      "name": "Team 1"
+    },
+    "currentAccommodation": {
+      "type": "AIRBNB",
+      "endDate": "$currentAccommodationEndDate"
+    },
+    "nextAccommodation": {
+      "type": "PRISON",
+      "startDate": "$nextAccommodationStartDate"
+    }
+  }
+]
+""".trimIndent()
