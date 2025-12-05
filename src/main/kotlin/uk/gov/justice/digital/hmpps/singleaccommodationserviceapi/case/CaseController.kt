@@ -34,7 +34,7 @@ class CaseController(
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("/cases/{crn}")
-  fun getCase(@PathVariable crn: String): ResponseEntity<Any> {
+  fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
     val cases = caseService.getCase(crn)
     return ResponseEntity.ok(cases)
   }

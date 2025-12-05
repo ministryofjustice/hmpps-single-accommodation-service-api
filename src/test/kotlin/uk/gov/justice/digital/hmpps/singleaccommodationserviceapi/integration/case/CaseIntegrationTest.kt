@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -14,18 +15,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildR
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesWithFilterResponse
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.LocalDate
 
 class CaseIntegrationTest : IntegrationTestBase() {
-
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
-  @Test
-  fun `should get cases`() {
+  @BeforeEach
+  fun setup() {
     val crn = "XX12345X"
     val crn2 = "XY12345Z"
     val corePersonRecord = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
-    val corePersonRecord2 = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)), firstName = "Zack", lastName = "Smith")
+    val corePersonRecord2 =
+      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)), firstName = "Zack", lastName = "Smith")
     val caseSummaries = CaseSummaries(listOf(buildCaseSummary(crn = crn), buildCaseSummary(crn = crn2)))
     val roshVeryHigh = buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.VERY_HIGH))
     val roshMedium = buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.MEDIUM))
@@ -44,8 +45,15 @@ class CaseIntegrationTest : IntegrationTestBase() {
 
     tierMockServer.stubGetCorePersonRecordOKResponse(crn = crn, tier)
     tierMockServer.stubGetCorePersonRecordOKResponse(crn = crn2, tier)
+  }
 
-    val result = mockMvc.perform(get("/cases?crns=XX12345X,XY12345Z"))
+  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
+  @Test
+  fun `should get cases`() {
+    val result = mockMvc.perform(
+      get("/cases")
+        .param("crns", "XX12345X,XY12345Z"),
+    )
       .andExpect(status().isOk)
       .andReturn()
       .response
@@ -53,6 +61,29 @@ class CaseIntegrationTest : IntegrationTestBase() {
 
     assertThatJson(result).matchesExpectedJson(
       expectedGetCasesResponse(
+        // these two dates are currently dynamically populated and will change with the call for real data.
+        currentAccommodationEndDate = LocalDate.now().plusDays(10),
+        nextAccommodationStartDate = LocalDate.now().plusDays(100),
+      ),
+    )
+  }
+
+  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
+  @Test
+  fun `should get cases with correct filters`() {
+    val result =
+      mockMvc.perform(
+        get("/cases")
+          .param("crns", "XX12345X,XY12345Z")
+          .param("riskLevel", RiskLevel.MEDIUM.name),
+      )
+        .andExpect(status().isOk)
+        .andReturn()
+        .response
+        .contentAsString
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedGetCasesWithFilterResponse(
         // these two dates are currently dynamically populated and will change with the call for real data.
         currentAccommodationEndDate = LocalDate.now().plusDays(10),
         nextAccommodationStartDate = LocalDate.now().plusDays(100),
