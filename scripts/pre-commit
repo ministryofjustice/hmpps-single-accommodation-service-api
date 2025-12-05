@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e
 
-echo "Running git pre-commit hook"
+echo "Running git pre-commit hooks"
+echo "Running 'ktlintCheck'"
 
-./gradlew ktlintFormat
+./gradlew ktlintCheck
 
-# Add all changes made by ktlintFormat
-git add -u
-
-echo "ktlintFormat complete and changes staged."
+echo "ktlintCheck complete."
