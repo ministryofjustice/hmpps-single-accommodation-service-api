@@ -4,10 +4,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.D
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceType
 
 class FemaleRiskRule : Rule {
-  override val services = listOf(ServiceType.CAS1)
   override val description = "FAIL if candidate is Female and is not Tier A3 - C3"
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
