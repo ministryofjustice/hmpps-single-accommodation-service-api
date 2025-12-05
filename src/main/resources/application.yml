@@ -74,7 +74,7 @@ redisson:
   retry:
     interval: 1500
     attempts: 3
-  connnection:
+  connection:
     pool-size: 10
     minimum-idle-size: 5
 

@@ -1,0 +1,7 @@
+complexity:
+  LongParameterList:
+    active: true
+    excludes:
+      - '**/src/test/**Factory.kt'
+    ignoreAnnotated:
+      - 'Configuration'

@@ -3,10 +3,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
   kotlin("plugin.spring") version "2.2.21"
+  id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
+}
+
+detekt {
+  config.setFrom("detekt/detekt.yml")
 }
 
 dependencies {
@@ -30,6 +35,14 @@ dependencies {
 
 kotlin {
   jvmToolchain(21)
+}
+
+configurations.matching { it.name == "detekt" }.all {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "org.jetbrains.kotlin") {
+      useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())
+    }
+  }
 }
 
 tasks {
