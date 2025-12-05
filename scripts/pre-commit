@@ -4,6 +4,6 @@ set -e
 echo "Running git pre-commit hooks"
 echo "Running 'ktlintCheck'"
 
-./gradlew ktlintCheck
+./gradlew ktlintCheck && ./gradlew detekt
 
 echo "ktlintCheck complete."
