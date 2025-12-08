@@ -79,7 +79,7 @@ class RulesEngineTest {
   }
 
   @Test
-  fun `rules engine fails just with a fail of guidance rule so should return GUIDANCE_FAIL`() {
+  fun `rules engine fails just with a fail of actionable rule so should return ACTION_NEEDED`() {
     val data = DomainData(
       tier = "A1",
       sex = male,
@@ -95,13 +95,13 @@ class RulesEngineTest {
         RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
         RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
       ),
-      RuleSetStatus.GUIDANCE_FAIL,
+      RuleSetStatus.ACTION_NEEDED,
     )
     assertThat(result).isEqualTo(expectedResult)
   }
 
   @Test
-  fun `rules engine fails with a fail of guidance rule and a fail of non guidance rule so should return FAIL`() {
+  fun `rules engine fails with a fail of actionable rule and a fail of non guidance rule so should return FAIL`() {
     val data = DomainData(
       tier = "A1S",
       sex = male,

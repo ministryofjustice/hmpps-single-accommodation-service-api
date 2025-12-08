@@ -14,6 +14,6 @@ class STierRule : Rule {
     } else {
       RuleStatus.PASS
     },
-    isGuidance = this.isGuidance,
+    actionable = this.actionable,
   )
 }

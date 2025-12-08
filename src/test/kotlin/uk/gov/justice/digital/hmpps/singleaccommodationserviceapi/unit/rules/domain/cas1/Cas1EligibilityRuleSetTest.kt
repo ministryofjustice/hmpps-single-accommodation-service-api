@@ -40,7 +40,7 @@ class Cas1EligibilityRuleSetTest {
   }
 
   @Test
-  fun `check ruleset contains ReferralTimingGuidanceRule`() {
+  fun `check ruleset contains WithinSixMonthsOfReleaseRule`() {
     val result = cas1EligibilityRuleSet.getRules()
 
     assertThat(result.any { it is WithinSixMonthsOfReleaseRule }).isTrue()

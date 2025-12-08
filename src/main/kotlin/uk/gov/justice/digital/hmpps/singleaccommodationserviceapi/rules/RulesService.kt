@@ -2,80 +2,58 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.Cas1StatusRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.engine.RulesEngine
 import java.time.OffsetDateTime
+import java.util.UUID
 
 @Service
 class RulesService {
   private val ruleSetEvaluator = DefaultRuleSetEvaluator()
   private val engine = RulesEngine(ruleSetEvaluator)
-  private val cas1StatusRuleSet = Cas1StatusRuleSet()
   private val cas1EligibilityRuleSet = Cas1EligibilityRuleSet()
 
   fun calculateResultForCas1(crn: String): ServiceResult {
-    val data = buildDomainData(crn)
-    return runRulesEngineForCas1(data)
+    val cas1Application = getSuitableCas1Application(crn)
+    if (cas1Application != null) {
+      return buildStatusServiceResult(cas1Application)
+    } else {
+      val data = buildDomainData(crn)
+      val eligibilityRuleSetResult = engine.execute(cas1EligibilityRuleSet, data)
+      return buildEligibilityServiceResult(eligibilityRuleSetResult)
+    }
   }
 
-  fun runRulesEngineForCas1(data: DomainData): ServiceResult {
-    val statusRuleSetResult = engine.execute(cas1StatusRuleSet, data)
-    return buildResults(
-      statusRuleSetResult,
-      data,
-      ServiceStatus.CONFIRMED,
-      ServiceStatus.SUBMITTED,
-      cas1StatusFailFunc,
-    )
-  }
-
-  private val cas1StatusFailFunc = fun (
-    failedResults: List<RuleResult>,
-    data: DomainData,
-  ): ServiceResult {
-    val eligibilityRuleset = engine.execute(cas1EligibilityRuleSet, data)
-    return buildResults(
-      eligibilityRuleset,
-      data,
-      ServiceStatus.UPCOMING,
-      ServiceStatus.NOT_STARTED,
-      cas1EligibilityFailFunc,
-    )
-  }
-
-  private val cas1EligibilityFailFunc = fun (failedResults: List<RuleResult>, data: DomainData) = ServiceResult(
-    serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+  fun buildStatusServiceResult(cas1Application: Cas1Application) = ServiceResult(
+    failedResults = listOf(),
+    serviceStatus = cas1Application.status.toString(),
     actions = listOf(),
-    failedResults = failedResults,
   )
 
-  fun buildResults(
-    ruleSetResult: RuleSetResult,
-    data: DomainData,
-    passStatus: ServiceStatus,
-    guidanceFailStatus: ServiceStatus,
-    failFunc: (failedResults: List<RuleResult>, data: DomainData) -> ServiceResult,
-  ): ServiceResult {
+  fun buildEligibilityServiceResult(ruleSetResult: RuleSetResult): ServiceResult {
     val failedResults = ruleSetResult.results.filter { it.ruleStatus == RuleStatus.FAIL }
     val actions = ruleSetResult.results.filter { it.potentialAction != null }.map { it.potentialAction!! }
     return when (ruleSetResult.ruleSetStatus) {
-      RuleSetStatus.FAIL -> failFunc(failedResults, data)
+      RuleSetStatus.FAIL -> ServiceResult(
+        serviceStatus = ServiceStatus.NOT_ELIGIBLE.toString(),
+        actions = listOf(),
+        failedResults = failedResults,
+      )
       RuleSetStatus.PASS -> ServiceResult(
-        serviceStatus = passStatus,
+        serviceStatus = ServiceStatus.UPCOMING.toString(),
         actions = actions,
         failedResults = listOf(),
       )
-      RuleSetStatus.GUIDANCE_FAIL -> ServiceResult(
-        serviceStatus = guidanceFailStatus,
+      RuleSetStatus.ACTION_NEEDED -> ServiceResult(
+        serviceStatus = ServiceStatus.NOT_STARTED.toString(),
         actions = actions,
         failedResults = failedResults,
       )
@@ -89,6 +67,9 @@ class RulesService {
       description = "Male",
     ),
     releaseDate = OffsetDateTime.now().plusMonths(6),
-    cas1Application = null,
+  )
+
+  private fun getSuitableCas1Application(crn: String): Cas1Application? = Cas1Application(
+    id = UUID.randomUUID(),
   )
 }

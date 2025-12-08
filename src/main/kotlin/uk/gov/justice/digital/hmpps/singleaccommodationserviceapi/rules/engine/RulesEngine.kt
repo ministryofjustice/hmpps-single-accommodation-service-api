@@ -22,9 +22,9 @@ class RulesEngine(
       ruleSetStatus = if (failedResults.isEmpty()) {
         RuleSetStatus.PASS
       } else {
-        val failedResultsWithoutGuidance = failedResults.filter { !it.isGuidance }
-        if (failedResultsWithoutGuidance.isEmpty()) {
-          RuleSetStatus.GUIDANCE_FAIL
+        val failedResultsWithoutAction = failedResults.filter { !it.actionable }
+        if (failedResultsWithoutAction.isEmpty()) {
+          RuleSetStatus.ACTION_NEEDED
         } else {
           RuleSetStatus.FAIL
         }

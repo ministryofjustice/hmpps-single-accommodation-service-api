@@ -12,22 +12,21 @@ data class DomainData(
 )
 
 data class Cas1Application(
-  val submittedAt: OffsetDateTime? = null,
   val id: UUID,
   val status: ApprovedPremisesApplicationStatus = ApprovedPremisesApplicationStatus.Started,
 )
 
 enum class ApprovedPremisesApplicationStatus(val value: String) {
-  Started("started"),
-  Rejected("rejected"),
-  AwaitingAssesment("awaitingAssesment"),
-  UnallocatedAssesment("unallocatedAssesment"),
-  AssesmentInProgress("assesmentInProgress"),
-  AwaitingPlacement("awaitingPlacement"),
-  PlacementAllocated("placementAllocated"),
-  Inapplicable("inapplicable"),
-  Withdrawn("withdrawn"),
-  RequestedFurtherInformation("requestedFurtherInformation"),
-  PendingPlacementRequest("pendingPlacementRequest"),
-  Expired("expired"),
+  Started("started"), // in draft - forget
+  Rejected("rejected"), // forget
+  AwaitingAssesment("awaitingAssesment"), // SUBMITTED
+  UnallocatedAssesment("unallocatedAssesment"), // SUBMITTED
+  AssesmentInProgress("assesmentInProgress"), // SUBMITTED
+  AwaitingPlacement("awaitingPlacement"), // SUBMITTED
+  PlacementAllocated("placementAllocated"), // CONFIRMED
+  Inapplicable("inapplicable"), // forget
+  Withdrawn("withdrawn"), // forget
+  RequestedFurtherInformation("requestedFurtherInformation"), // SUBMITTED
+  PendingPlacementRequest("pendingPlacementRequest"), // SUBMITTED
+  Expired("expired"), // forget
 }

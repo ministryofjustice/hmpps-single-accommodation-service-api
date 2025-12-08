@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import java.time.OffsetDateTime
 
-class ReferralTimingGuidanceRuleTest {
+class WithinSixMonthsOfReleaseRuleTest {
   private val rule = WithinSixMonthsOfReleaseRule()
   private val male = Sex(code = "M", description = "Male")
 

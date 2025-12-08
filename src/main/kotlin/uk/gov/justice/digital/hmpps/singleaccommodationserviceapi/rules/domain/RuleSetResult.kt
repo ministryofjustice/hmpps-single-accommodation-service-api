@@ -8,5 +8,5 @@ data class RuleSetResult(
 enum class RuleSetStatus {
   PASS,
   FAIL,
-  GUIDANCE_FAIL,
+  ACTION_NEEDED,
 }

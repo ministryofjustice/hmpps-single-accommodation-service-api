@@ -14,6 +14,6 @@ class MaleRiskRule : Rule {
     } else {
       RuleStatus.PASS
     },
-    isGuidance = this.isGuidance,
+    actionable = this.actionable,
   )
 }
