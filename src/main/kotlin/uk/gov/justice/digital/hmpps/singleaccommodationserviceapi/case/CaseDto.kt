@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
@@ -12,6 +15,7 @@ data class CaseDto(
   val dateOfBirth: LocalDate?,
   val crn: String?,
   val prisonNumber: String?,
+  val photoUrl: String?,
   val tier: String?,
   val riskLevel: RiskLevel?,
   val pncReference: String?,
@@ -19,22 +23,29 @@ data class CaseDto(
   val currentAccommodation: CurrentAccommodationDto?,
   val nextAccommodation: NextAccommodationDto?,
 ) {
-  constructor(crn: String, cpr: CorePersonRecord, roshDetails: RoshDetails, tier: Tier, caseSummaries: List<CaseSummary>) : this(
+  constructor(
+    crn: String,
+    cpr: CorePersonRecord,
+    roshDetails: RoshDetails,
+    tier: Tier,
+    caseSummaries: List<CaseSummary>,
+    accommodationStatus: AccommodationStatus,
+    photoUrl: String,
+  ) : this(
     name = cpr.fullName,
     dateOfBirth = cpr.dateOfBirth,
     crn = crn,
     prisonNumber = cpr.identifiers?.prisonNumbers?.firstOrNull(),
+    photoUrl = photoUrl,
     tier = tier.tierScore,
     riskLevel = roshDetails.rosh.determineOverallRiskLevel(),
     pncReference = cpr.identifiers?.pncs?.firstOrNull(),
     assignedTo = caseSummaries.firstOrNull()?.manager?.team?.name?.let {
       AssignedToDto(1L, name = it)
     },
-    currentAccommodation = CurrentAccommodationDto("AIRBNB", LocalDate.now().plusDays(10)),
-    nextAccommodation = NextAccommodationDto("PRISON", LocalDate.now().plusDays(100)),
+    currentAccommodation = accommodationStatus.currentAccommodation,
+    nextAccommodation = accommodationStatus.nextAccommodation,
   )
 }
 
 data class AssignedToDto(val id: Long, val name: String)
-data class CurrentAccommodationDto(val type: String, val endDate: LocalDate)
-data class NextAccommodationDto(val type: String, val startDate: LocalDate)

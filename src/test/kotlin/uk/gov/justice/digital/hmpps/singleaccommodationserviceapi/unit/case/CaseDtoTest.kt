@@ -7,8 +7,9 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.NextAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCorePersonRecord
@@ -19,7 +20,9 @@ import java.util.stream.Stream
 class CaseDtoTest {
 
   @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.case.CaseDtoTest#caseTransformationCases")
+  @MethodSource(
+    "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.case.CaseDtoTest#caseTransformationCases",
+  )
   fun `should transform from case orchestration dto to case dto`(
     caseOrchestrationDto: CaseOrchestrationDto,
     expectedCaseDto: CaseDto,
@@ -31,6 +34,8 @@ class CaseDtoTest {
         roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,
         caseSummaries = caseOrchestrationDto.cases,
+        accommodationStatus = caseOrchestrationDto.accommodationStatus,
+        photoUrl = caseOrchestrationDto.photoUrl,
       ),
     ).isEqualTo(expectedCaseDto)
   }
@@ -43,12 +48,13 @@ class CaseDtoTest {
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",
+      photoUrl = "!!https://www.replace-this-with-a-real-url.com",
       tier = "Tier 1",
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(1L, name = "Team 1"),
-      currentAccommodation = CurrentAccommodationDto("AIRBNB", LocalDate.now().plusDays(10)),
-      nextAccommodation = NextAccommodationDto("PRISON", LocalDate.now().plusDays(100)),
+      currentAccommodation = CurrentAccommodationDto(AccommodationType.CAS1_MOCK, LocalDate.now().plusDays(10)),
+      nextAccommodation = NextAccommodationDto(AccommodationType.PRIVATE_ADDRESS_MOCK, LocalDate.now().plusDays(100)),
     )
 
     @JvmStatic

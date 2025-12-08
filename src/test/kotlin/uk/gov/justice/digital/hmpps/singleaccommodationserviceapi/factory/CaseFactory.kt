@@ -2,8 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CurrentAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.NextAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import java.time.LocalDate
 
@@ -16,14 +18,11 @@ fun buildCaseDto(
   riskLevel: RiskLevel = RiskLevel.MEDIUM,
   pncReference: String = "pncReference",
   assignedTo: AssignedToDto = AssignedToDto(id = 123456, name = "Assigned To"),
-  currentAccommodation: CurrentAccommodationDto = CurrentAccommodationDto(
-    type = "Type1",
-    endDate = LocalDate.now().plusDays(5),
+  accommodationStatus: AccommodationStatus = AccommodationStatus(
+    CurrentAccommodationDto(type = AccommodationType.CAS1_MOCK, endDate = LocalDate.now().plusDays(5)),
+    NextAccommodationDto(type = AccommodationType.PRIVATE_ADDRESS_MOCK, startDate = LocalDate.now().plusDays(10)),
   ),
-  nextAccommodation: NextAccommodationDto = NextAccommodationDto(
-    type = "Type2",
-    startDate = LocalDate.now().plusDays(10),
-  ),
+  photoUrl: String? = "!!https://www.replace-this-with-a-real-url.com",
 ) = CaseDto(
   name = name,
   dateOfBirth = dateOfBirth,
@@ -33,6 +32,7 @@ fun buildCaseDto(
   riskLevel = riskLevel,
   pncReference = pncReference,
   assignedTo = assignedTo,
-  currentAccommodation = currentAccommodation,
-  nextAccommodation = nextAccommodation,
+  currentAccommodation = accommodationStatus.currentAccommodation,
+  nextAccommodation = accommodationStatus.nextAccommodation,
+  photoUrl = photoUrl,
 )

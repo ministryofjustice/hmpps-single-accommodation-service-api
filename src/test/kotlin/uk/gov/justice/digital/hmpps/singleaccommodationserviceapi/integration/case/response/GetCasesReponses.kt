@@ -1,11 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response
 
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockPhotoUrl
 
-fun expectedGetCasesResponse(
-  currentAccommodationEndDate: LocalDate,
-  nextAccommodationStartDate: LocalDate,
-): String = """
+fun expectedGetCasesResponse(): String = """
 [
   {
     "name": "First Middle Last",
@@ -15,17 +12,18 @@ fun expectedGetCasesResponse(
     "tier": "Tier 1",
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
+    "photoUrl":"$mockPhotoUrl",
     "assignedTo": {
       "id": 1,
       "name": "Team 1"
     },
     "currentAccommodation": {
-      "type": "AIRBNB",
-      "endDate": "$currentAccommodationEndDate"
+      "type": "CAS1_MOCK",
+      "endDate": "1970-01-01"
     },
     "nextAccommodation": {
-      "type": "PRISON",
-      "startDate": "$nextAccommodationStartDate"
+      "type": "PRIVATE_ADDRESS_MOCK",
+      "startDate": "1970-01-01"
     }
   },
   {
@@ -36,26 +34,24 @@ fun expectedGetCasesResponse(
     "tier": "Tier 1",
     "riskLevel": "MEDIUM",
     "pncReference": "Some PNC Reference",
+    "photoUrl":"$mockPhotoUrl",
     "assignedTo": {
       "id": 1,
       "name": "Team 1"
     },
     "currentAccommodation": {
-      "type": "AIRBNB",
-      "endDate": "$currentAccommodationEndDate"
+      "type": "CAS1_MOCK",
+      "endDate": "1970-01-01"
     },
     "nextAccommodation": {
-      "type": "PRISON",
-      "startDate": "$nextAccommodationStartDate"
+      "type": "PRIVATE_ADDRESS_MOCK",
+      "startDate": "1970-01-01"
     }
   }
 ]
 """.trimIndent()
 
-fun expectedGetCasesWithFilterResponse(
-  currentAccommodationEndDate: LocalDate,
-  nextAccommodationStartDate: LocalDate,
-): String = """
+fun expectedGetCasesWithFilterResponse(): String = """
 [  
   {
     "name": "Zack Middle Smith",
@@ -65,17 +61,18 @@ fun expectedGetCasesWithFilterResponse(
     "tier": "Tier 1",
     "riskLevel": "MEDIUM",
     "pncReference": "Some PNC Reference",
+    "photoUrl":"$mockPhotoUrl",
     "assignedTo": {
       "id": 1,
       "name": "Team 1"
     },
     "currentAccommodation": {
-      "type": "AIRBNB",
-      "endDate": "$currentAccommodationEndDate"
+      "type": "CAS1_MOCK",
+      "endDate": "1970-01-01"
     },
     "nextAccommodation": {
-      "type": "PRISON",
-      "startDate": "$nextAccommodationStartDate"
+      "type": "PRIVATE_ADDRESS_MOCK",
+      "startDate": "1970-01-01"
     }
   }
 ]
