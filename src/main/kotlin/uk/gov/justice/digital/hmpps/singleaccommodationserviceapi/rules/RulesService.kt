@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.rules.domain.RuleSetStatus
@@ -32,11 +34,17 @@ class RulesService {
     }
   }
 
-  fun buildStatusServiceResult(cas1Application: Cas1Application) = ServiceResult(
-    failedResults = listOf(),
-    serviceStatus = cas1Application.status.toString(),
-    actions = listOf(),
-  )
+  fun buildStatusServiceResult(cas1Application: Cas1Application): ServiceResult {
+    val actions = mutableListOf<String>()
+    if (cas1Application.status == ApprovedPremisesApplicationStatus.PlacementAllocated && (cas1Application.placementStatus == Cas1PlacementStatus.UPCOMING || cas1Application.placementStatus == Cas1PlacementStatus.ARRIVED)) {
+      actions.add("Create a placement request.")
+    }
+    return ServiceResult(
+      failedResults = listOf(),
+      serviceStatus = cas1Application.status.toString(),
+      actions = actions,
+    )
+  }
 
   fun buildEligibilityServiceResult(ruleSetResult: RuleSetResult): ServiceResult {
     val failedResults = ruleSetResult.results.filter { it.ruleStatus == RuleStatus.FAIL }

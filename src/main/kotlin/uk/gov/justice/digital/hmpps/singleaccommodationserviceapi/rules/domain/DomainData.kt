@@ -14,7 +14,17 @@ data class DomainData(
 data class Cas1Application(
   val id: UUID,
   val status: ApprovedPremisesApplicationStatus = ApprovedPremisesApplicationStatus.Started,
+  val placementStatus: Cas1PlacementStatus = Cas1PlacementStatus.NOT_ALLOCATED,
 )
+
+enum class Cas1PlacementStatus {
+  NOT_ALLOCATED,
+  ARRIVED,
+  UPCOMING,
+  DEPARTED,
+  NOT_ARRIVED,
+  CANCELLED,
+}
 
 enum class ApprovedPremisesApplicationStatus(val value: String) {
   Started("started"), // in draft - forget
