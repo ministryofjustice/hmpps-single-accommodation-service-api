@@ -1,0 +1,192 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.engine
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.FemaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.CircuitBreakRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.DefaultRuleSetEvaluator
+import java.time.OffsetDateTime
+
+class RuleSetEvaluatorTest {
+  private val sTierRule = STierRule()
+  private val maleRiskRule = MaleRiskRule()
+  private val femaleRiskRule = FemaleRiskRule()
+  private val withinSixMonthsOfReleaseRule = WithinSixMonthsOfReleaseRule()
+  val ruleSet = Cas1RuleSet()
+  private val female = Sex(
+    code = "F",
+    description = "Female",
+  )
+  private val male = Sex(
+    code = "M",
+    description = "Male",
+  )
+  private val crn = "ABC234"
+
+  @Nested
+  inner class DefaultRuleSetEvaluatorTests {
+    private val defaultRuleSetEvaluator = DefaultRuleSetEvaluator()
+
+    @Test
+    fun `default rule set evaluator everything passes (male)`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "A1",
+        sex = male,
+        releaseDate = OffsetDateTime.now().plusMonths(7),
+      )
+
+      val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(sTierRule.description, RuleStatus.PASS, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `default rule set evaluator nearly everything fails (female)`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "C2S",
+        sex = female,
+        releaseDate = OffsetDateTime.now().plusMonths(2),
+      )
+      val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `default rule set evaluator first fails, second passes`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "A1S",
+        sex = male,
+        releaseDate = OffsetDateTime.now().plusMonths(7),
+      )
+      val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `default rule set evaluator first passes, second fails`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "C1",
+        sex = female,
+        releaseDate = OffsetDateTime.now().plusMonths(3),
+      )
+      val result = defaultRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(sTierRule.description, RuleStatus.PASS, false),
+        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
+        RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
+        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+  }
+
+  @Nested
+  inner class CircuitBreakerRuleSetEvaluatorTests {
+    private val circuitBreakRuleSetEvaluator = CircuitBreakRuleSetEvaluator()
+
+    @Test
+    fun `circuit breaker rule set evaluator everything passes`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "A1",
+        sex = male,
+        releaseDate = OffsetDateTime.now().plusMonths(7),
+      )
+
+      val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf<RuleResult>()
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `circuit breaker rule set nearly evaluator everything fails`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "A1S",
+        sex = female,
+        releaseDate = OffsetDateTime.now().plusMonths(7),
+      )
+      val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `circuit breaker rule set evaluator first fails, second passes`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "A1S",
+        sex = male,
+        releaseDate = OffsetDateTime.now().plusMonths(7),
+      )
+      val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `circuit breaker rule set evaluator first passes, second fails`() {
+      val data = DomainData(
+        crn = crn,
+        tier = "D1",
+        sex = female,
+        releaseDate = OffsetDateTime.now().plusMonths(7),
+      )
+      val result = circuitBreakRuleSetEvaluator.evaluate(ruleSet, data)
+
+      val expectedResult = listOf(
+        RuleResult(femaleRiskRule.description, RuleStatus.FAIL, false),
+      )
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+  }
+}
