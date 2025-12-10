@@ -2,16 +2,21 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.d
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.NonMaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 
-class Cas1RuleSet : RuleSet {
+class Cas1RuleSet(
+  private val sTierRule: STierRule,
+  private val maleRiskRule: MaleRiskRule,
+  private val nonMaleRiskRule: NonMaleRiskRule,
+  private val withinSixMonthsOfReleaseRule: WithinSixMonthsOfReleaseRule,
+) : RuleSet {
   override fun getRules(): List<Rule> = listOf(
-    STierRule(),
-    MaleRiskRule(),
-    FemaleRiskRule(),
-    WithinSixMonthsOfReleaseRule(),
+    sTierRule,
+    maleRiskRule,
+    nonMaleRiskRule,
+    withinSixMonthsOfReleaseRule,
   )
 }

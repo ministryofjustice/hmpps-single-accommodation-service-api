@@ -14,11 +14,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibili
 import java.time.OffsetDateTime
 import java.util.stream.Stream
 
-class MaleRiskRuleTest : EligibilityBaseTest() {
+class NonMaleRiskRuleTest : EligibilityBaseTest() {
+
   private val crn = "ABC234"
 
   @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.domain.cas1.rules.MaleRiskRuleTest#provideSexAndTierToPass")
+  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.domain.cas1.rules.NonMaleRiskRuleTest#provideSexAndTierToPass")
   fun `candidate passes`(sex: Sex, tier: TierScore) {
     val data = DomainData(
       crn = crn,
@@ -27,13 +28,13 @@ class MaleRiskRuleTest : EligibilityBaseTest() {
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
-    val result = maleRiskRule.evaluate(data)
+    val result = nonMaleRiskRule.evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.domain.cas1.rules.MaleRiskRuleTest#provideSexAndTierToFail")
+  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.domain.cas1.rules.NonMaleRiskRuleTest#provideSexAndTierToFail")
   fun `candidate fails`(sex: Sex, tier: TierScore) {
     val data = DomainData(
       crn = crn,
@@ -42,15 +43,15 @@ class MaleRiskRuleTest : EligibilityBaseTest() {
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
-    val result = maleRiskRule.evaluate(data)
+    val result = nonMaleRiskRule.evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    val result = maleRiskRule.description
-    assertThat(result).isEqualTo("FAIL if candidate is Male and is not Tier A3 - B1")
+    val result = nonMaleRiskRule.description
+    assertThat(result).isEqualTo("FAIL if candidate is not Male and is not Tier A3 - C3")
   }
 
   private companion object {
@@ -85,11 +86,11 @@ class MaleRiskRuleTest : EligibilityBaseTest() {
       TierScore.B3S,
       TierScore.B2S,
       TierScore.B1S,
+      TierScore.C3,
+      TierScore.C3S,
     )
 
     private val lowRiskTiers = listOf(
-      TierScore.C3,
-      TierScore.C3S,
       TierScore.C2,
       TierScore.C1,
       TierScore.C2S,
@@ -106,24 +107,33 @@ class MaleRiskRuleTest : EligibilityBaseTest() {
 
     @JvmStatic
     fun provideSexAndTierToPass(): Stream<Arguments> {
-      val femaleArguments = allTiers.map {
+      val femaleArguments = highRiskTiers.map {
         Arguments.of(female, it)
       }
-      val notRecordedArguments = allTiers.map {
+      val notRecordedArguments = highRiskTiers.map {
         Arguments.of(notRecorded, it)
       }
-      val notSpecifiedArguments = allTiers.map {
+      val notSpecifiedArguments = highRiskTiers.map {
         Arguments.of(notSpecified, it)
       }
-      val maleArguments = highRiskTiers.map {
+      val maleArguments = allTiers.map {
         Arguments.of(male, it)
       }
       return (femaleArguments + notRecordedArguments + notSpecifiedArguments + maleArguments).stream()
     }
 
     @JvmStatic
-    fun provideSexAndTierToFail() = lowRiskTiers.map {
-      Arguments.of(male, it)
-    }.stream()
+    fun provideSexAndTierToFail(): Stream<Arguments> {
+      val femaleArguments = lowRiskTiers.map {
+        Arguments.of(female, it)
+      }
+      val notRecordedArguments = lowRiskTiers.map {
+        Arguments.of(notRecorded, it)
+      }
+      val notSpecifiedArguments = lowRiskTiers.map {
+        Arguments.of(notSpecified, it)
+      }
+      return (femaleArguments + notRecordedArguments + notSpecifiedArguments).stream()
+    }
   }
 }

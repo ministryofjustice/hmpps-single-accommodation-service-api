@@ -2,19 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibil
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.FemaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.NonMaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityBaseTest
 
-class Cas1EligibilityRuleSetTest {
-  private val cas1RuleSet = Cas1RuleSet()
-  private val sTierRule = STierRule()
-  private val maleRiskRule = MaleRiskRule()
-  private val femaleRiskRule = FemaleRiskRule()
-  private val withinSixMonthsOfReleaseRule = WithinSixMonthsOfReleaseRule()
-
+class Cas1EligibilityRuleSetTest : EligibilityBaseTest() {
   @Test
   fun `check ruleset contains STierRule`() {
     val result = cas1RuleSet.getRules()
@@ -35,8 +29,8 @@ class Cas1EligibilityRuleSetTest {
   fun `check ruleset contains FemaleRiskRule`() {
     val result = cas1RuleSet.getRules()
 
-    assertThat(result.any { it is FemaleRiskRule }).isTrue()
-    assertThat(result.find { it.description == femaleRiskRule.description }).isNotNull
+    assertThat(result.any { it is NonMaleRiskRule }).isTrue()
+    assertThat(result.find { it.description == nonMaleRiskRule.description }).isNotNull
   }
 
   @Test

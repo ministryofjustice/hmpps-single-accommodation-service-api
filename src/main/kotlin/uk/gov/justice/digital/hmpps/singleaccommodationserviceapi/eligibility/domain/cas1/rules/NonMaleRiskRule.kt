@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
 
-class MaleRiskRule : Rule {
-  override val description = "FAIL if candidate is Male and is not Tier A3 - B1"
+class NonMaleRiskRule : Rule {
+  override val description = "FAIL if candidate is not Male and is not Tier A3 - C3"
   private val highRiskTiers = listOf(
     TierScore.A3,
     TierScore.A2,
@@ -22,10 +22,12 @@ class MaleRiskRule : Rule {
     TierScore.B3S,
     TierScore.B2S,
     TierScore.B1S,
+    TierScore.C3,
+    TierScore.C3S,
   )
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.sex.code == SexCode.M && !highRiskTiers.contains(data.tier)) {
+    ruleStatus = if (data.sex.code != SexCode.M && !highRiskTiers.contains(data.tier)) {
       RuleStatus.FAIL
     } else {
       RuleStatus.PASS

@@ -16,7 +16,7 @@ class RulesEngine(
   }
 
   private fun aggregateResults(results: List<RuleResult>): ServiceResult {
-    val actions = results.filter { it.potentialAction != null }.map { it.potentialAction!! }
+    val actions = results.mapNotNull { it.potentialAction }
     val hasFail = results.any { it.ruleStatus == RuleStatus.FAIL }
     val hasNonGuidanceFail = results.any { it.ruleStatus == RuleStatus.FAIL && !it.actionable }
     return when {

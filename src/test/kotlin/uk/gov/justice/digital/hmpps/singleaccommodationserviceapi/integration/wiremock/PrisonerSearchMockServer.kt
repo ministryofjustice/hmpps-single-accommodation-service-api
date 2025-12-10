@@ -5,12 +5,12 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.objectMapper
 
-class ApprovedPremisesMockServer : WireMockServer(9992) {
+class PrisonerSearchMockServer : WireMockServer(9995) {
 
-  fun stubGetSuitableApplicationOKResponse(crn: String, response: Any) {
+  fun stubGetPrisonerOKResponse(prisonerNumber: String, response: Any) {
     stubFor(
       WireMock
-        .get(WireMock.urlPathEqualTo("/cas1/external/suitable-application/$crn"))
+        .get(WireMock.urlPathEqualTo("/prisoner/$prisonerNumber"))
         .willReturn(
           WireMock
             .aResponse()
