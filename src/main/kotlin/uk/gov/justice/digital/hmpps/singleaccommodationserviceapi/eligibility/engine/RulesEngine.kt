@@ -3,32 +3,36 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.e
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleSetResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleSetStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
 
 class RulesEngine(
   private val evaluator: RuleSetEvaluator,
 ) {
-  fun execute(ruleset: RuleSet, data: DomainData): RuleSetResult {
+  fun execute(ruleset: RuleSet, data: DomainData): ServiceResult {
     val results = evaluator.evaluate(ruleset, data)
     return aggregateResults(results)
   }
 
-  private fun aggregateResults(results: List<RuleResult>): RuleSetResult {
-    val failedResults = results.filter { it.ruleStatus == RuleStatus.FAIL }
-    return RuleSetResult(
-      results = results,
-      ruleSetStatus = if (failedResults.isEmpty()) {
-        RuleSetStatus.PASS
-      } else {
-        val failedResultsWithoutAction = failedResults.filter { !it.actionable }
-        if (failedResultsWithoutAction.isEmpty()) {
-          RuleSetStatus.ACTION_NEEDED
-        } else {
-          RuleSetStatus.FAIL
-        }
-      },
-    )
+  private fun aggregateResults(results: List<RuleResult>): ServiceResult {
+    val actions = results.filter { it.potentialAction != null }.map { it.potentialAction!! }
+    val hasFail = results.any { it.ruleStatus == RuleStatus.FAIL }
+    val hasNonGuidanceFail = results.any { it.ruleStatus == RuleStatus.FAIL && !it.actionable }
+    return when {
+      !hasFail ->
+        ServiceResult(
+          actions = actions,
+          serviceStatus = ServiceStatus.UPCOMING,
+        )
+      !hasNonGuidanceFail -> ServiceResult(
+        actions = actions,
+        serviceStatus = ServiceStatus.NOT_STARTED,
+      )
+      else -> ServiceResult(
+        actions = listOf(),
+        serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+      )
+    }
   }
 }
