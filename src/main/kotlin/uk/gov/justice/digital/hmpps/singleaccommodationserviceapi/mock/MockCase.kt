@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 
-val mockPhotoUrl: String = "https://www.prison-officer-online-ac.co.uk/images/HMPPS-Logo-Black.svg "
-
+val mockPhotoUrl: String =
+  "https://github.com/ministryofjustice/hmpps-single-accommodation-service-prototype/blob/main/app/assets/images/profile-placeholder-2.jpg"
 fun getMockedCases(): List<CaseDto> {
   val caseDtos: MutableList<CaseDto> = mutableListOf()
   for (count in 1..10) {
