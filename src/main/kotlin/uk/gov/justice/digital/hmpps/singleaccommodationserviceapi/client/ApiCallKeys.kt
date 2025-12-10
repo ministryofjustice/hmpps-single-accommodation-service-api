@@ -16,4 +16,7 @@ object ApiCallKeys {
 
   // Approved Premises service
   const val GET_ACCOMMODATION_STATUS = "getAccommodationStatus"
+
+  // prisoner-search service
+  const val GET_PRISONER = "getPrisoner"
 }

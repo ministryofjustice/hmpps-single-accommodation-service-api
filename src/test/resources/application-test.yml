@@ -19,6 +19,8 @@ service:
     base-url: http://localhost:9993
   tier:
     base-url: http://localhost:9994
+  prisoner-search:
+    base-url: http://localhost:9995
 
 spring:
   data:
