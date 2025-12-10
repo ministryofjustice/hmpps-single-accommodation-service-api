@@ -62,8 +62,6 @@ We will implement **DDD with the Transactional Outbox Pattern** for reliable dom
 - **Idempotency**: Event publishing should be idempotent to handle retries safely
 - **Standards compliance**: Follows HMPPS-wide domain event patterns
 
-For concrete implementation examples, see [JPA Transaction Best Practices](../sources/jpa-transaction-best-practices-refined.md#outbox-pattern-reliable-event-publishing).
-
 ## Consequences
 
 ### Benefits
@@ -102,11 +100,9 @@ For concrete implementation examples, see [JPA Transaction Best Practices](../so
 - **Retry strategy**: Use exponential backoff for failed event publishing (1m, 5m, 15m, 1h...)
 - **Concurrent relay instances**: Use `SKIP LOCKED` in SQL queries to allow multiple relay instances without conflicts
 
-For detailed implementation guidance, code examples, and schema definitions, see [JPA Transaction Best Practices](../sources/jpa-transaction-best-practices-refined.md#outbox-pattern-reliable-event-publishing).
-
 ## References
 
-- [ADR-0001: Adopt DDD Lite for Domain Modeling](./0001-adopt-ddd-lite-for-domain-modeling.md)
-- [JPA Transaction Best Practices - Outbox Pattern Implementation](../sources/jpa-transaction-best-practices-refined.md#outbox-pattern-reliable-event-publishing)
+- [ADR-0001: Adopt DDD Lite for Domain Modeling](./0001-adopt-a-ddd-lite-approach-for-domain-modelling.md)
+- [JPA Transaction Best Practices - Outbox Pattern Implementation](../../sources/jpa-best-practices.md#outbox-pattern-reliable-event-publishing)
 - [HMPPS ADR - Domain Event Schema](https://dsdmoj.atlassian.net/wiki/spaces/NDSS/pages/3732570166/ADR+-+Domain+Event+Schema)
 - [HMPPS ADR - Publishing Microservice Events](https://dsdmoj.atlassian.net/wiki/spaces/NDSS/pages/2811691200/ADR+-+Publishing+Microservice+Events)
