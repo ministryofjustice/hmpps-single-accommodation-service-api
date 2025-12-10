@@ -65,8 +65,8 @@ data class Nationality(
 
 data class Address(
   val noFixedAbode: Boolean? = null,
-  val startDate: String? = null,
-  val endDate: String? = null,
+  val startDate: LocalDate? = null,
+  val endDate: LocalDate? = null,
   val postcode: String? = null,
   val subBuildingName: String? = null,
   val buildingName: String? = null,

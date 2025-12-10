@@ -1,21 +1,20 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.mock
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.Rosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
-import java.time.ZonedDateTime
 
 fun getMockedRoshDetails() = RoshDetails(
   assessmentId = 12345,
   assessmentType = "assessmentType",
-  dateCompleted = ZonedDateTime.now(),
-  assessorSignedDate = ZonedDateTime.now(),
-  initiationDate = ZonedDateTime.now(),
+  dateCompleted = mockedZonedDateTime,
+  assessorSignedDate = mockedZonedDateTime,
+  initiationDate = mockedZonedDateTime,
   assessmentStatus = "assessmentStatus",
   superStatus = "superStatus",
   laterWIPAssessmentExists = true,
   limitedAccessOffender = false,
-  lastUpdatedDate = ZonedDateTime.now(),
+  lastUpdatedDate = mockedZonedDateTime,
   rosh = Rosh(
     riskChildrenCommunity = RiskLevel.VERY_HIGH,
     riskPrisonersCustody = RiskLevel.LOW,

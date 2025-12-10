@@ -1,15 +1,16 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.mock
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
-import java.time.LocalDate
+
+val mockPhotoUrl: String = "https://www.prison-officer-online-ac.co.uk/images/HMPPS-Logo-Black.svg "
 
 fun getMockedCases(): List<CaseDto> {
   val caseDtos: MutableList<CaseDto> = mutableListOf()
   for (count in 1..10) {
     caseDtos += CaseDto(
       name = "Mock case $count",
-      dateOfBirth = LocalDate.now().minusYears(count.toLong()),
+      dateOfBirth = mockedLocalDate,
       crn = "CRN000$count",
       prisonNumber = "PRN000$count",
       tier = "TODO()",
@@ -18,6 +19,7 @@ fun getMockedCases(): List<CaseDto> {
       assignedTo = null,
       currentAccommodation = null,
       nextAccommodation = null,
+      photoUrl = "TODO()",
     )
   }
   return caseDtos

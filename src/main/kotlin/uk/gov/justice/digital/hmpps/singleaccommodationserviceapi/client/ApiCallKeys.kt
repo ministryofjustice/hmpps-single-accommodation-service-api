@@ -13,4 +13,7 @@ object ApiCallKeys {
 
   // tier service
   const val GET_TIER = "getTier"
+
+  // Approved Premises service
+  const val GET_ACCOMMODATION_STATUS = "getAccommodationStatus"
 }

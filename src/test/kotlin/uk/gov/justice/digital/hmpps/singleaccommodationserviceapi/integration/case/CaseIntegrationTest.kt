@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesWithFilterResponse
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
-import java.time.LocalDate
 
 class CaseIntegrationTest : IntegrationTestBase() {
   @BeforeEach
@@ -59,13 +58,7 @@ class CaseIntegrationTest : IntegrationTestBase() {
       .response
       .contentAsString
 
-    assertThatJson(result).matchesExpectedJson(
-      expectedGetCasesResponse(
-        // these two dates are currently dynamically populated and will change with the call for real data.
-        currentAccommodationEndDate = LocalDate.now().plusDays(10),
-        nextAccommodationStartDate = LocalDate.now().plusDays(100),
-      ),
-    )
+    assertThatJson(result).matchesExpectedJson(expectedGetCasesResponse())
   }
 
   @WithMockAuthUser(roles = ["ROLE_PROBATION"])
@@ -82,12 +75,6 @@ class CaseIntegrationTest : IntegrationTestBase() {
         .response
         .contentAsString
 
-    assertThatJson(result).matchesExpectedJson(
-      expectedGetCasesWithFilterResponse(
-        // these two dates are currently dynamically populated and will change with the call for real data.
-        currentAccommodationEndDate = LocalDate.now().plusDays(10),
-        nextAccommodationStartDate = LocalDate.now().plusDays(100),
-      ),
-    )
+    assertThatJson(result).matchesExpectedJson(expectedGetCasesWithFilterResponse())
   }
 }
