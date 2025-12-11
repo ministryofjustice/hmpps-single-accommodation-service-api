@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import java.time.LocalDate
 
 fun buildCaseDto(
@@ -14,7 +15,7 @@ fun buildCaseDto(
   dateOfBirth: LocalDate = LocalDate.of(2000, 12, 3),
   crn: String = "CR12345N",
   prisonNumber: String = "PR98765N",
-  tier: String = "Tier1",
+  tier: TierScore = TierScore.A3,
   riskLevel: RiskLevel = RiskLevel.MEDIUM,
   pncReference: String = "pncReference",
   assignedTo: AssignedToDto = AssignedToDto(id = 123456, name = "Assigned To"),

@@ -25,6 +25,15 @@ data class CorePersonRecord(
       lastName,
     )
       .joinToString(" ")
+
+  fun getPrisonNumber(): String {
+    val prisonNumbers = identifiers?.prisonNumbers
+    if (prisonNumbers.isNullOrEmpty()) {
+      error("No prisoner number found for cpr $cprUUID")
+    }
+    // TODO what do we do if there is more than one prison number
+    return prisonNumbers.last()
+  }
 }
 
 data class Title(
@@ -33,9 +42,16 @@ data class Title(
 )
 
 data class Sex(
-  val code: String? = null,
+  val code: SexCode? = null,
   val description: String? = null,
 )
+
+enum class SexCode {
+  M,
+  F,
+  N,
+  NS,
+}
 
 data class Religion(
   val code: String? = null,
