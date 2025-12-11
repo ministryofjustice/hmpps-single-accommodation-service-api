@@ -1,6 +1,6 @@
 # 2. DDD with Outbox Pattern for Domain Events
 
-Date: 2024-12-19
+Date: 2025-12-10
 
 ## Status
 
