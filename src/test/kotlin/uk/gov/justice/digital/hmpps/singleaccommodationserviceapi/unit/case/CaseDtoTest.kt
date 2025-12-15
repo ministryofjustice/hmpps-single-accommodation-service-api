@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildIdentifiers
@@ -49,7 +50,7 @@ class CaseDtoTest {
       crn = CRN,
       prisonNumber = "PRI1",
       photoUrl = "!!https://www.replace-this-with-a-real-url.com",
-      tier = "Tier 1",
+      tier = TierScore.C1,
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(1L, name = "Team 1"),
