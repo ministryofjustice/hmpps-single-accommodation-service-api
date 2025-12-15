@@ -25,8 +25,8 @@ class RedissonMasterSlaveServersConfig {
     @Value($$"${redisson.timeout}") redissonTimeout: Int,
     @Value($$"${redisson.retry.attempts}") redissonRetryAttempts: Int,
     @Value($$"${redisson.retry.interval}") redissonRetryInterval: Int,
-    @Value($$"${redisson.connnection.pool-size}") redissonConnectionPoolSize: Int,
-    @Value($$"${redisson.connnection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
+    @Value($$"${redisson.connection.pool-size}") redissonConnectionPoolSize: Int,
+    @Value($$"${redisson.connection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
   ): RedissonClient {
     val masterAddress = "rediss://$redisHost:$redisPort"
     val replicaAddress = "rediss://$redisReplicaHost:$redisPort"
@@ -57,8 +57,8 @@ class RedissonLocalConfig {
     @Value($$"${redisson.timeout}") redissonTimeout: Int,
     @Value($$"${redisson.retry.interval}") redissonRetryInterval: Int,
     @Value($$"${redisson.retry.attempts}") redissonRetryAttempts: Int,
-    @Value($$"${redisson.connnection.pool-size}") redissonConnectionPoolSize: Int,
-    @Value($$"${redisson.connnection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
+    @Value($$"${redisson.connection.pool-size}") redissonConnectionPoolSize: Int,
+    @Value($$"${redisson.connection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
   ): RedissonClient {
     val config = Config()
     config
