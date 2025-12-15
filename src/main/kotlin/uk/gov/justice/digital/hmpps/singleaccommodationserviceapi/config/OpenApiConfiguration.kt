@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config
 
+import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Contact
 import io.swagger.v3.oas.models.info.Info
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.models.servers.Server
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.constants.Roles
 
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
@@ -30,7 +32,13 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
       Info().title("HMPPS Single Accommodation Service Api").version(version)
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
-  // TODO Add security schema and roles in `.components()` and `.addSecurityItem()`
+    .components(
+      Components().addSecuritySchemes(
+        "role-probation",
+        SecurityScheme().addBearerJwtRequirement(Roles.ROLE_PROBATION),
+      ),
+    )
+  // TODO Add security schema and roles in `.addSecurityItem()`
 }
 
 private fun SecurityScheme.addBearerJwtRequirement(role: String): SecurityScheme = type(SecurityScheme.Type.HTTP)
