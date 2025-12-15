@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.CsvFileSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1PlacementStatus
@@ -23,18 +22,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.UUID
-import java.util.stream.Stream
 
 @ExtendWith(MockKExtension::class)
 class EligibilityServiceTest : EligibilityBaseTest() {
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
+  private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   var eligibilityService = EligibilityService(
     eligibilityOrchestrationService,
@@ -43,18 +45,6 @@ class EligibilityServiceTest : EligibilityBaseTest() {
   )
 
   private val crn = "ABC1234"
-
-  @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityServiceTest#provideDataAndEligibility")
-  fun `should calculate eligibility for cas1`(
-    data: DomainData,
-    serviceResult: ServiceResult,
-  ) {
-    val result = eligibilityService.calculateEligibilityForCas1(data)
-    assertThat(
-      result,
-    ).isEqualTo(serviceResult)
-  }
 
   @Nested
   inner class DomainDataFunctions {
@@ -102,106 +92,80 @@ class EligibilityServiceTest : EligibilityBaseTest() {
     }
   }
 
-  private companion object {
+  @ParameterizedTest
+  @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1)
+  @Suppress("LongParameterList")
+  fun `should calculate eligibility for cas1 for all scenarios`(
+    description: String,
+    referenceDate: String,
+    sex: String,
+    tier: String,
+    releaseDate: String,
+    cas1Status: String,
+    cas1PlacementStatus: String,
+    expectedCas1Status: String,
+    expectedCas1Actions: String,
+  ) {
+    val fixedClock = createFixedClock(referenceDate)
+    val testEligibilityService = createTestEligibilityService(fixedClock)
+    val data = buildTestDomainData(sex, tier, releaseDate, cas1Status, cas1PlacementStatus)
 
-    private const val CRN = "ABC1234"
-    private const val CREATE_PLACEMENT_ACTION = "Create a placement request."
+    val result = testEligibilityService.calculateEligibilityForCas1(data)
 
-    private val male = Sex(
-      code = SexCode.M,
-      description = "Male",
+    val actualActions = if (result.actions.isEmpty()) "None" else result.actions.joinToString(",")
+    assertThat(result.serviceStatus.name).isEqualTo(expectedCas1Status)
+    assertThat(actualActions).isEqualTo(expectedCas1Actions)
+  }
+
+  private fun createFixedClock(referenceDate: String): Clock {
+    val parsedDate = LocalDate.parse(referenceDate, dateFormatter)
+    return Clock.fixed(
+      parsedDate.atStartOfDay(ZoneOffset.UTC).toInstant(),
+      ZoneOffset.UTC,
     )
+  }
 
-    // TODO add test case scenarios to here
-    @JvmStatic
-    fun provideDataAndEligibility(): Stream<Arguments> = Stream.of(
-      Arguments.of(
-        DomainData(
-          crn = CRN,
-          tier = TierScore.A1,
-          sex = male,
-          releaseDate = OffsetDateTime.now(),
-          cas1Application = Cas1Application(
-            id = UUID.randomUUID(),
-            applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            placementStatus = Cas1PlacementStatus.DEPARTED,
-          ),
-        ),
-        ServiceResult(
-          serviceStatus = ServiceStatus.DEPARTED,
-          actions = listOf(CREATE_PLACEMENT_ACTION),
-        ),
-      ),
-      Arguments.of(
-        DomainData(
-          crn = CRN,
-          tier = TierScore.A1,
-          sex = male,
-          releaseDate = OffsetDateTime.now(),
-          cas1Application = Cas1Application(
-            id = UUID.randomUUID(),
-            applicationStatus = Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
-            placementStatus = null,
-          ),
-        ),
-        ServiceResult(
-          serviceStatus = ServiceStatus.ASSESSMENT_IN_PROGRESS,
-          actions = listOf(CREATE_PLACEMENT_ACTION),
-        ),
-      ),
-      Arguments.of(
-        DomainData(
-          crn = CRN,
-          tier = TierScore.A1,
-          sex = male,
-          releaseDate = OffsetDateTime.now(),
-          cas1Application = Cas1Application(
-            id = UUID.randomUUID(),
-            applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            placementStatus = Cas1PlacementStatus.UPCOMING,
-          ),
-        ),
-        ServiceResult(
-          serviceStatus = ServiceStatus.UPCOMING_PLACEMENT,
-          actions = listOf(),
-        ),
-      ),
-      Arguments.of(
-        DomainData(
-          crn = CRN,
-          tier = TierScore.A1,
-          sex = male,
-          releaseDate = OffsetDateTime.now().plusMonths(7),
-        ),
-        ServiceResult(
-          serviceStatus = ServiceStatus.UPCOMING,
-          actions = listOf("Start approved premise referral in 31 days"),
-        ),
-      ),
-      Arguments.of(
-        DomainData(
-          crn = CRN,
-          tier = TierScore.A1,
-          sex = male,
-          releaseDate = OffsetDateTime.now(),
-        ),
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          actions = listOf("Start approved premise referral"),
-        ),
-      ),
-      Arguments.of(
-        DomainData(
-          crn = CRN,
-          tier = TierScore.A1S,
-          sex = male,
-          releaseDate = OffsetDateTime.now(),
-        ),
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          actions = listOf(),
-        ),
-      ),
+  private fun createTestEligibilityService(clock: Clock) = EligibilityService(
+    eligibilityOrchestrationService,
+    Cas1RuleSet(sTierRule, maleRiskRule, nonMaleRiskRule, WithinSixMonthsOfReleaseRule(clock)),
+    defaultRulesEngine,
+  )
+
+  private fun buildTestDomainData(
+    sex: String,
+    tier: String,
+    releaseDate: String,
+    cas1Status: String,
+    cas1PlacementStatus: String,
+  ) = DomainData(
+    crn,
+    tier = TierScore.valueOf(tier),
+    sex = Sex(
+      code = SexCode.valueOf(sex),
+      description = when (sex) {
+        "M" -> "Male"
+        "F" -> "Female"
+        "NS" -> "Non-specified"
+        "N" -> "Non-recorded"
+        else -> sex
+      },
+    ),
+    releaseDate = LocalDate.parse(releaseDate, dateFormatter)
+      .atStartOfDay()
+      .atOffset(ZoneOffset.UTC),
+    cas1Application = buildCas1Application(cas1Status, cas1PlacementStatus),
+  )
+
+  private fun buildCas1Application(
+    cas1Status: String,
+    cas1PlacementStatus: String,
+  ): Cas1Application? = cas1Status.takeIf { it != "None" }?.let {
+    Cas1Application(
+      id = UUID.randomUUID(),
+      applicationStatus = Cas1ApplicationStatus.valueOf(it),
+      placementStatus = cas1PlacementStatus.takeIf { it != "None" }?.let { status ->
+        Cas1PlacementStatus.valueOf(status)
+      },
     )
   }
 }
