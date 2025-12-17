@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.OffenderReleaseType
-import java.time.LocalDate
 
 val mockAddress = AddressDetails(
   "!!val line1: String,",
@@ -22,8 +21,8 @@ val mockCurrentAccommodationDetail = AccommodationDetail(
   name = "!!TODO()",
   isSettled = true,
   offenderReleaseType = OffenderReleaseType.BAIL,
-  startDate = LocalDate.now(),
-  endDate = LocalDate.now().plusDays(10),
+  startDate = mockedLocalDate,
+  endDate = mockedLocalDate,
   address = mockAddress,
 )
 

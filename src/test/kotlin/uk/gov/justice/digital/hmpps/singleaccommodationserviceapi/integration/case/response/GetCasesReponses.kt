@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockPhotoUrl
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockedLocalDate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 @TestData
@@ -25,8 +26,8 @@ fun expectedGetCasesResponse(): String = """
       "name": "!!TODO()",
       "isSettled": true,
       "offenderReleaseType": "BAIL",
-      "startDate": "2025-12-17",
-      "endDate": "2025-12-27",
+      "startDate": "$mockedLocalDate",
+      "endDate": "$mockedLocalDate",
       "address": {
         "line1": "!!val line1: String,",
         "line2": "!!val line2: String?,",
@@ -65,8 +66,8 @@ fun expectedGetCasesResponse(): String = """
       "name": "!!TODO()",
       "isSettled": true,
       "offenderReleaseType": "BAIL",
-      "startDate": "2025-12-17",
-      "endDate": "2025-12-27",
+      "startDate": "$mockedLocalDate",
+      "endDate": "$mockedLocalDate",
       "address": {
         "line1": "!!val line1: String,",
         "line2": "!!val line2: String?,",
@@ -110,8 +111,8 @@ fun expectedGetCasesWithFilterResponse(): String = """
       "name": "!!TODO()",
       "isSettled": true,
       "offenderReleaseType": "BAIL",
-      "startDate": "2025-12-17",
-      "endDate": "2025-12-27",
+      "startDate": "$mockedLocalDate",
+      "endDate": "$mockedLocalDate",
       "address": {
         "line1": "!!val line1: String,",
         "line2": "!!val line2: String?,",
