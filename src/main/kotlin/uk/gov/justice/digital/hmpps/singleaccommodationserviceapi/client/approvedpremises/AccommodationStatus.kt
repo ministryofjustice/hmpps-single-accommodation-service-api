@@ -2,18 +2,44 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approv
 
 import java.time.LocalDate
 
-data class CurrentAccommodationDto(val type: AccommodationType?, val endDate: LocalDate?)
-
-data class NextAccommodationDto(val type: AccommodationType?, val startDate: LocalDate?)
-
-data class AccommodationStatus(
-  val currentAccommodation: CurrentAccommodationDto,
-  val nextAccommodation: NextAccommodationDto,
+data class AccommodationDetails(
+  val type: AccommodationType,
+  val subType: AccommodationSubType?,
+  val name: String?,
+  val isSettled: Boolean?,
+  val offenderReleaseType: OffenderReleaseType?,
+  val startDate: LocalDate?,
+  val endDate: LocalDate?,
+  val address: AddressDetails?,
 )
 
 enum class AccommodationType {
-  CAS1_MOCK,
-  CAS2_MOCK,
-  CAS3_MOCK,
-  PRIVATE_ADDRESS_MOCK,
+  PRISON,
+  CAS1,
+  CAS2,
+  CAS2V2,
+  CAS3,
+  PRIVATE,
+  NO_FIXED_ABODE,
 }
+
+enum class AccommodationSubType {
+  OWNED,
+  RENTED,
+  LODGING,
+}
+
+// TODO get the proper business / domain name.
+enum class OffenderReleaseType {
+  REMAND,
+  LICENCE,
+  BAIL,
+}
+
+data class AddressDetails(
+  val line1: String,
+  val line2: String?,
+  val region: String?,
+  val city: String,
+  val postCode: String,
+)

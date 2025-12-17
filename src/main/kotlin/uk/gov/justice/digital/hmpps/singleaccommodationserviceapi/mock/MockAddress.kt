@@ -1,11 +1,45 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.OffenderReleaseType
+import java.time.LocalDate
 
-val mockAccommodationStatus = AccommodationStatus(
-  CurrentAccommodationDto(type = AccommodationType.CAS1_MOCK, endDate = mockedLocalDate),
-  NextAccommodationDto(type = AccommodationType.PRIVATE_ADDRESS_MOCK, startDate = mockedLocalDate),
+val mockAddress = AddressDetails(
+  "!!val line1: String,",
+  "!!val line2: String?,",
+  "!!val region: String?,",
+  "!!val city: String,",
+  "!!val postCode: String,",
+)
+
+val mockCurrentAccommodationDetails = AccommodationDetails(
+  type = AccommodationType.PRISON,
+  subType = AccommodationSubType.RENTED,
+  name = "!!TODO()",
+  isSettled = true,
+  offenderReleaseType = OffenderReleaseType.BAIL,
+  startDate = LocalDate.now(),
+  endDate = LocalDate.now().plusDays(10),
+  address = mockAddress,
+)
+
+val mockNextAccommodationDetails = AccommodationDetails(
+  type = AccommodationType.NO_FIXED_ABODE,
+  subType = null,
+  name = null,
+  isSettled = null,
+  offenderReleaseType = null,
+  startDate = null,
+  endDate = null,
+  address = null,
+)
+
+fun mockAccommodationResponse(crn: String) = AccommodationResponse(
+  crn = "!!$crn",
+  current = mockCurrentAccommodationDetails,
+  next = mockNextAccommodationDetails,
 )
