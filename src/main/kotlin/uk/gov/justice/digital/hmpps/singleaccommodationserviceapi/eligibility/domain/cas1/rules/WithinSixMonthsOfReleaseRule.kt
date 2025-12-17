@@ -4,11 +4,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
-import java.time.OffsetDateTime
+import java.time.Clock
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MONTHS
 
-class WithinSixMonthsOfReleaseRule : Rule {
+class WithinSixMonthsOfReleaseRule(
+  private val clock: Clock = Clock.systemDefaultZone(),
+) : Rule {
   override val description = "FAIL if candidate is within 6 months of release date"
   override val actionable = true
   val actionText = "Start approved premise referral"
@@ -17,7 +20,7 @@ class WithinSixMonthsOfReleaseRule : Rule {
     actionText
   } else {
     val dateToStartReferral = data.releaseDate.minusMonths(6)
-    val daysUntilReferralMustStart = DAYS.between(OffsetDateTime.now().toLocalDate(), dateToStartReferral).toInt()
+    val daysUntilReferralMustStart = DAYS.between(LocalDate.now(clock), dateToStartReferral).toInt()
     if (daysUntilReferralMustStart > 1) {
       "$actionText in $daysUntilReferralMustStart days"
     } else if (daysUntilReferralMustStart < 1) {
@@ -29,7 +32,7 @@ class WithinSixMonthsOfReleaseRule : Rule {
 
   override fun evaluate(data: DomainData): RuleResult {
     val monthsUntilRelease = MONTHS.between(
-      OffsetDateTime.now().toLocalDate(),
+      LocalDate.now(clock),
       data.releaseDate.toLocalDate(),
     )
 
