@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approv
 
 import java.time.LocalDate
 
-data class AccommodationDetails(
+data class AccommodationDetailDto(
   val type: AccommodationType,
   val subType: AccommodationSubType?,
   val name: String?,

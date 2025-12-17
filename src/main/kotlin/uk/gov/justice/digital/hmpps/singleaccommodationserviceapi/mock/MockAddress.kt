@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AddressDetails
@@ -16,7 +16,7 @@ val mockAddress = AddressDetails(
   "!!val postCode: String,",
 )
 
-val mockCurrentAccommodationDetails = AccommodationDetails(
+val mockCurrentAccommodationDetailDto = AccommodationDetailDto(
   type = AccommodationType.PRISON,
   subType = AccommodationSubType.RENTED,
   name = "!!TODO()",
@@ -27,7 +27,7 @@ val mockCurrentAccommodationDetails = AccommodationDetails(
   address = mockAddress,
 )
 
-val mockNextAccommodationDetails = AccommodationDetails(
+val mockNextAccommodationDetailDto = AccommodationDetailDto(
   type = AccommodationType.NO_FIXED_ABODE,
   subType = null,
   name = null,
@@ -40,6 +40,6 @@ val mockNextAccommodationDetails = AccommodationDetails(
 
 fun mockAccommodationResponse(crn: String) = AccommodationResponse(
   crn = "!!$crn",
-  current = mockCurrentAccommodationDetails,
-  next = mockNextAccommodationDetails,
+  current = mockCurrentAccommodationDetailDto,
+  next = mockNextAccommodationDetailDto,
 )
