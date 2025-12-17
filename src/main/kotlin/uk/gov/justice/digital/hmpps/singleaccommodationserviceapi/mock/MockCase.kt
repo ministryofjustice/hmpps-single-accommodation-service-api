@@ -18,8 +18,8 @@ fun getMockedCases(): List<CaseDto> {
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "TODO()",
       assignedTo = null,
-      currentAccommodation = mockCurrentAccommodationDetailDto,
-      nextAccommodation = mockNextAccommodationDetailDto,
+      currentAccommodation = mockCurrentAccommodationDetail,
+      nextAccommodation = mockNextAccommodationDetail,
       photoUrl = "TODO()",
     )
   }

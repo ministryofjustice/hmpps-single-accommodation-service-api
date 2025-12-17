@@ -17,7 +17,7 @@ class CaseService(
         tier = it.tier,
         caseSummaries = it.cases,
         photoUrl = it.photoUrl,
-        accommodationResponse = it.accommodationResponse,
+        accommodationDto = it.accommodationDto,
       )
     }
       .filter { riskLevel == null || it.riskLevel == riskLevel }
@@ -26,6 +26,6 @@ class CaseService(
 
   fun getCase(crn: String): CaseDto {
     val case = caseOrchestrationService.getCase(crn)
-    return CaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases, case.accommodationResponse, case.photoUrl)
+    return CaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases, case.accommodationDto, case.photoUrl)
   }
 }

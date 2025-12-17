@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetailDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AddressDetails
@@ -24,7 +24,7 @@ fun buildAccommodationDetails(
   startDate: LocalDate? = mockedLocalDate,
   endDate: LocalDate? = mockedLocalDate,
   address: AddressDetails? = buildAddress(),
-) = AccommodationDetailDto(
+) = AccommodationDetail(
   type = accommodationType,
   subType = accommodationSubType,
   name = name,
@@ -58,9 +58,9 @@ fun buildCas1Application(
 
 fun buildAccommodationResponse(
   crn: String = "!!FAKECRN",
-  currentAccommodationDetailDto: AccommodationDetailDto = buildAccommodationDetails(),
-  nextAccommodationDetailDto: AccommodationDetailDto = buildNoFixedAbodeAccommodationDetails(),
-) = AccommodationResponse(crn = crn, currentAccommodationDetailDto, nextAccommodationDetailDto)
+  currentAccommodationDetail: AccommodationDetail = buildAccommodationDetails(),
+  nextAccommodationDetail: AccommodationDetail = buildNoFixedAbodeAccommodationDetails(),
+) = AccommodationDto(crn = crn, currentAccommodationDetail, nextAccommodationDetail)
 
 fun buildAddress(
   line1: String = "!!Line 1",

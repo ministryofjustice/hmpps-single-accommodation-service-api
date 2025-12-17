@@ -12,5 +12,5 @@ class AccommodationController {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("accommodation/{crn}")
-  fun getAccommodation(@PathVariable crn: String): ResponseEntity<AccommodationResponse> = ResponseEntity.ok(mockAccommodationResponse(crn))
+  fun getAccommodation(@PathVariable crn: String): ResponseEntity<AccommodationDto> = ResponseEntity.ok(mockAccommodationResponse(crn))
 }

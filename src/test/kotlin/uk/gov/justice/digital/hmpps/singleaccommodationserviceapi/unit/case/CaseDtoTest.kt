@@ -35,7 +35,7 @@ class CaseDtoTest {
         tier = caseOrchestrationDto.tier,
         caseSummaries = caseOrchestrationDto.cases,
         photoUrl = caseOrchestrationDto.photoUrl,
-        accommodationResponse = caseOrchestrationDto.accommodationResponse,
+        accommodationDto = caseOrchestrationDto.accommodationDto,
       ),
     ).isEqualTo(expectedCaseDto)
   }

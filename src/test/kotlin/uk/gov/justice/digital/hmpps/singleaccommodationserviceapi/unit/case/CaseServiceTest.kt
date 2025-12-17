@@ -70,7 +70,7 @@ class CaseServiceTest {
           roshDetails = orchestrationOne.roshDetails,
           tier = orchestrationOne.tier,
           caseSummaries = orchestrationOne.cases,
-          accommodationResponse = orchestrationOne.accommodationResponse,
+          accommodationDto = orchestrationOne.accommodationDto,
           photoUrl = orchestrationOne.photoUrl,
         ),
       )
@@ -81,7 +81,7 @@ class CaseServiceTest {
           roshDetails = orchestrationTwo.roshDetails,
           tier = orchestrationTwo.tier,
           caseSummaries = orchestrationTwo.cases,
-          accommodationResponse = orchestrationTwo.accommodationResponse,
+          accommodationDto = orchestrationTwo.accommodationDto,
           photoUrl = orchestrationTwo.photoUrl,
         ),
       )
@@ -154,7 +154,7 @@ class CaseServiceTest {
           roshDetails = orchestrationOne.roshDetails,
           tier = orchestrationOne.tier,
           caseSummaries = orchestrationOne.cases,
-          accommodationResponse = orchestrationOne.accommodationResponse,
+          accommodationDto = orchestrationOne.accommodationDto,
           photoUrl = orchestrationOne.photoUrl,
         ),
       )
@@ -175,7 +175,7 @@ class CaseServiceTest {
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
           caseSummaries = caseOrchestrationDto.cases,
-          accommodationResponse = caseOrchestrationDto.accommodationResponse,
+          accommodationDto = caseOrchestrationDto.accommodationDto,
           photoUrl = caseOrchestrationDto.photoUrl,
         ),
       )

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys
@@ -57,7 +57,7 @@ class CaseOrchestrationService(
         ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
       val tier = calls[ApiCallKeys.GET_TIER] as? Tier
         ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
-      val accommodationResponse = calls[ApiCallKeys.GET_ACCOMMODATION_RESPONSE] as? AccommodationResponse
+      val accommodationDto = calls[ApiCallKeys.GET_ACCOMMODATION_RESPONSE] as? AccommodationDto
         ?: error("${ApiCallKeys.GET_ACCOMMODATION_RESPONSE} failed for $crn")
 
       CaseOrchestrationDto(
@@ -66,7 +66,7 @@ class CaseOrchestrationService(
         roshDetails = roshDetails,
         tier = tier,
         cases = cases,
-        accommodationResponse = accommodationResponse,
+        accommodationDto = accommodationDto,
         photoUrl = mockPhotoUrl,
       )
     }
@@ -93,8 +93,8 @@ class CaseOrchestrationService(
     val tier = results.standardCallsNoIterationResults!![ApiCallKeys.GET_TIER] as? Tier
       ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
 
-    val accommodationResponse =
-      results.standardCallsNoIterationResults!![ApiCallKeys.GET_ACCOMMODATION_RESPONSE] as? AccommodationResponse
+    val accommodationDto =
+      results.standardCallsNoIterationResults!![ApiCallKeys.GET_ACCOMMODATION_RESPONSE] as? AccommodationDto
         ?: error("${ApiCallKeys.GET_ACCOMMODATION_RESPONSE} failed for $crn")
 
     return CaseOrchestrationDto(
@@ -103,7 +103,7 @@ class CaseOrchestrationService(
       roshDetails = roshDetails,
       tier = tier,
       cases = caseSummaries.cases,
-      accommodationResponse = accommodationResponse,
+      accommodationDto = accommodationDto,
       photoUrl = mockPhotoUrl,
     )
   }

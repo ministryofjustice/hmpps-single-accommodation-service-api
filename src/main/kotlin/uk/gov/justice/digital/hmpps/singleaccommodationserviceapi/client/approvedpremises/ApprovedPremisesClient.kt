@@ -5,7 +5,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_ACCOMMODATION_RESPONSE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2V2_REFERRAL
@@ -56,7 +56,7 @@ class ApprovedPremisesCachingService(
   fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn)
 
   @Cacheable(GET_ACCOMMODATION_RESPONSE, key = "#crn", sync = true)
-  fun getAccommodationResponse(crn: String): AccommodationResponse {
+  fun getAccommodationResponse(crn: String): AccommodationDto {
     log.warn("Mocking accommodation result for crn: $crn")
     return mockAccommodationResponse(crn)
   }
