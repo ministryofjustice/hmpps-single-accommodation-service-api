@@ -62,10 +62,16 @@ fun buildAccommodationResponse(
   nextAccommodationDetails: AccommodationDetails = buildNoFixedAbodeAccommodationDetails(),
 ) = AccommodationResponse(crn = crn, currentAccommodationDetails, nextAccommodationDetails)
 
-fun buildAddress() = AddressDetails(
-  line1 = "!!Line 1",
-  line2 = "!!Line 2",
-  region = "!!REGION",
-  city = "!!CITY",
-  postCode = "!!POSTCODE",
+fun buildAddress(
+  line1: String = "!!Line 1",
+  line2: String? = "!!Line 2",
+  region: String? = "!!REGION",
+  city: String = "!!CITY",
+  postCode: String = "!!POSTCODE",
+) = AddressDetails(
+  line1 = line1,
+  line2 = line2,
+  region = region,
+  city = city,
+  postCode = postCode,
 )
