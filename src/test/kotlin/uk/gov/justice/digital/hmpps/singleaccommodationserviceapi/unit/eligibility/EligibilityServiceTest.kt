@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
@@ -106,7 +107,7 @@ class EligibilityServiceTest : EligibilityBaseTest() {
     releaseDate: String,
     cas1Status: Cas1ApplicationStatus?,
     cas1PlacementStatus: Cas1PlacementStatus?,
-    expectedCas1Status: String?,
+    expectedCas1Status: ServiceStatus?,
     expectedCas1Actions: String?,
   ) {
     val fixedClock = createFixedClock(referenceDate)
@@ -127,7 +128,7 @@ class EligibilityServiceTest : EligibilityBaseTest() {
     val result = testEligibilityService.calculateEligibilityForCas1(data)
 
     val actualActions = if (result.actions.isEmpty()) null else result.actions.joinToString(",")
-    assertThat(result.serviceStatus.name).isEqualTo(expectedCas1Status)
+    assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
     assertThat(actualActions).isEqualTo(expectedCas1Actions)
   }
 
