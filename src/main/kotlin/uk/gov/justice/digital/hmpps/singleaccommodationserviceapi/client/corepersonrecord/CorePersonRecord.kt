@@ -33,9 +33,16 @@ data class Title(
 )
 
 data class Sex(
-  val code: String? = null,
+  val code: SexCode? = null,
   val description: String? = null,
 )
+
+enum class SexCode {
+  M,
+  F,
+  N,
+  NS,
+}
 
 data class Religion(
   val code: String? = null,
@@ -65,8 +72,8 @@ data class Nationality(
 
 data class Address(
   val noFixedAbode: Boolean? = null,
-  val startDate: String? = null,
-  val endDate: String? = null,
+  val startDate: LocalDate? = null,
+  val endDate: LocalDate? = null,
   val postcode: String? = null,
   val subBuildingName: String? = null,
   val buildingName: String? = null,

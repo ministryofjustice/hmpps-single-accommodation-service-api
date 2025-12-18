@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummaries
@@ -12,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probati
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockPhotoUrl
 
 @Service
 class CaseOrchestrationService(
@@ -20,6 +23,7 @@ class CaseOrchestrationService(
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
+  val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
   fun getCases(crns: List<String>): List<CaseOrchestrationDto> {
     val bulkCall = mapOf(
@@ -29,6 +33,9 @@ class CaseOrchestrationService(
       ApiCallKeys.GET_CORE_PERSON_RECORD to { crn: String -> corePersonRecordCachingService.getCorePersonRecord(crn) },
       ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
+      ApiCallKeys.GET_ACCOMMODATION_STATUS to { crn: String ->
+        approvedPremisesCachingService.getAccommodationStatus(crn)
+      },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = bulkCall,
@@ -50,8 +57,18 @@ class CaseOrchestrationService(
         ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
       val tier = calls[ApiCallKeys.GET_TIER] as? Tier
         ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
+      val accommodationStatus = calls[ApiCallKeys.GET_ACCOMMODATION_STATUS] as? AccommodationStatus
+        ?: error("${ApiCallKeys.GET_ACCOMMODATION_STATUS} failed for $crn")
 
-      CaseOrchestrationDto(crn, cpr, roshDetails, tier, cases)
+      CaseOrchestrationDto(
+        crn = crn,
+        cpr = cpr,
+        roshDetails = roshDetails,
+        tier = tier,
+        cases = cases,
+        accommodationStatus = accommodationStatus,
+        photoUrl = mockPhotoUrl,
+      )
     }
   }
 
@@ -61,6 +78,7 @@ class CaseOrchestrationService(
       ApiCallKeys.GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
       ApiCallKeys.GET_ROSH_DETAIL to { probationIntegrationOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
+      ApiCallKeys.GET_ACCOMMODATION_STATUS to { approvedPremisesCachingService.getAccommodationStatus(crn) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
@@ -74,6 +92,19 @@ class CaseOrchestrationService(
       ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
     val tier = results.standardCallsNoIterationResults!![ApiCallKeys.GET_TIER] as? Tier
       ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
-    return CaseOrchestrationDto(crn, cpr, roshDetails, tier, cases = caseSummaries.cases)
+
+    val accommodationStatus =
+      results.standardCallsNoIterationResults!![ApiCallKeys.GET_ACCOMMODATION_STATUS] as? AccommodationStatus
+        ?: error("${ApiCallKeys.GET_ACCOMMODATION_STATUS} failed for $crn")
+
+    return CaseOrchestrationDto(
+      crn = crn,
+      cpr = cpr,
+      roshDetails = roshDetails,
+      tier = tier,
+      cases = caseSummaries.cases,
+      accommodationStatus = accommodationStatus,
+      photoUrl = mockPhotoUrl,
+    )
   }
 }

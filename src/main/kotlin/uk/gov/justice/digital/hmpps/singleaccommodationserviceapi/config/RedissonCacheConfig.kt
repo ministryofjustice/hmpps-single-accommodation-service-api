@@ -11,6 +11,17 @@ import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_ACCOMMODATION_STATUS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS1_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2V2_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS3_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CASE_SUMMARY
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CORE_PERSON_RECORD
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_PRISONER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_ROSH_DETAIL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_SUITABLE_CAS1_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_TIER
 
 @Configuration
 @Profile("dev")
@@ -25,8 +36,8 @@ class RedissonMasterSlaveServersConfig {
     @Value($$"${redisson.timeout}") redissonTimeout: Int,
     @Value($$"${redisson.retry.attempts}") redissonRetryAttempts: Int,
     @Value($$"${redisson.retry.interval}") redissonRetryInterval: Int,
-    @Value($$"${redisson.connnection.pool-size}") redissonConnectionPoolSize: Int,
-    @Value($$"${redisson.connnection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
+    @Value($$"${redisson.connection.pool-size}") redissonConnectionPoolSize: Int,
+    @Value($$"${redisson.connection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
   ): RedissonClient {
     val masterAddress = "rediss://$redisHost:$redisPort"
     val replicaAddress = "rediss://$redisReplicaHost:$redisPort"
@@ -57,8 +68,8 @@ class RedissonLocalConfig {
     @Value($$"${redisson.timeout}") redissonTimeout: Int,
     @Value($$"${redisson.retry.interval}") redissonRetryInterval: Int,
     @Value($$"${redisson.retry.attempts}") redissonRetryAttempts: Int,
-    @Value($$"${redisson.connnection.pool-size}") redissonConnectionPoolSize: Int,
-    @Value($$"${redisson.connnection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
+    @Value($$"${redisson.connection.pool-size}") redissonConnectionPoolSize: Int,
+    @Value($$"${redisson.connection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
   ): RedissonClient {
     val config = Config()
     config
@@ -82,10 +93,17 @@ class RedissonCacheConfig {
   @Bean
   fun cacheManager(redissonClient: RedissonClient): CacheManager {
     val configs = mapOf(
-      "getRoshSummaryByCrn" to CacheConfig(60_000, 30_000),
-      "getCaseSummaryByCrn" to CacheConfig(120_000, 60_000),
-      "getCorePersonRecordByCrn" to CacheConfig(180_000, 120_000),
-      "getTierByCrn" to CacheConfig(180_000, 120_000),
+      GET_ROSH_DETAIL to CacheConfig(60_000, 30_000),
+      GET_CASE_SUMMARY to CacheConfig(120_000, 60_000),
+      GET_CORE_PERSON_RECORD to CacheConfig(180_000, 120_000),
+      GET_TIER to CacheConfig(180_000, 120_000),
+      GET_ACCOMMODATION_STATUS to CacheConfig(180_000, 120_000),
+      GET_PRISONER to CacheConfig(180_000, 120_000),
+      GET_CAS1_REFERRAL to CacheConfig(60_000, 60_000),
+      GET_CAS2_REFERRAL to CacheConfig(60_000, 60_000),
+      GET_CAS2V2_REFERRAL to CacheConfig(60_000, 60_000),
+      GET_CAS3_REFERRAL to CacheConfig(60_000, 60_000),
+      GET_SUITABLE_CAS1_APPLICATION to CacheConfig(180_000, 120_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

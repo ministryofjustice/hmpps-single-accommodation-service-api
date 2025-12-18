@@ -70,6 +70,8 @@ class CaseServiceTest {
           roshDetails = orchestrationOne.roshDetails,
           tier = orchestrationOne.tier,
           caseSummaries = orchestrationOne.cases,
+          accommodationStatus = orchestrationOne.accommodationStatus,
+          photoUrl = orchestrationOne.photoUrl,
         ),
       )
       assertThat(result[1]).isEqualTo(
@@ -79,6 +81,8 @@ class CaseServiceTest {
           roshDetails = orchestrationTwo.roshDetails,
           tier = orchestrationTwo.tier,
           caseSummaries = orchestrationTwo.cases,
+          accommodationStatus = orchestrationTwo.accommodationStatus,
+          photoUrl = orchestrationTwo.photoUrl,
         ),
       )
     }
@@ -150,6 +154,8 @@ class CaseServiceTest {
           roshDetails = orchestrationOne.roshDetails,
           tier = orchestrationOne.tier,
           caseSummaries = orchestrationOne.cases,
+          accommodationStatus = orchestrationOne.accommodationStatus,
+          photoUrl = orchestrationOne.photoUrl,
         ),
       )
     }
@@ -169,6 +175,8 @@ class CaseServiceTest {
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
           caseSummaries = caseOrchestrationDto.cases,
+          accommodationStatus = caseOrchestrationDto.accommodationStatus,
+          photoUrl = caseOrchestrationDto.photoUrl,
         ),
       )
     }

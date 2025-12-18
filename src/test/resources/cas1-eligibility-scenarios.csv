@@ -1,0 +1,36 @@
+Testcase description,Reference date,Sex,Tier,Release date,CAS1 application status,CAS1 placement status,CAS1 status,CAS1 actions
+TC1 - existing CAS1 overrides timing,01/12/2025,M,A2,01/08/2026,PLACEMENT_ALLOCATED,UPCOMING,UPCOMING_PLACEMENT,None
+TC2 - existing CAS1 overrides S-tier ineligibility,01/12/2025,F,A3S,01/03/2026,PLACEMENT_ALLOCATED,UPCOMING,UPCOMING_PLACEMENT,None
+"TC3 - male eligible, inside 6 months window",01/12/2025,M,A3,01/03/2026,None,None,NOT_STARTED,Start approved premise referral
+"TC4 - male eligible, exactly 6 months",01/12/2025,M,B1,01/06/2026,None,None,UPCOMING,Start approved premise referral
+"TC5 - male eligible, too early to start",01/12/2025,M,B2,01/07/2026,None,None,UPCOMING,Start approved premise referral in 31 days
+TC6 - male ineligible tier,01/12/2025,M,C3,01/03/2026,None,None,NOT_ELIGIBLE,None
+TC7 - male S-tier ineligible,01/12/2025,M,A3S,01/02/2026,None,None,NOT_ELIGIBLE,None
+"TC8 - female eligible, inside 6 months",01/12/2025,F,A1,01/02/2026,None,None,NOT_STARTED,Start approved premise referral
+"TC9 - female eligible tier, too early to start",01/12/2025,F,C3,01/07/2026,None,None,UPCOMING,Start approved premise referral in 31 days
+TC10 - female C3 in window,01/12/2025,F,C3,01/04/2026,None,None,NOT_STARTED,Start approved premise referral
+TC11 - female ineligible tier,01/12/2025,F,C2,01/03/2026,None,None,NOT_ELIGIBLE,None
+TC12 - female S-tier ineligible,01/12/2025,F,B1S,01/01/2026,None,None,NOT_ELIGIBLE,None
+"TC13 - male eligible tier, far from release",01/12/2025,M,B3,01/10/2026,None,None,UPCOMING,Start approved premise referral in 121 days
+"TC14 - female eligible tier, far from release",01/12/2025,F,A2,01/12/2026,None,None,UPCOMING,Start approved premise referral in 182 days
+TC15 - male ineligible tier far from release,01/12/2025,M,C3,01/10/2026,None,None,NOT_ELIGIBLE,None
+"TC16 - inside window, start referral (male A3)",01/12/2025,M,A3,01/03/2026,None,None,NOT_STARTED,Start approved premise referral
+"TC17 - boundary 6 months, start referral (female B3)",01/12/2025,F,B3,01/06/2026,None,None,UPCOMING,Start approved premise referral
+"TC18 - outside window, upcoming prompt (male B2)",01/12/2025,M,B2,01/07/2026,None,None,UPCOMING,Start approved premise referral in 31 days
+TC19 - ineligible tier (female C2),01/12/2025,F,C2,01/03/2026,None,None,NOT_ELIGIBLE,None
+"TC20 - suitable app, no placement, make placement request",01/12/2025,M,A2,01/03/2026,AWAITING_PLACEMENT,None,AWAITING_PLACEMENT,Create a placement request.
+"TC21 - placement allocated, confirmed (female A1)",01/12/2025,F,A1,01/02/2026,PLACEMENT_ALLOCATED,UPCOMING,UPCOMING_PLACEMENT,None
+"TC22 - placement cancelled, make placement request",01/12/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,CANCELLED,CANCELLED,Create a placement request.
+TC23 - exactly 1 day before threshold,31/12/2025,M,A2,01/07/2026,None,None,UPCOMING,Start approved premise referral in 1 day
+TC24 - release date is today,01/12/2025,M,A1,01/12/2025,None,None,NOT_STARTED,Start approved premise referral
+"TC25 - different reference date, leap year",29/02/2024,F,A2,29/08/2024,None,None,UPCOMING,Start approved premise referral
+TC26 - placement upcoming overrides eligibility within 10 days,01/12/2025,M,A1,11/12/2025,PLACEMENT_ALLOCATED,UPCOMING,UPCOMING_PLACEMENT,None
+TC27 - awaiting placement needs placement request,01/12/2025,M,B1,11/12/2025,AWAITING_PLACEMENT,None,AWAITING_PLACEMENT,Create a placement request.
+TC28 - departed placement needs new request,01/12/2025,M,A1,11/12/2025,PLACEMENT_ALLOCATED,DEPARTED,DEPARTED,Create a placement request.
+TC29 - not arrived placement needs new request,01/12/2025,M,B3,11/12/2025,PLACEMENT_ALLOCATED,NOT_ARRIVED,NOT_ARRIVED,Create a placement request.
+TC30 - non-specified sex eligible C3 tier within window,01/12/2025,NS,C3,01/03/2026,None,None,NOT_STARTED,Start approved premise referral
+TC31 - non-recorded sex eligible A1 tier within window,01/12/2025,N,A1,01/03/2026,None,None,NOT_STARTED,Start approved premise referral
+TC32 - non-specified sex ineligible C1 tier,01/12/2025,NS,C1,01/03/2026,None,None,NOT_ELIGIBLE,None
+TC33 - non-recorded sex ineligible D2 tier,01/12/2025,N,D2,01/03/2026,None,None,NOT_ELIGIBLE,None
+TC34 - non-specified S-tier ineligible,01/12/2025,NS,B2S,01/03/2026,None,None,NOT_ELIGIBLE,None
+TC35 - non-recorded outside 6 months window,01/12/2025,N,A2,01/07/2026,None,None,UPCOMING,Start approved premise referral in 31 days

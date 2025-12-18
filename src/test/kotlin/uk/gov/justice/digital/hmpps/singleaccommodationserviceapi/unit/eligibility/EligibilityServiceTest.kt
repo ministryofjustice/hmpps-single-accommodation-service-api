@@ -1,0 +1,171 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility
+
+import io.mockk.every
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvFileSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Identifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
+import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.UUID
+
+@ExtendWith(MockKExtension::class)
+class EligibilityServiceTest : EligibilityBaseTest() {
+  private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
+  private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+  var eligibilityService = EligibilityService(
+    eligibilityOrchestrationService,
+    cas1RuleSet,
+    defaultRulesEngine,
+  )
+
+  private val crn = "ABC1234"
+
+  @Nested
+  inner class DomainDataFunctions {
+    private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC)
+
+    @Test
+    fun `buildDomainData maps all fields correctly`() {
+      val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
+      val tier = Tier(TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
+      val releaseDate = LocalDate.now().plusMonths(6)
+      val prisoner = listOf(
+        Prisoner(releaseDate = LocalDate.now().plusMonths(5)),
+        Prisoner(releaseDate = releaseDate),
+        Prisoner(releaseDate = LocalDate.now().plusMonths(4)),
+        Prisoner(releaseDate = null),
+      )
+      val expectedReleaseDateOffset = transformPrisonerReleaseDate(releaseDate)
+
+      val result = DomainData(crn, cpr, tier, prisoner, null)
+      assertThat(result.tier).isEqualTo(tier.tierScore)
+      assertThat(result.sex).isEqualTo(Sex(cpr.sex?.code, cpr.sex?.description))
+      assertThat(result.releaseDate).isEqualTo(expectedReleaseDateOffset)
+    }
+
+    @Test
+    fun `getDomainData returns correct DomainData`() {
+      val expectedTier = TierScore.A1
+      val expectedReleaseDate = LocalDate.now().plusMonths(6)
+      val expectedReleaseDateOffset = transformPrisonerReleaseDate(expectedReleaseDate)
+
+      val crn = "X12345"
+      val prisonerNumber = "PN1"
+      val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
+      val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
+      val prisoner = Prisoner(releaseDate = expectedReleaseDate)
+      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null)
+
+      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
+      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
+
+      val result = eligibilityService.getDomainData(crn)
+      assertThat(result.tier).isEqualTo(expectedTier)
+      assertThat(result.sex).isEqualTo(male)
+      assertThat(result.releaseDate).isEqualTo(expectedReleaseDateOffset)
+    }
+  }
+
+  @ParameterizedTest
+  @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1)
+  @Suppress("LongParameterList")
+  fun `should calculate eligibility for cas1 for all scenarios`(
+    description: String,
+    referenceDate: String,
+    sex: String,
+    tier: String,
+    releaseDate: String,
+    cas1Status: String,
+    cas1PlacementStatus: String,
+    expectedCas1Status: String,
+    expectedCas1Actions: String,
+  ) {
+    val fixedClock = createFixedClock(referenceDate)
+    val testEligibilityService = createTestEligibilityService(fixedClock)
+    val data = buildTestDomainData(sex, tier, releaseDate, cas1Status, cas1PlacementStatus)
+
+    val result = testEligibilityService.calculateEligibilityForCas1(data)
+
+    val actualActions = if (result.actions.isEmpty()) "None" else result.actions.joinToString(",")
+    assertThat(result.serviceStatus.name).isEqualTo(expectedCas1Status)
+    assertThat(actualActions).isEqualTo(expectedCas1Actions)
+  }
+
+  private fun createFixedClock(referenceDate: String): Clock {
+    val parsedDate = LocalDate.parse(referenceDate, dateFormatter)
+    return Clock.fixed(
+      parsedDate.atStartOfDay(ZoneOffset.UTC).toInstant(),
+      ZoneOffset.UTC,
+    )
+  }
+
+  private fun createTestEligibilityService(clock: Clock) = EligibilityService(
+    eligibilityOrchestrationService,
+    Cas1RuleSet(sTierRule, maleRiskRule, nonMaleRiskRule, WithinSixMonthsOfReleaseRule(clock)),
+    defaultRulesEngine,
+  )
+
+  private fun buildTestDomainData(
+    sex: String,
+    tier: String,
+    releaseDate: String,
+    cas1Status: String,
+    cas1PlacementStatus: String,
+  ) = DomainData(
+    crn,
+    tier = TierScore.valueOf(tier),
+    sex = Sex(
+      code = SexCode.valueOf(sex),
+      description = when (sex) {
+        "M" -> "Male"
+        "F" -> "Female"
+        "NS" -> "Non-specified"
+        "N" -> "Non-recorded"
+        else -> sex
+      },
+    ),
+    releaseDate = LocalDate.parse(releaseDate, dateFormatter)
+      .atStartOfDay()
+      .atOffset(ZoneOffset.UTC),
+    cas1Application = buildCas1Application(cas1Status, cas1PlacementStatus),
+  )
+
+  private fun buildCas1Application(
+    cas1Status: String,
+    cas1PlacementStatus: String,
+  ): Cas1Application? = cas1Status.takeIf { it != "None" }?.let {
+    Cas1Application(
+      id = UUID.randomUUID(),
+      applicationStatus = Cas1ApplicationStatus.valueOf(it),
+      placementStatus = cas1PlacementStatus.takeIf { it != "None" }?.let { status ->
+        Cas1PlacementStatus.valueOf(status)
+      },
+    )
+  }
+}
