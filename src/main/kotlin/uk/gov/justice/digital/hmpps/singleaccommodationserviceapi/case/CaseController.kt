@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockCrns
 
 @RestController
 class CaseController(
@@ -21,12 +22,7 @@ class CaseController(
     @RequestParam(required = false) assignedTo: Long?,
     @RequestParam(required = false) riskLevel: RiskLevel?,
     // these crns are added temporarily
-    @RequestParam(required = false) crns: List<String> = listOf(
-      "X371199",
-      "X968879",
-      "X966926",
-      "X969031",
-    ),
+    @RequestParam(required = false) crns: List<String> = mockCrns,
   ): ResponseEntity<List<CaseDto>> {
     val cases = caseService.getCases(crns, riskLevel)
     return ResponseEntity.ok(cases)
