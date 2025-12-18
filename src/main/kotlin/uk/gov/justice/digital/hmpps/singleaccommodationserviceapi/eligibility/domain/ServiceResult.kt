@@ -4,5 +4,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
+  val suitableApplication: SuitableApplication? = null,
   val actions: List<String>,
 )
