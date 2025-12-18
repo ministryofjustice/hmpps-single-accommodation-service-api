@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
+import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
@@ -95,38 +97,37 @@ class EligibilityServiceTest : EligibilityBaseTest() {
   }
 
   @ParameterizedTest
-  @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1)
+  @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
   @Suppress("LongParameterList")
   fun `should calculate eligibility for cas1 for all scenarios`(
     description: String,
     referenceDate: String,
-    sex: String,
-    tier: String,
+    sex: SexCode,
+    tier: TierScore,
     releaseDate: String,
-    cas1Status: String,
-    cas1PlacementStatus: String,
-    expectedCas1Status: String,
-    expectedCas1Actions: String,
+    cas1Status: Cas1ApplicationStatus?,
+    cas1PlacementStatus: Cas1PlacementStatus?,
+    expectedCas1Status: String?,
+    expectedCas1Actions: String?,
   ) {
     val fixedClock = createFixedClock(referenceDate)
     val testEligibilityService = createTestEligibilityService(fixedClock)
 
-    val cas1Application = if (cas1Status == "None") {
-      null
-    } else {
+    val cas1Application = cas1Status?.let {
       buildCas1Application(
-        applicationStatus = Cas1ApplicationStatus.valueOf(cas1Status),
-        placementStatus = cas1PlacementStatus.takeIf { it != "None" }?.let { Cas1PlacementStatus.valueOf(it) },
+        applicationStatus = cas1Status,
+        placementStatus = cas1PlacementStatus.takeIf { it != null },
       )
     }
+
     val releaseDate = LocalDate.parse(releaseDate, dateFormatter)
       .atStartOfDay()
       .atOffset(ZoneOffset.UTC)
-    val data = buildDomainData(crn, tier = TierScore.valueOf(tier), buildSex(SexCode.valueOf(sex)), releaseDate, cas1Application)
+    val data = buildDomainData(crn, tier = tier, buildSex(sex), releaseDate, cas1Application)
 
     val result = testEligibilityService.calculateEligibilityForCas1(data)
 
-    val actualActions = if (result.actions.isEmpty()) "None" else result.actions.joinToString(",")
+    val actualActions = if (result.actions.isEmpty()) null else result.actions.joinToString(",")
     assertThat(result.serviceStatus.name).isEqualTo(expectedCas1Status)
     assertThat(actualActions).isEqualTo(expectedCas1Actions)
   }
