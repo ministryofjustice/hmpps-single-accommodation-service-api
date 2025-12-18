@@ -1,15 +1,15 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility
 
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
-import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
@@ -39,20 +38,20 @@ import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
 class EligibilityServiceTest : EligibilityBaseTest() {
-  private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
+
+  @MockK
+  lateinit var eligibilityOrchestrationService: EligibilityOrchestrationService
+
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-  var eligibilityService = EligibilityService(
-    eligibilityOrchestrationService,
-    cas1RuleSet,
-    defaultRulesEngine,
-  )
+  @InjectMockKs
+  lateinit var eligibilityService: EligibilityService
 
   private val crn = "ABC1234"
 
   @Nested
   inner class DomainDataFunctions {
-    private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC)
+    private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(ZoneOffset.UTC)
 
     @Test
     fun `buildDomainData maps all fields correctly`() {
