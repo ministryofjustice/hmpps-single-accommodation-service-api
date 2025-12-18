@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
@@ -25,6 +24,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -108,7 +110,19 @@ class EligibilityServiceTest : EligibilityBaseTest() {
   ) {
     val fixedClock = createFixedClock(referenceDate)
     val testEligibilityService = createTestEligibilityService(fixedClock)
-    val data = buildTestDomainData(sex, tier, releaseDate, cas1Status, cas1PlacementStatus)
+
+    val cas1Application = if (cas1Status == "None") {
+      null
+    } else {
+      buildCas1Application(
+        applicationStatus = Cas1ApplicationStatus.valueOf(cas1Status),
+        placementStatus = cas1PlacementStatus.takeIf { it != "None" }?.let { Cas1PlacementStatus.valueOf(it) },
+      )
+    }
+    val releaseDate = LocalDate.parse(releaseDate, dateFormatter)
+      .atStartOfDay()
+      .atOffset(ZoneOffset.UTC)
+    val data = buildDomainData(crn, tier = TierScore.valueOf(tier), buildSex(SexCode.valueOf(sex)), releaseDate, cas1Application)
 
     val result = testEligibilityService.calculateEligibilityForCas1(data)
 
@@ -130,42 +144,4 @@ class EligibilityServiceTest : EligibilityBaseTest() {
     Cas1RuleSet(sTierRule, maleRiskRule, nonMaleRiskRule, WithinSixMonthsOfReleaseRule(clock)),
     defaultRulesEngine,
   )
-
-  private fun buildTestDomainData(
-    sex: String,
-    tier: String,
-    releaseDate: String,
-    cas1Status: String,
-    cas1PlacementStatus: String,
-  ) = DomainData(
-    crn,
-    tier = TierScore.valueOf(tier),
-    sex = Sex(
-      code = SexCode.valueOf(sex),
-      description = when (sex) {
-        "M" -> "Male"
-        "F" -> "Female"
-        "NS" -> "Non-specified"
-        "N" -> "Non-recorded"
-        else -> sex
-      },
-    ),
-    releaseDate = LocalDate.parse(releaseDate, dateFormatter)
-      .atStartOfDay()
-      .atOffset(ZoneOffset.UTC),
-    cas1Application = buildCas1Application(cas1Status, cas1PlacementStatus),
-  )
-
-  private fun buildCas1Application(
-    cas1Status: String,
-    cas1PlacementStatus: String,
-  ): Cas1Application? = cas1Status.takeIf { it != "None" }?.let {
-    Cas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.valueOf(it),
-      placementStatus = cas1PlacementStatus.takeIf { it != "None" }?.let { status ->
-        Cas1PlacementStatus.valueOf(status)
-      },
-    )
-  }
 }
