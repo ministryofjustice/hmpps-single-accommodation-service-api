@@ -1,12 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules
 
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
 
-class STierRule : Rule {
+@Component
+class STierRule : Cas1Rule {
   override val description = "FAIL if candidate is S Tier"
   private val sRiskTiers = listOf(
     TierScore.A3S,

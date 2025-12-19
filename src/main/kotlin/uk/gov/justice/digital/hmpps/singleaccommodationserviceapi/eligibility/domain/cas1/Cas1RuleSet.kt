@@ -1,22 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1
 
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.NonMaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.Cas1Rule
 
+@Component
 class Cas1RuleSet(
-  private val sTierRule: STierRule,
-  private val maleRiskRule: MaleRiskRule,
-  private val nonMaleRiskRule: NonMaleRiskRule,
-  private val withinSixMonthsOfReleaseRule: WithinSixMonthsOfReleaseRule,
+  private val cas1Rules: List<Cas1Rule>,
 ) : RuleSet {
-  override fun getRules(): List<Rule> = listOf(
-    sTierRule,
-    maleRiskRule,
-    nonMaleRiskRule,
-    withinSixMonthsOfReleaseRule,
-  )
+  override fun getRules(): List<Rule> = cas1Rules
 }

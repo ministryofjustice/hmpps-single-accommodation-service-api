@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility
 
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
@@ -22,8 +24,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.NonMaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
@@ -37,22 +44,36 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-@ExtendWith(MockKExtension::class)
-class EligibilityServiceTest : EligibilityBaseTest() {
-  @MockK
-  private lateinit var eligibilityOrchestrationService: EligibilityOrchestrationService
+@ExtendWith(value = [MockKExtension::class])
+class EligibilityServiceTest {
 
+  @MockK
+  lateinit var eligibilityOrchestrationService: EligibilityOrchestrationService
+
+  private val clock = MutableClock()
   private val crn = "ABC1234"
+  private val male = buildSex(SexCode.M)
+
+  @SpyK
+  var cas1Rules = Cas1RuleSet(
+    listOf(
+      MaleRiskRule(),
+      NonMaleRiskRule(),
+      STierRule(),
+      WithinSixMonthsOfReleaseRule(clock),
+    ),
+  )
+
+  @SpyK
+  var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
+
+  @InjectMockKs
+  lateinit var eligibilityService: EligibilityService
 
   @Nested
   inner class DomainDataFunctions {
-    private val eligibilityService = EligibilityService(
-      eligibilityOrchestrationService,
-      cas1RuleSet,
-      defaultRulesEngine,
-    )
 
-    private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC)
+    private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(ZoneOffset.UTC)
 
     @Test
     fun `buildDomainData maps all fields correctly`() {
@@ -98,12 +119,6 @@ class EligibilityServiceTest : EligibilityBaseTest() {
 
   @Nested
   inner class Cas1EligibilityScenarios {
-    private val clock = MutableClock()
-    private val eligibilityServiceWithClock = EligibilityService(
-      eligibilityOrchestrationService,
-      Cas1RuleSet(sTierRule, maleRiskRule, nonMaleRiskRule, WithinSixMonthsOfReleaseRule(clock)),
-      defaultRulesEngine,
-    )
 
     /**
      * Date formatter for CSV test data
@@ -140,7 +155,7 @@ class EligibilityServiceTest : EligibilityBaseTest() {
       }
       val data = buildDomainData(crn, tier, buildSex(sex), releaseDate.toOffsetDateTime(), cas1Application)
 
-      val result = eligibilityServiceWithClock.calculateEligibilityForCas1(data)
+      val result = eligibilityService.calculateEligibilityForCas1(data)
 
       val actualActions = result.actions.takeIf { it.isNotEmpty() }?.joinToString(",")
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)

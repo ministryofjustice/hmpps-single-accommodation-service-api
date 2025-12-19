@@ -3,15 +3,82 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.NonMaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityBaseTest
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.CircuitBreakRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import java.time.OffsetDateTime
 
-class RuleSetEvaluatorTest : EligibilityBaseTest() {
+@ExtendWith(SpringExtension::class)
+@ContextConfiguration(
+  classes = [
+    Cas1RuleSet::class,
+    STierRule::class,
+    MaleRiskRule::class,
+    NonMaleRiskRule::class,
+    WithinSixMonthsOfReleaseRule::class,
+    ClockConfig::class,
+    DefaultRuleSetEvaluator::class,
+    CircuitBreakRuleSetEvaluator::class,
+  ],
+)
+class RuleSetEvaluatorTest {
+  @Autowired
+  lateinit var cas1RuleSet: Cas1RuleSet
+
+  @Autowired
+  lateinit var defaultRuleSetEvaluator: DefaultRuleSetEvaluator
+
+  @Autowired
+  lateinit var circuitBreakRuleSetEvaluator: CircuitBreakRuleSetEvaluator
+
   private val crn = "ABC234"
+  val stTierRuleDescription = "FAIL if candidate is S Tier"
+  val maleRiskRuleDescription = "FAIL if candidate is Male and is not Tier A3 - B1"
+  val nonMaleRiskRuleDescription = "FAIL if candidate is not Male and is not Tier A3 - C3"
+  val withinSixMonthsRuleDescription = "FAIL if candidate is within 6 months of release date"
+
+  fun buildStTierRuleResult(ruleStatus: RuleStatus, actionable: Boolean, potentialAction: String? = null) = RuleResult(
+    description = stTierRuleDescription,
+    ruleStatus = ruleStatus,
+    actionable = actionable,
+    potentialAction = potentialAction,
+  )
+
+  fun buildMaleRiskRuleResult(ruleStatus: RuleStatus, actionable: Boolean, potentialAction: String? = null) = RuleResult(
+    description = maleRiskRuleDescription,
+    ruleStatus = ruleStatus,
+    actionable = actionable,
+    potentialAction = potentialAction,
+  )
+
+  fun buildNonMaleRiskRuleResult(ruleStatus: RuleStatus, actionable: Boolean, potentialAction: String? = null) = RuleResult(
+    description = nonMaleRiskRuleDescription,
+    ruleStatus = ruleStatus,
+    actionable = actionable,
+    potentialAction = potentialAction,
+  )
+
+  fun buildWithinSixMonthsRuleResult(ruleStatus: RuleStatus, actionable: Boolean, potentialAction: String? = null) = RuleResult(
+    description = withinSixMonthsRuleDescription,
+    ruleStatus = ruleStatus,
+    actionable = actionable,
+    potentialAction = potentialAction,
+  )
 
   @Nested
   inner class DefaultRuleSetEvaluatorTests {
@@ -21,17 +88,21 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
-        sex = male,
+        sex = buildSex(SexCode.M),
         releaseDate = OffsetDateTime.now().plusMonths(7),
       )
 
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(sTierRule.description, RuleStatus.PASS, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(nonMaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+        buildStTierRuleResult(RuleStatus.PASS, false),
+        buildMaleRiskRuleResult(RuleStatus.PASS, false),
+        buildNonMaleRiskRuleResult(RuleStatus.PASS, false),
+        buildWithinSixMonthsRuleResult(
+          RuleStatus.PASS,
+          true,
+          "Start approved premise referral in 31 days",
+        ),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -42,16 +113,20 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.C2S,
-        sex = female,
+        sex = buildSex(SexCode.F),
         releaseDate = OffsetDateTime.now().plusMonths(2),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(nonMaleRiskRule.description, RuleStatus.FAIL, false),
-        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        buildStTierRuleResult(RuleStatus.FAIL, false),
+        buildMaleRiskRuleResult(RuleStatus.PASS, false),
+        buildNonMaleRiskRuleResult(RuleStatus.FAIL, false),
+        buildWithinSixMonthsRuleResult(
+          RuleStatus.FAIL,
+          true,
+          "Start approved premise referral",
+        ),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -62,16 +137,20 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1S,
-        sex = male,
+        sex = buildSex(SexCode.M),
         releaseDate = OffsetDateTime.now().plusMonths(7),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(nonMaleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.PASS, true, "Start approved premise referral in 31 days"),
+        buildStTierRuleResult(RuleStatus.FAIL, false),
+        buildMaleRiskRuleResult(RuleStatus.PASS, false),
+        buildNonMaleRiskRuleResult(RuleStatus.PASS, false),
+        buildWithinSixMonthsRuleResult(
+          RuleStatus.PASS,
+          true,
+          "Start approved premise referral in 31 days",
+        ),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -82,16 +161,20 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.C1,
-        sex = female,
+        sex = buildSex(SexCode.F),
         releaseDate = OffsetDateTime.now().plusMonths(3),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(sTierRule.description, RuleStatus.PASS, false),
-        RuleResult(maleRiskRule.description, RuleStatus.PASS, false),
-        RuleResult(nonMaleRiskRule.description, RuleStatus.FAIL, false),
-        RuleResult(withinSixMonthsOfReleaseRule.description, RuleStatus.FAIL, true, "Start approved premise referral"),
+        buildStTierRuleResult(RuleStatus.PASS, false),
+        buildMaleRiskRuleResult(RuleStatus.PASS, false),
+        buildNonMaleRiskRuleResult(RuleStatus.FAIL, false),
+        buildWithinSixMonthsRuleResult(
+          RuleStatus.FAIL,
+          true,
+          "Start approved premise referral",
+        ),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -106,7 +189,7 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
-        sex = male,
+        sex = buildSex(SexCode.M),
         releaseDate = OffsetDateTime.now().plusMonths(7),
       )
 
@@ -122,13 +205,13 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1S,
-        sex = female,
+        sex = buildSex(SexCode.F),
         releaseDate = OffsetDateTime.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+        buildStTierRuleResult(RuleStatus.FAIL, false),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -139,13 +222,13 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1S,
-        sex = male,
+        sex = buildSex(SexCode.M),
         releaseDate = OffsetDateTime.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(sTierRule.description, RuleStatus.FAIL, false),
+        buildStTierRuleResult(RuleStatus.FAIL, false),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -156,13 +239,13 @@ class RuleSetEvaluatorTest : EligibilityBaseTest() {
       val data = DomainData(
         crn = crn,
         tier = TierScore.C1,
-        sex = female,
+        sex = buildSex(SexCode.F),
         releaseDate = OffsetDateTime.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
       val expectedResult = listOf(
-        RuleResult(nonMaleRiskRule.description, RuleStatus.FAIL, false),
+        buildNonMaleRiskRuleResult(RuleStatus.FAIL, false),
       )
 
       assertThat(result).isEqualTo(expectedResult)

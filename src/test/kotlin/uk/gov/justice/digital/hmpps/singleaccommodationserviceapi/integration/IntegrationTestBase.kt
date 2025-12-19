@@ -14,6 +14,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestMockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestRedissonConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesMockServer
@@ -28,7 +29,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [TestRedissonConfig::class, TestMockConfig::class])
+@Import(value = [TestRedissonConfig::class, TestMockConfig::class, RulesConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 abstract class IntegrationTestBase {

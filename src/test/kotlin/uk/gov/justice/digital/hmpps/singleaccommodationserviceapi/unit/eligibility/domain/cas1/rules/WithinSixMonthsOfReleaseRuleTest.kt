@@ -3,14 +3,19 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityBaseTest
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.MutableClock
 import java.time.OffsetDateTime
 
-class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
+class WithinSixMonthsOfReleaseRuleTest {
   private val crn = "ABC234"
+  private val male = buildSex(SexCode.M)
+  private val clock = MutableClock()
 
   @Test
   fun `no release date exists so passes`() {
@@ -20,7 +25,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
       sex = male,
       releaseDate = null,
     )
-    val result = withinSixMonthsOfReleaseRule.evaluate(data)
+    val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
     assertThat(result.actionable).isFalse()
     assertThat(result.potentialAction).isNull()
@@ -34,7 +39,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
       sex = male,
       releaseDate = OffsetDateTime.now().plusMonths(4),
     )
-    val result = withinSixMonthsOfReleaseRule.evaluate(data)
+    val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
@@ -46,7 +51,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
       sex = male,
       releaseDate = OffsetDateTime.now().plusMonths(7),
     )
-    val result = withinSixMonthsOfReleaseRule.evaluate(data)
+    val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
@@ -58,7 +63,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
       sex = male,
       releaseDate = OffsetDateTime.now().plusMonths(5),
     )
-    val result = withinSixMonthsOfReleaseRule.evaluate(data)
+    val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
@@ -70,13 +75,13 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
       sex = male,
       releaseDate = OffsetDateTime.now().plusMonths(8),
     )
-    val result = withinSixMonthsOfReleaseRule.evaluate(data)
+    val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(withinSixMonthsOfReleaseRule.description).isEqualTo("FAIL if candidate is within 6 months of release date")
+    assertThat(WithinSixMonthsOfReleaseRule(clock).description).isEqualTo("FAIL if candidate is within 6 months of release date")
   }
 
   @Nested
@@ -90,7 +95,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
         sex = male,
         releaseDate = releaseDate,
       )
-      val result = withinSixMonthsOfReleaseRule.buildAction(true, data)
+      val result = WithinSixMonthsOfReleaseRule(clock).buildAction(true, data)
       val expectedResult = "Start approved premise referral"
       assertThat(result).isEqualTo(expectedResult)
     }
@@ -104,7 +109,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
         sex = male,
         releaseDate = releaseDate,
       )
-      val result = withinSixMonthsOfReleaseRule.buildAction(false, data)
+      val result = WithinSixMonthsOfReleaseRule(clock).buildAction(false, data)
       val expectedResult = "Start approved premise referral in 31 days"
       assertThat(result).isEqualTo(expectedResult)
     }
@@ -118,7 +123,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
         sex = male,
         releaseDate = releaseDate,
       )
-      val result = withinSixMonthsOfReleaseRule.buildAction(false, data)
+      val result = WithinSixMonthsOfReleaseRule(clock).buildAction(false, data)
       val expectedResult = "Start approved premise referral"
       assertThat(result).isEqualTo(expectedResult)
     }
@@ -132,7 +137,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
         sex = male,
         releaseDate = releaseDate,
       )
-      val result = withinSixMonthsOfReleaseRule.buildAction(false, data)
+      val result = WithinSixMonthsOfReleaseRule(clock).buildAction(false, data)
       val expectedResult = "Start approved premise referral in 1 day"
       assertThat(result).isEqualTo(expectedResult)
     }
@@ -146,7 +151,7 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
         sex = male,
         releaseDate = releaseDate,
       )
-      val result = withinSixMonthsOfReleaseRule.buildAction(false, data)
+      val result = WithinSixMonthsOfReleaseRule(clock).buildAction(false, data)
       val expectedResult = "Start approved premise referral in 2 days"
       assertThat(result).isEqualTo(expectedResult)
     }

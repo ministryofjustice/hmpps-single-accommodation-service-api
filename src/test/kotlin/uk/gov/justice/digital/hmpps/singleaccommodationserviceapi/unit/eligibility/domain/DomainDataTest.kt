@@ -5,16 +5,19 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityBaseTest
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
 
-class DomainDataTest : EligibilityBaseTest() {
+class DomainDataTest {
+  private val male = buildSex(SexCode.M)
+
   @Test
   fun `Create DomainDate from EligibilityOrchestration data`() {
     val crn = "ABC1234"
