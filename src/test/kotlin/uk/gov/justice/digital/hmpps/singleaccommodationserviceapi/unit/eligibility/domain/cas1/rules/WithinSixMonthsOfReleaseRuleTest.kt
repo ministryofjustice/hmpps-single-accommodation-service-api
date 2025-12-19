@@ -13,6 +13,20 @@ class WithinSixMonthsOfReleaseRuleTest : EligibilityBaseTest() {
   private val crn = "ABC234"
 
   @Test
+  fun `no release date exists so passes`() {
+    val data = DomainData(
+      crn = crn,
+      tier = TierScore.A1,
+      sex = male,
+      releaseDate = null,
+    )
+    val result = withinSixMonthsOfReleaseRule.evaluate(data)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.actionable).isFalse()
+    assertThat(result.potentialAction).isNull()
+  }
+
+  @Test
   fun `release date within 6 months so fails`() {
     val data = DomainData(
       crn = crn,
