@@ -12,14 +12,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCall
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_SUITABLE_CAS1_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.model.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.model.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockAccommodationResponse
 
 interface ApprovedPremisesClient {
-
-  @GetExchange(value = "/info")
-  fun getInfo(): String
 
   @GetExchange(value = "/cas1/external/suitable-applications/{crn}")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
