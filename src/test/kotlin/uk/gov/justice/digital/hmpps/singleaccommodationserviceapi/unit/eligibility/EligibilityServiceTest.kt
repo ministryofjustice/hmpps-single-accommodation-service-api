@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildC
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.MutableClock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -120,7 +121,7 @@ class EligibilityServiceTest : EligibilityBaseTest() {
 
     @ParameterizedTest(name = "{0}")
     @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
-    @Suppress("LongParameterList")
+    @TestData
     fun `should calculate eligibility for cas1 for all scenarios`(
       description: String,
       referenceDate: String,
