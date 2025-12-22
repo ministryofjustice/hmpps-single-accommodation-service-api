@@ -25,10 +25,12 @@ class RulesEngine(
           actions = actions,
           serviceStatus = ServiceStatus.UPCOMING,
         )
+
       !hasNonGuidanceFail -> ServiceResult(
         actions = actions,
         serviceStatus = ServiceStatus.NOT_STARTED,
       )
+
       else -> ServiceResult(
         actions = listOf(),
         serviceStatus = ServiceStatus.NOT_ELIGIBLE,

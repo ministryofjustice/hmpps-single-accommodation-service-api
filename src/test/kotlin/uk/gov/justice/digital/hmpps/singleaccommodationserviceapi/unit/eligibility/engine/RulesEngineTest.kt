@@ -2,15 +2,44 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibil
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.NonMaleRiskRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityBaseTest
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import java.time.OffsetDateTime
 
-class RulesEngineTest : EligibilityBaseTest() {
+@ExtendWith(SpringExtension::class)
+@ContextConfiguration(
+  classes = [
+    Cas1RuleSet::class,
+    STierRule::class,
+    MaleRiskRule::class,
+    NonMaleRiskRule::class,
+    WithinSixMonthsOfReleaseRule::class,
+    ClockConfig::class,
+  ],
+)
+class RulesEngineTest {
+  private val defaultRulesEngine = RulesEngine(DefaultRuleSetEvaluator())
   private val crn = "ABC234"
+  private val male = buildSex(SexCode.M)
+
+  @Autowired
+  private lateinit var cas1RuleSet: Cas1RuleSet
 
   @Test
   fun `rules engine passes cas1 rules`() {
@@ -37,7 +66,7 @@ class RulesEngineTest : EligibilityBaseTest() {
     val data = DomainData(
       crn = crn,
       tier = TierScore.C1S,
-      sex = female,
+      sex = buildSex(SexCode.F),
       releaseDate = OffsetDateTime.now().plusMonths(7),
     )
 

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules
 
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
 import java.time.Clock
@@ -9,9 +9,10 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MONTHS
 
+@Component
 class WithinSixMonthsOfReleaseRule(
-  private val clock: Clock = Clock.systemDefaultZone(),
-) : Rule {
+  private val clock: Clock,
+) : Cas1Rule {
   override val description = "FAIL if candidate is within 6 months of release date"
   override val actionable = true
   val actionText = "Start approved premise referral"

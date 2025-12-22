@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.or
 @Service
 class EligibilityService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  @Qualifier("cas1RuleSet")
   private val cas1RuleSet: Cas1RuleSet,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,

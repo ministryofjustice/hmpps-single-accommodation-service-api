@@ -5,14 +5,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.EligibilityBaseTest
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import java.time.OffsetDateTime
 
-class STierRuleTest : EligibilityBaseTest() {
+class STierRuleTest {
   private val crn = "ABC234"
+  private val male = buildSex(SexCode.M)
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility.domain.cas1.rules.STierRuleTest#provideNonSTierToPass")
@@ -24,7 +27,7 @@ class STierRuleTest : EligibilityBaseTest() {
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
-    val result = sTierRule.evaluate(data)
+    val result = STierRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -39,14 +42,14 @@ class STierRuleTest : EligibilityBaseTest() {
       releaseDate = OffsetDateTime.now().plusMonths(6),
     )
 
-    val result = sTierRule.evaluate(data)
+    val result = STierRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    val result = sTierRule.description
+    val result = STierRule().description
     assertThat(result).isEqualTo("FAIL if candidate is S Tier")
   }
 
