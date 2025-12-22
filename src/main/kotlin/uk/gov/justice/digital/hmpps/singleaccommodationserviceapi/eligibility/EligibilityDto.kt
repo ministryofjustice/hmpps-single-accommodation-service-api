@@ -6,10 +6,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 data class EligibilityDto(
   val crn: String,
   val cas1: ServiceResult,
-  val caseStatus: CaseStatus? = null,
-  val caseActions: List<String>? = null,
-  val cas2Hdc: ServiceResult? = null,
-  val cas2PrisonBail: ServiceResult? = null,
-  val cas2CourtBail: ServiceResult? = null,
-  val cas3: ServiceResult? = null,
+  val caseStatus: CaseStatus?,
+  val caseActions: List<String>,
+  val cas2Hdc: ServiceResult?,
+  val cas2PrisonBail: ServiceResult?,
+  val cas2CourtBail: ServiceResult?,
+  val cas3: ServiceResult?,
 )

@@ -15,14 +15,20 @@ class EligibilityService(
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
-  fun getEligibility(crn: String): Cas1EligibilityDto {
+  fun getEligibility(crn: String): EligibilityDto {
     val data = getDomainData(crn)
 
     val cas1 = calculateEligibilityForCas1(data)
 
-    return Cas1EligibilityDto(
+    return EligibilityDto(
       crn,
       cas1,
+      caseStatus = null,
+      caseActions = listOf(),
+      cas2Hdc = null,
+      cas2PrisonBail = null,
+      cas2CourtBail = null,
+      cas3 = null,
     )
   }
 
