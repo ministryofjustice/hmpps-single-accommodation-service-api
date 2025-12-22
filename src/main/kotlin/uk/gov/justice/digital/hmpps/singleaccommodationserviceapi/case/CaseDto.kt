@@ -20,8 +20,8 @@ data class CaseDto(
   val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedToDto?,
-  val currentAccommodation: AccommodationDetail,
-  val nextAccommodation: AccommodationDetail,
+  val currentAccommodation: AccommodationDetail?,
+  val nextAccommodation: AccommodationDetail?,
 ) {
   constructor(
     crn: String,
@@ -29,8 +29,8 @@ data class CaseDto(
     roshDetails: RoshDetails,
     tier: Tier,
     caseSummaries: List<CaseSummary>,
-    accommodationDto: AccommodationDto,
-    photoUrl: String,
+    accommodationDto: AccommodationDto?,
+    photoUrl: String?,
   ) : this(
     name = cpr.fullName,
     dateOfBirth = cpr.dateOfBirth,
@@ -43,8 +43,8 @@ data class CaseDto(
     assignedTo = caseSummaries.firstOrNull()?.manager?.team?.name?.let {
       AssignedToDto(1L, name = it)
     },
-    currentAccommodation = accommodationDto.current,
-    nextAccommodation = accommodationDto.next,
+    currentAccommodation = accommodationDto?.current,
+    nextAccommodation = accommodationDto?.next,
   )
 }
 
