@@ -19,7 +19,7 @@ class WithinSixMonthsOfReleaseRule(
   fun buildAction(isCandidateWithin6Months: Boolean, data: DomainData) = if (isCandidateWithin6Months) {
     actionText
   } else {
-    val dateToStartReferral = data.releaseDate.minusMonths(6)
+    val dateToStartReferral = data.releaseDate!!.minusMonths(6)
     val daysUntilReferralMustStart = DAYS.between(LocalDate.now(clock), dateToStartReferral).toInt()
     if (daysUntilReferralMustStart > 1) {
       "$actionText in $daysUntilReferralMustStart days"
@@ -31,6 +31,14 @@ class WithinSixMonthsOfReleaseRule(
   }
 
   override fun evaluate(data: DomainData): RuleResult {
+    if (data.releaseDate == null) {
+      return RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.PASS,
+        actionable = false,
+      )
+    }
+
     val monthsUntilRelease = MONTHS.between(
       LocalDate.now(clock),
       data.releaseDate.toLocalDate(),

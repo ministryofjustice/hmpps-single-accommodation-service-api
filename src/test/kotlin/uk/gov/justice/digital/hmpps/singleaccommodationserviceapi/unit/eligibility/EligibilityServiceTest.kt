@@ -1,15 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.eligibility
 
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
@@ -24,8 +23,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
-import java.time.Clock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.MutableClock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -35,19 +38,19 @@ import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
 class EligibilityServiceTest : EligibilityBaseTest() {
-  private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
-  private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
-  var eligibilityService = EligibilityService(
-    eligibilityOrchestrationService,
-    cas1RuleSet,
-    defaultRulesEngine,
-  )
+  @MockK
+  private lateinit var eligibilityOrchestrationService: EligibilityOrchestrationService
 
   private val crn = "ABC1234"
 
   @Nested
   inner class DomainDataFunctions {
+    private val eligibilityService = EligibilityService(
+      eligibilityOrchestrationService,
+      cas1RuleSet,
+      defaultRulesEngine,
+    )
+
     private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC)
 
     @Test
@@ -92,80 +95,55 @@ class EligibilityServiceTest : EligibilityBaseTest() {
     }
   }
 
-  @ParameterizedTest
-  @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1)
-  @Suppress("LongParameterList")
-  fun `should calculate eligibility for cas1 for all scenarios`(
-    description: String,
-    referenceDate: String,
-    sex: String,
-    tier: String,
-    releaseDate: String,
-    cas1Status: String,
-    cas1PlacementStatus: String,
-    expectedCas1Status: String,
-    expectedCas1Actions: String,
-  ) {
-    val fixedClock = createFixedClock(referenceDate)
-    val testEligibilityService = createTestEligibilityService(fixedClock)
-    val data = buildTestDomainData(sex, tier, releaseDate, cas1Status, cas1PlacementStatus)
-
-    val result = testEligibilityService.calculateEligibilityForCas1(data)
-
-    val actualActions = if (result.actions.isEmpty()) "None" else result.actions.joinToString(",")
-    assertThat(result.serviceStatus.name).isEqualTo(expectedCas1Status)
-    assertThat(actualActions).isEqualTo(expectedCas1Actions)
-  }
-
-  private fun createFixedClock(referenceDate: String): Clock {
-    val parsedDate = LocalDate.parse(referenceDate, dateFormatter)
-    return Clock.fixed(
-      parsedDate.atStartOfDay(ZoneOffset.UTC).toInstant(),
-      ZoneOffset.UTC,
+  @Nested
+  inner class Cas1EligibilityScenarios {
+    private val clock = MutableClock()
+    private val eligibilityServiceWithClock = EligibilityService(
+      eligibilityOrchestrationService,
+      Cas1RuleSet(sTierRule, maleRiskRule, nonMaleRiskRule, WithinSixMonthsOfReleaseRule(clock)),
+      defaultRulesEngine,
     )
-  }
 
-  private fun createTestEligibilityService(clock: Clock) = EligibilityService(
-    eligibilityOrchestrationService,
-    Cas1RuleSet(sTierRule, maleRiskRule, nonMaleRiskRule, WithinSixMonthsOfReleaseRule(clock)),
-    defaultRulesEngine,
-  )
+    /**
+     * Date formatter for CSV test data
+     *
+     * Uses dd/MM/yyyy format (not ISO yyyy-MM-dd) because:
+     * - Excel automatically reformats ISO dates (2025-12-01) to locale format (01/12/2025)
+     * - This causes test failures when the CSV is saved: "Text '01/12/2025' could not be parsed"
+     * - Using formatter prevents accidentally breaking tests when modifying test cases in CSV
+     *
+     */
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-  private fun buildTestDomainData(
-    sex: String,
-    tier: String,
-    releaseDate: String,
-    cas1Status: String,
-    cas1PlacementStatus: String,
-  ) = DomainData(
-    crn,
-    tier = TierScore.valueOf(tier),
-    sex = Sex(
-      code = SexCode.valueOf(sex),
-      description = when (sex) {
-        "M" -> "Male"
-        "F" -> "Female"
-        "NS" -> "Non-specified"
-        "N" -> "Non-recorded"
-        else -> sex
-      },
-    ),
-    releaseDate = LocalDate.parse(releaseDate, dateFormatter)
-      .atStartOfDay()
-      .atOffset(ZoneOffset.UTC),
-    cas1Application = buildCas1Application(cas1Status, cas1PlacementStatus),
-  )
+    private fun String.toLocalDate(): LocalDate = LocalDate.parse(this, dateFormatter)
+    private fun String.toOffsetDateTime(): OffsetDateTime = toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC)
 
-  private fun buildCas1Application(
-    cas1Status: String,
-    cas1PlacementStatus: String,
-  ): Cas1Application? = cas1Status.takeIf { it != "None" }?.let {
-    Cas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.valueOf(it),
-      placementStatus = cas1PlacementStatus.takeIf { it != "None" }?.let { status ->
-        Cas1PlacementStatus.valueOf(status)
-      },
-    )
+    @ParameterizedTest(name = "{0}")
+    @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
+    @Suppress("LongParameterList")
+    fun `should calculate eligibility for cas1 for all scenarios`(
+      description: String,
+      referenceDate: String,
+      sex: SexCode,
+      tier: TierScore,
+      releaseDate: String,
+      cas1Status: Cas1ApplicationStatus?,
+      cas1PlacementStatus: Cas1PlacementStatus?,
+      expectedCas1Status: ServiceStatus?,
+      expectedCas1Actions: String?,
+    ) {
+      clock.setNow(referenceDate.toLocalDate())
+
+      val cas1Application = cas1Status?.let {
+        buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
+      }
+      val data = buildDomainData(crn, tier, buildSex(sex), releaseDate.toOffsetDateTime(), cas1Application)
+
+      val result = eligibilityServiceWithClock.calculateEligibilityForCas1(data)
+
+      val actualActions = result.actions.takeIf { it.isNotEmpty() }?.joinToString(",")
+      assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
+      assertThat(actualActions).isEqualTo(expectedCas1Actions)
+    }
   }
 }

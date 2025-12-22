@@ -12,7 +12,7 @@ data class DomainData(
   val crn: String,
   val tier: TierScore,
   val sex: Sex,
-  val releaseDate: OffsetDateTime,
+  val releaseDate: OffsetDateTime?,
   val cas1Application: Cas1Application? = null,
 ) {
   constructor(crn: String, cpr: CorePersonRecord, tier: Tier, prisonerData: List<Prisoner>, cas1Application: Cas1Application?) : this(
@@ -20,8 +20,7 @@ data class DomainData(
     tier = tier.tierScore,
     sex = cpr.sex ?: error("Sex must not be null for DomainData"),
     releaseDate = prisonerData.mapNotNull { it.releaseDate }
-      .maxByOrNull { it }?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC)
-      ?: error("Release date not found for $crn"),
+      .maxByOrNull { it }?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC),
     cas1Application = cas1Application,
   )
 }
