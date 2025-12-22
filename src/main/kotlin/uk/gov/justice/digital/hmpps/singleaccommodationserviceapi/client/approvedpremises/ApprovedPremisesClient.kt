@@ -11,10 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCall
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_SUITABLE_CAS1_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.model.Cas1ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.model.Cas2ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.model.Cas2v2ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.model.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockAccommodationStatus
 
 interface ApprovedPremisesClient {
@@ -26,16 +22,16 @@ interface ApprovedPremisesClient {
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
 
   @GetExchange(value = "/cas1/external/referrals/{crn}")
-  fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
+  fun getCas1Referral(@PathVariable crn: String): List<ReferralHistory<Cas1AssessmentStatus>>
 
   @GetExchange(value = "/cas2/external/referrals/{crn}")
-  fun getCas2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
+  fun getCas2Referral(@PathVariable crn: String): List<ReferralHistory<Cas2Status>>
 
   @GetExchange(value = "/cas2v2/external/referrals/{crn}")
-  fun getCas2v2Referral(@PathVariable crn: String): List<Cas2v2ReferralHistory>
+  fun getCas2v2Referral(@PathVariable crn: String): List<ReferralHistory<Cas2Status>>
 
   @GetExchange(value = "/cas3/external/referrals/{crn}")
-  fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
+  fun getCas3Referral(@PathVariable crn: String): List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
 }
 
 @Service

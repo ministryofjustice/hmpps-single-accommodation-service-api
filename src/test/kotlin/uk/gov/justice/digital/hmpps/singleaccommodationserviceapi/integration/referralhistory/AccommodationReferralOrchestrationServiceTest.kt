@@ -5,14 +5,15 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas2ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas2v2ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas3ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas2Status
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CasService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.Instant
-import java.util.UUID
 
 class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
 
@@ -26,15 +27,31 @@ class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
   fun `fetchAllReferralsAggregated aggregates results and sorts them by date descending`() {
     val crn = "X12345"
 
-    val cas1Response = buildCas1ReferralHistory(id = UUID.randomUUID(), createdAt = Instant.parse("2025-03-01T00:00:00Z"))
-    val cas2Response = buildCas2ReferralHistory(id = UUID.randomUUID(), createdAt = Instant.parse("2025-01-01T00:00:00Z"))
-    val cas2v2Response = buildCas2v2ReferralHistory(id = UUID.randomUUID(), createdAt = Instant.parse("2025-04-01T00:00:00Z"))
-    val cas3Response = buildCas3ReferralHistory(id = UUID.randomUUID(), createdAt = Instant.parse("2025-02-01T00:00:00Z"))
+    val cas1Response = buildReferralHistory(
+      casService = CasService.CAS1,
+      createdAt = Instant.parse("2025-03-01T00:00:00Z"),
+      status = Cas1AssessmentStatus.IN_PROGRESS,
+    )
+    val cas2Response = buildReferralHistory(
+      casService = CasService.CAS2,
+      createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+      status = Cas2Status.AWAITING_DECISION,
+    )
+    val cas2v2Response = buildReferralHistory(
+      casService = CasService.CAS2v2,
+      createdAt = Instant.parse("2025-04-01T00:00:00Z"),
+      status = Cas2Status.PLACE_OFFERED,
+    )
+    val cas3Response = buildReferralHistory(
+      casService = CasService.CAS3,
+      createdAt = Instant.parse("2025-02-01T00:00:00Z"),
+      status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
+    )
 
-    approvedPremisesMockServer.stubGetCas1ReferralOKResponse(crn, cas1Response)
-    approvedPremisesMockServer.stubGetCas2ReferralOKResponse(crn, cas2Response)
-    approvedPremisesMockServer.stubGetCas2v2ReferralOKResponse(crn, cas2v2Response)
-    approvedPremisesMockServer.stubGetCas3ReferralOKResponse(crn, cas3Response)
+    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS2, crn, cas2Response)
+    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS2v2, crn, cas2v2Response)
+    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     val responseContent = mockMvc.perform(
       get("/application-histories/$crn"),

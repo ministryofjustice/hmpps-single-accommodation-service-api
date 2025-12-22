@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response
 
 import java.util.UUID
 
