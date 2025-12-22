@@ -23,6 +23,12 @@ class EligibilityService(
     return EligibilityDto(
       crn,
       cas1,
+      caseStatus = null,
+      caseActions = listOf(),
+      cas2Hdc = null,
+      cas2PrisonBail = null,
+      cas2CourtBail = null,
+      cas3 = null,
     )
   }
 

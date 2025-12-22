@@ -12,10 +12,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildP
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockCrns
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class EligibilityControllerTest : IntegrationTestBase() {
-  private val crn = "XX12345X"
+  private val crn = mockCrns.first()
   private val prisonerNumber = "1234567"
 
   @BeforeEach
