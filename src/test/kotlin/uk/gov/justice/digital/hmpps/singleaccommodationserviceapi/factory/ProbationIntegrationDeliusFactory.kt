@@ -7,8 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probati
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Profile
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Team
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 import java.time.LocalDate
 
+@TestData
 fun buildCaseSummary(
   crn: String = "XX12345X",
   nomsId: String? = "YY09876Y",

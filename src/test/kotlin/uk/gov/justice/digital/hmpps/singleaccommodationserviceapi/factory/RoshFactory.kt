@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.Rosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 import java.time.ZonedDateTime
 
+@TestData
 fun buildRoshDetails(
   assessmentId: Long = 12345,
   assessmentType: String = "assessmentType",
@@ -31,6 +33,7 @@ fun buildRoshDetails(
   rosh = rosh,
 )
 
+@TestData
 fun buildRosh(
   riskChildrenCommunity: RiskLevel = RiskLevel.VERY_HIGH,
   riskPrisonersCustody: RiskLevel = RiskLevel.LOW,

@@ -4,9 +4,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.coreper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 import java.time.LocalDate
 import java.util.UUID
 
+@TestData
 fun buildCorePersonRecord(
   cprUUID: UUID = UUID.randomUUID(),
   identifiers: Identifiers? = buildIdentifiers(),

@@ -1,8 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
@@ -21,8 +20,8 @@ data class CaseDto(
   val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedToDto?,
-  val currentAccommodation: CurrentAccommodationDto?,
-  val nextAccommodation: NextAccommodationDto?,
+  val currentAccommodation: AccommodationDetail,
+  val nextAccommodation: AccommodationDetail,
 ) {
   constructor(
     crn: String,
@@ -30,7 +29,7 @@ data class CaseDto(
     roshDetails: RoshDetails,
     tier: Tier,
     caseSummaries: List<CaseSummary>,
-    accommodationStatus: AccommodationStatus,
+    accommodationDto: AccommodationDto,
     photoUrl: String,
   ) : this(
     name = cpr.fullName,
@@ -44,8 +43,8 @@ data class CaseDto(
     assignedTo = caseSummaries.firstOrNull()?.manager?.team?.name?.let {
       AssignedToDto(1L, name = it)
     },
-    currentAccommodation = accommodationStatus.currentAccommodation,
-    nextAccommodation = accommodationStatus.nextAccommodation,
+    currentAccommodation = accommodationDto.current,
+    nextAccommodation = accommodationDto.next,
   )
 }
 

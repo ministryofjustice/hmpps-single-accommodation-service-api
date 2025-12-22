@@ -7,14 +7,13 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.CurrentAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.NextAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildAccommodationDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildNoFixedAbodeAccommodationDetails
 import java.time.LocalDate
 import java.util.stream.Stream
 
@@ -35,8 +34,8 @@ class CaseDtoTest {
         roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,
         caseSummaries = caseOrchestrationDto.cases,
-        accommodationStatus = caseOrchestrationDto.accommodationStatus,
         photoUrl = caseOrchestrationDto.photoUrl,
+        accommodationDto = caseOrchestrationDto.accommodationDto,
       ),
     ).isEqualTo(expectedCaseDto)
   }
@@ -54,8 +53,8 @@ class CaseDtoTest {
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(1L, name = "Team 1"),
-      currentAccommodation = CurrentAccommodationDto(AccommodationType.CAS1_MOCK, LocalDate.now().plusDays(10)),
-      nextAccommodation = NextAccommodationDto(AccommodationType.PRIVATE_ADDRESS_MOCK, LocalDate.now().plusDays(100)),
+      currentAccommodation = buildAccommodationDetails(),
+      nextAccommodation = buildNoFixedAbodeAccommodationDetails(),
     )
 
     @JvmStatic

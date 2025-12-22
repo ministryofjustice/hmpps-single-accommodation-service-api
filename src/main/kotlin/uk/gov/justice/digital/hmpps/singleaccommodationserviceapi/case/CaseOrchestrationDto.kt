@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RoshDetails
@@ -12,6 +12,6 @@ data class CaseOrchestrationDto(
   val roshDetails: RoshDetails,
   val tier: Tier,
   val cases: List<CaseSummary>,
-  val accommodationStatus: AccommodationStatus,
+  val accommodationDto: AccommodationDto,
   val photoUrl: String,
 )

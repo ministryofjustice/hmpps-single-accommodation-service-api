@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockPhotoUrl
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockedLocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
+@TestData
 fun expectedGetCasesResponse(): String = """
 [
   {
@@ -9,21 +12,39 @@ fun expectedGetCasesResponse(): String = """
     "dateOfBirth": "2000-12-03",
     "crn": "XX12345X",
     "prisonNumber": "PRI1",
+    "photoUrl": "$mockPhotoUrl",
     "tier": "C1",
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
-    "photoUrl":"$mockPhotoUrl",
     "assignedTo": {
       "id": 1,
       "name": "Team 1"
     },
     "currentAccommodation": {
-      "type": "CAS1_MOCK",
-      "endDate": "1970-01-01"
+      "type": "PRISON",
+      "subType": "RENTED",
+      "name": "!!TODO()",
+      "isSettled": true,
+      "offenderReleaseType": "BAIL",
+      "startDate": "$mockedLocalDate",
+      "endDate": "$mockedLocalDate",
+      "address": {
+        "line1": "!!val line1: String,",
+        "line2": "!!val line2: String?,",
+        "region": "!!val region: String?,",
+        "city": "!!val city: String,",
+        "postCode": "!!val postCode: String,"
+      }
     },
     "nextAccommodation": {
-      "type": "PRIVATE_ADDRESS_MOCK",
-      "startDate": "1970-01-01"
+      "type": "NO_FIXED_ABODE",
+      "subType": null,
+      "name": null,
+      "isSettled": null,
+      "offenderReleaseType": null,
+      "startDate": null,
+      "endDate": null,
+      "address": null
     }
   },
   {
@@ -31,48 +52,84 @@ fun expectedGetCasesResponse(): String = """
     "dateOfBirth": "2000-12-03",
     "crn": "XY12345Z",
     "prisonNumber": "PRI1",
+    "photoUrl": "$mockPhotoUrl",
     "tier": "C1",
     "riskLevel": "MEDIUM",
     "pncReference": "Some PNC Reference",
-    "photoUrl":"$mockPhotoUrl",
     "assignedTo": {
       "id": 1,
       "name": "Team 1"
     },
     "currentAccommodation": {
-      "type": "CAS1_MOCK",
-      "endDate": "1970-01-01"
+      "type": "PRISON",
+      "subType": "RENTED",
+      "name": "!!TODO()",
+      "isSettled": true,
+      "offenderReleaseType": "BAIL",
+      "startDate": "$mockedLocalDate",
+      "endDate": "$mockedLocalDate",
+      "address": {
+        "line1": "!!val line1: String,",
+        "line2": "!!val line2: String?,",
+        "region": "!!val region: String?,",
+        "city": "!!val city: String,",
+        "postCode": "!!val postCode: String,"
+      }
     },
     "nextAccommodation": {
-      "type": "PRIVATE_ADDRESS_MOCK",
-      "startDate": "1970-01-01"
+      "type": "NO_FIXED_ABODE",
+      "subType": null,
+      "name": null,
+      "isSettled": null,
+      "offenderReleaseType": null,
+      "startDate": null,
+      "endDate": null,
+      "address": null
     }
   }
 ]
 """.trimIndent()
 
 fun expectedGetCasesWithFilterResponse(): String = """
-[  
+[
   {
     "name": "Zack Middle Smith",
     "dateOfBirth": "2000-12-03",
     "crn": "XY12345Z",
     "prisonNumber": "PRI1",
+    "photoUrl": "$mockPhotoUrl",
     "tier": "C1",
     "riskLevel": "MEDIUM",
     "pncReference": "Some PNC Reference",
-    "photoUrl":"$mockPhotoUrl",
     "assignedTo": {
       "id": 1,
       "name": "Team 1"
     },
     "currentAccommodation": {
-      "type": "CAS1_MOCK",
-      "endDate": "1970-01-01"
+      "type": "PRISON",
+      "subType": "RENTED",
+      "name": "!!TODO()",
+      "isSettled": true,
+      "offenderReleaseType": "BAIL",
+      "startDate": "$mockedLocalDate",
+      "endDate": "$mockedLocalDate",
+      "address": {
+        "line1": "!!val line1: String,",
+        "line2": "!!val line2: String?,",
+        "region": "!!val region: String?,",
+        "city": "!!val city: String,",
+        "postCode": "!!val postCode: String,"
+      }
     },
     "nextAccommodation": {
-      "type": "PRIVATE_ADDRESS_MOCK",
-      "startDate": "1970-01-01"
+      "type": "NO_FIXED_ABODE",
+      "subType": null,
+      "name": null,
+      "isSettled": null,
+      "offenderReleaseType": null,
+      "startDate": null,
+      "endDate": null,
+      "address": null
     }
   }
 ]

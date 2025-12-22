@@ -11,7 +11,7 @@ import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_ACCOMMODATION_STATUS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_ACCOMMODATION_RESPONSE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2V2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS2_REFERRAL
@@ -97,7 +97,7 @@ class RedissonCacheConfig {
       GET_CASE_SUMMARY to CacheConfig(120_000, 60_000),
       GET_CORE_PERSON_RECORD to CacheConfig(180_000, 120_000),
       GET_TIER to CacheConfig(180_000, 120_000),
-      GET_ACCOMMODATION_STATUS to CacheConfig(180_000, 120_000),
+      GET_ACCOMMODATION_RESPONSE to CacheConfig(180_000, 120_000),
       GET_PRISONER to CacheConfig(180_000, 120_000),
       GET_CAS1_REFERRAL to CacheConfig(60_000, 60_000),
       GET_CAS2_REFERRAL to CacheConfig(60_000, 60_000),
