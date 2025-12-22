@@ -21,8 +21,8 @@ import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 class CaseIntegrationTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
-    val crn = "XX12345X"
-    val crn2 = "XY12345Z"
+    val crn = "X371199"
+    val crn2 = "X968879"
     val corePersonRecord = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
     val corePersonRecord2 =
       buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)), firstName = "Zack", lastName = "Smith")
@@ -51,7 +51,7 @@ class CaseIntegrationTest : IntegrationTestBase() {
   fun `should get cases`() {
     val result = mockMvc.perform(
       get("/cases")
-        .param("crns", "XX12345X,XY12345Z"),
+        .param("crns", "X371199,X968879"),
     )
       .andExpect(status().isOk)
       .andReturn()
@@ -67,7 +67,7 @@ class CaseIntegrationTest : IntegrationTestBase() {
     val result =
       mockMvc.perform(
         get("/cases")
-          .param("crns", "XX12345X,XY12345Z")
+          .param("crns", "X371199,X968879")
           .param("riskLevel", RiskLevel.MEDIUM.name),
       )
         .andExpect(status().isOk)

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodationreferral
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.ApiCallKeys.GET_CAS1_REFERRAL
@@ -18,8 +17,6 @@ class AccommodationReferralOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
-  private val log = LoggerFactory.getLogger(this::class.java)
-
   fun fetchAllReferralsAggregated(crn: String): AccommodationReferralOrchestrationDto {
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },

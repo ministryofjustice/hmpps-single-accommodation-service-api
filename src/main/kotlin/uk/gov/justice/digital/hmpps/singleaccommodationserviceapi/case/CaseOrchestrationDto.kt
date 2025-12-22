@@ -12,6 +12,6 @@ data class CaseOrchestrationDto(
   val roshDetails: RoshDetails,
   val tier: Tier,
   val cases: List<CaseSummary>,
-  val accommodationDto: AccommodationDto,
-  val photoUrl: String,
+  val accommodationDto: AccommodationDto?,
+  val photoUrl: String?,
 )

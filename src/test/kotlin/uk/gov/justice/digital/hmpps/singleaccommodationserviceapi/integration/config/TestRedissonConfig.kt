@@ -9,11 +9,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import redis.embedded.RedisServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.MockDataDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.getMockedData
 
 @TestConfiguration
-class TestConfig {
+class TestRedissonConfig {
 
   private lateinit var redisServer: RedisServer
   private lateinit var redissonClientInstance: RedissonClient
@@ -39,9 +37,6 @@ class TestConfig {
       redisServer.stop()
     }
   }
-
-  @Bean
-  fun mockedData(): MockDataDto = getMockedData()
 
   @Bean
   fun redissonClient(): RedissonClient {
