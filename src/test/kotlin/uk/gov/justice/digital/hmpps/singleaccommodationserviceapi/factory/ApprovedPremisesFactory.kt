@@ -67,11 +67,11 @@ fun buildAddress(
   line2: String? = "!!Line 2",
   region: String? = "!!REGION",
   city: String = "!!CITY",
-  postCode: String = "!!POSTCODE",
+  postcode: String = "!!POSTCODE",
 ) = AddressDetails(
   line1 = line1,
   line2 = line2,
   region = region,
   city = city,
-  postCode = postCode,
+  postcode = postcode,
 )

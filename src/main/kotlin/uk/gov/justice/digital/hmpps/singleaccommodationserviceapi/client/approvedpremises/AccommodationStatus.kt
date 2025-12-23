@@ -41,5 +41,5 @@ data class AddressDetails(
   val line2: String?,
   val region: String?,
   val city: String,
-  val postCode: String,
+  val postcode: String,
 )

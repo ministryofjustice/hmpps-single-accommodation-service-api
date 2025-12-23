@@ -21,7 +21,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
       line2 = "Town A",
       region = "Region A",
       city = "City A",
-      postCode = "AB12 3CD",
+      postcode = "AB12 3CD",
     ),
   )
 
@@ -38,7 +38,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
       line2 = "Town B",
       region = "Region B",
       city = "City B",
-      postCode = "AB12 3CD",
+      postcode = "AB12 3CD",
     ),
   )
 
@@ -55,7 +55,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
       line2 = "Town C",
       region = "Region C",
       city = "City C",
-      postCode = "AB12 3CD",
+      postcode = "AB12 3CD",
     ),
   )
 
@@ -72,7 +72,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
       line2 = "Town D",
       region = "Region D",
       city = "City D",
-      postCode = "AB12 3CD",
+      postcode = "AB12 3CD",
     ),
   )
   else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
