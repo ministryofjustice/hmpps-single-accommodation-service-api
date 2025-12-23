@@ -32,7 +32,7 @@ fun expectedGetCasesResponse(): String = """
           "line2":"Town A",
           "region":"Region A",
           "city":"City A",
-          "postCode":"AB12 3CD"
+          "postcode":"AB12 3CD"
         }
       },
       "nextAccommodation": {
@@ -48,7 +48,7 @@ fun expectedGetCasesResponse(): String = """
           "line2":"Town A",
           "region":"Region A",
           "city":"City A",
-          "postCode":"AB12 3CD"
+          "postcode":"AB12 3CD"
         }
       }
     },
@@ -78,7 +78,7 @@ fun expectedGetCasesResponse(): String = """
           "line2":"Town B",
           "region":"Region B",
           "city":"City B",
-          "postCode":"AB12 3CD"
+          "postcode":"AB12 3CD"
         }
       },
       "nextAccommodation": {
@@ -94,7 +94,7 @@ fun expectedGetCasesResponse(): String = """
           "line2":"Town B",
           "region":"Region B",
           "city":"City B",
-          "postCode":"AB12 3CD"
+          "postcode":"AB12 3CD"
         }
       }
     }
@@ -129,7 +129,7 @@ fun expectedGetCasesWithFilterResponse(): String = """
           "line2":"Town B",
           "region":"Region B",
           "city":"City B",
-          "postCode":"AB12 3CD"
+          "postcode":"AB12 3CD"
         }
       },
       "nextAccommodation": {
@@ -145,7 +145,7 @@ fun expectedGetCasesWithFilterResponse(): String = """
           "line2":"Town B",
           "region":"Region B",
           "city":"City B",
-          "postCode":"AB12 3CD"
+          "postcode":"AB12 3CD"
         }
       }
     }
