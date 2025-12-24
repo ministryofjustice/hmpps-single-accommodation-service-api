@@ -4,7 +4,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.dutytorefer.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.CaseStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress.PrivateAddressesDto
 
 val mockCrns = listOf(
@@ -26,12 +25,10 @@ fun getMockedData() = MockData(
       currentAccommodation = getMockedCurrentAccommodation(it),
       nextAccommodation = getMockedNextAccommodation(it),
       accommodation = getMockedAccommodation(it),
-      cas3Eligibility = getMockedCas3Eligibility(),
-      cas2HdcEligibility = getMockedCas2HdcEligibility(),
-      cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(),
-      cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(),
-      caseActions = getMockedCaseActions(),
-      caseStatus = mockedCaseStatus,
+      cas3Eligibility = getMockedCas3Eligibility(it),
+      cas2HdcEligibility = getMockedCas2HdcEligibility(it),
+      cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(it),
+      cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(it),
       privateAddresses = getMockedPrivateAddresses(it),
     )
   },
@@ -52,7 +49,5 @@ data class MockCrnData(
   val cas2PrisonBailEligibility: ServiceResult,
   val cas2CourtBailEligibility: ServiceResult,
   val cas3Eligibility: ServiceResult,
-  val caseActions: List<String>,
-  val caseStatus: CaseStatus,
   val privateAddresses: PrivateAddressesDto,
 )

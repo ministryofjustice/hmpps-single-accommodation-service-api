@@ -21,10 +21,10 @@ class EligibilityController(
       ?.let {
         val currentMock = mockedData.crns[crn]!!
         ResponseEntity.ok(
-          eligibility.copy(
+          EligibilityDto(
+            crn = crn,
+            cas1 = eligibility.cas1,
             cas3 = currentMock.cas3Eligibility,
-            caseStatus = currentMock.caseStatus,
-            caseActions = currentMock.caseActions,
             cas2Hdc = currentMock.cas2HdcEligibility,
             cas2PrisonBail = currentMock.cas2PrisonBailEligibility,
             cas2CourtBail = currentMock.cas2CourtBailEligibility,
