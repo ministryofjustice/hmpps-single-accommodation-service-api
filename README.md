@@ -26,7 +26,7 @@ docker compose up -d
 1. No local docker infrastructure required (as using lib for embedded redis - for tests only)
 2. The following `gradle command` will build the application and run the tests
 ```shell
-.gradlew check
+./gradlew check
 ```
 
 ## Coding Notes

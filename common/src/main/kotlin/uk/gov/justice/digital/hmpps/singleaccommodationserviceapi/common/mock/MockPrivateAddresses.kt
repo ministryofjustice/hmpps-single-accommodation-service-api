@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AddedBy
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AddressDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PrivateAddressesDto
-import java.time.LocalDateTime
 
 fun getMockedPrivateAddresses(crn: String) = when (crn) {
   mockCrns[0] ->
@@ -26,7 +25,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
             name = "Danny Smith",
             role = "Probation Officer",
           ),
-          addedDate = LocalDateTime.parse("1970-01-01T00:00:00"),
+          addedDate = mockedLocalDateTime,
         ),
         AddressDto(
           id = "l5e22e29-36bf-48e5-bfc9-915176298cb0",
@@ -43,7 +42,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
             name = "Peter Smith",
             role = "Probation Officer",
           ),
-          addedDate = LocalDateTime.parse("1970-01-01T00:00:00"),
+          addedDate = mockedLocalDateTime,
         ),
       ),
     )
@@ -66,7 +65,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
             name = "Mike Smith",
             role = "Probation Officer",
           ),
-          addedDate = LocalDateTime.parse("1970-01-01T00:00:00"),
+          addedDate = mockedLocalDateTime,
         ),
       ),
 
@@ -90,7 +89,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
             name = "Angel Smith",
             role = "Prison Admin",
           ),
-          addedDate = LocalDateTime.parse("1970-01-01T00:00:00"),
+          addedDate = mockedLocalDateTime,
         ),
       ),
     )
