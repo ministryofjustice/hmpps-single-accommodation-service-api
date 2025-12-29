@@ -7,13 +7,13 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildAccommodationDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildNoFixedAbodeAccommodationDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.time.LocalDate
 import java.util.stream.Stream
 

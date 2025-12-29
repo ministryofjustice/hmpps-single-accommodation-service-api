@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.time.LocalDateTime
 import java.util.UUID
 

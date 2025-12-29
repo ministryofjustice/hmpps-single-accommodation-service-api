@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Borough
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.CaseSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Ldu
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Manager
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Name
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Profile
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationdelius.Team
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Borough
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Ldu
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Manager
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Name
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Profile
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Team
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 import java.time.LocalDate
 

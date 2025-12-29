@@ -5,8 +5,12 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.orchestration.EligibilityOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
 
 @Service
 class EligibilityService(
@@ -15,6 +19,7 @@ class EligibilityService(
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
+
   fun getEligibility(crn: String): EligibilityDto {
     val data = getDomainData(crn)
 
@@ -56,4 +61,26 @@ class EligibilityService(
       eligibilityOrchestrationDto.cas1Application,
     )
   }
+
+  fun Cas1ApplicationStatus.toServiceStatus() = when (this) {
+    Cas1ApplicationStatus.PLACEMENT_ALLOCATED -> null
+    Cas1ApplicationStatus.AWAITING_ASSESSMENT -> ServiceStatus.AWAITING_ASSESSMENT
+    Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT -> ServiceStatus.UNALLOCATED_ASSESSMENT
+    Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS -> ServiceStatus.ASSESSMENT_IN_PROGRESS
+    Cas1ApplicationStatus.AWAITING_PLACEMENT -> ServiceStatus.AWAITING_PLACEMENT
+    Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceStatus.REQUEST_FOR_FURTHER_INFORMATION
+    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> ServiceStatus.PENDING_PLACEMENT_REQUEST
+  }
+
+  fun Cas1PlacementStatus.toServiceStatus() = when (this) {
+    Cas1PlacementStatus.UPCOMING -> ServiceStatus.UPCOMING_PLACEMENT
+    Cas1PlacementStatus.ARRIVED -> ServiceStatus.ARRIVED
+    Cas1PlacementStatus.DEPARTED -> ServiceStatus.DEPARTED
+    Cas1PlacementStatus.NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
+    Cas1PlacementStatus.CANCELLED -> ServiceStatus.CANCELLED
+  }
+
+  fun Cas1Application.toServiceStatus() = applicationStatus.toServiceStatus()
+    ?: placementStatus?.toServiceStatus()
+    ?: error("Null Placement Status")
 }

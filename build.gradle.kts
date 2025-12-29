@@ -4,6 +4,7 @@ plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
   kotlin("plugin.spring") version "2.2.21"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
+  id("io.spring.dependency-management") version "1.1.4"
 }
 
 configurations {
@@ -15,14 +16,12 @@ detekt {
 }
 
 dependencies {
-  implementation(project(":aggregator"))
+  implementation(project(":infrastructure"))
 
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("org.springframework.boot:spring-boot-starter-cache")
-  implementation("org.redisson:redisson-spring-boot-starter:3.27.2")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
   testImplementation("org.wiremock:wiremock-standalone:3.13.2")
@@ -31,6 +30,7 @@ dependencies {
     exclude(group = "io.swagger.core.v3")
   }
   testImplementation("com.github.codemonstur:embedded-redis:1.4.3")
+  testImplementation("org.redisson:redisson-spring-boot-starter:3.27.2")
 }
 
 kotlin {
@@ -69,4 +69,26 @@ tasks.register<Copy>("copyPreCommitHook") {
 
 tasks.build {
   dependsOn("copyPreCommitHook")
+}
+
+allprojects {
+  repositories {
+    mavenCentral()
+  }
+}
+
+subprojects {
+  apply(plugin = "org.jetbrains.kotlin.jvm")
+  apply(plugin = "org.jetbrains.kotlin.plugin.spring")
+  apply(plugin = "io.spring.dependency-management")
+
+  dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  }
+
+  tasks.withType<Test> {
+    useJUnitPlatform()
+  }
 }

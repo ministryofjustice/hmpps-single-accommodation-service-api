@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress.AddedBy
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress.AddressDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress.PrivateAddressesDto

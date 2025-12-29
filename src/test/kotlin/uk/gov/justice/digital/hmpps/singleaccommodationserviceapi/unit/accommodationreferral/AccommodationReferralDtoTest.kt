@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.unit.accommod
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodationreferral.CasReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.Cas2Status
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
 
 class AccommodationReferralDtoTest {
 

@@ -13,10 +13,10 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildRosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildRoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel
 import kotlin.collections.first
 
 @ExtendWith(MockKExtension::class)

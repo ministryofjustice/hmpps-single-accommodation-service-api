@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.accommodation.AccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.approvedpremises.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.dutytorefer.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.CaseStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress.PrivateAddressesDto
 
 val mockCrns = listOf(
