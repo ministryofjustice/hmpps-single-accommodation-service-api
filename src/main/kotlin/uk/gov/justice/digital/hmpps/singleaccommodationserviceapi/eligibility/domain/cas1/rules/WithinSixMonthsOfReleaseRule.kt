@@ -42,7 +42,7 @@ class WithinSixMonthsOfReleaseRule(
 
     val monthsUntilRelease = MONTHS.between(
       LocalDate.now(clock),
-      data.releaseDate.toLocalDate(),
+      data.releaseDate,
     )
 
     val isCandidateWithin6Months = monthsUntilRelease < 6

@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
@@ -47,7 +47,7 @@ class RulesEngineTest {
       crn = crn,
       tier = TierScore.A1,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      releaseDate = LocalDate.now().plusMonths(7),
     )
 
     val result = defaultRulesEngine.execute(cas1RuleSet, data)
@@ -67,7 +67,7 @@ class RulesEngineTest {
       crn = crn,
       tier = TierScore.C1S,
       sex = buildSex(SexCode.F),
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      releaseDate = LocalDate.now().plusMonths(7),
     )
 
     val result = defaultRulesEngine.execute(cas1RuleSet, data)
@@ -85,7 +85,7 @@ class RulesEngineTest {
       crn = crn,
       tier = TierScore.A1,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(4),
+      releaseDate = LocalDate.now().plusMonths(4),
     )
 
     val result = defaultRulesEngine.execute(cas1RuleSet, data)
@@ -105,7 +105,7 @@ class RulesEngineTest {
       crn = crn,
       tier = TierScore.A1S,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(4),
+      releaseDate = LocalDate.now().plusMonths(4),
     )
 
     val result = defaultRulesEngine.execute(cas1RuleSet, data)

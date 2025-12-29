@@ -39,8 +39,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.MutableC
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -73,8 +71,6 @@ class EligibilityServiceTest {
   @Nested
   inner class DomainDataFunctions {
 
-    private fun transformPrisonerReleaseDate(date: LocalDate?): OffsetDateTime? = date?.atStartOfDay()?.atOffset(ZoneOffset.UTC)
-
     @Test
     fun `buildDomainData maps all fields correctly`() {
       val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
@@ -86,19 +82,17 @@ class EligibilityServiceTest {
         Prisoner(releaseDate = LocalDate.now().plusMonths(4)),
         Prisoner(releaseDate = null),
       )
-      val expectedReleaseDateOffset = transformPrisonerReleaseDate(releaseDate)
 
       val result = DomainData(crn, cpr, tier, prisoner, null)
       assertThat(result.tier).isEqualTo(tier.tierScore)
       assertThat(result.sex).isEqualTo(Sex(cpr.sex?.code, cpr.sex?.description))
-      assertThat(result.releaseDate).isEqualTo(expectedReleaseDateOffset)
+      assertThat(result.releaseDate).isEqualTo(releaseDate)
     }
 
     @Test
     fun `getDomainData returns correct DomainData`() {
       val expectedTier = TierScore.A1
       val expectedReleaseDate = LocalDate.now().plusMonths(6)
-      val expectedReleaseDateOffset = transformPrisonerReleaseDate(expectedReleaseDate)
 
       val crn = "X12345"
       val prisonerNumber = "PN1"
@@ -113,7 +107,7 @@ class EligibilityServiceTest {
       val result = eligibilityService.getDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
       assertThat(result.sex).isEqualTo(male)
-      assertThat(result.releaseDate).isEqualTo(expectedReleaseDateOffset)
+      assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
   }
 
@@ -132,7 +126,6 @@ class EligibilityServiceTest {
     private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     private fun String.toLocalDate(): LocalDate = LocalDate.parse(this, dateFormatter)
-    private fun String.toOffsetDateTime(): OffsetDateTime = toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC)
 
     @ParameterizedTest(name = "{0}")
     @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
@@ -153,7 +146,7 @@ class EligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
       }
-      val data = buildDomainData(crn, tier, buildSex(sex), releaseDate.toOffsetDateTime(), cas1Application)
+      val data = buildDomainData(crn, tier, buildSex(sex), releaseDate.toLocalDate(), cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 

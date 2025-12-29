@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
+import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.util.UUID
 
 class DomainDataTest {
@@ -21,8 +21,7 @@ class DomainDataTest {
   @Test
   fun `Create DomainDate from EligibilityOrchestration data`() {
     val crn = "ABC1234"
-    val releaseDate = OffsetDateTime.parse("2020-12-04T00:00:00+00:00")
-    val localReleaseDate = releaseDate.toLocalDate()
+    val releaseDate = LocalDate.parse("2020-12-04")
     val expected = DomainData(
       crn = crn,
       tier = TierScore.A1,
@@ -48,13 +47,13 @@ class DomainDataTest {
         releaseDate = null,
       ),
       Prisoner(
-        releaseDate = localReleaseDate.minusDays(1),
+        releaseDate = releaseDate.minusDays(1),
       ),
       Prisoner(
-        releaseDate = localReleaseDate,
+        releaseDate = releaseDate,
       ),
       Prisoner(
-        releaseDate = localReleaseDate.minusDays(2),
+        releaseDate = releaseDate.minusDays(2),
       ),
     )
     val result = DomainData(

@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.STierRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 class STierRuleTest {
   private val crn = "ABC234"
@@ -24,7 +24,7 @@ class STierRuleTest {
       crn = crn,
       tier = tier,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = STierRule().evaluate(data)
@@ -39,7 +39,7 @@ class STierRuleTest {
       crn = crn,
       tier = tier,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = STierRule().evaluate(data)

@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.CircuitBreakRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
@@ -89,7 +89,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.A1,
         sex = buildSex(SexCode.M),
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
 
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
@@ -114,7 +114,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.C2S,
         sex = buildSex(SexCode.F),
-        releaseDate = OffsetDateTime.now().plusMonths(2),
+        releaseDate = LocalDate.now().plusMonths(2),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
@@ -138,7 +138,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.A1S,
         sex = buildSex(SexCode.M),
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
@@ -162,7 +162,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.C1,
         sex = buildSex(SexCode.F),
-        releaseDate = OffsetDateTime.now().plusMonths(3),
+        releaseDate = LocalDate.now().plusMonths(3),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
@@ -190,7 +190,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.A1,
         sex = buildSex(SexCode.M),
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
 
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
@@ -206,7 +206,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.A1S,
         sex = buildSex(SexCode.F),
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
@@ -223,7 +223,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.A1S,
         sex = buildSex(SexCode.M),
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
 
@@ -240,7 +240,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tier = TierScore.C1,
         sex = buildSex(SexCode.F),
-        releaseDate = OffsetDateTime.now().plusMonths(7),
+        releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1RuleSet, data)
 

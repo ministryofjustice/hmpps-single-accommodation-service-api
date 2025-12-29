@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.cas1.rules.MaleRiskRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
-import java.time.OffsetDateTime
+import java.time.LocalDate
 import java.util.stream.Stream
 
 class MaleRiskRuleTest {
@@ -24,7 +24,7 @@ class MaleRiskRuleTest {
       crn = crn,
       tier = tier,
       sex = sex,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = MaleRiskRule().evaluate(data)
@@ -39,7 +39,7 @@ class MaleRiskRuleTest {
       crn = crn,
       tier = tier,
       sex = sex,
-      releaseDate = OffsetDateTime.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusMonths(6),
     )
 
     val result = MaleRiskRule().evaluate(data)
