@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.do
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.domain.enums.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.MutableClock
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 class WithinSixMonthsOfReleaseRuleTest {
   private val crn = "ABC234"
@@ -37,7 +37,7 @@ class WithinSixMonthsOfReleaseRuleTest {
       crn = crn,
       tier = TierScore.A1,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(4),
+      releaseDate = LocalDate.now().plusMonths(4),
     )
     val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
@@ -49,7 +49,7 @@ class WithinSixMonthsOfReleaseRuleTest {
       crn = crn,
       tier = TierScore.A1,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(7),
+      releaseDate = LocalDate.now().plusMonths(7),
     )
     val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
@@ -61,7 +61,7 @@ class WithinSixMonthsOfReleaseRuleTest {
       crn = crn,
       tier = TierScore.A1,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(5),
+      releaseDate = LocalDate.now().plusMonths(5),
     )
     val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
@@ -73,7 +73,7 @@ class WithinSixMonthsOfReleaseRuleTest {
       crn = crn,
       tier = TierScore.A1,
       sex = male,
-      releaseDate = OffsetDateTime.now().plusMonths(8),
+      releaseDate = LocalDate.now().plusMonths(8),
     )
     val result = WithinSixMonthsOfReleaseRule(clock).evaluate(data)
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
@@ -88,7 +88,8 @@ class WithinSixMonthsOfReleaseRuleTest {
   inner class BuildAction {
     @Test
     fun `Build action when release date is 3 days in future`() {
-      val releaseDate = OffsetDateTime.now().plusDays(3)
+      val releaseDate = LocalDate.parse("2026-12-31")
+      clock.setNow(releaseDate.minusDays(3))
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
@@ -102,7 +103,8 @@ class WithinSixMonthsOfReleaseRuleTest {
 
     @Test
     fun `Build action when release date is 7 months in future`() {
-      val releaseDate = OffsetDateTime.now().plusMonths(7)
+      val releaseDate = LocalDate.parse("2026-12-31")
+      clock.setNow(releaseDate.minusMonths(7))
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
@@ -110,13 +112,14 @@ class WithinSixMonthsOfReleaseRuleTest {
         releaseDate = releaseDate,
       )
       val result = WithinSixMonthsOfReleaseRule(clock).buildAction(false, data)
-      val expectedResult = "Start approved premise referral in 31 days"
+      val expectedResult = "Start approved premise referral in 30 days"
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
     fun `Build action when release date is 6 months in future`() {
-      val releaseDate = OffsetDateTime.now().plusMonths(6)
+      val releaseDate = LocalDate.parse("2026-12-31")
+      clock.setNow(releaseDate.minusMonths(6))
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
@@ -130,7 +133,8 @@ class WithinSixMonthsOfReleaseRuleTest {
 
     @Test
     fun `Build action when release date is 6 months and 1 day in future`() {
-      val releaseDate = OffsetDateTime.now().plusMonths(6).plusDays(1)
+      val releaseDate = LocalDate.parse("2026-12-31")
+      clock.setNow(releaseDate.minusMonths(6).minusDays(1))
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
@@ -144,7 +148,8 @@ class WithinSixMonthsOfReleaseRuleTest {
 
     @Test
     fun `Build action when release date is 6 months and 2 days in future`() {
-      val releaseDate = OffsetDateTime.now().plusMonths(6).plusDays(2)
+      val releaseDate = LocalDate.parse("2026-07-01")
+      clock.setNow(releaseDate.minusMonths(6).minusDays(2))
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,

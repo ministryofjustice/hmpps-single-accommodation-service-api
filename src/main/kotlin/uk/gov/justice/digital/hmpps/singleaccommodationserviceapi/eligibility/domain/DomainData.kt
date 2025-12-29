@@ -6,13 +6,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.coreper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.client.tier.TierScore
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
   val tier: TierScore,
   val sex: Sex,
-  val releaseDate: OffsetDateTime?,
+  val releaseDate: LocalDate?,
   val cas1Application: Cas1Application? = null,
 ) {
   constructor(crn: String, cpr: CorePersonRecord, tier: Tier, prisonerData: List<Prisoner>, cas1Application: Cas1Application?) : this(
@@ -20,7 +20,7 @@ data class DomainData(
     tier = tier.tierScore,
     sex = cpr.sex ?: error("Sex must not be null for DomainData"),
     releaseDate = prisonerData.mapNotNull { it.releaseDate }
-      .maxByOrNull { it }?.atStartOfDay()?.atOffset(java.time.ZoneOffset.UTC),
+      .maxByOrNull { it },
     cas1Application = cas1Application,
   )
 }
