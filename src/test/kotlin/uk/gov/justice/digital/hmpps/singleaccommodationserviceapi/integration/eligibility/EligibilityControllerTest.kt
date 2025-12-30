@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.mockCrns
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCorePersonRecord
@@ -12,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildP
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockCrns
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class EligibilityControllerTest : IntegrationTestBase() {

@@ -1,15 +1,16 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.MockData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.MockData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.privateaddress.PrivateAddressesDto
 
 @RestController
 class PrivateAddressController(
-  private val mockedData: MockData?,
+    private val mockedData: MockData?,
 ) {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")

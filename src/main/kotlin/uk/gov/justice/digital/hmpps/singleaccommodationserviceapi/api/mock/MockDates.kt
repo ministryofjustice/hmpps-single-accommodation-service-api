@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock
 
 import java.time.LocalDate
 import java.time.OffsetDateTime

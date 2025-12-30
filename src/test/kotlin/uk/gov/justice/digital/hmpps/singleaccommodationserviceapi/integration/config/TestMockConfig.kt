@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.MockData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.getMockedData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.MockData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.getMockedData
 
 @TestConfiguration
 class TestMockConfig {
