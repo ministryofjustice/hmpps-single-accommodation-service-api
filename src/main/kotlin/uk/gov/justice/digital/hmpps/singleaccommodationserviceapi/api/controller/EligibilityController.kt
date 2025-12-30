@@ -5,9 +5,9 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.MockData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.eligibility.EligibilityService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 
 @RestController
 class EligibilityController(

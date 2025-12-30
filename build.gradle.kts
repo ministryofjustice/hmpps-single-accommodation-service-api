@@ -16,7 +16,8 @@ detekt {
 }
 
 dependencies {
-  implementation(project(":infrastructure"))
+  implementation(project(":common"))
+  implementation(project(":query"))
 
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -31,6 +32,8 @@ dependencies {
   }
   testImplementation("com.github.codemonstur:embedded-redis:1.4.3")
   testImplementation("org.redisson:redisson-spring-boot-starter:3.27.2")
+
+  testImplementation(testFixtures(project(":infrastructure")))
 }
 
 kotlin {

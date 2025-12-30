@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.mockPhotoUrl
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.mockPhotoUrl
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 @TestData

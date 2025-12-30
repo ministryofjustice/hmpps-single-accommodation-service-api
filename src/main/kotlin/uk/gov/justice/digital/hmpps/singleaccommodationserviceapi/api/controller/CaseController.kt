@@ -6,12 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.MockData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.mock.mockCrns
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.case.CaseService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel
-import kotlin.collections.get
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.mockCrns
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
 import kotlin.collections.map
 
 @RestController
