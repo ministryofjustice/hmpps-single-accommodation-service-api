@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.mockCrns
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.response.expectedGetDutyToRefersResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockCrns
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class DutyToReferControllerTest : IntegrationTestBase() {

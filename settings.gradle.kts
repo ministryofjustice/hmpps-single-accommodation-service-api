@@ -1,3 +1,5 @@
 rootProject.name = "hmpps-single-accommodation-service-api"
 
-include("aggregator")
+include("common")
+include("infrastructure")
+include("query")

@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildIdentifiers
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildPrisoner
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.factory.buildTier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.mockCrns
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mock.mockCrns
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class EligibilityControllerTest : IntegrationTestBase() {

@@ -9,7 +9,7 @@ import io.swagger.v3.oas.models.servers.Server
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.constants.Roles
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.constants.Roles
 
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
