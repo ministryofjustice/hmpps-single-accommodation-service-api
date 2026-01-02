@@ -12,9 +12,9 @@ import java.util.UUID
 fun buildCorePersonRecord(
   cprUUID: UUID = UUID.randomUUID(),
   identifiers: Identifiers? = buildIdentifiers(),
-  firstName: String = "First",
-  middleNames: String = "Middle",
-  lastName: String = "Last",
+  firstName: String? = "First",
+  middleNames: String? = "Middle",
+  lastName: String? = "Last",
   dateOfBirth: LocalDate = LocalDate.of(2000, 12, 3),
   sex: Sex = buildSex(),
 ) = CorePersonRecord(

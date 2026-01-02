@@ -26,22 +26,7 @@ data class Rosh(
   val riskPublicCustody: RiskLevel? = null,
   val riskPublicCommunity: RiskLevel? = null,
   val riskChildrenCustody: RiskLevel? = null,
-) {
-  fun determineOverallRiskLevel(): RiskLevel? {
-    val levels = listOf(
-      riskChildrenCommunity,
-      riskPrisonersCustody,
-      riskStaffCommunity,
-      riskStaffCustody,
-      riskKnownAdultCommunity,
-      riskKnownAdultCustody,
-      riskPublicCommunity,
-      riskPublicCustody,
-    )
-
-    return levels.filter { it != null }.maxByOrNull { it!!.priority }
-  }
-}
+)
 
 enum class RiskLevel(val priority: Int) {
   LOW(1),

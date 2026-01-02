@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toRiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildCaseOrchestrationDto
 import kotlin.collections.first
 
@@ -59,18 +61,13 @@ class CaseServiceTest {
 
       every { caseOrchestrationService.getCases(crnList) } returns orchestrationDtoList
 
-      val riskLevel = with(caseService) {
-        riskLevelInfra.toRiskLevel()
-      }
-
-      val result = caseService.getCases(crnList, riskLevel)
+      val result = caseService.getCases(crnList, toRiskLevel(riskLevelInfra))
       assertThat(result).hasSize(2)
 
       val orchestrationOne = orchestrationDtoList.first()
       val orchestrationTwo = orchestrationDtoList[1]
-      with(caseService) {
         assertThat(result.first()).isEqualTo(
-          CaseDto.from(
+          toCaseDto(
             crn = crnOne,
             cpr = orchestrationOne.cpr,
             roshDetails = orchestrationOne.roshDetails,
@@ -79,7 +76,7 @@ class CaseServiceTest {
           ),
         )
         assertThat(result[1]).isEqualTo(
-          CaseDto.from(
+          toCaseDto(
             crn = crnTwo,
             cpr = orchestrationTwo.cpr,
             roshDetails = orchestrationTwo.roshDetails,
@@ -150,18 +147,15 @@ class CaseServiceTest {
       assertThat(result).hasSize(1)
 
       val orchestrationOne = orchestrationDtoList.first()
-      with(caseService) {
-        assertThat(result.first()).isEqualTo(
-          CaseDto.from(
-            crn = crnOne,
-            cpr = orchestrationOne.cpr,
-            roshDetails = orchestrationOne.roshDetails,
-            tier = orchestrationOne.tier,
-            caseSummaries = orchestrationOne.cases,
-          ),
-        )
-      }
-    }
+      assertThat(result.first()).isEqualTo(
+        toCaseDto(
+          crn = crnOne,
+          cpr = orchestrationOne.cpr,
+          roshDetails = orchestrationOne.roshDetails,
+          tier = orchestrationOne.tier,
+          caseSummaries = orchestrationOne.cases,
+        ),
+      )
   }
 
   @Nested
@@ -171,17 +165,15 @@ class CaseServiceTest {
       val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne)
       every { caseOrchestrationService.getCase(crnOne) } returns caseOrchestrationDto
 
-      with(caseService) {
-        assertThat(caseService.getCase(crnOne)).isEqualTo(
-          CaseDto.from(
-            crn = crnOne,
-            cpr = caseOrchestrationDto.cpr,
-            roshDetails = caseOrchestrationDto.roshDetails,
-            tier = caseOrchestrationDto.tier,
-            caseSummaries = caseOrchestrationDto.cases,
-          ),
-        )
-      }
+      assertThat(caseService.getCase(crnOne)).isEqualTo(
+        toCaseDto(
+          crn = crnOne,
+          cpr = caseOrchestrationDto.cpr,
+          roshDetails = caseOrchestrationDto.roshDetails,
+          tier = caseOrchestrationDto.tier,
+          caseSummaries = caseOrchestrationDto.cases,
+        ),
+      )
     }
   }
 }

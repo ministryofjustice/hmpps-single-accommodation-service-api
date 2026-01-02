@@ -14,9 +14,7 @@ data class CaseDto(
   val assignedTo: AssignedToDto?,
   val currentAccommodation: AccommodationDetail?,
   val nextAccommodation: AccommodationDetail?,
-) {
-  companion object
-}
+)
 
 data class AssignedToDto(val id: Long, val name: String)
 
@@ -52,6 +50,4 @@ enum class TierScore {
   D3S,
   D2S,
   D1S;
-
-  companion object
 }

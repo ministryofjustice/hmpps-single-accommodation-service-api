@@ -1,12 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case
 
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
-import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -15,38 +12,56 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toFullName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildCaseOrchestrationDto
 import java.time.LocalDate
 import java.util.stream.Stream
 
-@ExtendWith(MockKExtension::class)
-class CaseDtoTest {
-  @MockK
-  lateinit var caseOrchestrationService: CaseOrchestrationService
-  @InjectMockKs
-  lateinit var caseService: CaseService
+class CaseTransformerTest {
 
   @ParameterizedTest
   @MethodSource(
-    "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case.CaseDtoTest#caseTransformationCases",
+    "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case.CaseTransformerTest#caseTransformationCases",
   )
   fun `should transform from case orchestration dto to case dto`(
     caseOrchestrationDto: CaseOrchestrationDto,
     expectedCaseDto: CaseDto,
   ) {
-    with(caseService) {
       assertThat(
-        CaseDto.from(
+        toCaseDto(
           crn = caseOrchestrationDto.crn,
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
           caseSummaries = caseOrchestrationDto.cases,
-        ),
+        )
       ).isEqualTo(expectedCaseDto)
-    }
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value = [
+      "John,Paul Andrew, Smith, John Paul Andrew Smith",
+      "John, null, Smith, John Smith",
+      "John, '', Smith, John Smith",
+      "John, '       ', Smith, John Smith",
+      "Firstname, MiddleName, null, Firstname MiddleName",
+      "null, MiddleName, Lastname, MiddleName Lastname",
+      "Alice, X, Wonderland, Alice X Wonderland",
+      "Alice, X Y Z 1, Wonder land, Alice X Y Z 1 Wonder land",
+      "null, null, null, ''",
+    ],
+    nullValues = ["null"],
+  )
+  fun `should format full-name correctly`(
+    firstname: String?,
+    middleNames: String?,
+    lastName: String?,
+    expected: String,
+  ) {
+    val cpr = buildCorePersonRecord(firstName = firstname, middleNames = middleNames, lastName = lastName)
+    assertThat(toFullName(cpr)).isEqualTo(expected)
   }
 
   private companion object {
