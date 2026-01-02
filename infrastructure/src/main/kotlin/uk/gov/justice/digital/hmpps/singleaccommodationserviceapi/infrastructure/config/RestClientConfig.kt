@@ -8,13 +8,14 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.support.RestClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.HmppsAuthInterceptor
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationDataDomainClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.ProbationIntegrationOasysClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.HmppsAuthInterceptor
 import java.net.http.HttpClient
 import java.time.Duration
 import kotlin.reflect.KClass
@@ -59,6 +60,12 @@ open class RestClientConfig(
   open fun prisonerSearchClient(@Value($$"${service.prisoner-search.base-url}") baseUrl: String) = createClient(
     baseUrl,
     PrisonerSearchClient::class,
+  )
+
+  @Bean
+  fun accommodationDataDomainClient(@Value($$"${service.accommodation-data-domain.base-url}") baseUrl: String) = createClient(
+    baseUrl,
+    AccommodationDataDomainClient::class,
   )
 
   private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
