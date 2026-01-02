@@ -16,6 +16,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestMockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestRedissonConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.AccommodationDataDomainMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthMockServer
@@ -66,6 +67,8 @@ abstract class IntegrationTestBase {
   internal val tierMockServer = TierMockServer()
 
   internal val prisonerSearchMockServer = PrisonerSearchMockServer()
+
+  internal val accommodationDataDomainMockServer = AccommodationDataDomainMockServer()
 
   @BeforeAll
   fun startMocks() {
