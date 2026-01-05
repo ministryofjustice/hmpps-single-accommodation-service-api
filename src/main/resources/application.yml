@@ -3,6 +3,8 @@ info.app:
   version: 1.0
 
 spring:
+  config:
+    import: classpath:application-infrastructure.yml
   application:
     name: hmpps-single-accommodation-service-api
 
@@ -16,24 +18,9 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
-
-      client:
-        registration:
-          default:
-            provider: hmpps-auth
-            client-id: approved-premises-api
-            client-secret: clientsecret
-            authorization-grant-type: client_credentials
-        provider:
-          hmpps-auth:
-            token-uri: ${hmpps-auth.url}/oauth/token
   http:
     codecs:
       max-in-memory-size: 10MB
-
-  threads:
-    virtual:
-      enabled: true
 
 server:
   port: 8080
@@ -66,22 +53,3 @@ management:
     info:
       cache:
         time-to-live: 2000ms
-
-redisson:
-  timeout: 3000
-  scan:
-    interval: 2000
-  retry:
-    interval: 1500
-    attempts: 3
-  connection:
-    pool-size: 10
-    minimum-idle-size: 5
-
-redis:
-  replica:
-    host:
-  host:
-  port: 6379
-  auth:
-    token:
