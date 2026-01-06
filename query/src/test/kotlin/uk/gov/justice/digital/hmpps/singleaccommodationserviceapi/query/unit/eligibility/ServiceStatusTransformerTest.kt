@@ -1,3 +1,4 @@
+
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility
 
 import org.assertj.core.api.Assertions.assertThat
