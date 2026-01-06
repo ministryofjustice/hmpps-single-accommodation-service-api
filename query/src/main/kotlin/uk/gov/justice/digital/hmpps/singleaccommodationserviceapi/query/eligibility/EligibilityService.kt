@@ -18,6 +18,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 @Service
@@ -32,11 +37,16 @@ class EligibilityService(
   private val cas1ContextUpdater: Cas1ContextUpdater,
   private val cas1ValidationContextUpdater: Cas1ValidationContextUpdater,
   private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
+  private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
+  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
+  private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
+  private val cas3ContextUpdater: Cas3ContextUpdater,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
 
   private val treeBuilder = DecisionTreeBuilder(engine)
+
 
   fun getEligibility(crn: String): EligibilityDto {
     val data = getDomainData(crn)
@@ -45,6 +55,7 @@ class EligibilityService(
     val cas2Hdc = calculateEligibilityForCas2Hdc(data)
     val cas2PrisonBail = calculateEligibilityForCas2PrisonBail(data)
     val cas2CourtBail = calculateEligibilityForCas2CourtBail(data)
+    val cas3 = calculateEligibilityForCas3(data)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = crn,
@@ -52,7 +63,7 @@ class EligibilityService(
       cas2Hdc = cas2Hdc,
       cas2PrisonBail = cas2PrisonBail,
       cas2CourtBail = cas2CourtBail,
-      cas3 = null
+      cas3 = cas3,
     )
   }
 
@@ -180,6 +191,45 @@ class EligibilityService(
     return tree.eval(initialContext)
   }
 
+  fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
+    // Build tree declaratively:
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val eligibility =
+      treeBuilder
+        .ruleSet("Cas3Eligibility", cas3EligibilityRuleSet, cas3ContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val suitability =
+      treeBuilder
+        .ruleSet("Cas3Suitability", cas3SuitabilityRuleSet, cas3ContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility) // node above
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3ContextUpdater)
+        .onPass(confirmed)
+        .onFail(suitability) // node above
+        .build()
+
+    val initialContext =
+      EvaluationContext(
+        data = data,
+        currentResult =
+          ServiceResult(
+            serviceStatus = ServiceStatus.CONFIRMED,
+            suitableApplicationId = data.cas3Application?.id,
+          )
+      )
+
+    return tree.eval(initialContext)
+  }
+
   fun getDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
 
@@ -191,7 +241,7 @@ class EligibilityService(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
       tier = eligibilityOrchestrationDto.tier,
-      prisonerData =  prisonerData,
+      prisonerData = prisonerData,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,
       cas2PrisonBailApplication = eligibilityOrchestrationDto.cas2PrisonBailApplication,
