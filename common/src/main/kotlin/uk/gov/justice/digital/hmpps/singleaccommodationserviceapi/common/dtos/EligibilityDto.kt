@@ -5,12 +5,12 @@ import java.util.UUID
 data class EligibilityDto(
   val crn: String,
   val cas1: ServiceResult,
-  val caseStatus: CaseStatus?,
-  val caseActions: List<String>,
   val cas2Hdc: ServiceResult?,
   val cas2PrisonBail: ServiceResult?,
   val cas2CourtBail: ServiceResult?,
   val cas3: ServiceResult?,
+  val caseActions: List<String>,
+  val caseStatus: CaseStatus,
 )
 
 data class ServiceResult(
@@ -25,9 +25,10 @@ data class SuitableApplication(
   val placementStatus: String?,
 )
 
-enum class CaseStatus {
-  ACTION_NEEDED,
-  NO_ACTION_NEEDED,
+enum class CaseStatus(val caseStatusOrder: Int) {
+  NO_ACTION_NEEDED(0),
+  ACTION_UPCOMING(1),
+  ACTION_NEEDED(2),
 }
 
 enum class ServiceStatus {

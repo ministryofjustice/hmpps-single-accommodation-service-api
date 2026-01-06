@@ -3,19 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PrivateAddressesDto
-
-val mockCrns = listOf(
-  "X371199",
-  "X968879",
-  "X966926",
-  "X969031",
-)
-
-val mockPhotoUrl: String =
-  "https://github.com/ministryofjustice/hmpps-single-accommodation-service-prototype/blob/main/app/assets/images/profile-placeholder-2.jpg"
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 
 fun getMockedData() = MockData(
   crns = mockCrns.associate {
@@ -26,12 +15,10 @@ fun getMockedData() = MockData(
       currentAccommodation = getMockedCurrentAccommodation(it),
       nextAccommodation = getMockedNextAccommodation(it),
       accommodation = getMockedAccommodation(it),
-      cas3Eligibility = getMockedCas3Eligibility(),
-      cas2HdcEligibility = getMockedCas2HdcEligibility(),
-      cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(),
-      cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(),
-      caseActions = getMockedCaseActions(),
-      caseStatus = mockedCaseStatus,
+      cas3Eligibility = getMockedCas3Eligibility(it),
+      cas2HdcEligibility = getMockedCas2HdcEligibility(it),
+      cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(it),
+      cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(it),
       privateAddresses = getMockedPrivateAddresses(it),
     )
   },
@@ -52,7 +39,5 @@ data class MockCrnData(
   val cas2PrisonBailEligibility: ServiceResult,
   val cas2CourtBailEligibility: ServiceResult,
   val cas3Eligibility: ServiceResult,
-  val caseActions: List<String>,
-  val caseStatus: CaseStatus,
   val privateAddresses: PrivateAddressesDto,
 )
