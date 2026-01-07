@@ -10,5 +10,5 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.ge
 @Profile("local", "dev")
 class MockConfig {
   @Bean
-  fun mockedData(): MockData = getMockedData()
+  fun mockedData(crnList: List<String>): MockData = getMockedData(availableCrnList = crnList)
 }

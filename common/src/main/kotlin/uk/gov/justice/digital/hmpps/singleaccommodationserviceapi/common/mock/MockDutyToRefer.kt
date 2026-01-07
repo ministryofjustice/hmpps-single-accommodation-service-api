@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import java.util.UUID
 
-fun getMockedDutyToRefers(crn: String) = when (crn) {
-  mockCrns[0] -> listOf(
+fun getMockedDutyToRefers(availableCrnList: List<String>, crn: String) = when (crn) {
+  availableCrnList[0] -> listOf(
     DutyToReferDto(
       crn = crn,
       id = UUID.fromString("b5e22e29-36bf-48e5-bfc9-915176298cb0"),
@@ -15,7 +15,7 @@ fun getMockedDutyToRefers(crn: String) = when (crn) {
       outcome = "pending!!",
     ),
   )
-  mockCrns[1] -> listOf(
+  availableCrnList[1] -> listOf(
     DutyToReferDto(
       crn = crn,
       id = UUID.fromString("b5e22e29-36bf-48e5-bfc9-915176298cb1"),
@@ -26,7 +26,7 @@ fun getMockedDutyToRefers(crn: String) = when (crn) {
       outcome = "pending!!",
     ),
   )
-  mockCrns[2] -> listOf(
+  availableCrnList[2] -> listOf(
     DutyToReferDto(
       crn = crn,
       id = UUID.fromString("b5e22e29-36bf-48e5-bfc9-915176298cb2"),
@@ -37,7 +37,7 @@ fun getMockedDutyToRefers(crn: String) = when (crn) {
       outcome = "pending!!",
     ),
   )
-  mockCrns[3] -> listOf(
+  availableCrnList[3] -> listOf(
     DutyToReferDto(
       crn = crn,
       id = UUID.fromString("b5e22e29-36bf-48e5-bfc9-915176298cb3"),

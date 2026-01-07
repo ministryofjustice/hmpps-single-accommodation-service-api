@@ -6,20 +6,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PrivateAddressesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 
-fun getMockedData() = MockData(
-  crns = mockCrns.associate {
+fun getMockedData(availableCrnList: List<String>) = MockData(
+  crns = availableCrnList.associate {
     it to MockCrnData(
-      dutyToRefers = getMockedDutyToRefers(it),
+      dutyToRefers = getMockedDutyToRefers(availableCrnList, it),
       crn = it,
       photoUrl = mockPhotoUrl,
-      currentAccommodation = getMockedCurrentAccommodation(it),
-      nextAccommodation = getMockedNextAccommodation(it),
-      accommodation = getMockedAccommodation(it),
-      cas3Eligibility = getMockedCas3Eligibility(it),
-      cas2HdcEligibility = getMockedCas2HdcEligibility(it),
-      cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(it),
-      cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(it),
-      privateAddresses = getMockedPrivateAddresses(it),
+      currentAccommodation = getMockedCurrentAccommodation(availableCrnList, it),
+      nextAccommodation = getMockedNextAccommodation(availableCrnList, it),
+      accommodation = getMockedAccommodation(availableCrnList, it),
+      cas3Eligibility = getMockedCas3Eligibility(availableCrnList, it),
+      cas2HdcEligibility = getMockedCas2HdcEligibility(availableCrnList, it),
+      cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(availableCrnList, it),
+      cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(availableCrnList, it),
+      privateAddresses = getMockedPrivateAddresses(availableCrnList, it),
     )
   },
 )

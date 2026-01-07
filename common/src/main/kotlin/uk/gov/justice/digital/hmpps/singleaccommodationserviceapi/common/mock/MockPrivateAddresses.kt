@@ -5,8 +5,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ad
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AddressDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PrivateAddressesDto
 
-fun getMockedPrivateAddresses(crn: String) = when (crn) {
-  mockCrns[0] ->
+fun getMockedPrivateAddresses(availableCrnList: List<String>, crn: String) = when (crn) {
+  availableCrnList[0] ->
     PrivateAddressesDto(
       crn = crn,
       addresses = listOf(
@@ -46,7 +46,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
         ),
       ),
     )
-  mockCrns[1] ->
+  availableCrnList[1] ->
     PrivateAddressesDto(
       crn = crn,
       addresses = listOf(
@@ -70,7 +70,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
       ),
 
     )
-  mockCrns[2] ->
+  availableCrnList[2] ->
     PrivateAddressesDto(
       crn = crn,
       addresses = listOf(
@@ -93,7 +93,7 @@ fun getMockedPrivateAddresses(crn: String) = when (crn) {
         ),
       ),
     )
-  mockCrns[3] ->
+  availableCrnList[3] ->
     PrivateAddressesDto(
       crn = crn,
       addresses = listOf(),
