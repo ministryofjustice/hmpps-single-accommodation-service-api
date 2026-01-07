@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.mockCrns
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -16,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.el
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class EligibilityControllerTest : IntegrationTestBase() {
-  private val crn = mockCrns.first()
+  private val crn = "X371199"
   private val prisonerNumber = "1234567"
 
   @BeforeEach

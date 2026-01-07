@@ -26,8 +26,10 @@ class CaseController(
     @RequestParam(required = false) status: Status?,
     @RequestParam(required = false) assignedTo: Long?,
     @RequestParam(required = false) riskLevel: RiskLevel?,
+    // these crns are currently mocked
+    @RequestParam(required = false) crns: List<String> = crnList,
   ): ResponseEntity<List<CaseDto>> {
-    val cases = caseService.getCases(crns = crnList, riskLevel)
+    val cases = caseService.getCases(crns, riskLevel)
     return mockedData
       ?.let {
         ResponseEntity.ok(
