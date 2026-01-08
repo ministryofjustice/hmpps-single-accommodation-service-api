@@ -10,6 +10,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildActions
 import java.util.UUID
+import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
 import java.util.stream.Stream
 
 class ActionTransformerTest {
@@ -93,6 +97,33 @@ class ActionTransformerTest {
       )
       val result = buildActions(cas1Application)
       Assertions.assertThat(result).isEqualTo(actions)
+    }
+
+    @Test
+    fun `cas 2 HDC application present so result contains appropriate actions`() {
+      val cas2HdcApplication = Cas2HdcApplication(
+        id = UUID.randomUUID(),
+      )
+      val result = buildActions(cas2HdcApplication)
+      Assertions.assertThat(result).isEqualTo(emptyList<String>())
+    }
+
+    @Test
+    fun `cas 2 Court Bail application present so result contains appropriate actions`() {
+      val cas2CourtBailApplication = Cas2CourtBailApplication(
+        id = UUID.randomUUID(),
+      )
+      val result = buildActions(cas2CourtBailApplication)
+      Assertions.assertThat(result).isEqualTo(emptyList<String>())
+    }
+
+    @Test
+    fun `cas 2 Prison Bail application present so result contains appropriate actions`() {
+      val cas2PrisonBailApplication = Cas2PrisonBailApplication(
+        id = UUID.randomUUID(),
+      )
+      val result = buildActions(cas2PrisonBailApplication)
+      Assertions.assertThat(result).isEqualTo(emptyList<String>())
     }
   }
 }

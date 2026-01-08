@@ -10,6 +10,9 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.toServiceStatus
 import java.util.UUID
@@ -70,47 +73,83 @@ class ServiceStatusTransformerTest {
     )
   }
 
-  @Nested
-  inner class TransformCas1ApplicationToServeStatusStatus {
+    @Nested
+    inner class Cas1ApplicationToServeStatusStatus {
 
-    @ParameterizedTest
-    @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.ServiceStatusTransformerTest#provideCas1ApplicationStatusInputsAndOutputs")
-    fun `transform to service-status where application-status provided and is not PLACEMENT_ALLOCATED`(
-      applicationStatus: Cas1ApplicationStatus,
-      serviceStatus: ServiceStatus,
-    ) {
-      val cas1Application = Cas1Application(
-        id = UUID.randomUUID(),
-        applicationStatus = applicationStatus,
-        placementStatus = null,
-      )
-      assertThat(toServiceStatus(cas1Application)).isEqualTo(serviceStatus)
+      @ParameterizedTest
+      @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.ServiceStatusTransformerTest#provideCas1ApplicationStatusInputsAndOutputs")
+      fun `transform to service-status where application-status provided and is not PLACEMENT_ALLOCATED`(
+        applicationStatus: Cas1ApplicationStatus,
+        serviceStatus: ServiceStatus,
+      ) {
+        val cas1Application = Cas1Application(
+          id = UUID.randomUUID(),
+          applicationStatus = applicationStatus,
+          placementStatus = null,
+        )
+        assertThat(toServiceStatus(cas1Application)).isEqualTo(serviceStatus)
+      }
+
+      @ParameterizedTest
+      @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.ServiceStatusTransformerTest#provideCas1PlacementStatusInputsAndOutputs")
+      fun `transform to service-status where application-status is PLACEMENT_ALLOCATED and placement status is set`(
+        placementStatus: Cas1PlacementStatus,
+        serviceStatus: ServiceStatus,
+      ) {
+        val cas1Application = Cas1Application(
+          id = UUID.randomUUID(),
+          applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+          placementStatus = placementStatus,
+        )
+        assertThat(toServiceStatus(cas1Application)).isEqualTo(serviceStatus)
+      }
+
+      @Test
+      fun `errors as application-status is PLACEMENT_ALLOCATED but placement status is not set`() {
+        val cas1Application = Cas1Application(
+          id = UUID.randomUUID(),
+          applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+          placementStatus = null,
+        )
+        assertThatThrownBy { toServiceStatus(cas1Application) }
+          .isInstanceOf(IllegalStateException::class.java)
+          .hasMessageContaining("Null Placement Status")
+      }
     }
 
-    @ParameterizedTest
-    @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.ServiceStatusTransformerTest#provideCas1PlacementStatusInputsAndOutputs")
-    fun `transform to service-status where application-status is PLACEMENT_ALLOCATED and placement status is set`(
-      placementStatus: Cas1PlacementStatus,
-      serviceStatus: ServiceStatus,
-    ) {
-      val cas1Application = Cas1Application(
-        id = UUID.randomUUID(),
-        applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        placementStatus = placementStatus,
-      )
-      assertThat(toServiceStatus(cas1Application)).isEqualTo(serviceStatus)
-    }
+    @Nested
+    inner class Cas2HdcApplicationToServeStatusStatus {
 
     @Test
-    fun `errors as application-status is PLACEMENT_ALLOCATED but placement status is not set`() {
-      val cas1Application = Cas1Application(
+    fun `transform to service-status`() {
+      val cas2HdcApplication = Cas2HdcApplication(
         id = UUID.randomUUID(),
-        applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        placementStatus = null,
       )
-      assertThatThrownBy { toServiceStatus(cas1Application) }
-        .isInstanceOf(IllegalStateException::class.java)
-        .hasMessageContaining("Null Placement Status")
+        assertThat(toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+    }
+  }
+
+  @Nested
+  inner class Cas2CourtBailApplicationToServeStatusStatus {
+
+    @Test
+    fun `transform to service-status`() {
+      val cas2CourtBailApplication = Cas2CourtBailApplication(
+        id = UUID.randomUUID(),
+      )
+      assertThat(toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+    }
+  }
+
+  @Nested
+  inner class Cas2PrisonBailApplicationToServeStatusStatus {
+
+    @Test
+    fun `transform to service-status`() {
+      val cas2PrisonBailApplication = Cas2PrisonBailApplication(
+        id = UUID.randomUUID(),
+      )
+      assertThat(toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 }
