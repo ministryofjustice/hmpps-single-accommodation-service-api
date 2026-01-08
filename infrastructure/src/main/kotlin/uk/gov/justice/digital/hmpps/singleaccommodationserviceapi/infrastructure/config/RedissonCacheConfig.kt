@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
 
 @Configuration
-@Profile("dev", "preprod")
+@Profile("dev", "preprod", "prod")
 open class RedissonMasterSlaveServersConfig {
 
   @Bean(name = ["redissonClient"], destroyMethod = "shutdown")
