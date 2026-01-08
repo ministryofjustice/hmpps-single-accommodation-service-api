@@ -32,6 +32,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
@@ -63,6 +66,24 @@ class EligibilityServiceTest {
   )
 
   @SpyK
+  var cas2HdcRules = Cas2HdcRuleSet(
+    listOf(
+    ),
+  )
+
+  @SpyK
+  var cas2CourtBailRules = Cas2CourtBailRuleSet(
+    listOf(
+    ),
+  )
+
+  @SpyK
+  var cas2PrisonBailRules = Cas2PrisonBailRuleSet(
+    listOf(
+    ),
+  )
+
+  @SpyK
   var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
 
   @InjectMockKs
@@ -83,7 +104,7 @@ class EligibilityServiceTest {
         Prisoner(releaseDate = null),
       )
 
-      val result = DomainData(crn, cpr, tier, prisoner, null)
+      val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null)
       assertThat(result.tier).isEqualTo(tier.tierScore)
       assertThat(result.sex).isEqualTo(Sex(cpr.sex?.code, cpr.sex?.description))
       assertThat(result.releaseDate).isEqualTo(releaseDate)
@@ -99,7 +120,7 @@ class EligibilityServiceTest {
       val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val prisoner = Prisoner(releaseDate = expectedReleaseDate)
-      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null)
+      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null, null, null)
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
