@@ -2,14 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 
-data class RuleResult(
-  val description: String,
-  val ruleStatus: RuleStatus,
-  val actionable: Boolean,
-  val potentialAction: RuleAction? = null,
+data class RuleSetResult(
+  val actions: List<RuleAction>,
+  val ruleSetStatus: RuleSetStatus,
 )
 
-enum class RuleStatus {
+enum class RuleSetStatus {
   PASS,
+  ACTIONABLE_FAIL,
   FAIL,
 }

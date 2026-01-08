@@ -9,8 +9,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.enums.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskEligibilityRule
 import java.time.LocalDate
 import java.util.stream.Stream
 
@@ -27,7 +27,7 @@ class MaleRiskRuleTest {
       releaseDate = LocalDate.now().plusMonths(6),
     )
 
-    val result = MaleRiskRule().evaluate(data)
+    val result = MaleRiskEligibilityRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -42,14 +42,14 @@ class MaleRiskRuleTest {
       releaseDate = LocalDate.now().plusMonths(6),
     )
 
-    val result = MaleRiskRule().evaluate(data)
+    val result = MaleRiskEligibilityRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    val result = MaleRiskRule().description
+    val result = MaleRiskEligibilityRule().description
     assertThat(result).isEqualTo("FAIL if candidate is Male and is not Tier A3 - B1")
   }
 

@@ -3,9 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
@@ -14,11 +19,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Service
 class EligibilityService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  private val cas1RuleSet: Cas1RuleSet,
+  private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
+  private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
+  private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
   private val cas2HdcRuleSet: Cas2HdcRuleSet,
   private val cas2PrisonBailRuleSet: Cas2PrisonBailRuleSet,
   private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
-
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
@@ -41,41 +47,72 @@ class EligibilityService(
     )
   }
 
-  fun calculateEligibilityForCas1(data: DomainData) = if (data.cas1Application != null) {
-    ServiceResult(
-      serviceStatus = toServiceStatus(data.cas1Application),
-      actions = buildActions(data.cas1Application),
+  fun calculateEligibilityForCas1(data: DomainData) = calculateQueue(
+    data = data,
+    ruleSets = listOf(
+      cas1CompletionRuleSet,
+      cas1SuitabilityRuleSet,
+      cas1EligibilityRuleSet
+    ),
     )
-  } else {
-    engine.execute(cas1RuleSet, data)
+
+  fun calculateQueue(
+    data: DomainData,
+    ruleSets: List<RuleSet>,
+    ruleSetIndex: Int = 0,
+    passServiceResult: ServiceResult = ServiceResult(
+      serviceStatus = ServiceStatus.CONFIRMED,
+      suitableApplicationId = data.cas1Application?.id,
+      actions = listOf(),
+    ),
+  ): ServiceResult {
+    val result = engine.execute(ruleSets[ruleSetIndex], data)
+    if(result.ruleSetStatus == RuleSetStatus.PASS) {
+      return passServiceResult
+    } else {
+      val newRuleSetIndex = ruleSetIndex + 1
+      return if (newRuleSetIndex == ruleSets.size) {
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+          suitableApplicationId = null,
+          actions = listOf(),
+          )
+      } else {
+        val hasImminentActions = result.actions.any { it.isUpcoming == false }
+        calculateQueue(
+          data,
+          ruleSets,
+          newRuleSetIndex,
+          ServiceResult(
+            serviceStatus = toServiceStatus(data.cas1Application?.applicationStatus, hasImminentActions),
+            suitableApplicationId = data.cas1Application?.id,
+            actions = result.actions,
+          )
+        )
+      }
+    }
   }
 
-  fun calculateEligibilityForCas2Hdc(data: DomainData) = if (data.cas2HdcApplication != null) {
-    ServiceResult(
-      serviceStatus = toServiceStatus(data.cas2HdcApplication),
-      actions = buildActions(data.cas2HdcApplication),
-    )
-  } else {
-    engine.execute(cas2HdcRuleSet, data)
-  }
+  fun calculateEligibilityForCas2Hdc(data: DomainData) = calculateQueue(
+    data = data,
+    ruleSets = listOf(
+      cas2HdcRuleSet,
+    ),
+  )
 
-  fun calculateEligibilityForCas2CourtBail(data: DomainData) = if (data.cas2CourtBailApplication != null) {
-    ServiceResult(
-      serviceStatus = toServiceStatus(data.cas2CourtBailApplication),
-      actions = buildActions(data.cas2CourtBailApplication),
-    )
-  } else {
-    engine.execute(cas2CourtBailRuleSet, data)
-  }
+  fun calculateEligibilityForCas2CourtBail(data: DomainData) = calculateQueue(
+    data = data,
+    ruleSets = listOf(
+      cas2CourtBailRuleSet,
+    ),
+  )
 
-  fun calculateEligibilityForCas2PrisonBail(data: DomainData) = if (data.cas2PrisonBailApplication != null) {
-    ServiceResult(
-      serviceStatus = toServiceStatus(data.cas2PrisonBailApplication),
-      actions = buildActions(data.cas2PrisonBailApplication),
-    )
-  } else {
-    engine.execute(cas2PrisonBailRuleSet, data)
-  }
+  fun calculateEligibilityForCas2PrisonBail(data: DomainData) = calculateQueue(
+    data = data,
+    ruleSets = listOf(
+      cas2PrisonBailRuleSet,
+    ),
+  )
 
   fun getDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
