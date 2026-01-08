@@ -5,31 +5,37 @@ fun expectedGetEligibilityResponse(crn: String): String = """
    "crn":"$crn",
    "cas1":{
       "serviceStatus":"NOT_ELIGIBLE",
-      "suitableApplication":null,
+      "suitableApplicationId":null,
       "actions":[]
    },
    "cas2Hdc":{
       "serviceStatus":"NOT_STARTED",
-      "suitableApplication":null,
+      "suitableApplicationId":null,
       "actions":[
-         "Start HDC referral!!"
+         {
+            "text":"Start HDC referral!!",
+            "isUpcoming":false
+         }
       ]
    },
    "cas2PrisonBail":{
       "serviceStatus":"NOT_ELIGIBLE",
-      "suitableApplication":null,
+      "suitableApplicationId":null,
       "actions":[]
    },
    "cas2CourtBail":{
       "serviceStatus":"NOT_ELIGIBLE",
-      "suitableApplication":null,
+      "suitableApplicationId":null,
       "actions":[]
    },
    "cas3":{
       "serviceStatus":"UPCOMING",
-      "suitableApplication":null,
+      "suitableApplicationId":null,
       "actions":[
-         "Start temporary accommodation referral in 2 days!!"
+         {
+            "text":"Start temporary accommodation referral in 2 days!!",
+            "isUpcoming":true
+         }
       ]
    },
    "caseActions":[

@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.enums.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 interface RuleSetEvaluator {
   fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult>

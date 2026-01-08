@@ -5,10 +5,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.enums.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class MaleRiskRule : Cas1Rule {
+class MaleRiskEligibilityRule : Cas1EligibilityRule {
   override val description = "FAIL if candidate is Male and is not Tier A3 - B1"
   private val highRiskTiers = listOf(
     TierScore.A3,

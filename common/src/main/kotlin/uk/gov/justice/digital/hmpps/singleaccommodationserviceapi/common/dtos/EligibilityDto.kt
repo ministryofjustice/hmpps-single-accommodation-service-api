@@ -15,14 +15,13 @@ data class EligibilityDto(
 
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
-  val suitableApplication: SuitableApplication? = null,
-  val actions: List<String>,
+  val suitableApplicationId: UUID? = null,
+  val actions: List<RuleAction>,
 )
 
-data class SuitableApplication(
-  val id: UUID,
-  val applicationStatus: String,
-  val placementStatus: String?,
+data class RuleAction(
+  val text: String,
+  val isUpcoming: Boolean = false,
 )
 
 enum class CaseStatus(val caseStatusOrder: Int) {
@@ -32,18 +31,11 @@ enum class CaseStatus(val caseStatusOrder: Int) {
 }
 
 enum class ServiceStatus {
-  NOT_STARTED, // NO APPLICATION
   NOT_ELIGIBLE, // NO APPLICATION
   UPCOMING, // NO APPLICATION
-  AWAITING_ASSESSMENT, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  UNALLOCATED_ASSESSMENT, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  ASSESSMENT_IN_PROGRESS, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  AWAITING_PLACEMENT, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  REQUEST_FOR_FURTHER_INFORMATION, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  PENDING_PLACEMENT_REQUEST, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  ARRIVED, // SUITABLE APPLICATION AND NO ACTION NEEDED
-  UPCOMING_PLACEMENT, // SUITABLE APPLICATION AND NO ACTION NEEDED
-  DEPARTED, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  NOT_ARRIVED, // SUITABLE APPLICATION, PLACEMENT NEEDED
-  CANCELLED, // SUITABLE APPLICATION, PLACEMENT NEEDED
+  NOT_STARTED,
+  REJECTED,
+  WITHDRAWN,
+  SUBMITTED,
+  CONFIRMED,
 }
