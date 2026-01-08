@@ -36,6 +36,11 @@ generic-service:
       REDIS_HOST: 'primary_endpoint_address'
       REDIS_REPLICA_HOST: 'reader_endpoint_address'
       REDIS_AUTH_TOKEN: 'auth_token'
+    single-accommodation-service-rds-instance-output:
+      SPRING_DATASOURCE_USERNAME: "database_username"
+      SPRING_DATASOURCE_PASSWORD: "database_password"
+      DB_NAME: "database_name"
+      DB_ENDPOINT: "rds_instance_endpoint"
 
   allowlist:
     groups:

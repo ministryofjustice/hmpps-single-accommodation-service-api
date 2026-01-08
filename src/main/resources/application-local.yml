@@ -1,2 +1,11 @@
 hmpps-auth:
   url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
+spring:
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true

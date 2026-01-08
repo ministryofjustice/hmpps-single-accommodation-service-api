@@ -3,6 +3,23 @@ info.app:
   version: 1.0
 
 spring:
+  jpa:
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    url: jdbc:postgresql://${DB_ENDPOINT}/${DB_NAME}
+
+    hikari:
+      pool-name: Single-Accommodation-Service-CP
+      connectionTimeout: 1000
+      validationTimeout: 500
+      maximumPoolSize: 25
+      auto-commit: false
+      connection-test-query: SELECT 1
+
   config:
     import: classpath:application-infrastructure.yml
   application:
@@ -37,6 +54,9 @@ server:
     include-message: always
 
 management:
+  health:
+    db:
+      enabled: true
   endpoints:
     web:
       base-path: /
