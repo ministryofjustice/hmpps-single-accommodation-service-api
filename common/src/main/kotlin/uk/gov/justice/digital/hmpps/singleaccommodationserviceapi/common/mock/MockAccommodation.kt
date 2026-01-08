@@ -7,14 +7,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 
-fun getMockedAccommodation(crn: String) = AccommodationDto(
+fun getMockedAccommodation(availableCrnList: List<String>, crn: String) = AccommodationDto(
   crn = crn,
-  current = getMockedCurrentAccommodation(crn),
-  next = getMockedNextAccommodation(crn),
+  current = getMockedCurrentAccommodation(availableCrnList, crn),
+  next = getMockedNextAccommodation(availableCrnList, crn),
 )
 
-fun getMockedNextAccommodation(crn: String) = when (crn) {
-  mockCrns[0] -> AccommodationDetail(
+fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = when (crn) {
+  availableCrnList[0] -> AccommodationDetail(
     type = AccommodationType.NO_FIXED_ABODE,
     endDate = mockedLocalDate,
     subType = AccommodationSubType.RENTED,
@@ -31,7 +31,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
     ),
   )
 
-  mockCrns[1] -> AccommodationDetail(
+  availableCrnList[1] -> AccommodationDetail(
     type = AccommodationType.CAS2,
     endDate = mockedLocalDate,
     subType = AccommodationSubType.LODGING,
@@ -48,7 +48,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
     ),
   )
 
-  mockCrns[2] -> AccommodationDetail(
+  availableCrnList[2] -> AccommodationDetail(
     type = AccommodationType.PRISON,
     endDate = mockedLocalDate,
     subType = null,
@@ -65,7 +65,7 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
     ),
   )
 
-  mockCrns[3] -> AccommodationDetail(
+  availableCrnList[3] -> AccommodationDetail(
     type = AccommodationType.PRIVATE,
     endDate = mockedLocalDate,
     subType = AccommodationSubType.OWNED,
@@ -84,8 +84,8 @@ fun getMockedNextAccommodation(crn: String) = when (crn) {
   else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
 }
 
-fun getMockedCurrentAccommodation(crn: String) = when (crn) {
-  mockCrns[0] -> AccommodationDetail(
+fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) = when (crn) {
+  availableCrnList[0] -> AccommodationDetail(
     type = AccommodationType.NO_FIXED_ABODE,
     endDate = mockedLocalDate,
     subType = AccommodationSubType.RENTED,
@@ -101,7 +101,7 @@ fun getMockedCurrentAccommodation(crn: String) = when (crn) {
       postcode = "AB12 3CD",
     ),
   )
-  mockCrns[1] -> AccommodationDetail(
+  availableCrnList[1] -> AccommodationDetail(
     type = AccommodationType.CAS2,
     endDate = mockedLocalDate,
     subType = AccommodationSubType.LODGING,
@@ -117,7 +117,7 @@ fun getMockedCurrentAccommodation(crn: String) = when (crn) {
       postcode = "AB12 3CD",
     ),
   )
-  mockCrns[2] -> AccommodationDetail(
+  availableCrnList[2] -> AccommodationDetail(
     type = AccommodationType.PRISON,
     endDate = mockedLocalDate,
     subType = null,
@@ -133,7 +133,7 @@ fun getMockedCurrentAccommodation(crn: String) = when (crn) {
       postcode = "AB12 3CD",
     ),
   )
-  mockCrns[3] -> AccommodationDetail(
+  availableCrnList[3] -> AccommodationDetail(
     type = AccommodationType.PRIVATE,
     endDate = mockedLocalDate,
     subType = AccommodationSubType.OWNED,

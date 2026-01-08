@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.mockCrns
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
 import kotlin.collections.map
 
 @RestController
 class CaseController(
-  val caseService: CaseService,
+  private val caseService: CaseService,
   private val mockedData: MockData?,
+  private val crnList: List<String>,
 ) {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
@@ -27,7 +27,7 @@ class CaseController(
     @RequestParam(required = false) assignedTo: Long?,
     @RequestParam(required = false) riskLevel: RiskLevel?,
     // these crns are currently mocked
-    @RequestParam(required = false) crns: List<String> = mockCrns,
+    @RequestParam(required = false) crns: List<String> = crnList,
   ): ResponseEntity<List<CaseDto>> {
     val cases = caseService.getCases(crns, riskLevel)
     return mockedData
