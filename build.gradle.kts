@@ -6,24 +6,28 @@ plugins {
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
-configurations {
-  testImplementation { exclude(group = "org.junit.vintage") }
-}
-
 detekt {
   config.setFrom("detekt/detekt.yml")
 }
 
+val hmppsSpringBootVersion = "1.8.2"
+val springdocVersion = "2.8.14"
+
 dependencies {
+  runtimeOnly("com.h2database:h2")
+  runtimeOnly("org.postgresql:postgresql")
+
   implementation(project(":common"))
   implementation(project(":query"))
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:$hmppsSpringBootVersion")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
   testImplementation("org.wiremock:wiremock-standalone:3.13.2")
   testImplementation("io.mockk:mockk:1.14.6")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.36") {
@@ -51,14 +55,6 @@ tasks {
   withType<KotlinCompile> {
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.compilerOptions {
-  freeCompilerArgs.set(
-    listOf(
-      "-Xannotation-default-target=param-property",
-    ),
-  )
 }
 
 tasks.register<Copy>("copyPreCommitHook") {
