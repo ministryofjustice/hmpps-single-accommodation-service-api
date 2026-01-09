@@ -12,7 +12,7 @@ class DevCasesConfig {
 }
 
 @Configuration
-@Profile("preprod")
+@Profile("preprod", "prod")
 class PreprodCasesConfig {
   @Bean(name = ["crnList"])
   fun crnList(): List<String> = listOf("E220130", "E341869", "E614509", "M601327")
