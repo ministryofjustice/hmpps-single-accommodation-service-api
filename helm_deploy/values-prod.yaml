@@ -1,13 +1,23 @@
----
-# Per environment values which override defaults in hmpps-single-accommodation-service-api/values.yaml
-
 generic-service:
+  serviceAccountName: hmpps-community-accommodation-api-service-account
+
   ingress:
     host: single-accommodation-service-api.hmpps.service.justice.gov.uk
+    tlsSecretName: hmpps-single-accommodation-service-api-prod-cert
 
   env:
     SENTRY_ENVIRONMENT: prod
+    JAVA_OPTS: "-Xmx2000m"
+    SPRING_PROFILES_ACTIVE: prod
+    APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
+    SERVICE_PROBATION-INTEGRATION-DELIUS_BASE-URL: https://approved-premises-and-delius.hmpps.service.justice.gov.uk
+    SERVICE_PROBATION-INTEGRATION-OASYS_BASE-URL: https://approved-premises-and-oasys.hmpps.service.justice.gov.uk
+    SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api.hmpps.service.justice.gov.uk
+    SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record.hmpps.service.justice.gov.uk
+    SERVICE_TIER_BASE-URL: https://hmpps-tier.hmpps.service.justice.gov.uk
+    SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search.prison.service.justice.gov.uk
+    SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api.hmpps.service.justice.gov.uk
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
