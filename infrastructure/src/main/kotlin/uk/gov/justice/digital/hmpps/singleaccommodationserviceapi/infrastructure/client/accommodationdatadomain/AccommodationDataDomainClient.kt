@@ -4,13 +4,13 @@ import org.springframework.stereotype.Service
 import org.springframework.web.service.annotation.GetExchange
 
 interface AccommodationDataDomainClient {
-  @GetExchange(value = "/info")
-  fun getInfo(): String
+  @GetExchange(value = "/health")
+  fun getHealth(): String
 }
 
 @Service
 class AccommodationDataDomainCachingService(
   private val accommodationDataDomainClient: AccommodationDataDomainClient,
 ) {
-  fun getInfo() = accommodationDataDomainClient.getInfo()
+  fun getHealth() = accommodationDataDomainClient.getHealth()
 }
