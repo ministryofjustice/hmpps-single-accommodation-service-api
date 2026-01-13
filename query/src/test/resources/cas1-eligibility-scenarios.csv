@@ -34,3 +34,10 @@ TC32 - non-specified sex ineligible C1 tier,01/12/2025,NS,C1,01/03/2026,None,Non
 TC33 - non-recorded sex ineligible D2 tier,01/12/2025,N,D2,01/03/2026,None,None,NOT_ELIGIBLE,None, false
 TC34 - non-specified S-tier ineligible,01/12/2025,NS,B2S,01/03/2026,None,None,NOT_ELIGIBLE,None, false
 TC35 - non-recorded outside 6 months window,01/12/2025,N,A2,01/07/2026,None,None,UPCOMING,Start approved premise referral in 31 days, true
+TC36 - unsuitable started application,01/12/2025,N,A2,01/01/2026,STARTED,None,NOT_STARTED,Start approved premise referral, false
+TC37 - unsuitable expired application,01/12/2025,N,A2,01/01/2026,EXPIRED,None,WITHDRAWN,Start approved premise referral, false
+TC38 - unsuitable withdrawn application,01/12/2025,N,A2,01/01/2026,WITHDRAWN,None,WITHDRAWN,Start approved premise referral, false
+TC39 - unsuitable inapplicable application,01/12/2025,N,A2,01/01/2026,INAPPLICABLE,None,NOT_STARTED,Start approved premise referral, false
+TC40 - suitable require info application,01/12/2025,N,A2,01/01/2026,REQUEST_FOR_FURTHER_INFORMATION,None,SUBMITTED,Provide Information, false
+TC41 - ineligible applicant with completed application,01/12/2025,N,A2S,01/01/2026,PLACEMENT_ALLOCATED,ARRIVED,CONFIRMED,None, false
+TC42 - ineligible applicant with suitable application,01/12/2025,N,A2S,01/01/2026,PENDING_PLACEMENT_REQUEST,None,CONFIRMED,Create Placement, false
