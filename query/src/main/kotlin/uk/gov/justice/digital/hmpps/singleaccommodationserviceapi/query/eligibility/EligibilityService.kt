@@ -5,10 +5,13 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
@@ -29,6 +32,9 @@ class EligibilityService(
   private val engine: RulesEngine,
 ) {
 
+  private val treeBuilder = DecisionTreeBuilder(engine)
+  private val cas1ContextUpdater = Cas1ContextUpdater()
+
   fun getEligibility(crn: String): EligibilityDto {
     val data = getDomainData(crn)
 
@@ -47,14 +53,45 @@ class EligibilityService(
     )
   }
 
-  fun calculateEligibilityForCas1(data: DomainData) = calculateQueue(
-    data = data,
-    ruleSets = listOf(
-      cas1CompletionRuleSet,
-      cas1SuitabilityRuleSet,
-      cas1EligibilityRuleSet
-    ),
-    )
+  fun calculateEligibilityForCas1(data: DomainData): ServiceResult {
+    // Build tree declaratively:
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val eligibility =
+      treeBuilder
+        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val suitability =
+      treeBuilder
+        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility) // node above
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(suitability) // node above
+        .build()
+
+    val initialContext =
+      EvalContext(
+        data = data,
+        current =
+          ServiceResult(
+            serviceStatus = ServiceStatus.CONFIRMED,
+            suitableApplicationId = data.cas1Application?.id,
+            actions = emptyList()
+          )
+      )
+
+    return tree.eval(initialContext)
+  }
 
   fun calculateQueue(
     data: DomainData,
