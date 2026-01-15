@@ -1,11 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
-data class RuleResult(
-  val description: String,
-  val ruleStatus: RuleStatus,
-)
-
-enum class RuleStatus {
+enum class RuleSetStatus {
   PASS,
   FAIL,
 }

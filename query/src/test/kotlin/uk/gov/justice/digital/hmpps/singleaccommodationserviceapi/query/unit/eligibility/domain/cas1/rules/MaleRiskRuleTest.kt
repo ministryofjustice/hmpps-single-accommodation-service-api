@@ -24,7 +24,7 @@ class MaleRiskRuleTest {
       crn = crn,
       tier = tier,
       sex = sex,
-      releaseDate = LocalDate.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = MaleRiskEligibilityRule().evaluate(data)
@@ -39,7 +39,7 @@ class MaleRiskRuleTest {
       crn = crn,
       tier = tier,
       sex = sex,
-      releaseDate = LocalDate.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = MaleRiskEligibilityRule().evaluate(data)

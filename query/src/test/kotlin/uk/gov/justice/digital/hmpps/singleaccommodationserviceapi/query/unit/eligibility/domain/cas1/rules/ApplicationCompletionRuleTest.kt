@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
@@ -42,8 +41,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.PASS,
-        actionable = true,
-        potentialAction = null,
       )
     )
   }
@@ -65,8 +62,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        actionable = true,
-        potentialAction = RuleAction("Create Placement"),
       )
     )
   }
@@ -88,8 +83,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        actionable = true,
-        potentialAction = RuleAction("Create Placement"),
       )
     )
   }
@@ -111,8 +104,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        actionable = true,
-        potentialAction = RuleAction("Await Assessment", true),
       )
     )
   }
@@ -137,8 +128,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        actionable = true,
-        potentialAction = RuleAction("Provide Information"),
       )
     )
   }
@@ -161,8 +150,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        actionable = true,
-        potentialAction = null,
       )
     )
   }
@@ -183,8 +170,6 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-        actionable = true,
-        potentialAction = null,
       )
     )
   }

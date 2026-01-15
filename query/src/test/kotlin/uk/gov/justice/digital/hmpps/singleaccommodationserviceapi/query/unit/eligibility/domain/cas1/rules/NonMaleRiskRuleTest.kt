@@ -25,7 +25,7 @@ class NonMaleRiskRuleTest {
       crn = crn,
       tier = tier,
       sex = sex,
-      releaseDate = LocalDate.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = NonMaleRiskEligibilityRule().evaluate(data)
@@ -40,7 +40,7 @@ class NonMaleRiskRuleTest {
       crn = crn,
       tier = tier,
       sex = sex,
-      releaseDate = LocalDate.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = NonMaleRiskEligibilityRule().evaluate(data)

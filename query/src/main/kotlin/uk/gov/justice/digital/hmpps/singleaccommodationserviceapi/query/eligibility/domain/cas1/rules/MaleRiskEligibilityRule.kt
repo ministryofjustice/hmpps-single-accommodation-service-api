@@ -31,6 +31,5 @@ class MaleRiskEligibilityRule : Cas1EligibilityRule {
     } else {
       RuleStatus.PASS
     },
-    actionable = this.actionable,
   )
 }

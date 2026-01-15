@@ -13,7 +13,7 @@ fun buildDomainData(
   tier: TierScore = TierScore.A1,
   sex: Sex = Sex(code = SexCode.M, description = "Male"),
   releaseDate: LocalDate = LocalDate.now()
-    .plusMonths(6),
+    .plusYears(1),
   cas1Application: Cas1Application? = buildCas1Application(),
 ) = DomainData(
   crn = crn,

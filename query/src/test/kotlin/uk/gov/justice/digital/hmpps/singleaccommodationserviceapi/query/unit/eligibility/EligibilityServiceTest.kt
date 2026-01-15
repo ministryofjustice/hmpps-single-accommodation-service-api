@@ -71,7 +71,7 @@ class EligibilityServiceTest {
   @SpyK
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(
     listOf(
-      ApplicationSuitabilityRule(clock),
+      ApplicationSuitabilityRule(),
     ),
   )
 
@@ -113,7 +113,7 @@ class EligibilityServiceTest {
     fun `buildDomainData maps all fields correctly`() {
       val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
       val tier = Tier(TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
-      val releaseDate = LocalDate.now().plusMonths(6)
+      val releaseDate = LocalDate.now().plusYears(1)
       val prisoner = listOf(
         Prisoner(releaseDate = LocalDate.now().plusMonths(5)),
         Prisoner(releaseDate = releaseDate),
@@ -130,7 +130,7 @@ class EligibilityServiceTest {
     @Test
     fun `getDomainData returns correct DomainData`() {
       val expectedTier = TierScore.A1
-      val expectedReleaseDate = LocalDate.now().plusMonths(6)
+      val expectedReleaseDate = LocalDate.now().plusYears(1)
 
       val crn = "X12345"
       val prisonerNumber = "PN1"
@@ -191,9 +191,9 @@ class EligibilityServiceTest {
 
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
       val expectedActions = expectedCas1ActionsString?.let {
-        listOf(RuleAction(it, cas1ActionsAreUpcoming))
-      } ?: listOf()
-      assertThat(result.actions).isEqualTo(expectedActions)
+        RuleAction(it, cas1ActionsAreUpcoming)
+      }
+      assertThat(result.action).isEqualTo(expectedActions)
     }
   }
 }

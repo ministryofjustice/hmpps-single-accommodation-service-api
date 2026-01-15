@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
@@ -43,9 +42,6 @@ class RulesEngineTest {
   @Autowired
   private lateinit var cas1EligibilityRuleSet: Cas1EligibilityRuleSet
 
-  @Autowired
-  private lateinit var cas1CompletionRuleSet: Cas1CompletionRuleSet
-
   @Test
   fun `rules engine passes cas1Eligibility rules`() {
     val data = DomainData(
@@ -57,11 +53,7 @@ class RulesEngineTest {
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
 
-    val expectedResult = RuleSetResult(
-      actions = listOf(),
-      ruleSetStatus = RuleSetStatus.PASS,
-    )
-    assertThat(result).isEqualTo(expectedResult)
+    assertThat(result).isEqualTo(RuleSetStatus.PASS)
   }
 
   @Test
@@ -75,46 +67,6 @@ class RulesEngineTest {
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
 
-    val expectedResult = RuleSetResult(
-      actions = listOf(),
-      ruleSetStatus = RuleSetStatus.FAIL,
-    )
-    assertThat(result).isEqualTo(expectedResult)
-  }
-
-  @Test
-  fun `rules engine fails just with a fail of actionable rule so should return ACTIONABLE_FAIL`() {
-    val data = DomainData(
-      crn = crn,
-      tier = TierScore.A1,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(4),
-    )
-
-    val result = defaultRulesEngine.execute(cas1CompletionRuleSet, data)
-
-    val expectedResult = RuleSetResult(
-      actions = listOf(),
-      ruleSetStatus = RuleSetStatus.ACTIONABLE_FAIL,
-    )
-    assertThat(result).isEqualTo(expectedResult)
-  }
-
-  @Test
-  fun `rules engine fails with a fail of actionable rule and a fail of non guidance rule so should return NOT_ELIGIBLE`() {
-    val data = DomainData(
-      crn = crn,
-      tier = TierScore.A1S,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(4),
-    )
-
-    val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
-
-    val expectedResult = RuleSetResult(
-      actions = listOf(),
-      ruleSetStatus = RuleSetStatus.FAIL,
-    )
-    assertThat(result).isEqualTo(expectedResult)
+    assertThat(result).isEqualTo(RuleSetStatus.FAIL)
   }
 }

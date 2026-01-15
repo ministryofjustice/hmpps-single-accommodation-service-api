@@ -30,6 +30,5 @@ class STierEligibilityRule : Cas1EligibilityRule {
     } else {
       RuleStatus.PASS
     },
-    actionable = this.actionable,
   )
 }

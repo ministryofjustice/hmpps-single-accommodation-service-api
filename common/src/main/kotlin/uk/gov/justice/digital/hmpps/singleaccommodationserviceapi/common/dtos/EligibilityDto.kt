@@ -16,7 +16,7 @@ data class EligibilityDto(
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val suitableApplicationId: UUID? = null,
-  val actions: List<RuleAction>,
+  val action: RuleAction? = null,
 )
 
 data class RuleAction(

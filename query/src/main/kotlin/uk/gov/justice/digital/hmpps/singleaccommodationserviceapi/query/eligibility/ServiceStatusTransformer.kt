@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
@@ -9,6 +8,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 fun toServiceStatus(cas1ApplicationStatus: Cas1ApplicationStatus?, hasImminentActions: Boolean) = when (cas1ApplicationStatus) {
   Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+    -> ServiceStatus.CONFIRMED
+    
   Cas1ApplicationStatus.AWAITING_PLACEMENT,
   Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST
     -> ServiceStatus.CONFIRMED

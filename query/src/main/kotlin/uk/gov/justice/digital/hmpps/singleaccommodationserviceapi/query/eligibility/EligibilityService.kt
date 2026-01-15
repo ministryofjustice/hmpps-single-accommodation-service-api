@@ -5,16 +5,19 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import java.time.Clock
 
 @Service
 class EligibilityService(
@@ -27,7 +30,13 @@ class EligibilityService(
   private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
+  @Qualifier("clock")
+  private val clock: Clock,
 ) {
+
+  private val treeBuilder = DecisionTreeBuilder(engine)
+  private val cas1ContextUpdater = Cas1ContextUpdater(clock)
+
 
   fun getEligibility(crn: String): EligibilityDto {
     val data = getDomainData(crn)
@@ -47,72 +56,125 @@ class EligibilityService(
     )
   }
 
-  fun calculateEligibilityForCas1(data: DomainData) = calculateQueue(
-    data = data,
-    ruleSets = listOf(
-      cas1CompletionRuleSet,
-      cas1SuitabilityRuleSet,
-      cas1EligibilityRuleSet
-    ),
-    )
+  fun calculateEligibilityForCas1(data: DomainData): ServiceResult {
+    // Build tree declaratively:
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
 
-  fun calculateQueue(
-    data: DomainData,
-    ruleSets: List<RuleSet>,
-    ruleSetIndex: Int = 0,
-    passServiceResult: ServiceResult = ServiceResult(
-      serviceStatus = ServiceStatus.CONFIRMED,
-      suitableApplicationId = data.cas1Application?.id,
-      actions = listOf(),
-    ),
-  ): ServiceResult {
-    val result = engine.execute(ruleSets[ruleSetIndex], data)
-    if(result.ruleSetStatus == RuleSetStatus.PASS) {
-      return passServiceResult
-    } else {
-      val newRuleSetIndex = ruleSetIndex + 1
-      return if (newRuleSetIndex == ruleSets.size) {
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          suitableApplicationId = null,
-          actions = listOf(),
-          )
-      } else {
-        val hasImminentActions = result.actions.any { it.isUpcoming == false }
-        calculateQueue(
-          data,
-          ruleSets,
-          newRuleSetIndex,
+    val eligibility =
+      treeBuilder
+        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val suitability =
+      treeBuilder
+        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility) // node above
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(suitability) // node above
+        .build()
+
+    val initialContext =
+      EvalContext(
+        data = data,
+        current =
           ServiceResult(
-            serviceStatus = toServiceStatus(data.cas1Application?.applicationStatus, hasImminentActions),
+            serviceStatus = ServiceStatus.CONFIRMED,
             suitableApplicationId = data.cas1Application?.id,
-            actions = result.actions,
           )
-        )
-      }
-    }
+      )
+
+    return tree.eval(initialContext)
   }
 
-  fun calculateEligibilityForCas2Hdc(data: DomainData) = calculateQueue(
-    data = data,
-    ruleSets = listOf(
-      cas2HdcRuleSet,
-    ),
-  )
+  fun calculateEligibilityForCas2Hdc(data: DomainData): ServiceResult {
+    val cas2ContextUpdater = Cas2ContextUpdater(data.cas2HdcApplication?.id)
 
-  fun calculateEligibilityForCas2CourtBail(data: DomainData) = calculateQueue(
-    data = data,
-    ruleSets = listOf(
-      cas2CourtBailRuleSet,
-    ),
-  )
+    // Build tree declaratively:
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
 
-  fun calculateEligibilityForCas2PrisonBail(data: DomainData) = calculateQueue(
-    data = data,
-    ruleSets = listOf(
-      cas2PrisonBailRuleSet,
-    ),
-  )
+    val tree =
+      treeBuilder
+        .ruleSet("Cas2Hdc", cas2HdcRuleSet, cas2ContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible) // node above
+        .build()
+
+    val initialContext =
+      EvalContext(
+        data = data,
+        current =
+          ServiceResult(
+            serviceStatus = ServiceStatus.CONFIRMED,
+            suitableApplicationId = data.cas2HdcApplication?.id,
+          )
+      )
+
+    return tree.eval(initialContext)
+  }
+
+  fun calculateEligibilityForCas2CourtBail(data: DomainData): ServiceResult {
+    val cas2ContextUpdater = Cas2ContextUpdater(data.cas2CourtBailApplication?.id)
+
+    // Build tree declaratively:
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas2CourtBail", cas2CourtBailRuleSet, cas2ContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible) // node above
+        .build()
+
+    val initialContext =
+      EvalContext(
+        data = data,
+        current =
+          ServiceResult(
+            serviceStatus = ServiceStatus.CONFIRMED,
+            suitableApplicationId = data.cas2CourtBailApplication?.id,
+          )
+      )
+
+    return tree.eval(initialContext)
+  }
+
+  fun calculateEligibilityForCas2PrisonBail(data: DomainData): ServiceResult {
+    val cas2ContextUpdater = Cas2ContextUpdater(data.cas2PrisonBailApplication?.id)
+
+    // Build tree declaratively:
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas2PrisonBail", cas2PrisonBailRuleSet, cas2ContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible) // node above
+        .build()
+
+    val initialContext =
+      EvalContext(
+        data = data,
+        current =
+          ServiceResult(
+            serviceStatus = ServiceStatus.CONFIRMED,
+            suitableApplicationId = data.cas2PrisonBailApplication?.id,
+          )
+      )
+
+    return tree.eval(initialContext)
+  }
 
   fun getDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)

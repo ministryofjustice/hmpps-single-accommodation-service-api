@@ -24,7 +24,7 @@ class STierRuleTest {
       crn = crn,
       tier = tier,
       sex = male,
-      releaseDate = LocalDate.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = STierEligibilityRule().evaluate(data)
@@ -39,7 +39,7 @@ class STierRuleTest {
       crn = crn,
       tier = tier,
       sex = male,
-      releaseDate = LocalDate.now().plusMonths(6),
+      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = STierEligibilityRule().evaluate(data)

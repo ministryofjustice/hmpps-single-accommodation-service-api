@@ -57,42 +57,40 @@ class EligibilityTransformerTest {
     private val notStarted = ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
       suitableApplicationId = null,
-      actions = listOf(RuleAction("Start approved premise referral"))
+      action = RuleAction("Start approved premise referral")
     )
     private val notEligible = ServiceResult(
       serviceStatus = ServiceStatus.NOT_ELIGIBLE,
       suitableApplicationId = null,
-      actions = listOf()
     )
     private val upcoming = ServiceResult(
       serviceStatus = ServiceStatus.UPCOMING,
       suitableApplicationId = null,
-      actions = listOf(RuleAction("Start approved premise referral in 2 days", true))
+      action = RuleAction("Start approved premise referral in 2 days", true)
     )
     private val confirmed = ServiceResult(
       serviceStatus = ServiceStatus.CONFIRMED,
       suitableApplicationId = null,
-      actions = listOf()
     )
     private val assessing = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      actions = listOf(RuleAction("Awaiting Assessment", true))
+      action = RuleAction("Awaiting Assessment", true)
     )
     private val submitted = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      actions = listOf(RuleAction("Create Placement"))
+      action = RuleAction("Create Placement")
     )
     private val withdrawn = ServiceResult(
       serviceStatus = ServiceStatus.WITHDRAWN,
       suitableApplicationId = null,
-      actions = listOf(RuleAction("Start approved premise referral"))
+      action = RuleAction("Start approved premise referral")
     )
     private val rejected = ServiceResult(
       serviceStatus = ServiceStatus.REJECTED,
       suitableApplicationId = null,
-      actions = listOf(RuleAction("Start approved premise referral"))
+      action = RuleAction("Start approved premise referral")
     )
 
     @JvmStatic
