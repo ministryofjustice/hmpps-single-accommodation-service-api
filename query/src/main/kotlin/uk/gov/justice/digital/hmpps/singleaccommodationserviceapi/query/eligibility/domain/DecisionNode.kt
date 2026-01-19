@@ -10,14 +10,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   }
 
   /** Terminal node that returns a ServiceResult based on the current context.**/
-  data class OutcomeNode(private val outcome: (EvalContext) -> ServiceResult) : DecisionNode {
+  class OutcomeNode(private val outcome: (EvalContext) -> ServiceResult) : DecisionNode {
     override fun eval(ctx: EvalContext): ServiceResult = outcome(ctx)
   }
 
   /**
    * Node that executes a RuleSet and branches based on the result.
    */
-  data class RuleSetNode(
+  class RuleSetNode(
     private val name: String,
     private val ruleSet: RuleSet,
     private val engine: RulesEngine,
@@ -27,16 +27,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   ) : DecisionNode {
 
     override fun eval(ctx: EvalContext): ServiceResult {
-      val exec = engine.execute(ruleSet, ctx.data)
+      val ruleSetStatus = engine.execute(ruleSet, ctx.data)
 
       // Branch based on result: PASS returns current context unchanged, FAIL updates context
-      return if (exec == RuleSetStatus.PASS) {
+      return when (ruleSetStatus) {
         // On PASS, return current context without updating
-        onPass.eval(ctx)
-      } else {
+        RuleSetStatus.PASS -> onPass.eval(ctx)
         // On FAIL, update context and continue to next node
-        val nextCtx = contextUpdater.update(ctx)
-        onFail.eval(nextCtx)
+        RuleSetStatus.FAIL -> onFail.eval(contextUpdater.update(ctx))
       }
     }
   }

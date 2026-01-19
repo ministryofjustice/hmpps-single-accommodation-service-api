@@ -102,7 +102,7 @@ class EligibilityTransformerTest {
         notEligible,
         notEligible,
         notEligible,
-        CaseStatus.NO_ACTION_NEEDED,
+        CaseStatus.NO_ACTION_REQUIRED,
         listOf<String>(),
       ),
       Arguments.of(
@@ -132,7 +132,7 @@ class EligibilityTransformerTest {
         notEligible,
         notEligible,
         notEligible,
-        CaseStatus.NO_ACTION_NEEDED,
+        CaseStatus.NO_ACTION_REQUIRED,
         listOf<String>(),
       ),
       Arguments.of(

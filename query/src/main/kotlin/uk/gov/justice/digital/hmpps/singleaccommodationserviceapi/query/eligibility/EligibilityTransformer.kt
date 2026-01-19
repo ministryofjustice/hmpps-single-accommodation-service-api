@@ -35,10 +35,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
     ).maxWith(compareBy<CaseStatus> { it.caseStatusOrder }),
   )
 
-  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) = serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_NEEDED
+  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) = serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
 
 private fun getCaseStatus(serviceResult: ServiceResult) = when {
-  serviceResult.action == null -> CaseStatus.NO_ACTION_NEEDED
+  serviceResult.action == null -> CaseStatus.NO_ACTION_REQUIRED
   serviceResult.action!!.isUpcoming == false -> CaseStatus.ACTION_NEEDED
   else -> CaseStatus.ACTION_UPCOMING
 }

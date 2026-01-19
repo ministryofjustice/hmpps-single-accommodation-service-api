@@ -5,7 +5,7 @@ A declarative, clean architecture for evaluating eligibility rules using an expl
 - execution
 - and analysis concerns 
 
-The goal being to mak rule evaluation, testable, and extensible
+The goal being to make rule evaluation, testable, and extensible
 
 ## Overview
 

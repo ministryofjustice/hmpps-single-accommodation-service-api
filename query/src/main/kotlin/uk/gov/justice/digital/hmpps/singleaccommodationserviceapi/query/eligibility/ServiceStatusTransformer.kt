@@ -23,11 +23,11 @@ fun toServiceStatus(cas1ApplicationStatus: Cas1ApplicationStatus?, hasImminentAc
   null,
   Cas1ApplicationStatus.STARTED,
   Cas1ApplicationStatus.INAPPLICABLE
-    -> if (hasImminentActions) {
-    ServiceStatus.NOT_STARTED
-    } else {
-    ServiceStatus.UPCOMING
-  }
+    ->
+      when (hasImminentActions) {
+        true -> ServiceStatus.NOT_STARTED
+        false -> ServiceStatus.UPCOMING
+      }
 
   Cas1ApplicationStatus.REJECTED
     -> ServiceStatus.REJECTED
