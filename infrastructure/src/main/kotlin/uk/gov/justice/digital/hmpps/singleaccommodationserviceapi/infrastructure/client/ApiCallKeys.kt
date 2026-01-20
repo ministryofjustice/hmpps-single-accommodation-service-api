@@ -20,6 +20,7 @@ object ApiCallKeys {
   const val GET_CAS_2_HDC_APPLICATION = "getCas2HdcApplication"
   const val GET_CAS_2_COURT_BAIL_APPLICATION = "getCas2CourtBailApplication"
   const val GET_CAS_2_PRISON_BAIL_APPLICATION = "getCas2PrisonBailApplication"
+  const val GET_CAS_3_APPLICATION = "getCas3Application"
 
   // prisoner-search service
   const val GET_PRISONER = "getPrisoner"
@@ -34,7 +35,11 @@ object ApiCallKeys {
   const val GET_SUITABLE_CAS2_HDC_APPLICATION = "getSuitableCas2HdcApplicationByCrn"
   const val GET_SUITABLE_CAS2_COURT_BAIL_APPLICATION = "getSuitableCas2CourtBailApplicationByCrn"
   const val GET_SUITABLE_CAS2_PRISON_BAIL_APPLICATION = "getSuitableCas2PrisonBailApplicationByCrn"
+  const val GET_SUITABLE_CAS3_APPLICATION = "getSuitableCas3ApplicationByCrn"
 
-
-
+  // accommodation-data-domain service
+  const val GET_DUTY_TO_REFER = "getDutyToReferByCrn"
+  const val GET_CRS = "getCrsByCrn"
+  const val GET_CURRENT_ACCOMMODATION = "getCurrentAccommodation"
+  const val GET_PROPOSED_ACCOMMODATIONS = "getProposedAccommodations"
 }

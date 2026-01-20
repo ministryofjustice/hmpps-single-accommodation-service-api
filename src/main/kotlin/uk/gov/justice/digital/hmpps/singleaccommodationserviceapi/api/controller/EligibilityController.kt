@@ -27,7 +27,7 @@ class EligibilityController(
           toEligibilityDto(
             crn = crn,
             cas1 = eligibility.cas1,
-            cas3 = currentMock.cas3Eligibility,
+            cas3 = eligibility.cas3,
             cas2Hdc = currentMock.cas2HdcEligibility,
             cas2PrisonBail = currentMock.cas2PrisonBailEligibility,
             cas2CourtBail = currentMock.cas2CourtBailEligibility,

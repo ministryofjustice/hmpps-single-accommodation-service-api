@@ -5,18 +5,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import java.time.Instant
 import java.time.LocalDate
-import java.util.UUID
 import java.util.stream.Stream
 
 class CurrentAddressTypeRuleTest {
@@ -26,13 +22,13 @@ class CurrentAddressTypeRuleTest {
 
   @ParameterizedTest
   @MethodSource("provideEligibleAccommodationTypes")
-  fun `candidate passes when current accommodation is eligible type`(accommodationType: AccommodationArrangementType) {
+  fun `candidate passes when current accommodation is eligible type`(accommodationType: AccommodationType) {
     val data = DomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      currentAccommodation = buildAccommodationDetail(accommodationType),
+      currentAccommodation = buildAccommodation(type = accommodationType),
     )
 
     val result = CurrentAddressTypeRule().evaluate(data)
@@ -42,13 +38,13 @@ class CurrentAddressTypeRuleTest {
 
   @ParameterizedTest
   @MethodSource("provideIneligibleAccommodationTypes")
-  fun `candidate fails when current accommodation is ineligible type`(accommodationType: AccommodationArrangementType) {
+  fun `candidate fails when current accommodation is ineligible type`(accommodationType: AccommodationType) {
     val data = DomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      currentAccommodation = buildAccommodationDetail(accommodationType),
+      currentAccommodation = buildAccommodation(type = accommodationType),
     )
 
     val result = CurrentAddressTypeRule().evaluate(data)
@@ -77,46 +73,20 @@ class CurrentAddressTypeRuleTest {
       .isEqualTo("FAIL if current address is not Approved Premise (CAS1), CAS2, or Prison")
   }
 
-  private fun buildAccommodationDetail(type: AccommodationArrangementType) = AccommodationDetail(
-    id = UUID.randomUUID(),
-    arrangementType = type,
-    arrangementSubType = null,
-    arrangementSubTypeDescription = null,
-    name = null,
-    settledType = AccommodationSettledType.TRANSIENT,
-    offenderReleaseType = null,
-    startDate = null,
-    endDate = null,
-    address = AccommodationAddressDetails(
-      postcode = null,
-      subBuildingName = null,
-      buildingName = null,
-      buildingNumber = null,
-      thoroughfareName = null,
-      dependentLocality = null,
-      postTown = null,
-      county = null,
-      country = null,
-      uprn = null
-    ),
-    status = null,
-    createdAt = Instant.now()
-  )
-
   private companion object {
     @JvmStatic
     fun provideEligibleAccommodationTypes(): Stream<Arguments> = Stream.of(
-      Arguments.of(AccommodationArrangementType.PRISON),
-      Arguments.of(AccommodationArrangementType.CAS1),
-      Arguments.of(AccommodationArrangementType.CAS2),
-      Arguments.of(AccommodationArrangementType.CAS2V2),
+      Arguments.of(AccommodationType.PRISON),
+      Arguments.of(AccommodationType.CAS1),
+      Arguments.of(AccommodationType.CAS2),
+      Arguments.of(AccommodationType.CAS2V2),
     )
 
     @JvmStatic
     fun provideIneligibleAccommodationTypes(): Stream<Arguments> = Stream.of(
-      Arguments.of(AccommodationArrangementType.CAS3),
-      Arguments.of(AccommodationArrangementType.PRIVATE),
-      Arguments.of(AccommodationArrangementType.NO_FIXED_ABODE),
+      Arguments.of(AccommodationType.CAS3),
+      Arguments.of(AccommodationType.PRIVATE),
+      Arguments.of(AccommodationType.NO_FIXED_ABODE),
     )
   }
 }

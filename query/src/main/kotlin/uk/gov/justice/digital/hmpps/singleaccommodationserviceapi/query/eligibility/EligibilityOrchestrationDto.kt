@@ -1,18 +1,27 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.Accommodation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.Crs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.DutyToRefer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 
 data class EligibilityOrchestrationDto(
-    val crn: String,
-    val cpr: CorePersonRecord,
-    val tier: Tier,
-    val cas1Application: Cas1Application?,
-    val cas2HdcApplication: Cas2HdcApplication?,
-    val cas2PrisonBailApplication: Cas2PrisonBailApplication?,
-    val cas2CourtBailApplication: Cas2CourtBailApplication?,
+  val crn: String,
+  val cpr: CorePersonRecord,
+  val tier: Tier,
+  val cas1Application: Cas1Application?,
+  val cas2HdcApplication: Cas2HdcApplication?,
+  val cas2PrisonBailApplication: Cas2PrisonBailApplication?,
+  val cas2CourtBailApplication: Cas2CourtBailApplication?,
+  val cas3Application: Cas3Application?,
+  val currentAccommodation: Accommodation?,
+  val proposedAccommodations: List<Accommodation>?,
+  val dutyToRefer: DutyToRefer?,
+  val crs: Crs?,
 )

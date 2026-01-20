@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.Accommodation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.Crs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.DutyToRefer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
@@ -18,8 +21,8 @@ data class DomainData(
   val tier: TierScore,
   val sex: SexCode,
   val releaseDate: LocalDate?,
-  val currentAccommodation: AccommodationDetail? = null,
-  val nextAccommodation: AccommodationDetail? = null,
+  val currentAccommodation: Accommodation? = null,
+  val nextAccommodation: Accommodation? = null,
   val cas1Application: Cas1Application? = null,
   val cas2CourtBailApplication: Cas2CourtBailApplication? = null,
   val cas2PrisonBailApplication: Cas2PrisonBailApplication? = null,
@@ -33,15 +36,15 @@ data class DomainData(
     cpr: CorePersonRecord,
     tier: Tier,
     prisonerData: List<Prisoner>,
-    currentAccommodation: AccommodationDetail? = null,
-    nextAccommodation: AccommodationDetail? = null,
+    currentAccommodation: Accommodation? = null,
+    proposedAddresses: List<Accommodation>? = null,
     cas1Application: Cas1Application?,
     cas2CourtBailApplication: Cas2CourtBailApplication?,
     cas2PrisonBailApplication: Cas2PrisonBailApplication?,
     cas2HdcApplication: Cas2HdcApplication?,
     cas3Application: Cas3Application? = null,
-    dtrStatus: String? = null,
-    crsStatus: String? = null,
+    dutyToRefer: DutyToRefer? = null,
+    crs: Crs? = null,
   ) : this(
     crn = crn,
     tier = tier.tierScore,
@@ -49,13 +52,13 @@ data class DomainData(
     releaseDate = prisonerData.mapNotNull { it.releaseDate }
       .maxByOrNull { it },
     currentAccommodation = currentAccommodation,
-    nextAccommodation = nextAccommodation,
+    nextAccommodation = proposedAddresses?.firstOrNull(),
     cas1Application = cas1Application,
     cas2CourtBailApplication = cas2CourtBailApplication,
     cas2PrisonBailApplication = cas2PrisonBailApplication,
     cas2HdcApplication = cas2HdcApplication,
     cas3Application = cas3Application,
-    dtrStatus = dtrStatus,
-    crsStatus = crsStatus,
+    dtrStatus = dutyToRefer?.status,
+    crsStatus = crs?.status,
   )
 }

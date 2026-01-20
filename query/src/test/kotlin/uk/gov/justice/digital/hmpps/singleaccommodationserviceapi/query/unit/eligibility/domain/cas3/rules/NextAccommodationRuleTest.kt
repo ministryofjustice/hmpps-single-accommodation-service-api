@@ -5,19 +5,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.NextAccommodationRule
-import java.time.Instant
 import java.time.LocalDate
-import java.util.UUID
 import java.util.stream.Stream
 
 class NextAccommodationRuleTest {
@@ -42,13 +37,13 @@ class NextAccommodationRuleTest {
 
   @ParameterizedTest
   @MethodSource("provideAllAccommodationTypes")
-  fun `candidate fails when next accommodation exists`(accommodationType: AccommodationArrangementType) {
+  fun `candidate fails when next accommodation exists`(accommodationType: AccommodationType) {
     val data = DomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      nextAccommodation = buildAccommodationDetail(accommodationType),
+      nextAccommodation = buildAccommodation(type = accommodationType),
     )
 
     val result = NextAccommodationRule().evaluate(data)
@@ -62,35 +57,9 @@ class NextAccommodationRuleTest {
       .isEqualTo("FAIL if candidate has next accommodation")
   }
 
-  private fun buildAccommodationDetail(type: AccommodationArrangementType) = AccommodationDetail(
-    id = UUID.randomUUID(),
-    name = null,
-    arrangementType = type,
-    arrangementSubType = null,
-    arrangementSubTypeDescription = null,
-    settledType = AccommodationSettledType.TRANSIENT,
-    offenderReleaseType = null,
-    status = null,
-    address = AccommodationAddressDetails(
-      postcode = null,
-      subBuildingName = null,
-      buildingName = null,
-      buildingNumber = null,
-      thoroughfareName = null,
-      dependentLocality = null,
-      postTown = null,
-      county = null,
-      country = null,
-      uprn = null
-    ),
-    startDate = null,
-    endDate = null,
-    createdAt = Instant.now(),
-  )
-
   private companion object {
     @JvmStatic
-    fun provideAllAccommodationTypes(): Stream<Arguments> = AccommodationArrangementType.entries.map {
+    fun provideAllAccommodationTypes(): Stream<Arguments> = AccommodationType.entries.map {
       Arguments.of(it)
     }.stream()
   }
