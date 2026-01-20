@@ -132,7 +132,22 @@ class EligibilityServiceTest {
         Prisoner(releaseDate = null),
       )
 
-      val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null, null, null)
+      val result = DomainData(
+        crn,
+        cpr = cpr,
+        tier = tier,
+        prisonerData = prisoner,
+        currentAccommodation = null,
+        proposedAddresses = null,
+        cas1Application = null,
+        cas2CourtBailApplication = null,
+        cas2PrisonBailApplication = null,
+        cas2HdcApplication = null,
+        cas3Application = null,
+        dutyToRefer = null,
+        crs = null
+      )
+
       assertThat(result.tier).isEqualTo(tier.tierScore)
       assertThat(result.sex).isEqualTo(cpr.sex?.code)
       assertThat(result.releaseDate).isEqualTo(releaseDate)
@@ -148,7 +163,20 @@ class EligibilityServiceTest {
       val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val prisoner = Prisoner(releaseDate = expectedReleaseDate)
-      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null, null, null)
+      val orchestrationDto = EligibilityOrchestrationDto(
+        crn,
+        cpr,
+        tier,
+        null,
+        null,
+        null,
+        null,
+        null,
+        currentAccommodation = null,
+        proposedAccommodations = null,
+        dutyToRefer = null,
+        crs = null
+        )
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)

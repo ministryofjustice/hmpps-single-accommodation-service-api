@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.Accommodation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.Crs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.DutyToRefer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
@@ -19,17 +22,21 @@ fun buildDomainData(
   sex: SexCode = SexCode.M,
   releaseDate: LocalDate? = LocalDate.now()
     .plusYears(1),
-  currentAccommodation: AccommodationDetail? = null,
-  nextAccommodation: AccommodationDetail? = null,
+  currentAccommodation: Accommodation? = null,
+  proposedAddresses: List<Accommodation>? = null,
   cas1Application: Cas1Application? = buildCas1Application(),
   cas3Application: Cas3Application? = null,
+  dutyToRefer: DutyToRefer? = null,
+  crs: Crs? = null
 ) = DomainData(
   crn = crn,
   tier = tier,
   sex = sex,
   releaseDate = releaseDate,
   currentAccommodation = currentAccommodation,
-  nextAccommodation = nextAccommodation,
+  nextAccommodation = proposedAddresses?.firstOrNull(),
   cas1Application = cas1Application,
   cas3Application = cas3Application,
+  dtrStatus = dutyToRefer?.status,
+  crsStatus = crs?.status,
 )

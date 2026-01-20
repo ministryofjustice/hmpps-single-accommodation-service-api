@@ -246,6 +246,11 @@ class EligibilityService(
       cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,
       cas2PrisonBailApplication = eligibilityOrchestrationDto.cas2PrisonBailApplication,
       cas2CourtBailApplication = eligibilityOrchestrationDto.cas2CourtBailApplication,
+      cas3Application = eligibilityOrchestrationDto.cas3Application,
+      currentAccommodation = eligibilityOrchestrationDto.currentAccommodation,
+      proposedAddresses = eligibilityOrchestrationDto.proposedAccommodations,
+      dutyToRefer = eligibilityOrchestrationDto.dutyToRefer,
+      crs = eligibilityOrchestrationDto.crs,
     )
   }
 }

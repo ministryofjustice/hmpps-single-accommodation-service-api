@@ -20,6 +20,9 @@ interface ApprovedPremisesClient {
   @GetExchange(value = "/cas2v2/external/suitable-applications/{crn}/court")
   fun getSuitableCas2CourtBailApplicationInternal(@PathVariable crn: String): Cas2CourtBailApplication
 
+  @GetExchange(value = "/cas3/external/suitable-applications/{crn}")
+  fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application
+
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<ReferralHistory<Cas1AssessmentStatus>>
 
@@ -60,4 +63,7 @@ open class ApprovedPremisesCachingService(
 
   @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_COURT_BAIL_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas2CourtBailApplication(crn: String) = approvedPremisesClient.getSuitableCas2CourtBailApplicationInternal(crn)
+
+  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS3_APPLICATION, key = "#crn", sync = true)
+  open fun getSuitableCas3Application(crn: String) = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
 }

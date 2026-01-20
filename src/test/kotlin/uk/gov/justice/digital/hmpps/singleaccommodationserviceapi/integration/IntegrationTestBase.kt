@@ -81,6 +81,7 @@ abstract class IntegrationTestBase {
     probationIntegrationOasysMockServer.start()
     tierMockServer.start()
     prisonerSearchMockServer.start()
+    accommodationDataDomainMockServer.start()
   }
 
   @AfterAll
@@ -92,6 +93,7 @@ abstract class IntegrationTestBase {
     probationIntegrationOasysMockServer.stop()
     tierMockServer.stop()
     prisonerSearchMockServer.stop()
+    accommodationDataDomainMockServer.stop()
   }
 
   @BeforeEach
@@ -103,6 +105,7 @@ abstract class IntegrationTestBase {
     probationIntegrationOasysMockServer.resetAll()
     tierMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
+    accommodationDataDomainMockServer.resetAll()
   }
 
   fun Instant.toCanonicalString(): String = CANONICAL_INSTANT_FORMATTER.format(

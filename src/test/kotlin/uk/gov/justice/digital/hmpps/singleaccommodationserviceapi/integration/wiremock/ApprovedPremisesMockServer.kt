@@ -24,6 +24,20 @@ class ApprovedPremisesMockServer : WireMockServer(9992) {
     )
   }
 
+  fun stubGetSuitableCas3ApplicationOKResponse(crn: String, response: Any) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathEqualTo("/cas3/external/suitable-applications/$crn"))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(response)),
+        ),
+    )
+  }
+
   fun stubGetReferralOKResponse(
     casService: CasService,
     crn: String,
