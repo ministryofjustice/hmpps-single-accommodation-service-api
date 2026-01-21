@@ -8,16 +8,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNodeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 
 class DecisionTreeBuilderTest {
-  private val clock = MutableClock()
   private val engine: RulesEngine = mockk()
 
   @Test
@@ -44,12 +42,12 @@ class DecisionTreeBuilderTest {
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
     // Verify it returns the fixed result
-    val evalContext =
-      EvalContext(
+    val evaluationContext =
+      EvaluationContext(
         data = buildDomainData(),
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
-    val actualResult = result.eval(evalContext)
+    val actualResult = result.eval(evaluationContext)
     assertThat(actualResult).isEqualTo(expectedResult)
   }
 
@@ -61,16 +59,16 @@ class DecisionTreeBuilderTest {
         serviceStatus = ServiceStatus.CONFIRMED,
         suitableApplicationId = UUID.randomUUID(),
       )
-    val evalContext =
-      EvalContext(
+    val evaluationContext =
+      EvaluationContext(
         data = buildDomainData(),
-        current = currentResult,
+        currentResult = currentResult,
       )
 
     val result = builder.confirmed()
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
-    val actualResult = result.eval(evalContext)
+    val actualResult = result.eval(evaluationContext)
     assertThat(actualResult).isEqualTo(currentResult)
   }
 
@@ -80,14 +78,14 @@ class DecisionTreeBuilderTest {
     val initialResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
     val updatedResult = ServiceResult(ServiceStatus.CONFIRMED)
     val initialContext =
-      EvalContext(
+      EvaluationContext(
         data = buildDomainData(),
-        current = initialResult,
+        currentResult = initialResult,
       )
     val updatedContext =
-      EvalContext(
+      EvaluationContext(
         data = buildDomainData(),
-        current = updatedResult,
+        currentResult = updatedResult,
       )
 
     val confirmedNode = builder.confirmed()
@@ -103,12 +101,12 @@ class DecisionTreeBuilderTest {
     val result = builder.notEligible()
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
-    val evalContext =
-      EvalContext(
+    val evaluationContext =
+      EvaluationContext(
         data = buildDomainData(),
-        current = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
       )
-    val actualResult = result.eval(evalContext)
+    val actualResult = result.eval(evaluationContext)
     assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
     assertThat(actualResult.suitableApplicationId).isNull()
   }
@@ -117,14 +115,14 @@ class DecisionTreeBuilderTest {
   fun `notEligible always returns same result regardless of context`() {
     val builder = DecisionTreeBuilder(engine)
     val context1 =
-      EvalContext(
+      EvaluationContext(
         data = buildDomainData(),
-        current = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
       )
     val context2 =
-      EvalContext(
+      EvaluationContext(
         data = buildDomainData(),
-        current = ServiceResult(ServiceStatus.SUBMITTED),
+        currentResult = ServiceResult(ServiceStatus.SUBMITTED),
       )
 
     val notEligibleNode = builder.notEligible()

@@ -7,8 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.AWAIT_ASSESSMENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_APPROVED_PREMISE_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
@@ -33,15 +35,15 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.STARTED,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.action).isNotNull()
-      assertThat(result.current.action?.text).isEqualTo("Start approved premise referral")
+      assertThat(result.currentResult.action).isNotNull()
+      assertThat(result.currentResult.action?.text).isEqualTo(START_APPROVED_PREMISE_REFERRAL)
     }
 
     @Test
@@ -54,14 +56,14 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.AWAITING_PLACEMENT,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
     }
 
     @Test
@@ -76,14 +78,14 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.STARTED,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.suitableApplicationId).isEqualTo(applicationId)
+      assertThat(result.currentResult.suitableApplicationId).isEqualTo(applicationId)
     }
 
     @Test
@@ -94,14 +96,14 @@ class Cas1ContextUpdaterTest {
         releaseDate = releaseDate,
         cas1Application = null,
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.suitableApplicationId).isNull()
+      assertThat(result.currentResult.suitableApplicationId).isNull()
     }
 
     @Test
@@ -114,16 +116,16 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.AWAITING_PLACEMENT,
         ),
       )
-      val originalContext = EvalContext(
+      val originalContext = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(originalContext)
 
       assertThat(result.data).isEqualTo(originalContext.data)
-      assertThat(result.current).isNotEqualTo(originalContext.current)
-      assertThat(result.current.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
+      assertThat(result.currentResult).isNotEqualTo(originalContext.currentResult)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
     }
 
     @Test
@@ -136,16 +138,16 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.current.action?.text).isEqualTo("Await Assessment")
-      assertThat(result.current.action?.isUpcoming).isTrue()
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
+      assertThat(result.currentResult.action?.text).isEqualTo(AWAIT_ASSESSMENT)
+      assertThat(result.currentResult.action?.isUpcoming).isTrue()
     }
 
     @Test
@@ -159,15 +161,15 @@ class Cas1ContextUpdaterTest {
           placementStatus = uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus.DEPARTED,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
-      assertThat(result.current.action?.text).isEqualTo("Create Placement")
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
+      assertThat(result.currentResult.action?.text).isEqualTo(CREATE_PLACEMENT)
     }
 
     @Test
@@ -180,14 +182,14 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.REJECTED,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.serviceStatus).isEqualTo(ServiceStatus.REJECTED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.REJECTED)
     }
 
     @Test
@@ -200,14 +202,14 @@ class Cas1ContextUpdaterTest {
           applicationStatus = Cas1ApplicationStatus.WITHDRAWN,
         ),
       )
-      val context = EvalContext(
+      val context = EvaluationContext(
         data = data,
-        current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.current.serviceStatus).isEqualTo(ServiceStatus.WITHDRAWN)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.WITHDRAWN)
     }
   }
 }

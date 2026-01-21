@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -19,7 +18,7 @@ class MaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.rules.MaleRiskRuleTest#provideSexAndTierToPass")
-  fun `candidate passes`(sex: Sex, tier: TierScore) {
+  fun `candidate passes`(sex: SexCode, tier: TierScore) {
     val data = DomainData(
       crn = crn,
       tier = tier,
@@ -34,7 +33,7 @@ class MaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.rules.MaleRiskRuleTest#provideSexAndTierToFail")
-  fun `candidate fails`(sex: Sex, tier: TierScore) {
+  fun `candidate fails`(sex: SexCode, tier: TierScore) {
     val data = DomainData(
       crn = crn,
       tier = tier,
@@ -54,23 +53,6 @@ class MaleRiskRuleTest {
   }
 
   private companion object {
-
-    private val female = Sex(
-      code = SexCode.F,
-      description = "Female",
-    )
-    private val male = Sex(
-      code = SexCode.M,
-      description = "Male",
-    )
-    private val notRecorded = Sex(
-      code = SexCode.N,
-      description = "Not Known / Not Recorded",
-    )
-    private val notSpecified = Sex(
-      code = SexCode.NS,
-      description = "Not Specified",
-    )
 
     private val highRiskTiers = listOf(
       TierScore.A3,
@@ -107,23 +89,23 @@ class MaleRiskRuleTest {
     @JvmStatic
     fun provideSexAndTierToPass(): Stream<Arguments> {
       val femaleArguments = allTiers.map {
-        Arguments.of(female, it)
+        Arguments.of(SexCode.F, it)
       }
       val notRecordedArguments = allTiers.map {
-        Arguments.of(notRecorded, it)
+        Arguments.of(SexCode.N, it)
       }
       val notSpecifiedArguments = allTiers.map {
-        Arguments.of(notSpecified, it)
+        Arguments.of(SexCode.NS, it)
       }
       val maleArguments = highRiskTiers.map {
-        Arguments.of(male, it)
+        Arguments.of(SexCode.M, it)
       }
       return (femaleArguments + notRecordedArguments + notSpecifiedArguments + maleArguments).stream()
     }
 
     @JvmStatic
     fun provideSexAndTierToFail() = lowRiskTiers.map {
-      Arguments.of(male, it)
+      Arguments.of(SexCode.M, it)
     }.stream()
   }
 }

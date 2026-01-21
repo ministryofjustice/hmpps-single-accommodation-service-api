@@ -1,12 +1,17 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response
 
-fun expectedGetEligibilityResponse(crn: String): String = """
+import java.util.UUID
+
+fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID): String = """
 {
    "crn":"$crn",
    "cas1":{
-      "serviceStatus":"NOT_ELIGIBLE",
-      "suitableApplicationId":null,
-      "action":null
+      "serviceStatus":"SUBMITTED",
+      "suitableApplicationId":"$cas1SuitableApplicationId",
+      "action":{
+         "text":"Await Assessment",
+         "isUpcoming":true
+      }
    },
    "cas2Hdc":{
       "serviceStatus":"NOT_STARTED",
@@ -35,6 +40,7 @@ fun expectedGetEligibilityResponse(crn: String): String = """
       }
    },
    "caseActions":[
+      "Await Assessment",
       "Start HDC referral!!",
       "Start temporary accommodation referral in 2 days!!"
    ],

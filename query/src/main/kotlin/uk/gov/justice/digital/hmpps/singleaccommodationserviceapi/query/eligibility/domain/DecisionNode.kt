@@ -6,19 +6,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 /** All nodes are Decision Nodes **/
   sealed interface DecisionNode {
     /** Evaluates this node and returns the final ServiceResult. */
-    fun eval(ctx: EvalContext): ServiceResult
+    fun eval(context: EvaluationContext): ServiceResult
   }
 
   /** Terminal node that returns a ServiceResult based on the current context.**/
-  class OutcomeNode(private val outcome: (EvalContext) -> ServiceResult) : DecisionNode {
-    override fun eval(ctx: EvalContext): ServiceResult = outcome(ctx)
+  class OutcomeNode(private val outcome: (EvaluationContext) -> ServiceResult) : DecisionNode {
+    override fun eval(context: EvaluationContext): ServiceResult = outcome(context)
   }
 
   /**
    * Node that executes a RuleSet and branches based on the result.
    */
   class RuleSetNode(
-    private val name: String,
     private val ruleSet: RuleSet,
     private val engine: RulesEngine,
     private val onPass: DecisionNode,
@@ -26,15 +25,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     private val contextUpdater: ContextUpdater,
   ) : DecisionNode {
 
-    override fun eval(ctx: EvalContext): ServiceResult {
-      val ruleSetStatus = engine.execute(ruleSet, ctx.data)
+    override fun eval(context: EvaluationContext): ServiceResult {
+      val ruleSetStatus = engine.execute(ruleSet, context.data)
 
       // Branch based on result: PASS returns current context unchanged, FAIL updates context
       return when (ruleSetStatus) {
         // On PASS, return current context without updating
-        RuleSetStatus.PASS -> onPass.eval(ctx)
+        RuleSetStatus.PASS -> onPass.eval(context)
         // On FAIL, update context and continue to next node
-        RuleSetStatus.FAIL -> onFail.eval(contextUpdater.update(ctx))
+        RuleSetStatus.FAIL -> onFail.eval(contextUpdater.update(context))
       }
     }
   }

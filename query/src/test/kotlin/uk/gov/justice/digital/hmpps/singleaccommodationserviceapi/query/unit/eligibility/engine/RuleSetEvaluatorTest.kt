@@ -10,7 +10,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -72,7 +71,7 @@ class RuleSetEvaluatorTest {
         val data = DomainData(
           crn = crn,
           tier = TierScore.A1,
-          sex = buildSex(SexCode.M),
+          sex = SexCode.M,
           releaseDate = LocalDate.now().plusMonths(7),
         )
 
@@ -92,7 +91,7 @@ class RuleSetEvaluatorTest {
         val data = DomainData(
           crn = crn,
           tier = TierScore.C2S,
-          sex = buildSex(SexCode.F),
+          sex = SexCode.F,
           releaseDate = LocalDate.now().plusMonths(2),
         )
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -111,7 +110,7 @@ class RuleSetEvaluatorTest {
         val data = DomainData(
           crn = crn,
           tier = TierScore.A1S,
-          sex = buildSex(SexCode.M),
+          sex = SexCode.M,
           releaseDate = LocalDate.now().plusMonths(7),
         )
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -130,7 +129,7 @@ class RuleSetEvaluatorTest {
         val data = DomainData(
           crn = crn,
           tier = TierScore.C1,
-          sex = buildSex(SexCode.F),
+          sex = SexCode.F,
           releaseDate = LocalDate.now().plusMonths(3),
         )
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -153,7 +152,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1,
-        sex = buildSex(SexCode.M),
+        sex = SexCode.M,
         releaseDate = LocalDate.now().plusMonths(7),
       )
 
@@ -169,7 +168,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1S,
-        sex = buildSex(SexCode.F),
+        sex = SexCode.F,
         releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -186,7 +185,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         crn = crn,
         tier = TierScore.A1S,
-        sex = buildSex(SexCode.M),
+        sex = SexCode.M,
         releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -203,7 +202,7 @@ class RuleSetEvaluatorTest {
       val data = DomainData(
         crn = crn,
         tier = TierScore.C1,
-        sex = buildSex(SexCode.F),
+        sex = SexCode.F,
         releaseDate = LocalDate.now().plusMonths(7),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)

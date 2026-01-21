@@ -8,5 +8,5 @@ interface ContextUpdater {
   /**
    * This is where mapping from RuleSetResult to ServiceResult happens.
    */
-  fun update(ctx: EvalContext): EvalContext
+  fun update(context: EvaluationContext): EvaluationContext
 }

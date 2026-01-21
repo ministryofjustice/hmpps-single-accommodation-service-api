@@ -28,7 +28,7 @@ class NonMaleRiskEligibilityRule : Cas1EligibilityRule {
   )
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.sex.code != SexCode.M && !highRiskTiers.contains(data.tier)) {
+    ruleStatus = if (data.sex != SexCode.M && !highRiskTiers.contains(data.tier)) {
       RuleStatus.FAIL
     } else {
       RuleStatus.PASS

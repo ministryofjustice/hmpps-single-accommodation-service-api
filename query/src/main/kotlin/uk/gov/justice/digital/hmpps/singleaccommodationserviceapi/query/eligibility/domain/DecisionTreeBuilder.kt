@@ -17,28 +17,20 @@ class DecisionTreeBuilder(
     name: String,
     ruleSet: RuleSet,
     contextUpdater: ContextUpdater
-  ): RuleSetNodeBuilder {
-    return RuleSetNodeBuilder(name, ruleSet, contextUpdater, engine)
-  }
+  ) = RuleSetNodeBuilder(name, ruleSet, contextUpdater, engine)
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
-  fun outcome(result: ServiceResult): DecisionNode {
-    return OutcomeNode { _ -> result }
-  }
+  fun outcome(result: ServiceResult) = OutcomeNode { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
-  fun confirmed(): DecisionNode {
-    return OutcomeNode { ctx -> ctx.current }
-  }
+  fun confirmed() = OutcomeNode { context -> context.currentResult }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible(): DecisionNode {
-    return outcome(
+  fun notEligible() = outcome(
       ServiceResult(
         serviceStatus =
           ServiceStatus.NOT_ELIGIBLE,
         suitableApplicationId = null,
       )
     )
-  }
 }

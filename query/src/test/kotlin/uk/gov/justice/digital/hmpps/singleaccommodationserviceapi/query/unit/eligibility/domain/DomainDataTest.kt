@@ -19,7 +19,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DomainDataTest {
-  private val male = buildSex(SexCode.M)
 
   @Test
   fun `Create DomainDate from EligibilityOrchestration data`() {
@@ -28,7 +27,7 @@ class DomainDataTest {
     val expected = DomainData(
       crn = crn,
       tier = TierScore.A1,
-      sex = male,
+      sex = SexCode.M,
       releaseDate = releaseDate,
       cas1Application = Cas1Application(
         UUID.randomUUID(),
@@ -46,7 +45,7 @@ class DomainDataTest {
       ),
     )
     val cpr = CorePersonRecord(
-      sex = expected.sex,
+      sex = buildSex(expected.sex),
     )
     val tier = Tier(
       tierScore = expected.tier,

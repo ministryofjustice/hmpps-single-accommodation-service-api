@@ -31,7 +31,12 @@ fun buildSex(
   code: SexCode = SexCode.F,
 ) = Sex(
   code = code,
-  description = if (code == SexCode.F) "Female" else "Male",
+  description = when(code) {
+    SexCode.F -> "Female"
+    SexCode.M -> "Male"
+    SexCode.N -> "Not Known / Not Recorded"
+    SexCode.NS -> "Not Specified"
+  },
 )
 
 fun buildIdentifiers(

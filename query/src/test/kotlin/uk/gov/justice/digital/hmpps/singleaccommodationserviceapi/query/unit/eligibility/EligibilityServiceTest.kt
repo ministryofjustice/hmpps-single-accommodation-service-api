@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
@@ -74,6 +75,9 @@ class EligibilityServiceTest {
       ApplicationSuitabilityRule(),
     ),
   )
+
+  @SpyK
+  var cas1ContextUpdater = Cas1ContextUpdater(clock)
 
   @SpyK
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(
@@ -123,7 +127,7 @@ class EligibilityServiceTest {
 
       val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null)
       assertThat(result.tier).isEqualTo(tier.tierScore)
-      assertThat(result.sex).isEqualTo(Sex(cpr.sex?.code, cpr.sex?.description))
+      assertThat(result.sex).isEqualTo(cpr.sex?.code)
       assertThat(result.releaseDate).isEqualTo(releaseDate)
     }
 
@@ -144,7 +148,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.getDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
-      assertThat(result.sex).isEqualTo(male)
+      assertThat(result.sex).isEqualTo(SexCode.M)
       assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
   }
@@ -185,7 +189,7 @@ class EligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
       }
-      val data = buildDomainData(crn, tier, buildSex(sex), releaseDate.toLocalDate(), cas1Application)
+      val data = buildDomainData(crn, tier, sex, releaseDate.toLocalDate(), cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 

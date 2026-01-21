@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  * Evaluation context that carries state through decision tree traversal.
  * Contains the domain data and the current best-known ServiceResult.
  */
-data class EvalContext(
+data class EvaluationContext(
   val data: DomainData,
-  val current: ServiceResult
+  val currentResult: ServiceResult
 )

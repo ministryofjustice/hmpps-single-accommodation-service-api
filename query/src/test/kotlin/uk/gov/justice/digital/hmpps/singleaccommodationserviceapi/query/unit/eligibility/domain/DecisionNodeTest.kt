@@ -11,17 +11,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 
 class DecisionNodeTest {
-  private val clock = MutableClock()
 
   @Nested
   inner class OutcomeNodeTests {
@@ -34,9 +32,9 @@ class DecisionNodeTest {
         )
       val outcomeNode = OutcomeNode { _ -> expectedResult }
       val context =
-        EvalContext(
+        EvaluationContext(
           data = buildDomainData(),
-          current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
 
       val result = outcomeNode.eval(context)
@@ -47,32 +45,32 @@ class DecisionNodeTest {
     @Test
     fun `OutcomeNode handles context-based outcome function`() {
       val context =
-        EvalContext(
+        EvaluationContext(
           data = buildDomainData(),
-          current =
+          currentResult =
             ServiceResult(
               serviceStatus = ServiceStatus.CONFIRMED,
               suitableApplicationId = UUID.randomUUID(),
             ),
         )
-      val outcomeNode = OutcomeNode { ctx -> ctx.current }
+      val outcomeNode = OutcomeNode { context -> context.currentResult }
 
       val result = outcomeNode.eval(context)
 
-      assertThat(result).isEqualTo(context.current)
+      assertThat(result).isEqualTo(context.currentResult)
     }
 
     @Test
     fun `OutcomeNode can transform context to different ServiceResult`() {
       val context =
-        EvalContext(
+        EvaluationContext(
           data = buildDomainData(),
-          current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
-      val outcomeNode = OutcomeNode { ctx ->
+      val outcomeNode = OutcomeNode { context ->
         ServiceResult(
           serviceStatus = ServiceStatus.CONFIRMED,
-          suitableApplicationId = ctx.data.cas1Application?.id,
+          suitableApplicationId = context.data.cas1Application?.id,
         )
       }
 
@@ -94,9 +92,9 @@ class DecisionNodeTest {
       val onFailNode: DecisionNode = mockk()
 
       val initialContext =
-        EvalContext(
+        EvaluationContext(
           data = buildDomainData(),
-          current = ServiceResult(ServiceStatus.CONFIRMED),
+          currentResult = ServiceResult(ServiceStatus.CONFIRMED),
         )
       val expectedResult = ServiceResult(ServiceStatus.CONFIRMED)
 
@@ -105,7 +103,6 @@ class DecisionNodeTest {
 
       val ruleSetNode =
         RuleSetNode(
-          name = "TestRuleSet",
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
@@ -131,14 +128,14 @@ class DecisionNodeTest {
       val onFailNode: DecisionNode = mockk()
 
       val initialContext =
-        EvalContext(
+        EvaluationContext(
           data = buildDomainData(),
-          current = ServiceResult(ServiceStatus.CONFIRMED),
+          currentResult = ServiceResult(ServiceStatus.CONFIRMED),
         )
       val updatedContext =
-        EvalContext(
+        EvaluationContext(
           data = initialContext.data,
-          current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
       val expectedResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
@@ -149,7 +146,6 @@ class DecisionNodeTest {
 
       val ruleSetNode =
         RuleSetNode(
-          name = "TestRuleSet",
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
@@ -176,9 +172,9 @@ class DecisionNodeTest {
 
       val domainData = buildDomainData()
       val context =
-        EvalContext(
+        EvaluationContext(
           data = domainData,
-          current = ServiceResult(ServiceStatus.CONFIRMED),
+          currentResult = ServiceResult(ServiceStatus.CONFIRMED),
         )
 
       every { engine.execute(any(), any()) } returns RuleSetStatus.PASS
@@ -186,7 +182,6 @@ class DecisionNodeTest {
 
       val ruleSetNode =
         RuleSetNode(
-          name = "TestRuleSet",
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,
@@ -208,13 +203,13 @@ class DecisionNodeTest {
       val onFailNode: DecisionNode = mockk()
 
       val context =
-        EvalContext(
+        EvaluationContext(
           data = buildDomainData(),
-          current = ServiceResult(ServiceStatus.CONFIRMED),
+          currentResult = ServiceResult(ServiceStatus.CONFIRMED),
         )
-      val updatedContext =
-        context.copy(
-          current = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+      val updatedContext = EvaluationContext(
+        data = context.data,
+        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
 
       every { engine.execute(any(), any()) } returns RuleSetStatus.FAIL
@@ -223,7 +218,6 @@ class DecisionNodeTest {
 
       val ruleSetNode =
         RuleSetNode(
-          name = "TestRuleSet",
           ruleSet = ruleSet,
           engine = engine,
           onPass = onPassNode,

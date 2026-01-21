@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
 import java.util.UUID
 
@@ -14,37 +14,37 @@ class EvalContextTest {
     val domainData = buildDomainData()
     val serviceResult = ServiceResult(ServiceStatus.CONFIRMED)
 
-    val context = EvalContext(data = domainData, current = serviceResult)
+    val context = EvaluationContext(data = domainData, currentResult = serviceResult)
 
     assertThat(context.data).isEqualTo(domainData)
-    assertThat(context.current).isEqualTo(serviceResult)
+    assertThat(context.currentResult).isEqualTo(serviceResult)
   }
 
   @Test
-  fun `EvalContext copy creates new instance with updated fields`() {
+  fun `EvalContext update creates new instance with updated fields`() {
     val originalData = buildDomainData()
     val originalResult = ServiceResult(ServiceStatus.CONFIRMED)
-    val context = EvalContext(data = originalData, current = originalResult)
+    val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
     val updatedResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-    val updatedContext = context.copy(current = updatedResult)
+    val updatedContext = context.copy(currentResult = updatedResult)
 
     assertThat(updatedContext.data).isEqualTo(originalData)
-    assertThat(updatedContext.current).isEqualTo(updatedResult)
-    assertThat(context.current).isEqualTo(originalResult) // Original unchanged
+    assertThat(updatedContext.currentResult).isEqualTo(updatedResult)
+    assertThat(context.currentResult).isEqualTo(originalResult) // Original unchanged
   }
 
   @Test
   fun `EvalContext copy can update data field`() {
     val originalData = buildDomainData()
     val originalResult = ServiceResult(ServiceStatus.CONFIRMED)
-    val context = EvalContext(data = originalData, current = originalResult)
+    val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
     val updatedData = buildDomainData(crn = "DIFFERENT_CRN")
     val updatedContext = context.copy(data = updatedData)
 
     assertThat(updatedContext.data).isEqualTo(updatedData)
-    assertThat(updatedContext.current).isEqualTo(originalResult)
+    assertThat(updatedContext.currentResult).isEqualTo(originalResult)
     assertThat(context.data).isEqualTo(originalData) // Original unchanged
   }
 
@@ -56,8 +56,8 @@ class EvalContextTest {
       suitableApplicationId = UUID.randomUUID(),
     )
 
-    val context1 = EvalContext(data = domainData, current = serviceResult)
-    val context2 = EvalContext(data = domainData, current = serviceResult)
+    val context1 = EvaluationContext(data = domainData, currentResult = serviceResult)
+    val context2 = EvaluationContext(data = domainData, currentResult = serviceResult)
 
     assertThat(context1).isEqualTo(context2)
     assertThat(context1.hashCode()).isEqualTo(context2.hashCode())
@@ -69,8 +69,8 @@ class EvalContextTest {
     val domainData2 = buildDomainData(crn = "DIFFERENT_CRN")
     val serviceResult = ServiceResult(ServiceStatus.CONFIRMED)
 
-    val context1 = EvalContext(data = domainData1, current = serviceResult)
-    val context2 = EvalContext(data = domainData2, current = serviceResult)
+    val context1 = EvaluationContext(data = domainData1, currentResult = serviceResult)
+    val context2 = EvaluationContext(data = domainData2, currentResult = serviceResult)
 
     assertThat(context1).isNotEqualTo(context2)
   }
@@ -81,8 +81,8 @@ class EvalContextTest {
     val result1 = ServiceResult(ServiceStatus.CONFIRMED)
     val result2 = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
-    val context1 = EvalContext(data = domainData, current = result1)
-    val context2 = EvalContext(data = domainData, current = result2)
+    val context1 = EvaluationContext(data = domainData, currentResult = result1)
+    val context2 = EvaluationContext(data = domainData, currentResult = result2)
 
     assertThat(context1).isNotEqualTo(context2)
   }

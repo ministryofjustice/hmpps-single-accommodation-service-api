@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.STierEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
@@ -37,7 +36,6 @@ import java.time.LocalDate
 class RulesEngineTest {
   private val defaultRulesEngine = RulesEngine(DefaultRuleSetEvaluator())
   private val crn = "ABC234"
-  private val male = buildSex(SexCode.M)
 
   @Autowired
   private lateinit var cas1EligibilityRuleSet: Cas1EligibilityRuleSet
@@ -47,7 +45,7 @@ class RulesEngineTest {
     val data = DomainData(
       crn = crn,
       tier = TierScore.A1,
-      sex = male,
+      sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(7),
     )
 
@@ -61,7 +59,7 @@ class RulesEngineTest {
     val data = DomainData(
       crn = crn,
       tier = TierScore.C1S,
-      sex = buildSex(SexCode.F),
+      sex = SexCode.F,
       releaseDate = LocalDate.now().plusMonths(7),
     )
 

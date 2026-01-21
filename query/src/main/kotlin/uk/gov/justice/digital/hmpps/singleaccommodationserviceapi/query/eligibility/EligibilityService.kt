@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvalContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
-import java.time.Clock
 
 @Service
 class EligibilityService(
@@ -27,16 +26,13 @@ class EligibilityService(
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
   private val cas2HdcRuleSet: Cas2HdcRuleSet,
   private val cas2PrisonBailRuleSet: Cas2PrisonBailRuleSet,
+  private val cas1ContextUpdater: Cas1ContextUpdater,
   private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
-  @Qualifier("clock")
-  private val clock: Clock,
 ) {
 
   private val treeBuilder = DecisionTreeBuilder(engine)
-  private val cas1ContextUpdater = Cas1ContextUpdater(clock)
-
 
   fun getEligibility(crn: String): EligibilityDto {
     val data = getDomainData(crn)
@@ -83,9 +79,9 @@ class EligibilityService(
         .build()
 
     val initialContext =
-      EvalContext(
+      EvaluationContext(
         data = data,
-        current =
+        currentResult =
           ServiceResult(
             serviceStatus = ServiceStatus.CONFIRMED,
             suitableApplicationId = data.cas1Application?.id,
@@ -110,12 +106,11 @@ class EligibilityService(
         .build()
 
     val initialContext =
-      EvalContext(
+      EvaluationContext(
         data = data,
-        current =
+        currentResult =
           ServiceResult(
-            serviceStatus = ServiceStatus.CONFIRMED,
-            suitableApplicationId = data.cas2HdcApplication?.id,
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
           )
       )
 
@@ -137,12 +132,11 @@ class EligibilityService(
         .build()
 
     val initialContext =
-      EvalContext(
+      EvaluationContext(
         data = data,
-        current =
+        currentResult =
           ServiceResult(
-            serviceStatus = ServiceStatus.CONFIRMED,
-            suitableApplicationId = data.cas2CourtBailApplication?.id,
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
           )
       )
 
@@ -164,12 +158,11 @@ class EligibilityService(
         .build()
 
     val initialContext =
-      EvalContext(
+      EvaluationContext(
         data = data,
-        current =
+        currentResult =
           ServiceResult(
-            serviceStatus = ServiceStatus.CONFIRMED,
-            suitableApplicationId = data.cas2PrisonBailApplication?.id,
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
           )
       )
 
