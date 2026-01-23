@@ -5,17 +5,17 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PrivateAddressesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
 
 @RestController
-class PrivateAddressController(
+class ProposedAccommodationController(
   private val mockedData: MockData?,
 ) {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
-  @GetMapping("/private-addresses/{crn}")
-  fun getPrivateAddressesByCrn(@PathVariable crn: String): ResponseEntity<PrivateAddressesDto> = mockedData
-    ?.let { ResponseEntity.ok(it.crns[crn]!!.privateAddresses) }
+  @GetMapping("/cases/{crn}/proposed-accommodations")
+  fun getPrivateAddressesByCrn(@PathVariable crn: String): ResponseEntity<List<AccommodationDetail>> = mockedData
+    ?.let { ResponseEntity.ok(it.crns[crn]!!.proposedAccommodations) }
     ?: ResponseEntity.notFound().build()
 }
