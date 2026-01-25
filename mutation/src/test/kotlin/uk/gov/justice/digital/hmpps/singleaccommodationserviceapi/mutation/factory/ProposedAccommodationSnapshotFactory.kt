@@ -33,6 +33,4 @@ fun buildProposedAccommodationSnapshot(
   startDate = LocalDate.now(),
   endDate = LocalDate.now().plusDays(7),
   address = buildAccommodationAddressDetails(),
-  createdAt = Instant.now(),
-  lastUpdatedAt = Instant.now(),
 )

@@ -1,24 +1,39 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.springframework.data.annotation.CreatedBy
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedBy
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 @Entity
 @Table(name = "proposed_accommodation")
+@EntityListeners(AuditingEntityListener::class)
 data class ProposedAccommodationEntity(
   @Id
   val id: UUID,
   val crn: String,
   val name: String?,
+  @Enumerated(EnumType.STRING)
   val arrangementType: AccommodationArrangementType,
+  @Enumerated(EnumType.STRING)
   val arrangementSubType: AccommodationArrangementSubType?,
   val arrangementSubTypeDescription: String?,
+  @Enumerated(EnumType.STRING)
   val settledType: AccommodationSettledType,
+  @Enumerated(EnumType.STRING)
   val verificationStatus: VerificationStatus?,
+  @Enumerated(EnumType.STRING)
   val nextAccommodationStatus: NextAccommodationStatus?,
   val offenderReleaseType: OffenderReleaseType?,
   val startDate: LocalDate?,
@@ -33,8 +48,18 @@ data class ProposedAccommodationEntity(
   val county: String?,
   val country: String?,
   val uprn: String?,
-  var createdAt: Instant,
-  var lastUpdatedAt: Instant?,
+
+  @CreatedBy
+  @Column(name = "created_by_user_id")
+  var createdByUserId: UUID? = null,
+  @CreatedDate
+  var createdAt: Instant? = null,
+  @LastModifiedBy
+  @Column(name = "last_updated_by_user_id")
+  var lastUpdatedByUserId: UUID? = null,
+  @LastModifiedDate
+  @Column(name = "last_updated_at")
+  var lastUpdatedAt: Instant? = null
 )
 
 enum class AccommodationArrangementType {

@@ -23,24 +23,11 @@ data class AccommodationDetail(
   val address: AccommodationAddressDetails,
   val startDate: LocalDate?,
   val endDate: LocalDate?,
+  val createdBy: String,
   val createdAt: Instant,
 )
 
-data class CreateAccommodationDetail(
-  val name: String?,
-  val arrangementType: AccommodationArrangementType,
-  val arrangementSubType: AccommodationArrangementSubType?,
-  val arrangementSubTypeDescription: String?,
-  val settledType: AccommodationSettledType,
-  val offenderReleaseType: OffenderReleaseType?,
-  val verificationStatus: VerificationStatus,
-  val nextAccommodationStatus: NextAccommodationStatus,
-  val address: AccommodationAddressDetails,
-  val startDate: LocalDate?,
-  val endDate: LocalDate?,
-)
-
-data class UpdateAccommodationDetail(
+data class AccommodationDetailCommand(
   val name: String?,
   val arrangementType: AccommodationArrangementType,
   val arrangementSubType: AccommodationArrangementSubType?,

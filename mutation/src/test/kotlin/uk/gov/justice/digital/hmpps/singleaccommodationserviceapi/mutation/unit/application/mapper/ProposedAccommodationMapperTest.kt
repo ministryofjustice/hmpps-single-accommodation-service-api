@@ -16,6 +16,8 @@ import java.time.Instant
 import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildProposedAccommodationSnapshot
 import java.time.temporal.ChronoUnit
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildSnapshot
+import java.time.Instant
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
@@ -52,8 +54,6 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.county).isEqualTo(snapshot.address.county)
     assertThat(entity.country).isEqualTo(snapshot.address.country)
     assertThat(entity.uprn).isEqualTo(snapshot.address.uprn)
-    assertThat(entity.createdAt).isEqualTo(snapshot.createdAt)
-    assertThat(entity.lastUpdatedAt).isEqualTo(snapshot.lastUpdatedAt)
   }
 
   @Test
@@ -208,7 +208,9 @@ class ProposedAccommodationMapperTest {
   @Test
   fun `toDto maps all fields correctly`() {
     val snapshot = buildProposedAccommodationSnapshot()
-    val dto = ProposedAccommodationMapper.toDto(snapshot)
+    val createdBy = "Joe Bloggs"
+    val createdAt = Instant.now()
+    val dto = ProposedAccommodationMapper.toDto(snapshot, createdBy, createdAt)
     assertThat(dto.id).isEqualTo(snapshot.id)
     assertThat(dto.name).isEqualTo(snapshot.name)
     assertThat(dto.arrangementType).isEqualTo(snapshot.arrangementType)
@@ -221,6 +223,7 @@ class ProposedAccommodationMapperTest {
     assertThat(dto.startDate).isEqualTo(snapshot.startDate)
     assertThat(dto.endDate).isEqualTo(snapshot.endDate)
     assertThat(dto.address).isEqualTo(snapshot.address)
-    assertThat(dto.createdAt).isEqualTo(snapshot.createdAt.truncatedTo(ChronoUnit.SECONDS))
+    assertThat(dto.createdBy).isEqualTo(createdBy)
+    assertThat(dto.createdAt).isEqualTo(createdAt)
   }
 }

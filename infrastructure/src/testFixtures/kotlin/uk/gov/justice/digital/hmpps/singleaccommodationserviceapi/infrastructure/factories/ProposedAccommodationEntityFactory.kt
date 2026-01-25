@@ -34,6 +34,7 @@ fun buildProposedAccommodationEntity(
   county: String? = null,
   country: String? = "England",
   uprn: String? = null,
+  createdByUserId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
   lastUpdatedAt: Instant? = null,
 ) = ProposedAccommodationEntity(
@@ -59,6 +60,7 @@ fun buildProposedAccommodationEntity(
   county = county,
   country = country,
   uprn = uprn,
+  createdByUserId = createdByUserId,
   createdAt = createdAt,
   lastUpdatedAt = lastUpdatedAt,
 )

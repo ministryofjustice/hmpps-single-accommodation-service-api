@@ -121,6 +121,7 @@ fun expectedProposedAddressesResponseBody(
   },
   "startDate" : "2026-01-05",
   "endDate" : "2026-04-25",
+  "createdBy":"Joe Bloggs",
   "createdAt" : "$createdAt"
 }
 """.trimIndent()

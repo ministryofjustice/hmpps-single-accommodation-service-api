@@ -111,7 +111,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          verificationStatus = EntityVerificationStatus.PASSED.name,
+          verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
       )
@@ -120,7 +120,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.getByCrn(crn)!!
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findByCrn(crn)!!
     assertPersistedProposedAccommodation(proposedAccommodationPersistedResult)
 
     assertThatJson(result).matchesExpectedJson(
@@ -128,7 +128,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = proposedAccommodationPersistedResult.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        createdAt = proposedAccommodationPersistedResult.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
     )
     assertPublishedSNSEvent(
@@ -174,7 +174,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = existingEntity.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
     )
 
