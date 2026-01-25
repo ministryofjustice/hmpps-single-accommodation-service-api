@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.Rosh
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.determineOverallRiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toRiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.RiskLevelTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel as RiskLevelInfra
 
 class RiskLevelTransformerTest {
@@ -26,8 +25,8 @@ class RiskLevelTransformerTest {
       riskChildrenCustody = RiskLevelInfra.LOW,
     )
 
-    val overallRiskLevel = determineOverallRiskLevel(rosh)
-    assertThat(overallRiskLevel).isEqualTo(toRiskLevel(expectedOverallRiskLevel))
+    val overallRiskLevel = RiskLevelTransformer.determineOverallRiskLevel(rosh)
+    assertThat(overallRiskLevel).isEqualTo(RiskLevelTransformer.toRiskLevel(expectedOverallRiskLevel))
   }
 
   @Test
@@ -43,6 +42,6 @@ class RiskLevelTransformerTest {
       riskPublicCustody = null,
       riskChildrenCustody = null,
     )
-    assertThat(determineOverallRiskLevel(rosh)).isNull()
+    assertThat(RiskLevelTransformer.determineOverallRiskLevel(rosh)).isNull()
   }
 }

@@ -12,8 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toFullName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildCaseOrchestrationDto
 import java.time.LocalDate
 import java.util.stream.Stream
@@ -29,7 +28,7 @@ class CaseTransformerTest {
     expectedCaseDto: CaseDto,
   ) {
       assertThat(
-        toCaseDto(
+        CaseTransformer.toCaseDto(
           crn = caseOrchestrationDto.crn,
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
@@ -61,7 +60,7 @@ class CaseTransformerTest {
     expected: String,
   ) {
     val cpr = buildCorePersonRecord(firstName = firstname, middleNames = middleNames, lastName = lastName)
-    assertThat(toFullName(cpr)).isEqualTo(expected)
+    assertThat(CaseTransformer.toFullName(cpr)).isEqualTo(expected)
   }
 
   private companion object {

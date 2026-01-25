@@ -5,13 +5,13 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class AccommodationDto(
-  val crn: String,
   val current: AccommodationDetail?,
   val next: AccommodationDetail?,
 )
 
 data class AccommodationDetail(
   val id: UUID,
+  val crn: String,
   val name: String?,
   val arrangementType: AccommodationArrangementType,
   val arrangementSubType: AccommodationArrangementSubType?,
@@ -23,6 +23,19 @@ data class AccommodationDetail(
   val startDate: LocalDate?,
   val endDate: LocalDate?,
   val createdAt: Instant,
+)
+
+data class CreateAccommodationDetail(
+  val name: String?,
+  val arrangementType: AccommodationArrangementType,
+  val arrangementSubType: AccommodationArrangementSubType?,
+  val arrangementSubTypeDescription: String?,
+  val settledType: AccommodationSettledType,
+  val offenderReleaseType: OffenderReleaseType?,
+  val status: AccommodationStatus,
+  val address: AccommodationAddressDetails,
+  val startDate: LocalDate?,
+  val endDate: LocalDate?,
 )
 
 enum class AccommodationArrangementType {
@@ -51,9 +64,8 @@ enum class AccommodationSettledType {
 
 enum class AccommodationStatus {
   NOT_CHECKED_YET,
-  CHECKS_PASSED,
-  CHECKS_FAILED,
-  CONFIRMED,
+  FAILED,
+  PASSED
 }
 
 enum class OffenderReleaseType {

@@ -30,9 +30,27 @@ spring:
       host: localhost
       port: 6370
   datasource:
-    url: jdbc:h2:mem:mydb
-    username: sa
-    password: password
-    driverClassName: org.h2.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    url: jdbc:postgresql://localhost:5432/sas_db
+    username: sas_user
+    password: sas_psw
+
+event:
+  details-url:
+    proposed-accommodation-created: http://api-host/proposed-accommodation/#id
+
+hmpps.sqs:
+  useWebToken: false
+  provider: localstack
+  topics:
+    hmpps-domain-event-topic:
+      arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
+  queues:
+    adda-domain-events-queue:
+      queueName: adda_domain_events_queue
+      dlqName: adda_domain_events_dlq
+      subscribeTopicId: hmpps-domain-event-topic
+      subscribeFilter: '{"eventType":["cpr.proposed.accommodation.update"]}'
+    test-domain-events-queue:
+      dlqName: ${random.uuid}
+      queueName: ${random.uuid}
+      subscribeTopicId: hmpps-domain-event-topic

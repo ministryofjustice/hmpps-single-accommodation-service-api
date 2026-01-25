@@ -10,9 +10,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.toServiceStatus
 import java.util.stream.Stream
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ServiceStatusTransformer
 import java.util.UUID
 
 class ServiceStatusTransformerTest {
@@ -115,7 +115,7 @@ class ServiceStatusTransformerTest {
       hasImminentActions: Boolean,
       serviceStatus: ServiceStatus,
     ) {
-      assertThat(toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
+      assertThat(ServiceStatusTransformer.toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
     }
 
   }
@@ -128,7 +128,7 @@ class ServiceStatusTransformerTest {
       val cas2HdcApplication = Cas2HdcApplication(
         id = UUID.randomUUID(),
       )
-      assertThat(toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+      assertThat(ServiceStatusTransformer.toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 
@@ -140,7 +140,7 @@ class ServiceStatusTransformerTest {
       val cas2CourtBailApplication = Cas2CourtBailApplication(
         id = UUID.randomUUID(),
       )
-      assertThat(toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+      assertThat(ServiceStatusTransformer.toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 
@@ -152,7 +152,7 @@ class ServiceStatusTransformerTest {
       val cas2PrisonBailApplication = Cas2PrisonBailApplication(
         id = UUID.randomUUID(),
       )
-      assertThat(toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+      assertThat(ServiceStatusTransformer.toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 }

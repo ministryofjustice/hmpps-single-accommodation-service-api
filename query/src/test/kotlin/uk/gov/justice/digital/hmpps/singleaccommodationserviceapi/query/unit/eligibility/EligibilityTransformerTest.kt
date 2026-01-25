@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.AWAIT_ASSESSMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_APPROVED_PREMISE_REFERRAL
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.toEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer
 import java.util.stream.Stream
 
 class EligibilityTransformerTest {
@@ -32,7 +32,7 @@ class EligibilityTransformerTest {
     caseActions: List<String>,
   ) {
 
-    val actualEligibility = toEligibilityDto(
+    val actualEligibility = EligibilityTransformer.toEligibilityDto(
       crn = crn,
       cas1 = cas1,
       cas2Hdc = cas2Hdc,
