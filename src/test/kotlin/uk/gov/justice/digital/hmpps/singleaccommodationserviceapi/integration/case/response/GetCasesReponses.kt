@@ -19,6 +19,7 @@ fun expectedGetCasesResponse(): String = """
   },
   "currentAccommodation" : {
     "id" : "f3813060-59c7-48ff-8729-3ea6efbf375b",
+    "crn" : "X371199",
     "name" : "HMP Huntercombe",
     "arrangementType" : "PRISON",
     "arrangementSubType" : null,
@@ -44,6 +45,7 @@ fun expectedGetCasesResponse(): String = """
   },
   "nextAccommodation" : {
     "id" : "b697a854-96af-4360-a715-189a78d4f70f",
+    "crn" : "X371199",
     "name" : null,
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -82,6 +84,7 @@ fun expectedGetCasesResponse(): String = """
   },
   "currentAccommodation" : {
     "id" : "f296b6a7-79c3-4d46-b5ed-683e72e9ae09",
+    "crn" : "X968879",
     "name" : "HMP Bullingdon",
     "arrangementType" : "PRISON",
     "arrangementSubType" : null,
@@ -107,6 +110,7 @@ fun expectedGetCasesResponse(): String = """
   },
   "nextAccommodation" : {
     "id" : "fa75a728-1020-44d0-8bb6-343ca1197d2e",
+    "crn" : "X968879",
     "name" : null,
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "SOCIAL_RENTED",
@@ -149,6 +153,7 @@ fun expectedGetCasesWithFilterResponse(): String = """
   },
   "currentAccommodation" : {
     "id" : "f296b6a7-79c3-4d46-b5ed-683e72e9ae09",
+    "crn" : "X968879",
     "name" : "HMP Bullingdon",
     "arrangementType" : "PRISON",
     "arrangementSubType" : null,
@@ -174,6 +179,7 @@ fun expectedGetCasesWithFilterResponse(): String = """
   },
   "nextAccommodation" : {
     "id" : "fa75a728-1020-44d0-8bb6-343ca1197d2e",
+    "crn" : "X968879",
     "name" : null,
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "SOCIAL_RENTED",

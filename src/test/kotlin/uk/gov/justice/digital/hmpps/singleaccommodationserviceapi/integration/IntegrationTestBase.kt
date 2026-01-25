@@ -14,6 +14,8 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestCasesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestMockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestRedissonConfig
@@ -44,6 +46,12 @@ abstract class IntegrationTestBase {
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
+
+  @Autowired
+  lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
+
+  @Autowired
+  lateinit var outboxEventRepository: OutboxEventRepository
 
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
@@ -84,6 +92,9 @@ abstract class IntegrationTestBase {
 
   @AfterAll
   fun stopMocks() {
+    outboxEventRepository.deleteAll()
+    proposedAccommodationRepository.deleteAll()
+
     hmppsAuth.stop()
     approvedPremisesMockServer.stop()
     corePersonRecordMockServer.stop()
@@ -95,6 +106,9 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun resetStubs() {
+    outboxEventRepository.deleteAll()
+    proposedAccommodationRepository.deleteAll()
+
     hmppsAuth.resetAll()
     approvedPremisesMockServer.resetAll()
     corePersonRecordMockServer.resetAll()

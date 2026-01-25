@@ -13,6 +13,7 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
   availableCrnList[0] -> listOf(
     AccommodationDetail(
       id = UUID.fromString("6d9a38c4-a8f6-49d1-856d-972906f63361"),
+      crn = crn,
       name = null,
       arrangementType = AccommodationArrangementType.PRIVATE,
       arrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
@@ -38,6 +39,7 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
     ),
     AccommodationDetail(
       id = UUID.fromString("f03aac3e-2f36-4003-a753-db571fe140b8"),
+      crn = crn,
       name = null,
       arrangementType = AccommodationArrangementType.PRIVATE,
       arrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
@@ -65,6 +67,7 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
   availableCrnList[1] -> listOf(
     AccommodationDetail(
       id = UUID.fromString("3010ee1c-30f1-4621-81b2-87c349104898"),
+      crn = crn,
       name = null,
       arrangementType = AccommodationArrangementType.PRIVATE,
       arrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
@@ -92,6 +95,7 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
   availableCrnList[2] -> listOf(
     AccommodationDetail(
       id = UUID.fromString("b0410f55-16d9-4509-b837-273504d95f8f"),
+      crn = crn,
       name = null,
       arrangementType = AccommodationArrangementType.PRIVATE,
       arrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,

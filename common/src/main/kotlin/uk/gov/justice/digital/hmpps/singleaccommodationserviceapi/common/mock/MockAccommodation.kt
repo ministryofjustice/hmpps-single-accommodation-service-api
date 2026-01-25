@@ -12,7 +12,6 @@ import java.util.UUID
 import kotlin.String
 
 fun getMockedAccommodation(availableCrnList: List<String>, crn: String) = AccommodationDto(
-  crn = crn,
   current = getMockedCurrentAccommodation(availableCrnList, crn),
   next = getMockedNextAccommodation(availableCrnList, crn),
 )
@@ -20,6 +19,7 @@ fun getMockedAccommodation(availableCrnList: List<String>, crn: String) = Accomm
 fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = when (crn) {
   availableCrnList[0] -> AccommodationDetail(
     id = UUID.fromString("b697a854-96af-4360-a715-189a78d4f70f"),
+    crn = crn,
     name = null,
     arrangementType = AccommodationArrangementType.PRIVATE,
     arrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
@@ -46,6 +46,7 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 
   availableCrnList[1] -> AccommodationDetail(
     id = UUID.fromString("fa75a728-1020-44d0-8bb6-343ca1197d2e"),
+    crn = crn,
     name = null,
     arrangementType = AccommodationArrangementType.PRIVATE,
     arrangementSubType = AccommodationArrangementSubType.SOCIAL_RENTED,
@@ -72,6 +73,7 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 
   availableCrnList[2] -> AccommodationDetail(
     id = UUID.fromString("a32ab37c-8830-4806-b6d6-72da561ce1ee"),
+    crn = crn,
     name = null,
     arrangementType = AccommodationArrangementType.PRIVATE,
     arrangementSubType = AccommodationArrangementSubType.PRIVATE_RENTED_ROOM,
@@ -98,6 +100,7 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 
   availableCrnList[3] -> AccommodationDetail(
     id = UUID.fromString("c46099b9-65b0-4742-89db-871e60bbc982"),
+    crn = crn,
     name = null,
     arrangementType = AccommodationArrangementType.PRIVATE,
     arrangementSubType = AccommodationArrangementSubType.OTHER,
@@ -127,6 +130,7 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) = when (crn) {
   availableCrnList[0] -> AccommodationDetail(
     id = UUID.fromString("f3813060-59c7-48ff-8729-3ea6efbf375b"),
+    crn = crn,
     name = "HMP Huntercombe",
     arrangementType = AccommodationArrangementType.PRISON,
     arrangementSubType = null,
@@ -152,6 +156,7 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   )
   availableCrnList[1] -> AccommodationDetail(
     id = UUID.fromString("f296b6a7-79c3-4d46-b5ed-683e72e9ae09"),
+    crn = crn,
     name = "HMP Bullingdon",
     arrangementType = AccommodationArrangementType.PRISON,
     arrangementSubType = null,
@@ -177,6 +182,7 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   )
   availableCrnList[2] -> AccommodationDetail(
     id = UUID.fromString("b697a854-96af-4360-a715-189a78d4f70f"),
+    crn = crn,
     name = "HMP Huntercombe",
     arrangementType = AccommodationArrangementType.PRISON,
     arrangementSubType = null,
@@ -202,6 +208,7 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   )
   availableCrnList[3] -> AccommodationDetail(
     id = UUID.fromString("5b845756-7760-45bb-b756-c6b112e9778c"),
+    crn = crn,
     name = "HMP Bullingdon",
     arrangementType = AccommodationArrangementType.PRISON,
     arrangementSubType = null,
