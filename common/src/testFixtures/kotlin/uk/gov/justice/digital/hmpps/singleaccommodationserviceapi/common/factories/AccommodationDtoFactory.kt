@@ -27,6 +27,7 @@ fun buildAccommodationDetail(
   address: AccommodationAddressDetails = buildAccommodationAddressDetails(),
   startDate: LocalDate? = null,
   endDate: LocalDate? = null,
+  createdBy: String = "Joe Bloggs",
   createdAt: Instant = Instant.now(),
 ) = AccommodationDetail(
   id = id,
@@ -42,6 +43,7 @@ fun buildAccommodationDetail(
   address = address,
   startDate = startDate,
   endDate = endDate,
+  createdBy = createdBy,
   createdAt = createdAt,
 )
 

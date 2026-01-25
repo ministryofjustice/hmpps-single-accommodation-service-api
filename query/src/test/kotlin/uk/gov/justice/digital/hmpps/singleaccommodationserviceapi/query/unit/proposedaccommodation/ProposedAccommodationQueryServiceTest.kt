@@ -9,11 +9,14 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.repository.findByIdOrNull
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.domain.exceptions.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTransformer.toAccommodationDetail
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -23,6 +26,8 @@ class ProposedAccommodationQueryServiceTest {
 
   @MockK
   lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
+  @MockK
+  lateinit var userRepository: UserRepository
 
   @InjectMockKs
   lateinit var service: ProposedAccommodationQueryService
@@ -43,17 +48,20 @@ class ProposedAccommodationQueryServiceTest {
 
     @Test
     fun `should preserve repository ordering`() {
+      val createdByUserId = UUID.randomUUID()
+      val createdByUser = buildUserEntity()
       val olderDate = Instant.parse("2024-01-01T10:00:00Z")
       val middleDate = Instant.parse("2024-03-01T10:00:00Z")
       val newerDate = Instant.parse("2024-06-01T10:00:00Z")
 
       val entitiesInDbOrder = listOf(
-        buildProposedAccommodationEntity(crn = crn, createdAt = newerDate),
-        buildProposedAccommodationEntity(crn = crn, createdAt = middleDate),
-        buildProposedAccommodationEntity(crn = crn, createdAt = olderDate),
+        buildProposedAccommodationEntity(crn = crn, createdAt = newerDate, createdByUserId = createdByUserId),
+        buildProposedAccommodationEntity(crn = crn, createdAt = middleDate, createdByUserId = createdByUserId),
+        buildProposedAccommodationEntity(crn = crn, createdAt = olderDate, createdByUserId = createdByUserId),
       )
 
       every { proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn) } returns entitiesInDbOrder
+      every { userRepository.findById(createdByUserId) } returns Optional.of(createdByUser)
 
       val result = service.getProposedAccommodations(crn)
 
@@ -65,18 +73,20 @@ class ProposedAccommodationQueryServiceTest {
 
     @Test
     fun `should transform all entities correctly`() {
-      val entities = listOf(
-        buildProposedAccommodationEntity(crn = crn),
-        buildProposedAccommodationEntity(crn = crn),
-      )
+      val createdByUserId = UUID.randomUUID()
+      val createdByUser = buildUserEntity()
+      val entity1 = buildProposedAccommodationEntity(crn = crn, createdByUserId = createdByUserId, createdAt = Instant.now())
+      val entity2 = buildProposedAccommodationEntity(crn = crn, createdByUserId = createdByUserId, createdAt = Instant.now())
+      val entities = listOf(entity1, entity2)
 
       every { proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn) } returns entities
+      every { userRepository.findById(createdByUserId) } returns Optional.of(createdByUser)
 
       val result = service.getProposedAccommodations(crn)
 
       assertThat(result).hasSize(2)
-      val expectedDetails = ProposedAccommodationTransformer.toAccommodationDetails(entities)
-      assertThat(result).containsExactlyInAnyOrderElementsOf(expectedDetails)
+      assertThat(result.first()).isEqualTo(toAccommodationDetail(entity1, createdByUser.name))
+      assertThat(result[1]).isEqualTo(toAccommodationDetail(entity2, createdByUser.name))
     }
   }
 
@@ -87,15 +97,20 @@ class ProposedAccommodationQueryServiceTest {
 
     @Test
     fun `should return accommodation when found by id and crn`() {
-      val entity = buildProposedAccommodationEntity(crn = crn)
-
-      every { proposedAccommodationRepository.findByIdAndCrn(id, crn) } returns entity
+      val createdByUserId = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(
+        crn = crn,
+        createdByUserId = createdByUserId,
+      )
+      val userEntity = buildUserEntity()
+      every { proposedAccommodationRepository.findByIdAndCrn(id, crn) } returns proposedAccommodationEntity
+      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
 
       val result = service.getProposedAccommodation(crn, id)
 
-      assertThat(result.id).isEqualTo(entity.id)
-      assertThat(result.name).isEqualTo(entity.name)
-      assertThat(result.createdAt).isEqualTo(entity.createdAt)
+      assertThat(result.id).isEqualTo(proposedAccommodationEntity.id)
+      assertThat(result.name).isEqualTo(proposedAccommodationEntity.name)
+      assertThat(result.createdAt).isEqualTo(proposedAccommodationEntity.createdAt)
     }
 
     @Test
@@ -115,15 +130,20 @@ class ProposedAccommodationQueryServiceTest {
 
     @Test
     fun `should return accommodation when found by id`() {
-      val entity = buildProposedAccommodationEntity(crn = crn)
-
-      every { proposedAccommodationRepository.findById(id) } returns Optional.of(entity)
+      val createdByUserId = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(
+        crn = crn,
+        createdByUserId = createdByUserId,
+      )
+      val userEntity = buildUserEntity()
+      every { proposedAccommodationRepository.findById(id) } returns Optional.of(proposedAccommodationEntity)
+      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
 
       val result = service.getProposedAccommodation(id)
 
-      assertThat(result.id).isEqualTo(entity.id)
-      assertThat(result.name).isEqualTo(entity.name)
-      assertThat(result.createdAt).isEqualTo(entity.createdAt)
+      assertThat(result.id).isEqualTo(proposedAccommodationEntity.id)
+      assertThat(result.name).isEqualTo(proposedAccommodationEntity.name)
+      assertThat(result.createdAt).isEqualTo(proposedAccommodationEntity.createdAt)
     }
 
     @Test

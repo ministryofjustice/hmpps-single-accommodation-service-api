@@ -44,7 +44,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should get eligibility for crn`() {
     restTestClient.get().uri("/cases/{crn}/eligibility", crn)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {

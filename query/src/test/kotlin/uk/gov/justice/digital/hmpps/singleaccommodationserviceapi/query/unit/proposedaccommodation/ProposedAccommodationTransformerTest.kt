@@ -27,6 +27,7 @@ class ProposedAccommodationTransformerTest {
 
   @Nested
   inner class ToAccommodationDetail {
+    private val createdBy = "Joe Bloggs"
 
     @Test
     fun `should transform entity to AccommodationDetail with all fields`() {
@@ -57,10 +58,11 @@ class ProposedAccommodationTransformerTest {
         county = "Greater London",
         country = "England",
         uprn = "12345678",
+        createdByUserId = UUID.randomUUID(),
         createdAt = createdAt,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, createdBy)
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.name).isEqualTo("Test Name")
@@ -73,6 +75,7 @@ class ProposedAccommodationTransformerTest {
       assertThat(result.offenderReleaseType).isEqualTo(OffenderReleaseType.LICENCE)
       assertThat(result.startDate).isEqualTo(startDate)
       assertThat(result.endDate).isEqualTo(endDate)
+      assertThat(result.createdBy).isEqualTo(createdBy)
       assertThat(result.createdAt).isEqualTo(createdAt)
     }
 
@@ -99,7 +102,7 @@ class ProposedAccommodationTransformerTest {
         uprn = null,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, createdBy)
 
       assertThat(result.name).isNull()
       assertThat(result.arrangementSubType).isNull()
@@ -209,31 +212,6 @@ class ProposedAccommodationTransformerTest {
     fun `should map all OffenderReleaseType values correctly`(entityReleaseType: EntityReleaseType) {
       val result = ProposedAccommodationTransformer.toOffenderReleaseType(entityReleaseType)
       assertThat(result.name).isEqualTo(entityReleaseType.name)
-    }
-  }
-
-  @Nested
-  inner class ToAccommodationDetails {
-
-    @Test
-    fun `should transform list of entities to list of AccommodationDetails`() {
-      val entities = listOf(
-        buildProposedAccommodationEntity(name = "First"),
-        buildProposedAccommodationEntity(name = "Second"),
-        buildProposedAccommodationEntity(name = "Third"),
-      )
-
-      val result = ProposedAccommodationTransformer.toAccommodationDetails(entities)
-
-      assertThat(result).hasSize(3)
-      assertThat(result.map { it.name }).containsExactly("First", "Second", "Third")
-    }
-
-    @Test
-    fun `should return empty list when given empty list`() {
-      val result = ProposedAccommodationTransformer.toAccommodationDetails(emptyList())
-
-      assertThat(result).isEmpty()
     }
   }
 }

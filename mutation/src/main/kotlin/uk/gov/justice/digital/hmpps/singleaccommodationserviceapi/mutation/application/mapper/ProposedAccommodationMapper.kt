@@ -11,9 +11,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
-import java.time.temporal.ChronoUnit
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
+import java.time.Instant
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityOffenderReleaseType
@@ -44,15 +44,37 @@ object ProposedAccommodationMapper {
     county = snapshot.address.county,
     country = snapshot.address.country,
     uprn = snapshot.address.uprn,
-    createdAt = snapshot.createdAt,
-    lastUpdatedAt = snapshot.lastUpdatedAt,
   )
+
+  fun applyToEntity(snapshot: ProposedAccommodationSnapshot, entity: ProposedAccommodationEntity) {
+    entity.name = snapshot.name
+    entity.arrangementType = EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name)
+    entity.arrangementSubType =
+      snapshot.arrangementSubType?.let { EntityAccommodationArrangementSubType.valueOf(it.name) }
+    entity.arrangementSubTypeDescription = snapshot.arrangementSubTypeDescription
+    entity.settledType = EntityAccommodationSettledType.valueOf(snapshot.settledType.name)
+    entity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
+    entity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
+    entity.offenderReleaseType =
+      snapshot.offenderReleaseType?.let { EntityOffenderReleaseType.valueOf(snapshot.offenderReleaseType.name) }
+    entity.startDate = snapshot.startDate
+    entity.endDate = snapshot.endDate
+    entity.postcode = snapshot.address.postcode
+    entity.subBuildingName = snapshot.address.subBuildingName
+    entity.buildingName = snapshot.address.buildingName
+    entity.buildingNumber = snapshot.address.buildingNumber
+    entity.throughfareName = snapshot.address.thoroughfareName
+    entity.dependentLocality = snapshot.address.dependentLocality
+    entity.postTown = snapshot.address.postTown
+    entity.county = snapshot.address.county
+    entity.country = snapshot.address.country
+    entity.uprn = snapshot.address.uprn
+  }
 
   fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate =
     ProposedAccommodationAggregate.hydrateExisting(
       id = entity.id,
       crn = entity.crn,
-      createdAt = entity.createdAt,
       name = entity.name,
       arrangementType = AccommodationArrangementType.valueOf(entity.arrangementType.name),
       arrangementSubType = entity.arrangementSubType?.let { AccommodationArrangementSubType.valueOf(it.name) },
@@ -75,10 +97,13 @@ object ProposedAccommodationMapper {
       ),
       startDate = entity.startDate,
       endDate = entity.endDate,
-      lastUpdatedAt = entity.lastUpdatedAt,
     )
 
-  fun toDto(snapshot: ProposedAccommodationSnapshot) = AccommodationDetail(
+  fun toDto(
+    snapshot: ProposedAccommodationSnapshot,
+    createdBy: String,
+    createdAt: Instant
+  ) = AccommodationDetail(
     id = snapshot.id,
     crn = snapshot.crn,
     name = snapshot.name,
@@ -92,6 +117,7 @@ object ProposedAccommodationMapper {
     endDate = snapshot.endDate,
     offenderReleaseType = snapshot.offenderReleaseType,
     address = snapshot.address,
-    createdAt = snapshot.createdAt.truncatedTo(ChronoUnit.SECONDS),
+    createdBy = createdBy,
+    createdAt = createdAt,
   )
 }

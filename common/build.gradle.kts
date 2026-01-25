@@ -3,4 +3,6 @@ plugins {
 }
 
 dependencies {
+  implementation(libs.hmpps.starter)
+  implementation(libs.spring.json)
 }

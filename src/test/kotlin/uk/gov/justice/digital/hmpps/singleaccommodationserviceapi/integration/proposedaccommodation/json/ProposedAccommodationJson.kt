@@ -34,6 +34,7 @@ fun expectedGetProposedAccommodationsResponse(
     },
     "startDate" : null,
     "endDate" : null,
+    "createdBy":"Test Data Setup User",
     "createdAt" : "$firstCreatedAt"
   },
   {
@@ -61,6 +62,7 @@ fun expectedGetProposedAccommodationsResponse(
     },
     "startDate" : null,
     "endDate" : null,
+    "createdBy":"Test Data Setup User",
     "createdAt" : "$secondCreatedAt"
   }
 ]
@@ -95,6 +97,7 @@ fun expectedGetProposedAccommodationByIdResponse(
   },
   "startDate" : null,
   "endDate" : null,
+  "createdBy":"Test Data Setup User",
   "createdAt" : "$createdAt"
 }
 """.trimIndent()
@@ -130,6 +133,7 @@ fun expectedProposedAddressesResponseBody(
   id: UUID,
   verificationStatus: String,
   nextAccommodationStatus: String,
+  createdBy: String,
   createdAt: String,
 ): String = """
 {
@@ -157,6 +161,7 @@ fun expectedProposedAddressesResponseBody(
   },
   "startDate" : "2026-01-05",
   "endDate" : "2026-04-25",
+  "createdBy":"$createdBy",
   "createdAt" : "$createdAt"
 }
 """.trimIndent()

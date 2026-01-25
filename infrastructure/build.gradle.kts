@@ -2,6 +2,8 @@ plugins {
   `java-test-fixtures`
 }
 dependencies {
+  implementation(project(":common"))
+
   implementation(libs.hmpps.starter)
   implementation(libs.hmpps.sqs)
   implementation(libs.spring.cache)
@@ -11,4 +13,9 @@ dependencies {
   implementation(libs.coroutines.core)
   implementation(libs.shedlock.spring)
   implementation(libs.shedlock.jdbc)
+
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testImplementation(libs.hmpps.starter.test)
+  testImplementation(libs.mockk)
+  testImplementation(testFixtures(project(":infrastructure")))
 }
