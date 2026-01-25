@@ -14,8 +14,8 @@ class AccommodationController(
 ) {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
-  @GetMapping("accommodation/{crn}")
-  fun getAccommodation(@PathVariable crn: String): ResponseEntity<AccommodationDto> = mockedData
+  @GetMapping("/cases/{crn}/accommodations")
+  fun getAccommodations(@PathVariable crn: String): ResponseEntity<AccommodationDto> = mockedData
     ?.let { ResponseEntity.ok(it.crns[crn]!!.accommodation) }
     ?: ResponseEntity.notFound().build()
 }

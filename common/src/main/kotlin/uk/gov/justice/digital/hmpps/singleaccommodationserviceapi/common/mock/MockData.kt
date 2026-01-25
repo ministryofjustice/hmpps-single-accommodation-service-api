@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PrivateAddressesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 
 fun getMockedData(availableCrnList: List<String>) = MockData(
@@ -19,7 +18,7 @@ fun getMockedData(availableCrnList: List<String>) = MockData(
       cas2HdcEligibility = getMockedCas2HdcEligibility(availableCrnList, it),
       cas2PrisonBailEligibility = getMockedCas2PrisonBailEligibility(availableCrnList, it),
       cas2CourtBailEligibility = getMockedCas2CourtBailEligibility(availableCrnList, it),
-      privateAddresses = getMockedPrivateAddresses(availableCrnList, it),
+      proposedAccommodations = getMockedProposedAddresses(availableCrnList, it),
     )
   },
 )
@@ -39,5 +38,5 @@ data class MockCrnData(
   val cas2PrisonBailEligibility: ServiceResult,
   val cas2CourtBailEligibility: ServiceResult,
   val cas3Eligibility: ServiceResult,
-  val privateAddresses: PrivateAddressesDto,
+  val proposedAccommodations: List<AccommodationDetail>,
 )
