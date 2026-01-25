@@ -50,7 +50,7 @@ fun expectedGetCasesResponse(): String = """
     "arrangementSubTypeDescription" : null,
     "settledType" : "TRANSIENT",
     "offenderReleaseType" : null,
-    "status" : "CONFIRMED",
+    "status" : "PASSED",
     "address" : {
       "postcode" : "RG26 5AG",
       "subBuildingName" : null,
