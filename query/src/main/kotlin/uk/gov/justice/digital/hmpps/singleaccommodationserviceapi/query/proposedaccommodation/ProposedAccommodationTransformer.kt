@@ -17,10 +17,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityReleaseType
 
 object ProposedAccommodationTransformer {
-  fun toAccommodationDetails(entities: List<ProposedAccommodationEntity>): List<AccommodationDetail> =
-    entities.map { toAccommodationDetail(it) }
 
-  fun toAccommodationDetail(entity: ProposedAccommodationEntity): AccommodationDetail =
+  fun toAccommodationDetail(entity: ProposedAccommodationEntity, createdBy: String): AccommodationDetail =
     AccommodationDetail(
       id = entity.id,
       name = entity.name,
@@ -35,7 +33,8 @@ object ProposedAccommodationTransformer {
       address = toAddressDetails(entity),
       startDate = entity.startDate,
       endDate = entity.endDate,
-      createdAt = entity.createdAt,
+      createdBy = createdBy,
+      createdAt = entity.createdAt!!,
     )
 
   fun toAddressDetails(entity: ProposedAccommodationEntity): AccommodationAddressDetails =

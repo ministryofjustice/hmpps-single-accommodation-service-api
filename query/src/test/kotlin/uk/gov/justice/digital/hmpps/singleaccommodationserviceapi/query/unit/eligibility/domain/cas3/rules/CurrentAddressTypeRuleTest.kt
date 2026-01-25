@@ -100,6 +100,7 @@ class CurrentAddressTypeRuleTest {
       country = null,
       uprn = null
     ),
+    createdBy = "Joe Bloggs",
     createdAt = Instant.now()
   )
 }

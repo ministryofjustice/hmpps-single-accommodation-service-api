@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
@@ -20,6 +21,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAddressesResponseBody
@@ -30,26 +33,32 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
 class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
+  private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
-  lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
+  private lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
 
   @Autowired
-  lateinit var outboxEventRepository: OutboxEventRepository
+  private lateinit var outboxEventRepository: OutboxEventRepository
 
   private val crn = "FAKECRN1"
 
+  private lateinit var beforeTest: Instant
+
   @BeforeEach
   fun setup() {
+    beforeTest = Instant.now()
     proposedAccommodationRepository.deleteAll()
     outboxEventRepository.deleteAll()
+
     hmppsAuth.stubGrantToken()
+    createTestDataSetupUserAndDeliusUser()
   }
 
   @AfterEach
@@ -60,15 +69,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get proposed-accommodation for crn`() {
-    val olderTimestamp = Instant.parse("2025-01-01T10:00:00Z")
-    val newerTimestamp = Instant.parse("2025-01-02T10:00:00Z")
-
     val olderEntity = createAndSaveProposedAccommodation(
       postcode = "RG26 5AG",
       buildingNumber = "4",
       thoroughfareName = "Dollis Green",
       postTown = "Bramley",
-      createdAt = olderTimestamp,
     )
 
     val newerEntity = createAndSaveProposedAccommodation(
@@ -76,20 +81,19 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       buildingNumber = "11",
       thoroughfareName = "Piccadilly Circus",
       postTown = "London",
-      createdAt = newerTimestamp,
     )
 
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationsResponse(
             firstId = newerEntity.id,
-            firstCreatedAt = newerEntity.createdAt.toString(),
+            firstCreatedAt = newerEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             secondId = olderEntity.id,
-            secondCreatedAt = olderEntity.createdAt.toString(),
+            secondCreatedAt = olderEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
       }
@@ -102,18 +106,17 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       buildingNumber = "11",
       thoroughfareName = "Piccadilly Circus",
       postTown = "London",
-      createdAt = Instant.parse("2025-01-01T10:00:00Z"),
     )
 
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
-            createdAt = entity.createdAt.toString(),
+            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
       }
@@ -126,18 +129,17 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       buildingNumber = "11",
       thoroughfareName = "Piccadilly Circus",
       postTown = "London",
-      createdAt = Instant.parse("2025-01-01T10:00:00Z"),
     )
 
     restTestClient.get().uri("/proposed-accommodations/{id}", entity.id)
-      .withJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
+      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
-            createdAt = entity.createdAt.toString(),
+            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
       }
@@ -148,7 +150,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val nonExistentId = UUID.randomUUID()
 
     restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
-      .withJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
+      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
       .exchange()
       .expectStatus().isNotFound
   }
@@ -158,7 +160,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val nonExistentId = UUID.randomUUID()
 
     restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
-      .withJwt(roles = listOf("ROLE_PROBATION"))
+      .withDeliusUserJwt(roles = listOf("ROLE_PROBATION"))
       .exchange()
       .expectStatus().isForbidden
   }
@@ -168,7 +170,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val nonExistentId = UUID.randomUUID()
 
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, nonExistentId)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
   }
@@ -176,7 +178,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `should return empty list when no proposed-accommodations exist for crn`() {
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
@@ -190,16 +192,16 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          verificationStatus = EntityVerificationStatus.PASSED.name,
+          verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
       )
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.getByCrn(crn)!!
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findByCrn(crn)!!
     assertPersistedProposedAccommodation(proposedAccommodationPersistedResult)
 
     assertThatJson(result).matchesExpectedJson(
@@ -207,7 +209,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = proposedAccommodationPersistedResult.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        createdAt = proposedAccommodationPersistedResult.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
+        createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
     )
     assertPublishedSNSEvent(
@@ -231,7 +234,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
         offenderReleaseType = OffenderReleaseType.REMAND,
-        createdAt = Instant.parse("2025-06-01T10:00:00Z"),
       ),
     )
 
@@ -243,7 +245,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
       )
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .returnResult().responseBody!!
@@ -253,7 +255,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = existingEntity.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
     )
 
@@ -274,7 +277,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        createdAt = Instant.parse("2025-06-01T10:00:00Z"),
       ),
     )
 
@@ -286,7 +288,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
 
     assertThat(outboxEventRepository.findAll()).isEmpty()
@@ -304,7 +306,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
       )
-      .withJwt()
+      .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
   }
@@ -327,14 +329,13 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
       )
-      .withJwt()
+      .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
   }
 
   @Test
-  fun `should preserve original createdAt when updating proposed-accommodation`() {
-    val originalCreatedAt = Instant.parse("2025-06-01T10:00:00Z")
+  fun `should preserve original createdBy when updating proposed-accommodation`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         crn = crn,
@@ -342,7 +343,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        createdAt = originalCreatedAt,
       ),
     )
 
@@ -354,7 +354,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .returnResult().responseBody!!
@@ -364,8 +364,17 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = existingEntity.id,
         verificationStatus = VerificationStatus.NOT_CHECKED_YET.name,
         nextAccommodationStatus = NextAccommodationStatus.NO.name,
-        createdAt = originalCreatedAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
+    )
+
+    val updatedEntity = proposedAccommodationRepository.findByIdOrNull(existingEntity.id)!!
+    assertThat(updatedEntity.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(updatedEntity.lastUpdatedByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
+    assertThat(updatedEntity.lastUpdatedAt).isBetween(
+      beforeTest.minusSeconds(1),
+      Instant.now().plusSeconds(1),
     )
   }
 
@@ -374,7 +383,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     buildingNumber: String,
     thoroughfareName: String,
     postTown: String,
-    createdAt: Instant,
   ): ProposedAccommodationEntity {
     val entity = buildProposedAccommodationEntity(
       crn = crn,
@@ -382,7 +390,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       buildingNumber = buildingNumber,
       throughfareName = thoroughfareName,
       postTown = postTown,
-      createdAt = createdAt,
     )
     return proposedAccommodationRepository.save(entity)
   }
@@ -407,6 +414,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationEntity.uprn).isEqualTo("UP123454")
     assertThat(proposedAccommodationEntity.startDate).isEqualTo(LocalDate.of(2026, 1, 5))
     assertThat(proposedAccommodationEntity.endDate).isEqualTo(LocalDate.of(2026, 4, 25))
+    assertThat(proposedAccommodationEntity.createdByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
+    assertThat(proposedAccommodationEntity.createdAt).isBetween(
+      beforeTest.minusSeconds(1),
+      Instant.now().plusSeconds(1),
+    )
   }
 
   private fun assertPublishedSNSEvent(

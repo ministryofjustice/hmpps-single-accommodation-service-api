@@ -5,7 +5,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Ldu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Manager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Name
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.PersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Profile
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Team
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.LocalDate
@@ -69,4 +71,19 @@ fun buildTeam() = Team(
   ),
   startDate = LocalDate.now().minusYears(1),
   endDate = LocalDate.now().plusYears(1),
+)
+
+fun buildStaffDetail() = StaffDetail(
+  email = "test.user@justice.gov.uk",
+  telephoneNumber = null,
+  teams = listOf(buildTeam()),
+  username = "test.user",
+  name = buildPersonName(),
+  code = "code",
+  active = true
+)
+
+fun buildPersonName() = PersonName(
+  forename = "Test",
+  surname = "User",
 )

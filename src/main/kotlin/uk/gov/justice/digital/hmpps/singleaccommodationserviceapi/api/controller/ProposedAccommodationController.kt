@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateAccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateAccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import java.util.UUID
@@ -40,7 +39,7 @@ class ProposedAccommodationController(
   @PostMapping("/cases/{crn}/proposed-accommodations")
   fun create(
     @PathVariable crn: String,
-    @RequestBody request: CreateAccommodationDetail,
+    @RequestBody request: AccommodationDetailCommand,
   ): ResponseEntity<AccommodationDetail> {
     val createdProposedAccommodation = proposedAccommodationApplicationService.createProposedAccommodation(crn, request)
     return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
@@ -58,7 +57,7 @@ class ProposedAccommodationController(
   fun update(
     @PathVariable crn: String,
     @PathVariable id: UUID,
-    @RequestBody request: UpdateAccommodationDetail,
+    @RequestBody request: AccommodationDetailCommand,
   ): ResponseEntity<AccommodationDetail> {
     val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(crn, id, request)
     return ResponseEntity.ok(updatedProposedAccommodation)

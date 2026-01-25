@@ -15,7 +15,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should get dutyToRefers for crn`() {
     restTestClient.get().uri("/cases/{crn}/dtrs", crn)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully().expectStatus().isOk
   }
 }

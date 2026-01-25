@@ -50,7 +50,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
