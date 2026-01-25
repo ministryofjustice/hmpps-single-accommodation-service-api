@@ -25,6 +25,19 @@ data class AccommodationDetail(
   val createdAt: Instant,
 )
 
+data class CreateAccommodationDetail(
+  val name: String?,
+  val arrangementType: AccommodationArrangementType,
+  val arrangementSubType: AccommodationArrangementSubType?,
+  val arrangementSubTypeDescription: String?,
+  val settledType: AccommodationSettledType,
+  val offenderReleaseType: OffenderReleaseType?,
+  val status: AccommodationStatus,
+  val address: AccommodationAddressDetails,
+  val startDate: LocalDate?,
+  val endDate: LocalDate?,
+)
+
 enum class AccommodationArrangementType {
   PRISON,
   CAS1,
@@ -51,9 +64,8 @@ enum class AccommodationSettledType {
 
 enum class AccommodationStatus {
   NOT_CHECKED_YET,
-  CHECKS_PASSED,
-  CHECKS_FAILED,
-  CONFIRMED,
+  FAILED,
+  PASSED
 }
 
 enum class OffenderReleaseType {

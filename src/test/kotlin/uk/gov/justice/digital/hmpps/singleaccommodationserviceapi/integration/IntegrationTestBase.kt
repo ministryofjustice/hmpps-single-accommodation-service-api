@@ -14,6 +14,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.CANONICAL_INSTANT_FORMATTER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestRedissonConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.AccommodationDataDomainMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesMockServer
@@ -25,6 +26,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -101,4 +104,8 @@ abstract class IntegrationTestBase {
     tierMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
   }
+
+  fun Instant.toCanonicalString(): String = CANONICAL_INSTANT_FORMATTER.format(
+    this.truncatedTo(ChronoUnit.MICROS),
+  )
 }

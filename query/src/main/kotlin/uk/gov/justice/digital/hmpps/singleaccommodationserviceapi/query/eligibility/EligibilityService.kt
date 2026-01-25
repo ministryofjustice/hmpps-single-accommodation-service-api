@@ -46,7 +46,7 @@ class EligibilityService(
     val cas2PrisonBail = calculateEligibilityForCas2PrisonBail(data)
     val cas2CourtBail = calculateEligibilityForCas2CourtBail(data)
 
-    return toEligibilityDto(
+    return EligibilityTransformer.toEligibilityDto(
       crn = crn,
       cas1 = cas1,
       cas2Hdc = cas2Hdc,
