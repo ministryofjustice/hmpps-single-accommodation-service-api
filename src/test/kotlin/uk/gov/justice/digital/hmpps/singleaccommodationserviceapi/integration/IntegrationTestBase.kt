@@ -14,6 +14,9 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.CANONICAL_INSTANT_FORMATTER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestCasesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestMockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestRedissonConfig
@@ -27,6 +30,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,6 +49,12 @@ abstract class IntegrationTestBase {
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
+
+  @Autowired
+  lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
+
+  @Autowired
+  lateinit var outboxEventRepository: OutboxEventRepository
 
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
@@ -84,6 +95,9 @@ abstract class IntegrationTestBase {
 
   @AfterAll
   fun stopMocks() {
+    outboxEventRepository.deleteAll()
+    proposedAccommodationRepository.deleteAll()
+
     hmppsAuth.stop()
     approvedPremisesMockServer.stop()
     corePersonRecordMockServer.stop()
@@ -95,6 +109,9 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun resetStubs() {
+    outboxEventRepository.deleteAll()
+    proposedAccommodationRepository.deleteAll()
+
     hmppsAuth.resetAll()
     approvedPremisesMockServer.resetAll()
     corePersonRecordMockServer.resetAll()
@@ -103,4 +120,8 @@ abstract class IntegrationTestBase {
     tierMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
   }
+
+  fun Instant.toCanonicalString(): String = CANONICAL_INSTANT_FORMATTER.format(
+    this.truncatedTo(ChronoUnit.MICROS),
+  )
 }

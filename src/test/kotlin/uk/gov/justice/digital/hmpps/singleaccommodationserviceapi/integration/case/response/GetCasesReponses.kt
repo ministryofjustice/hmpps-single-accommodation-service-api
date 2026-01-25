@@ -40,7 +40,7 @@ fun expectedGetCasesResponse(): String = """
     },
     "startDate" : null,
     "endDate" : null,
-    "createdAt" : "2023-01-02T11:07:09.120069Z"
+    "createdAt" : "2023-01-02T11:07:09Z"
   },
   "nextAccommodation" : {
     "id" : "b697a854-96af-4360-a715-189a78d4f70f",
@@ -50,7 +50,7 @@ fun expectedGetCasesResponse(): String = """
     "arrangementSubTypeDescription" : null,
     "settledType" : "TRANSIENT",
     "offenderReleaseType" : null,
-    "status" : "CONFIRMED",
+    "status" : "PASSED",
     "address" : {
       "postcode" : "RG26 5AG",
       "subBuildingName" : null,
@@ -65,7 +65,7 @@ fun expectedGetCasesResponse(): String = """
     },
     "startDate" : null,
     "endDate" : null,
-    "createdAt" : "2026-01-20T16:07:20.120069Z"
+    "createdAt" : "2026-01-20T16:07:20Z"
   }
 }, {
   "name" : "Zack Middle Smith",
@@ -103,7 +103,7 @@ fun expectedGetCasesResponse(): String = """
     },
     "startDate" : null,
     "endDate" : null,
-    "createdAt" : "2021-11-11T14:35:11.120069Z"
+    "createdAt" : "2021-11-11T14:35:11Z"
   },
   "nextAccommodation" : {
     "id" : "fa75a728-1020-44d0-8bb6-343ca1197d2e",
@@ -128,7 +128,7 @@ fun expectedGetCasesResponse(): String = """
     },
     "startDate" : null,
     "endDate" : null,
-    "createdAt" : "2026-01-15T12:19:20.120069Z"
+    "createdAt" : "2026-01-15T12:19:20Z"
   }
 } ]
 """.trimIndent()
@@ -170,7 +170,7 @@ fun expectedGetCasesWithFilterResponse(): String = """
     },
     "startDate" : null,
     "endDate" : null,
-    "createdAt" : "2021-11-11T14:35:11.120069Z"
+    "createdAt" : "2021-11-11T14:35:11Z"
   },
   "nextAccommodation" : {
     "id" : "fa75a728-1020-44d0-8bb6-343ca1197d2e",
@@ -195,7 +195,7 @@ fun expectedGetCasesWithFilterResponse(): String = """
     },
     "startDate" : null,
     "endDate" : null,
-    "createdAt" : "2026-01-15T12:19:20.120069Z"
+    "createdAt" : "2026-01-15T12:19:20Z"
   }
 } ]
 """.trimIndent()

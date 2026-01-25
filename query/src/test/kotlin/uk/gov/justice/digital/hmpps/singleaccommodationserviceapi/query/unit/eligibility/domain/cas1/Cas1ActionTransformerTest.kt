@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.buildCas1Action
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ActionTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 import java.util.UUID
@@ -32,7 +32,7 @@ class Cas1ActionTransformerTest {
           sex = SexCode.M,
           releaseDate = releaseDate,
       )
-      val result = buildCas1Action(data, clock)
+      val result = Cas1ActionTransformer.buildCas1Action(data, clock)
       val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL)
       Assertions.assertThat(result).isEqualTo(expectedResult)
     }
@@ -47,7 +47,7 @@ class Cas1ActionTransformerTest {
           sex = SexCode.M,
           releaseDate = releaseDate,
       )
-      val result = buildCas1Action(data, clock)
+      val result = Cas1ActionTransformer.buildCas1Action(data, clock)
       val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_REFERRAL} in 31 days", true)
       Assertions.assertThat(result).isEqualTo(expectedResult)
     }
@@ -62,7 +62,7 @@ class Cas1ActionTransformerTest {
           sex = SexCode.M,
           releaseDate = releaseDate,
       )
-      val result = buildCas1Action(data, clock)
+      val result = Cas1ActionTransformer.buildCas1Action(data, clock)
       val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL)
       Assertions.assertThat(result).isEqualTo(expectedResult)
     }
@@ -77,7 +77,7 @@ class Cas1ActionTransformerTest {
           sex = SexCode.M,
           releaseDate = releaseDate,
       )
-      val result = buildCas1Action(data, clock)
+      val result = Cas1ActionTransformer.buildCas1Action(data, clock)
       val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_REFERRAL} in 1 day", true)
       Assertions.assertThat(result).isEqualTo(expectedResult)
     }
@@ -92,7 +92,7 @@ class Cas1ActionTransformerTest {
           sex = SexCode.M,
           releaseDate = releaseDate,
       )
-      val result = buildCas1Action(data, clock)
+      val result = Cas1ActionTransformer.buildCas1Action(data, clock)
       val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_REFERRAL} in 2 days", true)
       Assertions.assertThat(result).isEqualTo(expectedResult)
     }
@@ -105,7 +105,7 @@ class Cas1ActionTransformerTest {
           sex = SexCode.M,
           releaseDate = null,
       )
-      Assertions.assertThatThrownBy { buildCas1Action(data, clock) }
+      Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
         .isInstanceOf(IllegalStateException::class.java)
         .hasMessageContaining("Release date for crn: ABC234 is null")
     }
@@ -127,7 +127,7 @@ class Cas1ActionTransformerTest {
         cas1Application = cas1Application
     )
 
-    val result = buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.CREATE_PLACEMENT))
   }
@@ -149,7 +149,7 @@ class Cas1ActionTransformerTest {
         cas1Application = cas1Application
     )
 
-    val result = buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.CREATE_PLACEMENT))
   }
@@ -171,7 +171,7 @@ class Cas1ActionTransformerTest {
         cas1Application = cas1Application
     )
 
-    val result = buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.AWAIT_ASSESSMENT, true))
   }
@@ -190,7 +190,7 @@ class Cas1ActionTransformerTest {
         )
     )
 
-    val result = buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.PROVIDE_INFORMATION))
   }
@@ -212,7 +212,7 @@ class Cas1ActionTransformerTest {
       cas1Application = cas1Application
   )
 
-    val result = buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL))
   }
@@ -231,7 +231,7 @@ class Cas1ActionTransformerTest {
       )
     )
 
-    Assertions.assertThatThrownBy { buildCas1Action(data, clock) }
+    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
       .isInstanceOf(IllegalStateException::class.java)
       .hasMessageContaining("Invalid placement status: null")
   }
@@ -251,7 +251,7 @@ class Cas1ActionTransformerTest {
       )
     )
 
-    Assertions.assertThatThrownBy { buildCas1Action(data, clock) }
+    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
       .isInstanceOf(IllegalStateException::class.java)
       .hasMessageContaining("Invalid placement status: $status")
   }
