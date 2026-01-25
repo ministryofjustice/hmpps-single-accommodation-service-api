@@ -19,6 +19,8 @@ service:
     base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
   accommodation-data-domain:
     base-url: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
+  nomis-user-roles:
+    base-url: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
 
 redis:
   host: localhost

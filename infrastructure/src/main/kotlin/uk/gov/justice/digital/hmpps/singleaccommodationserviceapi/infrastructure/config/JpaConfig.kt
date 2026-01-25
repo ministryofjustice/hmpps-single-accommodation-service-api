@@ -19,9 +19,9 @@ class JpaAuditorConfig(
 ) {
 
   @Bean
-  @Profile("dev", "preprod", "prod")
+  @Profile("local", "dev", "preprod", "prod")
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
-    val deliusUser = userService.getDeliusUserForRequest()
-    Optional.of(deliusUser.id)
+    val user = userService.getUserForRequest()
+    Optional.of(user.id)
   }
 }

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,9 +14,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 class CaseController(
   private val caseService: CaseService,
 ) {
-  private val log = LoggerFactory.getLogger(this::class.java)
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @GetMapping("/cases")
   fun getCases(
     @RequestParam(required = false) searchTerm: String?,
@@ -34,7 +32,7 @@ class CaseController(
     }
   }
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
     val case = caseService.getCase(crn)

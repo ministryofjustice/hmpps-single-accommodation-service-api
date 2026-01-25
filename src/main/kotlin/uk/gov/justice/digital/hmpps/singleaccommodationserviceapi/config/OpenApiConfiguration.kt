@@ -9,7 +9,6 @@ import io.swagger.v3.oas.models.servers.Server
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.constants.Roles
 
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
@@ -35,7 +34,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .components(
       Components().addSecuritySchemes(
         "role-probation",
-        SecurityScheme().addBearerJwtRequirement(Roles.ROLE_PROBATION),
+        SecurityScheme().addBearerJwtRequirement("ROLE_PROBATION"),
       ),
     )
   // TODO Add security schema and roles in `.addSecurityItem()`

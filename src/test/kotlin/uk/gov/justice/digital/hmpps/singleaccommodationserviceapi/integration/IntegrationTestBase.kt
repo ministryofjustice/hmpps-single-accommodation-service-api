@@ -30,6 +30,8 @@ const val USERNAME_OF_TEST_DATA_SETUP_USER = "TEST_DATA_SETUP_USER"
 const val NAME_OF_TEST_DATA_SETUP_USER: String = "Test Data Setup User"
 const val USERNAME_OF_LOGGED_IN_DELIUS_USER = "DELIUS_USER"
 const val NAME_OF_LOGGED_IN_DELIUS_USER: String = "DeliusUser"
+const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
+const val NAME_OF_LOGGED_IN_NOMIS_USER: String = "NomisUser"
 
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -122,27 +124,27 @@ abstract class IntegrationTestBase {
     .until({ supplier() }, { it != null })!!
 
   fun RestTestClient.RequestHeadersSpec<*>.withDeliusUserJwt(
-    roles: List<String> = listOf("ROLE_PROBATION"),
-  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
-    it.setBearerAuth(
-      jwtAuthHelper.createJwtAccessToken(
-        username = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-        roles = roles,
-        authSource = AuthSource.DELIUS.name.lowercase(),
-      ),
-    )
-  }
-
-  fun RestTestClient.RequestHeadersSpec<*>.withUnknownDeliusUserJwt(
-    username: String,
+    username: String = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     roles: List<String> = listOf("ROLE_PROBATION"),
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(
         username = username,
         roles = roles,
-        authSource = AuthSource.DELIUS.name.lowercase(),
+        authSource = AuthSource.DELIUS.authSource,
       ),
     )
+  }
+
+  fun RestTestClient.RequestHeadersSpec<*>.withNomisUserJwt(
+    username: String = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+    roles: List<String> = listOf("ROLE_POM", "ROLE_PRISON"),
+    jwt: String = jwtAuthHelper.createJwtAccessToken(
+      username = username,
+      roles = roles,
+      authSource = AuthSource.NOMIS.authSource,
+    ),
+  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
+    it.setBearerAuth(jwt)
   }
 }

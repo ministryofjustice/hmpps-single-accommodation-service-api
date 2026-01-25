@@ -18,6 +18,7 @@ generic-service:
     SERVICE_TIER_BASE-URL: https://hmpps-tier.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search.prison.service.justice.gov.uk
     SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api.hmpps.service.justice.gov.uk
+    SERVICES_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api.prison.service.justice.gov.uk
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api.hmpps.service.justice.gov.uk/proposed-accommodations/#id
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack

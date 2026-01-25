@@ -26,6 +26,12 @@ data class UserEntity(
   var isActive: Boolean,
 )
 
-enum class AuthSource {
-  DELIUS,
+enum class AuthSource(val authSource: String) {
+  DELIUS("delius"),
+  NOMIS("nomis"),
+  ;
+
+  companion object {
+    fun fromString(authSource: String): AuthSource = AuthSource.entries.first { it.authSource == authSource }
+  }
 }

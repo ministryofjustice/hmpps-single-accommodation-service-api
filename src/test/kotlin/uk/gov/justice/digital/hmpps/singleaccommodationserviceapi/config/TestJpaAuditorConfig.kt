@@ -19,8 +19,8 @@ class TestJpaAuditorConfig(
   @Bean
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
     try {
-      val deliusUser = userService.getDeliusUserForRequest()
-      Optional.of(deliusUser.id)
+      val user = userService.getUserForRequest()
+      Optional.of(user.id)
     } catch (_: Exception) {
       Optional.of(testDataSetupUserId)
     }

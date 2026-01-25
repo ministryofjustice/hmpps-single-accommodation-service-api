@@ -13,7 +13,7 @@ class EligibilityController(
   val eligibilityService: EligibilityService,
 ) {
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @GetMapping("/cases/{crn}/eligibility")
   fun getEligibility(@PathVariable crn: String): ResponseEntity<EligibilityDto> = ResponseEntity.ok(eligibilityService.getEligibility(crn))
 }

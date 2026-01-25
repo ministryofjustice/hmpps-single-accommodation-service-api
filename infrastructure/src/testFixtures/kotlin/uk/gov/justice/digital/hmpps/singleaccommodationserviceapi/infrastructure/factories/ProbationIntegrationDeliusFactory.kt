@@ -73,11 +73,14 @@ fun buildTeam() = Team(
   endDate = LocalDate.now().plusYears(1),
 )
 
-fun buildStaffDetail() = StaffDetail(
-  email = "test.user@justice.gov.uk",
-  telephoneNumber = null,
+fun buildStaffDetail(
+  username: String = "test.user",
+  email: String = "test.user@justice.gov.uk",
+) = StaffDetail(
+  email = email,
+  telephoneNumber = "07665111456",
   teams = listOf(buildTeam()),
-  username = "test.user",
+  username = username,
   name = buildPersonName(),
   code = "code",
   active = true,

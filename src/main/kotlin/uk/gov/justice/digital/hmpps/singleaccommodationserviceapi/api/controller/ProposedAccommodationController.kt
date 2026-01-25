@@ -21,21 +21,21 @@ class ProposedAccommodationController(
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
 ) {
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<List<AccommodationDetail>> {
     val accommodations = proposedAccommodationQueryService.getProposedAccommodations(crn)
     return ResponseEntity.ok(accommodations)
   }
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @GetMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun getById(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<AccommodationDetail> {
     val accommodation = proposedAccommodationQueryService.getProposedAccommodation(crn, id)
     return ResponseEntity.ok(accommodation)
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @PostMapping("/cases/{crn}/proposed-accommodations")
   fun create(
     @PathVariable crn: String,
@@ -52,7 +52,7 @@ class ProposedAccommodationController(
     return ResponseEntity.ok(accommodation)
   }
 
-  @PreAuthorize("hasAnyRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @PutMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun update(
     @PathVariable crn: String,
