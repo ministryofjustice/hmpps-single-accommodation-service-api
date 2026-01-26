@@ -21,7 +21,8 @@ fun expectedGetCasesResponse(): String = """
       "currentAccommodation":{
          "id":"f3813060-59c7-48ff-8729-3ea6efbf375b",
          "arrangementType":"PRISON",
-         "arrangementTypeDescription":null,
+         "arrangementSubType":null,
+         "arrangementSubTypeDescription":null,
          "settledType":"TRANSIENT",
          "status":null,
          "address":{
@@ -41,8 +42,9 @@ fun expectedGetCasesResponse(): String = """
       },
       "nextAccommodation":{
          "id":"b697a854-96af-4360-a715-189a78d4f70f",
-         "arrangementType":"FRIENDS_OR_FAMILY",
-         "arrangementTypeDescription":null,
+         "arrangementType":"PRIVATE",
+         "arrangementSubType":"FRIENDS_OR_FAMILY",
+         "arrangementSubTypeDescription":null,
          "settledType":"TRANSIENT",
          "status":"PASSED",
          "address":{
@@ -77,7 +79,8 @@ fun expectedGetCasesResponse(): String = """
       "currentAccommodation":{
          "id":"f296b6a7-79c3-4d46-b5ed-683e72e9ae09",
          "arrangementType":"PRISON",
-         "arrangementTypeDescription":null,
+         "arrangementSubType":null,
+         "arrangementSubTypeDescription":null,
          "settledType":"TRANSIENT",
          "status":null,
          "address":{
@@ -97,8 +100,9 @@ fun expectedGetCasesResponse(): String = """
       },
       "nextAccommodation":{
          "id":"fa75a728-1020-44d0-8bb6-343ca1197d2e",
-         "arrangementType":"SOCIAL_RENTED",
-         "arrangementTypeDescription":null,
+         "arrangementType":"PRIVATE",
+         "arrangementSubType":"SOCIAL_RENTED",
+         "arrangementSubTypeDescription":null,
          "settledType":"SETTLED",
          "status":"NOT_CHECKED_YET",
          "address":{
@@ -138,7 +142,8 @@ fun expectedGetCasesWithFilterResponse(): String = """
       "currentAccommodation":{
          "id":"f296b6a7-79c3-4d46-b5ed-683e72e9ae09",
          "arrangementType":"PRISON",
-         "arrangementTypeDescription":null,
+         "arrangementSubType":null,
+         "arrangementSubTypeDescription":null,
          "settledType":"TRANSIENT",
          "status":null,
          "address":{
@@ -158,8 +163,9 @@ fun expectedGetCasesWithFilterResponse(): String = """
       },
       "nextAccommodation":{
          "id":"fa75a728-1020-44d0-8bb6-343ca1197d2e",
-         "arrangementType":"SOCIAL_RENTED",
-         "arrangementTypeDescription":null,
+         "arrangementType":"PRIVATE",
+         "arrangementSubType":"SOCIAL_RENTED",
+         "arrangementSubTypeDescription":null,
          "settledType":"SETTLED",
          "status":"NOT_CHECKED_YET",
          "address":{

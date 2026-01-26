@@ -12,7 +12,8 @@ data class AccommodationDto(
 data class AccommodationDetail(
   val id: UUID,
   val arrangementType: AccommodationArrangementType,
-  val arrangementTypeDescription: String?,
+  val arrangementSubType: AccommodationArrangementSubType?,
+  val arrangementSubTypeDescription: String?,
   val settledType: AccommodationSettledType,
   val status: AccommodationStatus?,
   val address: AccommodationAddressDetails,
@@ -22,6 +23,15 @@ data class AccommodationDetail(
 
 enum class AccommodationArrangementType {
   PRISON,
+  CAS1,
+  CAS2,
+  CAS2V2,
+  CAS3,
+  PRIVATE,
+  NO_FIXED_ABODE,
+}
+
+enum class AccommodationArrangementSubType {
   FRIENDS_OR_FAMILY,
   SOCIAL_RENTED,
   PRIVATE_RENTED_WHOLE_PROPERTY,
