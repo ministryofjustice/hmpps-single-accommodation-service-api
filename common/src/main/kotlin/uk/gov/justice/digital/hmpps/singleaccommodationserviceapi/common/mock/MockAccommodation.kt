@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDto
@@ -18,8 +19,9 @@ fun getMockedAccommodation(availableCrnList: List<String>, crn: String) = Accomm
 fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = when (crn) {
   availableCrnList[0] -> AccommodationDetail(
     id = UUID.fromString("b697a854-96af-4360-a715-189a78d4f70f"),
-    arrangementType = AccommodationArrangementType.FRIENDS_OR_FAMILY,
-    arrangementTypeDescription = null,
+    arrangementType = AccommodationArrangementType.PRIVATE,
+    arrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.TRANSIENT,
     status = AccommodationStatus.PASSED,
     address = AccommodationAddressDetails(
@@ -40,8 +42,9 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 
   availableCrnList[1] -> AccommodationDetail(
     id = UUID.fromString("fa75a728-1020-44d0-8bb6-343ca1197d2e"),
-    arrangementType = AccommodationArrangementType.SOCIAL_RENTED,
-    arrangementTypeDescription = null,
+    arrangementType = AccommodationArrangementType.PRIVATE,
+    arrangementSubType = AccommodationArrangementSubType.SOCIAL_RENTED,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.SETTLED,
     status = AccommodationStatus.NOT_CHECKED_YET,
     address = AccommodationAddressDetails(
@@ -62,8 +65,9 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 
   availableCrnList[2] -> AccommodationDetail(
     id = UUID.fromString("a32ab37c-8830-4806-b6d6-72da561ce1ee"),
-    arrangementType = AccommodationArrangementType.PRIVATE_RENTED_ROOM,
-    arrangementTypeDescription = null,
+    arrangementType = AccommodationArrangementType.PRIVATE,
+    arrangementSubType = AccommodationArrangementSubType.PRIVATE_RENTED_ROOM,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.SETTLED,
     status = AccommodationStatus.NOT_CHECKED_YET,
     address = AccommodationAddressDetails(
@@ -84,8 +88,9 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
 
   availableCrnList[3] -> AccommodationDetail(
     id = UUID.fromString("c46099b9-65b0-4742-89db-871e60bbc982"),
-    arrangementType = AccommodationArrangementType.OTHER,
-    arrangementTypeDescription = "Caravan",
+    arrangementType = AccommodationArrangementType.PRIVATE,
+    arrangementSubType = AccommodationArrangementSubType.OTHER,
+    arrangementSubTypeDescription = "Caravan",
     settledType = AccommodationSettledType.TRANSIENT,
     status = AccommodationStatus.NOT_CHECKED_YET,
     address = AccommodationAddressDetails(
@@ -110,7 +115,8 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   availableCrnList[0] -> AccommodationDetail(
     id = UUID.fromString("f3813060-59c7-48ff-8729-3ea6efbf375b"),
     arrangementType = AccommodationArrangementType.PRISON,
-    arrangementTypeDescription = null,
+    arrangementSubType = null,
+    arrangementSubTypeDescription  = null,
     settledType = AccommodationSettledType.TRANSIENT,
     status = null,
     address = AccommodationAddressDetails(
@@ -131,7 +137,8 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   availableCrnList[1] -> AccommodationDetail(
     id = UUID.fromString("f296b6a7-79c3-4d46-b5ed-683e72e9ae09"),
     arrangementType = AccommodationArrangementType.PRISON,
-    arrangementTypeDescription = null,
+    arrangementSubType = null,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.TRANSIENT,
     status = null,
     address = AccommodationAddressDetails(
@@ -152,7 +159,8 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   availableCrnList[2] -> AccommodationDetail(
     id = UUID.fromString("b697a854-96af-4360-a715-189a78d4f70f"),
     arrangementType = AccommodationArrangementType.PRISON,
-    arrangementTypeDescription = null,
+    arrangementSubType = null,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.TRANSIENT,
     status = null,
     address = AccommodationAddressDetails(
@@ -173,7 +181,8 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
   availableCrnList[3] -> AccommodationDetail(
     id = UUID.fromString("5b845756-7760-45bb-b756-c6b112e9778c"),
     arrangementType = AccommodationArrangementType.PRISON,
-    arrangementTypeDescription = null,
+    arrangementSubType = null,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.TRANSIENT,
     status = null,
     address = AccommodationAddressDetails(

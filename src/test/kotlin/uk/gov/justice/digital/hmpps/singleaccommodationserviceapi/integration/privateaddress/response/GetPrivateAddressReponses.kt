@@ -4,8 +4,9 @@ fun expectedGetPrivateAddressesResponse(): String = """
   [
    {
       "id":"6d9a38c4-a8f6-49d1-856d-972906f63361",
-      "arrangementType":"FRIENDS_OR_FAMILY",
-      "arrangementTypeDescription":null,
+      "arrangementType":"PRIVATE",
+      "arrangementSubType":"FRIENDS_OR_FAMILY",
+      "arrangementSubTypeDescription":null,
       "settledType":"SETTLED",
       "status":"NOT_CHECKED_YET",
       "address":{
@@ -25,8 +26,9 @@ fun expectedGetPrivateAddressesResponse(): String = """
    },
    {
       "id":"f03aac3e-2f36-4003-a753-db571fe140b8",
-      "arrangementType":"FRIENDS_OR_FAMILY",
-      "arrangementTypeDescription":null,
+      "arrangementType":"PRIVATE",
+      "arrangementSubType":"FRIENDS_OR_FAMILY",
+      "arrangementSubTypeDescription":null,
       "settledType":"SETTLED",
       "status":"NOT_CHECKED_YET",
       "address":{
