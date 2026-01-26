@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.response.expectedGetPrivateAddressesResponse
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
-class PrivateAddressControllerTest : IntegrationTestBase() {
+class ProposedAccommodationControllerTest : IntegrationTestBase() {
   private val crn = "X371199"
 
   @BeforeEach
@@ -19,14 +19,14 @@ class PrivateAddressControllerTest : IntegrationTestBase() {
 
   @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
-  fun `should get private addresses for crn`() {
+  fun `should get proposed-accommodation for crn`() {
     val result = mockMvc
-      .perform(get("/private-addresses/$crn"))
+      .perform(get("/cases/$crn/proposed-accommodations"))
       .andExpect(status().isOk)
       .andReturn()
       .response
       .contentAsString
 
-    assertThatJson(result).matchesExpectedJson(expectedGetPrivateAddressesResponse(crn))
+    assertThatJson(result).matchesExpectedJson(expectedGetPrivateAddressesResponse())
   }
 }

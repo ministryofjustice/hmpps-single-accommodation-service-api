@@ -21,7 +21,7 @@ class DutyToReferControllerTest : IntegrationTestBase() {
   @Test
   fun `should get dutyToRefers for crn`() {
     val result = mockMvc
-      .perform(get("/dtrs/$crn"))
+      .perform(get("/cases/$crn/dtrs"))
       .andExpect(status().isOk)
       .andReturn()
       .response

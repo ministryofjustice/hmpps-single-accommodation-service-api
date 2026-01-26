@@ -13,7 +13,7 @@ class DutyToReferController(
   private val mockedData: MockData?,
 ) {
   @PreAuthorize("hasRole('ROLE_PROBATION')")
-  @GetMapping("/dtrs/{crn}")
+  @GetMapping("/cases/{crn}/dtrs")
   fun getDutyToRefersByCrn(@PathVariable crn: String): ResponseEntity<List<DutyToReferDto>> = mockedData
     ?.let { ResponseEntity.ok(it.crns[crn]!!.dutyToRefers) }
     ?: ResponseEntity.notFound().build()

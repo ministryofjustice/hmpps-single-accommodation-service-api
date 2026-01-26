@@ -1,43 +1,48 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.response
 
-fun expectedGetPrivateAddressesResponse(crn: String): String = """
-{
-   "crn":"$crn",
-   "addresses":[
-      {
-         "id":"p5e22e29-36bf-48e5-bfc9-915176298cb0",
-         "status":"checked",
-         "address":{
-            "line1":"Flat 7",
-            "line2":"20 Main Road",
-            "region":"Oxford",
-            "city":"Oxford",
-            "postcode":"OX2 6ZZ"
-         },
-         "addedBy":{
-            "id":"user-1237",
-            "name":"Danny Smith",
-            "role":"Probation Officer"
-         },
-         "addedDate":"1970-01-01T00:00:00"
+fun expectedGetPrivateAddressesResponse(): String = """
+  [
+   {
+      "id":"6d9a38c4-a8f6-49d1-856d-972906f63361",
+      "arrangementType":"FRIENDS_OR_FAMILY",
+      "arrangementTypeDescription":null,
+      "settledType":"SETTLED",
+      "status":"NOT_CHECKED_YET",
+      "address":{
+         "postcode":"RG26 5AG",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":"4",
+         "thoroughfareName":"Dollis Green",
+         "dependentLocality":null,
+         "postTown":"Bramley",
+         "county":null,
+         "country":null,
+         "uprn":null
       },
-      {
-         "id":"l5e22e29-36bf-48e5-bfc9-915176298cb0",
-         "status":"unsuitable",
-         "address":{
-            "line1":"Flat 9",
-            "line2":"70 Main Road",
-            "region":"Oxford",
-            "city":"Oxford",
-            "postcode":"OX2 6ZZ"
-         },
-         "addedBy":{
-            "id":"user-1234",
-            "name":"Peter Smith",
-            "role":"Probation Officer"
-         },
-         "addedDate":"1970-01-01T00:00:00"
-      }
-   ]
-}
+      "startDate":null,
+      "endDate":null
+   },
+   {
+      "id":"f03aac3e-2f36-4003-a753-db571fe140b8",
+      "arrangementType":"FRIENDS_OR_FAMILY",
+      "arrangementTypeDescription":null,
+      "settledType":"SETTLED",
+      "status":"NOT_CHECKED_YET",
+      "address":{
+         "postcode":"W1 8XX",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":"11",
+         "thoroughfareName":"Piccadilly Circus",
+         "dependentLocality":null,
+         "postTown":"London",
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "startDate":null,
+      "endDate":null
+   }
+]
 """.trimIndent()

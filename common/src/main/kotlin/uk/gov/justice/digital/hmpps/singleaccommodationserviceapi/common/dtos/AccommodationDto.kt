@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class AccommodationDto(
     val crn: String,
@@ -9,43 +10,46 @@ data class AccommodationDto(
 )
 
 data class AccommodationDetail(
-  val type: AccommodationType,
-  val subType: AccommodationSubType?,
-  val name: String?,
-  val isSettled: Boolean?,
-  val offenderReleaseType: OffenderReleaseType?,
+  val id: UUID,
+  val arrangementType: AccommodationArrangementType,
+  val arrangementTypeDescription: String?,
+  val settledType: AccommodationSettledType,
+  val status: AccommodationStatus?,
+  val address: AccommodationAddressDetails,
   val startDate: LocalDate?,
   val endDate: LocalDate?,
-  val address: AddressDetails?,
 )
 
-enum class AccommodationType {
+enum class AccommodationArrangementType {
   PRISON,
-  CAS1,
-  CAS2,
-  CAS2V2,
-  CAS3,
-  PRIVATE,
-  NO_FIXED_ABODE,
-}
-
-enum class AccommodationSubType {
+  FRIENDS_OR_FAMILY,
+  SOCIAL_RENTED,
+  PRIVATE_RENTED_WHOLE_PROPERTY,
+  PRIVATE_RENTED_ROOM,
   OWNED,
-  RENTED,
-  LODGING,
+  OTHER,
 }
 
-// TODO get the proper business / domain name.
-enum class OffenderReleaseType {
-  REMAND,
-  LICENCE,
-  BAIL,
+enum class AccommodationSettledType {
+  SETTLED,
+  TRANSIENT,
 }
 
-data class AddressDetails(
-  val line1: String,
-  val line2: String?,
-  val region: String?,
-  val city: String,
-  val postcode: String,
+enum class AccommodationStatus {
+  NOT_CHECKED_YET,
+  PASSED,
+  FAILED,
+}
+
+data class AccommodationAddressDetails(
+  val postcode: String?,
+  val subBuildingName: String?,
+  val buildingName: String?,
+  val buildingNumber: String?,
+  val thoroughfareName: String?,
+  val dependentLocality: String?,
+  val postTown: String?,
+  val county: String?,
+  val country: String?,
+  val uprn: String?,
 )

@@ -54,7 +54,7 @@ class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
     approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     val responseContent = mockMvc.perform(
-      get("/application-histories/$crn"),
+      get("/cases/$crn/applications"),
     )
       .andExpect(status().isOk)
       .andReturn()
