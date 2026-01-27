@@ -1,8 +1,6 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
-  kotlin("plugin.spring") version "2.2.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.0"
+  kotlin("plugin.spring") version "2.3.0"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
@@ -10,8 +8,12 @@ detekt {
   config.setFrom("detekt/detekt.yml")
 }
 
-val hmppsSpringBootVersion = "1.8.2"
-val springdocVersion = "2.8.14"
+val hmppsSpringBootVersion = "2.0.0"
+val springdocVersion = "3.0.1"
+val wiremockVersion = "3.13.2"
+val redissonVersion = "4.1.0"
+val embeddedRedisVersion = "1.4.3"
+val mockkVersion = "1.14.9"
 
 dependencies {
   runtimeOnly("com.h2database:h2")
@@ -25,22 +27,28 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
-  testImplementation("org.wiremock:wiremock-standalone:3.13.2")
-  testImplementation("io.mockk:mockk:1.14.6")
+  testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
+  testImplementation("io.mockk:mockk:$mockkVersion")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.36") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("com.github.codemonstur:embedded-redis:1.4.3")
-  testImplementation("org.redisson:redisson-spring-boot-starter:3.27.2")
+  testImplementation("com.github.codemonstur:embedded-redis:$embeddedRedisVersion")
+  testImplementation("org.redisson:redisson-spring-boot-starter:$redissonVersion")
 
   testImplementation(testFixtures(project(":infrastructure")))
 }
 
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(25)
+  compilerOptions {
+    freeCompilerArgs.addAll("-Xannotation-default-target=param-property")
+  }
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+  jvmTarget = "21"
 }
 
 configurations.matching { it.name == "detekt" }.all {
@@ -48,12 +56,6 @@ configurations.matching { it.name == "detekt" }.all {
     if (requested.group == "org.jetbrains.kotlin") {
       useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())
     }
-  }
-}
-
-tasks {
-  withType<KotlinCompile> {
-    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
 }
 
@@ -78,9 +80,9 @@ subprojects {
   apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 
   dependencies {
-    implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
+    implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:$hmppsSpringBootVersion")
 
-    testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
+    testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   }
 
