@@ -25,6 +25,8 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:$hmppsSpringBootVersion")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  implementation("org.springframework.boot:spring-boot-restclient")
+  implementation("org.springframework.boot:spring-boot-webclient")
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
 
@@ -36,7 +38,9 @@ dependencies {
   }
   testImplementation("com.github.codemonstur:embedded-redis:$embeddedRedisVersion")
   testImplementation("org.redisson:redisson-spring-boot-starter:$redissonVersion")
-
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
+  testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+  testImplementation("org.springframework.boot:spring-boot-restclient-test")
   testImplementation(testFixtures(project(":infrastructure")))
 }
 
