@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -11,14 +12,17 @@ data class AccommodationDto(
 
 data class AccommodationDetail(
   val id: UUID,
+  val name: String?,
   val arrangementType: AccommodationArrangementType,
   val arrangementSubType: AccommodationArrangementSubType?,
   val arrangementSubTypeDescription: String?,
   val settledType: AccommodationSettledType,
+  val offenderReleaseType: OffenderReleaseType?,
   val status: AccommodationStatus?,
   val address: AccommodationAddressDetails,
   val startDate: LocalDate?,
   val endDate: LocalDate?,
+  val createdAt: Instant,
 )
 
 enum class AccommodationArrangementType {
@@ -47,8 +51,15 @@ enum class AccommodationSettledType {
 
 enum class AccommodationStatus {
   NOT_CHECKED_YET,
-  PASSED,
-  FAILED,
+  CHECKS_PASSED,
+  CHECKS_FAILED,
+  CONFIRMED
+}
+
+enum class OffenderReleaseType {
+  REMAND,
+  LICENCE,
+  BAIL,
 }
 
 data class AccommodationAddressDetails(
