@@ -10,10 +10,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
@@ -52,7 +52,7 @@ class EligibilityService(
       cas2Hdc = cas2Hdc,
       cas2PrisonBail = cas2PrisonBail,
       cas2CourtBail = cas2CourtBail,
-      cas3 = null
+      cas3 = null,
     )
   }
 
@@ -93,10 +93,10 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.CONFIRMED,
-            suitableApplicationId = data.cas1Application?.id,
-          )
+        ServiceResult(
+          serviceStatus = ServiceStatus.CONFIRMED,
+          suitableApplicationId = data.cas1Application?.id,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -120,9 +120,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          )
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -146,9 +146,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          )
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -172,9 +172,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          )
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -191,7 +191,7 @@ class EligibilityService(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
       tier = eligibilityOrchestrationDto.tier,
-      prisonerData =  prisonerData,
+      prisonerData = prisonerData,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,
       cas2PrisonBailApplication = eligibilityOrchestrationDto.cas2PrisonBailApplication,

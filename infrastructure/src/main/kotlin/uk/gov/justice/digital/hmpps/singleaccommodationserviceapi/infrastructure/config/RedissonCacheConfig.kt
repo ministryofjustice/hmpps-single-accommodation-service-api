@@ -88,10 +88,11 @@ open class RedissonLocalConfig {
 
 @Configuration
 @EnableCaching
-open class RedissonCacheConfig {
+@Profile("!test")
+class RedissonCacheConfig {
 
   @Bean
-  open fun cacheManager(redissonClient: RedissonClient): CacheManager {
+  fun cacheManager(redissonClient: RedissonClient): CacheManager {
     val configs = mapOf(
       GET_ROSH_DETAIL to CacheConfig(60_000, 30_000),
       GET_CASE_SUMMARY to CacheConfig(120_000, 60_000),

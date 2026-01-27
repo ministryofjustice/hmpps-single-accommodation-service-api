@@ -6,9 +6,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
@@ -28,7 +25,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedSasAddressUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.proposedAddressesRequestBody
-import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -60,7 +56,6 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     outboxEventRepository.deleteAll()
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should get proposed-accommodation for crn`() {
     val olderTimestamp = Instant.parse("2025-01-01T10:00:00Z")
@@ -82,53 +77,47 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
       createdAt = newerTimestamp,
     )
 
-    val result = mockMvc
-      .perform(get("/cases/$crn/proposed-accommodations"))
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-
-    assertThatJson(result).matchesExpectedJson(
-      expectedGetProposedAccommodationsResponse(
-        firstId = newerEntity.id,
-        firstCreatedAt = newerEntity.createdAt.toCanonicalString(),
-        secondId = olderEntity.id,
-        secondCreatedAt = olderEntity.createdAt.toCanonicalString(),
-      ),
-    )
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetProposedAccommodationsResponse(
+            firstId = newerEntity.id,
+            firstCreatedAt = newerEntity.createdAt.toString(),
+            secondId = olderEntity.id,
+            secondCreatedAt = olderEntity.createdAt.toString(),
+          ),
+        )
+      }
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should return empty list when no proposed-accommodations exist for crn`() {
-    val result = mockMvc
-      .perform(get("/cases/$crn/proposed-accommodations"))
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-
-    assertThatJson(result).matchesExpectedJson("[]")
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson("[]")
+      }
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should create proposed-accommodation and publish sas-address-updated event`() {
-    val result = mockMvc.perform(
-      post("/cases/$crn/proposed-accommodations")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(
-          proposedAddressesRequestBody(
-            verificationStatus = VerificationStatus.PASSED.name,
-            nextAccommodationStatus = NextAccommodationStatus.YES.name,
-          ),
+    val result = restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          verificationStatus = EntityVerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
-    )
-      .andExpect(status().isCreated)
-      .andReturn()
-      .response
-      .contentAsString
+      )
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
 
     val proposedAccommodationPersistedResult = proposedAccommodationRepository.getByCrn(crn)!!
     assertPersistedProposedAccommodation(proposedAccommodationPersistedResult)
@@ -138,7 +127,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
         id = proposedAccommodationPersistedResult.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        createdAt = proposedAccommodationPersistedResult.createdAt.toCanonicalString(),
+        createdAt = proposedAccommodationPersistedResult.createdAt.toString(),
       ),
     )
     assertPublishedSNSEvent(

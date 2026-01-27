@@ -20,15 +20,15 @@ object EligibilityTransformer {
     cas2CourtBail = cas2CourtBail,
     cas3 = cas3,
     caseActions =
-      listOf(
-        cas1.action?.text,
-        cas2Hdc?.action?.text,
-        cas2CourtBail?.action?.text,
-        cas2PrisonBail?.action?.text,
-        cas3?.action?.text,
-      ).mapNotNull { it },
-    caseStatus = listOf(
-      getCaseStatus(cas1),
+  listOf(
+    cas1.action?.text,
+    cas2Hdc?.action?.text,
+    cas2CourtBail?.action?.text,
+    cas2PrisonBail?.action?.text,
+    cas3?.action?.text,
+  ).mapNotNull { it },
+  caseStatus = listOf(
+    getCaseStatus(cas1),
       getCaseStatusOrDefault(cas2Hdc),
       getCaseStatusOrDefault(cas2CourtBail),
       getCaseStatusOrDefault(cas2PrisonBail),
@@ -36,8 +36,8 @@ object EligibilityTransformer {
     ).maxWith(compareBy<CaseStatus> { it.caseStatusOrder }),
   )
 
-  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) =
-    serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
+private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) =
+  serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
 
   private fun getCaseStatus(serviceResult: ServiceResult) = when {
     serviceResult.action == null -> CaseStatus.NO_ACTION_REQUIRED
@@ -45,5 +45,3 @@ object EligibilityTransformer {
     else -> CaseStatus.ACTION_UPCOMING
   }
 }
-
-
