@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel
@@ -16,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesWithFilterResponse
-import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class CaseIntegrationTest : IntegrationTestBase() {
   @BeforeEach
@@ -46,35 +43,34 @@ class CaseIntegrationTest : IntegrationTestBase() {
     tierMockServer.stubGetCorePersonRecordOKResponse(crn = crn2, tier)
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should get cases`() {
-    val result = mockMvc.perform(
-      get("/cases")
-        .param("crns", "X371199,X968879"),
-    )
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-
-    assertThatJson(result).matchesExpectedJson(expectedGetCasesResponse())
+    restTestClient.get().uri { builder ->
+      builder.path("/cases")
+        .queryParam("crns", "X371199", "X968879")
+        .build()
+    }
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCasesResponse())
+      }
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should get cases with correct filters`() {
-    val result =
-      mockMvc.perform(
-        get("/cases")
-          .param("crns", "X371199,X968879")
-          .param("riskLevel", RiskLevel.MEDIUM.name),
-      )
-        .andExpect(status().isOk)
-        .andReturn()
-        .response
-        .contentAsString
-
-    assertThatJson(result).matchesExpectedJson(expectedGetCasesWithFilterResponse())
+    restTestClient.get().uri { builder ->
+      builder.path("/cases")
+        .queryParam("crns", "X371199", "X968879")
+        .queryParam("riskLevel", RiskLevel.MEDIUM.name)
+        .build()
+    }
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCasesWithFilterResponse())
+      }
   }
 }

@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.e
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -12,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
-import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class EligibilityControllerTest : IntegrationTestBase() {
   private val crn = "X371199"
@@ -41,17 +38,14 @@ class EligibilityControllerTest : IntegrationTestBase() {
     prisonerSearchMockServer.stubGetPrisonerOKResponse(prisonerNumber = prisonerNumber, prisoner)
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should get eligibility for crn`() {
-    val result = mockMvc.perform(
-      get("/cases/$crn/eligibility"),
-    )
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-
-    assertThatJson(result).matchesExpectedJson(expectedGetEligibilityResponse(crn))
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withJwt()
+      .exchange().expectStatus().isOk
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedGetEligibilityResponse(crn))
+      }
   }
 }

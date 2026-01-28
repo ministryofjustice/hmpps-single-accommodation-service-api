@@ -5,15 +5,18 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestCasesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestMockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestRedissonConfig
@@ -28,7 +31,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@AutoConfigureMockMvc
+@AutoConfigureWebTestClient
+@AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(value = [TestRedissonConfig::class, TestMockConfig::class, RulesConfig::class, TestCasesConfig::class])
@@ -37,7 +41,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 abstract class IntegrationTestBase {
 
   @Autowired
-  lateinit var mockMvc: MockMvc
+  lateinit var restTestClient: RestTestClient
 
   @Autowired
   protected lateinit var webTestClient: WebTestClient
@@ -102,5 +106,13 @@ abstract class IntegrationTestBase {
     probationIntegrationOasysMockServer.resetAll()
     tierMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
+  }
+
+  fun RestTestClient.RequestHeadersSpec<*>.withJwt(
+    roles: List<String> = listOf("ROLE_PROBATION"),
+  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
+    it.setBearerAuth(
+      jwtAuthHelper.createJwtAccessToken(roles = roles),
+    )
   }
 }

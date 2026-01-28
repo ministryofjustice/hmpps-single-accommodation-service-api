@@ -30,7 +30,13 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
 
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
+  testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+  testImplementation("org.springframework.boot:spring-boot-resttestclient")
+  testImplementation("org.springframework.boot:spring-boot-webtestclient")
+
   testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
   testImplementation("io.mockk:mockk:$mockkVersion")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.36") {
@@ -38,9 +44,7 @@ dependencies {
   }
   testImplementation("com.github.codemonstur:embedded-redis:$embeddedRedisVersion")
   testImplementation("org.redisson:redisson-spring-boot-starter:$redissonVersion")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
-  testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-  testImplementation("org.springframework.boot:spring-boot-restclient-test")
+
   testImplementation(testFixtures(project(":infrastructure")))
 }
 
