@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.constants.
 
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
-  private val version: String = buildProperties.version
+  private val version: String? = buildProperties.version
 
   @Bean
   fun customOpenAPI(): OpenAPI = OpenAPI()
