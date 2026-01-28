@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -24,14 +25,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.NonMaleRiskRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.STierRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.WithinSixMonthsOfReleaseRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.NonMaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.STierEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
@@ -56,12 +61,28 @@ class EligibilityServiceTest {
   private val male = buildSex(SexCode.M)
 
   @SpyK
-  var cas1Rules = Cas1RuleSet(
+  var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     listOf(
-      MaleRiskRule(),
-      NonMaleRiskRule(),
-      STierRule(),
-      WithinSixMonthsOfReleaseRule(clock),
+      MaleRiskEligibilityRule(),
+      NonMaleRiskEligibilityRule(),
+      STierEligibilityRule(),
+    ),
+  )
+
+  @SpyK
+  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(
+    listOf(
+      ApplicationSuitabilityRule(),
+    ),
+  )
+
+  @SpyK
+  var cas1ContextUpdater = Cas1ContextUpdater(clock)
+
+  @SpyK
+  var cas1CompletionRuleSet = Cas1CompletionRuleSet(
+    listOf(
+      ApplicationCompletionRule(),
     ),
   )
 
@@ -96,7 +117,7 @@ class EligibilityServiceTest {
     fun `buildDomainData maps all fields correctly`() {
       val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
       val tier = Tier(TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
-      val releaseDate = LocalDate.now().plusMonths(6)
+      val releaseDate = LocalDate.now().plusYears(1)
       val prisoner = listOf(
         Prisoner(releaseDate = LocalDate.now().plusMonths(5)),
         Prisoner(releaseDate = releaseDate),
@@ -106,14 +127,14 @@ class EligibilityServiceTest {
 
       val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null)
       assertThat(result.tier).isEqualTo(tier.tierScore)
-      assertThat(result.sex).isEqualTo(Sex(cpr.sex?.code, cpr.sex?.description))
+      assertThat(result.sex).isEqualTo(cpr.sex?.code)
       assertThat(result.releaseDate).isEqualTo(releaseDate)
     }
 
     @Test
     fun `getDomainData returns correct DomainData`() {
       val expectedTier = TierScore.A1
-      val expectedReleaseDate = LocalDate.now().plusMonths(6)
+      val expectedReleaseDate = LocalDate.now().plusYears(1)
 
       val crn = "X12345"
       val prisonerNumber = "PN1"
@@ -127,7 +148,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.getDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
-      assertThat(result.sex).isEqualTo(male)
+      assertThat(result.sex).isEqualTo(SexCode.M)
       assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
   }
@@ -160,20 +181,23 @@ class EligibilityServiceTest {
       cas1Status: Cas1ApplicationStatus?,
       cas1PlacementStatus: Cas1PlacementStatus?,
       expectedCas1Status: ServiceStatus?,
-      expectedCas1Actions: String?,
+      expectedCas1ActionsString: String?,
+      cas1ActionsAreUpcoming: Boolean,
     ) {
       clock.setNow(referenceDate.toLocalDate())
 
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
       }
-      val data = buildDomainData(crn, tier, buildSex(sex), releaseDate.toLocalDate(), cas1Application)
+      val data = buildDomainData(crn, tier, sex, releaseDate.toLocalDate(), cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 
-      val actualActions = result.actions.takeIf { it.isNotEmpty() }?.joinToString(",")
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
-      assertThat(actualActions).isEqualTo(expectedCas1Actions)
+      val expectedActions = expectedCas1ActionsString?.let {
+        RuleAction(it, cas1ActionsAreUpcoming)
+      }
+      assertThat(result.action).isEqualTo(expectedActions)
     }
   }
 }

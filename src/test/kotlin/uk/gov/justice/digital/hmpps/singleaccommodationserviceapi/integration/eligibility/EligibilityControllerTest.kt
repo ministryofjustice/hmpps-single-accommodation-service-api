@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -13,10 +14,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
+import java.util.UUID
 
 class EligibilityControllerTest : IntegrationTestBase() {
   private val crn = "X371199"
   private val prisonerNumber = "1234567"
+  private val cas1ApplicationId = UUID.randomUUID()
 
   @BeforeEach
   fun setup() {
@@ -26,8 +29,8 @@ class EligibilityControllerTest : IntegrationTestBase() {
         prisonNumbers = listOf(prisonerNumber),
       ),
     )
-    val tier = buildTier()
-    val cas1Application = buildCas1Application()
+    val tier = buildTier(TierScore.A1)
+    val cas1Application = buildCas1Application(id = cas1ApplicationId)
     val prisoner = buildPrisoner(prisonerNumber = prisonerNumber)
 
     hmppsAuth.stubGrantToken()
@@ -52,6 +55,6 @@ class EligibilityControllerTest : IntegrationTestBase() {
       .response
       .contentAsString
 
-    assertThatJson(result).matchesExpectedJson(expectedGetEligibilityResponse(crn))
+    assertThatJson(result).matchesExpectedJson(expectedGetEligibilityResponse(crn, cas1ApplicationId))
   }
 }

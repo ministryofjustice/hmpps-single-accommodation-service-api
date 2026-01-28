@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import kotlin.collections.orEmpty
 
   fun toEligibilityDto(
     crn: String,
@@ -20,13 +18,16 @@ import kotlin.collections.orEmpty
     cas2PrisonBail = cas2PrisonBail,
     cas2CourtBail = cas2CourtBail,
     cas3 = cas3,
-    caseActions = cas1.actions +
-      cas2Hdc?.actions.orEmpty() +
-      cas2CourtBail?.actions.orEmpty() +
-      cas2PrisonBail?.actions.orEmpty() +
-      cas3?.actions.orEmpty(),
+    caseActions =
+      listOf(
+        cas1.action?.text,
+        cas2Hdc?.action?.text,
+        cas2CourtBail?.action?.text,
+        cas2PrisonBail?.action?.text,
+        cas3?.action?.text,
+      ).mapNotNull { it },
     caseStatus = listOf(
-      getCaseStatus(cas1.serviceStatus),
+      getCaseStatus(cas1),
       getCaseStatusOrDefault(cas2Hdc),
       getCaseStatusOrDefault(cas2CourtBail),
       getCaseStatusOrDefault(cas2PrisonBail),
@@ -34,11 +35,12 @@ import kotlin.collections.orEmpty
     ).maxWith(compareBy<CaseStatus> { it.caseStatusOrder }),
   )
 
-  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) = serviceResult?.let { getCaseStatus(serviceResult.serviceStatus) } ?: CaseStatus.NO_ACTION_NEEDED
+  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) = serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
 
-  private fun getCaseStatus(serviceStatus: ServiceStatus) = when (serviceStatus) {
-    ServiceStatus.UPCOMING -> CaseStatus.ACTION_UPCOMING
-    ServiceStatus.NOT_ELIGIBLE, ServiceStatus.ARRIVED, ServiceStatus.UPCOMING_PLACEMENT -> CaseStatus.NO_ACTION_NEEDED
-    else -> CaseStatus.ACTION_NEEDED
-  }
+private fun getCaseStatus(serviceResult: ServiceResult) = when {
+  serviceResult.action == null -> CaseStatus.NO_ACTION_REQUIRED
+  serviceResult.action!!.isUpcoming == false -> CaseStatus.ACTION_NEEDED
+  else -> CaseStatus.ACTION_UPCOMING
+}
+
 

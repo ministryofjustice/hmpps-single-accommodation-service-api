@@ -2,4 +2,4 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 
-interface Cas1Rule : Rule
+interface Cas1CompletionRule : Rule

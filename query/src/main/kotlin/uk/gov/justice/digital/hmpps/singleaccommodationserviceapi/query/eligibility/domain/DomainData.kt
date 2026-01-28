@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -14,7 +14,7 @@ import java.time.LocalDate
 data class DomainData(
   val crn: String,
   val tier: TierScore,
-  val sex: Sex,
+  val sex: SexCode,
   val releaseDate: LocalDate?,
   val cas1Application: Cas1Application? = null,
   val cas2CourtBailApplication: Cas2CourtBailApplication? = null,
@@ -34,7 +34,7 @@ data class DomainData(
     ) : this(
     crn = crn,
     tier = tier.tierScore,
-    sex = cpr.sex ?: error("Sex must not be null for DomainData"),
+    sex = cpr.sex?.code ?: error("Sex must not be null for DomainData"),
     releaseDate = prisonerData.mapNotNull { it.releaseDate }
       .maxByOrNull { it },
     cas1Application = cas1Application,
