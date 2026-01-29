@@ -48,7 +48,7 @@ class RuleSetEvaluatorTest {
   val maleRiskRuleDescription = "FAIL if candidate is Male and is not Tier A3 - B1"
   val nonMaleRiskRuleDescription = "FAIL if candidate is not Male and is not Tier A3 - C3"
 
-  fun buildStTierRuleResult(ruleStatus: RuleStatus) = RuleResult(
+  fun buildSTierRuleResult(ruleStatus: RuleStatus) = RuleResult(
     description = stTierRuleDescription,
     ruleStatus = ruleStatus,
   )
@@ -78,7 +78,7 @@ class RuleSetEvaluatorTest {
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
         val expectedResult = listOf(
-          buildStTierRuleResult(RuleStatus.PASS),
+          buildSTierRuleResult(RuleStatus.PASS),
           buildMaleRiskRuleResult(RuleStatus.PASS),
           buildNonMaleRiskRuleResult(RuleStatus.PASS),
         )
@@ -92,12 +92,12 @@ class RuleSetEvaluatorTest {
           crn = crn,
           tier = TierScore.C2S,
           sex = SexCode.F,
-          releaseDate = LocalDate.now().plusMonths(2),
+          releaseDate = null,
         )
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
         val expectedResult = listOf(
-          buildStTierRuleResult(RuleStatus.FAIL),
+          buildSTierRuleResult(RuleStatus.FAIL),
           buildMaleRiskRuleResult(RuleStatus.PASS),
           buildNonMaleRiskRuleResult(RuleStatus.FAIL),
         )
@@ -116,7 +116,7 @@ class RuleSetEvaluatorTest {
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
         val expectedResult = listOf(
-          buildStTierRuleResult(RuleStatus.FAIL),
+          buildSTierRuleResult(RuleStatus.FAIL),
           buildMaleRiskRuleResult(RuleStatus.PASS),
           buildNonMaleRiskRuleResult(RuleStatus.PASS),
         )
@@ -135,7 +135,7 @@ class RuleSetEvaluatorTest {
         val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
         val expectedResult = listOf(
-          buildStTierRuleResult(RuleStatus.PASS),
+          buildSTierRuleResult(RuleStatus.PASS),
           buildMaleRiskRuleResult(RuleStatus.PASS),
           buildNonMaleRiskRuleResult(RuleStatus.FAIL),
         )
@@ -174,7 +174,7 @@ class RuleSetEvaluatorTest {
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
       val expectedResult = listOf(
-        buildStTierRuleResult(RuleStatus.FAIL),
+        buildSTierRuleResult(RuleStatus.FAIL),
       )
 
       assertThat(result).isEqualTo(expectedResult)
@@ -191,7 +191,7 @@ class RuleSetEvaluatorTest {
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
       val expectedResult = listOf(
-        buildStTierRuleResult(RuleStatus.FAIL),
+        buildSTierRuleResult(RuleStatus.FAIL),
       )
 
       assertThat(result).isEqualTo(expectedResult)

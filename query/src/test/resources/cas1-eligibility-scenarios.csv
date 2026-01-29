@@ -41,3 +41,4 @@ TC39 - unsuitable inapplicable application,01/12/2025,N,A2,01/01/2026,INAPPLICAB
 TC40 - suitable require info application,01/12/2025,N,A2,01/01/2026,REQUEST_FOR_FURTHER_INFORMATION,None,SUBMITTED,Provide Information, false
 TC41 - ineligible applicant with completed application,01/12/2025,N,A2S,01/01/2026,PLACEMENT_ALLOCATED,ARRIVED,CONFIRMED,None, false
 TC42 - ineligible applicant with suitable application,01/12/2025,N,A2S,01/01/2026,PENDING_PLACEMENT_REQUEST,None,CONFIRMED,Create Placement, false
+TC43 - ineligible applicant with no release date,01/12/2025,N,A2,None,None,None,NOT_ELIGIBLE,None, false
