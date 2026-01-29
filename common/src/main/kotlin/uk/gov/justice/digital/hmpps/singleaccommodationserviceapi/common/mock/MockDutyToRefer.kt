@@ -15,6 +15,7 @@ fun getMockedDutyToRefers(availableCrnList: List<String>, crn: String) = when (c
       outcome = "pending!!",
     ),
   )
+
   availableCrnList[1] -> listOf(
     DutyToReferDto(
       crn = crn,
@@ -26,6 +27,7 @@ fun getMockedDutyToRefers(availableCrnList: List<String>, crn: String) = when (c
       outcome = "pending!!",
     ),
   )
+
   availableCrnList[2] -> listOf(
     DutyToReferDto(
       crn = crn,
@@ -37,6 +39,7 @@ fun getMockedDutyToRefers(availableCrnList: List<String>, crn: String) = when (c
       outcome = "pending!!",
     ),
   )
+
   availableCrnList[3] -> listOf(
     DutyToReferDto(
       crn = crn,
@@ -57,5 +60,6 @@ fun getMockedDutyToRefers(availableCrnList: List<String>, crn: String) = when (c
       outcome = "pending!!",
     ),
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }

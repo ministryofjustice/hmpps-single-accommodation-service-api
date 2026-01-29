@@ -34,7 +34,7 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
       ),
       startDate = null,
       endDate = null,
-      createdAt = Instant.parse("2026-01-08T13:27:15.120069Z")
+      createdAt = Instant.parse("2026-01-08T13:27:15.120069Z"),
     ),
     AccommodationDetail(
       id = UUID.fromString("f03aac3e-2f36-4003-a753-db571fe140b8"),
@@ -59,9 +59,10 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
       ),
       startDate = null,
       endDate = null,
-      createdAt = Instant.parse("2026-01-05T10:07:15.120069Z")
-    )
+      createdAt = Instant.parse("2026-01-05T10:07:15.120069Z"),
+    ),
   )
+
   availableCrnList[1] -> listOf(
     AccommodationDetail(
       id = UUID.fromString("3010ee1c-30f1-4621-81b2-87c349104898"),
@@ -86,9 +87,10 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
       ),
       startDate = null,
       endDate = null,
-      createdAt =  Instant.parse("2026-01-04T07:22:15.120069Z")
-    )
+      createdAt = Instant.parse("2026-01-04T07:22:15.120069Z"),
+    ),
   )
+
   availableCrnList[2] -> listOf(
     AccommodationDetail(
       id = UUID.fromString("b0410f55-16d9-4509-b837-273504d95f8f"),
@@ -113,9 +115,11 @@ fun getMockedProposedAddresses(availableCrnList: List<String>, crn: String) = wh
       ),
       startDate = null,
       endDate = null,
-      createdAt =  Instant.parse("2026-01-01T21:10:05.120069Z")
-    )
+      createdAt = Instant.parse("2026-01-01T21:10:05.120069Z"),
+    ),
   )
+
   availableCrnList[3] -> listOf()
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }

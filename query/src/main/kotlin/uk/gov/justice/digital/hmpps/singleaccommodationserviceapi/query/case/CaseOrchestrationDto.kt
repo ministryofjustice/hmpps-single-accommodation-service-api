@@ -6,9 +6,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 
 data class CaseOrchestrationDto(
-    val crn: String,
-    val cpr: CorePersonRecord,
-    val roshDetails: RoshDetails,
-    val tier: Tier,
-    val cases: List<CaseSummary>,
+  val crn: String,
+  val cpr: CorePersonRecord?,
+  val roshDetails: RoshDetails?,
+  val tier: Tier?,
+  val cases: List<CaseSummary>?,
 )

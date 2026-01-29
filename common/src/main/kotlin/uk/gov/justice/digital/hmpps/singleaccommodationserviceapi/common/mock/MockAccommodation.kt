@@ -28,20 +28,20 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
     offenderReleaseType = null,
     status = AccommodationStatus.CONFIRMED,
     address = AccommodationAddressDetails(
-       postcode = "RG26 5AG",
-       subBuildingName = null,
-       buildingName = null,
-       buildingNumber = "4",
-       thoroughfareName = "Dollis Green",
-       dependentLocality = null,
-       postTown = "Bramley",
-       county = null,
-       country = null,
-       uprn = null,
+      postcode = "RG26 5AG",
+      subBuildingName = null,
+      buildingName = null,
+      buildingNumber = "4",
+      thoroughfareName = "Dollis Green",
+      dependentLocality = null,
+      postTown = "Bramley",
+      county = null,
+      country = null,
+      uprn = null,
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2026-01-20T16:07:20.120069Z")
+    createdAt = Instant.parse("2026-01-20T16:07:20.120069Z"),
   )
 
   availableCrnList[1] -> AccommodationDetail(
@@ -67,7 +67,7 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2026-01-15T12:19:20.120069Z")
+    createdAt = Instant.parse("2026-01-15T12:19:20.120069Z"),
   )
 
   availableCrnList[2] -> AccommodationDetail(
@@ -93,7 +93,7 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2026-01-08T07:22:20.120069Z")
+    createdAt = Instant.parse("2026-01-08T07:22:20.120069Z"),
   )
 
   availableCrnList[3] -> AccommodationDetail(
@@ -119,9 +119,10 @@ fun getMockedNextAccommodation(availableCrnList: List<String>, crn: String) = wh
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2026-01-02T05:12:10.120069Z")
+    createdAt = Instant.parse("2026-01-02T05:12:10.120069Z"),
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }
 
 fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) = when (crn) {
@@ -130,7 +131,7 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
     name = "HMP Huntercombe",
     arrangementType = AccommodationArrangementType.PRISON,
     arrangementSubType = null,
-    arrangementSubTypeDescription  = null,
+    arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.TRANSIENT,
     offenderReleaseType = null,
     status = null,
@@ -148,8 +149,9 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2023-01-02T11:07:09.120069Z")
+    createdAt = Instant.parse("2023-01-02T11:07:09.120069Z"),
   )
+
   availableCrnList[1] -> AccommodationDetail(
     id = UUID.fromString("f296b6a7-79c3-4d46-b5ed-683e72e9ae09"),
     name = "HMP Bullingdon",
@@ -173,8 +175,9 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2021-11-11T14:35:11.120069Z")
+    createdAt = Instant.parse("2021-11-11T14:35:11.120069Z"),
   )
+
   availableCrnList[2] -> AccommodationDetail(
     id = UUID.fromString("b697a854-96af-4360-a715-189a78d4f70f"),
     name = "HMP Huntercombe",
@@ -198,8 +201,9 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("2020-05-08T16:07:15.120069Z")
+    createdAt = Instant.parse("2020-05-08T16:07:15.120069Z"),
   )
+
   availableCrnList[3] -> AccommodationDetail(
     id = UUID.fromString("5b845756-7760-45bb-b756-c6b112e9778c"),
     name = "HMP Bullingdon",
@@ -223,7 +227,8 @@ fun getMockedCurrentAccommodation(availableCrnList: List<String>, crn: String) =
     ),
     startDate = null,
     endDate = null,
-    createdAt = Instant.parse("1995-01-18T09:45:10.120069Z")
+    createdAt = Instant.parse("1995-01-18T09:45:10.120069Z"),
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }

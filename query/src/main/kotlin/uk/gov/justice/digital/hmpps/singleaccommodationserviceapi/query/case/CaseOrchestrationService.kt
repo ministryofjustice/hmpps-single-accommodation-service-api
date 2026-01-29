@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
@@ -26,6 +25,7 @@ class CaseOrchestrationService(
     val bulkCall = mapOf(
       ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },
     )
+
     val callsPerIdentifier = mapOf(
       ApiCallKeys.GET_CORE_PERSON_RECORD to { crn: String -> corePersonRecordCachingService.getCorePersonRecord(crn) },
       ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
@@ -40,17 +40,15 @@ class CaseOrchestrationService(
     )
     val caseSummaries = results.standardCallsNoIterationResults
       ?.get(ApiCallKeys.GET_CASE_SUMMARIES) as? CaseSummaries
-      ?: error("${ApiCallKeys.GET_CASE_SUMMARIES} failed")
+      ?: CaseSummaries(emptyList())
 
     return results.callsPerIdentifierResults!!.map { (crn, calls) ->
       val cases = caseSummaries.cases.filter { it.crn == crn }
 
       val cpr = calls[ApiCallKeys.GET_CORE_PERSON_RECORD] as? CorePersonRecord
-        ?: error("${ApiCallKeys.GET_CORE_PERSON_RECORD} failed for $crn")
       val roshDetails = calls[ApiCallKeys.GET_ROSH_DETAIL] as? RoshDetails
-        ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
+
       val tier = calls[ApiCallKeys.GET_TIER] as? Tier
-        ?: error("${ApiCallKeys.GET_TIER} failed for $crn")
 
       CaseOrchestrationDto(
         crn = crn,

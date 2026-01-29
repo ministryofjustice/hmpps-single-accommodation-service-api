@@ -5,9 +5,9 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class AccommodationDto(
-    val crn: String,
-    val current: AccommodationDetail,
-    val next: AccommodationDetail,
+  val crn: String,
+  val current: AccommodationDetail?,
+  val next: AccommodationDetail?,
 )
 
 data class AccommodationDetail(
@@ -53,7 +53,7 @@ enum class AccommodationStatus {
   NOT_CHECKED_YET,
   CHECKS_PASSED,
   CHECKS_FAILED,
-  CONFIRMED
+  CONFIRMED,
 }
 
 enum class OffenderReleaseType {

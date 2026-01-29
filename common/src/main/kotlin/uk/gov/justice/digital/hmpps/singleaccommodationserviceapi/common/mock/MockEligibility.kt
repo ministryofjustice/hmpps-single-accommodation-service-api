@@ -9,22 +9,26 @@ fun getMockedCas3Eligibility(availableCrnList: List<String>, crn: String) = when
     serviceStatus = ServiceStatus.UPCOMING,
     suitableApplicationId = null,
     action =
-      RuleAction("Start temporary accommodation referral in 2 days!!", true)
+    RuleAction("Start temporary accommodation referral in 2 days!!", true),
   )
+
   availableCrnList[1] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_STARTED,
     suitableApplicationId = null,
     action = RuleAction("Start temporary accommodation referral!!"),
   )
+
   availableCrnList[2] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[3] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }
 
 fun getMockedCas2HdcEligibility(availableCrnList: List<String>, crn: String) = when (crn) {
@@ -33,20 +37,24 @@ fun getMockedCas2HdcEligibility(availableCrnList: List<String>, crn: String) = w
     suitableApplicationId = null,
     action = RuleAction("Start HDC referral!!"),
   )
+
   availableCrnList[1] -> ServiceResult(
     serviceStatus = ServiceStatus.UPCOMING,
     suitableApplicationId = null,
     action = RuleAction("Start HDC referral in 20 days!!", true),
   )
+
   availableCrnList[2] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[3] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }
 
 fun getMockedCas2PrisonBailEligibility(availableCrnList: List<String>, crn: String) = when (crn) {
@@ -54,20 +62,24 @@ fun getMockedCas2PrisonBailEligibility(availableCrnList: List<String>, crn: Stri
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[1] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[2] -> ServiceResult(
     serviceStatus = ServiceStatus.UPCOMING,
     suitableApplicationId = null,
     action = RuleAction("Start prison bail referral!!"),
   )
+
   availableCrnList[3] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }
 
 fun getMockedCas2CourtBailEligibility(availableCrnList: List<String>, crn: String) = when (crn) {
@@ -75,18 +87,22 @@ fun getMockedCas2CourtBailEligibility(availableCrnList: List<String>, crn: Strin
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[1] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[2] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     suitableApplicationId = null,
   )
+
   availableCrnList[3] -> ServiceResult(
     serviceStatus = ServiceStatus.NOT_STARTED,
     suitableApplicationId = null,
     action = RuleAction("Start court bail referral!!"),
   )
-  else -> error("Unallowed CRN $crn - ensure mock data is appropriate")
+
+  else -> null
 }
