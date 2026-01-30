@@ -35,8 +35,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1DataContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1DataRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ReleaseDateDataRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
@@ -70,6 +73,13 @@ class EligibilityServiceTest {
   )
 
   @SpyK
+  var cas1DataRuleSet = Cas1DataRuleSet(
+    listOf(
+      ReleaseDateDataRule(),
+    ),
+  )
+
+  @SpyK
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(
     listOf(
       ApplicationSuitabilityRule(),
@@ -78,6 +88,9 @@ class EligibilityServiceTest {
 
   @SpyK
   var cas1ContextUpdater = Cas1ContextUpdater(clock)
+
+  @SpyK
+  var cas1DataContextUpdater = Cas1DataContextUpdater(clock)
 
   @SpyK
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(
@@ -177,7 +190,7 @@ class EligibilityServiceTest {
       referenceDate: String,
       sex: SexCode,
       tier: TierScore,
-      releaseDate: String,
+      releaseDate: String?,
       cas1Status: Cas1ApplicationStatus?,
       cas1PlacementStatus: Cas1PlacementStatus?,
       expectedCas1Status: ServiceStatus?,
@@ -189,7 +202,7 @@ class EligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
       }
-      val data = buildDomainData(crn, tier, sex, releaseDate.toLocalDate(), cas1Application)
+      val data = buildDomainData(crn, tier, sex, releaseDate?.toLocalDate(), cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 

@@ -11,7 +11,7 @@ fun buildDomainData(
   crn: String = "CR12345N",
   tier: TierScore = TierScore.A1,
   sex: SexCode = SexCode.M,
-  releaseDate: LocalDate = LocalDate.now()
+  releaseDate: LocalDate? = LocalDate.now()
     .plusYears(1),
   cas1Application: Cas1Application? = buildCas1Application(),
 ) = DomainData(
