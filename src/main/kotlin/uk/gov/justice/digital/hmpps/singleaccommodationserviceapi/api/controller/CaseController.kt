@@ -37,11 +37,11 @@ class CaseController(
       ?.let {
         ResponseEntity.ok(
           cases.map {
-            val currentMock = mockedData.crns[it.crn]!!
+            val currentMock = mockedData.crns[it.crn]
             it.copy(
-              photoUrl = currentMock.photoUrl,
-              nextAccommodation = currentMock.nextAccommodation,
-              currentAccommodation = currentMock.currentAccommodation,
+              photoUrl = currentMock?.photoUrl,
+              nextAccommodation = currentMock?.nextAccommodation,
+              currentAccommodation = currentMock?.currentAccommodation,
             )
           },
         )

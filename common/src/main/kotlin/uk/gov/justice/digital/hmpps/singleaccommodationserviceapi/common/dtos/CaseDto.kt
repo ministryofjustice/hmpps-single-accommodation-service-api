@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 import java.time.LocalDate
 
 data class CaseDto(
-  val name: String,
+  val name: String?,
   val dateOfBirth: LocalDate?,
   val crn: String?,
   val prisonNumber: String?,
@@ -49,5 +49,5 @@ enum class TierScore {
   C1S,
   D3S,
   D2S,
-  D1S;
+  D1S,
 }
