@@ -14,7 +14,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RedissonCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestCasesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.config.TestMockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.AccommodationDataDomainMockServer
