@@ -85,7 +85,13 @@ jobs:
         run: ./gradlew detekt
   kotlin_validate:
     name: Validate the kotlin
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_localstack_postgres_verify.yml@v2
+    with:
+      localstack-tag: 4
+      postgres-tag: 18
+      postgres-username: sas_user
+      postgres-password: sas_psw
+      postgres-db: sas_db
     secrets: inherit
   build:
     name: Build docker image from hmpps-github-actions

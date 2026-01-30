@@ -10,8 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.toCasReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.transformReferrals
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildAccommodationReferralOrchestrationDto
 import java.util.stream.Stream
 
@@ -20,7 +19,7 @@ class AccommodationReferralTransformerTest {
   fun `should transform orchestration dto to list of accommodation referral dtos`() {
     val orchestrationDto = buildAccommodationReferralOrchestrationDto()
 
-    val result = transformReferrals(orchestrationDto)
+    val result = AccommodationReferralTransformer.transformReferrals(orchestrationDto)
 
     assertThat(result).hasSize(4)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
@@ -37,7 +36,7 @@ class AccommodationReferralTransformerTest {
     input: Cas1AssessmentStatus,
     expected: CasReferralStatus,
   ) {
-    assertThat(toCasReferralStatus(input)).isEqualTo(expected)
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
 
   @ParameterizedTest
@@ -46,7 +45,7 @@ class AccommodationReferralTransformerTest {
     input: Cas2Status,
     expected: CasReferralStatus,
   ) {
-    assertThat(toCasReferralStatus(input)).isEqualTo(expected)
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
 
   @ParameterizedTest
@@ -55,7 +54,7 @@ class AccommodationReferralTransformerTest {
     input: TemporaryAccommodationAssessmentStatus,
     expected: CasReferralStatus,
   ) {
-    assertThat(toCasReferralStatus(input)).isEqualTo(expected)
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
 
   @Test
@@ -69,7 +68,7 @@ class AccommodationReferralTransformerTest {
     )
 
     Cas1AssessmentStatus.entries.forEach { status ->
-      assertThat(toCasReferralStatus(status)).isEqualTo(expectedMapping[status])
+      assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectedMapping[status])
     }
   }
 
@@ -90,7 +89,7 @@ class AccommodationReferralTransformerTest {
     )
 
     Cas2Status.entries.forEach { status ->
-      assertThat(toCasReferralStatus(status)).isEqualTo(expectations[status])
+      assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectations[status])
     }
   }
 
@@ -107,7 +106,7 @@ class AccommodationReferralTransformerTest {
     )
 
     TemporaryAccommodationAssessmentStatus.entries.forEach { status ->
-      assertThat(toCasReferralStatus(status)).isEqualTo(expectations[status])
+      assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectations[status])
     }
   }
 

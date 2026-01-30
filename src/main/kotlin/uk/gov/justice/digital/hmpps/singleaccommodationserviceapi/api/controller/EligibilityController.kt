@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.toEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer
 
 @RestController
 class EligibilityController(
@@ -24,7 +24,7 @@ class EligibilityController(
       ?.let {
         val currentMock = mockedData.crns[crn]!!
         ResponseEntity.ok(
-          toEligibilityDto(
+          EligibilityTransformer.toEligibilityDto(
             crn = crn,
             cas1 = eligibility.cas1,
             cas3 = currentMock.cas3Eligibility,

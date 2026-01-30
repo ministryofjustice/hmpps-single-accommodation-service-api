@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 
+object EligibilityTransformer {
   fun toEligibilityDto(
     crn: String,
     cas1: ServiceResult,
@@ -35,12 +36,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
     ).maxWith(compareBy<CaseStatus> { it.caseStatusOrder }),
   )
 
-  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) = serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
+  private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) =
+    serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
 
-private fun getCaseStatus(serviceResult: ServiceResult) = when {
-  serviceResult.action == null -> CaseStatus.NO_ACTION_REQUIRED
-  serviceResult.action!!.isUpcoming == false -> CaseStatus.ACTION_NEEDED
-  else -> CaseStatus.ACTION_UPCOMING
+  private fun getCaseStatus(serviceResult: ServiceResult) = when {
+    serviceResult.action == null -> CaseStatus.NO_ACTION_REQUIRED
+    serviceResult.action!!.isUpcoming == false -> CaseStatus.ACTION_NEEDED
+    else -> CaseStatus.ACTION_UPCOMING
+  }
 }
 
 

@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.transformReferrals
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildAccommodationReferralOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildReferralHistory
 import java.time.Instant
@@ -87,7 +87,7 @@ class AccommodationReferralServiceTest {
 
       assertThat(result).hasSize(4)
       assertThat(result).containsExactlyInAnyOrderElementsOf(
-        transformReferrals(orchestrationDto),
+        AccommodationReferralTransformer.transformReferrals(orchestrationDto),
       )
     }
   }
