@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 
 @Service
-class CaseService(
+class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
 ) {
   fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {

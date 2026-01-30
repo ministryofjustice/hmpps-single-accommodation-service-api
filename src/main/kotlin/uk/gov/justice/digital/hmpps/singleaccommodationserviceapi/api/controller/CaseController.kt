@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import kotlin.collections.map
 
 @RestController
 class CaseController(
-  private val caseService: CaseService,
+  private val caseQueryService: CaseQueryService,
   private val mockedData: MockData?,
   private val crnList: List<String>,
 ) {
@@ -29,9 +29,9 @@ class CaseController(
     @RequestParam(required = false) crns: List<String> = emptyList(),
   ): ResponseEntity<List<CaseDto>> {
     val cases = if (crns.isNotEmpty()) {
-      caseService.getCases(crns, riskLevel)
+      caseQueryService.getCases(crns, riskLevel)
     } else {
-      caseService.getCases(crnList, riskLevel)
+      caseQueryService.getCases(crnList, riskLevel)
     }
     return mockedData
       ?.let {
@@ -52,7 +52,7 @@ class CaseController(
   @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
-    val case = caseService.getCase(crn)
+    val case = caseQueryService.getCase(crn)
     return mockedData
       ?.let {
         val currentMock = mockedData.crns[case.crn]!!

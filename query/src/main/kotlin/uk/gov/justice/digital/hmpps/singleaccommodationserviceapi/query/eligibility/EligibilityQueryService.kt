@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 @Service
-class EligibilityService(
+class EligibilityQueryService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,

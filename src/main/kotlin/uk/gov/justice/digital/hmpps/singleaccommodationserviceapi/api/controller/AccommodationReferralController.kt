@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.constants.Roles
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralQueryService
 
 @RestController
 @PreAuthorize("hasRole('${Roles.ROLE_PROBATION}')")
 class AccommodationReferralController(
-  private val accommodationReferralService: AccommodationReferralService,
+  private val accommodationReferralQueryService: AccommodationReferralQueryService,
 ) {
 
   @Operation(
@@ -23,7 +23,7 @@ class AccommodationReferralController(
   )
   @GetMapping("/cases/{crn}/applications")
   fun getApplicationHistory(@PathVariable crn: String): ResponseEntity<List<AccommodationReferralDto>> {
-    val referralHistory = accommodationReferralService.getReferralHistory(crn)
+    val referralHistory = accommodationReferralQueryService.getReferralHistory(crn)
     return ResponseEntity.ok(referralHistory)
   }
 }

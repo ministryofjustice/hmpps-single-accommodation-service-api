@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.transformReferrals
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildAccommodationReferralOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildReferralHistory
@@ -25,7 +25,7 @@ class AccommodationReferralServiceTest {
   lateinit var orchestrationService: AccommodationReferralOrchestrationService
 
   @InjectMockKs
-  lateinit var service: AccommodationReferralService
+  lateinit var service: AccommodationReferralQueryService
 
   private val crn = "X12345"
 

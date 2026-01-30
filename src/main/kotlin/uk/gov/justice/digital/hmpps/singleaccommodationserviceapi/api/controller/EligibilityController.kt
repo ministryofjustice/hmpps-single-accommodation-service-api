@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.toEligibilityDto
 
 @RestController
 class EligibilityController(
-  val eligibilityService: EligibilityService,
-  private val mockedData: MockData?,
+    val eligibilityService: EligibilityQueryService,
+    private val mockedData: MockData?,
 ) {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")

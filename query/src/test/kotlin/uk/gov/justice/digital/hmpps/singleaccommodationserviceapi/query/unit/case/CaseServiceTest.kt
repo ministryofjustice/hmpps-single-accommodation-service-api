@@ -10,13 +10,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel as RiskLevelInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toRiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildCaseOrchestrationDto
@@ -28,7 +27,7 @@ class CaseServiceTest {
   lateinit var caseOrchestrationService: CaseOrchestrationService
 
   @InjectMockKs
-  lateinit var caseService: CaseService
+  lateinit var caseQueryService: CaseQueryService
 
   private val crnOne = "X12345"
   private val crnTwo = "X12346"
@@ -61,7 +60,7 @@ class CaseServiceTest {
 
       every { caseOrchestrationService.getCases(crnList) } returns orchestrationDtoList
 
-      val result = caseService.getCases(crnList, toRiskLevel(riskLevelInfra))
+      val result = caseQueryService.getCases(crnList, toRiskLevel(riskLevelInfra))
       assertThat(result).hasSize(2)
 
       val orchestrationOne = orchestrationDtoList.first()
@@ -116,7 +115,7 @@ class CaseServiceTest {
 
       every { caseOrchestrationService.getCases(crnList) } returns orchestrationDtoList
 
-      assertThat(caseService.getCases(crnList, riskLevel)).isEmpty()
+      assertThat(caseQueryService.getCases(crnList, riskLevel)).isEmpty()
     }
 
     @Test
@@ -143,7 +142,7 @@ class CaseServiceTest {
 
       every { caseOrchestrationService.getCases(crnList) } returns orchestrationDtoList
 
-      val result = caseService.getCases(crnList, RiskLevel.VERY_HIGH)
+      val result = caseQueryService.getCases(crnList, RiskLevel.VERY_HIGH)
       assertThat(result).hasSize(1)
 
       val orchestrationOne = orchestrationDtoList.first()
@@ -165,7 +164,7 @@ class CaseServiceTest {
       val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne)
       every { caseOrchestrationService.getCase(crnOne) } returns caseOrchestrationDto
 
-      assertThat(caseService.getCase(crnOne)).isEqualTo(
+      assertThat(caseQueryService.getCase(crnOne)).isEqualTo(
         toCaseDto(
           crn = crnOne,
           cpr = caseOrchestrationDto.cpr,
