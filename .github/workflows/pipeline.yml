@@ -82,10 +82,6 @@ jobs:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
-    needs:
-      - kotlin_validate
-      - ktlint-check
-      - detekt
     with:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
@@ -95,6 +91,9 @@ jobs:
   deploy_dev:
     name: Deploy to development environment
     needs:
+      - kotlin_validate
+      - ktlint-check
+      - detekt
       - build
       - helm_lint
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
