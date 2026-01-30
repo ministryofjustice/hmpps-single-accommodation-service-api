@@ -1,15 +1,12 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 
 fun toServiceStatus(cas1ApplicationStatus: Cas1ApplicationStatus?, hasImminentActions: Boolean) = when (cas1ApplicationStatus) {
   Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
     -> ServiceStatus.CONFIRMED
-    
+
   Cas1ApplicationStatus.AWAITING_PLACEMENT,
   Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST
     -> ServiceStatus.CONFIRMED
@@ -36,10 +33,3 @@ fun toServiceStatus(cas1ApplicationStatus: Cas1ApplicationStatus?, hasImminentAc
   Cas1ApplicationStatus.EXPIRED
     -> ServiceStatus.WITHDRAWN
 }
-
-fun toServiceStatus(cas2HdcApplication: Cas2HdcApplication) = ServiceStatus.NOT_STARTED
-
-fun toServiceStatus(cas2CourtBailApplication: Cas2CourtBailApplication) = ServiceStatus.NOT_STARTED
-
-fun toServiceStatus(cas2PrisonBailApplication: Cas2PrisonBailApplication) = ServiceStatus.NOT_STARTED
-

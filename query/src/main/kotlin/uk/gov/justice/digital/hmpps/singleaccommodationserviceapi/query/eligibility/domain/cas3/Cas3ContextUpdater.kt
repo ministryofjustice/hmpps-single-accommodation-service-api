@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -7,18 +7,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import java.time.Clock
 
 @Component
-class Cas1ContextUpdater(val clock: Clock) : ContextUpdater {
+class Cas3ContextUpdater(val clock: Clock) : ContextUpdater {
   override fun update(context: EvaluationContext): EvaluationContext {
-    val action = buildCas1Action(context.data, clock)
+    val action = buildCas3Action(context.data, clock)
 
     val updatedServiceResult =
       ServiceResult(
         serviceStatus =
           toServiceStatus(
-            context.data.cas1Application?.applicationStatus,
+            context.data.cas3Application?.applicationStatus,
             !action.isUpcoming
           ),
-        suitableApplicationId = context.data.cas1Application?.id,
+        suitableApplicationId = context.data.cas3Application?.id,
         action = action
       )
 

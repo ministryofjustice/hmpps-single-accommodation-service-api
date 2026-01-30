@@ -5,6 +5,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -40,6 +41,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CrsStatusRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.DtrStatusRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.ExistingCas1BookingRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.NextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
@@ -105,6 +117,35 @@ class EligibilityServiceTest {
   )
 
   @SpyK
+  var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
+    listOf(
+      CurrentAddressTypeRule(),
+      NextAccommodationRule(),
+      DtrStatusRule(),
+      CrsStatusRule(),
+      ExistingCas1BookingRule()
+
+    ),
+  )
+
+  @SpyK
+  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
+    listOf(
+      Cas3ApplicationSuitabilityRule(),
+    ),
+  )
+
+  @SpyK
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(
+    listOf(
+      Cas3ApplicationCompletionRule(),
+    ),
+  )
+
+  @SpyK
+  var cas3ContextUpdater = Cas3ContextUpdater(clock)
+
+  @SpyK
   var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
 
   @InjectMockKs
@@ -125,7 +166,8 @@ class EligibilityServiceTest {
         Prisoner(releaseDate = null),
       )
 
-      val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null)
+      val result = DomainData(crn, cpr, tier, prisoner, currentAccommodation = null, nextAccommodation = null, cas1Application = null, cas2CourtBailApplication = null, cas2PrisonBailApplication = null, cas2HdcApplication = null)
+
       assertThat(result.tier).isEqualTo(tier.tierScore)
       assertThat(result.sex).isEqualTo(cpr.sex?.code)
       assertThat(result.releaseDate).isEqualTo(releaseDate)
@@ -189,7 +231,7 @@ class EligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
       }
-      val data = buildDomainData(crn, tier, sex, releaseDate.toLocalDate(), cas1Application)
+      val data = buildDomainData(crn, tier, sex, releaseDate.toLocalDate(), null, null, cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 
