@@ -31,7 +31,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RedissonCacheConfig::class, TestMockConfig::class, RulesConfig::class, TestCasesConfig::class])
+@Import(value = [TestMockConfig::class, RulesConfig::class, TestCasesConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 abstract class IntegrationTestBase {
