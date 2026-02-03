@@ -10,24 +10,24 @@ data class CallsPerIdentifier(
 
 data class AggregatorResult(
   val standardCallsNoIterationResults: Map<String, Any>?,
-  val callsPerIdentifierResults: Map<String, Map<String, Any>>?
+  val callsPerIdentifierResults: Map<String, Map<String, Any>>?,
 )
 
 @Service
 class AggregatorService {
   fun orchestrateAsyncCalls(
     standardCallsNoIteration: Map<String, () -> Any> = emptyMap(),
-    callsPerIdentifier: CallsPerIdentifier? = null
+    callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult {
     if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
-      throw IllegalArgumentException("No API calls to execute")
+      return AggregatorResult(emptyMap(), null)
     }
 
     val asyncCallsToMake = mutableMapOf<String, () -> Map<String, Any>>()
     if (standardCallsNoIteration.isNotEmpty()) {
       asyncCallsToMake["standardCallsNoIteration"] = {
         orchestrateAsyncCalls(
-          functionCalls = standardCallsNoIteration
+          functionCalls = standardCallsNoIteration,
         )
       }
     }
@@ -35,22 +35,24 @@ class AggregatorService {
       asyncCallsToMake["callsPerIdentifier"] = {
         orchestrateAsyncCalls(
           identifiers = callsPerIdentifier.identifiersToIterate,
-          functionCalls = callsPerIdentifier.calls
+          functionCalls = callsPerIdentifier.calls,
         )
       }
     }
 
     val asyncResults: Map<String, Any> = orchestrateAsyncCalls(
-      functionCalls = asyncCallsToMake
+      functionCalls = asyncCallsToMake,
     )
 
     return AggregatorResult(
       standardCallsNoIterationResults = if (standardCallsNoIteration.isNotEmpty()) {
         asyncResults["standardCallsNoIteration"] as Map<String, Any>
-      } else null,
+      } else {
+        null
+      },
       callsPerIdentifierResults = callsPerIdentifier?.let {
         asyncResults["callsPerIdentifier"] as Map<String, Map<String, Any>>
-      }
+      },
     )
   }
 
