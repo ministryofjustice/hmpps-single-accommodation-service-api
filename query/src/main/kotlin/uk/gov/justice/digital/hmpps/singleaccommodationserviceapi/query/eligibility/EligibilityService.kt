@@ -123,7 +123,7 @@ class EligibilityService(
       treeBuilder
         .ruleSet("Cas2Hdc", cas2HdcRuleSet, cas2ContextUpdater)
         .onPass(confirmed)
-        .onFail(notEligible) // node above
+        .onFail(notEligible)
         .build()
 
     val initialContext =

@@ -24,6 +24,7 @@ class MaleRiskEligibilityRule : Cas1EligibilityRule {
     TierScore.B2S,
     TierScore.B1S,
   )
+
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
     ruleStatus = if (data.sex == SexCode.M && !highRiskTiers.contains(data.tier)) {

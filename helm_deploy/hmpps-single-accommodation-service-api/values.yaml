@@ -26,6 +26,11 @@ generic-service:
   #     [name of environment variable as seen by app]: [key of kubernetes secret to load]
 
   namespace_secrets:
+    namespace_secrets:
+      sas-domain-events-queue-secret:
+        HMPPS_SQS_QUEUES_SAS-DOMAIN-EVENTS-QUEUE_QUEUENAME: "queue_name"
+      sas-domain-events-dlq-secret:
+        HMPPS_SQS_QUEUES_SAS-DOMAIN-EVENTS-QUEUE_DLQNAME: "queue_name"
     hmpps-domain-events-topic:
       HMPPS_SQS_TOPICS_HMPPS-DOMAIN-EVENT-TOPIC_ARN: "topic_arn"
     hmpps-single-accommodation-service-api-application-insights:
