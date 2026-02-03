@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility
 
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
-import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -35,8 +33,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ReleaseDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
@@ -53,62 +54,39 @@ import java.util.UUID
 @ExtendWith(value = [MockKExtension::class])
 class EligibilityServiceTest {
 
-  @MockK
-  lateinit var eligibilityOrchestrationService: EligibilityOrchestrationService
-
   private val clock = MutableClock()
   private val crn = "ABC1234"
   private val male = buildSex(SexCode.M)
 
-  @SpyK
+  private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
+
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
-    listOf(
-      MaleRiskEligibilityRule(),
-      NonMaleRiskEligibilityRule(),
-      STierEligibilityRule(),
-    ),
+    listOf(MaleRiskEligibilityRule(), NonMaleRiskEligibilityRule(), STierEligibilityRule()),
   )
 
-  @SpyK
-  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(
-    listOf(
-      ApplicationSuitabilityRule(),
-    ),
-  )
-
-  @SpyK
+  var cas1ValidationRuleSet = Cas1ValidationRuleSet(listOf(ReleaseDateValidationRule()))
+  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(listOf(ApplicationSuitabilityRule()))
   var cas1ContextUpdater = Cas1ContextUpdater(clock)
-
-  @SpyK
-  var cas1CompletionRuleSet = Cas1CompletionRuleSet(
-    listOf(
-      ApplicationCompletionRule(),
-    ),
-  )
-
-  @SpyK
-  var cas2HdcRules = Cas2HdcRuleSet(
-    listOf(
-    ),
-  )
-
-  @SpyK
-  var cas2CourtBailRules = Cas2CourtBailRuleSet(
-    listOf(
-    ),
-  )
-
-  @SpyK
-  var cas2PrisonBailRules = Cas2PrisonBailRuleSet(
-    listOf(
-    ),
-  )
-
-  @SpyK
+  var cas1ValidationContextUpdater = Cas1ValidationContextUpdater()
+  var cas1CompletionRuleSet = Cas1CompletionRuleSet(listOf(ApplicationCompletionRule()))
+  var cas2HdcRules = Cas2HdcRuleSet(emptyList())
+  var cas2CourtBailRules = Cas2CourtBailRuleSet(emptyList())
+  var cas2PrisonBailRules = Cas2PrisonBailRuleSet(emptyList())
   var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
 
-  @InjectMockKs
-  lateinit var eligibilityService: EligibilityService
+  private val eligibilityService = EligibilityService(
+    eligibilityOrchestrationService = eligibilityOrchestrationService,
+    cas1EligibilityRuleSet = cas1EligibilityRuleSet,
+    cas1SuitabilityRuleSet = cas1SuitabilityRuleSet,
+    cas1CompletionRuleSet = cas1CompletionRuleSet,
+    cas1ValidationRuleSet = cas1ValidationRuleSet,
+    cas2HdcRuleSet = cas2HdcRules,
+    cas2PrisonBailRuleSet = cas2PrisonBailRules,
+    cas1ContextUpdater = cas1ContextUpdater,
+    cas1ValidationContextUpdater = cas1ValidationContextUpdater,
+    cas2CourtBailRuleSet = cas2CourtBailRules,
+    engine = rulesEngine,
+  )
 
   @Nested
   inner class DomainDataFunctions {
@@ -177,7 +155,7 @@ class EligibilityServiceTest {
       referenceDate: String,
       sex: SexCode,
       tier: TierScore,
-      releaseDate: String,
+      releaseDate: String?,
       cas1Status: Cas1ApplicationStatus?,
       cas1PlacementStatus: Cas1PlacementStatus?,
       expectedCas1Status: ServiceStatus?,
@@ -189,7 +167,7 @@ class EligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
       }
-      val data = buildDomainData(crn, tier, sex, releaseDate.toLocalDate(), cas1Application)
+      val data = buildDomainData(crn, tier, sex, releaseDate?.toLocalDate(), cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 

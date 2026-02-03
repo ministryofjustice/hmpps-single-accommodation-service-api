@@ -10,6 +10,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2ContextUpdater
@@ -24,9 +26,11 @@ class EligibilityService(
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
+  private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
   private val cas2HdcRuleSet: Cas2HdcRuleSet,
   private val cas2PrisonBailRuleSet: Cas2PrisonBailRuleSet,
   private val cas1ContextUpdater: Cas1ContextUpdater,
+  private val cas1ValidationContextUpdater: Cas1ValidationContextUpdater,
   private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
@@ -71,11 +75,18 @@ class EligibilityService(
         .onFail(eligibility) // node above
         .build()
 
-    val tree =
+    val completion =
       treeBuilder
         .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1ContextUpdater)
         .onPass(confirmed)
         .onFail(suitability) // node above
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas1Validation", cas1ValidationRuleSet, cas1ValidationContextUpdater)
+        .onPass(completion)
+        .onFail(notEligible)
         .build()
 
     val initialContext =
