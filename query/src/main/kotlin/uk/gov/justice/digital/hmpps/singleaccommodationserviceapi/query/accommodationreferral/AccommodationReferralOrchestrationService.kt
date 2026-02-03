@@ -30,17 +30,17 @@ class AccommodationReferralOrchestrationService(
     )
 
     val cas1 =
-      results.standardCallsNoIterationResults!![GET_CAS1_REFERRAL] as? List<ReferralHistory<Cas1AssessmentStatus>>
-        ?: error("${GET_CAS1_REFERRAL} failed for $crn")
+      results.standardCallsNoIterationResults?.get(GET_CAS1_REFERRAL) as? List<ReferralHistory<Cas1AssessmentStatus>>
+        ?: emptyList()
     val cas2 =
-      results.standardCallsNoIterationResults!![GET_CAS2_REFERRAL] as? List<ReferralHistory<Cas2Status>>
-        ?: error("${GET_CAS2_REFERRAL} failed for $crn")
+      results.standardCallsNoIterationResults?.get(GET_CAS2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+        ?: emptyList()
     val cas2v2 =
-      results.standardCallsNoIterationResults!![GET_CAS2V2_REFERRAL] as? List<ReferralHistory<Cas2Status>>
-        ?: error("${GET_CAS2V2_REFERRAL} failed for $crn")
+      results.standardCallsNoIterationResults?.get(GET_CAS2V2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+        ?: emptyList()
     val cas3 =
-      results.standardCallsNoIterationResults!![GET_CAS3_REFERRAL] as? List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
-        ?: error("${GET_CAS3_REFERRAL} failed for $crn")
+      results.standardCallsNoIterationResults?.get(GET_CAS3_REFERRAL) as? List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
+        ?: emptyList()
 
     return AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3)
   }
