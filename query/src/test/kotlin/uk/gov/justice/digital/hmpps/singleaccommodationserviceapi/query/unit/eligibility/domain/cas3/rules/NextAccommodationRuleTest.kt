@@ -3,22 +3,19 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.NextAccommodationRule
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import java.util.stream.Stream
 
 class NextAccommodationRuleTest {
 
@@ -40,8 +37,8 @@ class NextAccommodationRuleTest {
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
-  @ParameterizedTest
-  @MethodSource("provideAllAccommodationTypes")
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(AccommodationArrangementType::class)
   fun `candidate fails when next accommodation exists`(accommodationType: AccommodationArrangementType) {
     val data = DomainData(
       crn = crn,
@@ -87,11 +84,4 @@ class NextAccommodationRuleTest {
     endDate = null,
     createdAt = Instant.now(),
   )
-
-  private companion object {
-    @JvmStatic
-    fun provideAllAccommodationTypes(): Stream<Arguments> = AccommodationArrangementType.entries.map {
-      Arguments.of(it)
-    }.stream()
-  }
 }

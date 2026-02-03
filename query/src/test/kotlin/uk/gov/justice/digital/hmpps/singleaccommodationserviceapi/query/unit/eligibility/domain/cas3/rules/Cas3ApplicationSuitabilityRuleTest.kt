@@ -3,11 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas3PlacementStatus
+import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -23,15 +21,17 @@ class Cas3ApplicationSuitabilityRuleTest {
   private val tier = TierScore.A1
   private val description = "FAIL if candidate does not have a suitable application"
 
-  @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRuleTest#provideSuitableCas3Applications")
-  fun `application is suitable (not PLACED) so rule passes`(cas3Application: Cas3Application) {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = Cas3ApplicationStatus::class, names = ["IN_PROGRESS", "AWAITING_PLACEMENT", "REQUESTED_FURTHER_INFORMATION", "PENDING"])
+  fun `application is suitable (not PLACED) so rule passes`(applicationStatus: Cas3ApplicationStatus) {
     val data = DomainData(
       crn = crn,
       tier = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = cas3Application
+      cas3Application = buildCas3Application(
+        applicationStatus = applicationStatus,
+      ),
     )
 
     val result = Cas3ApplicationSuitabilityRule().evaluate(data)
@@ -40,19 +40,22 @@ class Cas3ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.PASS,
-      )
+      ),
     )
   }
 
-  @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRuleTest#providePlacedCas3Applications")
-  fun `application is suitable (PLACED) so rule passes`(cas3Application: Cas3Application) {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(Cas3PlacementStatus::class)
+  fun `application is suitable (PLACED) so rule passes`(placementStatus: Cas3PlacementStatus) {
     val data = DomainData(
       crn = crn,
       tier = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = cas3Application
+      cas3Application = buildCas3Application(
+        applicationStatus = Cas3ApplicationStatus.PLACED,
+        placementStatus = placementStatus,
+      ),
     )
 
     val result = Cas3ApplicationSuitabilityRule().evaluate(data)
@@ -61,19 +64,21 @@ class Cas3ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.PASS,
-      )
+      ),
     )
   }
 
-  @ParameterizedTest
-  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRuleTest#provideUnsuitableCas3Applications")
-  fun `application does not have a suitable status so rule fails`(cas3Application: Cas3Application) {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = Cas3ApplicationStatus::class, names = ["SUBMITTED", "REJECTED", "INAPPLICABLE", "WITHDRAWN"])
+  fun `application does not have a suitable status so rule fails`(applicationStatus: Cas3ApplicationStatus) {
     val data = DomainData(
       crn = crn,
       tier = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = cas3Application
+      cas3Application = buildCas3Application(
+        applicationStatus = applicationStatus,
+      ),
     )
 
     val result = Cas3ApplicationSuitabilityRule().evaluate(data)
@@ -82,7 +87,7 @@ class Cas3ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -93,7 +98,7 @@ class Cas3ApplicationSuitabilityRuleTest {
       tier = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = null
+      cas3Application = null,
     )
 
     val result = Cas3ApplicationSuitabilityRule().evaluate(data)
@@ -102,63 +107,12 @@ class Cas3ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
   @Test
   fun `rule has correct description`() {
     assertThat(Cas3ApplicationSuitabilityRule().description).isEqualTo(description)
-  }
-
-  private companion object {
-
-    val suitableStatuses = listOf(
-      Cas3ApplicationStatus.IN_PROGRESS,
-      Cas3ApplicationStatus.AWAITING_PLACEMENT,
-      Cas3ApplicationStatus.PLACED,
-      Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-      Cas3ApplicationStatus.PENDING,
-    )
-
-    val unsuitableStatuses = listOf(
-      Cas3ApplicationStatus.SUBMITTED,
-      Cas3ApplicationStatus.REJECTED,
-      Cas3ApplicationStatus.INAPPLICABLE,
-      Cas3ApplicationStatus.WITHDRAWN,
-    )
-
-    @JvmStatic
-    fun provideSuitableCas3Applications() =
-      suitableStatuses.filter { it != Cas3ApplicationStatus.PLACED }.map {
-        Arguments.of(
-          buildCas3Application(
-            applicationStatus = it,
-            placementStatus = null
-          )
-        )
-      }.stream()
-
-    @JvmStatic
-    fun providePlacedCas3Applications() =
-      Cas3PlacementStatus.entries.map {
-        Arguments.of(
-          buildCas3Application(
-            applicationStatus = Cas3ApplicationStatus.PLACED,
-            placementStatus = it
-          )
-        )
-      }.stream()
-
-    @JvmStatic
-    fun provideUnsuitableCas3Applications() =
-      unsuitableStatuses.map {
-        Arguments.of(
-          buildCas3Application(
-            applicationStatus = it,
-            placementStatus = null
-          )
-        )
-      }.stream()
   }
 }

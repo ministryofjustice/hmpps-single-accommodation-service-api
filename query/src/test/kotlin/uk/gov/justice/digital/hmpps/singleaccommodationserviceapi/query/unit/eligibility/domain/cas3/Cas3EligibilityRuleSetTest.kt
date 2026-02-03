@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CrsStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.DtrStatusRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.ExistingCas1BookingRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.NoConflictingCas1BookingRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.NextAccommodationRule
 
 @ExtendWith(SpringExtension::class)
@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     NextAccommodationRule::class,
     CrsStatusRule::class,
     DtrStatusRule::class,
-    ExistingCas1BookingRule::class,
+    NoConflictingCas1BookingRule::class,
     ClockConfig::class,
   ],
 )
@@ -36,7 +36,7 @@ class Cas3EligibilityRuleSetTest {
     NextAccommodationRule::class.simpleName,
     CrsStatusRule::class.simpleName,
     DtrStatusRule::class.simpleName,
-    ExistingCas1BookingRule::class.simpleName,
+    NoConflictingCas1BookingRule::class.simpleName,
   )
 
   @Test

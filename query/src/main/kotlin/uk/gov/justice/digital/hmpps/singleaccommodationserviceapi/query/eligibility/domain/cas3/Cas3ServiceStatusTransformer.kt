@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 
-fun toServiceStatus(cas3ApplicationStatus: Cas3ApplicationStatus?, hasImminentActions: Boolean) = when (cas3ApplicationStatus) {
+fun toServiceStatus(cas3ApplicationStatus: Cas3ApplicationStatus?, isUpcoming: Boolean) = when (cas3ApplicationStatus) {
   Cas3ApplicationStatus.PLACED,
   Cas3ApplicationStatus.AWAITING_PLACEMENT,
     -> ServiceStatus.CONFIRMED
@@ -17,9 +17,9 @@ fun toServiceStatus(cas3ApplicationStatus: Cas3ApplicationStatus?, hasImminentAc
   null,
   Cas3ApplicationStatus.INAPPLICABLE
     ->
-    when (hasImminentActions) {
-      true -> ServiceStatus.NOT_STARTED
-      false -> ServiceStatus.UPCOMING
+    when (isUpcoming) {
+      true -> ServiceStatus.UPCOMING
+      false -> ServiceStatus.NOT_STARTED
     }
 
   Cas3ApplicationStatus.REJECTED

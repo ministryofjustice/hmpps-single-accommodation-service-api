@@ -7,26 +7,22 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
+private val completedCas1PlacementStatuses = listOf(
+  Cas1PlacementStatus.UPCOMING,
+  Cas1PlacementStatus.ARRIVED,
+)
+
 @Component
-class ExistingCas1BookingRule : Cas3EligibilityRule {
+class NoConflictingCas1BookingRule : Cas3EligibilityRule {
   override val description = "FAIL if CAS1 booking exists for upcoming release"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val completedPlacementStatuses = listOf(
-      Cas1PlacementStatus.UPCOMING,
-      Cas1PlacementStatus.ARRIVED,
-    )
-
-    val isCompleteApplication = data.cas1Application?.applicationStatus == Cas1ApplicationStatus.PLACEMENT_ALLOCATED
-    val isCompletePlacement = completedPlacementStatuses.contains(data.cas1Application?.placementStatus)
-
-    val isEligible = !(isCompleteApplication && isCompletePlacement)
-
-    val ruleStatus = if (isEligible) RuleStatus.PASS else RuleStatus.FAIL
+    val hasConflictingCas1Booking = data.cas1Application?.applicationStatus == Cas1ApplicationStatus.PLACEMENT_ALLOCATED
+      && data.cas1Application.placementStatus in completedCas1PlacementStatuses
 
     return RuleResult(
       description = description,
-      ruleStatus = ruleStatus,
+      ruleStatus = if (hasConflictingCas1Booking) RuleStatus.FAIL else RuleStatus.PASS,
     )
   }
 }

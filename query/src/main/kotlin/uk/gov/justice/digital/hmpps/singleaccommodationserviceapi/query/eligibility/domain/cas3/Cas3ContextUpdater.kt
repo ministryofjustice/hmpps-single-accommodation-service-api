@@ -11,16 +11,11 @@ class Cas3ContextUpdater(val clock: Clock) : ContextUpdater {
   override fun update(context: EvaluationContext): EvaluationContext {
     val action = buildCas3Action(context.data, clock)
 
-    val updatedServiceResult =
-      ServiceResult(
-        serviceStatus =
-          toServiceStatus(
-            context.data.cas3Application?.applicationStatus,
-            !action.isUpcoming
-          ),
-        suitableApplicationId = context.data.cas3Application?.id,
-        action = action
-      )
+    val updatedServiceResult = ServiceResult(
+      serviceStatus = toServiceStatus(context.data.cas3Application?.applicationStatus, action.isUpcoming),
+      suitableApplicationId = context.data.cas3Application?.id,
+      action = action,
+    )
 
     return context.copy(currentResult = updatedServiceResult)
   }
