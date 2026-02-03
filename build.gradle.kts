@@ -33,7 +33,6 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.36") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("com.github.codemonstur:embedded-redis:1.4.3")
   testImplementation("org.redisson:redisson-spring-boot-starter:3.27.2")
 
   testImplementation(testFixtures(project(":infrastructure")))
