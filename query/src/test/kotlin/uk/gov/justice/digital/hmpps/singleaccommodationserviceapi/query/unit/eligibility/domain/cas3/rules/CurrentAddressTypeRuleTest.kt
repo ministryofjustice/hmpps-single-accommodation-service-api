@@ -3,8 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
@@ -12,20 +11,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import java.util.stream.Stream
 
 class CurrentAddressTypeRuleTest {
 
   private val crn = "ABC234"
   private val male = SexCode.M
 
-  @ParameterizedTest
-  @MethodSource("provideEligibleAccommodationTypes")
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = AccommodationArrangementType::class, names = ["PRISON", "CAS1", "CAS2", "CAS2V2"])
   fun `candidate passes when current accommodation is eligible type`(accommodationType: AccommodationArrangementType) {
     val data = DomainData(
       crn = crn,
@@ -40,8 +38,8 @@ class CurrentAddressTypeRuleTest {
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
-  @ParameterizedTest
-  @MethodSource("provideIneligibleAccommodationTypes")
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = AccommodationArrangementType::class, names = ["CAS3", "PRIVATE", "NO_FIXED_ABODE"])
   fun `candidate fails when current accommodation is ineligible type`(accommodationType: AccommodationArrangementType) {
     val data = DomainData(
       crn = crn,
@@ -102,21 +100,4 @@ class CurrentAddressTypeRuleTest {
     status = null,
     createdAt = Instant.now()
   )
-
-  private companion object {
-    @JvmStatic
-    fun provideEligibleAccommodationTypes(): Stream<Arguments> = Stream.of(
-      Arguments.of(AccommodationArrangementType.PRISON),
-      Arguments.of(AccommodationArrangementType.CAS1),
-      Arguments.of(AccommodationArrangementType.CAS2),
-      Arguments.of(AccommodationArrangementType.CAS2V2),
-    )
-
-    @JvmStatic
-    fun provideIneligibleAccommodationTypes(): Stream<Arguments> = Stream.of(
-      Arguments.of(AccommodationArrangementType.CAS3),
-      Arguments.of(AccommodationArrangementType.PRIVATE),
-      Arguments.of(AccommodationArrangementType.NO_FIXED_ABODE),
-    )
-  }
 }

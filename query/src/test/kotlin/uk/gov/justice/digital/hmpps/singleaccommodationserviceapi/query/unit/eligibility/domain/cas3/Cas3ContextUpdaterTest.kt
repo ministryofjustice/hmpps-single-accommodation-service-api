@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas3PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
@@ -26,8 +26,8 @@ class Cas3ContextUpdaterTest {
   inner class UpdateTests {
     @Test
     fun `update builds action using buildActionForCas3`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         releaseDate = releaseDate,
@@ -49,8 +49,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update calculates service status using toServiceStatus with application status`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
@@ -69,8 +69,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update sets suitableApplicationId from cas3Application id`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         releaseDate = releaseDate,
@@ -91,8 +91,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update sets suitableApplicationId to null when cas3Application is null`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = null,
@@ -109,8 +109,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update returns updated context with new ServiceResult`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
@@ -131,8 +131,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update handles PLACED status with completed placement correctly`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
@@ -153,8 +153,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update handles REJECTED status correctly`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
@@ -173,8 +173,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update handles WITHDRAWN status correctly`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
@@ -193,8 +193,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update handles PENDING status correctly`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
@@ -214,8 +214,8 @@ class Cas3ContextUpdaterTest {
 
     @Test
     fun `update handles REQUESTED_FURTHER_INFORMATION status correctly`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val releaseDate = LocalDate.now().plusDays(20)
+      clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
