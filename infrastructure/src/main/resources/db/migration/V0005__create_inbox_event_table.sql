@@ -1,0 +1,11 @@
+CREATE TABLE inbox_event
+(
+    id                UUID PRIMARY KEY,
+    event_type        TEXT                     NOT NULL,
+    event_detail_url  TEXT                     NOT NULL,
+    event_occurred_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at        TIMESTAMP WITH TIME ZONE default now(),
+    processed_status  VARCHAR(20)              NOT NULL,
+    processed_at      TIMESTAMP WITH TIME ZONE,
+    crn               TEXT
+);
