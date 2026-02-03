@@ -85,7 +85,7 @@ jobs:
         run: ./gradlew detekt
   kotlin_validate:
     name: Validate the kotlin
-    uses: ./.github/workflows/gradle_verify.yml@v1 # WORKFLOW_VERSION
+    uses: gradle_verify_redis.yml # WORKFLOW_VERSION
     with:
       localstack-tag: 4
       postgres-tag: 18
