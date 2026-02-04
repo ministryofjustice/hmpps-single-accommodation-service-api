@@ -12,7 +12,7 @@ class CaseService(
   fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {
     val list = caseOrchestrationService.getCases(crns)
     return list.map {
-      toCaseDto(
+      CaseTransformer.toCaseDto(
         crn = it.crn,
         cpr = it.cpr,
         roshDetails = it.roshDetails,
@@ -26,6 +26,6 @@ class CaseService(
 
   fun getCase(crn: String): CaseDto {
     val case = caseOrchestrationService.getCase(crn)
-    return toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
+    return CaseTransformer.toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
   }
 }

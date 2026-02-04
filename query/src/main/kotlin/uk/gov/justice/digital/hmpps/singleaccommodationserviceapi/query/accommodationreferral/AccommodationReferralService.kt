@@ -12,7 +12,7 @@ class AccommodationReferralService(private val orchestrationService: Accommodati
 
   fun getReferralHistory(crn: String): List<AccommodationReferralDto> {
     val orchestrationDto = orchestrationService.fetchAllReferralsAggregated(crn)
-    val allReferrals = transformReferrals(orchestrationDto)
+    val allReferrals = AccommodationReferralTransformer.transformReferrals(orchestrationDto)
     return allReferrals.sortedByDescending { it.date }
   }
 }
