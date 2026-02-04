@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -16,7 +17,7 @@ class CaseService(
         cpr = it.cpr,
         roshDetails = it.roshDetails,
         tier = it.tier,
-        caseSummaries = it.cases
+        caseSummaries = it.cases,
       )
     }
       .filter { riskLevel == null || it.riskLevel == riskLevel }
