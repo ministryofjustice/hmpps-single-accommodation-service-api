@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.messaging
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.junit.jupiter.api.Assertions.fail
@@ -62,17 +63,16 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
   }
 }
 
-// Warning suppressed because we have to match the SNS attribute naming case
-@SuppressWarnings("ConstructorParameterNaming")
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Message(
-  val Message: String,
-  val MessageId: String,
-  val MessageAttributes: MessageAttributes,
+  @JsonProperty("Message") val message: String,
+  @JsonProperty("MessageId") val messageId: String,
+  @JsonProperty("MessageAttributes") val messageAttributes: MessageAttributes,
 )
 
 data class MessageAttributes(val eventType: EventType)
 
-// Warning suppressed because we have to match the SNS attribute naming case
-@SuppressWarnings("ConstructorParameterNaming")
-data class EventType(val Value: String, val Type: String)
+data class EventType(
+  @JsonProperty("Value") val value: String,
+  @JsonProperty("Type") val type: String
+)
