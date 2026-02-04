@@ -79,7 +79,6 @@ subprojects {
 
   dependencies {
     implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
-
     testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   }
