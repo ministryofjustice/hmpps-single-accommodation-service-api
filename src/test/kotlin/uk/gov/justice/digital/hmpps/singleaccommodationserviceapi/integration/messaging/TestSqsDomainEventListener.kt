@@ -74,5 +74,5 @@ data class MessageAttributes(val eventType: EventType)
 
 data class EventType(
   @JsonProperty("Value") val value: String,
-  @JsonProperty("Type") val type: String
+  @JsonProperty("Type") val type: String,
 )
