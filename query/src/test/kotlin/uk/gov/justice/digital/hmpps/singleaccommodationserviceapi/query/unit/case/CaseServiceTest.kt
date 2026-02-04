@@ -17,8 +17,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.toRiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.RiskLevelTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildCaseOrchestrationDto
 import kotlin.collections.first
 
@@ -61,13 +61,13 @@ class CaseServiceTest {
 
       every { caseOrchestrationService.getCases(crnList) } returns orchestrationDtoList
 
-      val result = caseService.getCases(crnList, toRiskLevel(riskLevelInfra))
+      val result = caseService.getCases(crnList, RiskLevelTransformer.toRiskLevel(riskLevelInfra))
       assertThat(result).hasSize(2)
 
       val orchestrationOne = orchestrationDtoList.first()
       val orchestrationTwo = orchestrationDtoList[1]
         assertThat(result.first()).isEqualTo(
-          toCaseDto(
+          CaseTransformer.toCaseDto(
             crn = crnOne,
             cpr = orchestrationOne.cpr,
             roshDetails = orchestrationOne.roshDetails,
@@ -76,7 +76,7 @@ class CaseServiceTest {
           ),
         )
         assertThat(result[1]).isEqualTo(
-          toCaseDto(
+          CaseTransformer.toCaseDto(
             crn = crnTwo,
             cpr = orchestrationTwo.cpr,
             roshDetails = orchestrationTwo.roshDetails,
@@ -148,7 +148,7 @@ class CaseServiceTest {
 
       val orchestrationOne = orchestrationDtoList.first()
       assertThat(result.first()).isEqualTo(
-        toCaseDto(
+        CaseTransformer.toCaseDto(
           crn = crnOne,
           cpr = orchestrationOne.cpr,
           roshDetails = orchestrationOne.roshDetails,
@@ -166,7 +166,7 @@ class CaseServiceTest {
       every { caseOrchestrationService.getCase(crnOne) } returns caseOrchestrationDto
 
       assertThat(caseService.getCase(crnOne)).isEqualTo(
-        toCaseDto(
+        CaseTransformer.toCaseDto(
           crn = crnOne,
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
