@@ -31,7 +31,6 @@ class EligibilityTransformerTest {
     caseStatus: CaseStatus,
     caseActions: List<String>,
   ) {
-
     val actualEligibility = toEligibilityDto(
       crn = crn,
       cas1 = cas1,
@@ -56,11 +55,11 @@ class EligibilityTransformerTest {
   }
 
   private companion object {
-    private const val CRN = "X371199"
+    private const val CRN = "FAKECRN1"
     private val notStarted = ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
       suitableApplicationId = null,
-      action = RuleAction(START_APPROVED_PREMISE_REFERRAL)
+      action = RuleAction(START_APPROVED_PREMISE_REFERRAL),
     )
     private val notEligible = ServiceResult(
       serviceStatus = ServiceStatus.NOT_ELIGIBLE,
@@ -69,7 +68,7 @@ class EligibilityTransformerTest {
     private val upcoming = ServiceResult(
       serviceStatus = ServiceStatus.UPCOMING,
       suitableApplicationId = null,
-      action = RuleAction("$START_APPROVED_PREMISE_REFERRAL in 2 days", true)
+      action = RuleAction("$START_APPROVED_PREMISE_REFERRAL in 2 days", true),
     )
     private val confirmed = ServiceResult(
       serviceStatus = ServiceStatus.CONFIRMED,
@@ -78,22 +77,22 @@ class EligibilityTransformerTest {
     private val assessing = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = RuleAction(AWAIT_ASSESSMENT, true)
+      action = RuleAction(AWAIT_ASSESSMENT, true),
     )
     private val submitted = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = RuleAction(CREATE_PLACEMENT)
+      action = RuleAction(CREATE_PLACEMENT),
     )
     private val withdrawn = ServiceResult(
       serviceStatus = ServiceStatus.WITHDRAWN,
       suitableApplicationId = null,
-      action = RuleAction(START_APPROVED_PREMISE_REFERRAL)
+      action = RuleAction(START_APPROVED_PREMISE_REFERRAL),
     )
     private val rejected = ServiceResult(
       serviceStatus = ServiceStatus.REJECTED,
       suitableApplicationId = null,
-      action = RuleAction(START_APPROVED_PREMISE_REFERRAL)
+      action = RuleAction(START_APPROVED_PREMISE_REFERRAL),
     )
 
     @JvmStatic
@@ -179,7 +178,7 @@ class EligibilityTransformerTest {
         listOf(
           START_APPROVED_PREMISE_REFERRAL,
           AWAIT_ASSESSMENT,
-          "$START_APPROVED_PREMISE_REFERRAL in 2 days"
+          "$START_APPROVED_PREMISE_REFERRAL in 2 days",
         ),
       ),
     )

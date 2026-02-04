@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
@@ -21,6 +22,7 @@ class CaseOrchestrationService(
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
 ) {
+
   fun getCases(crns: List<String>): List<CaseOrchestrationDto> {
     val bulkCall = mapOf(
       ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },

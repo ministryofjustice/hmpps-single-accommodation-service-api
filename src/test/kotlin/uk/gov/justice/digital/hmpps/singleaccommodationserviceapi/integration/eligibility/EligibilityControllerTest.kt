@@ -17,7 +17,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.util.UUID
 
 class EligibilityControllerTest : IntegrationTestBase() {
-  private val crn = "X371199"
+  private val crn = "FAKECRN1"
   private val prisonerNumber = "1234567"
   private val cas1ApplicationId = UUID.randomUUID()
 

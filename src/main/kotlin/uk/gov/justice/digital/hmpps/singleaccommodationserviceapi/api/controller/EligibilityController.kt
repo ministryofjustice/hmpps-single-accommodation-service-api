@@ -6,34 +6,27 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.mock.MockData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.toEligibilityDto
 
 @RestController
 class EligibilityController(
   val eligibilityService: EligibilityService,
-  private val mockedData: MockData?,
 ) {
 
   @PreAuthorize("hasRole('ROLE_PROBATION')")
   @GetMapping("/cases/{crn}/eligibility")
   fun getEligibility(@PathVariable crn: String): ResponseEntity<EligibilityDto> {
     val eligibility = eligibilityService.getEligibility(crn)
-    return mockedData
-      ?.let {
-        val currentMock = mockedData.crns[crn]!!
-        ResponseEntity.ok(
-          toEligibilityDto(
-            crn = crn,
-            cas1 = eligibility.cas1,
-            cas3 = currentMock.cas3Eligibility,
-            cas2Hdc = currentMock.cas2HdcEligibility,
-            cas2PrisonBail = currentMock.cas2PrisonBailEligibility,
-            cas2CourtBail = currentMock.cas2CourtBailEligibility,
-          ),
-        )
-      }
-      ?: ResponseEntity.ok(eligibility)
+    return ResponseEntity.ok(
+      toEligibilityDto(
+        crn = crn,
+        cas1 = eligibility.cas1,
+        cas2Hdc = eligibility.cas2Hdc,
+        cas2PrisonBail = eligibility.cas2PrisonBail,
+        cas2CourtBail = eligibility.cas2CourtBail,
+        cas3 = eligibility.cas3,
+      ),
+    )
   }
 }
