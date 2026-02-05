@@ -16,6 +16,6 @@ class DutyToReferController {
   @GetMapping("/cases/{crn}/dtrs")
   fun getDutyToRefersByCrn(@PathVariable crn: String): ResponseEntity<List<DutyToReferDto>> {
     log.warn("/cases/{crn}/dtrs has not been implemented.")
-    return ResponseEntity.noContent().build()
+    return ResponseEntity.ok(emptyList())
   }
 }

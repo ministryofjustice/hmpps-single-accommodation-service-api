@@ -17,6 +17,6 @@ class AccommodationController {
   @GetMapping("/cases/{crn}/accommodations")
   fun getAccommodations(@PathVariable crn: String): ResponseEntity<AccommodationDto> {
     log.warn("/cases/{crn}/accommodations has not been implemented.")
-    return ResponseEntity.noContent().build()
+    return ResponseEntity.ok(null)
   }
 }
