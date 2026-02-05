@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.toServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2ServiceStatusTransformer
 import java.util.UUID
 
 class Cas2ServiceStatusTransformerTest {
@@ -20,7 +20,7 @@ class Cas2ServiceStatusTransformerTest {
       val cas2HdcApplication = Cas2HdcApplication(
         id = UUID.randomUUID(),
       )
-      assertThat(toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+      assertThat(Cas2ServiceStatusTransformer.toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 
@@ -32,7 +32,7 @@ class Cas2ServiceStatusTransformerTest {
       val cas2CourtBailApplication = Cas2CourtBailApplication(
         id = UUID.randomUUID(),
       )
-      assertThat(toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+      assertThat(Cas2ServiceStatusTransformer.toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 
@@ -44,7 +44,7 @@ class Cas2ServiceStatusTransformerTest {
       val cas2PrisonBailApplication = Cas2PrisonBailApplication(
         id = UUID.randomUUID(),
       )
-      assertThat(toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
+      assertThat(Cas2ServiceStatusTransformer.toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 }

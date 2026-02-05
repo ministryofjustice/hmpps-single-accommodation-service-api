@@ -6,8 +6,8 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ServiceStatusTransformer
 import java.util.stream.Stream
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.ServiceStatusTransformer
 
 class Cas1ServiceStatusTransformerTest {
 
@@ -106,6 +106,6 @@ class Cas1ServiceStatusTransformerTest {
     hasImminentActions: Boolean,
     serviceStatus: ServiceStatus,
   ) {
-    assertThat(ServiceStatusTransformer.toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
+    assertThat(Cas1ServiceStatusTransformer.toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
   }
 }

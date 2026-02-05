@@ -12,7 +12,7 @@ class Cas3ContextUpdater(val clock: Clock) : ContextUpdater {
     val action = buildCas3Action(context.data, clock)
 
     val updatedServiceResult = ServiceResult(
-      serviceStatus = toServiceStatus(context.data.cas3Application?.applicationStatus, action.isUpcoming),
+      serviceStatus = Cas3ServiceStatusTransformer.toServiceStatus(context.data.cas3Application?.applicationStatus, action.isUpcoming),
       suitableApplicationId = context.data.cas3Application?.id,
       action = action,
     )

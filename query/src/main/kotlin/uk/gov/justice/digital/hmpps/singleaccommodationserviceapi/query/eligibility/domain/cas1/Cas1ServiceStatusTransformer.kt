@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 
-object ServiceStatusTransformer {
+object Cas1ServiceStatusTransformer {
   fun toServiceStatus(cas1ApplicationStatus: Cas1ApplicationStatus?, hasImminentActions: Boolean) = when (cas1ApplicationStatus) {
     Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       -> ServiceStatus.CONFIRMED
