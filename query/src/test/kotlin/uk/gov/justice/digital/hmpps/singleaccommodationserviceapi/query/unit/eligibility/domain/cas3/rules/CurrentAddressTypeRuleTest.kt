@@ -83,6 +83,8 @@ class CurrentAddressTypeRuleTest {
     name = null,
     settledType = AccommodationSettledType.TRANSIENT,
     offenderReleaseType = null,
+    verificationStatus = null,
+    nextAccommodationStatus = null,
     startDate = null,
     endDate = null,
     address = AccommodationAddressDetails(
@@ -97,7 +99,6 @@ class CurrentAddressTypeRuleTest {
       country = null,
       uprn = null
     ),
-    status = null,
     createdAt = Instant.now()
   )
 }

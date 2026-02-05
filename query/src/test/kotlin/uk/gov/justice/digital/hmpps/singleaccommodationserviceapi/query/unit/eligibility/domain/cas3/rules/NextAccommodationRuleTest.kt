@@ -67,7 +67,8 @@ class NextAccommodationRuleTest {
     arrangementSubTypeDescription = null,
     settledType = AccommodationSettledType.TRANSIENT,
     offenderReleaseType = null,
-    status = null,
+    verificationStatus = null,
+    nextAccommodationStatus = null,
     address = AccommodationAddressDetails(
       postcode = null,
       subBuildingName = null,

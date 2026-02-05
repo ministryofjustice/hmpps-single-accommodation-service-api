@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.toServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ServiceStatusTransformer
 
 class Cas3ServiceStatusTransformerTest {
 
@@ -32,6 +32,6 @@ class Cas3ServiceStatusTransformerTest {
     isUpcoming: Boolean,
     serviceStatus: ServiceStatus,
   ) {
-    assertThat(toServiceStatus(applicationStatus, isUpcoming)).isEqualTo(serviceStatus)
+    assertThat(Cas3ServiceStatusTransformer.toServiceStatus(applicationStatus, isUpcoming)).isEqualTo(serviceStatus)
   }
 }

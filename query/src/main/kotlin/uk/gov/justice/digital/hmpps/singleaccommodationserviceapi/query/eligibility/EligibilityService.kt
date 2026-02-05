@@ -191,7 +191,6 @@ class EligibilityService(
   }
 
   fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
-    // Build tree declaratively:
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
 
@@ -206,14 +205,14 @@ class EligibilityService(
       treeBuilder
         .ruleSet("Cas3Suitability", cas3SuitabilityRuleSet, cas3ContextUpdater)
         .onPass(confirmed)
-        .onFail(eligibility) // node above
+        .onFail(eligibility)
         .build()
 
     val tree =
       treeBuilder
         .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3ContextUpdater)
         .onPass(confirmed)
-        .onFail(suitability) // node above
+        .onFail(suitability)
         .build()
 
     val initialContext =

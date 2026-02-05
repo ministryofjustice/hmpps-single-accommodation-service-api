@@ -28,7 +28,11 @@ fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID)
     "suitableApplicationId": null,
     "action": null
   },
-  "cas3": null,
+  "cas3": {
+    "serviceStatus": "NOT_ELIGIBLE",
+    "suitableApplicationId": null,
+    "action": null
+  },
   "caseActions": [
     "Await Assessment"
   ],
