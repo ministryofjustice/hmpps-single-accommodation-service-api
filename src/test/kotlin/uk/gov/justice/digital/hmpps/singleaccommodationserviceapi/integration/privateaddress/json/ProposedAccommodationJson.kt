@@ -17,7 +17,8 @@ fun expectedGetProposedAccommodationsResponse(
     "arrangementSubTypeDescription" : null,
     "settledType" : "SETTLED",
     "offenderReleaseType" : null,
-    "status" : "NOT_CHECKED_YET",
+    "verificationStatus" : "NOT_CHECKED_YET",
+    "nextAccommodationStatus" : "TO_BE_DECIDED",
     "address" : {
       "postcode" : "W1 8XX",
       "subBuildingName" : null,
@@ -42,7 +43,8 @@ fun expectedGetProposedAccommodationsResponse(
     "arrangementSubTypeDescription" : null,
     "settledType" : "SETTLED",
     "offenderReleaseType" : null,
-    "status" : "NOT_CHECKED_YET",
+    "verificationStatus" : "NOT_CHECKED_YET",
+    "nextAccommodationStatus" : "TO_BE_DECIDED",
     "address" : {
       "postcode" : "RG26 5AG",
       "subBuildingName" : null,
@@ -62,7 +64,7 @@ fun expectedGetProposedAccommodationsResponse(
 ]
 """.trimIndent()
 
-fun proposedAddressesRequestBody(accommodationStatus: String): String = """
+fun proposedAddressesRequestBody(verificationStatus: String, nextAccommodationStatus: String): String = """
   {
     "name" : "Mother's caravan",
     "arrangementType" : "PRIVATE",
@@ -70,7 +72,8 @@ fun proposedAddressesRequestBody(accommodationStatus: String): String = """
     "arrangementSubTypeDescription" : "Caravan site",
     "settledType" : "SETTLED",
     "offenderReleaseType" : "REMAND",
-    "status" : "$accommodationStatus",
+    "verificationStatus" : "$verificationStatus",
+    "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
       "postcode" : "test postcode",
       "subBuildingName" : "test sub building name",
@@ -88,7 +91,12 @@ fun proposedAddressesRequestBody(accommodationStatus: String): String = """
   }
 """.trimIndent()
 
-fun expectedProposedAddressesResponseBody(id: UUID, accommodationStatus: String, createdAt: String): String = """
+fun expectedProposedAddressesResponseBody(
+  id: UUID,
+  verificationStatus: String,
+  nextAccommodationStatus: String,
+  createdAt: String,
+): String = """
 {
   "id" : "$id",
   "name" : "Mother's caravan",
@@ -97,7 +105,8 @@ fun expectedProposedAddressesResponseBody(id: UUID, accommodationStatus: String,
   "arrangementSubTypeDescription" : "Caravan site",
   "settledType" : "SETTLED",
   "offenderReleaseType" : "REMAND",
-  "status" : "$accommodationStatus",
+  "verificationStatus" : "$verificationStatus",
+  "nextAccommodationStatus" : "$nextAccommodationStatus",
   "address" : {
     "postcode" : "test postcode",
     "subBuildingName" : "test sub building name",

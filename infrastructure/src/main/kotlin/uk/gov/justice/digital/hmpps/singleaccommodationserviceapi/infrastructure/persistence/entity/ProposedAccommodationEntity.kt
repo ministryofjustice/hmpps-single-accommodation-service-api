@@ -18,7 +18,8 @@ data class ProposedAccommodationEntity(
   val arrangementSubType: AccommodationArrangementSubType?,
   val arrangementSubTypeDescription: String?,
   val settledType: AccommodationSettledType,
-  val status: AccommodationStatus?,
+  val verificationStatus: VerificationStatus?,
+  val nextAccommodationStatus: NextAccommodationStatus?,
   val offenderReleaseType: OffenderReleaseType?,
   val startDate: LocalDate?,
   val endDate: LocalDate?,
@@ -60,10 +61,16 @@ enum class AccommodationSettledType {
   TRANSIENT,
 }
 
-enum class AccommodationStatus {
+enum class VerificationStatus {
   NOT_CHECKED_YET,
   FAILED,
   PASSED
+}
+
+enum class NextAccommodationStatus {
+  YES,
+  NO,
+  TO_BE_DECIDED
 }
 
 enum class OffenderReleaseType {

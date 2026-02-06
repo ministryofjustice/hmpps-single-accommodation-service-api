@@ -7,14 +7,16 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildSnapshot
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as AccommodationArrangementTypeInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as AccommodationArrangementSubTypeInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as AccommodationSettledTypeInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatus as AccommodationStatusInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as OffenderReleaseTypeInfra
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityOffenderReleaseType
 
 class ProposedAccommodationMapperTest {
 
@@ -26,12 +28,13 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.id).isEqualTo(snapshot.id)
     assertThat(entity.crn).isEqualTo(snapshot.crn)
     assertThat(entity.name).isEqualTo(snapshot.name)
-    assertThat(entity.arrangementType).isEqualTo(AccommodationArrangementTypeInfra.valueOf(snapshot.arrangementType.name))
-    assertThat(entity.arrangementSubType).isEqualTo(AccommodationArrangementSubTypeInfra.valueOf(snapshot.arrangementSubType!!.name))
+    assertThat(entity.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name))
+    assertThat(entity.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(snapshot.arrangementSubType!!.name))
     assertThat(entity.arrangementSubTypeDescription).isEqualTo(snapshot.arrangementSubTypeDescription)
-    assertThat(entity.settledType).isEqualTo(AccommodationSettledTypeInfra.valueOf(snapshot.settledType.name))
-    assertThat(entity.status).isEqualTo(AccommodationStatusInfra.valueOf(snapshot.status.name))
-    assertThat(entity.offenderReleaseType).isEqualTo(OffenderReleaseTypeInfra.valueOf(snapshot.offenderReleaseType!!.name))
+    assertThat(entity.settledType).isEqualTo(EntityAccommodationSettledType.valueOf(snapshot.settledType.name))
+    assertThat(entity.verificationStatus).isEqualTo(EntityVerificationStatus.valueOf(snapshot.verificationStatus.name))
+    assertThat(entity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name))
+    assertThat(entity.offenderReleaseType).isEqualTo(EntityOffenderReleaseType.valueOf(snapshot.offenderReleaseType!!.name))
     assertThat(entity.startDate).isEqualTo(snapshot.startDate)
     assertThat(entity.endDate).isEqualTo(snapshot.endDate)
     assertThat(entity.postcode).isEqualTo(snapshot.address.postcode)
@@ -69,7 +72,7 @@ class ProposedAccommodationMapperTest {
       snapshot = buildSnapshot(arrangementType = arrangementType)
     )
 
-    assertThat(entity.arrangementType).isEqualTo(AccommodationArrangementTypeInfra.valueOf(arrangementType.name))
+    assertThat(entity.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(arrangementType.name))
   }
 
   @ParameterizedTest
@@ -80,7 +83,7 @@ class ProposedAccommodationMapperTest {
     val entity = ProposedAccommodationMapper.toEntity(
       snapshot = buildSnapshot(arrangementSubType = arrangementSubType)
     )
-    assertThat(entity.arrangementSubType).isEqualTo(AccommodationArrangementSubTypeInfra.valueOf(arrangementSubType.name))
+    assertThat(entity.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(arrangementSubType.name))
   }
 
   @ParameterizedTest
@@ -91,18 +94,29 @@ class ProposedAccommodationMapperTest {
     val entity = ProposedAccommodationMapper.toEntity(
       snapshot = buildSnapshot(settledType = settledType)
     )
-    assertThat(entity.settledType).isEqualTo(AccommodationSettledTypeInfra.valueOf(settledType.name))
+    assertThat(entity.settledType).isEqualTo(EntityAccommodationSettledType.valueOf(settledType.name))
   }
 
   @ParameterizedTest
-  @EnumSource(AccommodationStatus::class)
-  fun `toEntity maps status enum values correctly`(
-    status: AccommodationStatus,
+  @EnumSource(VerificationStatus::class)
+  fun `toEntity maps verificationStatus enum values correctly`(
+    verificationStatus: VerificationStatus,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(status = status)
+      snapshot = buildSnapshot(verificationStatus = verificationStatus)
     )
-    assertThat(entity.status).isEqualTo(AccommodationStatusInfra.valueOf(status.name))
+    assertThat(entity.verificationStatus).isEqualTo(EntityVerificationStatus.valueOf(verificationStatus.name))
+  }
+
+  @ParameterizedTest
+  @EnumSource(NextAccommodationStatus::class)
+  fun `toEntity maps nextAccommodationStatus enum values correctly`(
+    nextAccommodationStatus: NextAccommodationStatus,
+  ) {
+    val entity = ProposedAccommodationMapper.toEntity(
+      snapshot = buildSnapshot(nextAccommodationStatus = nextAccommodationStatus)
+    )
+    assertThat(entity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.valueOf(nextAccommodationStatus.name))
   }
 
   @ParameterizedTest
@@ -113,7 +127,7 @@ class ProposedAccommodationMapperTest {
     val entity = ProposedAccommodationMapper.toEntity(
       snapshot = buildSnapshot(offenderReleaseType = offenderReleaseType)
     )
-    assertThat(entity.offenderReleaseType).isEqualTo(OffenderReleaseTypeInfra.valueOf(offenderReleaseType.name))
+    assertThat(entity.offenderReleaseType).isEqualTo(EntityOffenderReleaseType.valueOf(offenderReleaseType.name))
   }
 
   @Test
@@ -126,7 +140,8 @@ class ProposedAccommodationMapperTest {
     assertThat(dto.arrangementSubType).isEqualTo(snapshot.arrangementSubType)
     assertThat(dto.arrangementSubTypeDescription).isEqualTo(snapshot.arrangementSubTypeDescription)
     assertThat(dto.settledType).isEqualTo(snapshot.settledType)
-    assertThat(dto.status).isEqualTo(snapshot.status)
+    assertThat(dto.verificationStatus).isEqualTo(snapshot.verificationStatus)
+    assertThat(dto.nextAccommodationStatus).isEqualTo(snapshot.nextAccommodationStatus)
     assertThat(dto.offenderReleaseType).isEqualTo(snapshot.offenderReleaseType)
     assertThat(dto.startDate).isEqualTo(snapshot.startDate)
     assertThat(dto.endDate).isEqualTo(snapshot.endDate)

@@ -5,8 +5,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -20,7 +21,8 @@ fun buildAccommodationDetail(
   arrangementSubTypeDescription: String? = null,
   settledType: AccommodationSettledType = AccommodationSettledType.TRANSIENT,
   offenderReleaseType: OffenderReleaseType? = null,
-  status: AccommodationStatus? = AccommodationStatus.NOT_CHECKED_YET,
+  verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
+  nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.YES,
   address: AccommodationAddressDetails = buildAccommodationAddressDetails(),
   startDate: LocalDate? = null,
   endDate: LocalDate? = null,
@@ -33,7 +35,8 @@ fun buildAccommodationDetail(
   arrangementSubTypeDescription = arrangementSubTypeDescription,
   settledType = settledType,
   offenderReleaseType = offenderReleaseType,
-  status = status,
+  verificationStatus = verificationStatus,
+  nextAccommodationStatus = nextAccommodationStatus,
   address = address,
   startDate = startDate,
   endDate = endDate,

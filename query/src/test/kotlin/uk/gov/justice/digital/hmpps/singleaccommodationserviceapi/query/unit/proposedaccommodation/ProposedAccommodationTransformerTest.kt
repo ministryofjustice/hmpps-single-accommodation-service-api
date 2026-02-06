@@ -8,13 +8,15 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntitySettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatus as EntityStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTransformer
 import java.time.Instant
@@ -40,7 +42,8 @@ class ProposedAccommodationTransformerTest {
         arrangementSubType = EntityArrangementSubType.FRIENDS_OR_FAMILY,
         arrangementSubTypeDescription = "Family home",
         settledType = EntitySettledType.SETTLED,
-        status = EntityStatus.PASSED,
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
         offenderReleaseType = EntityReleaseType.LICENCE,
         startDate = startDate,
         endDate = endDate,
@@ -65,7 +68,8 @@ class ProposedAccommodationTransformerTest {
       assertThat(result.arrangementSubType).isEqualTo(AccommodationArrangementSubType.FRIENDS_OR_FAMILY)
       assertThat(result.arrangementSubTypeDescription).isEqualTo("Family home")
       assertThat(result.settledType).isEqualTo(AccommodationSettledType.SETTLED)
-      assertThat(result.status).isEqualTo(AccommodationStatus.PASSED)
+      assertThat(result.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+      assertThat(result.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
       assertThat(result.offenderReleaseType).isEqualTo(OffenderReleaseType.LICENCE)
       assertThat(result.startDate).isEqualTo(startDate)
       assertThat(result.endDate).isEqualTo(endDate)
@@ -78,7 +82,8 @@ class ProposedAccommodationTransformerTest {
         name = null,
         arrangementSubType = null,
         arrangementSubTypeDescription = null,
-        status = null,
+        verificationStatus = null,
+        nextAccommodationStatus = null,
         offenderReleaseType = null,
         startDate = null,
         endDate = null,
@@ -99,7 +104,8 @@ class ProposedAccommodationTransformerTest {
       assertThat(result.name).isNull()
       assertThat(result.arrangementSubType).isNull()
       assertThat(result.arrangementSubTypeDescription).isNull()
-      assertThat(result.status).isNull()
+      assertThat(result.verificationStatus).isNull()
+      assertThat(result.nextAccommodationStatus).isNull()
       assertThat(result.offenderReleaseType).isNull()
       assertThat(result.startDate).isNull()
       assertThat(result.endDate).isNull()
@@ -185,9 +191,16 @@ class ProposedAccommodationTransformerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(EntityStatus::class)
-    fun `should map all AccommodationStatus values correctly`(entityStatus: EntityStatus) {
-      val result = ProposedAccommodationTransformer.toAccommodationStatus(entityStatus)
+    @EnumSource(EntityVerificationStatus::class)
+    fun `should map all VerificationStatus values correctly`(entityStatus: EntityVerificationStatus) {
+      val result = ProposedAccommodationTransformer.toVerificationStatus(entityStatus)
+      assertThat(result.name).isEqualTo(entityStatus.name)
+    }
+
+    @ParameterizedTest
+    @EnumSource(EntityNextAccommodationStatus::class)
+    fun `should map all NextAccommodationStatus values correctly`(entityStatus: EntityNextAccommodationStatus) {
+      val result = ProposedAccommodationTransformer.toNextAccommodationStatus(entityStatus)
       assertThat(result.name).isEqualTo(entityStatus.name)
     }
 

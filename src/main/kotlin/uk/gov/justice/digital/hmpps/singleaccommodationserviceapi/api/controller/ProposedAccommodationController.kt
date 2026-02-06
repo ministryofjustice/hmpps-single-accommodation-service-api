@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,7 +32,7 @@ class ProposedAccommodationController(
     @PathVariable crn: String,
     @RequestBody request: CreateAccommodationDetail,
   ): ResponseEntity<AccommodationDetail> {
-    val response = proposedAccommodationApplicationService.createProposedAccommodation(crn, request)
-    return ResponseEntity.ok(response)
+    val createdProposedAccommodation = proposedAccommodationApplicationService.createProposedAccommodation(crn, request)
+    return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
   }
 }
