@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
@@ -22,10 +23,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.messaging.TestSqsDomainEventListener
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedSasAddressUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.proposedAddressesRequestBody
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -57,9 +60,53 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
   @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `should get proposed-accommodation for crn`() {
-    mockMvc
+    val olderTimestamp = Instant.parse("2025-01-01T10:00:00Z")
+    val newerTimestamp = Instant.parse("2025-01-02T10:00:00Z")
+
+    val olderEntity = createAndSaveProposedAccommodation(
+      postcode = "RG26 5AG",
+      buildingNumber = "4",
+      thoroughfareName = "Dollis Green",
+      postTown = "Bramley",
+      createdAt = olderTimestamp,
+    )
+
+    val newerEntity = createAndSaveProposedAccommodation(
+      postcode = "W1 8XX",
+      buildingNumber = "11",
+      thoroughfareName = "Piccadilly Circus",
+      postTown = "London",
+      createdAt = newerTimestamp,
+    )
+
+    val result = mockMvc
       .perform(get("/cases/$crn/proposed-accommodations"))
-      .andExpect(status().isNoContent)
+      .andExpect(status().isOk)
+      .andReturn()
+      .response
+      .contentAsString
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedGetProposedAccommodationsResponse(
+        firstId = newerEntity.id,
+        firstCreatedAt = newerEntity.createdAt.toCanonicalString(),
+        secondId = olderEntity.id,
+        secondCreatedAt = olderEntity.createdAt.toCanonicalString(),
+      ),
+    )
+  }
+
+  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
+  @Test
+  fun `should return empty list when no proposed-accommodations exist for crn`() {
+    val result = mockMvc
+      .perform(get("/cases/$crn/proposed-accommodations"))
+      .andExpect(status().isOk)
+      .andReturn()
+      .response
+      .contentAsString
+
+    assertThatJson(result).matchesExpectedJson("[]")
   }
 
   @WithMockAuthUser(roles = ["ROLE_PROBATION"])
@@ -97,6 +144,24 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
     )
+  }
+
+  private fun createAndSaveProposedAccommodation(
+    postcode: String,
+    buildingNumber: String,
+    thoroughfareName: String,
+    postTown: String,
+    createdAt: Instant,
+  ): ProposedAccommodationEntity {
+    val entity = buildProposedAccommodationEntity(
+      crn = crn,
+      postcode = postcode,
+      buildingNumber = buildingNumber,
+      throughfareName = thoroughfareName,
+      postTown = postTown,
+      createdAt = createdAt,
+    )
+    return proposedAccommodationRepository.save(entity)
   }
 
   private fun assertPersistedProposedAccommodation(proposedAccommodationEntity: ProposedAccommodationEntity) {

@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationEntity, UUID> {
   fun getByCrn(crn: String): ProposedAccommodationEntity?
+  fun findAllByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
 }
