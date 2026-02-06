@@ -3,8 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.fact
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
 import java.time.Instant
@@ -15,7 +16,8 @@ fun buildSnapshot(
   arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
   settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,
-  status: AccommodationStatus = AccommodationStatus.NOT_CHECKED_YET,
+  verificationStatus: VerificationStatus = VerificationStatus.NOT_CHECKED_YET,
+  nextAccommodationStatus: NextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
   offenderReleaseType: OffenderReleaseType? = OffenderReleaseType.REMAND,
 ) = ProposedAccommodationSnapshot(
   id = UUID.randomUUID(),
@@ -25,7 +27,8 @@ fun buildSnapshot(
   arrangementSubType = arrangementSubType,
   arrangementSubTypeDescription = "Description",
   settledType = settledType,
-  status = status,
+  verificationStatus = verificationStatus,
+  nextAccommodationStatus = nextAccommodationStatus,
   offenderReleaseType = offenderReleaseType,
   startDate = LocalDate.now(),
   endDate = LocalDate.now().plusDays(7),

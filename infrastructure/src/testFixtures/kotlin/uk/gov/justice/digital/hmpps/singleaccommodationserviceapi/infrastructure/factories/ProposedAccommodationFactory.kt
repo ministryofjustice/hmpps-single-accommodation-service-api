@@ -3,7 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import java.time.Instant
@@ -18,7 +19,8 @@ fun buildProposedAccommodationEntity(
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
   arrangementSubTypeDescription: String? = null,
   settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,
-  status: AccommodationStatus? = AccommodationStatus.NOT_CHECKED_YET,
+  verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
+  nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.TO_BE_DECIDED,
   offenderReleaseType: OffenderReleaseType? = null,
   startDate: LocalDate? = null,
   endDate: LocalDate? = null,
@@ -42,7 +44,8 @@ fun buildProposedAccommodationEntity(
   arrangementSubType = arrangementSubType,
   arrangementSubTypeDescription = arrangementSubTypeDescription,
   settledType = settledType,
-  status = status,
+  verificationStatus = verificationStatus,
+  nextAccommodationStatus = nextAccommodationStatus,
   offenderReleaseType = offenderReleaseType,
   startDate = startDate,
   endDate = endDate,

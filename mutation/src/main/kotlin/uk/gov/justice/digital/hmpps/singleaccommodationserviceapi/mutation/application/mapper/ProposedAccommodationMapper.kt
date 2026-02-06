@@ -3,11 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as AccommodationArrangementTypeInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as AccommodationArrangementSubTypeInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as AccommodationSettledTypeInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatus as AccommodationStatusInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as OffenderReleaseTypeInfra
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityOffenderReleaseType
 
 object ProposedAccommodationMapper {
 
@@ -15,12 +16,13 @@ object ProposedAccommodationMapper {
     id = snapshot.id,
     crn = snapshot.crn,
     name = snapshot.name,
-    arrangementType = AccommodationArrangementTypeInfra.valueOf(snapshot.arrangementType.name),
-    arrangementSubType = snapshot.arrangementSubType?.let { AccommodationArrangementSubTypeInfra.valueOf(it.name) },
+    arrangementType = EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name),
+    arrangementSubType = snapshot.arrangementSubType?.let { EntityAccommodationArrangementSubType.valueOf(it.name) },
     arrangementSubTypeDescription = snapshot.arrangementSubTypeDescription,
-    settledType = AccommodationSettledTypeInfra.valueOf(snapshot.settledType.name),
-    status = AccommodationStatusInfra.valueOf(snapshot.status.name),
-    offenderReleaseType = snapshot.offenderReleaseType?.let { OffenderReleaseTypeInfra.valueOf(snapshot.offenderReleaseType.name) },
+    settledType = EntityAccommodationSettledType.valueOf(snapshot.settledType.name),
+    verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
+    nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
+    offenderReleaseType = snapshot.offenderReleaseType?.let { EntityOffenderReleaseType.valueOf(snapshot.offenderReleaseType.name) },
     startDate = snapshot.startDate,
     endDate = snapshot.endDate,
     postcode = snapshot.address.postcode,
@@ -44,7 +46,8 @@ object ProposedAccommodationMapper {
     arrangementSubType = snapshot.arrangementSubType,
     arrangementSubTypeDescription = snapshot.arrangementSubTypeDescription,
     settledType = snapshot.settledType,
-    status = snapshot.status,
+    verificationStatus = snapshot.verificationStatus,
+    nextAccommodationStatus = snapshot.nextAccommodationStatus,
     startDate = snapshot.startDate,
     endDate = snapshot.endDate,
     offenderReleaseType = snapshot.offenderReleaseType,

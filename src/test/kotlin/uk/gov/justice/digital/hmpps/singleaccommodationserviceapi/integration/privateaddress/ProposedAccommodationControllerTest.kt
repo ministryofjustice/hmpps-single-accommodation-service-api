@@ -10,12 +10,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -31,6 +32,8 @@ import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
 class ProposedAccommodationControllerTest : IntegrationTestBase() {
   @Autowired
@@ -117,11 +120,12 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .content(
           proposedAddressesRequestBody(
-            accommodationStatus = AccommodationStatus.PASSED.name,
+            verificationStatus = VerificationStatus.PASSED.name,
+            nextAccommodationStatus = NextAccommodationStatus.YES.name,
           ),
         ),
     )
-      .andExpect(status().isOk)
+      .andExpect(status().isCreated)
       .andReturn()
       .response
       .contentAsString
@@ -132,7 +136,8 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
         id = proposedAccommodationPersistedResult.id,
-        accommodationStatus = AccommodationStatus.PASSED.name,
+        verificationStatus = VerificationStatus.PASSED.name,
+        nextAccommodationStatus = NextAccommodationStatus.YES.name,
         createdAt = proposedAccommodationPersistedResult.createdAt.toCanonicalString(),
       ),
     )
@@ -171,7 +176,8 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     assertThat(proposedAccommodationEntity.arrangementSubTypeDescription).isEqualTo("Caravan site")
     assertThat(proposedAccommodationEntity.settledType).isEqualTo(AccommodationSettledType.SETTLED)
     assertThat(proposedAccommodationEntity.offenderReleaseType).isEqualTo(OffenderReleaseType.REMAND)
-    assertThat(proposedAccommodationEntity.status).isEqualTo(AccommodationStatus.PASSED)
+    assertThat(proposedAccommodationEntity.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
+    assertThat(proposedAccommodationEntity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
     assertThat(proposedAccommodationEntity.postcode).isEqualTo("test postcode")
     assertThat(proposedAccommodationEntity.subBuildingName).isEqualTo("test sub building name")
     assertThat(proposedAccommodationEntity.buildingName).isEqualTo("test building name")
