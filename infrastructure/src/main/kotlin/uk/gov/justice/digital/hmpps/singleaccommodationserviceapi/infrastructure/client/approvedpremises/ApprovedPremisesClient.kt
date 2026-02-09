@@ -8,16 +8,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 interface ApprovedPremisesClient {
 
-  @GetExchange(value = "/cas1/external/suitable-applications/{crn}")
+  @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
 
-  @GetExchange(value = "/cas2/external/suitable-applications/{crn}")
+  @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
   fun getSuitableCas2HdcApplicationInternal(@PathVariable crn: String): Cas2HdcApplication
 
-  @GetExchange(value = "/cas2v2/external/suitable-applications/{crn}/prison")
+  @GetExchange(value = "/cas2v2/external/cases/{crn}/applications/suitable/prison")
   fun getSuitableCas2PrisonBailApplicationInternal(@PathVariable crn: String): Cas2PrisonBailApplication
 
-  @GetExchange(value = "/cas2v2/external/suitable-applications/{crn}/court")
+  @GetExchange(value = "/cas2v2/external/cases/{crn}/applications/suitable/court")
   fun getSuitableCas2CourtBailApplicationInternal(@PathVariable crn: String): Cas2CourtBailApplication
 
   @GetExchange(value = "/cas1/external/referrals/{crn}")
