@@ -20,6 +20,6 @@ class DutyToReferControllerTest : IntegrationTestBase() {
   fun `should get dutyToRefers for crn`() {
     mockMvc
       .perform(get("/cases/$crn/dtrs"))
-      .andExpect(status().isNoContent)
+      .andExpect(status().isOk())
   }
 }
