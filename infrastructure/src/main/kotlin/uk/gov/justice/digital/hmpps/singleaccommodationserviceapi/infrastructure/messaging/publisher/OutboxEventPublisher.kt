@@ -72,8 +72,6 @@ class OutboxEventPublisher(
       occurredAt = outboxEventEntity.createdAt.atOffset(ZoneOffset.UTC),
     )
 
-    println("OutBoxEventPublisher: ${jsonMapper.version()}")
-
     return domainTopic.snsClient.publish(
       PublishRequest.builder()
         .topicArn(domainTopic.arn)
