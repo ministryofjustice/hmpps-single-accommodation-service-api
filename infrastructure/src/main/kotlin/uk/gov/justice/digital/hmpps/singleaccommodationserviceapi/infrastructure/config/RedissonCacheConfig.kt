@@ -88,7 +88,7 @@ open class RedissonLocalConfig {
 
 @Configuration
 @EnableCaching
-@Profile("!test")
+@Profile(value = ["local", "dev", "preprod", "prod"])
 class RedissonCacheConfig {
 
   @Bean
