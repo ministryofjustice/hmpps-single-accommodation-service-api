@@ -1,30 +1,29 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateAccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
-
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import java.time.Instant
 import java.util.UUID
 
 @Service
 class ProposedAccommodationApplicationService(
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val outboxEventRepository: OutboxEventRepository,
 ) {
   @Transactional
   fun createProposedAccommodation(crn: String, request: CreateAccommodationDetail): AccommodationDetail {
     val aggregate = ProposedAccommodationAggregate.hydrateNew(
-      crn = crn
+      crn = crn,
     )
 
     aggregate.createProposedAccommodation(
@@ -52,7 +51,7 @@ class ProposedAccommodationApplicationService(
           aggregateId = event.aggregateId,
           aggregateType = "ProposedAccommodation",
           domainEventType = event.type.name,
-          payload = objectMapper.writeValueAsString(event),
+          payload = jsonMapper.writeValueAsString(event),
           createdAt = Instant.now(),
           processedStatus = ProcessedStatus.PENDING,
           processedAt = null,

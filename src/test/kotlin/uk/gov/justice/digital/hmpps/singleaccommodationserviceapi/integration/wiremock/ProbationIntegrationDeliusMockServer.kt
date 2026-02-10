@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummaries
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
 class ProbationIntegrationDeliusMockServer : WireMockServer(9990) {
 
@@ -17,7 +17,7 @@ class ProbationIntegrationDeliusMockServer : WireMockServer(9990) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(response)),
+            .withBody(jsonMapper.writeValueAsString(response)),
         ),
     )
   }

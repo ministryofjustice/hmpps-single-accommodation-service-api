@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.r
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
@@ -12,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
-import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.Instant
 
 class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
@@ -22,7 +19,6 @@ class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
     hmppsAuth.stubGrantToken()
   }
 
-  @WithMockAuthUser(roles = ["ROLE_PROBATION"])
   @Test
   fun `fetchAllReferralsAggregated aggregates results and sorts them by date descending`() {
     val crn = "X12345"
@@ -53,21 +49,19 @@ class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
     approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS2v2, crn, cas2v2Response)
     approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
-    val responseContent = mockMvc.perform(
-      get("/cases/$crn/applications"),
-    )
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-
-    assertThatJson(responseContent).matchesExpectedJson(
-      expectedGetReferralHistory(
-        id1 = cas1Response.first().id,
-        id2 = cas2Response.first().id,
-        id3 = cas2v2Response.first().id,
-        id4 = cas3Response.first().id,
-      ),
-    )
+    restTestClient.get().uri("/cases/{crn}/applications", crn)
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetReferralHistory(
+            id1 = cas1Response.first().id,
+            id2 = cas2Response.first().id,
+            id3 = cas2v2Response.first().id,
+            id4 = cas3Response.first().id,
+          ),
+        )
+      }
   }
 }

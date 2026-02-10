@@ -1,7 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.concurrent.StructuredTaskScope
+import java.time.LocalDateTime
 
 data class CallsPerIdentifier(
   val calls: Map<String, (String) -> Any>,
@@ -15,78 +22,89 @@ data class AggregatorResult(
 
 @Service
 class AggregatorService {
+  private val maxConcurrency: Int = 100
+  private val log = LoggerFactory.getLogger(AggregatorService::class.java)
+
   fun orchestrateAsyncCalls(
     standardCallsNoIteration: Map<String, () -> Any> = emptyMap(),
     callsPerIdentifier: CallsPerIdentifier? = null,
-  ): AggregatorResult {
+  ): AggregatorResult = runBlocking {
     if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
-      return AggregatorResult(emptyMap(), null)
+      log.info("No API calls to execute")
+      return@runBlocking AggregatorResult(emptyMap(), emptyMap())
     }
 
-    val asyncCallsToMake = mutableMapOf<String, () -> Map<String, Any>>()
-    if (standardCallsNoIteration.isNotEmpty()) {
-      asyncCallsToMake["standardCallsNoIteration"] = {
-        orchestrateAsyncCalls(
-          functionCalls = standardCallsNoIteration,
-        )
-      }
-    }
-    if (callsPerIdentifier != null) {
-      asyncCallsToMake["callsPerIdentifier"] = {
-        orchestrateAsyncCalls(
-          identifiers = callsPerIdentifier.identifiersToIterate,
-          functionCalls = callsPerIdentifier.calls,
-        )
-      }
-    }
+    log.info("Starting async calls: ${LocalDateTime.now()}")
 
-    val asyncResults: Map<String, Any> = orchestrateAsyncCalls(
-      functionCalls = asyncCallsToMake,
-    )
+    val standardCallsSuspend: Map<String, suspend () -> Any> =
+      standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
 
-    return AggregatorResult(
-      standardCallsNoIterationResults = if (standardCallsNoIteration.isNotEmpty()) {
-        asyncResults["standardCallsNoIteration"] as Map<String, Any>
+    val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
+      callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
+
+    val semaphore = Semaphore(maxConcurrency)
+
+    val standardDeferred = async(Dispatchers.IO) {
+      if (standardCallsSuspend.isNotEmpty()) {
+        orchestrateAsyncCalls(standardCallsSuspend, semaphore)
       } else {
         null
-      },
-      callsPerIdentifierResults = callsPerIdentifier?.let {
-        asyncResults["callsPerIdentifier"] as Map<String, Map<String, Any>>
-      },
+      }
+    }
+
+    val perIdentifierDeferred = async(Dispatchers.IO) {
+      if (perIdentifierCallsSuspend != null) {
+        orchestrateAsyncCalls(
+          identifiers = callsPerIdentifier.identifiersToIterate,
+          functionCalls = perIdentifierCallsSuspend,
+          semaphore = semaphore,
+        )
+      } else {
+        null
+      }
+    }
+
+    val result = AggregatorResult(
+      standardCallsNoIterationResults = standardDeferred.await(),
+      callsPerIdentifierResults = perIdentifierDeferred.await(),
     )
+    log.info("Finished async calls at: ${LocalDateTime.now()}. ")
+
+    result
   }
 
-  private fun orchestrateAsyncCalls(
+  private fun <T, R> ((T) -> R).asSuspend(): suspend (T) -> R = { t: T -> this(t) }
+
+  private suspend fun orchestrateAsyncCalls(
+    functionCalls: Map<String, suspend () -> Any>,
+    semaphore: Semaphore,
+  ): Map<String, Any> = coroutineScope {
+    functionCalls.mapValues { (_, call) ->
+      async(Dispatchers.IO) {
+        semaphore.withPermit {
+          runCatching { call() }
+            .getOrElse { "Failed with message: ${it.message}" }
+        }
+      }
+    }.mapValues { (_, deferred) -> deferred.await() }
+  }
+
+  private suspend fun orchestrateAsyncCalls(
     identifiers: List<String>,
-    functionCalls: Map<String, (String) -> Any>,
-  ): Map<String, Map<String, Any>> = StructuredTaskScope<Any>().use { outerScope ->
-    val outerSubtasks = identifiers.associateWith { identifier ->
-      outerScope.fork {
-        StructuredTaskScope<Any>().use { innerScope ->
-          val innerSubtasks = functionCalls.mapValues { (_, supplier) ->
-            innerScope.fork {
+    functionCalls: Map<String, suspend (String) -> Any>,
+    semaphore: Semaphore,
+  ): Map<String, Map<String, Any>> = coroutineScope {
+    identifiers.associateWith { identifier ->
+      async(Dispatchers.IO) {
+        functionCalls.mapValues { (_, supplier) ->
+          async(Dispatchers.IO) {
+            semaphore.withPermit {
               runCatching { supplier(identifier) }
                 .getOrElse { "Failed with message: ${it.message}" }
             }
           }
-          innerScope.join()
-          innerSubtasks.mapValues { (_, innerSubtask) -> innerSubtask.get() }
-        }
+        }.mapValues { (_, deferred) -> deferred.await() }
       }
-    }
-    outerScope.join()
-    outerSubtasks.mapValues { (_, outerSubtask) -> outerSubtask.get() }
-  }
-
-  private fun orchestrateAsyncCalls(functionCalls: Map<String, () -> Any>): Map<String, Any> = StructuredTaskScope<Any>().use { scope ->
-    val tasks = functionCalls.mapValues { (_, supplier) ->
-      scope.fork {
-        runCatching { supplier() }
-          .getOrElse { "Failed with message: ${it.message}" }
-      }
-    }
-
-    scope.join()
-    tasks.mapValues { (_, subtask) -> subtask.get() }
+    }.mapValues { (_, deferred) -> deferred.await() }
   }
 }

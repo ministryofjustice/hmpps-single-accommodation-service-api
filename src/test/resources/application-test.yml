@@ -25,10 +25,8 @@ service:
     base-url: http://localhost:9996
 
 spring:
-  data:
-    redis:
-      host: localhost
-      port: 6370
+  cache:
+    type: none
   datasource:
     url: jdbc:postgresql://localhost:5432/sas_db
     username: sas_user
