@@ -1,21 +1,15 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ServiceStatusTransformer
 import java.util.stream.Stream
-import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ServiceStatusTransformer
-import java.util.UUID
 
-class ServiceStatusTransformerTest {
+class Cas1ServiceStatusTransformerTest {
 
   private companion object {
 
@@ -105,54 +99,13 @@ class ServiceStatusTransformerTest {
       )
   }
 
-  @Nested
-  inner class Cas1ApplicationToServeStatusStatus {
-
-    @ParameterizedTest
-    @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.ServiceStatusTransformerTest#provideCas1ApplicationStatusInputsAndOutputs")
-    fun `transform to serviceStatus`(
-      applicationStatus: Cas1ApplicationStatus?,
-      hasImminentActions: Boolean,
-      serviceStatus: ServiceStatus,
-    ) {
-      assertThat(ServiceStatusTransformer.toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
-    }
-
-  }
-
-  @Nested
-  inner class Cas2HdcApplicationToServeStatusStatus {
-
-    @Test
-    fun `transform to serviceStatus`() {
-      val cas2HdcApplication = Cas2HdcApplication(
-        id = UUID.randomUUID(),
-      )
-      assertThat(ServiceStatusTransformer.toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
-    }
-  }
-
-  @Nested
-  inner class Cas2CourtBailApplicationToServeStatusStatus {
-
-    @Test
-    fun `transform to serviceStatus`() {
-      val cas2CourtBailApplication = Cas2CourtBailApplication(
-        id = UUID.randomUUID(),
-      )
-      assertThat(ServiceStatusTransformer.toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
-    }
-  }
-
-  @Nested
-  inner class Cas2PrisonBailApplicationToServeStatusStatus {
-
-    @Test
-    fun `transform to serviceStatus`() {
-      val cas2PrisonBailApplication = Cas2PrisonBailApplication(
-        id = UUID.randomUUID(),
-      )
-      assertThat(ServiceStatusTransformer.toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
-    }
+  @ParameterizedTest
+  @MethodSource("provideCas1ApplicationStatusInputsAndOutputs")
+  fun `transform to serviceStatus`(
+    applicationStatus: Cas1ApplicationStatus?,
+    hasImminentActions: Boolean,
+    serviceStatus: ServiceStatus,
+  ) {
+    assertThat(Cas1ServiceStatusTransformer.toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
   }
 }
