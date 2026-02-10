@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.proposedAddressesRequestBody
 import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
@@ -127,7 +128,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
         id = proposedAccommodationPersistedResult.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
-        createdAt = proposedAccommodationPersistedResult.createdAt.toString(),
+        createdAt = proposedAccommodationPersistedResult.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
     )
     assertPublishedSNSEvent(

@@ -67,13 +67,13 @@ enum class AccommodationSettledType {
 enum class VerificationStatus {
   NOT_CHECKED_YET,
   FAILED,
-  PASSED
+  PASSED,
 }
 
 enum class NextAccommodationStatus {
   YES,
   NO,
-  TO_BE_DECIDED
+  TO_BE_DECIDED,
 }
 
 enum class OffenderReleaseType {

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 data class CallsPerIdentifier(
-  val identifiersToIterate: List<String>,
   val calls: Map<String, (String) -> Any>,
+  val identifiersToIterate: List<String>,
 )
 
 data class AggregatorResult(
@@ -46,7 +46,7 @@ class AggregatorService {
 
     val standardDeferred = async(Dispatchers.IO) {
       if (standardCallsSuspend.isNotEmpty()) {
-        orchestrateAsyncCallsWithLogging(standardCallsSuspend, semaphore)
+        orchestrateAsyncCalls(standardCallsSuspend, semaphore)
       } else {
         null
       }
@@ -54,7 +54,7 @@ class AggregatorService {
 
     val perIdentifierDeferred = async(Dispatchers.IO) {
       if (perIdentifierCallsSuspend != null) {
-        orchestrateAsyncCallsWithLogging(
+        orchestrateAsyncCalls(
           identifiers = callsPerIdentifier.identifiersToIterate,
           functionCalls = perIdentifierCallsSuspend,
           semaphore = semaphore,
@@ -75,7 +75,7 @@ class AggregatorService {
 
   private fun <T, R> ((T) -> R).asSuspend(): suspend (T) -> R = { t: T -> this(t) }
 
-  private suspend fun orchestrateAsyncCallsWithLogging(
+  private suspend fun orchestrateAsyncCalls(
     functionCalls: Map<String, suspend () -> Any>,
     semaphore: Semaphore,
   ): Map<String, Any> = coroutineScope {
@@ -89,7 +89,7 @@ class AggregatorService {
     }.mapValues { (_, deferred) -> deferred.await() }
   }
 
-  private suspend fun orchestrateAsyncCallsWithLogging(
+  private suspend fun orchestrateAsyncCalls(
     identifiers: List<String>,
     functionCalls: Map<String, suspend (String) -> Any>,
     semaphore: Semaphore,

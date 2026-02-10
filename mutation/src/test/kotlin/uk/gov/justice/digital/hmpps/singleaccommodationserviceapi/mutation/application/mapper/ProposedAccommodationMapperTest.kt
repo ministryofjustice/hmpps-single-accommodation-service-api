@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildSnapshot
+import java.time.temporal.ChronoUnit
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
@@ -57,7 +58,7 @@ class ProposedAccommodationMapperTest {
       snapshot = buildSnapshot(
         arrangementSubType = null,
         offenderReleaseType = null,
-      )
+      ),
     )
     assertThat(entity.arrangementSubType).isNull()
     assertThat(entity.offenderReleaseType).isNull()
@@ -69,7 +70,7 @@ class ProposedAccommodationMapperTest {
     arrangementType: AccommodationArrangementType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(arrangementType = arrangementType)
+      snapshot = buildSnapshot(arrangementType = arrangementType),
     )
 
     assertThat(entity.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(arrangementType.name))
@@ -81,7 +82,7 @@ class ProposedAccommodationMapperTest {
     arrangementSubType: AccommodationArrangementSubType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(arrangementSubType = arrangementSubType)
+      snapshot = buildSnapshot(arrangementSubType = arrangementSubType),
     )
     assertThat(entity.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(arrangementSubType.name))
   }
@@ -92,7 +93,7 @@ class ProposedAccommodationMapperTest {
     settledType: AccommodationSettledType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(settledType = settledType)
+      snapshot = buildSnapshot(settledType = settledType),
     )
     assertThat(entity.settledType).isEqualTo(EntityAccommodationSettledType.valueOf(settledType.name))
   }
@@ -103,7 +104,7 @@ class ProposedAccommodationMapperTest {
     verificationStatus: VerificationStatus,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(verificationStatus = verificationStatus)
+      snapshot = buildSnapshot(verificationStatus = verificationStatus),
     )
     assertThat(entity.verificationStatus).isEqualTo(EntityVerificationStatus.valueOf(verificationStatus.name))
   }
@@ -114,7 +115,7 @@ class ProposedAccommodationMapperTest {
     nextAccommodationStatus: NextAccommodationStatus,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(nextAccommodationStatus = nextAccommodationStatus)
+      snapshot = buildSnapshot(nextAccommodationStatus = nextAccommodationStatus),
     )
     assertThat(entity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.valueOf(nextAccommodationStatus.name))
   }
@@ -125,7 +126,7 @@ class ProposedAccommodationMapperTest {
     offenderReleaseType: OffenderReleaseType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(offenderReleaseType = offenderReleaseType)
+      snapshot = buildSnapshot(offenderReleaseType = offenderReleaseType),
     )
     assertThat(entity.offenderReleaseType).isEqualTo(EntityOffenderReleaseType.valueOf(offenderReleaseType.name))
   }
@@ -146,6 +147,6 @@ class ProposedAccommodationMapperTest {
     assertThat(dto.startDate).isEqualTo(snapshot.startDate)
     assertThat(dto.endDate).isEqualTo(snapshot.endDate)
     assertThat(dto.address).isEqualTo(snapshot.address)
-    assertThat(dto.createdAt).isEqualTo(snapshot.createdAt)
+    assertThat(dto.createdAt).isEqualTo(snapshot.createdAt.truncatedTo(ChronoUnit.SECONDS))
   }
 }

@@ -53,6 +53,6 @@ object ProposedAccommodationMapper {
     endDate = snapshot.endDate,
     offenderReleaseType = snapshot.offenderReleaseType,
     address = snapshot.address,
-    createdAt = snapshot.createdAt.truncatedTo(ChronoUnit.NANOS),
+    createdAt = snapshot.createdAt.truncatedTo(ChronoUnit.SECONDS),
   )
 }
