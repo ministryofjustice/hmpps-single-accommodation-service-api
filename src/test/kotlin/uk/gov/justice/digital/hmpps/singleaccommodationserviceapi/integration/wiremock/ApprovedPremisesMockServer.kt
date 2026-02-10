@@ -13,7 +13,7 @@ class ApprovedPremisesMockServer : WireMockServer(9992) {
   fun stubGetSuitableApplicationOKResponse(crn: String, response: Any) {
     stubFor(
       WireMock
-        .get(WireMock.urlPathEqualTo("/cas1/external/suitable-applications/$crn"))
+        .get(WireMock.urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
         .willReturn(
           WireMock
             .aResponse()
