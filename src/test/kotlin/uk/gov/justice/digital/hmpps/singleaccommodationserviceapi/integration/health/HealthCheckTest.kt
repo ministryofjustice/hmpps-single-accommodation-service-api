@@ -9,7 +9,7 @@ class HealthCheckTest : IntegrationTestBase() {
   fun `Health page reports ok`() {
     stubPingWithResponse(200)
 
-    webTestClient.get()
+    restTestClient.get()
       .uri("/health")
       .exchange()
       .expectStatus()
@@ -22,7 +22,7 @@ class HealthCheckTest : IntegrationTestBase() {
   fun `Health page reports down`() {
     stubPingWithResponse(503)
 
-    webTestClient.get()
+    restTestClient.get()
       .uri("/health")
       .exchange()
       .expectStatus()
@@ -34,7 +34,7 @@ class HealthCheckTest : IntegrationTestBase() {
 
   @Test
   fun `Health ping page is accessible`() {
-    webTestClient.get()
+    restTestClient.get()
       .uri("/health/ping")
       .exchange()
       .expectStatus()
@@ -45,7 +45,7 @@ class HealthCheckTest : IntegrationTestBase() {
 
   @Test
   fun `readiness reports ok`() {
-    webTestClient.get()
+    restTestClient.get()
       .uri("/health/readiness")
       .exchange()
       .expectStatus()
@@ -56,7 +56,7 @@ class HealthCheckTest : IntegrationTestBase() {
 
   @Test
   fun `liveness reports ok`() {
-    webTestClient.get()
+    restTestClient.get()
       .uri("/health/liveness")
       .exchange()
       .expectStatus()

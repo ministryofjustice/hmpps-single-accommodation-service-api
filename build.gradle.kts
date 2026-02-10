@@ -24,10 +24,8 @@ dependencies {
   implementation(project(":mutation"))
 
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:$hmppsSpringBootVersion")
-  implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-restclient")
-  implementation("org.springframework.boot:spring-boot-webclient")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
@@ -36,9 +34,7 @@ dependencies {
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:$hmppsSpringBootVersion")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:$hmppsSqsVersion")
-  testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
   testImplementation("org.springframework.boot:spring-boot-resttestclient")
-  testImplementation("org.springframework.boot:spring-boot-webtestclient")
 
   testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
   testImplementation("io.mockk:mockk:$mockkVersion")

@@ -21,7 +21,7 @@ import java.time.Duration
 import kotlin.reflect.KClass
 
 @Configuration
-open class RestClientConfig(
+class RestClientConfig(
   private val restClientBuilder: RestClient.Builder,
   private val clientManager: OAuth2AuthorizedClientManager,
 
