@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json
 
 import java.util.UUID
 
@@ -128,6 +128,6 @@ fun expectedProposedAddressesResponseBody(
 fun expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId: UUID) = """
   {
     "aggregateId" : "$proposedAccommodationId",
-    "type" : "SAS_ADDRESS_UPDATED"
+    "type" : "SAS_ACCOMMODATION_UPDATED"
   }
 """.trimIndent()

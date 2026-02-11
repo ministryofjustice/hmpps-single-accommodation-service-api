@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AddressUpdatedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 
@@ -20,7 +20,7 @@ class ProposedAccommodationAggregateTest {
   )
 
   @Test
-  fun `should createProposedAccommodation and add ProposedAccommodationCreatedEvent domain event to list`() {
+  fun `should createProposedAccommodation and add AccommodationUpdatedDomainEvent domain event to list`() {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES
@@ -32,6 +32,7 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.arrangementSubTypeDescription).isEqualTo(accommodationDetails.arrangementSubTypeDescription)
     assertThat(aggregateSnapshot.settledType).isEqualTo(accommodationDetails.settledType)
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
+    assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
     assertThat(aggregateSnapshot.address.postcode).isEqualTo(accommodationDetails.address.postcode)
     assertThat(aggregateSnapshot.address.subBuildingName).isEqualTo(accommodationDetails.address.subBuildingName)
     assertThat(aggregateSnapshot.address.buildingName).isEqualTo(accommodationDetails.address.buildingName)
@@ -48,13 +49,13 @@ class ProposedAccommodationAggregateTest {
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
     assertThat(domainEventsToPublish).hasSize(1)
-    assertThat(domainEventsToPublish.first()).isInstanceOf(AddressUpdatedDomainEvent::class.java)
+    assertThat(domainEventsToPublish.first()).isInstanceOf(AccommodationUpdatedDomainEvent::class.java)
     assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregateSnapshot.id)
   }
 
 
   @Test
-  fun `should createProposedAccommodation and does not add ProposedAccommodationCreatedEvent domain event to list`() {
+  fun `should createProposedAccommodation and does not add AccommodationUpdatedDomainEvent domain event to list`() {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.NOT_CHECKED_YET,
       nextAccommodationStatus = NextAccommodationStatus.NO

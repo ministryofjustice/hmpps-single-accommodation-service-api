@@ -11,12 +11,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildSnapshot
 import java.time.Instant
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildProposedAccommodationSnapshot
 import java.time.temporal.ChronoUnit
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityOffenderReleaseType
@@ -26,7 +26,7 @@ class ProposedAccommodationMapperTest {
 
   @Test
   fun `toEntity maps all fields correctly`() {
-    val snapshot = buildSnapshot()
+    val snapshot = buildProposedAccommodationSnapshot()
     val entity = ProposedAccommodationMapper.toEntity(snapshot)
 
     assertThat(entity.id).isEqualTo(snapshot.id)
@@ -58,7 +58,7 @@ class ProposedAccommodationMapperTest {
   @Test
   fun `toEntity maps nullable enum fields as null`() {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(
+      snapshot = buildProposedAccommodationSnapshot(
         arrangementSubType = null,
         offenderReleaseType = null,
       ),
@@ -73,7 +73,7 @@ class ProposedAccommodationMapperTest {
     arrangementType: AccommodationArrangementType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(arrangementType = arrangementType),
+      snapshot = buildProposedAccommodationSnapshot(arrangementType = arrangementType)
     )
 
     assertThat(entity.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(arrangementType.name))
@@ -85,7 +85,7 @@ class ProposedAccommodationMapperTest {
     arrangementSubType: AccommodationArrangementSubType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(arrangementSubType = arrangementSubType),
+      snapshot = buildProposedAccommodationSnapshot(arrangementSubType = arrangementSubType)
     )
     assertThat(entity.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(arrangementSubType.name))
   }
@@ -96,7 +96,7 @@ class ProposedAccommodationMapperTest {
     settledType: AccommodationSettledType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(settledType = settledType),
+      snapshot = buildProposedAccommodationSnapshot(settledType = settledType)
     )
     assertThat(entity.settledType).isEqualTo(EntityAccommodationSettledType.valueOf(settledType.name))
   }
@@ -107,7 +107,7 @@ class ProposedAccommodationMapperTest {
     verificationStatus: VerificationStatus,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(verificationStatus = verificationStatus),
+      snapshot = buildProposedAccommodationSnapshot(verificationStatus = verificationStatus)
     )
     assertThat(entity.verificationStatus).isEqualTo(EntityVerificationStatus.valueOf(verificationStatus.name))
   }
@@ -118,7 +118,7 @@ class ProposedAccommodationMapperTest {
     nextAccommodationStatus: NextAccommodationStatus,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(nextAccommodationStatus = nextAccommodationStatus),
+      snapshot = buildProposedAccommodationSnapshot(nextAccommodationStatus = nextAccommodationStatus)
     )
     assertThat(entity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.valueOf(nextAccommodationStatus.name))
   }
@@ -129,7 +129,7 @@ class ProposedAccommodationMapperTest {
     offenderReleaseType: OffenderReleaseType,
   ) {
     val entity = ProposedAccommodationMapper.toEntity(
-      snapshot = buildSnapshot(offenderReleaseType = offenderReleaseType),
+      snapshot = buildProposedAccommodationSnapshot(offenderReleaseType = offenderReleaseType),
     )
     assertThat(entity.offenderReleaseType).isEqualTo(EntityOffenderReleaseType.valueOf(offenderReleaseType.name))
   }
@@ -206,7 +206,7 @@ class ProposedAccommodationMapperTest {
 
   @Test
   fun `toDto maps all fields correctly`() {
-    val snapshot = buildSnapshot()
+    val snapshot = buildProposedAccommodationSnapshot()
     val dto = ProposedAccommodationMapper.toDto(snapshot)
     assertThat(dto.id).isEqualTo(snapshot.id)
     assertThat(dto.name).isEqualTo(snapshot.name)

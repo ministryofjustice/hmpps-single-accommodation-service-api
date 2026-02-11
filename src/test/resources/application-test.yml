@@ -34,7 +34,7 @@ spring:
 
 event:
   details-url:
-    proposed-accommodation-updated: http://api-host/proposed-accommodation/#id
+    proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
 
 hmpps.sqs:
   useWebToken: false

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -21,10 +21,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.messaging.TestSqsDomainEventListener
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedGetProposedAccommodationsResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedProposedAddressesResponseBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedSasAddressUpdatedDomainEventJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.proposedAddressesRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAddressesResponseBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedSasAddressUpdatedDomainEventJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -133,8 +133,8 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     )
     assertPublishedSNSEvent(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED.typeDescription,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
@@ -180,8 +180,8 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
 
     assertPublishedSNSEvent(
       proposedAccommodationId = existingEntity.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED.typeDescription,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = existingEntity.id,
@@ -334,7 +334,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     proposedAccommodationId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
     eventDescription: String,
-    detailUrl: String = "http://api-host/proposed-accommodation",
+    detailUrl: String = "http://api-host/proposed-accommodations",
   ) {
     val emittedMessage = testSqsDomainEventListener.blockForMessage(eventType)
     assertThat(emittedMessage.description).isEqualTo(eventDescription)
@@ -345,7 +345,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     val outboxRecord = outboxEventRepository.findAll().first()
     assertThat(outboxRecord.aggregateId).isEqualTo(proposedAccommodationId)
     assertThat(outboxRecord.aggregateType).isEqualTo("ProposedAccommodation")
-    assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED.name)
+    assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.name)
     assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId))
     assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
   }
