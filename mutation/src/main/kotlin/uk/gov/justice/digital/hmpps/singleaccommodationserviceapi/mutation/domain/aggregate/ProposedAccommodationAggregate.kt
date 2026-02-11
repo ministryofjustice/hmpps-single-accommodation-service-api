@@ -39,9 +39,76 @@ class ProposedAccommodationAggregate private constructor(
       id = UUID.randomUUID(),
       crn = crn,
     )
+
+    fun hydrateExisting(
+      id: UUID,
+      crn: String,
+      createdAt: Instant,
+      name: String?,
+      arrangementType: AccommodationArrangementType,
+      arrangementSubType: AccommodationArrangementSubType?,
+      arrangementSubTypeDescription: String?,
+      settledType: AccommodationSettledType,
+      verificationStatus: VerificationStatus,
+      nextAccommodationStatus: NextAccommodationStatus,
+      offenderReleaseType: OffenderReleaseType?,
+      address: AccommodationAddressDetails,
+      startDate: LocalDate?,
+      endDate: LocalDate?,
+      lastUpdatedAt: Instant?,
+    ) = ProposedAccommodationAggregate(
+      id = id,
+      crn = crn,
+      createdAt = createdAt,
+      name = name,
+      arrangementType = arrangementType,
+      arrangementSubType = arrangementSubType,
+      arrangementSubTypeDescription = arrangementSubTypeDescription,
+      settledType = settledType,
+      verificationStatus = verificationStatus,
+      nextAccommodationStatus = nextAccommodationStatus,
+      offenderReleaseType = offenderReleaseType,
+      address = address,
+      startDate = startDate,
+      endDate = endDate,
+      lastUpdatedAt = lastUpdatedAt,
+    )
   }
 
   fun createProposedAccommodation(
+    newName: String?,
+    newArrangementType: AccommodationArrangementType,
+    newArrangementSubType: AccommodationArrangementSubType?,
+    newArrangementSubTypeDescription: String?,
+    newSettledType: AccommodationSettledType,
+    newVerificationStatus: VerificationStatus,
+    newNextAccommodationStatus: NextAccommodationStatus,
+    newAddress: AccommodationAddressDetails,
+    newOffenderReleaseType: OffenderReleaseType?,
+    newStartDate: LocalDate?,
+    newEndDate: LocalDate?,
+  ) {
+    name = newName
+    arrangementType = newArrangementType
+    arrangementSubType = newArrangementSubType
+    arrangementSubTypeDescription = newArrangementSubTypeDescription
+    settledType = newSettledType
+    verificationStatus = newVerificationStatus
+    nextAccommodationStatus = newNextAccommodationStatus
+    offenderReleaseType = newOffenderReleaseType
+    address = newAddress
+    startDate = newStartDate
+    endDate = newEndDate
+    lastUpdatedAt = Instant.now()
+
+    validateProposedAccommodation()
+
+    if (nextAccommodationStatus == NextAccommodationStatus.YES) {
+      domainEvents += AddressUpdatedDomainEvent(id)
+    }
+  }
+
+  fun updateProposedAccommodation(
     newName: String?,
     newArrangementType: AccommodationArrangementType,
     newArrangementSubType: AccommodationArrangementSubType?,
