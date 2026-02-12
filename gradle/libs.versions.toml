@@ -1,0 +1,56 @@
+[versions]
+hmpps-spring-boot = "2.0.0"
+hmpps-sqs = "6.0.1"
+springdoc = "3.0.1"
+wiremock = "3.13.2"
+redisson = "4.1.0"
+mockk = "1.14.9"
+shedlock = "7.5.0"
+coroutines = "1.10.2"
+swagger-parser = "2.1.36"
+hmpps-gradle-spring-boot = "10.0.0"
+kotlin = "2.3.0"
+detekt = "2.0.0-alpha.2"
+
+[plugins]
+hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+
+[libraries]
+hmpps-starter = { module = "uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter", version.ref = "hmpps-spring-boot" }
+hmpps-starter-test = { module = "uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test", version.ref = "hmpps-spring-boot" }
+hmpps-sqs = { module = "uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter", version.ref = "hmpps-sqs" }
+
+spring-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-json = { module = "org.springframework.boot:spring-boot-starter-json" }
+spring-restclient = { module = "org.springframework.boot:spring-boot-restclient" }
+spring-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
+spring-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+spring-resttestclient = { module = "org.springframework.boot:spring-boot-resttestclient" }
+
+# Springdoc
+springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+# Coroutines
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+
+# Redisson
+redisson = { module = "org.redisson:redisson", version.ref = "redisson" }
+redisson-spring-cache = { module = "org.redisson:redisson-spring-cache", version.ref = "redisson" }
+redisson-boot = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
+
+# Shedlock
+shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock" }
+shedlock-jdbc = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock" }
+
+# Testing
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+wiremock = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
+swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
+
+# Runtime
+postgres = { module = "org.postgresql:postgresql" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql" }

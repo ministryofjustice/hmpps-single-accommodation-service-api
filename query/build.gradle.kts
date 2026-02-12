@@ -1,7 +1,12 @@
 dependencies {
+
   implementation(project(":common"))
   implementation(project(":infrastructure"))
+  implementation(libs.hmpps.starter)
+  implementation(libs.spring.data.jpa)
 
-  testImplementation("io.mockk:mockk:1.14.9")
+  testImplementation(libs.hmpps.starter.test)
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
 }
