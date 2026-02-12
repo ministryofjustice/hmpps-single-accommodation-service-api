@@ -1,12 +1,18 @@
 dependencies {
   implementation(project(":common"))
   implementation(project(":infrastructure"))
+  implementation(libs.hmpps.starter)
+  implementation(libs.spring.data.jpa)
+  implementation(libs.spring.json)
 
-  runtimeOnly("org.postgresql:postgresql")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  implementation("org.flywaydb:flyway-core")
+  runtimeOnly(libs.postgres)
+  runtimeOnly(libs.flyway.postgres)
+  implementation(libs.flyway.core)
 
-  testImplementation("io.mockk:mockk:1.14.6")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+  testImplementation(libs.hmpps.starter.test)
+  testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":common")))
   testImplementation(testFixtures(project(":infrastructure")))
 }

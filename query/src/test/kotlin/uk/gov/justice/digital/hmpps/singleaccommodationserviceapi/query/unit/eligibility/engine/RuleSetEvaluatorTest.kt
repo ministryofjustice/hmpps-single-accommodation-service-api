@@ -7,9 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -66,82 +66,82 @@ class RuleSetEvaluatorTest {
   @Nested
   inner class DefaultRuleSetEvaluatorTests {
 
-      @Test
-      fun `default rule set evaluator everything passes (male)`() {
-        val data = DomainData(
-          crn = crn,
-          tier = TierScore.A1,
-          sex = SexCode.M,
-          releaseDate = LocalDate.now().plusMonths(7),
-        )
+    @Test
+    fun `default rule set evaluator everything passes (male)`() {
+      val data = DomainData(
+        crn = crn,
+        tier = TierScore.A1,
+        sex = SexCode.M,
+        releaseDate = LocalDate.now().plusMonths(7),
+      )
 
-        val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
+      val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
-        val expectedResult = listOf(
-          buildSTierRuleResult(RuleStatus.PASS),
-          buildMaleRiskRuleResult(RuleStatus.PASS),
-          buildNonMaleRiskRuleResult(RuleStatus.PASS),
-        )
+      val expectedResult = listOf(
+        buildSTierRuleResult(RuleStatus.PASS),
+        buildMaleRiskRuleResult(RuleStatus.PASS),
+        buildNonMaleRiskRuleResult(RuleStatus.PASS),
+      )
 
-        assertThat(result).isEqualTo(expectedResult)
-      }
+      assertThat(result).isEqualTo(expectedResult)
+    }
 
-      @Test
-      fun `default rule set evaluator nearly everything fails (female)`() {
-        val data = DomainData(
-          crn = crn,
-          tier = TierScore.C2S,
-          sex = SexCode.F,
-          releaseDate = null,
-        )
-        val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
+    @Test
+    fun `default rule set evaluator nearly everything fails (female)`() {
+      val data = DomainData(
+        crn = crn,
+        tier = TierScore.C2S,
+        sex = SexCode.F,
+        releaseDate = null,
+      )
+      val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
-        val expectedResult = listOf(
-          buildSTierRuleResult(RuleStatus.FAIL),
-          buildMaleRiskRuleResult(RuleStatus.PASS),
-          buildNonMaleRiskRuleResult(RuleStatus.FAIL),
-        )
+      val expectedResult = listOf(
+        buildSTierRuleResult(RuleStatus.FAIL),
+        buildMaleRiskRuleResult(RuleStatus.PASS),
+        buildNonMaleRiskRuleResult(RuleStatus.FAIL),
+      )
 
-        assertThat(result).isEqualTo(expectedResult)
-      }
+      assertThat(result).isEqualTo(expectedResult)
+    }
 
-      @Test
-      fun `default rule set evaluator first fails, second passes`() {
-        val data = DomainData(
-          crn = crn,
-          tier = TierScore.A1S,
-          sex = SexCode.M,
-          releaseDate = LocalDate.now().plusMonths(7),
-        )
-        val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
+    @Test
+    fun `default rule set evaluator first fails, second passes`() {
+      val data = DomainData(
+        crn = crn,
+        tier = TierScore.A1S,
+        sex = SexCode.M,
+        releaseDate = LocalDate.now().plusMonths(7),
+      )
+      val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
-        val expectedResult = listOf(
-          buildSTierRuleResult(RuleStatus.FAIL),
-          buildMaleRiskRuleResult(RuleStatus.PASS),
-          buildNonMaleRiskRuleResult(RuleStatus.PASS),
-        )
+      val expectedResult = listOf(
+        buildSTierRuleResult(RuleStatus.FAIL),
+        buildMaleRiskRuleResult(RuleStatus.PASS),
+        buildNonMaleRiskRuleResult(RuleStatus.PASS),
+      )
 
-        assertThat(result).isEqualTo(expectedResult)
-      }
+      assertThat(result).isEqualTo(expectedResult)
+    }
 
-      @Test
-      fun `default rule set evaluator first passes, second fails`() {
-        val data = DomainData(
-          crn = crn,
-          tier = TierScore.C1,
-          sex = SexCode.F,
-          releaseDate = LocalDate.now().plusMonths(3),
-        )
-        val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
+    @Test
+    fun `default rule set evaluator first passes, second fails`() {
+      val data = DomainData(
+        crn = crn,
+        tier = TierScore.C1,
+        sex = SexCode.F,
+        releaseDate = LocalDate.now().plusMonths(3),
+      )
+      val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
-        val expectedResult = listOf(
-          buildSTierRuleResult(RuleStatus.PASS),
-          buildMaleRiskRuleResult(RuleStatus.PASS),
-          buildNonMaleRiskRuleResult(RuleStatus.FAIL),
-        )
+      val expectedResult = listOf(
+        buildSTierRuleResult(RuleStatus.PASS),
+        buildMaleRiskRuleResult(RuleStatus.PASS),
+        buildNonMaleRiskRuleResult(RuleStatus.FAIL),
+      )
 
-        assertThat(result).isEqualTo(expectedResult)
-      }
+      assertThat(result).isEqualTo(expectedResult)
+    }
   }
 
   @Nested

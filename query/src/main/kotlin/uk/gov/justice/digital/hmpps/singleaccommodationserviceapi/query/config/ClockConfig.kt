@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.config
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

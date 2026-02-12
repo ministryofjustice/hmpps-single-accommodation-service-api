@@ -1,3 +1,6 @@
+style:
+  MagicNumber:
+    ignoreEnums: true
 complexity:
   LongMethod:
     ignoreAnnotated:
