@@ -75,39 +75,6 @@ class ProposedAccommodationAggregate private constructor(
     )
   }
 
-  fun createProposedAccommodation(
-    newName: String?,
-    newArrangementType: AccommodationArrangementType,
-    newArrangementSubType: AccommodationArrangementSubType?,
-    newArrangementSubTypeDescription: String?,
-    newSettledType: AccommodationSettledType,
-    newVerificationStatus: VerificationStatus,
-    newNextAccommodationStatus: NextAccommodationStatus,
-    newAddress: AccommodationAddressDetails,
-    newOffenderReleaseType: OffenderReleaseType?,
-    newStartDate: LocalDate?,
-    newEndDate: LocalDate?,
-  ) {
-    name = newName
-    arrangementType = newArrangementType
-    arrangementSubType = newArrangementSubType
-    arrangementSubTypeDescription = newArrangementSubTypeDescription
-    settledType = newSettledType
-    verificationStatus = newVerificationStatus
-    nextAccommodationStatus = newNextAccommodationStatus
-    offenderReleaseType = newOffenderReleaseType
-    address = newAddress
-    startDate = newStartDate
-    endDate = newEndDate
-    lastUpdatedAt = Instant.now()
-
-    validateProposedAccommodation()
-
-    if (nextAccommodationStatus == NextAccommodationStatus.YES) {
-      domainEvents += AddressUpdatedDomainEvent(id)
-    }
-  }
-
   fun updateProposedAccommodation(
     newName: String?,
     newArrangementType: AccommodationArrangementType,

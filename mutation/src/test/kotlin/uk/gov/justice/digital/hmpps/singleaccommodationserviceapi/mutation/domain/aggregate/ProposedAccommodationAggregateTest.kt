@@ -9,11 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationDetail
-import java.time.Instant
-import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AddressUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
@@ -137,130 +133,6 @@ class ProposedAccommodationAggregateTest {
     }
   }
 
-  @Test
-  fun `should updateProposedAccommodation preserving id and createdAt and applying new values`() {
-    val fixedId = UUID.randomUUID()
-    val fixedCreatedAt = Instant.parse("2025-01-01T10:00:00Z")
-    val aggregate = buildExistingAggregate(id = fixedId, createdAt = fixedCreatedAt)
-
-    val newAddress = buildAccommodationAddressDetails(postcode = "NEW 1AA")
-    aggregate.updateProposedAccommodation(
-      newName = "Updated Name",
-      newArrangementType = AccommodationArrangementType.PRIVATE,
-      newArrangementSubType = AccommodationArrangementSubType.OWNED,
-      newArrangementSubTypeDescription = null,
-      newSettledType = AccommodationSettledType.SETTLED,
-      newVerificationStatus = VerificationStatus.PASSED,
-      newNextAccommodationStatus = NextAccommodationStatus.YES,
-      newAddress = newAddress,
-      newOffenderReleaseType = OffenderReleaseType.LICENCE,
-      newStartDate = null,
-      newEndDate = null,
-    )
-
-    val snapshot = aggregate.snapshot()
-    assertThat(snapshot.id).isEqualTo(fixedId)
-    assertThat(snapshot.createdAt).isEqualTo(fixedCreatedAt)
-    assertThat(snapshot.name).isEqualTo("Updated Name")
-    assertThat(snapshot.arrangementType).isEqualTo(AccommodationArrangementType.PRIVATE)
-    assertThat(snapshot.arrangementSubType).isEqualTo(AccommodationArrangementSubType.OWNED)
-    assertThat(snapshot.settledType).isEqualTo(AccommodationSettledType.SETTLED)
-    assertThat(snapshot.verificationStatus).isEqualTo(VerificationStatus.PASSED)
-    assertThat(snapshot.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
-    assertThat(snapshot.offenderReleaseType).isEqualTo(OffenderReleaseType.LICENCE)
-    assertThat(snapshot.address.postcode).isEqualTo("NEW 1AA")
-
-    val domainEventsToPublish = aggregate.pullDomainEvents()
-    assertThat(domainEventsToPublish).hasSize(1)
-    assertThat(domainEventsToPublish.first()).isInstanceOf(AddressUpdatedDomainEvent::class.java)
-    assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(fixedId)
-  }
-
-  @Test
-  fun `should updateProposedAccommodation and not raise event when nextAccommodationStatus is not YES`() {
-    val aggregate = buildExistingAggregate()
-
-    aggregate.updateProposedAccommodation(
-      newName = "Updated Name",
-      newArrangementType = AccommodationArrangementType.PRIVATE,
-      newArrangementSubType = AccommodationArrangementSubType.OWNED,
-      newArrangementSubTypeDescription = null,
-      newSettledType = AccommodationSettledType.SETTLED,
-      newVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
-      newNextAccommodationStatus = NextAccommodationStatus.NO,
-      newAddress = buildAccommodationAddressDetails(),
-      newOffenderReleaseType = null,
-      newStartDate = null,
-      newEndDate = null,
-    )
-
-    val domainEventsToPublish = aggregate.pullDomainEvents()
-    assertThat(domainEventsToPublish).hasSize(0)
-  }
-
-  @Test
-  fun `should throw AccommodationVerificationNotPassedException on updateProposedAccommodation when verification not passed and nextAccommodationStatus is YES`() {
-    val aggregate = buildExistingAggregate()
-
-    assertThrows<AccommodationVerificationNotPassedException> {
-      aggregate.updateProposedAccommodation(
-        newName = "Updated",
-        newArrangementType = AccommodationArrangementType.PRIVATE,
-        newArrangementSubType = AccommodationArrangementSubType.OWNED,
-        newArrangementSubTypeDescription = null,
-        newSettledType = AccommodationSettledType.SETTLED,
-        newVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
-        newNextAccommodationStatus = NextAccommodationStatus.YES,
-        newAddress = buildAccommodationAddressDetails(),
-        newOffenderReleaseType = null,
-        newStartDate = null,
-        newEndDate = null,
-      )
-    }
-  }
-
-  @Test
-  fun `should throw AccommodationArrangementSubTypeDescriptionUnexpectedException on updateProposedAccommodation with invalid arrangement`() {
-    val aggregate = buildExistingAggregate()
-
-    assertThrows<AccommodationArrangementSubTypeDescriptionUnexpectedException> {
-      aggregate.updateProposedAccommodation(
-        newName = "Updated",
-        newArrangementType = AccommodationArrangementType.PRIVATE,
-        newArrangementSubType = AccommodationArrangementSubType.OTHER,
-        newArrangementSubTypeDescription = null,
-        newSettledType = AccommodationSettledType.SETTLED,
-        newVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
-        newNextAccommodationStatus = NextAccommodationStatus.NO,
-        newAddress = buildAccommodationAddressDetails(),
-        newOffenderReleaseType = null,
-        newStartDate = null,
-        newEndDate = null,
-      )
-    }
-  }
-
-  private fun buildExistingAggregate(
-    id: UUID = UUID.randomUUID(),
-    createdAt: Instant = Instant.now(),
-  ) = ProposedAccommodationAggregate.hydrateExisting(
-    id = id,
-    crn = "ABC1234",
-    createdAt = createdAt,
-    name = "Old Name",
-    arrangementType = AccommodationArrangementType.PRISON,
-    arrangementSubType = null,
-    arrangementSubTypeDescription = null,
-    settledType = AccommodationSettledType.TRANSIENT,
-    verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-    nextAccommodationStatus = NextAccommodationStatus.NO,
-    offenderReleaseType = null,
-    address = buildAccommodationAddressDetails(),
-    startDate = null,
-    endDate = null,
-    lastUpdatedAt = null,
-  )
-
   private fun hydrateAndCreateProposedAccommodation(
     verificationStatus: VerificationStatus,
     nextAccommodationStatus: NextAccommodationStatus,
@@ -268,7 +140,7 @@ class ProposedAccommodationAggregateTest {
     accommodationArrangementSubTypeDescription: String? = accommodationDetails.arrangementSubTypeDescription
   ): ProposedAccommodationAggregate {
     val aggregate = ProposedAccommodationAggregate.hydrateNew(crn = "ABC1234")
-    aggregate.createProposedAccommodation(
+    aggregate.updateProposedAccommodation(
       newName = accommodationDetails.name,
       newArrangementType = accommodationDetails.arrangementType,
       newArrangementSubType = accommodationArrangementSubType,

@@ -24,9 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.me
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedSasAddressUpdatedDomainEventJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.expectedUpdateProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.proposedAddressesRequestBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.privateaddress.json.updateProposedAddressesRequestBody
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -161,7 +159,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
-        updateProposedAddressesRequestBody(
+        proposedAddressesRequestBody(
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -172,7 +170,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
-      expectedJson = expectedUpdateProposedAddressesResponseBody(
+      expectedJson = expectedProposedAddressesResponseBody(
         id = existingEntity.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
@@ -185,10 +183,13 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
       eventType = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED.typeDescription,
     )
+    assertThatOutboxIsAsExpected(
+      proposedAccommodationId = existingEntity.id,
+    )
   }
 
   @Test
-  fun `should update proposed-accommodation and publish domain event when nextAccommodationStatus is YES`() {
+  fun `should update proposed-accommodation and not publish domain event when nextAccommodationStatus is NO`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         crn = crn,
@@ -201,22 +202,15 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
-        updateProposedAddressesRequestBody(
-          verificationStatus = EntityVerificationStatus.PASSED.name,
-          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+        proposedAddressesRequestBody(
+          verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
       .withJwt()
       .exchangeSuccessfully()
 
-    assertPublishedSNSEvent(
-      proposedAccommodationId = existingEntity.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED.typeDescription,
-    )
-    assertThatOutboxIsAsExpected(
-      proposedAccommodationId = existingEntity.id,
-    )
+    assertThat(outboxEventRepository.findAll()).isEmpty()
   }
 
   @Test
@@ -226,7 +220,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/$nonExistentId")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
-        updateProposedAddressesRequestBody(
+        proposedAddressesRequestBody(
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -249,7 +243,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
-        updateProposedAddressesRequestBody(
+        proposedAddressesRequestBody(
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -276,7 +270,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
     val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
-        updateProposedAddressesRequestBody(
+        proposedAddressesRequestBody(
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -287,7 +281,7 @@ class ProposedAccommodationControllerTest : IntegrationTestBase() {
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
-      expectedJson = expectedUpdateProposedAddressesResponseBody(
+      expectedJson = expectedProposedAddressesResponseBody(
         id = existingEntity.id,
         verificationStatus = VerificationStatus.NOT_CHECKED_YET.name,
         nextAccommodationStatus = NextAccommodationStatus.NO.name,

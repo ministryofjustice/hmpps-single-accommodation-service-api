@@ -125,67 +125,6 @@ fun expectedProposedAddressesResponseBody(
 }
 """.trimIndent()
 
-fun updateProposedAddressesRequestBody(verificationStatus: String, nextAccommodationStatus: String): String = """
-  {
-    "name" : "Updated caravan",
-    "arrangementType" : "PRIVATE",
-    "arrangementSubType" : "OTHER",
-    "arrangementSubTypeDescription" : "Updated caravan site",
-    "settledType" : "SETTLED",
-    "offenderReleaseType" : "LICENCE",
-    "verificationStatus" : "$verificationStatus",
-    "nextAccommodationStatus" : "$nextAccommodationStatus",
-    "address" : {
-      "postcode" : "updated postcode",
-      "subBuildingName" : "updated sub building name",
-      "buildingName" : "updated building name",
-      "buildingNumber" : "7",
-      "thoroughfareName" : "updated thoroughfareName",
-      "dependentLocality" : "updated dependent locality",
-      "postTown" : "updated post town",
-      "county" : "updated county",
-      "country" : "updated country",
-      "uprn" : "UP999999"
-    },
-    "startDate" : "2026-02-10",
-    "endDate" : "2026-05-20"
-  }
-""".trimIndent()
-
-fun expectedUpdateProposedAddressesResponseBody(
-  id: UUID,
-  verificationStatus: String,
-  nextAccommodationStatus: String,
-  createdAt: String,
-): String = """
-{
-  "id" : "$id",
-  "name" : "Updated caravan",
-  "arrangementType" : "PRIVATE",
-  "arrangementSubType" : "OTHER",
-  "arrangementSubTypeDescription" : "Updated caravan site",
-  "settledType" : "SETTLED",
-  "offenderReleaseType" : "LICENCE",
-  "verificationStatus" : "$verificationStatus",
-  "nextAccommodationStatus" : "$nextAccommodationStatus",
-  "address" : {
-    "postcode" : "updated postcode",
-    "subBuildingName" : "updated sub building name",
-    "buildingName" : "updated building name",
-    "buildingNumber" : "7",
-    "thoroughfareName" : "updated thoroughfareName",
-    "dependentLocality" : "updated dependent locality",
-    "postTown" : "updated post town",
-    "county" : "updated county",
-    "country" : "updated country",
-    "uprn" : "UP999999"
-  },
-  "startDate" : "2026-02-10",
-  "endDate" : "2026-05-20",
-  "createdAt" : "$createdAt"
-}
-""".trimIndent()
-
 fun expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId: UUID) = """
   {
     "aggregateId" : "$proposedAccommodationId",

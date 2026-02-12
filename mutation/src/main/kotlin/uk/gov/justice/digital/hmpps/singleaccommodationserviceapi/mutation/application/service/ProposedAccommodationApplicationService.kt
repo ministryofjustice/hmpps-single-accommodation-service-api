@@ -28,7 +28,7 @@ class ProposedAccommodationApplicationService(
       crn = crn,
     )
 
-    aggregate.createProposedAccommodation(
+    aggregate.updateProposedAccommodation(
       newName = request.name,
       newArrangementType = request.arrangementType,
       newArrangementSubType = request.arrangementSubType,
@@ -47,12 +47,8 @@ class ProposedAccommodationApplicationService(
 
   @Transactional
   fun updateProposedAccommodation(crn: String, id: UUID, request: UpdateAccommodationDetail): AccommodationDetail {
-    val entity = proposedAccommodationRepository.findById(id)
-      .orElseThrow { NotFoundException("Proposed Accommodation not found for id: $id") }
-
-    if (entity.crn != crn) {
-      throw NotFoundException("Proposed Accommodation not found for crn: $crn")
-    }
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
+      ?: throw NotFoundException("Proposed Accommodation not found for id: $id and crn: $crn")
 
     val aggregate = ProposedAccommodationMapper.toAggregate(entity)
 
