@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
@@ -12,7 +12,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-fun buildSnapshot(
+fun buildProposedAccommodationSnapshot(
   arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
   settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,
