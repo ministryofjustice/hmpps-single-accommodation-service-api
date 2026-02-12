@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedSasAddressUpdatedDomainEventJson
@@ -92,6 +93,40 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           ),
         )
       }
+  }
+
+  @Test
+  fun `should get proposed-accommodation by id and crn`() {
+    val entity = createAndSaveProposedAccommodation(
+      postcode = "W1 8XX",
+      buildingNumber = "11",
+      thoroughfareName = "Piccadilly Circus",
+      postTown = "London",
+      createdAt = Instant.parse("2025-01-01T10:00:00Z"),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, entity.id)
+      .withJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetProposedAccommodationByIdResponse(
+            id = entity.id,
+            createdAt = entity.createdAt.toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return 404 when proposed-accommodation not found`() {
+    val nonExistentId = UUID.randomUUID()
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, nonExistentId)
+      .withJwt()
+      .exchange()
+      .expectStatus().isNotFound
   }
 
   @Test

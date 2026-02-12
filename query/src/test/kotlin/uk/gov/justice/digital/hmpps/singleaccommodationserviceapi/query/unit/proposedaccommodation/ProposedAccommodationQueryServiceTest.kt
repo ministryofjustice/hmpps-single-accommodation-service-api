@@ -5,14 +5,17 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.domain.exceptions.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTransformer
 import java.time.Instant
+import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
 class ProposedAccommodationQueryServiceTest {
@@ -73,6 +76,34 @@ class ProposedAccommodationQueryServiceTest {
       assertThat(result).hasSize(2)
       val expectedDetails = ProposedAccommodationTransformer.toAccommodationDetails(entities)
       assertThat(result).containsExactlyInAnyOrderElementsOf(expectedDetails)
+    }
+  }
+
+  @Nested
+  inner class GetProposedAccommodation {
+
+    private val id = UUID.randomUUID()
+
+    @Test
+    fun `should return accommodation when found by id and crn`() {
+      val entity = buildProposedAccommodationEntity(crn = crn)
+
+      every { proposedAccommodationRepository.findByIdAndCrn(id, crn) } returns entity
+
+      val result = service.getProposedAccommodation(crn, id)
+
+      assertThat(result.id).isEqualTo(entity.id)
+      assertThat(result.name).isEqualTo(entity.name)
+      assertThat(result.createdAt).isEqualTo(entity.createdAt)
+    }
+
+    @Test
+    fun `should throw NotFoundException when not found`() {
+      every { proposedAccommodationRepository.findByIdAndCrn(id, crn) } returns null
+
+      assertThatThrownBy { service.getProposedAccommodation(crn, id) }
+        .isInstanceOf(NotFoundException::class.java)
+        .hasMessageContaining(id.toString())
     }
   }
 }

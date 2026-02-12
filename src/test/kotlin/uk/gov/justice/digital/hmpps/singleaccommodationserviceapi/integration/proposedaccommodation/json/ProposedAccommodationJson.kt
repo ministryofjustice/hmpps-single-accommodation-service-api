@@ -64,6 +64,38 @@ fun expectedGetProposedAccommodationsResponse(
 ]
 """.trimIndent()
 
+fun expectedGetProposedAccommodationByIdResponse(
+  id: UUID,
+  createdAt: String,
+): String = """
+{
+  "id" : "$id",
+  "name" : "Test Accommodation",
+  "arrangementType" : "PRIVATE",
+  "arrangementSubType" : "FRIENDS_OR_FAMILY",
+  "arrangementSubTypeDescription" : null,
+  "settledType" : "SETTLED",
+  "offenderReleaseType" : null,
+  "verificationStatus" : "NOT_CHECKED_YET",
+  "nextAccommodationStatus" : "TO_BE_DECIDED",
+  "address" : {
+    "postcode" : "W1 8XX",
+    "subBuildingName" : null,
+    "buildingName" : null,
+    "buildingNumber" : "11",
+    "thoroughfareName" : "Piccadilly Circus",
+    "dependentLocality" : null,
+    "postTown" : "London",
+    "county" : null,
+    "country" : "England",
+    "uprn" : null
+  },
+  "startDate" : null,
+  "endDate" : null,
+  "createdAt" : "$createdAt"
+}
+""".trimIndent()
+
 fun proposedAddressesRequestBody(verificationStatus: String, nextAccommodationStatus: String): String = """
   {
     "name" : "Mother's caravan",
