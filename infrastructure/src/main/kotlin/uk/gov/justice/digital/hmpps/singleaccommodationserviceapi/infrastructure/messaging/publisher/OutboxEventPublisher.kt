@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.HmppsDomainEventUrlConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsSnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -63,7 +63,7 @@ class OutboxEventPublisher(
     eventType: SingleAccommodationServiceDomainEventType,
   ): PublishResponse {
     val detailUrl = hmppsDomainEventUrlConfig.getUrlForDomainEventId(eventType, outboxEventEntity.aggregateId)
-    val snsEvent = HmppsSnsDomainEvent(
+    val snsEvent = HmppsDomainEvent(
       eventType = eventType.typeName,
       externalId = outboxEventEntity.aggregateId,
       detailUrl = detailUrl,

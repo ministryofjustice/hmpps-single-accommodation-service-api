@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.test.context.event.annotation.BeforeTestMethod
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsSnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import java.time.Duration
 
@@ -18,7 +18,7 @@ import java.time.Duration
 @Service
 class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
   private val log = LoggerFactory.getLogger(this::class.java)
-  private val messages = mutableListOf<HmppsSnsDomainEvent>()
+  private val messages = mutableListOf<HmppsDomainEvent>()
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
   lateinit var topicName: String
@@ -26,7 +26,7 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
   @SqsListener(queueNames = ["test-domain-events-queue"], factory = "hmppsQueueContainerFactoryProxy", pollTimeoutSeconds = "1")
   fun processMessage(rawMessage: String?) {
     val (message) = objectMapper.readValue(rawMessage, Message::class.java)
-    val event = objectMapper.readValue(message, HmppsSnsDomainEvent::class.java)
+    val event = objectMapper.readValue(message, HmppsDomainEvent::class.java)
 
     log.info("Received Domain Event: $event")
     synchronized(messages) {
@@ -39,7 +39,7 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
     messages.clear()
   }
 
-  fun blockForMessage(eventType: SingleAccommodationServiceDomainEventType): HmppsSnsDomainEvent {
+  fun blockForMessage(eventType: SingleAccommodationServiceDomainEventType): HmppsDomainEvent {
     val typeName = eventType.typeName
     var waitedCount = 0
     while (!contains(typeName)) {
