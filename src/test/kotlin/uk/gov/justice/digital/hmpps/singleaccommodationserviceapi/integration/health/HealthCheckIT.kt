@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.h
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 
-class HealthCheckTest : IntegrationTestBase() {
+class HealthCheckIT : IntegrationTestBase() {
 
   @Test
   fun `Health page reports ok`() {

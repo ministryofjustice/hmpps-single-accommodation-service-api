@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesWithFilterResponse
 
-class CaseIntegrationTest : IntegrationTestBase() {
+class CaseControllerIT : IntegrationTestBase() {
 
   private val crn = "FAKECRN1"
   private val crn2 = "FAKECRN2"

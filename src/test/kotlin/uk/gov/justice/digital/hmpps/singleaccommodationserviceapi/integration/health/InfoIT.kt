@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class InfoTest : IntegrationTestBase() {
+class InfoIT : IntegrationTestBase() {
 
   @Test
   fun `Info page is accessible`() {

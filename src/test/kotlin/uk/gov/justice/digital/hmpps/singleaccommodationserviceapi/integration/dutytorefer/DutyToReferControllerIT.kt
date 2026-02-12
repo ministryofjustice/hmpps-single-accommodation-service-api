@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 
-class DutyToReferControllerTest : IntegrationTestBase() {
+class DutyToReferControllerIT : IntegrationTestBase() {
   private val crn = "FAKECRN1"
 
   @BeforeEach

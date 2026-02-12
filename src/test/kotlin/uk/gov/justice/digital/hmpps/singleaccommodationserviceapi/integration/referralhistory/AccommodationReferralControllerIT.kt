@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
 import java.time.Instant
 
-class AccommodationReferralOrchestrationServiceTest : IntegrationTestBase() {
+class AccommodationReferralControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {

@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
 import java.util.UUID
 
-class EligibilityControllerTest : IntegrationTestBase() {
+class EligibilityControllerIT : IntegrationTestBase() {
   private val crn = "FAKECRN1"
   private val prisonerNumber = "1234567"
   private val cas1ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111111")
