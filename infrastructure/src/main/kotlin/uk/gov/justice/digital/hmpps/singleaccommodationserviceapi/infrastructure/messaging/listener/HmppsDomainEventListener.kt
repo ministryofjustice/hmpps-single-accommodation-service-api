@@ -35,7 +35,7 @@ class HmppsDomainEventListener(
           createdAt = Instant.now(),
           processedStatus = ProcessedStatus.PENDING,
           processedAt = null,
-          crn = event.personReference.findCrn(),
+          payload = jsonMapper.writeValueAsString(event),
         ),
       )
     } catch (e: Exception) {
