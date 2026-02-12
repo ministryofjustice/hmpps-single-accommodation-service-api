@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.RootAggregateHydrateFunction
 import java.util.UUID
 
 class CaseAggregate private constructor(
@@ -18,7 +17,6 @@ class CaseAggregate private constructor(
   }
 
   companion object {
-    @RootAggregateHydrateFunction
     fun hydrate(
       id: UUID,
       crn: String,
