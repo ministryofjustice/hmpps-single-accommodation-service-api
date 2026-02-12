@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsSnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
@@ -25,7 +25,7 @@ class HmppsDomainEventListener(
   fun processMessage(msg: String) {
     try {
       val (message) = jsonMapper.readValue(msg, SQSMessage::class.java)
-      val event = jsonMapper.readValue(message, HmppsSnsDomainEvent::class.java)
+      val event = jsonMapper.readValue(message, HmppsDomainEvent::class.java)
       inboxEventRepository.save(
         InboxEventEntity(
           id = UUID.randomUUID(),

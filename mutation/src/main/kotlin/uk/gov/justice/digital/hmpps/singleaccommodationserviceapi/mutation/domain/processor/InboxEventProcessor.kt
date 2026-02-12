@@ -6,21 +6,22 @@ import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import java.time.Instant
-import java.util.regex.Pattern
 
 @Profile(value = ["local", "dev", "test"])
 @Component
 class InboxEventProcessor(
   private val inboxEventRepository: InboxEventRepository,
   private val caseApplicationService: CaseApplicationService,
-
+  private val jsonMapper: JsonMapper,
   private val tierClient: TierClient,
 ) {
 
@@ -41,18 +42,16 @@ class InboxEventProcessor(
       return
     }
     inboxEvents.forEach { inboxEvent ->
-      val outgoingHmppsDomainEventType = IncomingHmppsDomainEventType.from(inboxEvent.eventType)
-      when (outgoingHmppsDomainEventType) {
+      val incomingHmppsDomainEventType = IncomingHmppsDomainEventType.from(inboxEvent.eventType)
+      when (incomingHmppsDomainEventType) {
         IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE -> {
           log.info("Making callback to Tier using detailUrl ${inboxEvent.eventDetailUrl}")
           try {
             val newTier = tierClient.fetchTier(uri = inboxEvent.uri())
             log.info("New Tier Score calculated ${newTier.tierScore}")
-            val cs: CharSequence = inboxEvent.eventDetailUrl as CharSequence
-            val regex = "^.*/crn/(.*)/tier/.*$"
 
-            val crn = Pattern.compile(regex)
-              .matcher(cs).group(1)
+            val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
+            val crn = tierDomainEvent.personReference.findCrn() ?: throw IllegalStateException("CRN not found in event payload")
 
             caseApplicationService.upsertTier(tier = newTier, crn = crn)
 

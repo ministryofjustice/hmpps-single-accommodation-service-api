@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import java.time.OffsetDateTime
 import java.util.UUID
 
-data class HmppsSnsDomainEvent(
+data class HmppsDomainEvent(
   val eventType: String,
   val externalId: UUID,
   val version: Int,
