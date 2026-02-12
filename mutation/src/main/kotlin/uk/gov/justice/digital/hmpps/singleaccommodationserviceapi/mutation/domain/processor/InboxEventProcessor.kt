@@ -46,7 +46,7 @@ class InboxEventProcessor(
         IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE -> {
           log.info("Making callback to Tier using detailUrl ${inboxEvent.eventDetailUrl}")
           try {
-            val newTier = tierClient.fetchAddress(uri = inboxEvent.uri())
+            val newTier = tierClient.fetchTier(uri = inboxEvent.uri())
             log.info("New Tier Score calculated ${newTier.tierScore}")
             val cs: CharSequence = inboxEvent.eventDetailUrl as CharSequence
             val regex = "^.*/crn/(.*)/tier/.*$"
