@@ -1,7 +1,15 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
 import java.time.temporal.ChronoUnit
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
@@ -39,6 +47,36 @@ object ProposedAccommodationMapper {
     createdAt = snapshot.createdAt,
     lastUpdatedAt = snapshot.lastUpdatedAt,
   )
+
+  fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate =
+    ProposedAccommodationAggregate.hydrateExisting(
+      id = entity.id,
+      crn = entity.crn,
+      createdAt = entity.createdAt,
+      name = entity.name,
+      arrangementType = AccommodationArrangementType.valueOf(entity.arrangementType.name),
+      arrangementSubType = entity.arrangementSubType?.let { AccommodationArrangementSubType.valueOf(it.name) },
+      arrangementSubTypeDescription = entity.arrangementSubTypeDescription,
+      settledType = AccommodationSettledType.valueOf(entity.settledType.name),
+      verificationStatus = VerificationStatus.valueOf(entity.verificationStatus!!.name),
+      nextAccommodationStatus = NextAccommodationStatus.valueOf(entity.nextAccommodationStatus!!.name),
+      offenderReleaseType = entity.offenderReleaseType?.let { OffenderReleaseType.valueOf(it.name) },
+      address = AccommodationAddressDetails(
+        postcode = entity.postcode,
+        subBuildingName = entity.subBuildingName,
+        buildingName = entity.buildingName,
+        buildingNumber = entity.buildingNumber,
+        thoroughfareName = entity.throughfareName,
+        dependentLocality = entity.dependentLocality,
+        postTown = entity.postTown,
+        county = entity.county,
+        country = entity.country,
+        uprn = entity.uprn,
+      ),
+      startDate = entity.startDate,
+      endDate = entity.endDate,
+      lastUpdatedAt = entity.lastUpdatedAt,
+    )
 
   fun toDto(snapshot: ProposedAccommodationSnapshot) = AccommodationDetail(
     id = snapshot.id,

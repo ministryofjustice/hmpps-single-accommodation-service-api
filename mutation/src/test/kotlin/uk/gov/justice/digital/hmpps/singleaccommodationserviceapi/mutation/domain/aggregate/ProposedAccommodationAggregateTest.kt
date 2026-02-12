@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationDetail
@@ -138,7 +140,7 @@ class ProposedAccommodationAggregateTest {
     accommodationArrangementSubTypeDescription: String? = accommodationDetails.arrangementSubTypeDescription
   ): ProposedAccommodationAggregate {
     val aggregate = ProposedAccommodationAggregate.hydrateNew(crn = "ABC1234")
-    aggregate.createProposedAccommodation(
+    aggregate.updateProposedAccommodation(
       newName = accommodationDetails.name,
       newArrangementType = accommodationDetails.arrangementType,
       newArrangementSubType = accommodationArrangementSubType,

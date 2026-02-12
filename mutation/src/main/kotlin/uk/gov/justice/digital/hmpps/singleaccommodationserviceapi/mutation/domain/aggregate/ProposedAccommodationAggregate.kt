@@ -39,9 +39,43 @@ class ProposedAccommodationAggregate private constructor(
       id = UUID.randomUUID(),
       crn = crn,
     )
+
+    fun hydrateExisting(
+      id: UUID,
+      crn: String,
+      createdAt: Instant,
+      name: String?,
+      arrangementType: AccommodationArrangementType,
+      arrangementSubType: AccommodationArrangementSubType?,
+      arrangementSubTypeDescription: String?,
+      settledType: AccommodationSettledType,
+      verificationStatus: VerificationStatus,
+      nextAccommodationStatus: NextAccommodationStatus,
+      offenderReleaseType: OffenderReleaseType?,
+      address: AccommodationAddressDetails,
+      startDate: LocalDate?,
+      endDate: LocalDate?,
+      lastUpdatedAt: Instant?,
+    ) = ProposedAccommodationAggregate(
+      id = id,
+      crn = crn,
+      createdAt = createdAt,
+      name = name,
+      arrangementType = arrangementType,
+      arrangementSubType = arrangementSubType,
+      arrangementSubTypeDescription = arrangementSubTypeDescription,
+      settledType = settledType,
+      verificationStatus = verificationStatus,
+      nextAccommodationStatus = nextAccommodationStatus,
+      offenderReleaseType = offenderReleaseType,
+      address = address,
+      startDate = startDate,
+      endDate = endDate,
+      lastUpdatedAt = lastUpdatedAt,
+    )
   }
 
-  fun createProposedAccommodation(
+  fun updateProposedAccommodation(
     newName: String?,
     newArrangementType: AccommodationArrangementType,
     newArrangementSubType: AccommodationArrangementSubType?,

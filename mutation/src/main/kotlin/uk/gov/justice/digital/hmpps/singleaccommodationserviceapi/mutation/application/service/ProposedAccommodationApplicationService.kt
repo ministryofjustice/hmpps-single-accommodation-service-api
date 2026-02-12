@@ -5,12 +5,14 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateAccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateAccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NotFoundException
 import java.time.Instant
 import java.util.UUID
 
@@ -26,7 +28,7 @@ class ProposedAccommodationApplicationService(
       crn = crn,
     )
 
-    aggregate.createProposedAccommodation(
+    aggregate.updateProposedAccommodation(
       newName = request.name,
       newArrangementType = request.arrangementType,
       newArrangementSubType = request.arrangementSubType,
@@ -40,6 +42,34 @@ class ProposedAccommodationApplicationService(
       newEndDate = request.endDate,
     )
 
+    return saveAndPublish(aggregate)
+  }
+
+  @Transactional
+  fun updateProposedAccommodation(crn: String, id: UUID, request: UpdateAccommodationDetail): AccommodationDetail {
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
+      ?: throw NotFoundException("Proposed Accommodation not found for id: $id and crn: $crn")
+
+    val aggregate = ProposedAccommodationMapper.toAggregate(entity)
+
+    aggregate.updateProposedAccommodation(
+      newName = request.name,
+      newArrangementType = request.arrangementType,
+      newArrangementSubType = request.arrangementSubType,
+      newArrangementSubTypeDescription = request.arrangementSubTypeDescription,
+      newSettledType = request.settledType,
+      newVerificationStatus = request.verificationStatus,
+      newNextAccommodationStatus = request.nextAccommodationStatus,
+      newAddress = request.address,
+      newOffenderReleaseType = request.offenderReleaseType,
+      newStartDate = request.startDate,
+      newEndDate = request.endDate,
+    )
+
+    return saveAndPublish(aggregate)
+  }
+
+  private fun saveAndPublish(aggregate: ProposedAccommodationAggregate): AccommodationDetail {
     proposedAccommodationRepository.save(
       ProposedAccommodationMapper.toEntity(aggregate.snapshot()),
     )

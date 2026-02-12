@@ -10,7 +10,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factory.buildSnapshot
+import java.time.Instant
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
@@ -129,6 +132,76 @@ class ProposedAccommodationMapperTest {
       snapshot = buildSnapshot(offenderReleaseType = offenderReleaseType),
     )
     assertThat(entity.offenderReleaseType).isEqualTo(EntityOffenderReleaseType.valueOf(offenderReleaseType.name))
+  }
+
+  @Test
+  fun `toAggregate maps all fields correctly`() {
+    val entity = buildProposedAccommodationEntity(
+      name = "Test Name",
+      arrangementType = EntityAccommodationArrangementType.PRIVATE,
+      arrangementSubType = EntityAccommodationArrangementSubType.FRIENDS_OR_FAMILY,
+      arrangementSubTypeDescription = null,
+      settledType = EntityAccommodationSettledType.SETTLED,
+      verificationStatus = EntityVerificationStatus.PASSED,
+      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+      offenderReleaseType = EntityOffenderReleaseType.REMAND,
+      postcode = "SW1A 1AA",
+      subBuildingName = "Sub",
+      buildingName = "Building",
+      buildingNumber = "10",
+      throughfareName = "Downing Street",
+      dependentLocality = "Westminster",
+      postTown = "London",
+      county = "London",
+      country = "England",
+      uprn = "12345",
+      startDate = LocalDate.of(2026, 1, 5),
+      endDate = LocalDate.of(2026, 4, 25),
+      createdAt = Instant.parse("2025-06-01T10:00:00Z"),
+      lastUpdatedAt = Instant.parse("2025-06-02T10:00:00Z"),
+    )
+
+    val aggregate = ProposedAccommodationMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.id).isEqualTo(entity.id)
+    assertThat(snapshot.crn).isEqualTo(entity.crn)
+    assertThat(snapshot.name).isEqualTo(entity.name)
+    assertThat(snapshot.arrangementType).isEqualTo(AccommodationArrangementType.PRIVATE)
+    assertThat(snapshot.arrangementSubType).isEqualTo(AccommodationArrangementSubType.FRIENDS_OR_FAMILY)
+    assertThat(snapshot.arrangementSubTypeDescription).isEqualTo(entity.arrangementSubTypeDescription)
+    assertThat(snapshot.settledType).isEqualTo(AccommodationSettledType.SETTLED)
+    assertThat(snapshot.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+    assertThat(snapshot.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+    assertThat(snapshot.offenderReleaseType).isEqualTo(OffenderReleaseType.REMAND)
+    assertThat(snapshot.address.postcode).isEqualTo(entity.postcode)
+    assertThat(snapshot.address.subBuildingName).isEqualTo(entity.subBuildingName)
+    assertThat(snapshot.address.buildingName).isEqualTo(entity.buildingName)
+    assertThat(snapshot.address.buildingNumber).isEqualTo(entity.buildingNumber)
+    assertThat(snapshot.address.thoroughfareName).isEqualTo(entity.throughfareName)
+    assertThat(snapshot.address.dependentLocality).isEqualTo(entity.dependentLocality)
+    assertThat(snapshot.address.postTown).isEqualTo(entity.postTown)
+    assertThat(snapshot.address.county).isEqualTo(entity.county)
+    assertThat(snapshot.address.country).isEqualTo(entity.country)
+    assertThat(snapshot.address.uprn).isEqualTo(entity.uprn)
+    assertThat(snapshot.startDate).isEqualTo(entity.startDate)
+    assertThat(snapshot.endDate).isEqualTo(entity.endDate)
+    assertThat(snapshot.createdAt).isEqualTo(entity.createdAt)
+    assertThat(snapshot.lastUpdatedAt).isEqualTo(entity.lastUpdatedAt)
+  }
+
+  @Test
+  fun `toAggregate handles nullable enum fields`() {
+    val entity = buildProposedAccommodationEntity(
+      arrangementSubType = null,
+      offenderReleaseType = null,
+    )
+
+    val aggregate = ProposedAccommodationMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.arrangementSubType).isNull()
+    assertThat(snapshot.offenderReleaseType).isNull()
   }
 
   @Test
