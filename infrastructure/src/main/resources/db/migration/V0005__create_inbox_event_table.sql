@@ -7,5 +7,5 @@ CREATE TABLE inbox_event
     created_at        TIMESTAMP WITH TIME ZONE default now(),
     processed_status  VARCHAR(20)              NOT NULL,
     processed_at      TIMESTAMP WITH TIME ZONE,
-    crn               TEXT
+    payload           JSONB                    not null
 );

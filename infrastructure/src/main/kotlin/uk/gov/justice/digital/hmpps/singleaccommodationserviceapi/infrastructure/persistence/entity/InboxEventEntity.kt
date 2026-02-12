@@ -22,7 +22,7 @@ class InboxEventEntity(
   @Enumerated(EnumType.STRING)
   var processedStatus: ProcessedStatus,
   var processedAt: Instant?,
-  var crn: String?,
+  var payload: String,
 )
 
 fun InboxEventEntity.uri(): URI = URI.create(requireNotNull(eventDetailUrl) { "Missing detail url" })

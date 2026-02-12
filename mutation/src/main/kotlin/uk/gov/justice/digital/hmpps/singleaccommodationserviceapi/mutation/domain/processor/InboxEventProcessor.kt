@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
@@ -10,9 +11,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import java.time.Instant
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import java.time.Instant
+import java.util.regex.Pattern
 
 @Profile(value = ["local", "dev", "test"])
 @Component
@@ -47,7 +48,13 @@ class InboxEventProcessor(
           try {
             val newTier = tierClient.fetchAddress(uri = inboxEvent.uri())
             log.info("New Tier Score calculated ${newTier.tierScore}")
-            caseApplicationService.upsertTier(tier = newTier, crn = inboxEvent.crn!!)
+            val cs: CharSequence = inboxEvent.eventDetailUrl as CharSequence
+            val regex = "^.*/crn/(.*)/tier/.*$"
+
+            val crn = Pattern.compile(regex)
+              .matcher(cs).group(1)
+
+            caseApplicationService.upsertTier(tier = newTier, crn = crn)
 
             inboxEvent.processedStatus = ProcessedStatus.SUCCESS
             inboxEvent.processedAt = Instant.now()
