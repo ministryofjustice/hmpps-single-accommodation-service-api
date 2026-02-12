@@ -19,7 +19,7 @@ generic-service:
     SERVICE_TIER_BASE-URL: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
-    EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/proposed-accommodation/#id
+    EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/proposed-accommodations/#id
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts

@@ -13,7 +13,7 @@ class HmppsDomainEventUrlConfig(
 
   fun getUrlForDomainEventId(domainEventType: SingleAccommodationServiceDomainEventType, id: UUID): String {
     val template = when (domainEventType) {
-      SingleAccommodationServiceDomainEventType.SAS_ADDRESS_UPDATED -> UrlTemplate(proposedAccommodationUpdatedEventDetailsUrl)
+      SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED -> UrlTemplate(proposedAccommodationUpdatedEventDetailsUrl)
     }
     return template.resolve("id", id.toString())
   }

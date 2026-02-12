@@ -12,7 +12,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-fun buildSnapshot(
+fun buildProposedAccommodationSnapshot(
   arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
   settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,

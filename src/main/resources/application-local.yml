@@ -3,7 +3,7 @@ hmpps-auth:
 
 event:
   details-url:
-    proposed-accommodation-updated: http://localhost:8080/proposed-accommodation/#id
+    proposed-accommodation-updated: http://localhost:8080/proposed-accommodations/#id
 
 hmpps.sqs:
   useWebToken: false

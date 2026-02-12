@@ -11,9 +11,9 @@ enum class SingleAccommodationServiceDomainEventType(
   val typeName: String,
   val typeDescription: String,
 ) {
-  SAS_ADDRESS_UPDATED(
-    "sas.address.updated",
-    "SAS address has been updated"
+  SAS_ACCOMMODATION_UPDATED(
+    "sas.accommodation.updated",
+    "SAS accommodation has been updated"
   );
 
   companion object {
