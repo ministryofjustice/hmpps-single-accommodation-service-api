@@ -14,6 +14,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DomainException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NotFoundException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.domain.exceptions.NotFoundException as QueryNotFoundException
 
 @RestControllerAdvice
 class SingleAccommodationServiceApiExceptionHandler {
@@ -50,8 +51,8 @@ class SingleAccommodationServiceApiExceptionHandler {
       ),
     ).also { log.info("No resource found exception: {}", e.message) }
 
-  @ExceptionHandler(NotFoundException::class)
-  fun handleNotFoundException(e: NotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+  @ExceptionHandler(NotFoundException::class, QueryNotFoundException::class)
+  fun handleNotFoundException(e: RuntimeException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(NOT_FOUND)
     .body(
       ErrorResponse(

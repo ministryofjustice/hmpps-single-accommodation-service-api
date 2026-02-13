@@ -29,6 +29,13 @@ class ProposedAccommodationController(
     return ResponseEntity.ok(accommodations)
   }
 
+  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @GetMapping("/cases/{crn}/proposed-accommodations/{id}")
+  fun getById(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<AccommodationDetail> {
+    val accommodation = proposedAccommodationQueryService.getProposedAccommodation(crn, id)
+    return ResponseEntity.ok(accommodation)
+  }
+
   @PreAuthorize("hasAnyRole('ROLE_PROBATION')")
   @PostMapping("/cases/{crn}/proposed-accommodations")
   fun create(
