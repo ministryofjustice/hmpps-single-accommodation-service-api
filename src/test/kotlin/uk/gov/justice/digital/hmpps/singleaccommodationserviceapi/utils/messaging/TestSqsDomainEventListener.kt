@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.test.context.event.annotation.BeforeTestMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import java.time.Duration
 
@@ -39,6 +40,22 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
     messages.clear()
   }
 
+  fun blockForMessage(eventType: IncomingHmppsDomainEventType): HmppsDomainEvent {
+    val typeName = eventType.typeName
+    var waitedCount = 0
+    while (!contains(typeName)) {
+      if (waitedCount >= Duration.ofSeconds(15).toMillis()) {
+        fail<Any>("Did not receive SQS message of type $eventType from SNS topic $topicName after 15s. Have messages of type ${messages.map { m -> m.eventType }}")
+      }
+
+      Thread.sleep(100)
+      waitedCount += 100
+    }
+
+    synchronized(messages) {
+      return messages.first { it.eventType == typeName }
+    }
+  }
   fun blockForMessage(eventType: SingleAccommodationServiceDomainEventType): HmppsDomainEvent {
     val typeName = eventType.typeName
     var waitedCount = 0

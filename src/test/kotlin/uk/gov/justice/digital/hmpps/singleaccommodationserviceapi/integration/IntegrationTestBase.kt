@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
+import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierMockServer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
+import java.time.Duration
 
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -95,6 +97,12 @@ abstract class IntegrationTestBase {
     probationIntegrationOasysMockServer.resetAll()
     tierMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
+  }
+
+  fun awaitDbRecordExists(block: () -> Unit) {
+    await.atMost(Duration.ofSeconds(10))
+      .pollInterval(Duration.ofMillis(200))
+      .untilAsserted(block)
   }
 
   fun RestTestClient.RequestHeadersSpec<*>.withJwt(
