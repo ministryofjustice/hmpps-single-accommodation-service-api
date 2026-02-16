@@ -20,4 +20,11 @@ class ProposedAccommodationQueryService(
       ?: throw NotFoundException("Proposed accommodation with id $id not found for crn $crn")
     return ProposedAccommodationTransformer.toAccommodationDetail(entity)
   }
+
+  fun getProposedAccommodation(id: UUID): AccommodationDetail {
+    val entity = proposedAccommodationRepository.findById(id).orElseThrow {
+      NotFoundException("Proposed accommodation with id $id not found")
+    }
+    return ProposedAccommodationTransformer.toAccommodationDetail(entity)
+  }
 }

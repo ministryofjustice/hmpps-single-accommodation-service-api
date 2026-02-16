@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.domain.e
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTransformer
 import java.time.Instant
+import java.util.Optional
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
@@ -80,7 +81,7 @@ class ProposedAccommodationQueryServiceTest {
   }
 
   @Nested
-  inner class GetProposedAccommodation {
+  inner class GetProposedAccommodationByCrnAndId {
 
     private val id = UUID.randomUUID()
 
@@ -102,6 +103,34 @@ class ProposedAccommodationQueryServiceTest {
       every { proposedAccommodationRepository.findByIdAndCrn(id, crn) } returns null
 
       assertThatThrownBy { service.getProposedAccommodation(crn, id) }
+        .isInstanceOf(NotFoundException::class.java)
+        .hasMessageContaining(id.toString())
+    }
+  }
+
+  @Nested
+  inner class GetProposedAccommodationById {
+
+    private val id = UUID.randomUUID()
+
+    @Test
+    fun `should return accommodation when found by id`() {
+      val entity = buildProposedAccommodationEntity(crn = crn)
+
+      every { proposedAccommodationRepository.findById(id) } returns Optional.of(entity)
+
+      val result = service.getProposedAccommodation(id)
+
+      assertThat(result.id).isEqualTo(entity.id)
+      assertThat(result.name).isEqualTo(entity.name)
+      assertThat(result.createdAt).isEqualTo(entity.createdAt)
+    }
+
+    @Test
+    fun `should throw NotFoundException when not found`() {
+      every { proposedAccommodationRepository.findById(id) } returns Optional.empty()
+
+      assertThatThrownBy { service.getProposedAccommodation(id) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessageContaining(id.toString())
     }
