@@ -24,6 +24,7 @@ object ProposedAccommodationTransformer {
     AccommodationDetail(
       id = entity.id,
       name = entity.name,
+      crn = entity.crn,
       arrangementType = toArrangementType(entity.arrangementType),
       arrangementSubType = entity.arrangementSubType?.let { toArrangementSubType(it) },
       arrangementSubTypeDescription = entity.arrangementSubTypeDescription,

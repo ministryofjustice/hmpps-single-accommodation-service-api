@@ -77,6 +77,7 @@ class CurrentAddressTypeRuleTest {
 
   private fun buildAccommodationDetail(type: AccommodationArrangementType) = AccommodationDetail(
     id = UUID.randomUUID(),
+    crn = crn,
     arrangementType = type,
     arrangementSubType = null,
     arrangementSubTypeDescription = null,
