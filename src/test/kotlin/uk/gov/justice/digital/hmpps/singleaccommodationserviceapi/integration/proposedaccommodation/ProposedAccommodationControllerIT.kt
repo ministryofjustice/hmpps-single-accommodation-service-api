@@ -120,6 +120,50 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should get proposed-accommodation by id with ADDA role`() {
+    val entity = createAndSaveProposedAccommodation(
+      postcode = "W1 8XX",
+      buildingNumber = "11",
+      thoroughfareName = "Piccadilly Circus",
+      postTown = "London",
+      createdAt = Instant.parse("2025-01-01T10:00:00Z"),
+    )
+
+    restTestClient.get().uri("/proposed-accommodations/{id}", entity.id)
+      .withJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetProposedAccommodationByIdResponse(
+            id = entity.id,
+            createdAt = entity.createdAt.toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return 404 when proposed-accommodation not found for ADDA role`() {
+    val nonExistentId = UUID.randomUUID()
+
+    restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
+      .withJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should return 403 when using ROLE_PROBATION for ADDA endpoint`() {
+    val nonExistentId = UUID.randomUUID()
+
+    restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
+      .withJwt(roles = listOf("ROLE_PROBATION"))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
   fun `should return 404 when proposed-accommodation not found`() {
     val nonExistentId = UUID.randomUUID()
 
