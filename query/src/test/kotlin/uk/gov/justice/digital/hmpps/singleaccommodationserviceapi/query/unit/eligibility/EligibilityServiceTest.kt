@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
@@ -70,6 +71,7 @@ class EligibilityServiceTest {
   private val male = buildSex(SexCode.M)
 
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
+  private val caseRepository = mockk<CaseRepository>()
 
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     listOf(MaleRiskEligibilityRule(), NonMaleRiskEligibilityRule(), STierEligibilityRule()),
@@ -101,6 +103,7 @@ class EligibilityServiceTest {
 
   private val eligibilityService = EligibilityService(
     eligibilityOrchestrationService = eligibilityOrchestrationService,
+    caseRepository = caseRepository,
     cas1EligibilityRuleSet = cas1EligibilityRuleSet,
     cas1SuitabilityRuleSet = cas1SuitabilityRuleSet,
     cas1CompletionRuleSet = cas1CompletionRuleSet,
@@ -139,22 +142,66 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `getDomainData returns correct DomainData`() {
+    fun `getDomainData returns correct DomainData when no case in DB - uses DTO tier`() {
       val expectedTier = TierScore.A1
       val expectedReleaseDate = LocalDate.now().plusYears(1)
 
       val crn = "X12345"
       val prisonerNumber = "PN1"
-      val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
+      val cpr =
+        CorePersonRecord(
+          sex = male,
+          identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber))
+        )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val prisoner = Prisoner(releaseDate = expectedReleaseDate)
       val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null, null, null)
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
-      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
+      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns
+        listOf(prisoner)
+      every { caseRepository.findTierScoreByCrn(crn) } returns null
 
       val result = eligibilityService.getDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
+      assertThat(result.sex).isEqualTo(SexCode.M)
+      assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
+    }
+
+    @Test
+    fun `getDomainData uses tier from CaseRepository when case exists - not DTO tier`() {
+      val dtoTier = TierScore.A1
+      val dbTier = TierScore.B2
+      val expectedReleaseDate = LocalDate.now().plusYears(1)
+
+      val crn = "X12345"
+      val prisonerNumber = "PN1"
+      val cpr =
+        CorePersonRecord(
+          sex = male,
+          identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber))
+        )
+      val orchestrationDto =
+        EligibilityOrchestrationDto(
+          crn,
+          cpr,
+          Tier(dtoTier, UUID.randomUUID(), LocalDateTime.now(), null),
+          null,
+          null,
+          null,
+          null,
+        )
+      val prisoner = Prisoner(releaseDate = expectedReleaseDate)
+
+      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
+      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns
+        listOf(prisoner)
+      every { caseRepository.findTierScoreByCrn(crn) } returns dbTier
+
+      val result = eligibilityService.getDomainData(crn)
+
+      assertThat(result.tier).isEqualTo(dbTier)
+      assertThat(result.tier).isNotEqualTo(dtoTier)
       assertThat(result.sex).isEqualTo(SexCode.M)
       assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
