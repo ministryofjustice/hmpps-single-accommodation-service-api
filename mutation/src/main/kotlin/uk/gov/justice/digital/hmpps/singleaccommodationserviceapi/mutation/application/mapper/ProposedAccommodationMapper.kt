@@ -80,6 +80,7 @@ object ProposedAccommodationMapper {
 
   fun toDto(snapshot: ProposedAccommodationSnapshot) = AccommodationDetail(
     id = snapshot.id,
+    crn = snapshot.crn,
     name = snapshot.name,
     arrangementType = snapshot.arrangementType,
     arrangementSubType = snapshot.arrangementSubType,

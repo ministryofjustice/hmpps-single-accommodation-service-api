@@ -61,6 +61,7 @@ class NextAccommodationRuleTest {
 
   private fun buildAccommodationDetail(type: AccommodationArrangementType) = AccommodationDetail(
     id = UUID.randomUUID(),
+    crn = crn,
     name = null,
     arrangementType = type,
     arrangementSubType = null,

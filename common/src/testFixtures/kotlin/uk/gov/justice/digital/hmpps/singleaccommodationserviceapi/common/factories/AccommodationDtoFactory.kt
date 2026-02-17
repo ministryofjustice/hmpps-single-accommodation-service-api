@@ -16,6 +16,7 @@ import kotlin.String
 fun buildAccommodationDetail(
   id: UUID = UUID.randomUUID(),
   name: String? = null,
+  crn: String = "X12345",
   arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
   arrangementSubTypeDescription: String? = null,
@@ -29,6 +30,7 @@ fun buildAccommodationDetail(
   createdAt: Instant = Instant.now(),
 ) = AccommodationDetail(
   id = id,
+  crn = crn,
   name = name,
   arrangementType = arrangementType,
   arrangementSubType = arrangementSubType,

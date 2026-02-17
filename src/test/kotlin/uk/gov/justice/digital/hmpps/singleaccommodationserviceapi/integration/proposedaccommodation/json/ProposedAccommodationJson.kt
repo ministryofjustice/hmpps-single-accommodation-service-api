@@ -11,6 +11,7 @@ fun expectedGetProposedAccommodationsResponse(
 [
   {
     "id" : "$firstId",
+    "crn":"FAKECRN1",
     "name" : "Test Accommodation",
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -37,6 +38,7 @@ fun expectedGetProposedAccommodationsResponse(
   },
   {
     "id" : "$secondId",
+    "crn":"FAKECRN1",
     "name" : "Test Accommodation",
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -70,6 +72,7 @@ fun expectedGetProposedAccommodationByIdResponse(
 ): String = """
 {
   "id" : "$id",
+  "crn":"FAKECRN1",
   "name" : "Test Accommodation",
   "arrangementType" : "PRIVATE",
   "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -131,6 +134,7 @@ fun expectedProposedAddressesResponseBody(
 ): String = """
 {
   "id" : "$id",
+  "crn":"FAKECRN1",
   "name" : "Mother's caravan",
   "arrangementType" : "PRIVATE",
   "arrangementSubType" : "OTHER",
