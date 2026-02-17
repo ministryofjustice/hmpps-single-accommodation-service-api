@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.util.UUID
 
 @Entity
-@Table(name = "cases")
+@Table(name = "sas_case")
 data class CaseEntity(
   @Id
   val id: UUID,
