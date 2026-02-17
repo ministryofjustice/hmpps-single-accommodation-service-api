@@ -14,8 +14,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildAccommodationReferralOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildReferralHistory
 import java.time.Instant
 
 @ExtendWith(MockKExtension::class)

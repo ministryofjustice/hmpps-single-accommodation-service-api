@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
+import java.util.UUID
 
 class TierMockServer : WireMockServer(9994) {
 
@@ -18,6 +19,15 @@ class TierMockServer : WireMockServer(9994) {
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(jsonMapper.writeValueAsString(response)),
+        ),
+    )
+  }
+
+  fun stubGetTierFailResponse(crn: String, externalId: UUID? = null) {
+    stubFor(
+      WireMock.get(WireMock.urlPathEqualTo("/crn/$crn/tier"))
+        .willReturn(
+          WireMock.aResponse().withStatus(HttpStatus.NOT_FOUND.value()),
         ),
     )
   }

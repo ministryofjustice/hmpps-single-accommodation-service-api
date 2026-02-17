@@ -43,6 +43,11 @@ hmpps.sqs:
     hmpps-domain-event-topic:
       arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
   queues:
+    sas-domain-events-queue:
+      queueName: sas_domain_events_queue
+      dlqName: sas_domain_events_dlq
+      subscribeTopicId: hmpps-domain-event-topic
+      subscribeFilter: '{"eventType":["tier.calculation.complete"]}'
     test-domain-events-queue:
       dlqName: ${random.uuid}
       queueName: ${random.uuid}

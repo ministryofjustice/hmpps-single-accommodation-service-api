@@ -1,0 +1,1 @@
+ALTER TABLE cases RENAME TO sas_case;

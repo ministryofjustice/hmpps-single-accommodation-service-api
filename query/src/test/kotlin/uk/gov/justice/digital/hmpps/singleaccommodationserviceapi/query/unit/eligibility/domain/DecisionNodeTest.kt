@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -17,7 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import java.util.UUID
 
 class DecisionNodeTest {
 
@@ -108,7 +108,7 @@ class DecisionNodeTest {
           onPass = onPassNode,
           onFail = onFailNode,
           contextUpdater = contextUpdater,
-       )
+        )
 
       val result = ruleSetNode.eval(initialContext)
 
@@ -210,7 +210,7 @@ class DecisionNodeTest {
       val updatedContext = EvaluationContext(
         data = context.data,
         currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-        )
+      )
 
       every { engine.execute(any(), any()) } returns RuleSetStatus.FAIL
       every { contextUpdater.update(context) } returns updatedContext

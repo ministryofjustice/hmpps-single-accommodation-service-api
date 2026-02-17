@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factory.buildCaseOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import java.time.LocalDate
 import java.util.stream.Stream
 
@@ -27,15 +27,15 @@ class CaseTransformerTest {
     caseOrchestrationDto: CaseOrchestrationDto,
     expectedCaseDto: CaseDto,
   ) {
-      assertThat(
-        CaseTransformer.toCaseDto(
-          crn = caseOrchestrationDto.crn,
-          cpr = caseOrchestrationDto.cpr,
-          roshDetails = caseOrchestrationDto.roshDetails,
-          tier = caseOrchestrationDto.tier,
-          caseSummaries = caseOrchestrationDto.cases,
-        )
-      ).isEqualTo(expectedCaseDto)
+    assertThat(
+      CaseTransformer.toCaseDto(
+        crn = caseOrchestrationDto.crn,
+        cpr = caseOrchestrationDto.cpr,
+        roshDetails = caseOrchestrationDto.roshDetails,
+        tier = caseOrchestrationDto.tier,
+        caseSummaries = caseOrchestrationDto.cases,
+      ),
+    ).isEqualTo(expectedCaseDto)
   }
 
   @ParameterizedTest
@@ -77,7 +77,7 @@ class CaseTransformerTest {
       assignedTo = AssignedToDto(1L, name = "Team 1"),
       photoUrl = null,
       currentAccommodation = null,
-      nextAccommodation = null
+      nextAccommodation = null,
     )
 
     @JvmStatic
