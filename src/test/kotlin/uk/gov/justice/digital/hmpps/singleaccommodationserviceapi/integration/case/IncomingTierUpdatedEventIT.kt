@@ -71,8 +71,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events`() {
-    val caseEntityExists = caseRepository.save(buildCaseEntity(crn = crn, tier = TierScore.A1))
+  fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
+    caseRepository.save(buildCaseEntity(crn = crn, tier = TierScore.A1))
     val tier = buildTier(tierScore = TierScore.A3)
     tierMockServer.stubGetCorePersonRecordOKResponse(
       crn,
@@ -83,6 +83,33 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       crn,
       expectedTier = tier,
     )
+
+    // when
+    publishTierEvent()
+
+    // then
+    assertPublishedSNSEvent(
+      detailUrl = eventDetailUrl,
+    )
+
+    awaitDbRecordExists { assertThatMostRecentInboxRecordIsAsExpected() }
+
+    awaitDbRecordExists {
+      assertThat(caseRepository.findAll()).hasSize(1)
+      val updatedCase = caseRepository.findByCrn(crn)
+      assertThat(updatedCase?.tier?.name).isEqualTo(tier.tierScore.name)
+    }
+  }
+
+  @Test
+  fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on new record`() {
+    val tier = buildTier(tierScore = TierScore.A3)
+    tierMockServer.stubGetCorePersonRecordOKResponse(
+      crn,
+      response = tier,
+    )
+
+    assertTheCaseTableIsEmpty()
 
     // when
     publishTierEvent()
@@ -167,6 +194,10 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(1)
   }
 
+  private fun assertTheCaseTableIsEmpty() {
+    assertThat(caseRepository.findAll()).hasSize(0)
+  }
+
   private fun assertThatMostRecentInboxRecordIsAsExpected() {
     assertThat(inboxEventRepository.findAll()).hasSize(1)
     val inboxRecord =
@@ -179,12 +210,5 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     assertThat(inboxRecord.eventType).isEqualTo(eventType)
     assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl)
     assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
-  }
-
-  private fun assertThatMostRecentOutboxRecordIsAsExpected() {
-    val outboxRecord = outboxEventRepository.findTopByOrderByCreatedAtDesc()!!
-    assertThat(outboxRecord.aggregateType).isEqualTo("Case")
-    assertThat(outboxRecord.domainEventType).isEqualTo(IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.name)
-    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
   }
 }
