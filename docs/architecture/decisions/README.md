@@ -16,9 +16,10 @@ Architecture Decision Records are documents that capture important architectural
 | ADR                                                              | Title                                     | Status   | Date       | Description                                                                                               |
 |------------------------------------------------------------------|-------------------------------------------|----------|------------|-----------------------------------------------------------------------------------------------------------|
 | [0001](./0001-adopt-a-ddd-lite-approach-for-domain-modelling.md) | Adopt DDD Lite for Domain Modeling        | Accepted | 2025-12-09 | Adopt a lightweight DDD approach suitable for an aggregation service, separating read and write models    |
-| [0002](./0002-ddd-with-outbox-pattern-for-domain-events.md)      | DDD with Outbox Pattern for Domain Events | Proposed | 2025-12-10 | Implement transactional outbox pattern for reliable domain event publishing without blocking transactions |
-| [0003](./0003-api-aggregation-pattern-for-reads.md)              | API Aggregation Pattern for Reads         | Proposed | 2025-12-11 | Use parallel API aggregation with caching to efficiently combine data from multiple upstream services     |
-| [0004](./0004-query-nd-mutations.md)                             | Project Structure                         | Proposed | 2025-12-61 | Explaining how the project is structured using gradle                                                     |
+| [0002](./0002-ddd-with-outbox-pattern-for-domain-events.md)      | DDD with Outbox Pattern for Domain Events | Accepted | 2025-12-10 | Implement transactional outbox pattern for reliable domain event publishing without blocking transactions |
+| [0003](./0003-api-aggregation-pattern-for-reads.md)              | API Aggregation Pattern for Reads         | Accepted | 2025-12-11 | Use parallel API aggregation with caching to efficiently combine data from multiple upstream services     |
+| [0004](./0004-query-nd-mutations.md)                             | Project Structure                         | Accepted | 2025-12-61 | Explaining how the project is structured using gradle                                                     |
+| [0005](./0005-store-payload-as-jsonb-with-string-mapping.md)     | Store Payload as JSONB with String Mapping | Proposed | 2025-02-18 | Store payload data as JSONB in PostgreSQL, mapped as String in JPA entities for minimal overhead           |
 
 ## ADR Status
 
