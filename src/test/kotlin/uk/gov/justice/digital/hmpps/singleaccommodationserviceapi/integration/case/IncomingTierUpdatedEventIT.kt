@@ -5,9 +5,12 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
@@ -121,7 +124,23 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     waitFor {
       assertThat(caseRepository.findAll().size).isEqualTo(0)
       assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED)
+      assertThat(
+        inboxEventRepository.findAllByProcessedStatus(
+          ProcessedStatus.FAILED,
+          PageRequest.of(
+            0,
+            10,
+            Sort.by("eventOccurredAt").ascending(),
+          ),
+        ),
+      ).isNotEmpty()
     }
+    assertThat(caseRepository.findAll().size).isEqualTo(0)
+
+    val inboxRecord = inboxEventRepository.findAll().first()
+    assertThat(inboxRecord.eventType).isEqualTo(eventType)
+    assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl())
+    assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.FAILED)
   }
 
   private fun assertPublishedSNSEvent(
