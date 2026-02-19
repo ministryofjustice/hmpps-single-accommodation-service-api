@@ -99,9 +99,9 @@ abstract class IntegrationTestBase {
     prisonerSearchMockServer.resetAll()
   }
 
-  fun awaitDbRecordExists(block: () -> Unit) {
+  fun awaitDbRecordExists(pollInterval: Duration? = Duration.ofMillis(50), block: () -> Unit) {
     await.atMost(Duration.ofSeconds(10))
-      .pollInterval(Duration.ofMillis(200))
+      .pollInterval(pollInterval)
       .untilAsserted(block)
   }
 
