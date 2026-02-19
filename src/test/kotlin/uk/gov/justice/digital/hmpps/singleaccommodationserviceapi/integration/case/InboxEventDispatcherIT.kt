@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Import
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.test.context.TestPropertySource
@@ -214,6 +215,90 @@ class InboxEventDispatcherIT {
       assertThat(inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.SUCCESS, PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()))).hasSize(2)
       assertThat(caseRepository.findAll()).hasSize(1)
       assertThat(caseRepository.findByCrn(sharedCrn)?.tier?.name).isEqualTo(TierScore.A3.name)
+    }
+  }
+
+  @TestPropertySource(
+    properties =
+    [
+      "hmpps.sqs.dispatcher.max-events-per-batch=5",
+      "hmpps.sqs.dispatcher.max-concurrent-events=4",
+    ],
+  )
+  @Import(SemaphoreConcurrencyTestConfig::class)
+  @Nested
+  inner class InboxEventDispatcherSemaphoreIT : InboxEventDispatcherITBase() {
+
+    @Autowired lateinit var concurrencyCounter: ConcurrencyCounter
+
+    @Test
+    fun `processes at most 4 events concurrently due to semaphore limit`() {
+      val crns = (1..5).map { "X12345$it" }
+      crns.forEach {
+        tierMockServer.stubGetCorePersonRecordOKResponse(
+          it,
+          buildTier(tierScore = TierScore.A3),
+        )
+      }
+
+      val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
+      inboxEventRepository.saveAll(
+        crns.mapIndexed { i, c ->
+          createInboxEvent(baseTime.plusSeconds(i.toLong()), crn = c)
+        },
+      )
+
+      inboxEventDispatcher.process()
+
+      val processed =
+        inboxEventRepository.findAllByProcessedStatus(
+          ProcessedStatus.SUCCESS,
+          PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
+        )
+      assertThat(processed).hasSize(5)
+      assertThat(caseRepository.findAll()).hasSize(5)
+
+      assertThat(concurrencyCounter.maxConcurrent.get()).isLessThanOrEqualTo(4)
+    }
+  }
+
+  @Nested
+  inner class InboxEventDispatcherVthreadsIT : InboxEventDispatcherITBase() {
+
+    @Test
+    fun `processes multiple events concurrently using virtual threads`() {
+      val delayMs = 200
+      val crns = listOf("X123451", "X123452", "X123453", "X123454")
+      crns.forEach {
+        tierMockServer.stubGetCorePersonRecordOKResponse(
+          it,
+          buildTier(tierScore = TierScore.A3),
+          delayMs = delayMs,
+        )
+      }
+
+      val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
+      inboxEventRepository.saveAll(
+        crns.mapIndexed { i, c ->
+          createInboxEvent(baseTime.plusSeconds(i.toLong()), crn = c)
+        },
+      )
+
+      val start = System.currentTimeMillis()
+      inboxEventDispatcher.process()
+      val elapsed = System.currentTimeMillis() - start
+
+      val processed =
+        inboxEventRepository.findAllByProcessedStatus(
+          ProcessedStatus.SUCCESS,
+          PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
+        )
+      assertThat(processed).hasSize(4)
+      assertThat(caseRepository.findAll()).hasSize(4)
+
+      // With 4 events and semaphore(4), parallel execution: ~delayMs. Sequential would be
+      // 4*delayMs.
+      assertThat(elapsed).isLessThan((delayMs * 3).toLong())
     }
   }
 }

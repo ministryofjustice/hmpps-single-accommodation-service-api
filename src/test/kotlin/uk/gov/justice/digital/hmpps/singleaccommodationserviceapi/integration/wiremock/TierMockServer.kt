@@ -9,7 +9,7 @@ import java.util.UUID
 
 class TierMockServer : WireMockServer(9994) {
 
-  fun stubGetCorePersonRecordOKResponse(crn: String, response: Tier) {
+  fun stubGetCorePersonRecordOKResponse(crn: String, response: Tier, delayMs: Int = 0) {
     stubFor(
       WireMock
         .get(WireMock.urlPathEqualTo("/crn/$crn/tier"))
@@ -18,7 +18,8 @@ class TierMockServer : WireMockServer(9994) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(jsonMapper.writeValueAsString(response)),
+            .withBody(jsonMapper.writeValueAsString(response))
+            .let { if (delayMs > 0) it.withFixedDelay(delayMs) else it },
         ),
     )
   }
