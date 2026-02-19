@@ -32,7 +32,7 @@ dependencies {
   }
   testImplementation(libs.redisson.boot)
 
-  testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
+  testImplementation(libs.awaitility)
   testImplementation(testFixtures(project(":infrastructure")))
 }
 

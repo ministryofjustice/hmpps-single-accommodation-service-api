@@ -11,6 +11,7 @@ swagger-parser = "2.1.36"
 hmpps-gradle-spring-boot = "10.0.0"
 kotlin = "2.3.0"
 detekt = "2.0.0-alpha.2"
+awaitility = "4.3.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -49,6 +50,7 @@ shedlock-jdbc = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-templ
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 wiremock = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
+awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 
 # Runtime
 postgres = { module = "org.postgresql:postgresql" }
