@@ -42,11 +42,10 @@ class TierCalculationCompletionHandler(
       log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, newTier)
 
       val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
-      val crn =
-        tierDomainEvent.personReference.findCrn()
-          ?: throw IllegalStateException(
-            "CRN not found in event payload [inboxEventId=${inboxEvent.id}]",
-          )
+
+      val crn = checkNotNull(tierDomainEvent.personReference.findCrn()) {
+        "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
+      }
 
       log.debug("Upserting case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
       caseApplicationService.upsertTier(tier = newTier, crn = crn)
