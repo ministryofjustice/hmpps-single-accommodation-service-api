@@ -92,7 +92,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       detailUrl = eventDetailUrl,
     )
 
-    awaitDbRecordExists { assertThatMostRecentInboxRecordIsAsExpected() }
+    awaitDbRecordExists { assertThatSingleInboxEventIsAsExpected() }
 
     awaitDbRecordExists {
       assertThat(caseRepository.findAll()).hasSize(1)
@@ -119,7 +119,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       detailUrl = eventDetailUrl,
     )
 
-    awaitDbRecordExists { assertThatMostRecentInboxRecordIsAsExpected() }
+    awaitDbRecordExists { assertThatSingleInboxEventIsAsExpected() }
 
     awaitDbRecordExists {
       assertThat(caseRepository.findAll()).hasSize(1)
@@ -198,17 +198,16 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(0)
   }
 
-  private fun assertThatMostRecentInboxRecordIsAsExpected() {
-    assertThat(inboxEventRepository.findAll()).hasSize(1)
-    val inboxRecord =
-      inboxEventRepository.findTopByOrderByCreatedAtDesc()
-        ?: throw AssertionError("No inbox record found")
-    val tierDomainEvent = jsonMapper.readValue(inboxRecord.payload, TierDomainEvent::class.java)
+  private fun assertThatSingleInboxEventIsAsExpected() {
+    val inboxEvents = inboxEventRepository.findAll()
+    assertThat(inboxEvents).hasSize(1)
+    val inboxEvent = inboxEvents.first()
+    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
     val crnFromPayload = tierDomainEvent.personReference.findCrn()
     assertThat(crnFromPayload).isEqualTo(crn)
 
-    assertThat(inboxRecord.eventType).isEqualTo(eventType)
-    assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl)
-    assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
+    assertThat(inboxEvent.eventType).isEqualTo(eventType)
+    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl)
+    assertThat(inboxEvent.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
   }
 }
