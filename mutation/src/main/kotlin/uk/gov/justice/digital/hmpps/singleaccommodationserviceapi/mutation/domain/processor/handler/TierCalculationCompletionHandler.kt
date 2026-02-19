@@ -1,23 +1,22 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
-
-import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import java.time.Instant
 
 @Component
-class TierCalculationCompleteHandler(
+class TierCalculationCompletionHandler(
   private val inboxEventRepository: InboxEventRepository,
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
@@ -34,11 +33,11 @@ class TierCalculationCompleteHandler(
     log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
 
     try {
-      val newTier = tierClient.fetchTier(uri = inboxEvent.uri())
+      val newTier = tierClient.getTier(uri = inboxEvent.uri())
       log.info(
         "Tier fetched successfully [inboxEventId={}, tierScore={}]",
         inboxEvent.id,
-        newTier.tierScore
+        newTier.tierScore,
       )
       log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, newTier)
 
@@ -46,7 +45,7 @@ class TierCalculationCompleteHandler(
       val crn =
         tierDomainEvent.personReference.findCrn()
           ?: throw IllegalStateException(
-            "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
+            "CRN not found in event payload [inboxEventId=${inboxEvent.id}]",
           )
 
       log.debug("Upserting case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
