@@ -86,7 +86,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
-    val case = waitForResult { caseRepository.findByCrn(crn) }
+    val case = waitForEntity { caseRepository.findByCrn(crn) }
     assertThat(case.tier).isEqualTo(TierScore.A3)
   }
 
@@ -105,7 +105,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
-    val case = waitForResult { caseRepository.findByCrn(crn) }
+    val case = waitForEntity { caseRepository.findByCrn(crn) }
     assertThat(case.tier!!.name).isEqualTo(tier.tierScore.name)
   }
 

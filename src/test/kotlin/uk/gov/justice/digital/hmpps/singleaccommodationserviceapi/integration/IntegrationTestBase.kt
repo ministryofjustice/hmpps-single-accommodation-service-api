@@ -105,7 +105,7 @@ abstract class IntegrationTestBase {
       .untilAsserted(block)
   }
 
-  fun <T> waitForResult(
+  fun <T> waitForEntity(
     pollInterval: Duration = Duration.ofMillis(50),
     timeout: Duration = Duration.ofSeconds(10),
     supplier: () -> T?,
