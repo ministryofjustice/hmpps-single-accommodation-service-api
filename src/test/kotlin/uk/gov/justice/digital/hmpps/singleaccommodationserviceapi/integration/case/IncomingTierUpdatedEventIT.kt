@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
@@ -50,21 +49,24 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
   }
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
-  private val crn: String = "X123456"
+  lateinit var crn: String
   private val eventType = "tier.calculation.complete"
   private val eventDescription = "Tier calculation complete from Tier service"
-  private val eventDetailUrl = "http://localhost:9994/crn/$crn/tier"
+  private fun eventDetailUrl() = "http://localhost:9994/crn/$crn/tier"
 
   @BeforeEach
   fun setup() {
+    crn = UUID.randomUUID().toString()
     hmppsAuth.stubGrantToken()
-    inboxEventRepository.deleteAll()
-    outboxEventRepository.deleteAll()
-    caseRepository.deleteAll()
+    deleteAllFromRepositories()
   }
 
   @AfterAll
   fun tearDown() {
+    deleteAllFromRepositories()
+  }
+
+  private fun deleteAllFromRepositories() {
     inboxEventRepository.deleteAll()
     outboxEventRepository.deleteAll()
     caseRepository.deleteAll()
@@ -74,58 +76,37 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
     caseRepository.save(buildCaseEntity(crn = crn, tier = TierScore.A1))
     val tier = buildTier(tierScore = TierScore.A3)
-    tierMockServer.stubGetCorePersonRecordOKResponse(
-      crn,
-      response = tier,
-    )
-
-    assertCaseEntityExistsAndIsNot(
-      crn,
-      expectedTier = tier,
-    )
+    tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
 
     // when
     publishTierEvent()
 
     // then
-    assertPublishedSNSEvent(
-      detailUrl = eventDetailUrl,
-    )
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    awaitDbRecordExists { assertThatMostRecentInboxRecordIsAsExpected() }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
-    awaitDbRecordExists {
-      assertThat(caseRepository.findAll()).hasSize(1)
-      val updatedCase = caseRepository.findByCrn(crn)
-      assertThat(updatedCase?.tier?.name).isEqualTo(tier.tierScore.name)
-    }
+    val case = waitForEntity { caseRepository.findByCrn(crn) }
+    assertThat(case.tier).isEqualTo(TierScore.A3)
   }
 
   @Test
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on new record`() {
     val tier = buildTier(tierScore = TierScore.A3)
-    tierMockServer.stubGetCorePersonRecordOKResponse(
-      crn,
-      response = tier,
-    )
+    tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
 
-    assertTheCaseTableIsEmpty()
+    assertThat(caseRepository.findAll()).hasSize(0)
 
     // when
     publishTierEvent()
 
     // then
-    assertPublishedSNSEvent(
-      detailUrl = eventDetailUrl,
-    )
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    awaitDbRecordExists { assertThatMostRecentInboxRecordIsAsExpected() }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
-    awaitDbRecordExists {
-      assertThat(caseRepository.findAll()).hasSize(1)
-      val updatedCase = caseRepository.findByCrn(crn)
-      assertThat(updatedCase?.tier?.name).isEqualTo(tier.tierScore.name)
-    }
+    val case = waitForEntity { caseRepository.findByCrn(crn) }
+    assertThat(case.tier!!.name).isEqualTo(tier.tierScore.name)
   }
 
   @Test
@@ -136,15 +117,11 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     )
 
     publishTierEvent()
-    awaitDbRecordExists {
-      assertThat(inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.FAILED)).isNotEmpty()
-    }
-    assertThat(caseRepository.findAll().size).isEqualTo(0)
 
-    val inboxRecord = inboxEventRepository.findAll().first()
-    assertThat(inboxRecord.eventType).isEqualTo(eventType)
-    assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl)
-    assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    waitFor {
+      assertThat(caseRepository.findAll().size).isEqualTo(0)
+      assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED)
+    }
   }
 
   private fun assertPublishedSNSEvent(
@@ -162,7 +139,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
         "externalId": "$externalId",
         "version": 1,
         "description": "$eventDescription",
-        "detailUrl": "$eventDetailUrl", 
+        "detailUrl": "${eventDetailUrl()}", 
         "personReference": {
            "identifiers": [
               {
@@ -187,28 +164,15 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     )
   }
 
-  private fun assertCaseEntityExistsAndIsNot(crn: String, expectedTier: Tier) {
-    val persistedResult = caseRepository.findByCrn(crn)
-    assertThat(persistedResult).isNotNull()
-    assertThat(persistedResult?.tier?.name).isNotEqualTo(expectedTier.tierScore.name)
-    assertThat(caseRepository.findAll()).hasSize(1)
-  }
+  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
+    val inboxEvents = inboxEventRepository.findAll()
+    assertThat(inboxEvents).hasSize(1)
+    val inboxEvent = inboxEvents.first()
+    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
+    assertThat(tierDomainEvent.personReference.findCrn()).isEqualTo(crn)
 
-  private fun assertTheCaseTableIsEmpty() {
-    assertThat(caseRepository.findAll()).hasSize(0)
-  }
-
-  private fun assertThatMostRecentInboxRecordIsAsExpected() {
-    assertThat(inboxEventRepository.findAll()).hasSize(1)
-    val inboxRecord =
-      inboxEventRepository.findTopByOrderByCreatedAtDesc()
-        ?: throw AssertionError("No inbox record found")
-    val tierDomainEvent = jsonMapper.readValue(inboxRecord.payload, TierDomainEvent::class.java)
-    val crnFromPayload = tierDomainEvent.personReference.findCrn()
-    assertThat(crnFromPayload).isEqualTo(crn)
-
-    assertThat(inboxRecord.eventType).isEqualTo(eventType)
-    assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl)
-    assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
+    assertThat(inboxEvent.eventType).isEqualTo(eventType)
+    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl())
+    assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
   }
 }
