@@ -13,7 +13,7 @@ interface TierClient {
   fun getTier(@PathVariable crn: String): Tier
 
   @GetExchange
-  fun fetchTier(uri: URI): Tier
+  fun getTier(uri: URI): Tier
 }
 
 @Service
