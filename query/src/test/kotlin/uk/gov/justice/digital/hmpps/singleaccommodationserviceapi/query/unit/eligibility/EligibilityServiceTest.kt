@@ -146,20 +146,14 @@ class EligibilityServiceTest {
       val expectedTier = TierScore.A1
       val expectedReleaseDate = LocalDate.now().plusYears(1)
 
-      val crn = "X12345"
       val prisonerNumber = "PN1"
-      val cpr =
-        CorePersonRecord(
-          sex = male,
-          identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber))
-        )
+      val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val prisoner = Prisoner(releaseDate = expectedReleaseDate)
       val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null, null, null)
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
-      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns
-        listOf(prisoner)
+      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
       every { caseRepository.findTierScoreByCrn(crn) } returns null
 
       val result = eligibilityService.getDomainData(crn)
@@ -174,13 +168,8 @@ class EligibilityServiceTest {
       val dbTier = TierScore.B2
       val expectedReleaseDate = LocalDate.now().plusYears(1)
 
-      val crn = "X12345"
       val prisonerNumber = "PN1"
-      val cpr =
-        CorePersonRecord(
-          sex = male,
-          identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber))
-        )
+      val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
       val orchestrationDto =
         EligibilityOrchestrationDto(
           crn,
