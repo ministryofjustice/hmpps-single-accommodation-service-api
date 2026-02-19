@@ -99,11 +99,20 @@ abstract class IntegrationTestBase {
     prisonerSearchMockServer.resetAll()
   }
 
-  fun awaitDbRecordExists(pollInterval: Duration? = Duration.ofMillis(50), block: () -> Unit) {
+  fun waitFor(pollInterval: Duration? = Duration.ofMillis(50), block: () -> Unit) {
     await.atMost(Duration.ofSeconds(10))
       .pollInterval(pollInterval)
       .untilAsserted(block)
   }
+
+  fun <T> waitForResult(
+    pollInterval: Duration = Duration.ofMillis(50),
+    timeout: Duration = Duration.ofSeconds(10),
+    supplier: () -> T?,
+  ): T = await
+    .atMost(timeout)
+    .pollInterval(pollInterval)
+    .until({ supplier() }, { it != null })!!
 
   fun RestTestClient.RequestHeadersSpec<*>.withJwt(
     roles: List<String> = listOf("ROLE_PROBATION"),

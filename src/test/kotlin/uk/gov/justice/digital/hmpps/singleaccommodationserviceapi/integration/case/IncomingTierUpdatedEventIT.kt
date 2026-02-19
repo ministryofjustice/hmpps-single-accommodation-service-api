@@ -74,58 +74,39 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
     caseRepository.save(buildCaseEntity(crn = crn, tier = TierScore.A1))
     val tier = buildTier(tierScore = TierScore.A3)
-    tierMockServer.stubGetCorePersonRecordOKResponse(
-      crn,
-      response = tier,
-    )
+    tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
 
-    assertCaseEntityExistsAndIsNot(
-      crn,
-      expectedTier = tier,
-    )
+    assertCaseEntity(crn, expectedTier = tier)
 
     // when
     publishTierEvent()
 
     // then
-    assertPublishedSNSEvent(
-      detailUrl = eventDetailUrl,
-    )
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl)
 
-    awaitDbRecordExists { assertThatSingleInboxEventIsAsExpected() }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
-    awaitDbRecordExists {
-      assertThat(caseRepository.findAll()).hasSize(1)
-      val updatedCase = caseRepository.findByCrn(crn)
-      assertThat(updatedCase?.tier?.name).isEqualTo(tier.tierScore.name)
-    }
+    val case = waitForResult { caseRepository.findByCrn(crn) }
+    assertThat(case.tier).isEqualTo(TierScore.A3)
   }
 
   @Test
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on new record`() {
     val tier = buildTier(tierScore = TierScore.A3)
-    tierMockServer.stubGetCorePersonRecordOKResponse(
-      crn,
-      response = tier,
-    )
+    tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
 
-    assertTheCaseTableIsEmpty()
+    assertThat(caseRepository.findAll()).hasSize(0)
 
     // when
     publishTierEvent()
 
     // then
-    assertPublishedSNSEvent(
-      detailUrl = eventDetailUrl,
-    )
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl)
 
-    awaitDbRecordExists { assertThatSingleInboxEventIsAsExpected() }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
-    awaitDbRecordExists {
-      assertThat(caseRepository.findAll()).hasSize(1)
-      val updatedCase = caseRepository.findByCrn(crn)
-      assertThat(updatedCase?.tier?.name).isEqualTo(tier.tierScore.name)
-    }
+    val case = waitForResult { caseRepository.findByCrn(crn) }
+    assertThat(case.tier!!.name).isEqualTo(tier.tierScore.name)
   }
 
   @Test
@@ -136,15 +117,11 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     )
 
     publishTierEvent()
-    awaitDbRecordExists {
-      assertThat(inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.FAILED)).isNotEmpty()
-    }
-    assertThat(caseRepository.findAll().size).isEqualTo(0)
 
-    val inboxRecord = inboxEventRepository.findAll().first()
-    assertThat(inboxRecord.eventType).isEqualTo(eventType)
-    assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl)
-    assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    waitFor {
+      assertThat(caseRepository.findAll().size).isEqualTo(0)
+      assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED)
+    }
   }
 
   private fun assertPublishedSNSEvent(
@@ -187,27 +164,22 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     )
   }
 
-  private fun assertCaseEntityExistsAndIsNot(crn: String, expectedTier: Tier) {
+  private fun assertCaseEntity(crn: String, expectedTier: Tier) {
     val persistedResult = caseRepository.findByCrn(crn)
     assertThat(persistedResult).isNotNull()
     assertThat(persistedResult?.tier?.name).isNotEqualTo(expectedTier.tierScore.name)
     assertThat(caseRepository.findAll()).hasSize(1)
   }
 
-  private fun assertTheCaseTableIsEmpty() {
-    assertThat(caseRepository.findAll()).hasSize(0)
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected() {
+  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
     val inboxEvents = inboxEventRepository.findAll()
     assertThat(inboxEvents).hasSize(1)
     val inboxEvent = inboxEvents.first()
     val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
-    val crnFromPayload = tierDomainEvent.personReference.findCrn()
-    assertThat(crnFromPayload).isEqualTo(crn)
+    assertThat(tierDomainEvent.personReference.findCrn()).isEqualTo(crn)
 
     assertThat(inboxEvent.eventType).isEqualTo(eventType)
     assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl)
-    assertThat(inboxEvent.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
+    assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
   }
 }
