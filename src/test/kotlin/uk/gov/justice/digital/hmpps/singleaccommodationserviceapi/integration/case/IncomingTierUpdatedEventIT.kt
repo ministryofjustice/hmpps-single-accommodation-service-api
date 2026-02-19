@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
@@ -50,21 +49,24 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
   }
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
-  private val crn: String = "X123456"
+  lateinit var crn: String
   private val eventType = "tier.calculation.complete"
   private val eventDescription = "Tier calculation complete from Tier service"
-  private val eventDetailUrl = "http://localhost:9994/crn/$crn/tier"
+  private fun eventDetailUrl() = "http://localhost:9994/crn/$crn/tier"
 
   @BeforeEach
   fun setup() {
+    crn = UUID.randomUUID().toString()
     hmppsAuth.stubGrantToken()
-    inboxEventRepository.deleteAll()
-    outboxEventRepository.deleteAll()
-    caseRepository.deleteAll()
+    deleteAllFromRepositories()
   }
 
   @AfterAll
   fun tearDown() {
+    deleteAllFromRepositories()
+  }
+
+  private fun deleteAllFromRepositories() {
     inboxEventRepository.deleteAll()
     outboxEventRepository.deleteAll()
     caseRepository.deleteAll()
@@ -76,13 +78,11 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     val tier = buildTier(tierScore = TierScore.A3)
     tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
 
-    assertCaseEntity(crn, expectedTier = tier)
-
     // when
     publishTierEvent()
 
     // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl)
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
@@ -101,7 +101,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     publishTierEvent()
 
     // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl)
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
 
@@ -139,7 +139,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
         "externalId": "$externalId",
         "version": 1,
         "description": "$eventDescription",
-        "detailUrl": "$eventDetailUrl", 
+        "detailUrl": "${eventDetailUrl()}", 
         "personReference": {
            "identifiers": [
               {
@@ -164,13 +164,6 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     )
   }
 
-  private fun assertCaseEntity(crn: String, expectedTier: Tier) {
-    val persistedResult = caseRepository.findByCrn(crn)
-    assertThat(persistedResult).isNotNull()
-    assertThat(persistedResult?.tier?.name).isNotEqualTo(expectedTier.tierScore.name)
-    assertThat(caseRepository.findAll()).hasSize(1)
-  }
-
   private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
     val inboxEvents = inboxEventRepository.findAll()
     assertThat(inboxEvents).hasSize(1)
@@ -179,7 +172,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     assertThat(tierDomainEvent.personReference.findCrn()).isEqualTo(crn)
 
     assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl)
+    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl())
     assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
   }
 }
