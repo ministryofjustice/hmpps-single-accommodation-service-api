@@ -84,6 +84,7 @@ class NextAccommodationRuleTest {
     ),
     startDate = null,
     endDate = null,
+    createdBy = "Joe Bloggs",
     createdAt = Instant.now(),
   )
 }

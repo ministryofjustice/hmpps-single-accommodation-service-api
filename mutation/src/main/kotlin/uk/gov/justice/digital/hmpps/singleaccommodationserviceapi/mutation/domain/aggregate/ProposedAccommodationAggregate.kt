@@ -11,14 +11,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
-import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
   private val crn: String,
-  private val createdAt: Instant = Instant.now(),
   private var name: String? = null,
   private var arrangementType: AccommodationArrangementType? = null,
   private var arrangementSubType: AccommodationArrangementSubType? = null,
@@ -30,7 +28,6 @@ class ProposedAccommodationAggregate private constructor(
   private var address: AccommodationAddressDetails ?= null,
   private var startDate: LocalDate? = null,
   private var endDate: LocalDate? = null,
-  private var lastUpdatedAt: Instant? = null,
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
@@ -43,7 +40,6 @@ class ProposedAccommodationAggregate private constructor(
     fun hydrateExisting(
       id: UUID,
       crn: String,
-      createdAt: Instant,
       name: String?,
       arrangementType: AccommodationArrangementType,
       arrangementSubType: AccommodationArrangementSubType?,
@@ -55,11 +51,9 @@ class ProposedAccommodationAggregate private constructor(
       address: AccommodationAddressDetails,
       startDate: LocalDate?,
       endDate: LocalDate?,
-      lastUpdatedAt: Instant?,
     ) = ProposedAccommodationAggregate(
       id = id,
       crn = crn,
-      createdAt = createdAt,
       name = name,
       arrangementType = arrangementType,
       arrangementSubType = arrangementSubType,
@@ -71,7 +65,6 @@ class ProposedAccommodationAggregate private constructor(
       address = address,
       startDate = startDate,
       endDate = endDate,
-      lastUpdatedAt = lastUpdatedAt,
     )
   }
 
@@ -99,7 +92,6 @@ class ProposedAccommodationAggregate private constructor(
     address = newAddress
     startDate = newStartDate
     endDate = newEndDate
-    lastUpdatedAt = Instant.now()
 
     validateProposedAccommodation()
 
@@ -143,8 +135,6 @@ class ProposedAccommodationAggregate private constructor(
     address!!,
     startDate,
     endDate,
-    createdAt,
-    lastUpdatedAt
   )
 
   data class ProposedAccommodationSnapshot(
@@ -161,7 +151,5 @@ class ProposedAccommodationAggregate private constructor(
     val address: AccommodationAddressDetails,
     val startDate: LocalDate?,
     val endDate: LocalDate?,
-    val createdAt: Instant,
-    val lastUpdatedAt: Instant?,
   )
 }

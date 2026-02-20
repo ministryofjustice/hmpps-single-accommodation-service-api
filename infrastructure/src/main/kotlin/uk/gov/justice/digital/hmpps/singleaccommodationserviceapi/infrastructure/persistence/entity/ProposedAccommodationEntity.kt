@@ -1,41 +1,46 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
 
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 @Entity
 @Table(name = "proposed_accommodation")
-data class ProposedAccommodationEntity(
+open class ProposedAccommodationEntity(
   @Id
   val id: UUID,
   val crn: String,
-  val name: String?,
-  val arrangementType: AccommodationArrangementType,
-  val arrangementSubType: AccommodationArrangementSubType?,
-  val arrangementSubTypeDescription: String?,
-  val settledType: AccommodationSettledType,
-  val verificationStatus: VerificationStatus?,
-  val nextAccommodationStatus: NextAccommodationStatus?,
-  val offenderReleaseType: OffenderReleaseType?,
-  val startDate: LocalDate?,
-  val endDate: LocalDate?,
-  val postcode: String?,
-  val subBuildingName: String?,
-  val buildingName: String?,
-  val buildingNumber: String?,
-  val throughfareName: String?,
-  val dependentLocality: String?,
-  val postTown: String?,
-  val county: String?,
-  val country: String?,
-  val uprn: String?,
-  var createdAt: Instant,
-  var lastUpdatedAt: Instant?,
-)
+  var name: String?,
+  @Enumerated(EnumType.STRING)
+  var arrangementType: AccommodationArrangementType,
+  @Enumerated(EnumType.STRING)
+  var arrangementSubType: AccommodationArrangementSubType?,
+  var arrangementSubTypeDescription: String?,
+  @Enumerated(EnumType.STRING)
+  var settledType: AccommodationSettledType,
+  @Enumerated(EnumType.STRING)
+  var verificationStatus: VerificationStatus?,
+  @Enumerated(EnumType.STRING)
+  var nextAccommodationStatus: NextAccommodationStatus?,
+  @Enumerated(EnumType.STRING)
+  var offenderReleaseType: OffenderReleaseType?,
+  var startDate: LocalDate?,
+  var endDate: LocalDate?,
+  var postcode: String?,
+  var subBuildingName: String?,
+  var buildingName: String?,
+  var buildingNumber: String?,
+  var throughfareName: String?,
+  var dependentLocality: String?,
+  var postTown: String?,
+  var county: String?,
+  var country: String?,
+  var uprn: String?,
+): BaseAuditedEntity()
 
 enum class AccommodationArrangementType {
   PRISON,

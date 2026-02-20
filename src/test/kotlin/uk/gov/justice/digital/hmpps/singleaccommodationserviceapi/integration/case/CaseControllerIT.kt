@@ -52,7 +52,7 @@ class CaseControllerIT : IntegrationTestBase() {
         .queryParam("crns", crn, crn2)
         .build()
     }
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
@@ -68,7 +68,7 @@ class CaseControllerIT : IntegrationTestBase() {
         .queryParam("riskLevel", RiskLevel.MEDIUM.name)
         .build()
     }
-      .withJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {

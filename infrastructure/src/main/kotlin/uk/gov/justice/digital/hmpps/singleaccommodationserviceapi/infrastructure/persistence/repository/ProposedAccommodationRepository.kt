@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.util.UUID
 
 interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationEntity, UUID> {
-  fun getByCrn(crn: String): ProposedAccommodationEntity?
+  fun findByCrn(crn: String): ProposedAccommodationEntity?
   fun findByIdAndCrn(id: UUID, crn: String): ProposedAccommodationEntity?
   fun findAllByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
 }

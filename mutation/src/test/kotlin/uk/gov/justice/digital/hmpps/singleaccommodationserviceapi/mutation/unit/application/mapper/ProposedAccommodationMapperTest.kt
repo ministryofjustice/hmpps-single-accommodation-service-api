@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildProposedAccommodationSnapshot
 import java.time.Instant
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
+import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
@@ -52,8 +52,6 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.county).isEqualTo(snapshot.address.county)
     assertThat(entity.country).isEqualTo(snapshot.address.country)
     assertThat(entity.uprn).isEqualTo(snapshot.address.uprn)
-    assertThat(entity.createdAt).isEqualTo(snapshot.createdAt)
-    assertThat(entity.lastUpdatedAt).isEqualTo(snapshot.lastUpdatedAt)
   }
 
   @Test
@@ -136,6 +134,41 @@ class ProposedAccommodationMapperTest {
   }
 
   @Test
+  fun `applyToEntity should copy all fields from snapshot to entity`() {
+    val entityId = UUID.randomUUID()
+    val entityCrn = "X123456"
+    val snapshot = buildProposedAccommodationSnapshot()
+    val entity = buildProposedAccommodationEntity(
+      id = entityId,
+      crn = entityCrn
+    )
+    ProposedAccommodationMapper.applyToEntity(snapshot, entity)
+
+    assertThat(entity.id).isEqualTo(entityId)
+    assertThat(entity.crn).isEqualTo(entityCrn)
+    assertThat(entity.name).isEqualTo(snapshot.name)
+    assertThat(entity.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name))
+    assertThat(entity.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(snapshot.arrangementSubType!!.name))
+    assertThat(entity.arrangementSubTypeDescription).isEqualTo(snapshot.arrangementSubTypeDescription)
+    assertThat(entity.settledType).isEqualTo(EntityAccommodationSettledType.valueOf(snapshot.settledType.name))
+    assertThat(entity.verificationStatus).isEqualTo(EntityVerificationStatus.valueOf(snapshot.verificationStatus.name))
+    assertThat(entity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name))
+    assertThat(entity.offenderReleaseType).isEqualTo(EntityOffenderReleaseType.valueOf(snapshot.offenderReleaseType!!.name))
+    assertThat(entity.startDate).isEqualTo(snapshot.startDate)
+    assertThat(entity.endDate).isEqualTo(snapshot.endDate)
+    assertThat(entity.postcode).isEqualTo(snapshot.address.postcode)
+    assertThat(entity.subBuildingName).isEqualTo(snapshot.address.subBuildingName)
+    assertThat(entity.buildingName).isEqualTo(snapshot.address.buildingName)
+    assertThat(entity.buildingNumber).isEqualTo(snapshot.address.buildingNumber)
+    assertThat(entity.throughfareName).isEqualTo(snapshot.address.thoroughfareName)
+    assertThat(entity.dependentLocality).isEqualTo(snapshot.address.dependentLocality)
+    assertThat(entity.postTown).isEqualTo(snapshot.address.postTown)
+    assertThat(entity.county).isEqualTo(snapshot.address.county)
+    assertThat(entity.country).isEqualTo(snapshot.address.country)
+    assertThat(entity.uprn).isEqualTo(snapshot.address.uprn)
+  }
+
+  @Test
   fun `toAggregate maps all fields correctly`() {
     val entity = buildProposedAccommodationEntity(
       name = "Test Name",
@@ -158,8 +191,6 @@ class ProposedAccommodationMapperTest {
       uprn = "12345",
       startDate = LocalDate.of(2026, 1, 5),
       endDate = LocalDate.of(2026, 4, 25),
-      createdAt = Instant.parse("2025-06-01T10:00:00Z"),
-      lastUpdatedAt = Instant.parse("2025-06-02T10:00:00Z"),
     )
 
     val aggregate = ProposedAccommodationMapper.toAggregate(entity)
@@ -187,8 +218,6 @@ class ProposedAccommodationMapperTest {
     assertThat(snapshot.address.uprn).isEqualTo(entity.uprn)
     assertThat(snapshot.startDate).isEqualTo(entity.startDate)
     assertThat(snapshot.endDate).isEqualTo(entity.endDate)
-    assertThat(snapshot.createdAt).isEqualTo(entity.createdAt)
-    assertThat(snapshot.lastUpdatedAt).isEqualTo(entity.lastUpdatedAt)
   }
 
   @Test
@@ -208,7 +237,9 @@ class ProposedAccommodationMapperTest {
   @Test
   fun `toDto maps all fields correctly`() {
     val snapshot = buildProposedAccommodationSnapshot()
-    val dto = ProposedAccommodationMapper.toDto(snapshot)
+    val createdBy = "Joe Bloggs"
+    val createdAt = Instant.now()
+    val dto = ProposedAccommodationMapper.toDto(snapshot, createdBy, createdAt)
     assertThat(dto.id).isEqualTo(snapshot.id)
     assertThat(dto.name).isEqualTo(snapshot.name)
     assertThat(dto.arrangementType).isEqualTo(snapshot.arrangementType)
@@ -221,6 +252,7 @@ class ProposedAccommodationMapperTest {
     assertThat(dto.startDate).isEqualTo(snapshot.startDate)
     assertThat(dto.endDate).isEqualTo(snapshot.endDate)
     assertThat(dto.address).isEqualTo(snapshot.address)
-    assertThat(dto.createdAt).isEqualTo(snapshot.createdAt.truncatedTo(ChronoUnit.SECONDS))
+    assertThat(dto.createdBy).isEqualTo(createdBy)
+    assertThat(dto.createdAt).isEqualTo(createdAt)
   }
 }

@@ -34,8 +34,10 @@ fun buildProposedAccommodationEntity(
   county: String? = null,
   country: String? = "England",
   uprn: String? = null,
+  createdByUserId: UUID? = null,
   createdAt: Instant = Instant.now(),
-  lastUpdatedAt: Instant? = null,
+  lastUpdatedByUserId: UUID? = null,
+  lastUpdatedAt: Instant = Instant.now(),
 ) = ProposedAccommodationEntity(
   id = id,
   crn = crn,
@@ -59,6 +61,9 @@ fun buildProposedAccommodationEntity(
   county = county,
   country = country,
   uprn = uprn,
-  createdAt = createdAt,
-  lastUpdatedAt = lastUpdatedAt,
-)
+).apply {
+  this.createdByUserId = createdByUserId
+  this.createdAt = createdAt
+  this.lastUpdatedByUserId = lastUpdatedByUserId
+  this.lastUpdatedAt = lastUpdatedAt
+}
