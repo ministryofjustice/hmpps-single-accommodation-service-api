@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,10 +20,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuth
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
-import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 import java.util.UUID
@@ -46,6 +42,7 @@ abstract class IntegrationTestBase {
   @Value($$"${test-data-setup.user-id}")
   protected lateinit var userIdOfTestDataSetupUser: UUID
   protected val userIdOfLoggedInDeliusUser: UUID = UUID.fromString("a1e2345f-b847-409a-9fee-aa75659bd9f8")
+
   @Autowired
   lateinit var applicationContext: ApplicationContext
 
@@ -63,10 +60,6 @@ abstract class IntegrationTestBase {
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles)
-
-  protected fun stubPingWithResponse(status: Int) {
-    HmppsAuth.stubHealthPing(status)
-  }
 
   @BeforeEach
   fun resetStubs() {

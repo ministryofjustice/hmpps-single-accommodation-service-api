@@ -2,12 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.h
 
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 
 class HealthCheckIT : IntegrationTestBase() {
 
   @Test
   fun `Health page reports ok`() {
-    stubPingWithResponse(200)
+    HmppsAuthStubs.stubHealthPing(200)
 
     restTestClient.get()
       .uri("/health")
@@ -20,7 +21,7 @@ class HealthCheckIT : IntegrationTestBase() {
 
   @Test
   fun `Health page reports down`() {
-    stubPingWithResponse(503)
+    HmppsAuthStubs.stubHealthPing(503)
 
     restTestClient.get()
       .uri("/health")

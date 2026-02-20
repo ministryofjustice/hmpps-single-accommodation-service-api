@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-object HmppsAuth {
+object HmppsAuthStubs {
 
   fun stubGrantToken() {
     sasWiremock.stubFor(
@@ -33,7 +33,7 @@ object HmppsAuth {
   }
 
   fun stubHealthPing(status: Int) {
-    stubFor(
+    sasWiremock.stubFor(
       get("/auth/health/ping").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")

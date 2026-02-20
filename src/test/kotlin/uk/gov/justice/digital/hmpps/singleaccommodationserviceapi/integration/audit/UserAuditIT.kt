@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import java.time.Instant
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
@@ -36,8 +38,8 @@ class UserAuditIT : IntegrationTestBase() {
     proposedAccommodationRepository.deleteAll()
     userRepository.deleteAll()
 
-    hmppsAuth.stubGrantToken()
-    probationIntegrationDeliusMockServer.stubGetStaffByUsername(
+    HmppsAuthStubs.stubGrantToken()
+    ProbationIntegrationDeliusStubs.stubGetStaffByUsername(
       deliusUsername = usernameOfNewDeliusUser,
       response = StaffDetail(
         username = usernameOfNewDeliusUser,
