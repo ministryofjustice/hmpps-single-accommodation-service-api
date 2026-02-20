@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -193,7 +192,6 @@ class InboxEventDispatcherIT {
   @TestPropertySource(properties = ["hmpps.sqs.dispatcher.max-events-per-batch=2"])
   inner class InboxEventDispatcherSameCrnIT : InboxEventDispatcherITBase() {
 
-    @Disabled("Need to rethink the unique record idea, this breaks as we run the same crns in multiple threads")
     @Test
     fun `processes concurrent events for same CRN without creating duplicate case rows`() {
       val sharedCrn = "X123456"
@@ -263,10 +261,10 @@ class InboxEventDispatcherIT {
   }
 
   @Nested
-  inner class InboxEventDispatcherVthreadsIT : InboxEventDispatcherITBase() {
+  inner class InboxEventDispatcherCoroutinesIT : InboxEventDispatcherITBase() {
 
     @Test
-    fun `processes multiple events concurrently using virtual threads`() {
+    fun `processes multiple events concurrently using coroutines`() {
       val delayMs = 200
       val crns = listOf("X123451", "X123452", "X123453", "X123454")
       crns.forEach {

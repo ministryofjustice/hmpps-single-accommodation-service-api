@@ -8,5 +8,4 @@ import java.util.UUID
 
 interface InboxEventRepository : JpaRepository<InboxEventEntity, UUID> {
   fun findAllByProcessedStatus(processedStatus: ProcessedStatus, pageable: Pageable): List<InboxEventEntity>
-  fun findTopByOrderByCreatedAtDesc(): InboxEventEntity?
 }

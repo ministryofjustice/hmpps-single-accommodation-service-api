@@ -27,6 +27,11 @@ class TierCalculationCompletionHandler(
 
   override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE
 
+  override fun getPartitionKey(inboxEvent: InboxEventEntity): String? {
+    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
+    return tierDomainEvent.personReference.findCrn()
+  }
+
   @Transactional
   override fun handle(inboxEvent: InboxEventEntity) {
     log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
