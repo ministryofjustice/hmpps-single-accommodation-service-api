@@ -14,6 +14,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesWithFilterResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuth
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusMockServer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 
 class CaseControllerIT : IntegrationTestBase() {
 
@@ -30,19 +35,19 @@ class CaseControllerIT : IntegrationTestBase() {
     val roshMedium = buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.MEDIUM))
     val tier = buildTier()
 
-    hmppsAuth.stubGrantToken()
+    HmppsAuth.stubGrantToken()
 
     // bulk call
-    probationIntegrationDeliusMockServer.stubPostCaseSummariesOKResponse(response = caseSummaries)
+    ProbationIntegrationDeliusMockServer.postCaseSummariesOKResponse(response = caseSummaries)
 
-    corePersonRecordMockServer.stubGetCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-    corePersonRecordMockServer.stubGetCorePersonRecordOKResponse(crn = crn2, response = corePersonRecord2)
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn2, response = corePersonRecord2)
 
-    probationIntegrationOasysMockServer.stubGetRoshOKResponse(crn = crn, roshVeryHigh)
-    probationIntegrationOasysMockServer.stubGetRoshOKResponse(crn = crn2, roshMedium)
+    ProbationIntegrationOasysStubs.getRoshOKResponse(crn = crn, roshVeryHigh)
+    ProbationIntegrationOasysStubs.getRoshOKResponse(crn = crn2, roshMedium)
 
-    tierMockServer.stubGetCorePersonRecordOKResponse(crn = crn, tier)
-    tierMockServer.stubGetCorePersonRecordOKResponse(crn = crn2, tier)
+    TierStubs.getTierOKResponse(crn = crn, tier)
+    TierStubs.getTierOKResponse(crn = crn2, tier)
   }
 
   @Test

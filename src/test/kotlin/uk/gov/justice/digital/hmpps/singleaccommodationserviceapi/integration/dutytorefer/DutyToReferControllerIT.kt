@@ -3,13 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.d
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuth
 
 class DutyToReferControllerIT : IntegrationTestBase() {
   private val crn = "FAKECRN1"
 
   @BeforeEach
   fun setup() {
-    hmppsAuth.stubGrantToken()
+    HmppsAuth.stubGrantToken()
   }
 
   @Test

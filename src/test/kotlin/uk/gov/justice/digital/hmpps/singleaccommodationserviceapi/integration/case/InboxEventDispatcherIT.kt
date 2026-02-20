@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -20,6 +21,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuth
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -52,7 +55,16 @@ class InboxEventDispatcherIT {
 
     @BeforeEach
     fun setup() {
-      hmppsAuth.stubGrantToken()
+      HmppsAuth.stubGrantToken()
+      purgeDbTables()
+    }
+
+    @AfterEach
+    fun teardown() {
+      purgeDbTables()
+    }
+
+    private fun purgeDbTables() {
       inboxEventRepository.deleteAll()
       caseRepository.deleteAll()
     }
@@ -61,7 +73,8 @@ class InboxEventDispatcherIT {
       eventOccurredAt: OffsetDateTime,
       crn: String = this.crn,
     ): InboxEventEntity {
-      val detailUrl = "http://localhost:9994/crn/$crn/tier"
+      val baseUrl = applicationContext.environment.getProperty("service.tier.base-url")
+      val detailUrl = "$baseUrl/crn/$crn/tier"
       val payload =
         TierDomainEvent(
           eventType = "tier.calculation.complete",
@@ -96,7 +109,7 @@ class InboxEventDispatcherIT {
     fun `processes only maxEventsPerBatch events per invocation`() {
       val crns = listOf("X123451", "X123452", "X123453", "X123454", "X123455")
       crns.forEach {
-        tierMockServer.stubGetCorePersonRecordOKResponse(
+        TierStubs.getTierOKResponse(
           it,
           buildTier(tierScore = TierScore.A3),
         )
@@ -136,7 +149,7 @@ class InboxEventDispatcherIT {
     fun `processes events in eventOccurredAt ascending order`() {
       val crns = listOf("X123451", "X123452", "X123453")
       crns.forEach {
-        tierMockServer.stubGetCorePersonRecordOKResponse(
+        TierStubs.getTierOKResponse(
           it,
           buildTier(tierScore = TierScore.A3),
         )
@@ -195,7 +208,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes concurrent events for same CRN without creating duplicate case rows`() {
       val sharedCrn = "X123456"
-      tierMockServer.stubGetCorePersonRecordOKResponse(
+      TierStubs.getTierOKResponse(
         sharedCrn,
         buildTier(tierScore = TierScore.A3),
       )
@@ -233,7 +246,7 @@ class InboxEventDispatcherIT {
     fun `processes at most 4 events concurrently due to semaphore limit`() {
       val crns = (1..5).map { "X12345$it" }
       crns.forEach {
-        tierMockServer.stubGetCorePersonRecordOKResponse(
+        TierStubs.getTierOKResponse(
           it,
           buildTier(tierScore = TierScore.A3),
         )
@@ -268,7 +281,7 @@ class InboxEventDispatcherIT {
       val delayMs = 200
       val crns = listOf("X123451", "X123452", "X123453", "X123454")
       crns.forEach {
-        tierMockServer.stubGetCorePersonRecordOKResponse(
+        TierStubs.getTierOKResponse(
           it,
           buildTier(tierScore = TierScore.A3),
           delayMs = delayMs,

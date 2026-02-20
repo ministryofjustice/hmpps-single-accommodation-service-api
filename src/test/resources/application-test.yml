@@ -9,20 +9,13 @@ hmpps-auth:
   url: "http://localhost:8090/auth"
 
 service:
-  probation-integration-delius:
-    base-url: http://localhost:9990
-  probation-integration-oasys:
-    base-url: http://localhost:9991
-  approved-premises-api:
-    base-url: http://localhost:9992
-  core-person-record:
-    base-url: http://localhost:9993
-  tier:
-    base-url: http://localhost:9994
-  prisoner-search:
-    base-url: http://localhost:9995
-  accommodation-data-domain:
-    base-url: http://localhost:9996
+  - probation-integration-delius
+  - probation-integration-oasys
+  - approved-premises-api
+  - core-person-record
+  - tier
+  - prisoner-search
+  - accommodation-data-domain
 
 spring:
   cache:

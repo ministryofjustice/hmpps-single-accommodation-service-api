@@ -10,13 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuth
 import java.time.Instant
 
 class AccommodationReferralControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    hmppsAuth.stubGrantToken()
+    HmppsAuth.stubGrantToken()
   }
 
   @Test
@@ -44,10 +46,10 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
     )
 
-    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS1, crn, cas1Response)
-    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS2, crn, cas2Response)
-    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS2v2, crn, cas2v2Response)
-    approvedPremisesMockServer.stubGetReferralOKResponse(CasService.CAS3, crn, cas3Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2v2, crn, cas2v2Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
       .withDeliusUserJwt()

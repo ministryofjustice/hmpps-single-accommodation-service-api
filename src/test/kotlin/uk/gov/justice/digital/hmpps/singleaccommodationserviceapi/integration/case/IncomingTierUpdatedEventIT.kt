@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
@@ -54,12 +55,12 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   lateinit var crn: String
   private val eventType = "tier.calculation.complete"
   private val eventDescription = "Tier calculation complete from Tier service"
-  private fun eventDetailUrl() = "http://localhost:9994/crn/$crn/tier"
+  private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/crn/$crn/tier"
 
   @BeforeEach
   fun setup() {
     crn = UUID.randomUUID().toString()
-    hmppsAuth.stubGrantToken()
+    HmppsAuth.stubGrantToken()
     deleteAllFromRepositories()
   }
 
@@ -78,7 +79,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
     caseRepository.save(buildCaseEntity(crn = crn, tier = TierScore.A1))
     val tier = buildTier(tierScore = TierScore.A3)
-    tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
+    TierStubs.getTierOKResponse(crn, response = tier)
 
     // when
     publishTierEvent()
@@ -95,7 +96,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   @Test
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on new record`() {
     val tier = buildTier(tierScore = TierScore.A3)
-    tierMockServer.stubGetCorePersonRecordOKResponse(crn, response = tier)
+    TierStubs.getTierOKResponse(crn, response = tier)
 
     assertThat(caseRepository.findAll()).hasSize(0)
 
@@ -113,7 +114,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should FAIL to process incoming HMPPS TIER_CALCULATION_COMPLETE domain event as callback URL fails with 404`() {
-    tierMockServer.stubGetTierFailResponse(
+    TierStubs.getTierFailResponse(
       crn,
       externalId = externalId,
     )
