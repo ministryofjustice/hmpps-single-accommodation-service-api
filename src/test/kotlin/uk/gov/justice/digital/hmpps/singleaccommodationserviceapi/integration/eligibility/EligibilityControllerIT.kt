@@ -11,6 +11,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import java.util.UUID
 
 class EligibilityControllerIT : IntegrationTestBase() {
@@ -30,15 +35,15 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val cas1Application = buildCas1Application(id = cas1ApplicationId)
     val prisoner = buildPrisoner(prisonerNumber = prisonerNumber)
 
-    hmppsAuth.stubGrantToken()
+    HmppsAuthStubs.stubGrantToken()
 
-    corePersonRecordMockServer.stubGetCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
 
-    approvedPremisesMockServer.stubGetSuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    ApprovedPremisesStubs.getSuitableApplicationOKResponse(crn = crn, response = cas1Application)
 
-    tierMockServer.stubGetCorePersonRecordOKResponse(crn = crn, tier)
+    TierStubs.getTierOKResponse(crn = crn, tier)
 
-    prisonerSearchMockServer.stubGetPrisonerOKResponse(prisonerNumber = prisonerNumber, prisoner)
+    PrisonerSearchStubs.getPrisonerOKResponse(prisonerNumber = prisonerNumber, prisoner)
   }
 
   @Test

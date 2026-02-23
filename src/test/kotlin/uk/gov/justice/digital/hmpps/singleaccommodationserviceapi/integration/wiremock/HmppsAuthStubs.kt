@@ -1,22 +1,20 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import com.github.tomakehurst.wiremock.http.HttpHeaders
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
-  companion object {
-    private const val WIREMOCK_PORT = 8090
-  }
+object HmppsAuthStubs {
 
   fun stubGrantToken() {
-    stubFor(
+    sasWiremock.stubFor(
       post(urlEqualTo("/auth/oauth/token"))
         .willReturn(
           aResponse()
@@ -35,7 +33,7 @@ class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   fun stubHealthPing(status: Int) {
-    stubFor(
+    sasWiremock.stubFor(
       get("/auth/health/ping").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")

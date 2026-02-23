@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,23 +9,18 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.AccommodationDataDomainMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysMockServer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierMockServer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
@@ -44,10 +37,14 @@ const val NAME_OF_LOGGED_IN_DELIUS_USER: String = "DeliusUser"
 @Import(value = [RulesConfig::class, TestJpaAuditorConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(initializers = [WireMockInitializer::class])
 abstract class IntegrationTestBase {
   @Value($$"${test-data-setup.user-id}")
   protected lateinit var userIdOfTestDataSetupUser: UUID
   protected val userIdOfLoggedInDeliusUser: UUID = UUID.fromString("a1e2345f-b847-409a-9fee-aa75659bd9f8")
+
+  @Autowired
+  lateinit var applicationContext: ApplicationContext
 
   @Autowired
   lateinit var restTestClient: RestTestClient
@@ -64,58 +61,8 @@ abstract class IntegrationTestBase {
     scopes: List<String> = listOf("read"),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles)
 
-  protected fun stubPingWithResponse(status: Int) {
-    hmppsAuth.stubHealthPing(status)
-  }
-
-  val hmppsAuth = HmppsAuthMockServer()
-
-  internal val approvedPremisesMockServer = ApprovedPremisesMockServer()
-
-  internal val corePersonRecordMockServer = CorePersonRecordMockServer()
-
-  internal val probationIntegrationDeliusMockServer = ProbationIntegrationDeliusMockServer()
-
-  internal val probationIntegrationOasysMockServer = ProbationIntegrationOasysMockServer()
-
-  internal val tierMockServer = TierMockServer()
-
-  internal val prisonerSearchMockServer = PrisonerSearchMockServer()
-
-  internal val accommodationDataDomainMockServer = AccommodationDataDomainMockServer()
-
-  @BeforeAll
-  fun startMocks() {
-    hmppsAuth.start()
-    approvedPremisesMockServer.start()
-    corePersonRecordMockServer.start()
-    probationIntegrationDeliusMockServer.start()
-    probationIntegrationOasysMockServer.start()
-    tierMockServer.start()
-    prisonerSearchMockServer.start()
-  }
-
-  @AfterAll
-  fun stopMocks() {
-    hmppsAuth.stop()
-    approvedPremisesMockServer.stop()
-    corePersonRecordMockServer.stop()
-    probationIntegrationDeliusMockServer.stop()
-    probationIntegrationOasysMockServer.stop()
-    tierMockServer.stop()
-    prisonerSearchMockServer.stop()
-  }
-
   @BeforeEach
   fun resetStubs() {
-    hmppsAuth.resetAll()
-    approvedPremisesMockServer.resetAll()
-    corePersonRecordMockServer.resetAll()
-    probationIntegrationDeliusMockServer.resetAll()
-    probationIntegrationOasysMockServer.resetAll()
-    tierMockServer.resetAll()
-    prisonerSearchMockServer.resetAll()
-
     userRepository.deleteAll()
   }
 
