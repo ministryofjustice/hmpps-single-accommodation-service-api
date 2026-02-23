@@ -17,6 +17,7 @@ data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val suitableApplicationId: UUID? = null,
   val action: RuleAction? = null,
+  val link: String? = null,
 )
 
 data class RuleAction(
