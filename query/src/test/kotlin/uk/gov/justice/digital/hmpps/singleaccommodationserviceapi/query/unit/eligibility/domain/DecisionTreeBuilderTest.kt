@@ -33,7 +33,7 @@ class DecisionTreeBuilderTest {
   fun `outcome creates OutcomeNode with fixed ServiceResult`() {
     val expectedResult =
       ServiceResult(
-        serviceStatus = ServiceStatus.CONFIRMED,
+        serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
         suitableApplicationId = UUID.randomUUID(),
       )
     val builder = DecisionTreeBuilder(engine)
@@ -56,7 +56,7 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val currentResult =
       ServiceResult(
-        serviceStatus = ServiceStatus.CONFIRMED,
+        serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
         suitableApplicationId = UUID.randomUUID(),
       )
     val evaluationContext =
@@ -76,7 +76,7 @@ class DecisionTreeBuilderTest {
   fun `confirmed returns different ServiceResult when context changes`() {
     val builder = DecisionTreeBuilder(engine)
     val initialResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-    val updatedResult = ServiceResult(ServiceStatus.CONFIRMED)
+    val updatedResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val initialContext =
       EvaluationContext(
         data = buildDomainData(),
@@ -104,7 +104,7 @@ class DecisionTreeBuilderTest {
     val evaluationContext =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
     val actualResult = result.eval(evaluationContext)
     assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
@@ -117,7 +117,7 @@ class DecisionTreeBuilderTest {
     val context1 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
     val context2 =
       EvaluationContext(
