@@ -226,6 +226,7 @@ class EligibilityServiceTest {
       expectedCas1Status: ServiceStatus?,
       expectedCas1ActionsString: String?,
       cas1ActionsAreUpcoming: Boolean,
+      expectedCas1Link: String?,
     ) {
       clock.setNow(referenceDate.toLocalDate())
 
@@ -241,6 +242,7 @@ class EligibilityServiceTest {
         RuleAction(it, cas1ActionsAreUpcoming)
       }
       assertThat(result.action).isEqualTo(expectedActions)
+      assertThat(result.link).isEqualTo(expectedCas1Link)
     }
   }
 }
