@@ -54,7 +54,7 @@ jobs:
           distribution: 'temurin'
           java-version: 21
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Run ktlintFormat
         run: ./gradlew ktlintFormat
       - name: Fail if formatting changed files
