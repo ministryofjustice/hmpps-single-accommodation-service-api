@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.util.UUID
 
-
 class CaseAggregateTest {
 
   @Test
@@ -22,6 +21,6 @@ class CaseAggregateTest {
       newTier = tier,
     )
     val aggregateSnapshot = aggregate.snapshot()
-    assertThat(aggregateSnapshot.tier).isEqualTo(tier)
+    assertThat(aggregateSnapshot.tier!!.name).isEqualTo("tier!!!!")
   }
 }
