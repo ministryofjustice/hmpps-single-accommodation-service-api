@@ -71,7 +71,7 @@ class EligibilityTransformerTest {
       suitableApplicationId = null,
       action = RuleAction("$START_APPROVED_PREMISE_APPLICATION in 2 days", true),
     )
-    private val PLACEMENTBOOKED = ServiceResult(
+    private val confirmed = ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
       suitableApplicationId = null,
     )
@@ -130,7 +130,7 @@ class EligibilityTransformerTest {
       ),
       Arguments.of(
         CRN,
-        PLACEMENTBOOKED,
+        confirmed,
         notEligible,
         notEligible,
         notEligible,
