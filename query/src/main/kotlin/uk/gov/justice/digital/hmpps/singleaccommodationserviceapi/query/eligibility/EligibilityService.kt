@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -18,12 +20,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
@@ -106,10 +105,11 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.CONFIRMED,
-          suitableApplicationId = data.cas1Application?.id,
-        ),
+          ServiceResult(
+            serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
+            suitableApplicationId = data.cas1Application?.id,
+            link = "View application",
+          ),
       )
 
     return tree.eval(initialContext)
@@ -133,9 +133,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-        ),
+          ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+          ),
       )
 
     return tree.eval(initialContext)
@@ -159,9 +159,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-        ),
+          ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+          ),
       )
 
     return tree.eval(initialContext)
@@ -185,9 +185,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-        ),
+          ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+          ),
       )
 
     return tree.eval(initialContext)
@@ -225,7 +225,7 @@ class EligibilityService(
           ServiceResult(
             serviceStatus = ServiceStatus.CONFIRMED,
             suitableApplicationId = data.cas3Application?.id,
-          )
+          ),
       )
 
     return tree.eval(initialContext)
@@ -239,7 +239,7 @@ class EligibilityService(
     val prisonerData = eligibilityOrchestrationService.getPrisonerData(prisonerNumbers)
 
     // read the tier from the db, falling back to api if its not found (to be resolved)
-    val tier = caseRepository.findTierScoreByCrn(crn)?.let{ Tier.placeholder(it) } ?: eligibilityOrchestrationDto.tier
+    val tier = caseRepository.findTierScoreByCrn(crn)?.let { Tier.placeholder(it) } ?: eligibilityOrchestrationDto.tier
 
     return DomainData(
       crn = crn,

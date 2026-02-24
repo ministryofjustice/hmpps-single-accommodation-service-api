@@ -10,7 +10,6 @@ fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID)
     "suitableApplicationId": "$cas1SuitableApplicationId",
     "action": {
       "text": "Await Assessment",
-      "isUpcoming": true
     }
   },
   "cas2Hdc": {
@@ -36,6 +35,5 @@ fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID)
   "caseActions": [
     "Await Assessment"
   ],
-  "caseStatus": "ACTION_UPCOMING"
 }
 """.trimIndent()

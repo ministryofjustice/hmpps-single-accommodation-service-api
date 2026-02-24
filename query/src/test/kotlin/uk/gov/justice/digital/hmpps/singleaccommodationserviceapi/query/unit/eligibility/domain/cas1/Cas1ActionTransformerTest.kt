@@ -48,7 +48,7 @@ class Cas1ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ActionTransformer.buildCas1Action(data, clock, false)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days", true)
+    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days")
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -78,7 +78,7 @@ class Cas1ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ActionTransformer.buildCas1Action(data, clock, false)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day", true)
+    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day")
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -93,7 +93,7 @@ class Cas1ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ActionTransformer.buildCas1Action(data, clock, false)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days", true)
+    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days")
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -105,7 +105,7 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = null,
     )
-    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock, true) }
+    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock, false) }
       .isInstanceOf(IllegalStateException::class.java)
       .hasMessageContaining("Release date for crn: ABC234 is null")
   }
@@ -173,7 +173,7 @@ class Cas1ActionTransformerTest {
 
     val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.AWAIT_ASSESSMENT, true))
+    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.WAIT_FOR_ASSESSMENT_RESULT))
   }
 
   @Test
@@ -195,8 +195,27 @@ class Cas1ActionTransformerTest {
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.PROVIDE_INFORMATION))
   }
 
+  @Test
+  fun `Build action when application is STARTED`() {
+    val data = DomainData(
+      crn = crn,
+      tier = tier,
+      sex = SexCode.M,
+      releaseDate = LocalDate.now().plusMonths(5),
+      cas1Application = Cas1Application(
+        id = UUID.randomUUID(),
+        applicationStatus = Cas1ApplicationStatus.STARTED,
+        placementStatus = null,
+      ),
+    )
+
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
+
+    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION))
+  }
+
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1ApplicationStatus::class, names = ["EXPIRED", "INAPPLICABLE", "STARTED", "REJECTED", "WITHDRAWN"])
+  @EnumSource(value = Cas1ApplicationStatus::class, names = ["EXPIRED", "INAPPLICABLE", "REJECTED", "WITHDRAWN"])
   fun `Build action when application is not suitable`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),

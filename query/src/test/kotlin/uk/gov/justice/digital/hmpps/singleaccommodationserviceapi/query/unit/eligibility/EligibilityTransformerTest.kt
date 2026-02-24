@@ -9,9 +9,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.AWAIT_ASSESSMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_APPROVED_PREMISE_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.WAIT_FOR_ASSESSMENT_RESULT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer
 import java.util.stream.Stream
 
@@ -71,14 +71,14 @@ class EligibilityTransformerTest {
       suitableApplicationId = null,
       action = RuleAction("$START_APPROVED_PREMISE_APPLICATION in 2 days", true),
     )
-    private val confirmed = ServiceResult(
-      serviceStatus = ServiceStatus.CONFIRMED,
+    private val PLACEMENTBOOKED = ServiceResult(
+      serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
       suitableApplicationId = null,
     )
     private val assessing = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = RuleAction(AWAIT_ASSESSMENT, true),
+      action = RuleAction(WAIT_FOR_ASSESSMENT_RESULT, true),
     )
     private val submitted = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
@@ -130,7 +130,7 @@ class EligibilityTransformerTest {
       ),
       Arguments.of(
         CRN,
-        confirmed,
+        PLACEMENTBOOKED,
         notEligible,
         notEligible,
         notEligible,
@@ -146,7 +146,7 @@ class EligibilityTransformerTest {
         notEligible,
         notEligible,
         CaseStatus.ACTION_UPCOMING,
-        listOf(AWAIT_ASSESSMENT),
+        listOf(WAIT_FOR_ASSESSMENT_RESULT),
       ),
       Arguments.of(
         CRN,
@@ -178,7 +178,7 @@ class EligibilityTransformerTest {
         CaseStatus.ACTION_NEEDED,
         listOf(
           START_APPROVED_PREMISE_APPLICATION,
-          AWAIT_ASSESSMENT,
+          WAIT_FOR_ASSESSMENT_RESULT,
           "$START_APPROVED_PREMISE_APPLICATION in 2 days",
         ),
       ),
