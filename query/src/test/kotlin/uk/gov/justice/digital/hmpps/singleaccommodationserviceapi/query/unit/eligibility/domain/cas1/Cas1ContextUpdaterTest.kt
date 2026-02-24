@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.AWAIT_ASSESSMENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_APPROVED_PREMISE_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.WAIT_FOR_ASSESSMENT_RESULT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -37,13 +37,13 @@ class Cas1ContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
 
       val result = updater.update(context)
 
       assertThat(result.currentResult.action).isNotNull()
-      assertThat(result.currentResult.action?.text).isEqualTo(START_APPROVED_PREMISE_APPLICATION)
+      assertThat(result.currentResult.action?.text).isEqualTo(CONTINUE_APPROVED_PREMISE_APPLICATION)
     }
 
     @Test
@@ -63,7 +63,7 @@ class Cas1ContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.PLACEMENT_BOOKED)
     }
 
     @Test
@@ -125,7 +125,7 @@ class Cas1ContextUpdaterTest {
 
       assertThat(result.data).isEqualTo(originalContext.data)
       assertThat(result.currentResult).isNotEqualTo(originalContext.currentResult)
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.PLACEMENT_BOOKED)
     }
 
     @Test
@@ -146,8 +146,7 @@ class Cas1ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action?.text).isEqualTo(AWAIT_ASSESSMENT)
-      assertThat(result.currentResult.action?.isUpcoming).isTrue()
+      assertThat(result.currentResult.action?.text).isEqualTo(WAIT_FOR_ASSESSMENT_RESULT)
     }
 
     @Test
@@ -168,7 +167,7 @@ class Cas1ContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.PLACEMENT_BOOKED)
       assertThat(result.currentResult.action?.text).isEqualTo(CREATE_PLACEMENT)
     }
 
@@ -209,7 +208,7 @@ class Cas1ContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.WITHDRAWN)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
     }
   }
 }

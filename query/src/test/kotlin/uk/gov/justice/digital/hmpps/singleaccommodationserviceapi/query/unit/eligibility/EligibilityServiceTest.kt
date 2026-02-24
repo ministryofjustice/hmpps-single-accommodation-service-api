@@ -216,6 +216,7 @@ class EligibilityServiceTest {
     @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
     @TestData
     fun `should calculate eligibility for cas1 for all scenarios`(
+      testCaseId: String,
       description: String,
       referenceDate: String,
       sex: SexCode,
@@ -225,7 +226,6 @@ class EligibilityServiceTest {
       cas1PlacementStatus: Cas1PlacementStatus?,
       expectedCas1Status: ServiceStatus?,
       expectedCas1ActionsString: String?,
-      cas1ActionsAreUpcoming: Boolean,
       expectedCas1Link: String?,
     ) {
       clock.setNow(referenceDate.toLocalDate())
@@ -239,7 +239,7 @@ class EligibilityServiceTest {
 
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
       val expectedActions = expectedCas1ActionsString?.let {
-        RuleAction(it, cas1ActionsAreUpcoming)
+        RuleAction(it, false)
       }
       assertThat(result.action).isEqualTo(expectedActions)
       assertThat(result.link).isEqualTo(expectedCas1Link)

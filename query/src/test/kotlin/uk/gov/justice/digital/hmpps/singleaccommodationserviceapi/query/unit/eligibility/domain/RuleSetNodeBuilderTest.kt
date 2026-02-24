@@ -23,7 +23,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `onPass sets the onPass node and returns builder`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.CONFIRMED)
+      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -47,7 +47,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `builder can chain onPass and onFail`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.CONFIRMED)
+      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
     val onFailNode: DecisionNode = OutcomeNode { _ ->
       ServiceResult(ServiceStatus.NOT_ELIGIBLE)
@@ -62,7 +62,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `build creates RuleSetNode with correct properties`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.CONFIRMED)
+      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
     val onFailNode: DecisionNode = OutcomeNode { _ ->
       ServiceResult(ServiceStatus.NOT_ELIGIBLE)
@@ -94,7 +94,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `build throws exception when onFail is not set`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.CONFIRMED)
+      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)

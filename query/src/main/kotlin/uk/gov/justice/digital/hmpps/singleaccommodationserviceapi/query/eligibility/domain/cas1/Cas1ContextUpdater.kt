@@ -20,8 +20,8 @@ class Cas1ContextUpdater(val clock: Clock) : ContextUpdater {
       ServiceResult(
         serviceStatus =
           Cas1ServiceStatusTransformer.toServiceStatus(
-            context.data.cas1Application?.applicationStatus,
-            !action.isUpcoming,
+            context.data.cas1Application,
+            isWithinOneYear,
           ),
         suitableApplicationId = context.data.cas1Application?.id,
         action = action,

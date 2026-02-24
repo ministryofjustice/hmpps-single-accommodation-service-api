@@ -31,7 +31,7 @@ class Cas1ValidationContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
+        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
 
       val result = updater.update(context)
