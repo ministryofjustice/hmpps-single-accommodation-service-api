@@ -46,6 +46,7 @@ jobs:
     with:
 #      runs 'check' and attached tasks(detekt, ktlint, test etc) WITHOUT integration tests
       gradle-command: './gradlew check'
+      java-version: '25'
     secrets: inherit
   integration_test:
     name: Integration Tests
@@ -60,6 +61,7 @@ jobs:
       postgres-password: sas_psw
       postgres-db: sas_db
       redis-tag: latest
+      java-version: '25'
     secrets: inherit
   build:
     name: Build docker image from hmpps-github-actions
