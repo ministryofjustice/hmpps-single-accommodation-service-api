@@ -7,10 +7,6 @@ plugins {
   alias(libs.plugins.detekt)
 }
 
-detekt {
-  config.setFrom("detekt/detekt.yml")
-}
-
 dependencies {
   implementation(project(":common"))
   implementation(project(":query"))
@@ -65,20 +61,28 @@ tasks.build {
   dependsOn("copyPreCommitHook")
 }
 
-tasks.register("ktlintFormatSubmodules") {
-  group = "formatting"
-  description = "Run ktlintFormat on all submodules after the root project"
+tasks.register<Test>("integrationTest") {
+  group = "verification"
+  description = "Runs integration tests (*IT)"
 
-  dependsOn(subprojects.map { it.tasks.named("ktlintFormat") })
-  mustRunAfter(tasks.named("ktlintFormat"))
+  useJUnitPlatform()
+
+  testClassesDirs = sourceSets.test.get().output.classesDirs
+  classpath = sourceSets.test.get().runtimeClasspath
+
+  include("**/*IT.class")
 }
 
-tasks.register("ktlintCheckSubmodules") {
-  group = "linting"
-  description = "Run ktlintCheck on all submodules after the root project"
+tasks.named<Test>("test") {
+  include("**/*Test.class")
+}
 
-  dependsOn(subprojects.map { it.tasks.named("ktlintCheck") })
-  mustRunAfter(tasks.named("ktlintCheck"))
+allprojects {
+  pluginManager.apply("org.jlleitschuh.gradle.ktlint")
+  pluginManager.apply("dev.detekt")
+  detekt {
+    config.setFrom("$rootDir/detekt/detekt.yml")
+  }
 }
 
 subprojects {
@@ -86,15 +90,10 @@ subprojects {
     mavenLocal()
     mavenCentral()
   }
-  pluginManager.apply("dev.detekt")
+
   pluginManager.apply("org.jetbrains.kotlin.jvm")
   pluginManager.apply("org.jetbrains.kotlin.plugin.spring")
   pluginManager.apply("org.jetbrains.kotlin.plugin.jpa")
-  pluginManager.apply("org.jlleitschuh.gradle.ktlint")
-
-  detekt {
-    config.setFrom("../detekt/detekt.yml")
-  }
 
   tasks.withType<Test> {
     useJUnitPlatform()
