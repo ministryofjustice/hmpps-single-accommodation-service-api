@@ -31,7 +31,6 @@ class EligibilityTransformerTest {
     caseStatus: CaseStatus,
     caseActions: List<String>,
   ) {
-
     val actualEligibility = EligibilityTransformer.toEligibilityDto(
       crn = crn,
       cas1 = cas1,

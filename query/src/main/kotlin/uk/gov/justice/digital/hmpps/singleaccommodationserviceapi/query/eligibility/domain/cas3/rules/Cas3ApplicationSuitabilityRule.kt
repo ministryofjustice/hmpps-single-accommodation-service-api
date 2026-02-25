@@ -15,7 +15,7 @@ private val suitableApplicationStatuses = listOf(
 )
 
 @Component
-class Cas3ApplicationSuitabilityRule: Cas3SuitabilityRule {
+class Cas3ApplicationSuitabilityRule : Cas3SuitabilityRule {
   override val description = "FAIL if candidate does not have a suitable application"
 
   override fun evaluate(data: DomainData): RuleResult {

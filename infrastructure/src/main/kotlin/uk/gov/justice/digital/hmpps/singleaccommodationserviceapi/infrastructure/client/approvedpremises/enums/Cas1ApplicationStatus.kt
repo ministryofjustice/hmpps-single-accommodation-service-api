@@ -13,5 +13,4 @@ enum class Cas1ApplicationStatus(val value: String) {
   INAPPLICABLE("inapplicable"),
   WITHDRAWN("withdrawn"),
   EXPIRED("expired"),
-  ;
 }

@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
@@ -15,14 +15,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 
 class ProposedAccommodationAggregateTest {
   private val accommodationDetails = buildAccommodationDetail(
-    verificationStatus = VerificationStatus.PASSED
+    verificationStatus = VerificationStatus.PASSED,
   )
 
   @Test
   fun `should createProposedAccommodation and add AccommodationUpdatedDomainEvent domain event to list`() {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.PASSED,
-      nextAccommodationStatus = NextAccommodationStatus.YES
+      nextAccommodationStatus = NextAccommodationStatus.YES,
     )
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
@@ -52,12 +52,11 @@ class ProposedAccommodationAggregateTest {
     assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregateSnapshot.id)
   }
 
-
   @Test
   fun `should createProposedAccommodation and does not add AccommodationUpdatedDomainEvent domain event to list`() {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-      nextAccommodationStatus = NextAccommodationStatus.NO
+      nextAccommodationStatus = NextAccommodationStatus.NO,
     )
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
@@ -91,8 +90,8 @@ class ProposedAccommodationAggregateTest {
       hydrateAndCreateProposedAccommodation(
         accommodationArrangementSubType = AccommodationArrangementSubType.OTHER,
         accommodationArrangementSubTypeDescription = "",
-          verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-        nextAccommodationStatus = NextAccommodationStatus.NO
+        verificationStatus = VerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = NextAccommodationStatus.NO,
       )
     }
     assertThrows<AccommodationArrangementSubTypeDescriptionUnexpectedException> {
@@ -100,7 +99,7 @@ class ProposedAccommodationAggregateTest {
         accommodationArrangementSubType = AccommodationArrangementSubType.OTHER,
         accommodationArrangementSubTypeDescription = null,
         verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-        nextAccommodationStatus = NextAccommodationStatus.NO
+        nextAccommodationStatus = NextAccommodationStatus.NO,
       )
     }
   }
@@ -112,7 +111,7 @@ class ProposedAccommodationAggregateTest {
         accommodationArrangementSubType = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
         accommodationArrangementSubTypeDescription = "value",
         verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-        nextAccommodationStatus = NextAccommodationStatus.NO
+        nextAccommodationStatus = NextAccommodationStatus.NO,
       )
     }
   }
@@ -122,13 +121,13 @@ class ProposedAccommodationAggregateTest {
     assertThrows<AccommodationVerificationNotPassedException> {
       hydrateAndCreateProposedAccommodation(
         verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-        nextAccommodationStatus = NextAccommodationStatus.YES
+        nextAccommodationStatus = NextAccommodationStatus.YES,
       )
     }
     assertThrows<AccommodationVerificationNotPassedException> {
       hydrateAndCreateProposedAccommodation(
         verificationStatus = VerificationStatus.FAILED,
-        nextAccommodationStatus = NextAccommodationStatus.YES
+        nextAccommodationStatus = NextAccommodationStatus.YES,
       )
     }
   }
@@ -137,7 +136,7 @@ class ProposedAccommodationAggregateTest {
     verificationStatus: VerificationStatus,
     nextAccommodationStatus: NextAccommodationStatus,
     accommodationArrangementSubType: AccommodationArrangementSubType? = accommodationDetails.arrangementSubType,
-    accommodationArrangementSubTypeDescription: String? = accommodationDetails.arrangementSubTypeDescription
+    accommodationArrangementSubTypeDescription: String? = accommodationDetails.arrangementSubTypeDescription,
   ): ProposedAccommodationAggregate {
     val aggregate = ProposedAccommodationAggregate.hydrateNew(crn = "ABC1234")
     aggregate.updateProposedAccommodation(

@@ -9,14 +9,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
  */
 class DecisionTreeBuilder(
   private val engine: RulesEngine,
-  ) {
+) {
   /**
    * Starts building a RuleSetNode with the given ruleset and context updater. Returns a RuleSetNodeBuilder
    */
   fun ruleSet(
     name: String,
     ruleSet: RuleSet,
-    contextUpdater: ContextUpdater
+    contextUpdater: ContextUpdater,
   ) = RuleSetNodeBuilder(name, ruleSet, contextUpdater, engine)
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
@@ -27,10 +27,10 @@ class DecisionTreeBuilder(
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
   fun notEligible() = outcome(
-      ServiceResult(
-        serviceStatus =
-          ServiceStatus.NOT_ELIGIBLE,
-        suitableApplicationId = null,
-      )
-    )
+    ServiceResult(
+      serviceStatus =
+      ServiceStatus.NOT_ELIGIBLE,
+      suitableApplicationId = null,
+    ),
+  )
 }

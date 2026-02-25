@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Of
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
-import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 

@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class ApplicationSuitabilityRule: Cas1SuitabilityRule {
+class ApplicationSuitabilityRule : Cas1SuitabilityRule {
   override val description = "FAIL if candidate does not have a suitable application"
 
   override fun evaluate(data: DomainData): RuleResult {

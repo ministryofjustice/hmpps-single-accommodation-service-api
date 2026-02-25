@@ -8,5 +8,5 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  */
 data class EvaluationContext(
   val data: DomainData,
-  val currentResult: ServiceResult
+  val currentResult: ServiceResult,
 )

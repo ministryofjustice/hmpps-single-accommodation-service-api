@@ -40,7 +40,7 @@ open class ProposedAccommodationEntity(
   var county: String?,
   var country: String?,
   var uprn: String?,
-): BaseAuditedEntity()
+) : BaseAuditedEntity()
 
 enum class AccommodationArrangementType {
   PRISON,
@@ -69,13 +69,13 @@ enum class AccommodationSettledType {
 enum class VerificationStatus {
   NOT_CHECKED_YET,
   FAILED,
-  PASSED
+  PASSED,
 }
 
 enum class NextAccommodationStatus {
   YES,
   NO,
-  TO_BE_DECIDED
+  TO_BE_DECIDED,
 }
 
 enum class OffenderReleaseType {

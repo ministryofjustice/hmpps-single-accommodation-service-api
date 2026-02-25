@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor
 
-import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -20,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Dispatches inbox events to registered handlers. Each event is processed in isolation - handlers
@@ -73,7 +73,7 @@ class InboxEventDispatcher(
 
     val (partitions, noHandlerEvents) = partitionByKey(inboxEvents)
     noHandlerEvents.forEach {
-      log.error("No handler registered for event type [inboxEventId={}, eventType={}]", it.id, it.eventType,)
+      log.error("No handler registered for event type [inboxEventId={}, eventType={}]", it.id, it.eventType)
       skippedCount.incrementAndGet()
     }
     log.debug("Partitioned into {} groups", partitions.size)
@@ -104,7 +104,7 @@ class InboxEventDispatcher(
    * Returns partitions and events with no registered handler.
    */
   private fun partitionByKey(
-    inboxEvents: List<InboxEventEntity>
+    inboxEvents: List<InboxEventEntity>,
   ): PartitionByKey {
     val (withHandler, noHandler) =
       inboxEvents.partition { event ->
@@ -141,7 +141,7 @@ class InboxEventDispatcher(
         else -> skippedCount.incrementAndGet()
       }
     } catch (e: Exception) {
-      log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message,)
+      log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
       log.debug("Dispatch failure details", e)
       failureCount.incrementAndGet()
     }

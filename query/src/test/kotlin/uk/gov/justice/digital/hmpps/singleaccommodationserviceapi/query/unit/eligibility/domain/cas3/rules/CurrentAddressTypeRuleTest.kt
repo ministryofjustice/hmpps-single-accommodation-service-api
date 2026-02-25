@@ -98,9 +98,9 @@ class CurrentAddressTypeRuleTest {
       postTown = null,
       county = null,
       country = null,
-      uprn = null
+      uprn = null,
     ),
     createdBy = "Joe Bloggs",
-    createdAt = Instant.now()
+    createdAt = Instant.now(),
   )
 }

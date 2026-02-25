@@ -35,7 +35,4 @@ object ApiCallKeys {
   const val GET_SUITABLE_CAS2_HDC_APPLICATION = "getSuitableCas2HdcApplicationByCrn"
   const val GET_SUITABLE_CAS2_COURT_BAIL_APPLICATION = "getSuitableCas2CourtBailApplicationByCrn"
   const val GET_SUITABLE_CAS2_PRISON_BAIL_APPLICATION = "getSuitableCas2PrisonBailApplicationByCrn"
-
-
-
 }

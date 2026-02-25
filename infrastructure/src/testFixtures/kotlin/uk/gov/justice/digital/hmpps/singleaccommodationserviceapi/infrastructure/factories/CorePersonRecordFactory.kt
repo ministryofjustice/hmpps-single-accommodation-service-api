@@ -31,7 +31,7 @@ fun buildSex(
   code: SexCode = SexCode.F,
 ) = Sex(
   code = code,
-  description = when(code) {
+  description = when (code) {
     SexCode.F -> "Female"
     SexCode.M -> "Male"
     SexCode.N -> "Not Known / Not Recorded"

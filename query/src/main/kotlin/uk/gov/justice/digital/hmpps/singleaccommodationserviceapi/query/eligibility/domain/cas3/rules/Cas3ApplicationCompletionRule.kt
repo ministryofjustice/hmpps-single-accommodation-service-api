@@ -18,7 +18,6 @@ class Cas3ApplicationCompletionRule : Cas3CompletionRule {
   override val description = "FAIL if CAS3 application is not complete"
 
   override fun evaluate(data: DomainData): RuleResult {
-
     val isCompleteApplication = data.cas3Application?.applicationStatus == Cas3ApplicationStatus.PLACED
     val isCompletePlacement = data.cas3Application?.placementStatus in completedPlacementStatuses
 

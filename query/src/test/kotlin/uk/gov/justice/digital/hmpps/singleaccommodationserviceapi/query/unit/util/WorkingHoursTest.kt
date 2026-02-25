@@ -27,8 +27,7 @@ class WorkingHoursTest {
     require(monday.dayOfWeek == DayOfWeek.MONDAY) { "Default 'monday' date must be a Monday" }
   }
 
-  private fun atHour(date: LocalDate, hour: Int): ZonedDateTime =
-    ZonedDateTime.of(date, LocalTime.of(hour, 0), zone)
+  private fun atHour(date: LocalDate, hour: Int): ZonedDateTime = ZonedDateTime.of(date, LocalTime.of(hour, 0), zone)
 
   @Nested
   inner class MinusWorkingHours {

@@ -80,7 +80,7 @@ class NextAccommodationRuleTest {
       postTown = null,
       county = null,
       country = null,
-      uprn = null
+      uprn = null,
     ),
     startDate = null,
     endDate = null,

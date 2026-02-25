@@ -33,17 +33,18 @@ fun buildCas3Action(data: DomainData, clock: Clock) = when (data.cas3Application
 
   Cas3ApplicationStatus.AWAITING_PLACEMENT,
   Cas3ApplicationStatus.PENDING,
-    -> RuleAction(CREATE_PLACEMENT)
+  -> RuleAction(CREATE_PLACEMENT)
 
-  Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION
-    -> RuleAction(PROVIDE_INFORMATION)
+  Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+  -> RuleAction(PROVIDE_INFORMATION)
 
   Cas3ApplicationStatus.IN_PROGRESS,
   Cas3ApplicationStatus.SUBMITTED,
   Cas3ApplicationStatus.REJECTED,
   Cas3ApplicationStatus.INAPPLICABLE,
   Cas3ApplicationStatus.WITHDRAWN,
-  null -> buildStartCas3ReferralAction(data, clock)
+  null,
+  -> buildStartCas3ReferralAction(data, clock)
 }
 
 private fun buildStartCas3ReferralAction(data: DomainData, clock: Clock): RuleAction {

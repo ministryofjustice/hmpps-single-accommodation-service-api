@@ -24,8 +24,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class UserServiceTest {
   @MockK
   lateinit var httpAuthService: HttpAuthService
+
   @MockK
   lateinit var userRepository: UserRepository
+
   @MockK
   lateinit var probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService
 

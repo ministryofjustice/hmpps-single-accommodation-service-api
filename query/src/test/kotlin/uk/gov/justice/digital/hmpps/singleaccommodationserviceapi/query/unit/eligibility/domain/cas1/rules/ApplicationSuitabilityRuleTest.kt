@@ -22,19 +22,22 @@ class ApplicationSuitabilityRuleTest {
   private val description = "FAIL if candidate does not have a suitable application"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1ApplicationStatus::class, names = [
-    "AWAITING_ASSESSMENT",
-    "UNALLOCATED_ASSESSMENT",
-    "ASSESSMENT_IN_PROGRESS",
-    "AWAITING_PLACEMENT",
-    "REQUEST_FOR_FURTHER_INFORMATION",
-    "PENDING_PLACEMENT_REQUEST",
-  ])
+  @EnumSource(
+    value = Cas1ApplicationStatus::class,
+    names = [
+      "AWAITING_ASSESSMENT",
+      "UNALLOCATED_ASSESSMENT",
+      "ASSESSMENT_IN_PROGRESS",
+      "AWAITING_PLACEMENT",
+      "REQUEST_FOR_FURTHER_INFORMATION",
+      "PENDING_PLACEMENT_REQUEST",
+    ],
+  )
   fun `application is suitable (but not PLACEMENT_ALLOCATED) so rule passes`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      placementStatus = null
+      placementStatus = null,
     )
 
     val data = DomainData(
@@ -42,7 +45,7 @@ class ApplicationSuitabilityRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationSuitabilityRule().evaluate(data)
@@ -51,7 +54,7 @@ class ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.PASS,
-      )
+      ),
     )
   }
 
@@ -61,7 +64,7 @@ class ApplicationSuitabilityRuleTest {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      placementStatus = status
+      placementStatus = status,
     )
 
     val data = DomainData(
@@ -69,7 +72,7 @@ class ApplicationSuitabilityRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationSuitabilityRule().evaluate(data)
@@ -78,23 +81,26 @@ class ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.PASS,
-      )
+      ),
     )
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1ApplicationStatus::class, names = [
-    "EXPIRED",
-    "INAPPLICABLE",
-    "STARTED",
-    "REJECTED",
-    "WITHDRAWN",
-  ])
+  @EnumSource(
+    value = Cas1ApplicationStatus::class,
+    names = [
+      "EXPIRED",
+      "INAPPLICABLE",
+      "STARTED",
+      "REJECTED",
+      "WITHDRAWN",
+    ],
+  )
   fun `application does not have a suitable status so rule fails`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      placementStatus = null
+      placementStatus = null,
     )
 
     val data = DomainData(
@@ -102,7 +108,7 @@ class ApplicationSuitabilityRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationSuitabilityRule().evaluate(data)
@@ -111,7 +117,7 @@ class ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -122,7 +128,7 @@ class ApplicationSuitabilityRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = null
+      cas1Application = null,
     )
 
     val result = ApplicationSuitabilityRule().evaluate(data)
@@ -131,11 +137,7 @@ class ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 }
-
-
-
-

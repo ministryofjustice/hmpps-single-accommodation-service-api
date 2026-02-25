@@ -15,20 +15,23 @@ class STierRuleTest {
   private val crn = "ABC234"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = TierScore::class, names = [
-    "A3",
-    "A2",
-    "A1",
-    "B3",
-    "B2",
-    "B1",
-    "C3",
-    "C2",
-    "C1",
-    "D3",
-    "D2",
-    "D1",
-  ])
+  @EnumSource(
+    value = TierScore::class,
+    names = [
+      "A3",
+      "A2",
+      "A1",
+      "B3",
+      "B2",
+      "B1",
+      "C3",
+      "C2",
+      "C1",
+      "D3",
+      "D2",
+      "D1",
+    ],
+  )
   fun `candidate passes`(tier: TierScore) {
     val data = DomainData(
       crn = crn,
@@ -43,20 +46,23 @@ class STierRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = TierScore::class, names = [
-    "A3S",
-    "A2S",
-    "A1S",
-    "B3S",
-    "B2S",
-    "B1S",
-    "C3S",
-    "C2S",
-    "C1S",
-    "D3S",
-    "D2S",
-    "D1S",
-  ])
+  @EnumSource(
+    value = TierScore::class,
+    names = [
+      "A3S",
+      "A2S",
+      "A1S",
+      "B3S",
+      "B2S",
+      "B1S",
+      "C3S",
+      "C2S",
+      "C1S",
+      "D3S",
+      "D2S",
+      "D1S",
+    ],
+  )
   fun `candidate fails`(tier: TierScore) {
     val data = DomainData(
       crn = crn,

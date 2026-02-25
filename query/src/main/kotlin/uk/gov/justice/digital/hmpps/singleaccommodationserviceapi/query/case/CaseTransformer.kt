@@ -38,6 +38,5 @@ object CaseTransformer {
     cpr.lastName,
   ).joinToString(" ")
 
-
   fun toTierScore(tierScoreInfra: TierScoreInfra) = TierScore.valueOf(tierScoreInfra.name)
 }

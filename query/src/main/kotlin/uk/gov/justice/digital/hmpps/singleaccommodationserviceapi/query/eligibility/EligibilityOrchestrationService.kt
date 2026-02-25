@@ -38,7 +38,7 @@ class EligibilityOrchestrationService(
       GET_CAS_2_HDC_APPLICATION to { approvedPremisesCachingService.getSuitableCas2HdcApplication(crn) },
       GET_CAS_2_PRISON_BAIL_APPLICATION to { approvedPremisesCachingService.getSuitableCas2PrisonBailApplication(crn) },
       GET_CAS_2_COURT_BAIL_APPLICATION to { approvedPremisesCachingService.getSuitableCas2CourtBailApplication(crn) },
-      )
+    )
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
@@ -60,7 +60,7 @@ class EligibilityOrchestrationService(
       cas2HdcApplication,
       cas2PrisonBailApplication,
       cas2CourtBailApplication,
-      )
+    )
   }
 
   fun getPrisonerData(prisonerNumbers: List<String>): List<Prisoner> {

@@ -32,4 +32,3 @@ fun buildUserEntity(
   isEnabled = isEnabled,
   isActive = isActive,
 )
-

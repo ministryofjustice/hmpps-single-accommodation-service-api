@@ -7,6 +7,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.util.UUID
 
 @Repository
-interface UserRepository: JpaRepository<UserEntity, UUID> {
+interface UserRepository : JpaRepository<UserEntity, UUID> {
   fun findByUsernameAndAuthSource(username: String, authSource: AuthSource): UserEntity?
 }

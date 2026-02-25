@@ -8,11 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 
 data class EligibilityOrchestrationDto(
-    val crn: String,
-    val cpr: CorePersonRecord,
-    val tier: Tier,
-    val cas1Application: Cas1Application?,
-    val cas2HdcApplication: Cas2HdcApplication?,
-    val cas2PrisonBailApplication: Cas2PrisonBailApplication?,
-    val cas2CourtBailApplication: Cas2CourtBailApplication?,
+  val crn: String,
+  val cpr: CorePersonRecord,
+  val tier: Tier,
+  val cas1Application: Cas1Application?,
+  val cas2HdcApplication: Cas2HdcApplication?,
+  val cas2PrisonBailApplication: Cas2PrisonBailApplication?,
+  val cas2CourtBailApplication: Cas2CourtBailApplication?,
 )

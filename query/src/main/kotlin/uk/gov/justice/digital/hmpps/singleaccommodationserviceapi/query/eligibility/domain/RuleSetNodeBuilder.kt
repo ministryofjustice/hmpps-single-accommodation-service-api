@@ -21,13 +21,11 @@ class RuleSetNodeBuilder(
     return this
   }
 
-  fun build(): RuleSetNode {
-    return RuleSetNode(
-      ruleSet = ruleSet,
-      engine = engine,
-      onPass = requireNotNull(onPassNode) {"onPass node not set for RuleSetNode $name" },
-      onFail = requireNotNull(onFailNode) {"onFail node not set for RuleSetNode $name" },
-      contextUpdater = contextUpdater,
-    )
-  }
+  fun build(): RuleSetNode = RuleSetNode(
+    ruleSet = ruleSet,
+    engine = engine,
+    onPass = requireNotNull(onPassNode) { "onPass node not set for RuleSetNode $name" },
+    onFail = requireNotNull(onFailNode) { "onFail node not set for RuleSetNode $name" },
+    contextUpdater = contextUpdater,
+  )
 }
