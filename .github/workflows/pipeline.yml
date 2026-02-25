@@ -50,7 +50,6 @@ jobs:
     secrets: inherit
   integration_test:
     name: Integration Tests
-    needs: kotlin_validate
     uses: ./.github/workflows/verify_gradle.yml # WORKFLOW_VERSION
     with:
 #      run only the integration tests. This is a custom task in build.gradle.kts
