@@ -1,44 +1,75 @@
-Testcase description,Reference date,Sex,Tier,Release date,CAS1 application status,CAS1 placement status,CAS1 status,CAS1 actions, Actions are upcoming
-TC1 - existing CAS1 overrides timing,01/12/2025,M,A2,01/08/2026,PLACEMENT_ALLOCATED,UPCOMING,CONFIRMED,None, false
-TC2 - existing CAS1 overrides S-tier ineligibility,01/12/2025,F,A3S,01/03/2026,PLACEMENT_ALLOCATED,UPCOMING,CONFIRMED,None, false
-"TC3 - male eligible, inside 1 year window",01/12/2025,M,A3,01/09/2026,None,None,NOT_STARTED,Start approved premise referral, false
-"TC4 - male eligible, exactly 1 year",01/12/2025,M,B1,01/12/2026,None,None,NOT_STARTED,Start approved premise referral, false
-"TC5 - male eligible, too early to start",01/12/2025,M,B2,01/01/2027,None,None,UPCOMING,Start approved premise referral in 31 days, true
-TC6 - male ineligible tier,01/12/2025,M,C3,01/03/2026,None,None,NOT_ELIGIBLE,None, false
-TC7 - male S-tier ineligible,01/12/2025,M,A3S,01/02/2026,None,None,NOT_ELIGIBLE,None, false
-"TC8 - female eligible, inside 1 year",01/12/2025,F,A1,01/02/2026,None,None,NOT_STARTED,Start approved premise referral, false
-"TC9 - female eligible tier, too early to start",01/12/2025,F,C3,01/01/2027,None,None,UPCOMING,Start approved premise referral in 31 days, true
-TC10 - female C3 in window,01/12/2025,F,C3,01/04/2026,None,None,NOT_STARTED,Start approved premise referral, false
-TC11 - female ineligible tier,01/12/2025,F,C2,01/03/2026,None,None,NOT_ELIGIBLE,None, false
-TC12 - female S-tier ineligible,01/12/2025,F,B1S,01/01/2026,None,None,NOT_ELIGIBLE,None, false
-"TC13 - male eligible tier, far from release",01/12/2025,M,B3,01/06/2027,None,None,UPCOMING,Start approved premise referral in 182 days, true
-"TC14 - female eligible tier, far from release",01/12/2025,F,A2,01/12/2027,None,None,UPCOMING,Start approved premise referral in 365 days, true
-TC15 - male ineligible tier far from release,01/12/2025,M,C3,01/10/2026,None,None,NOT_ELIGIBLE,None, false
-"TC16 - inside window, start referral (male A3)",01/12/2025,M,A3,01/03/2026,None,None,NOT_STARTED,Start approved premise referral, false
-"TC17 - boundary 1 year, start referral (female B3)",01/12/2025,F,B3,01/12/2026,None,None,NOT_STARTED,Start approved premise referral, false
-"TC18 - outside window, upcoming prompt (male B2)",01/12/2025,M,B2,01/07/2027,None,None,UPCOMING,Start approved premise referral in 212 days, true
-TC19 - ineligible tier (female C2),01/12/2025,F,C2,01/03/2026,None,None,NOT_ELIGIBLE,None, false
-"TC20 - suitable app, no placement, make placement request",01/12/2025,M,A2,01/03/2026,AWAITING_PLACEMENT,None,CONFIRMED,Create Placement, false
-"TC21 - placement allocated, confirmed (female A1)",01/12/2025,F,A1,01/02/2026,PLACEMENT_ALLOCATED,UPCOMING,CONFIRMED,None, false
-"TC22 - placement cancelled, make placement request",01/12/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,CANCELLED,CONFIRMED,Create Placement, false
-TC23 - exactly 1 day before threshold,31/12/2025,M,A2,01/01/2027,None,None,UPCOMING,Start approved premise referral in 1 day, true
-TC24 - release date is today,01/12/2025,M,A1,01/12/2025,None,None,NOT_STARTED,Start approved premise referral, false
-"TC25 - different reference date, leap year",29/02/2024,F,A2,29/08/2024,None,None,NOT_STARTED,Start approved premise referral, false
-TC26 - placement upcoming overrides eligibility within 10 days,01/12/2025,M,A1,11/12/2025,PLACEMENT_ALLOCATED,UPCOMING,CONFIRMED,None, false
-TC27 - awaiting placement needs placement request,01/12/2025,M,B1,11/12/2025,AWAITING_PLACEMENT,None,CONFIRMED,Create Placement, false
-TC28 - departed placement needs new request,01/12/2025,M,A1,11/12/2025,PLACEMENT_ALLOCATED,DEPARTED,CONFIRMED,Create Placement, false
-TC29 - not arrived placement needs new request,01/12/2025,M,B3,11/12/2025,PLACEMENT_ALLOCATED,NOT_ARRIVED,CONFIRMED,Create Placement, false
-TC30 - non-specified sex eligible C3 tier within window,01/12/2025,NS,C3,01/03/2026,None,None,NOT_STARTED,Start approved premise referral, false
-TC31 - non-recorded sex eligible A1 tier within window,01/12/2025,N,A1,01/03/2026,None,None,NOT_STARTED,Start approved premise referral, false
-TC32 - non-specified sex ineligible C1 tier,01/12/2025,NS,C1,01/03/2026,None,None,NOT_ELIGIBLE,None, false
-TC33 - non-recorded sex ineligible D2 tier,01/12/2025,N,D2,01/03/2026,None,None,NOT_ELIGIBLE,None, false
-TC34 - non-specified S-tier ineligible,01/12/2025,NS,B2S,01/03/2026,None,None,NOT_ELIGIBLE,None, false
-TC35 - non-recorded outside 1 year window,01/12/2025,N,A2,01/01/2027,None,None,UPCOMING,Start approved premise referral in 31 days, true
-TC36 - unsuitable started application,01/12/2025,N,A2,01/01/2026,STARTED,None,NOT_STARTED,Start approved premise referral, false
-TC37 - unsuitable expired application,01/12/2025,N,A2,01/01/2026,EXPIRED,None,WITHDRAWN,Start approved premise referral, false
-TC38 - unsuitable withdrawn application,01/12/2025,N,A2,01/01/2026,WITHDRAWN,None,WITHDRAWN,Start approved premise referral, false
-TC39 - unsuitable inapplicable application,01/12/2025,N,A2,01/01/2026,INAPPLICABLE,None,NOT_STARTED,Start approved premise referral, false
-TC40 - suitable require info application,01/12/2025,N,A2,01/01/2026,REQUEST_FOR_FURTHER_INFORMATION,None,SUBMITTED,Provide Information, false
-TC41 - ineligible applicant with completed application,01/12/2025,N,A2S,01/01/2026,PLACEMENT_ALLOCATED,ARRIVED,CONFIRMED,None, false
-TC42 - ineligible applicant with suitable application,01/12/2025,N,A2S,01/01/2026,PENDING_PLACEMENT_REQUEST,None,CONFIRMED,Create Placement, false
-TC43 - ineligible applicant with no release date,01/12/2025,N,A2,None,None,None,NOT_ELIGIBLE,None, false
+Test case ID,Testcase description,Reference date,Sex,Tier,Release date,CAS1 application status,CAS1 placement status,CAS1 status,CAS1 action,CAS1 link
+TC1,eligible,01/01/2025,M,A1,01/02/2025,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC2,eligible,01/01/2025,M,A1,01/02/2025,AWAITING_ASSESSMENT,None,SUBMITTED,Wait for approved premised (CAS1) assessment result,View application
+TC3,eligible,01/01/2025,M,A1,01/02/2025,UNALLOCATED_ASSESSMENT,None,SUBMITTED,Wait for approved premised (CAS1) assessment result,View application
+TC4,eligible,01/01/2025,M,A1,01/02/2025,ASSESSMENT_IN_PROGRESS,None,SUBMITTED,Wait for approved premised (CAS1) assessment result,View application
+TC5,eligible,01/01/2025,M,A1,01/02/2025,AWAITING_PLACEMENT,None,PLACEMENT_BOOKED,Create approved premise (CAS1) placement request,Create new placement request
+TC6,eligible,01/01/2025,M,A1,01/02/2025,REQUEST_FOR_FURTHER_INFORMATION,None,INFO_REQUESTED,Provide further information on approved premise (CAS1) application,View application
+TC7,eligible,01/01/2025,M,A1,01/02/2025,PENDING_PLACEMENT_REQUEST,None,PLACEMENT_BOOKED,Create approved premise (CAS1) placement request,Create new placement request
+TC8,eligible,01/01/2025,M,A1,01/02/2025,STARTED,None,NOT_SUBMITTED,Continue approved premise (CAS1) application,Continue application
+TC9,eligible,01/01/2025,M,A1,01/02/2025,REJECTED,None,REJECTED,Start approved premise (CAS1) application,Start new application
+TC10,eligible,01/01/2025,M,A1,01/02/2025,INAPPLICABLE,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC11,eligible,01/01/2025,M,A1,01/02/2025,WITHDRAWN,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC12,eligible,01/01/2025,M,A1,01/02/2025,EXPIRED,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC14,eligible,01/01/2025,M,A1,01/02/2025,PLACEMENT_ALLOCATED,DEPARTED,PLACEMENT_BOOKED,Create approved premise (CAS1) placement request,Create new placement request
+TC15,eligible,01/01/2025,M,A1,01/02/2025,PLACEMENT_ALLOCATED,CANCELLED,PLACEMENT_CANCELLED,Create approved premise (CAS1) placement request,Create new placement request
+TC16,eligible,01/01/2025,M,A1,01/02/2025,PLACEMENT_ALLOCATED,NOT_ARRIVED,NOT_ARRIVED,Create approved premise (CAS1) placement request,Create new placement request
+TC17,eligible,01/01/2025,M,A1,01/02/2025,PLACEMENT_ALLOCATED,UPCOMING,PLACEMENT_BOOKED,None,View application
+TC18,eligible,01/01/2025,M,A1,01/02/2025,PLACEMENT_ALLOCATED,ARRIVED,PLACEMENT_BOOKED,None,View application
+TC19,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,None,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC20,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,AWAITING_ASSESSMENT,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC21,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,UNALLOCATED_ASSESSMENT,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC22,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,ASSESSMENT_IN_PROGRESS,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC23,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,AWAITING_PLACEMENT,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC24,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,REQUEST_FOR_FURTHER_INFORMATION,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC25,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PENDING_PLACEMENT_REQUEST,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC26,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,STARTED,None,UPCOMING,Continue approved premise (CAS1) application,None
+TC27,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,REJECTED,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC28,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,INAPPLICABLE,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC29,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,WITHDRAWN,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC30,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,EXPIRED,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC31,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,None,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC32,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,DEPARTED,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC33,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,CANCELLED,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC34,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,NOT_ARRIVED,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC35,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,UPCOMING,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC36,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,PLACEMENT_ALLOCATED,ARRIVED,UPCOMING,Start approved premise (CAS1) application in 31 days,None
+TC37,eligible but no release date,01/01/2025,M,A1,None,None,None,NOT_ELIGIBLE,None,None
+TC38,eligible but no release date,01/01/2025,M,A1,None,AWAITING_ASSESSMENT,None,NOT_ELIGIBLE,None,None
+TC39,eligible but no release date,01/01/2025,M,A1,None,UNALLOCATED_ASSESSMENT,None,NOT_ELIGIBLE,None,None
+TC40,eligible but no release date,01/01/2025,M,A1,None,ASSESSMENT_IN_PROGRESS,None,NOT_ELIGIBLE,None,None
+TC41,eligible but no release date,01/01/2025,M,A1,None,AWAITING_PLACEMENT,None,NOT_ELIGIBLE,None,None
+TC42,eligible but no release date,01/01/2025,M,A1,None,REQUEST_FOR_FURTHER_INFORMATION,None,NOT_ELIGIBLE,None,None
+TC43,eligible but no release date,01/01/2025,M,A1,None,PENDING_PLACEMENT_REQUEST,None,NOT_ELIGIBLE,None,None
+TC44,eligible but no release date,01/01/2025,M,A1,None,STARTED,None,NOT_ELIGIBLE,None,None
+TC45,eligible but no release date,01/01/2025,M,A1,None,REJECTED,None,NOT_ELIGIBLE,None,None
+TC46,eligible but no release date,01/01/2025,M,A1,None,INAPPLICABLE,None,NOT_ELIGIBLE,None,None
+TC47,eligible but no release date,01/01/2025,M,A1,None,WITHDRAWN,None,NOT_ELIGIBLE,None,None
+TC48,eligible but no release date,01/01/2025,M,A1,None,EXPIRED,None,NOT_ELIGIBLE,None,None
+TC49,eligible but no release date,01/01/2025,M,A1,None,PLACEMENT_ALLOCATED,None,NOT_ELIGIBLE,None,None
+TC50,eligible but no release date,01/01/2025,M,A1,None,PLACEMENT_ALLOCATED,None,NOT_ELIGIBLE,None,None
+TC51,eligible but no release date,01/01/2025,M,A1,None,PLACEMENT_ALLOCATED,None,NOT_ELIGIBLE,None,None
+TC52,eligible but no release date,01/01/2025,M,A1,None,PLACEMENT_ALLOCATED,None,NOT_ELIGIBLE,None,None
+TC53,eligible but no release date,01/01/2025,M,A1,None,PLACEMENT_ALLOCATED,None,NOT_ELIGIBLE,None,None
+TC54,eligible but no release date,01/01/2025,M,A1,None,PLACEMENT_ALLOCATED,None,NOT_ELIGIBLE,None,None
+TC55,ineligible,01/01/2025,M,A1S,01/02/2025,None,None,NOT_ELIGIBLE,None,None
+TC56,ineligible but with application,01/01/2025,M,A1S,01/02/2025,AWAITING_ASSESSMENT,None,SUBMITTED,Wait for approved premised (CAS1) assessment result,View application
+TC57,ineligible but with application,01/01/2025,M,A1S,01/02/2025,UNALLOCATED_ASSESSMENT,None,SUBMITTED,Wait for approved premised (CAS1) assessment result,View application
+TC58,ineligible but with application,01/01/2025,M,A1S,01/02/2025,ASSESSMENT_IN_PROGRESS,None,SUBMITTED,Wait for approved premised (CAS1) assessment result,View application
+TC59,ineligible but with application,01/01/2025,M,A1S,01/02/2025,AWAITING_PLACEMENT,None,PLACEMENT_BOOKED,Create approved premise (CAS1) placement request,Create new placement request
+TC60,ineligible but with application,01/01/2025,M,A1S,01/02/2025,REQUEST_FOR_FURTHER_INFORMATION,None,INFO_REQUESTED,Provide further information on approved premise (CAS1) application,View application
+TC61,ineligible but with application,01/01/2025,M,A1S,01/02/2025,PENDING_PLACEMENT_REQUEST,None,PLACEMENT_BOOKED,Create approved premise (CAS1) placement request,Create new placement request
+TC62,ineligible but with application,01/01/2025,M,A1S,01/02/2025,STARTED,None,NOT_ELIGIBLE,None,None
+TC63,ineligible but with application,01/01/2025,M,A1S,01/02/2025,REJECTED,None,NOT_ELIGIBLE,None,None
+TC64,ineligible but with application,01/01/2025,M,A1S,01/02/2025,INAPPLICABLE,None,NOT_ELIGIBLE,None,None
+TC65,ineligible but with application,01/01/2025,M,A1S,01/02/2025,WITHDRAWN,None,NOT_ELIGIBLE,None,None
+TC66,ineligible but with application,01/01/2025,M,A1S,01/02/2025,EXPIRED,None,NOT_ELIGIBLE,None,None
+TC68,ineligible but with application,01/01/2025,M,A1S,01/02/2025,PLACEMENT_ALLOCATED,DEPARTED,PLACEMENT_BOOKED,Create approved premise (CAS1) placement request,Create new placement request
+TC69,ineligible but with application,01/01/2025,M,A1S,01/02/2025,PLACEMENT_ALLOCATED,CANCELLED,PLACEMENT_CANCELLED,Create approved premise (CAS1) placement request,Create new placement request
+TC70,ineligible but with application,01/01/2025,M,A1S,01/02/2025,PLACEMENT_ALLOCATED,NOT_ARRIVED,NOT_ARRIVED,Create approved premise (CAS1) placement request,Create new placement request
+TC71,ineligible but with application,01/01/2025,M,A1S,01/02/2025,PLACEMENT_ALLOCATED,UPCOMING,PLACEMENT_BOOKED,None,View application
+TC72,ineligible but with application,01/01/2025,M,A1S,01/02/2025,PLACEMENT_ALLOCATED,ARRIVED,PLACEMENT_BOOKED,None,View application
+TC73,eligible but release date in the past,01/01/2025,M,A1,01/12/2024,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC74,eligible but release date is today,01/01/2025,M,A1,01/01/2025,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC75,eligible with release date exactly one year into the future,01/01/2025,M,A1,01/01/2026,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC76,eligible with release date exactly one year and one day into the future,01/01/2025,M,A1,02/01/2026,None,None,UPCOMING,Start approved premise (CAS1) application in 1 day,None

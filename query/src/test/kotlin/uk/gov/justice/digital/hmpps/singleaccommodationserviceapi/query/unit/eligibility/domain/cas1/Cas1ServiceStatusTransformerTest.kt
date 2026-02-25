@@ -5,86 +5,156 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ServiceStatusTransformer
+import java.util.UUID
 import java.util.stream.Stream
 
 class Cas1ServiceStatusTransformerTest {
 
   private companion object {
 
+    val id = UUID.randomUUID()
+
     @JvmStatic
     fun provideCas1ApplicationStatusInputsAndOutputs(): Stream<Arguments?> =
       Stream.of(
         Arguments.of(
-          Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-          false,
-          ServiceStatus.SUBMITTED,
-        ),
-        Arguments.of(
-          Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
-          false,
-          ServiceStatus.SUBMITTED,
-        ),
-        Arguments.of(
-          Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
-          false,
-          ServiceStatus.SUBMITTED,
-        ),
-        Arguments.of(
-          Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+            null,
+          ),
           true,
           ServiceStatus.SUBMITTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
+            null,
+          ),
           true,
-          ServiceStatus.CONFIRMED,
+          ServiceStatus.SUBMITTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.AWAITING_PLACEMENT,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
+            null,
+          ),
           true,
-          ServiceStatus.CONFIRMED,
+          ServiceStatus.SUBMITTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+            null,
+          ),
           true,
-          ServiceStatus.CONFIRMED,
+          ServiceStatus.INFO_REQUESTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.STARTED,
-          false,
-          ServiceStatus.UPCOMING,
-        ),
-        Arguments.of(
-          Cas1ApplicationStatus.STARTED,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+            null,
+          ),
           true,
-          ServiceStatus.NOT_STARTED,
+          ServiceStatus.PLACEMENT_BOOKED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.REJECTED,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.AWAITING_PLACEMENT,
+            null,
+          ),
+          true,
+          ServiceStatus.PLACEMENT_BOOKED,
+        ),
+        Arguments.of(
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            Cas1PlacementStatus.ARRIVED,
+          ),
+          true,
+          ServiceStatus.PLACEMENT_BOOKED,
+        ),
+        Arguments.of(
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            Cas1PlacementStatus.UPCOMING,
+          ),
+          true,
+          ServiceStatus.PLACEMENT_BOOKED,
+        ),
+        Arguments.of(
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            Cas1PlacementStatus.NOT_ARRIVED,
+          ),
+          true,
+          ServiceStatus.NOT_ARRIVED,
+        ),
+        Arguments.of(
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.STARTED,
+            null,
+          ),
+          true,
+          ServiceStatus.NOT_SUBMITTED,
+        ),
+        Arguments.of(
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.REJECTED,
+            null,
+          ),
           true,
           ServiceStatus.REJECTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.INAPPLICABLE,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.INAPPLICABLE,
+            null,
+          ),
           true,
           ServiceStatus.NOT_STARTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.INAPPLICABLE,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.INAPPLICABLE,
+            null,
+          ),
           false,
           ServiceStatus.UPCOMING,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.WITHDRAWN,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.WITHDRAWN,
+            null,
+          ),
           true,
-          ServiceStatus.WITHDRAWN,
+          ServiceStatus.NOT_STARTED,
         ),
         Arguments.of(
-          Cas1ApplicationStatus.EXPIRED,
+          Cas1Application(
+            id,
+            Cas1ApplicationStatus.EXPIRED,
+            null,
+          ),
           true,
-          ServiceStatus.WITHDRAWN,
+          ServiceStatus.NOT_STARTED,
         ),
         Arguments.of(
           null,
@@ -102,10 +172,10 @@ class Cas1ServiceStatusTransformerTest {
   @ParameterizedTest
   @MethodSource("provideCas1ApplicationStatusInputsAndOutputs")
   fun `transform to serviceStatus`(
-    applicationStatus: Cas1ApplicationStatus?,
-    hasImminentActions: Boolean,
+    application: Cas1Application?,
+    isWithinOneYear: Boolean,
     serviceStatus: ServiceStatus,
   ) {
-    assertThat(Cas1ServiceStatusTransformer.toServiceStatus(applicationStatus, hasImminentActions)).isEqualTo(serviceStatus)
+    assertThat(Cas1ServiceStatusTransformer.toServiceStatus(application, isWithinOneYear)).isEqualTo(serviceStatus)
   }
 }

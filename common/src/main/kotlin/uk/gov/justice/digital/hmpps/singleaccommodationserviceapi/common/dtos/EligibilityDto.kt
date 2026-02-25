@@ -17,6 +17,7 @@ data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val suitableApplicationId: UUID? = null,
   val action: RuleAction? = null,
+  val link: String? = null,
 )
 
 data class RuleAction(
@@ -34,8 +35,13 @@ enum class ServiceStatus {
   NOT_ELIGIBLE, // NO APPLICATION
   UPCOMING, // NO APPLICATION
   NOT_STARTED,
+  NOT_SUBMITTED,
+  INFO_REQUESTED,
   REJECTED,
   WITHDRAWN,
   SUBMITTED,
+  PLACEMENT_BOOKED,
   CONFIRMED,
+  NOT_ARRIVED,
+  PLACEMENT_CANCELLED
 }
