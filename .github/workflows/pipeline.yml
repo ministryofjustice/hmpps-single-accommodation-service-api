@@ -60,7 +60,6 @@ jobs:
       postgres-username: sas_user
       postgres-password: sas_psw
       postgres-db: sas_db
-      redis-tag: latest
       java-version: '25'
     secrets: inherit
   build:
