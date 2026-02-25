@@ -1,3 +1,5 @@
+import dev.detekt.gradle.plugin.getSupportedKotlinVersion
+
 plugins {
   alias(libs.plugins.hmpps.spring.boot)
   alias(libs.plugins.kotlin.spring)
@@ -40,6 +42,14 @@ kotlin {
   jvmToolchain(25)
   compilerOptions {
     freeCompilerArgs.addAll("-Xannotation-default-target=param-property")
+  }
+}
+
+configurations.detekt {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "org.jetbrains.kotlin") {
+      useVersion(getSupportedKotlinVersion())
+    }
   }
 }
 
