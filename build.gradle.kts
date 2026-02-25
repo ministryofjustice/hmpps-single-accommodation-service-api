@@ -90,6 +90,7 @@ subprojects {
   pluginManager.apply("org.jetbrains.kotlin.jvm")
   pluginManager.apply("org.jetbrains.kotlin.plugin.spring")
   pluginManager.apply("org.jetbrains.kotlin.plugin.jpa")
+  pluginManager.apply("org.jlleitschuh.gradle.ktlint")
 
   detekt {
     config.setFrom("../detekt/detekt.yml")
