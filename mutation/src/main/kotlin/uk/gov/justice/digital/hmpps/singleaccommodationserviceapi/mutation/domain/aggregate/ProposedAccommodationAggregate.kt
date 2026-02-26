@@ -25,7 +25,7 @@ class ProposedAccommodationAggregate private constructor(
   private var verificationStatus: VerificationStatus? = null,
   private var nextAccommodationStatus: NextAccommodationStatus? = null,
   private var offenderReleaseType: OffenderReleaseType? = null,
-  private var address: AccommodationAddressDetails ?= null,
+  private var address: AccommodationAddressDetails? = null,
   private var startDate: LocalDate? = null,
   private var endDate: LocalDate? = null,
 ) {

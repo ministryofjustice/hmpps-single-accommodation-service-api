@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import java.time.Instant
 import java.util.UUID
 
@@ -21,7 +21,7 @@ class ProposedAccommodationApplicationService(
   private val jsonMapper: JsonMapper,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val outboxEventRepository: OutboxEventRepository,
-  private val userService: UserService
+  private val userService: UserService,
 ) {
   @Transactional
   fun createProposedAccommodation(crn: String, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
@@ -47,7 +47,7 @@ class ProposedAccommodationApplicationService(
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       createdBy = user.name,
-      createdAt = persistedRecord.createdAt!!
+      createdAt = persistedRecord.createdAt!!,
     )
   }
 
@@ -77,7 +77,7 @@ class ProposedAccommodationApplicationService(
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       createdBy = createdByUser.name,
-      createdAt = updatedRecord.createdAt!!
+      createdAt = updatedRecord.createdAt!!,
     )
   }
 

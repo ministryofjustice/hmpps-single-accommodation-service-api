@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
 import java.time.Instant
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityOffenderReleaseType
@@ -71,38 +71,37 @@ object ProposedAccommodationMapper {
     entity.uprn = snapshot.address.uprn
   }
 
-  fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate =
-    ProposedAccommodationAggregate.hydrateExisting(
-      id = entity.id,
-      crn = entity.crn,
-      name = entity.name,
-      arrangementType = AccommodationArrangementType.valueOf(entity.arrangementType.name),
-      arrangementSubType = entity.arrangementSubType?.let { AccommodationArrangementSubType.valueOf(it.name) },
-      arrangementSubTypeDescription = entity.arrangementSubTypeDescription,
-      settledType = AccommodationSettledType.valueOf(entity.settledType.name),
-      verificationStatus = VerificationStatus.valueOf(entity.verificationStatus!!.name),
-      nextAccommodationStatus = NextAccommodationStatus.valueOf(entity.nextAccommodationStatus!!.name),
-      offenderReleaseType = entity.offenderReleaseType?.let { OffenderReleaseType.valueOf(it.name) },
-      address = AccommodationAddressDetails(
-        postcode = entity.postcode,
-        subBuildingName = entity.subBuildingName,
-        buildingName = entity.buildingName,
-        buildingNumber = entity.buildingNumber,
-        thoroughfareName = entity.throughfareName,
-        dependentLocality = entity.dependentLocality,
-        postTown = entity.postTown,
-        county = entity.county,
-        country = entity.country,
-        uprn = entity.uprn,
-      ),
-      startDate = entity.startDate,
-      endDate = entity.endDate,
-    )
+  fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
+    id = entity.id,
+    crn = entity.crn,
+    name = entity.name,
+    arrangementType = AccommodationArrangementType.valueOf(entity.arrangementType.name),
+    arrangementSubType = entity.arrangementSubType?.let { AccommodationArrangementSubType.valueOf(it.name) },
+    arrangementSubTypeDescription = entity.arrangementSubTypeDescription,
+    settledType = AccommodationSettledType.valueOf(entity.settledType.name),
+    verificationStatus = VerificationStatus.valueOf(entity.verificationStatus!!.name),
+    nextAccommodationStatus = NextAccommodationStatus.valueOf(entity.nextAccommodationStatus!!.name),
+    offenderReleaseType = entity.offenderReleaseType?.let { OffenderReleaseType.valueOf(it.name) },
+    address = AccommodationAddressDetails(
+      postcode = entity.postcode,
+      subBuildingName = entity.subBuildingName,
+      buildingName = entity.buildingName,
+      buildingNumber = entity.buildingNumber,
+      thoroughfareName = entity.throughfareName,
+      dependentLocality = entity.dependentLocality,
+      postTown = entity.postTown,
+      county = entity.county,
+      country = entity.country,
+      uprn = entity.uprn,
+    ),
+    startDate = entity.startDate,
+    endDate = entity.endDate,
+  )
 
   fun toDto(
     snapshot: ProposedAccommodationSnapshot,
     createdBy: String,
-    createdAt: Instant
+    createdAt: Instant,
   ) = AccommodationDetail(
     id = snapshot.id,
     crn = snapshot.crn,

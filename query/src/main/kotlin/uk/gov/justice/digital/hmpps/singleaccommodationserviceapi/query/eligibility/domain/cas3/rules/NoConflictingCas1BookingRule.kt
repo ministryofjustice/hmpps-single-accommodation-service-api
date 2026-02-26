@@ -17,8 +17,8 @@ class NoConflictingCas1BookingRule : Cas3EligibilityRule {
   override val description = "FAIL if CAS1 booking exists for upcoming release"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val hasConflictingCas1Booking = data.cas1Application?.applicationStatus == Cas1ApplicationStatus.PLACEMENT_ALLOCATED
-      && data.cas1Application.placementStatus in completedCas1PlacementStatuses
+    val hasConflictingCas1Booking = data.cas1Application?.applicationStatus == Cas1ApplicationStatus.PLACEMENT_ALLOCATED &&
+      data.cas1Application.placementStatus in completedCas1PlacementStatuses
 
     return RuleResult(
       description = description,

@@ -13,8 +13,9 @@ enum class SingleAccommodationServiceDomainEventType(
 ) {
   SAS_ACCOMMODATION_UPDATED(
     "sas.accommodation.updated",
-    "SAS accommodation has been updated"
-  );
+    "SAS accommodation has been updated",
+  ),
+  ;
 
   companion object {
     fun from(eventType: String): SingleAccommodationServiceDomainEventType? = entries.find { it.name == eventType }

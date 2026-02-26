@@ -14,6 +14,5 @@ class HttpAuthService {
     return principal
   }
 
-  fun getDeliusPrincipalOrThrow(): AuthAwareAuthenticationToken =
-    getPrincipalOrThrow(listOf("delius"))
+  fun getDeliusPrincipalOrThrow(): AuthAwareAuthenticationToken = getPrincipalOrThrow(listOf("delius"))
 }

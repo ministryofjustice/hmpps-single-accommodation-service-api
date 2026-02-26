@@ -27,5 +27,5 @@ data class UserEntity(
 )
 
 enum class AuthSource {
-  DELIUS
+  DELIUS,
 }

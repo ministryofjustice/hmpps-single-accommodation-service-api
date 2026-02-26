@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.util.UUID
 
-
 class CaseAggregateTest {
 
   @Test

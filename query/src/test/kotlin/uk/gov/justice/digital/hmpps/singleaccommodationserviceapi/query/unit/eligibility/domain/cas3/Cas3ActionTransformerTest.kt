@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_CAS3_REFERRAL
@@ -112,7 +111,7 @@ class Cas3ActionTransformerTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
-      cas3Application = cas3Application
+      cas3Application = cas3Application,
     )
 
     val result = buildCas3Action(data, clock)
@@ -134,7 +133,7 @@ class Cas3ActionTransformerTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
-      cas3Application = cas3Application
+      cas3Application = cas3Application,
     )
 
     val result = buildCas3Action(data, clock)
@@ -152,8 +151,8 @@ class Cas3ActionTransformerTest {
       cas3Application = Cas3Application(
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-        placementStatus = null
-      )
+        placementStatus = null,
+      ),
     )
 
     val result = buildCas3Action(data, clock)
@@ -175,7 +174,7 @@ class Cas3ActionTransformerTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusDays(10),
-      cas3Application = cas3Application
+      cas3Application = cas3Application,
     )
 
     val result = buildCas3Action(data, clock)
@@ -193,8 +192,8 @@ class Cas3ActionTransformerTest {
       cas3Application = Cas3Application(
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = null
-      )
+        placementStatus = null,
+      ),
     )
 
     Assertions.assertThatThrownBy { buildCas3Action(data, clock) }
@@ -213,8 +212,8 @@ class Cas3ActionTransformerTest {
       cas3Application = Cas3Application(
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = status
-      )
+        placementStatus = status,
+      ),
     )
 
     Assertions.assertThatThrownBy { buildCas3Action(data, clock) }

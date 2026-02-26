@@ -14,7 +14,7 @@ import kotlin.String
 class UserService(
   private val httpAuthService: HttpAuthService,
   private val userRepository: UserRepository,
-  private val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService
+  private val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
 ) {
   fun getDeliusUserForRequest(): UserEntity {
     val username = httpAuthService.getDeliusPrincipalOrThrow().name

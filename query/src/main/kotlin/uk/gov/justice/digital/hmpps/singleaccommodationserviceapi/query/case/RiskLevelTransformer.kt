@@ -20,6 +20,5 @@ object RiskLevelTransformer {
     return toRiskLevel(highestRiskLevel)
   }
 
-  fun toRiskLevel(riskLevelInfra: RiskLevelInfra?) =
-    if (riskLevelInfra != null) RiskLevel.valueOf(riskLevelInfra.name) else null
+  fun toRiskLevel(riskLevelInfra: RiskLevelInfra?) = if (riskLevelInfra != null) RiskLevel.valueOf(riskLevelInfra.name) else null
 }

@@ -19,7 +19,7 @@ class RulesEngine(
 
     return when {
       !hasFail -> RuleSetStatus.PASS
-      else ->  RuleSetStatus.FAIL
+      else -> RuleSetStatus.FAIL
     }
   }
 }

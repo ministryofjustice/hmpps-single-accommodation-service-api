@@ -42,7 +42,7 @@ class OAuth2ResourceServerSecurityConfiguration {
                 "status": 401,
                 "detail": "A valid HMPPS Auth JWT must be supplied via bearer authentication to access this endpoint"
               }
-              """.trimIndent()
+              """.trimIndent(),
             )
           }
         }

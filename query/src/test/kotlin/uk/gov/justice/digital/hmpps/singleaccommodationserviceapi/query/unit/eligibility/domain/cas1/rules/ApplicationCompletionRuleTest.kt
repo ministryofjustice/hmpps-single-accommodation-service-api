@@ -62,7 +62,7 @@ class ApplicationCompletionRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationCompletionRule().evaluate(data)
@@ -71,7 +71,7 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -89,7 +89,7 @@ class ApplicationCompletionRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationCompletionRule().evaluate(data)
@@ -98,7 +98,7 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -116,7 +116,7 @@ class ApplicationCompletionRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationCompletionRule().evaluate(data)
@@ -125,7 +125,7 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -139,8 +139,8 @@ class ApplicationCompletionRuleTest {
       cas1Application = Cas1Application(
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
-        placementStatus = null
-      )
+        placementStatus = null,
+      ),
     )
 
     val result = ApplicationCompletionRule().evaluate(data)
@@ -149,7 +149,7 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -167,7 +167,7 @@ class ApplicationCompletionRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = cas1Application
+      cas1Application = cas1Application,
     )
 
     val result = ApplicationCompletionRule().evaluate(data)
@@ -176,7 +176,7 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 
@@ -187,7 +187,7 @@ class ApplicationCompletionRuleTest {
       tier = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = null
+      cas1Application = null,
     )
 
     val result = ApplicationCompletionRule().evaluate(data)
@@ -196,11 +196,7 @@ class ApplicationCompletionRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
-      )
+      ),
     )
   }
 }
-
-
-
-

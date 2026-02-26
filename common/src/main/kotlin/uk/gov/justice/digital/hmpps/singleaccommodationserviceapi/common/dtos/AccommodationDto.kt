@@ -29,7 +29,7 @@ data class AccommodationDetail(
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
-    timezone = "UTC"
+    timezone = "UTC",
   )
   val createdAt: Instant,
 )

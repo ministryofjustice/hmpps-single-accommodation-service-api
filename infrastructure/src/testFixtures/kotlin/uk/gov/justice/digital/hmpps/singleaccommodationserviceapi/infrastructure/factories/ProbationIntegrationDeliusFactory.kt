@@ -80,7 +80,7 @@ fun buildStaffDetail() = StaffDetail(
   username = "test.user",
   name = buildPersonName(),
   code = "code",
-  active = true
+  active = true,
 )
 
 fun buildPersonName() = PersonName(

@@ -6,5 +6,4 @@ enum class Cas1PlacementStatus {
   DEPARTED,
   NOT_ARRIVED,
   CANCELLED,
-  ;
 }

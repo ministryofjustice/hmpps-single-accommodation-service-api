@@ -15,13 +15,12 @@ data class Tier(
    * This will be removed in subsequent code changes
    */
   companion object {
-    fun placeholder(tierScore: TierScore): Tier =
-      Tier(
-        tierScore = tierScore,
-        calculationId = UUID.randomUUID(),
-        calculationDate = LocalDateTime.now(),
-        changeReason = null,
-      )
+    fun placeholder(tierScore: TierScore): Tier = Tier(
+      tierScore = tierScore,
+      calculationId = UUID.randomUUID(),
+      calculationDate = LocalDateTime.now(),
+      changeReason = null,
+    )
   }
 }
 

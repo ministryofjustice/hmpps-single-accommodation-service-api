@@ -26,6 +26,7 @@ class ProposedAccommodationQueryServiceTest {
 
   @MockK
   lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
+
   @MockK
   lateinit var userRepository: UserRepository
 
