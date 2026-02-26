@@ -42,15 +42,22 @@ jobs:
       environment: ${{ matrix.environments }}
   kotlin_validate:
     name: Validate the kotlin
-    uses: ./.github/workflows/verify_gradle.yml # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     with:
-#      runs 'check' and attached tasks(detekt, ktlint, test etc) WITHOUT integration tests
-      gradle-command: './gradlew check'
+#      runs 'check' and attached tasks(detekt, ktlint etc) WITHOUT tests
+      gradle-command: './gradlew check -x test'
       java-version: '25'
+    secrets: inherit
+  unit_test:
+    name: Integration Tests
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    with:
+#      run only the integration tests. This is a custom task in build.gradle.kts
+      gradle-command: './gradlew unitTest'
     secrets: inherit
   integration_test:
     name: Integration Tests
-    uses: ./.github/workflows/verify_gradle.yml # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     with:
 #      run only the integration tests. This is a custom task in build.gradle.kts
       gradle-command: './gradlew integrationTest'
@@ -59,7 +66,6 @@ jobs:
       postgres-username: sas_user
       postgres-password: sas_psw
       postgres-db: sas_db
-      redis-tag: latest
       java-version: '25'
     secrets: inherit
   build:

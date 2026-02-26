@@ -15,6 +15,9 @@ service:
   - accommodation-data-domain
 
 spring:
+  autoconfigure:
+    exclude:
+      - org.redisson.spring.starter.RedissonAutoConfigurationV4
   cache:
     type: none
   datasource:
