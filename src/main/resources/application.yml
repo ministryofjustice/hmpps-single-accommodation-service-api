@@ -3,6 +3,9 @@ info.app:
   version: 1.0
 
 spring:
+  autoconfigure:
+    exclude:
+      - org.redisson.spring.starter.RedissonAutoConfigurationV4
   config:
     import: classpath:application-infrastructure.yml
   application:
