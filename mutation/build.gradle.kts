@@ -22,6 +22,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   implementation("org.flywaydb:flyway-core")
+  implementation("org.javers:javers-spring-boot-starter-sql:7.10.0")
 
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

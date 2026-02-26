@@ -56,3 +56,6 @@ management:
     info:
       cache:
         time-to-live: 2000ms
+
+javers:
+  springDataAuditableRepositoryAspectEnabled: true

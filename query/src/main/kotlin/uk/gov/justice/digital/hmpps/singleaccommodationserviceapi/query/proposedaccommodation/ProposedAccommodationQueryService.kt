@@ -3,13 +3,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.propose
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditEventDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.audit.AuditService
 import java.util.UUID
 
 @Service
 class ProposedAccommodationQueryService(
+  private val auditService: AuditService,
   private val userRepository: UserRepository,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
 ) {
@@ -31,5 +35,11 @@ class ProposedAccommodationQueryService(
     }
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     return ProposedAccommodationTransformer.toAccommodationDetail(entity, createdByUser!!.name)
+  }
+
+  fun getProposedAccommodationTimeline(crn: String, id: UUID): List<AuditEventDto> {
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
+      ?: throw NotFoundException("Proposed accommodation with id $id not found for crn $crn")
+    return auditService.fullAuditHistory(id = entity.id, ProposedAccommodationEntity::class.java)
   }
 }
