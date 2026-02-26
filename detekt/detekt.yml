@@ -8,5 +8,6 @@ complexity:
   LongParameterList:
     active: true
     ignoreAnnotated:
+      - 'Entity'
       - 'Configuration'
       - 'TestData'
