@@ -21,6 +21,7 @@ generic-service:
     SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/proposed-accommodations/#id
+    EVENT_DETAILS-URL_DUTY-TO-REFER-CREATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/duty-to-refers/#id
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
