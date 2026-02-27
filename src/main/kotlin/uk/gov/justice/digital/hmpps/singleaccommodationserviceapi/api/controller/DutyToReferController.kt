@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Du
 class DutyToReferController {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
   @GetMapping("/cases/{crn}/dtrs")
   fun getDutyToRefersByCrn(@PathVariable crn: String): ResponseEntity<List<DutyToReferDto>> {
     log.warn("/cases/{crn}/dtrs has not been implemented.")

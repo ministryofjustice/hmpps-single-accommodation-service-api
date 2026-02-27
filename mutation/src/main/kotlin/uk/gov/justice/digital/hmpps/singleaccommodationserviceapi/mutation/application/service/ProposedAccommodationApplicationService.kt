@@ -25,7 +25,7 @@ class ProposedAccommodationApplicationService(
 ) {
   @Transactional
   fun createProposedAccommodation(crn: String, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
-    val user = userService.getDeliusUserForRequest()
+    val user = userService.getUserForRequest()
     val aggregate = ProposedAccommodationAggregate.hydrateNew(crn)
     aggregate.updateProposedAccommodation(
       newName = accommodationDetailCommand.name,

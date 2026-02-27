@@ -13,6 +13,7 @@ service:
   - tier
   - prisoner-search
   - accommodation-data-domain
+  - nomis-user-roles
 
 spring:
   cache:
