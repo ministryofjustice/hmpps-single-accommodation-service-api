@@ -65,20 +65,42 @@ tasks.build {
   dependsOn("copyPreCommitHook")
 }
 
-tasks.register("ktlintFormatSubmodules") {
-  group = "formatting"
-  description = "Run ktlintFormat on all submodules after the root project"
+allprojects {
+  tasks.register<Test>("integrationTest") {
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform {
+      includeTags("integration")
+    }
+  }
 
-  dependsOn(subprojects.map { it.tasks.named("ktlintFormat") })
-  mustRunAfter(tasks.named("ktlintFormat"))
+  tasks.register<Test>("unitTest") {
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform {
+      excludeTags("integration")
+    }
+    finalizedBy(unitTestAggregateReport)
+  }
 }
 
-tasks.register("ktlintCheckSubmodules") {
-  group = "linting"
-  description = "Run ktlintCheck on all submodules after the root project"
+val unitTestAggregateReport by tasks.registering(TestReport::class) {
+  group = "verification"
+  description = "Aggregates unitTest results from root and subprojects"
 
-  dependsOn(subprojects.map { it.tasks.named("ktlintCheck") })
-  mustRunAfter(tasks.named("ktlintCheck"))
+  destinationDirectory.set(
+    layout.buildDirectory.dir("reports/tests/unitTestAggregate"),
+  )
+
+  testResults.from(
+    allprojects.flatMap { project ->
+      project.tasks.withType(Test::class)
+        .matching { it.name == "unitTest" }
+        .map { it.binaryResultsDirectory }
+    },
+  )
 }
 
 subprojects {
