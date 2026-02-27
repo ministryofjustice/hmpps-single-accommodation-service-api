@@ -4,6 +4,7 @@ hmpps-auth:
 event:
   details-url:
     proposed-accommodation-updated: http://localhost:8080/proposed-accommodations/#id
+    duty-to-refer-created: http://localhost:8080/duty-to-refers/#id
 
 hmpps.sqs:
   useWebToken: false
