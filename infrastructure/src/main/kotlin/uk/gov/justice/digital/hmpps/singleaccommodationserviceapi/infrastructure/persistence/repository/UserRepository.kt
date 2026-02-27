@@ -8,5 +8,6 @@ import java.util.UUID
 
 @Repository
 interface UserRepository : JpaRepository<UserEntity, UUID> {
-  fun findByUsernameAndAuthSource(username: String, authSource: AuthSource): UserEntity?
+  fun findByUsernameAndAuthSource(username: String, authSource: AuthSource): UserEntity
+  fun findByIdAndUsernameAndAuthSource(id: UUID, username: String, authSource: AuthSource): UserEntity?
 }

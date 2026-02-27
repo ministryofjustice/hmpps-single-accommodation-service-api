@@ -92,6 +92,7 @@ class UserServiceTest {
 
   @Nested
   inner class GetAndUpdateNomisUserOrCreate {
+    private val userUuid = UUID.randomUUID()
     private val username = "SOMENOMISPERSON"
     private val jwt = Jwt.withTokenValue("token")
       .header("Authroization", "jwt")

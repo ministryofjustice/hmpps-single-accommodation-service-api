@@ -22,6 +22,7 @@ dependencies {
   implementation(libs.spring.flyway)
 
   implementation(libs.springdoc)
+  implementation("org.javers:javers-spring-boot-starter-sql:7.10.0")
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)

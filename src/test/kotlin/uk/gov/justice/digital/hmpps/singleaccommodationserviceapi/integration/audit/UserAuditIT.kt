@@ -222,7 +222,7 @@ class UserAuditIT : IntegrationTestBase() {
     expectedCreatedByUsername: String,
     expectedUpdateByUsername: String? = null,
   ) {
-    val createdByUser = userRepository.findByUsernameAndAuthSource(expectedCreatedByUsername, authSource)!!
+    val createdByUser = userRepository.findByUsernameAndAuthSource(expectedCreatedByUsername, authSource)
     val updatedByUser = expectedUpdateByUsername?.let {
       userRepository.findByUsernameAndAuthSource(expectedUpdateByUsername.uppercase(), authSource)
     } ?: createdByUser
