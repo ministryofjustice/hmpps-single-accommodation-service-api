@@ -17,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
@@ -38,7 +39,7 @@ const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
