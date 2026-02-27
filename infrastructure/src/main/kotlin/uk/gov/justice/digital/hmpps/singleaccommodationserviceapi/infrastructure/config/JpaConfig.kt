@@ -5,7 +5,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.AuditorAware
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import org.springframework.security.core.context.SecurityContextHolder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
 import java.util.Optional
 import java.util.UUID
 
@@ -14,14 +15,12 @@ import java.util.UUID
 class JpaConfig
 
 @Configuration
-class JpaAuditorConfig(
-  private val userService: UserService,
-) {
+class JpaAuditorConfig {
 
   @Bean
   @Profile("local", "dev", "preprod", "prod")
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
-    val user = userService.getUserForRequest()
-    Optional.of(user.id)
+    val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+    Optional.of(authToken.principal.userUuid)
   }
 }

@@ -5,12 +5,12 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.data.domain.AuditorAware
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import org.springframework.security.core.context.SecurityContextHolder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
 import java.util.*
 
 @TestConfiguration
 class TestJpaAuditorConfig(
-  private val userService: UserService,
   @Value($$"${test-data-setup.user-id}")
   private val testDataSetupUserId: UUID,
 ) {
@@ -19,8 +19,8 @@ class TestJpaAuditorConfig(
   @Bean
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
     try {
-      val user = userService.getUserForRequest()
-      Optional.of(user.id)
+      val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+      Optional.of(authToken.principal.userUuid)
     } catch (_: Exception) {
       Optional.of(testDataSetupUserId)
     }

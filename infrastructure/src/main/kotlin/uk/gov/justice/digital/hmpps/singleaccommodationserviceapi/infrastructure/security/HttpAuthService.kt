@@ -7,13 +7,12 @@ import org.springframework.stereotype.Service
 
 @Service
 class HttpAuthService {
-  fun getPrincipalOrThrow(acceptableSources: List<String>): Pair<String, String> {
-    val principal = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-    val authSource = principal.token.claims["auth_source"]
-    if (!acceptableSources.contains(authSource)) {
+  fun getPrincipalOrThrow(acceptableSources: List<String>): UserPrincipal {
+    val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+    if (!acceptableSources.contains(authToken.principal.authSource.value)) {
       throw AccessDeniedException("JWT token does not contain auth_source claim")
     }
-    return principal.name to authSource as String
+    return authToken.principal
   }
 
   fun getJwt(): Jwt {

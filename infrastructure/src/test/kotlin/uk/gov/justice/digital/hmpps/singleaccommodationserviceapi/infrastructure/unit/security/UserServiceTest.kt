@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import java.util.UUID
 
 @ExtendWith(value = [MockKExtension::class])
 class UserServiceTest {
@@ -41,14 +42,15 @@ class UserServiceTest {
 
   @Nested
   inner class GetExistingDeliusUserOrCreate {
+    private val userUuid = UUID.randomUUID()
     private val username = "SOMEPERSON"
 
     @Test
     fun `getExistingDeliusUserOrCreate should throw NotFoundException when staff-detail not found`() {
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
+      every { userRepository.findByIdAndUsernameAndAuthSource(userUuid, username, AuthSource.DELIUS) } returns null
       every { probationIntegrationDeliusCachingService.getStaffDetail(username) } returns null
 
-      assertThatThrownBy { userService.getExistingDeliusUserOrCreate(username) }
+      assertThatThrownBy { userService.getExistingDeliusUserOrCreate(userUuid, username) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessageContaining(username)
     }
@@ -56,9 +58,9 @@ class UserServiceTest {
     @Test
     fun `getExistingDeliusUserOrCreate returns existing user`() {
       val user = buildUserEntity()
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns user
+      every { userRepository.findByIdAndUsernameAndAuthSource(userUuid, username, AuthSource.DELIUS) } returns user
 
-      val result = userService.getExistingDeliusUserOrCreate(username)
+      val result = userService.getExistingDeliusUserOrCreate(userUuid, username)
 
       assertThat(result).isEqualTo(user)
       verify(exactly = 0) { userRepository.save(any()) }
@@ -67,11 +69,11 @@ class UserServiceTest {
     @Test
     fun `getExistingDeliusUserOrCreate creates new user`() {
       val deliusUser = buildStaffDetail()
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
+      every { userRepository.findByIdAndUsernameAndAuthSource(userUuid, username, AuthSource.DELIUS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
       every { probationIntegrationDeliusCachingService.getStaffDetail(username) } returns deliusUser
 
-      val result = userService.getExistingDeliusUserOrCreate(username)
+      val result = userService.getExistingDeliusUserOrCreate(userUuid, username)
 
       assertThat(result.name).isEqualTo(deliusUser.name.deliusName())
       assertThat(result.email).isEqualTo(deliusUser.email)
@@ -89,13 +91,14 @@ class UserServiceTest {
 
   @Nested
   inner class GetAndUpdateNomisUserOrCreate {
+    private val userUuid = UUID.randomUUID()
     private val username = "SOMENOMISPERSON"
 
     @Test
     fun `getAndUpdateNomisUserOrCreate should throw NotFoundException when user-details not found`() {
       every { nomisUserRolesService.getUserDetailsForMe() } returns null
 
-      assertThatThrownBy { userService.getAndUpdateNomisUserOrCreate(username) }
+      assertThatThrownBy { userService.getAndUpdateNomisUserOrCreate(userUuid, username) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessageContaining(username)
     }
@@ -112,10 +115,10 @@ class UserServiceTest {
         authSource = AuthSource.NOMIS,
       )
       every { nomisUserRolesService.getUserDetailsForMe() } returns nomisUser
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns nomisUserEntity
+      every { userRepository.findByIdAndUsernameAndAuthSource(userUuid, username, AuthSource.NOMIS) } returns nomisUserEntity
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
 
-      val result = userService.getAndUpdateNomisUserOrCreate(username)
+      val result = userService.getAndUpdateNomisUserOrCreate(userUuid, username)
 
       assertThat(result.username).isEqualTo(nomisUser.username)
       assertThat(result.email).isEqualTo(nomisUser.primaryEmail)
@@ -130,10 +133,10 @@ class UserServiceTest {
         username = username,
       )
       every { nomisUserRolesService.getUserDetailsForMe() } returns nomisUser
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns null
+      every { userRepository.findByIdAndUsernameAndAuthSource(userUuid, username, AuthSource.NOMIS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
 
-      val result = userService.getAndUpdateNomisUserOrCreate(username)
+      val result = userService.getAndUpdateNomisUserOrCreate(userUuid, username)
 
       assertThat(result.username).isEqualTo(nomisUser.username)
       assertThat(result.authSource).isEqualTo(AuthSource.NOMIS)

@@ -53,6 +53,7 @@ class ProposedAccommodationApplicationService(
 
   @Transactional
   fun updateProposedAccommodation(crn: String, id: UUID, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
+    userService.getUserForRequest()
     val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
       ?: throw NotFoundException("Proposed Accommodation not found for id: $id and crn: $crn")
     val aggregate = ProposedAccommodationMapper.toAggregate(entity)

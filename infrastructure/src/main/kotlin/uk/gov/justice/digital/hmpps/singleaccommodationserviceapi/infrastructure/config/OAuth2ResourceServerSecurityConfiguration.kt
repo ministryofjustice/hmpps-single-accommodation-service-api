@@ -15,7 +15,10 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
+import java.util.UUID
 
 @Configuration
 @EnableMethodSecurity
@@ -61,7 +64,13 @@ class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 
   override fun convert(jwt: Jwt): AbstractAuthenticationToken {
     val claims = jwt.claims
-    val principal = findPrincipal(claims)
+    val userUuid = claims[CLAIM_USER_UUID] as String
+    val authSource = claims[CLAIM_AUTH_SOURCE] as String
+    val principal = UserPrincipal(
+      userUuid = UUID.fromString(userUuid),
+      authSource = AuthSource.fromString(authSource),
+      username = findPrincipal(claims)
+    )
     val authorities = extractAuthorities(jwt)
     return AuthAwareAuthenticationToken(jwt, principal, authorities)
   }
@@ -92,6 +101,8 @@ class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 
   companion object {
     const val CLAIM_USERNAME = "user_name"
+    const val CLAIM_USER_UUID = "user_uuid"
+    const val CLAIM_AUTH_SOURCE = "auth_source"
     const val CLAIM_USER_ID = "user_id"
     const val CLAIM_CLIENT_ID = "client_id"
     const val CLAIM_AUTHORITY = "authorities"

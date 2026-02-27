@@ -92,7 +92,7 @@ class UserAuditIT : IntegrationTestBase() {
       jwt = jwtAuthHelper.createJwtAccessToken(
         USERNAME_OF_LOGGED_IN_NOMIS_USER,
         roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.authSource,
+        authSource = AuthSource.NOMIS.value,
       ),
       response = nomisUserDetail,
     )
@@ -222,9 +222,9 @@ class UserAuditIT : IntegrationTestBase() {
     expectedCreatedByUsername: String,
     expectedUpdateByUsername: String? = null,
   ) {
-    val createdByUser = userRepository.findByUsernameAndAuthSource(expectedCreatedByUsername, authSource)!!
+    val createdByUser = userRepository.findByUsernameAndAuthSource(expectedCreatedByUsername, authSource)
     val updatedByUser = expectedUpdateByUsername?.let {
-      userRepository.findByUsernameAndAuthSource(expectedUpdateByUsername.uppercase(), authSource)!!
+      userRepository.findByUsernameAndAuthSource(expectedUpdateByUsername.uppercase(), authSource)
     } ?: createdByUser
     assertThat(persistedProposedAccommodationEntity.createdByUserId).isEqualTo(createdByUser.id)
     assertThat(persistedProposedAccommodationEntity.lastUpdatedByUserId).isEqualTo(updatedByUser.id)

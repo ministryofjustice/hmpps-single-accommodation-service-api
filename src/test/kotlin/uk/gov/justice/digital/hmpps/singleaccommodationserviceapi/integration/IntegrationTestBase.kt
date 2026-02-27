@@ -133,7 +133,7 @@ abstract class IntegrationTestBase {
       jwtAuthHelper.createJwtAccessToken(
         username = username,
         roles = roles,
-        authSource = AuthSource.DELIUS.authSource,
+        authSource = AuthSource.DELIUS.value,
       ),
     )
   }
@@ -144,7 +144,8 @@ abstract class IntegrationTestBase {
     jwt: String = jwtAuthHelper.createJwtAccessToken(
       username = username,
       roles = roles,
-      authSource = AuthSource.NOMIS.authSource,
+      authSource = AuthSource.NOMIS.value,
+      // todo: figure out a way to add userUuid to jwt claims
     ),
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(jwt)

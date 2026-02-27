@@ -19,16 +19,16 @@ class UserService(
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
   fun getUserForRequest(): UserEntity {
-    val (username, authSource) = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.authSource, AuthSource.NOMIS.authSource))
-    val normalisedUsername = username.uppercase()
-    return when (AuthSource.fromString(authSource)) {
-      AuthSource.DELIUS -> getExistingDeliusUserOrCreate(username = normalisedUsername)
-      AuthSource.NOMIS -> getAndUpdateNomisUserOrCreate(username = normalisedUsername)
+    val principal = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.value, AuthSource.NOMIS.value))
+    val normalisedUsername = principal.username.uppercase()
+    return when (principal.authSource) {
+      AuthSource.DELIUS -> getExistingDeliusUserOrCreate(userUuid = principal.userUuid, username = normalisedUsername)
+      AuthSource.NOMIS -> getAndUpdateNomisUserOrCreate(userUuid = principal.userUuid, username = normalisedUsername)
     }
   }
 
-  fun getExistingDeliusUserOrCreate(username: String): UserEntity {
-    val existingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSource.DELIUS)
+  fun getExistingDeliusUserOrCreate(userUuid: UUID, username: String): UserEntity {
+    val existingUser = userRepository.findByIdAndUsernameAndAuthSource(userUuid, username, AuthSource.DELIUS)
     if (existingUser != null) {
       return existingUser
     }
@@ -36,7 +36,7 @@ class UserService(
       ?: throw NotFoundException("Staff details for Delius user $username do not exist")
     val savedUser = userRepository.save(
       UserEntity(
-        id = UUID.randomUUID(),
+        id = userUuid,
         username = username,
         authSource = AuthSource.DELIUS,
         name = staffUserDetails.name.deliusName(),
@@ -53,10 +53,10 @@ class UserService(
     return savedUser
   }
 
-  fun getAndUpdateNomisUserOrCreate(username: String): UserEntity {
+  fun getAndUpdateNomisUserOrCreate(userUuid: UUID, username: String): UserEntity {
     val nomisUserDetails = nomisUserRolesService.getUserDetailsForMe()
       ?: throw NotFoundException("User details for Nomis user $username do not exist")
-    val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSource.NOMIS)
+    val existingUser = userRepository.findByIdAndUsernameAndAuthSource(id = userUuid, username = username, authSource = AuthSource.NOMIS)
     if (existingUser != null) {
       if (
         existingUser.email != nomisUserDetails.primaryEmail ||
