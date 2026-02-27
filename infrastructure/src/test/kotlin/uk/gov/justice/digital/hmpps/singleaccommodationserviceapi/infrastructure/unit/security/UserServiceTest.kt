@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import java.util.UUID
 
 @ExtendWith(value = [MockKExtension::class])
 class UserServiceTest {
@@ -41,6 +42,7 @@ class UserServiceTest {
 
   @Nested
   inner class GetExistingDeliusUserOrCreate {
+    private val userUuid = UUID.randomUUID()
     private val username = "SOMEPERSON"
 
     @Test
@@ -89,6 +91,7 @@ class UserServiceTest {
 
   @Nested
   inner class GetAndUpdateNomisUserOrCreate {
+    private val userUuid = UUID.randomUUID()
     private val username = "SOMENOMISPERSON"
 
     @Test

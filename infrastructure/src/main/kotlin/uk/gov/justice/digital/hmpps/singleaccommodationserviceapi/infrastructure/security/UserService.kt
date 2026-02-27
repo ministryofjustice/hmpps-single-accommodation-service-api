@@ -5,11 +5,12 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.ProbationIntegrationDeliusCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import java.util.UUID
 import kotlin.String
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource as AuthSourceEntity
 
 @Service
 class UserService(
@@ -18,17 +19,29 @@ class UserService(
   private val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
-  fun getUserForRequest(): UserEntity {
-    val (username, authSource) = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.authSource, AuthSource.NOMIS.authSource))
-    val normalisedUsername = username.uppercase()
-    return when (AuthSource.fromString(authSource)) {
-      AuthSource.DELIUS -> getExistingDeliusUserOrCreate(username = normalisedUsername)
-      AuthSource.NOMIS -> getAndUpdateNomisUserOrCreate(username = normalisedUsername)
+  fun authorizeUser() {
+    authorizeAndRetrieveUser()
+  }
+  fun authorizeAndRetrieveUser(): UserEntity {
+    val principal = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+    return when (principal.authSource) {
+      AuthSource.DELIUS -> {
+        userRepository.findByUsernameAndAuthSource(
+          username = principal.username.uppercase(),
+          authSource = AuthSourceEntity.DELIUS,
+        )!!
+      }
+      AuthSource.NOMIS -> {
+        val user = getAndUpdateNomisUserOrCreate(username = principal.username.uppercase())
+        httpAuthService.setPrincipalUserId(sasUserId = user.id)
+        user
+      }
+      else -> throw RuntimeException("Unexpected auth_source: ${principal.authSource}")
     }
   }
 
   fun getExistingDeliusUserOrCreate(username: String): UserEntity {
-    val existingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSource.DELIUS)
+    val existingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)
     if (existingUser != null) {
       return existingUser
     }
@@ -38,7 +51,7 @@ class UserService(
       UserEntity(
         id = UUID.randomUUID(),
         username = username,
-        authSource = AuthSource.DELIUS,
+        authSource = AuthSourceEntity.DELIUS,
         name = staffUserDetails.name.deliusName(),
         deliusStaffCode = staffUserDetails.code,
         email = staffUserDetails.email,
@@ -56,7 +69,7 @@ class UserService(
   fun getAndUpdateNomisUserOrCreate(username: String): UserEntity {
     val nomisUserDetails = nomisUserRolesService.getUserDetailsForMe()
       ?: throw NotFoundException("User details for Nomis user $username do not exist")
-    val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSource.NOMIS)
+    val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSourceEntity.NOMIS)
     if (existingUser != null) {
       if (
         existingUser.email != nomisUserDetails.primaryEmail ||
@@ -74,7 +87,7 @@ class UserService(
       UserEntity(
         id = UUID.randomUUID(),
         username = username,
-        authSource = AuthSource.NOMIS,
+        authSource = AuthSourceEntity.NOMIS,
         name = "${nomisUserDetails.firstName} ${nomisUserDetails.lastName}",
         email = nomisUserDetails.primaryEmail,
         isActive = nomisUserDetails.active,

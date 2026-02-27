@@ -133,7 +133,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     )
 
     restTestClient.get().uri("/proposed-accommodations/{id}", entity.id)
-      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
+      .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {

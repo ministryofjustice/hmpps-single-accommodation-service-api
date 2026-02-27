@@ -24,7 +24,7 @@ class DutyToReferApplicationService(
 ) {
   @Transactional
   fun createDutyToRefer(crn: String, command: DtrCommand): DutyToReferDto {
-    val user = userService.getUserForRequest()
+    val user = userService.authorizeAndRetrieveUser()
     val aggregate = DutyToReferAggregate.hydrateNew(crn)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = command.localAuthorityAreaId,
@@ -51,8 +51,8 @@ class DutyToReferApplicationService(
         aggregateType = "DutyToRefer",
         domainEventType = event.type.name,
         payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(),
         processedStatus = ProcessedStatus.PENDING,
+        createdAt = Instant.now(),
         processedAt = null,
       ),
     )

@@ -4,16 +4,21 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class HttpAuthService {
-  fun getPrincipalOrThrow(acceptableSources: List<String>): Pair<String, String> {
-    val principal = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-    val authSource = principal.token.claims["auth_source"]
-    if (!acceptableSources.contains(authSource)) {
+  fun getPrincipalOrThrow(acceptableSources: List<String>): Principal {
+    val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+    if (!acceptableSources.contains(authToken.principal.authSource.source)) {
       throw AccessDeniedException("JWT token does not contain auth_source claim")
     }
-    return principal.name to authSource as String
+    return authToken.principal
+  }
+
+  fun setPrincipalUserId(sasUserId: UUID) {
+    val principal = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+    principal.principal.sasUserId = sasUserId
   }
 
   fun getJwt(): Jwt {
