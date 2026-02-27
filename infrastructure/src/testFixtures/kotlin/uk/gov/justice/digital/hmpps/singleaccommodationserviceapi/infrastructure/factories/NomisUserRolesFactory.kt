@@ -6,7 +6,7 @@ import kotlin.String
 fun buildNomisUserDetail(
   username: String = "nomisuser@justice.gov.uk",
   staffId: Long = 1L,
-  firstName: String = "Test",
+  firstName: String = "Nomis",
   lastName: String = "User",
   activeCaseloadId: String? = "MDI",
   accountStatus: String? = "OPEN",

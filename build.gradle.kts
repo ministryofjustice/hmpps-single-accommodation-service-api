@@ -22,6 +22,7 @@ dependencies {
   implementation(libs.spring.flyway)
 
   implementation(libs.springdoc)
+  implementation(libs.javers)
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
