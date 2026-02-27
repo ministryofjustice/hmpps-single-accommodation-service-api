@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -40,6 +41,7 @@ const val NAME_OF_LOGGED_IN_NOMIS_USER: String = "NomisUser"
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
+@Tag("integration")
 abstract class IntegrationTestBase {
   @Value($$"${test-data-setup.user-id}")
   protected lateinit var userIdOfTestDataSetupUser: UUID

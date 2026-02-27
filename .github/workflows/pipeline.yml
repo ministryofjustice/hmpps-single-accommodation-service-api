@@ -40,53 +40,28 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ matrix.environments }}
-  ktlint-check:
-    name: KtLintCheck
-    runs-on: ubuntu-latest
-    env:
-      _JAVA_OPTIONS: "-Xmx3g"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: 25
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - name: Run ktlintFormat
-        run: ./gradlew ktlintFormat
-      - name: Fail if formatting changed files
-        run: |
-          if ! git diff --quiet; then
-            echo "Please run ktlintFormat locally and commit the results."
-            git diff
-            exit 1
-          fi
-      - name: Run ktlintCheck
-        run: ./gradlew ktlintCheck
-  detekt:
-    name: detekt
-    runs-on: ubuntu-latest
-    env:
-      _JAVA_OPTIONS: "-Xmx3g"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: 25
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-      - name: Run detekt
-        run: ./gradlew detekt
   kotlin_validate:
     name: Validate the kotlin
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     with:
+#      this runs detekt, ktlintCheck etc without any tests
+      gradle-command: './gradlew check -x test'
+    secrets: inherit
+  unit_test:
+    name: Unit Tests
+    needs: kotlin_validate
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    with:
+      gradle-command: './gradlew unitTest'
+      artifact-name: 'unit-test-results'
+    secrets: inherit
+  integration_test:
+    name: Integration Tests
+    needs: kotlin_validate
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    with:
+      gradle-command: './gradlew integrationTest'
+      artifact-name: 'integration-test-results'
       localstack-tag: 4
       postgres-tag: 18
       postgres-username: sas_user
@@ -107,8 +82,8 @@ jobs:
     name: Deploy to development environment
     needs:
       - kotlin_validate
-      - ktlint-check
-      - detekt
+      - unit_test
+      - integration_test
       - build
       - helm_lint
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
