@@ -53,6 +53,7 @@ jobs:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     with:
       gradle-command: './gradlew unitTest'
+      artifact-name: 'unit-test-results'
     secrets: inherit
   integration_test:
     name: Integration Tests
@@ -60,6 +61,7 @@ jobs:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     with:
       gradle-command: './gradlew integrationTest'
+      artifact-name: 'integration-test-results'
       localstack-tag: 4
       postgres-tag: 18
       postgres-username: sas_user
