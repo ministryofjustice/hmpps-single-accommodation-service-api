@@ -82,8 +82,11 @@ allprojects {
     useJUnitPlatform {
       excludeTags("integration")
     }
-    finalizedBy(unitTestAggregateReport)
   }
+}
+
+tasks.named<Test>("unitTest") {
+  finalizedBy("unitTestAggregateReport")
 }
 
 val unitTestAggregateReport by tasks.registering(TestReport::class) {
@@ -91,16 +94,16 @@ val unitTestAggregateReport by tasks.registering(TestReport::class) {
   description = "Aggregates unitTest results from root and subprojects"
 
   destinationDirectory.set(
-    layout.buildDirectory.dir("reports/tests/unitTestAggregate"),
+    layout.buildDirectory.dir("reports/tests/unitTest"),
   )
 
-  testResults.from(
-    allprojects.flatMap { project ->
-      project.tasks.withType(Test::class)
-        .matching { it.name == "unitTest" }
-        .map { it.binaryResultsDirectory }
-    },
-  )
+  val allUnitTestTasks = allprojects.flatMap { project ->
+    project.tasks.withType(Test::class)
+      .matching { it.name == "unitTest" }
+  }
+
+  dependsOn(allUnitTestTasks)
+  testResults.from(allUnitTestTasks.map { it.binaryResultsDirectory })
 }
 
 subprojects {
