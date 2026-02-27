@@ -26,6 +26,7 @@ spring:
 event:
   details-url:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
+    duty-to-refer-created: http://api-host/duty-to-refers/#id
 
 hmpps.sqs:
   useWebToken: false
