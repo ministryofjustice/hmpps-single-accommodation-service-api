@@ -1,6 +1,6 @@
 [versions]
 hmpps-spring-boot = "2.0.1"
-hmpps-sqs = "6.0.1"
+hmpps-sqs = "7.0.1"
 springdoc = "3.0.1"
 wiremock = "3.13.2"
 redisson = "4.2.0"
