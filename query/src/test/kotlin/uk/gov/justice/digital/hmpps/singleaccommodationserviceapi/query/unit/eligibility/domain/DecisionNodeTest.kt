@@ -48,10 +48,10 @@ class DecisionNodeTest {
         EvaluationContext(
           data = buildDomainData(),
           currentResult =
-            ServiceResult(
-              serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-              suitableApplicationId = UUID.randomUUID(),
-            ),
+          ServiceResult(
+            serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
+            suitableApplicationId = UUID.randomUUID(),
+          ),
         )
       val outcomeNode = OutcomeNode { context -> context.currentResult }
 

@@ -105,11 +105,11 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-            suitableApplicationId = data.cas1Application?.id,
-            link = "View application",
-          ),
+        ServiceResult(
+          serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
+          suitableApplicationId = data.cas1Application?.id,
+          link = "View application",
+        ),
       )
 
     return tree.eval(initialContext)
@@ -133,9 +133,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          ),
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -159,9 +159,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          ),
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -185,9 +185,9 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          ),
+        ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
       )
 
     return tree.eval(initialContext)
@@ -222,10 +222,10 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.CONFIRMED,
-            suitableApplicationId = data.cas3Application?.id,
-          ),
+        ServiceResult(
+          serviceStatus = ServiceStatus.CONFIRMED,
+          suitableApplicationId = data.cas3Application?.id,
+        ),
       )
 
     return tree.eval(initialContext)

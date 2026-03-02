@@ -14,49 +14,48 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 
 object Cas1ActionTransformer {
-  fun buildCas1Action(data: DomainData, clock: Clock, isWithinOneYear: Boolean) =
-    when (isWithinOneYear) {
-      false ->
-        when (data.cas1Application?.applicationStatus) {
-          Cas1ApplicationStatus.STARTED -> RuleAction(CONTINUE_APPROVED_PREMISE_APPLICATION)
-          else -> buildStartApprovedPremiseReferralAction(data, clock)
-        }
-
-      true -> when (data.cas1Application?.applicationStatus) {
-        Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-          -> {
-          val acceptableStatus = listOf(
-            Cas1PlacementStatus.DEPARTED,
-            Cas1PlacementStatus.NOT_ARRIVED,
-            Cas1PlacementStatus.CANCELLED,
-          )
-          if (!acceptableStatus.contains(data.cas1Application.placementStatus)) error("Invalid placement status: ${data.cas1Application.placementStatus}")
-          RuleAction(CREATE_PLACEMENT)
-        }
-
-        Cas1ApplicationStatus.AWAITING_PLACEMENT,
-        Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
-          -> RuleAction(CREATE_PLACEMENT)
-
-        Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-        Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
-        Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
-          -> RuleAction(WAIT_FOR_ASSESSMENT_RESULT)
-
-        Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
-          -> RuleAction(PROVIDE_INFORMATION)
-
-        Cas1ApplicationStatus.STARTED,
-          -> RuleAction(CONTINUE_APPROVED_PREMISE_APPLICATION)
-
-        Cas1ApplicationStatus.REJECTED,
-        Cas1ApplicationStatus.INAPPLICABLE,
-        Cas1ApplicationStatus.WITHDRAWN,
-        Cas1ApplicationStatus.EXPIRED,
-        null,
-          -> RuleAction(START_APPROVED_PREMISE_APPLICATION)
+  fun buildCas1Action(data: DomainData, clock: Clock, isWithinOneYear: Boolean) = when (isWithinOneYear) {
+    false ->
+      when (data.cas1Application?.applicationStatus) {
+        Cas1ApplicationStatus.STARTED -> RuleAction(CONTINUE_APPROVED_PREMISE_APPLICATION)
+        else -> buildStartApprovedPremiseReferralAction(data, clock)
       }
+
+    true -> when (data.cas1Application?.applicationStatus) {
+      Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      -> {
+        val acceptableStatus = listOf(
+          Cas1PlacementStatus.DEPARTED,
+          Cas1PlacementStatus.NOT_ARRIVED,
+          Cas1PlacementStatus.CANCELLED,
+        )
+        if (!acceptableStatus.contains(data.cas1Application.placementStatus)) error("Invalid placement status: ${data.cas1Application.placementStatus}")
+        RuleAction(CREATE_PLACEMENT)
+      }
+
+      Cas1ApplicationStatus.AWAITING_PLACEMENT,
+      Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+      -> RuleAction(CREATE_PLACEMENT)
+
+      Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+      Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
+      Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
+      -> RuleAction(WAIT_FOR_ASSESSMENT_RESULT)
+
+      Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+      -> RuleAction(PROVIDE_INFORMATION)
+
+      Cas1ApplicationStatus.STARTED,
+      -> RuleAction(CONTINUE_APPROVED_PREMISE_APPLICATION)
+
+      Cas1ApplicationStatus.REJECTED,
+      Cas1ApplicationStatus.INAPPLICABLE,
+      Cas1ApplicationStatus.WITHDRAWN,
+      Cas1ApplicationStatus.EXPIRED,
+      null,
+      -> RuleAction(START_APPROVED_PREMISE_APPLICATION)
     }
+  }
 
   private fun buildStartApprovedPremiseReferralAction(data: DomainData, clock: Clock): RuleAction {
     val releaseDate = data.releaseDate ?: error("Release date for crn: ${data.crn} is null")
@@ -66,7 +65,7 @@ object Cas1ActionTransformer {
 
     return when {
       daysUntilReferralMustStart > 1
-        -> RuleAction("$START_APPROVED_PREMISE_APPLICATION in $daysUntilReferralMustStart days")
+      -> RuleAction("$START_APPROVED_PREMISE_APPLICATION in $daysUntilReferralMustStart days")
 
       daysUntilReferralMustStart < 1 -> RuleAction(START_APPROVED_PREMISE_APPLICATION)
 

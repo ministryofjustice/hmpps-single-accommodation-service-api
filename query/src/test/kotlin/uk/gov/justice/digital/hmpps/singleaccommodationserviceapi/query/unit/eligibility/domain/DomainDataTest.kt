@@ -78,7 +78,7 @@ class DomainDataTest {
       cas2CourtBailApplication = expected.cas2CourtBailApplication,
       cas2PrisonBailApplication = expected.cas2PrisonBailApplication,
 
-      )
+    )
     assertThat(result).isEqualTo(expected)
   }
 }

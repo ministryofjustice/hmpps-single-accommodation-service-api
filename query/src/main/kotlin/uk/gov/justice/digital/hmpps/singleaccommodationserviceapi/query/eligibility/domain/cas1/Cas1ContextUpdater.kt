@@ -19,10 +19,10 @@ class Cas1ContextUpdater(val clock: Clock) : ContextUpdater {
     val updatedServiceResult =
       ServiceResult(
         serviceStatus =
-          Cas1ServiceStatusTransformer.toServiceStatus(
-            context.data.cas1Application,
-            isWithinOneYear,
-          ),
+        Cas1ServiceStatusTransformer.toServiceStatus(
+          context.data.cas1Application,
+          isWithinOneYear,
+        ),
         suitableApplicationId = context.data.cas1Application?.id,
         action = action,
         link = link,
