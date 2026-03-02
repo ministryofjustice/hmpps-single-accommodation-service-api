@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
@@ -92,9 +91,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationsResponse(
             firstId = newerEntity.id,
-            firstCreatedAt = newerEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            firstCreatedAt = newerEntity.createdAt!!.toString(),
             secondId = olderEntity.id,
-            secondCreatedAt = olderEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            secondCreatedAt = olderEntity.createdAt!!.toString(),
           ),
         )
       }
@@ -117,7 +116,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
-            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            createdAt = entity.createdAt!!.toString(),
           ),
         )
       }
@@ -140,7 +139,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
-            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            createdAt = entity.createdAt!!.toString(),
           ),
         )
       }
@@ -211,7 +210,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
-        createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdAt = proposedAccommodationPersistedResult.createdAt!!.toString(),
       ),
     )
     assertPublishedSNSEvent(
@@ -257,7 +256,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdAt = existingEntity.createdAt!!.toString(),
       ),
     )
 
@@ -366,7 +365,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         verificationStatus = VerificationStatus.NOT_CHECKED_YET.name,
         nextAccommodationStatus = NextAccommodationStatus.NO.name,
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdAt = existingEntity.createdAt!!.toString(),
       ),
     )
 
