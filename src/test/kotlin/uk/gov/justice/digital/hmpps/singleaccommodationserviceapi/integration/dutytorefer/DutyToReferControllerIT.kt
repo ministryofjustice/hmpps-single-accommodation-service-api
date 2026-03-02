@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedCreateDtrResponseBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferCreatedDomainEventJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
@@ -62,7 +62,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should create duty to refer and publish sas-duty-to-refer-created event`() {
+  fun `should create duty to refer without publishing domain event when outcomeStatus is null`() {
     val localAuthorityAreaId = UUID.randomUUID()
 
     val result = restTestClient.post().uri("/cases/$crn/dtr")
@@ -94,14 +94,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       ),
     )
 
-    assertPublishedSNSEvent(
-      dutyToReferId = persistedRecord.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED.typeDescription,
-    )
-    assertThatOutboxIsAsExpected(
-      dutyToReferId = persistedRecord.id,
-    )
+    assertThat(outboxEventRepository.findAll()).isEmpty()
   }
 
   private fun assertPersistedDutyToRefer(
@@ -113,7 +106,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(persistedRecord.referenceNumber).isEqualTo("DTR-REF-001")
     assertThat(persistedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 1, 15))
     assertThat(persistedRecord.outcomeStatus).isNull()
-    assertThat(persistedRecord.outcomeDate).isNull()
     assertThat(persistedRecord.createdByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
     assertThat(persistedRecord.createdAt).isBetween(
       beforeTest.minusSeconds(1),
@@ -136,8 +128,8 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     val outboxRecord = outboxEventRepository.findAll().first()
     assertThat(outboxRecord.aggregateId).isEqualTo(dutyToReferId)
     assertThat(outboxRecord.aggregateType).isEqualTo("DutyToRefer")
-    assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED.name)
-    assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedDutyToReferCreatedDomainEventJson(dutyToReferId))
+    assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.name)
+    assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(dutyToReferId))
     assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
   }
 }

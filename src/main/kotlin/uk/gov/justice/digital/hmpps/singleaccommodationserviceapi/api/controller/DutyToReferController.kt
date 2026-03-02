@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateDtrCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.DutyToReferApplicationService
 
@@ -30,7 +30,7 @@ class DutyToReferController(
   @PostMapping("/cases/{crn}/dtr")
   fun create(
     @PathVariable crn: String,
-    @RequestBody command: CreateDtrCommand,
+    @RequestBody command: DtrCommand,
   ): ResponseEntity<DutyToReferDto> {
     val createdDutyToRefer = dutyToReferApplicationService.createDutyToRefer(crn, command)
     return ResponseEntity(createdDutyToRefer, HttpStatus.CREATED)

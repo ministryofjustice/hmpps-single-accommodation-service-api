@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateDtrCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -23,13 +23,14 @@ class DutyToReferApplicationService(
   private val userService: UserService,
 ) {
   @Transactional
-  fun createDutyToRefer(crn: String, command: CreateDtrCommand): DutyToReferDto {
+  fun createDutyToRefer(crn: String, command: DtrCommand): DutyToReferDto {
     val user = userService.getUserForRequest()
     val aggregate = DutyToReferAggregate.hydrateNew(crn)
-    aggregate.createDutyToRefer(
+    aggregate.updateDutyToRefer(
       localAuthorityAreaId = command.localAuthorityAreaId,
       submissionDate = command.submissionDate,
       referenceNumber = command.referenceNumber,
+      outcomeStatus = command.outcomeStatus,
     )
     val persistedRecord = dutyToReferRepository.save(
       DutyToReferMapper.toEntity(aggregate.snapshot()),

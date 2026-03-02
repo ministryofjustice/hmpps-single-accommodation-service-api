@@ -12,7 +12,6 @@ fun buildDutyToReferSnapshot(
   referenceNumber: String? = "DTR-REF-001",
   submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
   outcomeStatus: DtrOutcomeStatus? = null,
-  outcomeDate: LocalDate? = null,
 ) = DutyToReferSnapshot(
   id = id,
   crn = crn,
@@ -20,5 +19,4 @@ fun buildDutyToReferSnapshot(
   referenceNumber = referenceNumber,
   submissionDate = submissionDate,
   outcomeStatus = outcomeStatus,
-  outcomeDate = outcomeDate,
 )

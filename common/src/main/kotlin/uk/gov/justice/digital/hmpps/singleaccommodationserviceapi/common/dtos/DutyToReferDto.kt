@@ -7,19 +7,16 @@ import java.util.UUID
 
 data class DutyToReferDto(
   val crn: String,
-  val serviceStatus: DtrServiceStatus,
-  val action: RuleAction?,
+  val status: DtrStatus,
   val submission: DtrSubmissionDto?,
 )
 
 data class DtrSubmissionDto(
   val id: UUID,
   val localAuthorityAreaId: UUID,
-  val localAuthorityAreaName: String?,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val outcomeStatus: DtrOutcomeStatus?,
-  val outcomeDate: LocalDate?,
   val createdBy: String,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
@@ -29,22 +26,21 @@ data class DtrSubmissionDto(
   val createdAt: Instant,
 )
 
-data class CreateDtrCommand(
+data class DtrCommand(
   val localAuthorityAreaId: UUID,
-  val submissionDate: LocalDate,
   val referenceNumber: String?,
+  val submissionDate: LocalDate,
+  val outcomeStatus: DtrOutcomeStatus?,
 )
 
-enum class DtrServiceStatus {
-  NOT_STARTED,
-  UPCOMING,
-  SUBMITTED,
-  ACCEPTED,
-  NOT_ACCEPTED,
-  NOT_ELIGIBLE,
+enum class DtrOutcomeStatus {
+  YES,
+  NO,
 }
 
-enum class DtrOutcomeStatus {
+enum class DtrStatus {
+  NOT_STARTED,
+  SUBMITTED,
   ACCEPTED,
   NOT_ACCEPTED,
 }

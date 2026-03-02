@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrOutcomeStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildDutyToReferSnapshot
 import java.time.Instant
@@ -15,7 +15,7 @@ class DutyToReferMapperTest {
 
   @Test
   fun `toEntity maps all fields correctly`() {
-    val snapshot = buildDutyToReferSnapshot(outcomeStatus = DtrOutcomeStatus.ACCEPTED)
+    val snapshot = buildDutyToReferSnapshot(outcomeStatus = DtrOutcomeStatus.YES)
 
     val entity = DutyToReferMapper.toEntity(snapshot)
 
@@ -25,7 +25,6 @@ class DutyToReferMapperTest {
     assertThat(entity.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(entity.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(entity.outcomeStatus).isEqualTo(EntityDtrOutcomeStatus.valueOf(snapshot.outcomeStatus!!.name))
-    assertThat(entity.outcomeDate).isEqualTo(snapshot.outcomeDate)
   }
 
   @Test
@@ -51,7 +50,7 @@ class DutyToReferMapperTest {
   }
 
   @Test
-  fun `toDto maps all fields correctly and sets serviceStatus to SUBMITTED`() {
+  fun `toDto maps all fields correctly and sets status to SUBMITTED`() {
     val snapshot = buildDutyToReferSnapshot()
     val createdBy = "Joe Bloggs"
     val createdAt = Instant.now()
@@ -59,17 +58,14 @@ class DutyToReferMapperTest {
     val dto = DutyToReferMapper.toDto(snapshot, createdBy, createdAt)
 
     assertThat(dto.crn).isEqualTo(snapshot.crn)
-    assertThat(dto.serviceStatus).isEqualTo(DtrServiceStatus.SUBMITTED)
-    assertThat(dto.action).isNull()
+    assertThat(dto.status).isEqualTo(DtrStatus.SUBMITTED)
     assertThat(dto.submission).isNotNull()
     val submission = dto.submission!!
     assertThat(submission.id).isEqualTo(snapshot.id)
     assertThat(submission.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
-    assertThat(submission.localAuthorityAreaName).isNull()
     assertThat(submission.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(submission.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(submission.outcomeStatus).isNull()
-    assertThat(submission.outcomeDate).isNull()
     assertThat(submission.createdBy).isEqualTo(createdBy)
     assertThat(submission.createdAt).isEqualTo(createdAt)
   }

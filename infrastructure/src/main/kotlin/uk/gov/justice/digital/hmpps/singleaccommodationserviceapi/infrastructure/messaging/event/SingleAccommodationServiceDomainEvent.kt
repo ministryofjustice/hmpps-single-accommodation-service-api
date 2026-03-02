@@ -15,9 +15,9 @@ enum class SingleAccommodationServiceDomainEventType(
     "sas.accommodation.updated",
     "SAS accommodation has been updated",
   ),
-  SAS_DUTY_TO_REFER_CREATED(
-    "sas.duty-to-refer.created",
-    "SAS duty to refer has been created",
+  SAS_DUTY_TO_REFER_UPDATED(
+    "sas.duty-to-refer.updated",
+    "SAS duty to refer has been updated",
   ),
   ;
 

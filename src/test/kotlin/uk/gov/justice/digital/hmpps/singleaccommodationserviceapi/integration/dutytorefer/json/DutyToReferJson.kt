@@ -6,12 +6,18 @@ fun createDtrRequestBody(
   localAuthorityAreaId: UUID,
   submissionDate: String = "2026-01-15",
   referenceNumber: String? = "DTR-REF-001",
+  outcomeStatus: String? = null,
 ): String = """
 {
   "localAuthorityAreaId": "$localAuthorityAreaId",
   "submissionDate": "$submissionDate"${if (referenceNumber != null) {
   """,
   "referenceNumber": "$referenceNumber""""
+} else {
+  ""
+}}${if (outcomeStatus != null) {
+  """,
+  "outcomeStatus": "$outcomeStatus""""
 } else {
   ""
 }}
@@ -29,25 +35,22 @@ fun expectedCreateDtrResponseBody(
 ): String = """
 {
   "crn": "$crn",
-  "serviceStatus": "SUBMITTED",
-  "action": null,
+  "status": "SUBMITTED",
   "submission": {
     "id": "$id",
     "localAuthorityAreaId": "$localAuthorityAreaId",
-    "localAuthorityAreaName": null,
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "outcomeStatus": null,
-    "outcomeDate": null,
     "createdBy": "$createdBy",
     "createdAt": "$createdAt"
   }
 }
 """.trimIndent()
 
-fun expectedDutyToReferCreatedDomainEventJson(dutyToReferId: UUID) = """
+fun expectedDutyToReferUpdatedDomainEventJson(dutyToReferId: UUID) = """
 {
   "aggregateId": "$dutyToReferId",
-  "type": "SAS_DUTY_TO_REFER_CREATED"
+  "type": "SAS_DUTY_TO_REFER_UPDATED"
 }
 """.trimIndent()

@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import java.util.UUID
 
-data class DutyToReferCreatedDomainEvent(
+data class DutyToReferUpdatedDomainEvent(
   override val aggregateId: UUID,
-  override val type: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_CREATED,
+  override val type: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
 ) : SingleAccommodationServiceDomainEvent

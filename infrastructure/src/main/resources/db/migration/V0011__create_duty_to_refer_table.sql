@@ -5,7 +5,6 @@ CREATE TABLE duty_to_refer(
     reference_number            TEXT,
     submission_date             DATE NOT NULL,
     outcome_status              VARCHAR(80),
-    outcome_date                DATE,
     created_by_user_id          UUID,
     created_at                  TIMESTAMP WITH TIME ZONE DEFAULT now(),
     last_updated_by_user_id     UUID,
