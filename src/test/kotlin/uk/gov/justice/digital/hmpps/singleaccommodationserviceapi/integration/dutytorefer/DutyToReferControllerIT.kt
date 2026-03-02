@@ -23,6 +23,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 class DutyToReferControllerIT : IntegrationTestBase() {
   @Autowired
@@ -62,7 +63,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should create duty to refer without publishing domain event when outcomeStatus is null`() {
+  fun `should create duty to refer and publish domain event`() {
     val localAuthorityAreaId = UUID.randomUUID()
 
     val result = restTestClient.post().uri("/cases/$crn/dtr")
@@ -72,6 +73,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
           localAuthorityAreaId = localAuthorityAreaId,
           submissionDate = "2026-01-15",
           referenceNumber = "DTR-REF-001",
+          status = "SUBMITTED",
         ),
       )
       .withDeliusUserJwt()
@@ -94,7 +96,12 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       ),
     )
 
-    assertThat(outboxEventRepository.findAll()).isEmpty()
+    assertPublishedSNSEvent(
+      dutyToReferId = persistedRecord.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
+    )
+    assertThatOutboxIsAsExpected(persistedRecord.id)
   }
 
   private fun assertPersistedDutyToRefer(
@@ -105,7 +112,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(persistedRecord.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
     assertThat(persistedRecord.referenceNumber).isEqualTo("DTR-REF-001")
     assertThat(persistedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 1, 15))
-    assertThat(persistedRecord.outcomeStatus).isNull()
+    assertThat(persistedRecord.status).isEqualTo(EntityDtrStatus.SUBMITTED)
     assertThat(persistedRecord.createdByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
     assertThat(persistedRecord.createdAt).isBetween(
       beforeTest.minusSeconds(1),

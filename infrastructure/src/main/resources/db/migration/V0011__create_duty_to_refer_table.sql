@@ -4,7 +4,7 @@ CREATE TABLE duty_to_refer(
     local_authority_area_id     UUID NOT NULL,
     reference_number            TEXT,
     submission_date             DATE NOT NULL,
-    outcome_status              VARCHAR(80),
+    status                      VARCHAR(80) NOT NULL,
     created_by_user_id          UUID,
     created_at                  TIMESTAMP WITH TIME ZONE DEFAULT now(),
     last_updated_by_user_id     UUID,

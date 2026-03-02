@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrOutcomeStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -12,7 +14,7 @@ class DutyToReferAggregate private constructor(
   private var localAuthorityAreaId: UUID? = null,
   private var referenceNumber: String? = null,
   private var submissionDate: LocalDate? = null,
-  private var outcomeStatus: DtrOutcomeStatus? = null,
+  private var status: DtrStatus? = null,
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
@@ -27,15 +29,27 @@ class DutyToReferAggregate private constructor(
     localAuthorityAreaId: UUID,
     submissionDate: LocalDate,
     referenceNumber: String?,
-    outcomeStatus: DtrOutcomeStatus?,
+    status: DtrStatus,
   ) {
+    validateStatusTransition(status)
+
+    val previousStatus = this.status
+
     this.localAuthorityAreaId = localAuthorityAreaId
     this.submissionDate = submissionDate
     this.referenceNumber = referenceNumber
-    this.outcomeStatus = outcomeStatus
+    this.status = status
 
-    if (outcomeStatus == DtrOutcomeStatus.YES) {
+    if (previousStatus != status) {
       domainEvents += DutyToReferUpdatedDomainEvent(id)
+    }
+  }
+
+  private fun validateStatusTransition(newStatus: DtrStatus) {
+    when (this.status) {
+      null -> if (newStatus != DtrStatus.SUBMITTED) throw DutyToReferInvalidStatusException()
+      DtrStatus.SUBMITTED -> Unit
+      else -> if (newStatus == DtrStatus.SUBMITTED) throw DutyToReferInvalidStatusTransitionException()
     }
   }
 
@@ -47,7 +61,7 @@ class DutyToReferAggregate private constructor(
     localAuthorityAreaId = localAuthorityAreaId!!,
     referenceNumber = referenceNumber,
     submissionDate = submissionDate!!,
-    outcomeStatus = outcomeStatus,
+    status = status!!,
   )
 
   data class DutyToReferSnapshot(
@@ -56,6 +70,6 @@ class DutyToReferAggregate private constructor(
     val localAuthorityAreaId: UUID,
     val referenceNumber: String?,
     val submissionDate: LocalDate,
-    val outcomeStatus: DtrOutcomeStatus?,
+    val status: DtrStatus,
   )
 }

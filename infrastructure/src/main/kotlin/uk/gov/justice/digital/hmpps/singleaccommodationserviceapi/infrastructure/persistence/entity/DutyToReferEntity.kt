@@ -18,10 +18,11 @@ open class DutyToReferEntity(
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)
-  var outcomeStatus: DtrOutcomeStatus?,
+  var status: DtrStatus,
 ) : BaseAuditedEntity()
 
-enum class DtrOutcomeStatus {
-  YES,
-  NO,
+enum class DtrStatus {
+  SUBMITTED,
+  ACCEPTED,
+  NOT_ACCEPTED,
 }

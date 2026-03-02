@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate.DutyToReferSnapshot
 import java.time.Instant
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrOutcomeStatus as EntityDtrOutcomeStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 object DutyToReferMapper {
 
@@ -16,7 +16,7 @@ object DutyToReferMapper {
     localAuthorityAreaId = snapshot.localAuthorityAreaId,
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
-    outcomeStatus = snapshot.outcomeStatus?.let { EntityDtrOutcomeStatus.valueOf(it.name) },
+    status = EntityDtrStatus.valueOf(snapshot.status.name),
   )
 
   fun toDto(
@@ -25,13 +25,12 @@ object DutyToReferMapper {
     createdAt: Instant,
   ) = DutyToReferDto(
     crn = snapshot.crn,
-    status = DtrStatus.SUBMITTED,
+    status = DtrStatus.valueOf(snapshot.status.name),
     submission = DtrSubmissionDto(
       id = snapshot.id,
       localAuthorityAreaId = snapshot.localAuthorityAreaId,
       referenceNumber = snapshot.referenceNumber,
       submissionDate = snapshot.submissionDate,
-      outcomeStatus = snapshot.outcomeStatus,
       createdBy = createdBy,
       createdAt = createdAt,
     ),

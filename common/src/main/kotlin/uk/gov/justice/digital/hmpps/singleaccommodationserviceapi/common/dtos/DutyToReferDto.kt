@@ -16,7 +16,6 @@ data class DtrSubmissionDto(
   val localAuthorityAreaId: UUID,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
-  val outcomeStatus: DtrOutcomeStatus?,
   val createdBy: String,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
@@ -30,13 +29,8 @@ data class DtrCommand(
   val localAuthorityAreaId: UUID,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
-  val outcomeStatus: DtrOutcomeStatus?,
+  val status: DtrStatus,
 )
-
-enum class DtrOutcomeStatus {
-  YES,
-  NO,
-}
 
 enum class DtrStatus {
   NOT_STARTED,

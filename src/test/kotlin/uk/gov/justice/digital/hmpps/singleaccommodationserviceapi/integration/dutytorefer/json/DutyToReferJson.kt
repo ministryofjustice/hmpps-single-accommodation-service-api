@@ -6,18 +6,14 @@ fun createDtrRequestBody(
   localAuthorityAreaId: UUID,
   submissionDate: String = "2026-01-15",
   referenceNumber: String? = "DTR-REF-001",
-  outcomeStatus: String? = null,
+  status: String = "SUBMITTED",
 ): String = """
 {
   "localAuthorityAreaId": "$localAuthorityAreaId",
-  "submissionDate": "$submissionDate"${if (referenceNumber != null) {
+  "submissionDate": "$submissionDate",
+  "status": "$status"${if (referenceNumber != null) {
   """,
   "referenceNumber": "$referenceNumber""""
-} else {
-  ""
-}}${if (outcomeStatus != null) {
-  """,
-  "outcomeStatus": "$outcomeStatus""""
 } else {
   ""
 }}
@@ -30,18 +26,18 @@ fun expectedCreateDtrResponseBody(
   localAuthorityAreaId: UUID,
   submissionDate: String = "2026-01-15",
   referenceNumber: String? = "DTR-REF-001",
+  status: String = "SUBMITTED",
   createdBy: String,
   createdAt: String,
 ): String = """
 {
   "crn": "$crn",
-  "status": "SUBMITTED",
+  "status": "$status",
   "submission": {
     "id": "$id",
     "localAuthorityAreaId": "$localAuthorityAreaId",
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
-    "outcomeStatus": null,
     "createdBy": "$createdBy",
     "createdAt": "$createdAt"
   }

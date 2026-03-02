@@ -30,7 +30,7 @@ class DutyToReferApplicationService(
       localAuthorityAreaId = command.localAuthorityAreaId,
       submissionDate = command.submissionDate,
       referenceNumber = command.referenceNumber,
-      outcomeStatus = command.outcomeStatus,
+      status = command.status,
     )
     val persistedRecord = dutyToReferRepository.save(
       DutyToReferMapper.toEntity(aggregate.snapshot()),
