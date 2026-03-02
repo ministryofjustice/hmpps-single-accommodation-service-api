@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ru
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
@@ -224,6 +225,7 @@ class EligibilityServiceTest {
       releaseDate: String?,
       cas1Status: Cas1ApplicationStatus?,
       cas1PlacementStatus: Cas1PlacementStatus?,
+      cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
       expectedCas1Status: ServiceStatus?,
       expectedCas1ActionsString: String?,
       expectedCas1Link: String?,
@@ -231,7 +233,7 @@ class EligibilityServiceTest {
       clock.setNow(referenceDate.toLocalDate())
 
       val cas1Application = cas1Status?.let {
-        buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
+        buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus, requestForPlacementStatus = cas1RequestForPlacementStatus)
       }
       val data = buildDomainData(crn, tier, sex, releaseDate?.toLocalDate(), cas1Application = cas1Application)
 

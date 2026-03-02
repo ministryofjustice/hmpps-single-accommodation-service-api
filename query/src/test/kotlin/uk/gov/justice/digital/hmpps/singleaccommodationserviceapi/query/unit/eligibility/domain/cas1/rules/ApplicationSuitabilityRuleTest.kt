@@ -38,6 +38,7 @@ class ApplicationSuitabilityRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -65,6 +66,7 @@ class ApplicationSuitabilityRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -101,6 +103,7 @@ class ApplicationSuitabilityRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -141,3 +144,7 @@ class ApplicationSuitabilityRuleTest {
     )
   }
 }
+
+
+
+

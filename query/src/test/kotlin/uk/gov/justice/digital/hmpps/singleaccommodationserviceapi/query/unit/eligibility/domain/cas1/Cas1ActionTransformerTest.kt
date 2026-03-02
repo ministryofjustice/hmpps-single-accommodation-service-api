@@ -117,6 +117,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -139,6 +140,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -161,6 +163,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -187,6 +190,7 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
         placementStatus = null,
+        requestForPlacementStatus = null,
       ),
     )
 
@@ -206,6 +210,7 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.STARTED,
         placementStatus = null,
+        requestForPlacementStatus = null,
       ),
     )
 
@@ -221,6 +226,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -247,6 +253,7 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         placementStatus = null,
+        requestForPlacementStatus = null,
       ),
     )
 
@@ -267,6 +274,7 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         placementStatus = status,
+        requestForPlacementStatus = null,
       ),
     )
 
