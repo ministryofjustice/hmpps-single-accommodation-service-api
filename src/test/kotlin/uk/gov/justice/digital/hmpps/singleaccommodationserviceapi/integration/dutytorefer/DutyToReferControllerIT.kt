@@ -41,7 +41,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    beforeTest = Instant.now()
+    beforeTest = clock.instant()
     dutyToReferRepository.deleteAll()
     outboxEventRepository.deleteAll()
 
@@ -116,7 +116,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(persistedRecord.createdByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
     assertThat(persistedRecord.createdAt).isBetween(
       beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
+      clock.instant().plusSeconds(1),
     )
   }
 

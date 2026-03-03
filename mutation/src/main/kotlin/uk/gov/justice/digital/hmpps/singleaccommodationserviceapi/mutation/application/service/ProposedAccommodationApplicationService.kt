@@ -91,7 +91,7 @@ class ProposedAccommodationApplicationService(
         aggregateType = "ProposedAccommodation",
         domainEventType = event.type.name,
         payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(clock),
+        createdAt = clock.instant(),
         processedStatus = ProcessedStatus.PENDING,
         processedAt = null,
       ),

@@ -31,7 +31,7 @@ class TestClock : Clock() {
 
   override fun withZone(zone: ZoneId): Clock = fixed(delegate.instant(), zone)
 
-  override fun instant(): Instant = delegate.instant()
+  override fun instant(): Instant = instantTruncatedToMicroSeconds(delegate.instant())
 }
 
-private fun instantTruncatedToMicroSeconds(instant: Instant? = null) = (instant ?: Instant.now()).truncatedTo(ChronoUnit.MILLIS)
+private fun instantTruncatedToMicroSeconds(instant: Instant? = null) = (instant ?: Instant.now()).truncatedTo(ChronoUnit.SECONDS)

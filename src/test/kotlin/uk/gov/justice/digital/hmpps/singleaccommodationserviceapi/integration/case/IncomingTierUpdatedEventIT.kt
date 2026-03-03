@@ -168,7 +168,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
                }
             ]
         },
-        "occurredAt": "${Instant.now().atOffset(ZoneOffset.UTC)}"
+        "occurredAt": "${clock.instant().atOffset(ZoneOffset.UTC)}"
       }
     """.trimIndent()
 

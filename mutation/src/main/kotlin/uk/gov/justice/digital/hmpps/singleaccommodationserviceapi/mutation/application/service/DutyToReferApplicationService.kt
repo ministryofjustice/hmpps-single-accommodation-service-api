@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
+import java.time.Clock
 import java.time.Instant
 import java.util.UUID
 
@@ -21,6 +22,7 @@ class DutyToReferApplicationService(
   private val dutyToReferRepository: DutyToReferRepository,
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
+  private val clock: Clock,
 ) {
   @Transactional
   fun createDutyToRefer(crn: String, command: DtrCommand): DutyToReferDto {
@@ -51,7 +53,7 @@ class DutyToReferApplicationService(
         aggregateType = "DutyToRefer",
         domainEventType = event.type.name,
         payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(),
+        createdAt = clock.instant(),
         processedStatus = ProcessedStatus.PENDING,
         processedAt = null,
       ),

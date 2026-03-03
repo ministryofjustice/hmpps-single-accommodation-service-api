@@ -93,7 +93,7 @@ class InboxEventDispatcherIT {
         eventType = "tier.calculation.complete",
         eventDetailUrl = detailUrl,
         eventOccurredAt = eventOccurredAt,
-        createdAt = Instant.now(),
+        createdAt = clock.instant(),
         processedStatus = ProcessedStatus.PENDING,
         processedAt = null,
         payload = jsonMapper.writeValueAsString(payload),

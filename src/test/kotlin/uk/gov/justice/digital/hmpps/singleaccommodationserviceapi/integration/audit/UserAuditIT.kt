@@ -230,11 +230,11 @@ class UserAuditIT : IntegrationTestBase() {
     assertThat(persistedProposedAccommodationEntity.lastUpdatedByUserId).isEqualTo(updatedByUser.id)
     assertThat(persistedProposedAccommodationEntity.createdAt).isBetween(
       beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
+      clock.instant().plusSeconds(1),
     )
     assertThat(persistedProposedAccommodationEntity.lastUpdatedAt).isBetween(
       beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
+      clock.instant().plusSeconds(1),
     )
   }
 }

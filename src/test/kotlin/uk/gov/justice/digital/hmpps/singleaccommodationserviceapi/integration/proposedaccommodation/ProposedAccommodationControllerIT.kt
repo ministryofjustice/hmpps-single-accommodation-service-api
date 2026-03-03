@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
@@ -53,8 +54,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    clock
-    beforeTest = Instant.now()
+    beforeTest = clock.instant()
     proposedAccommodationRepository.deleteAll()
     outboxEventRepository.deleteAll()
 
@@ -375,7 +375,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(updatedEntity.lastUpdatedByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
     assertThat(updatedEntity.lastUpdatedAt).isBetween(
       beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
+      clock.instant().plusSeconds(1),
     )
   }
 
@@ -418,7 +418,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationEntity.createdByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
     assertThat(proposedAccommodationEntity.createdAt).isBetween(
       beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
+      clock.instant().plusSeconds(1),
     )
   }
 
