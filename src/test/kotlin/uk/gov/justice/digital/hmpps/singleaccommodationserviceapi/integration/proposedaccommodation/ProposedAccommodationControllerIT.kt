@@ -53,6 +53,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
+    clock
     beforeTest = Instant.now()
     proposedAccommodationRepository.deleteAll()
     outboxEventRepository.deleteAll()

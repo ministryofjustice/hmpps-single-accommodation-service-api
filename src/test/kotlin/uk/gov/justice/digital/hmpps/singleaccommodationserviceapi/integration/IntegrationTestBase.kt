@@ -17,6 +17,8 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
@@ -37,7 +39,7 @@ const val NAME_OF_LOGGED_IN_NOMIS_USER: String = "NomisUser"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestClockConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
@@ -59,6 +61,9 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var userRepository: UserRepository
 
+  @Autowired
+  protected lateinit var clock: TestClock
+
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
     roles: List<String> = listOf(),
@@ -72,6 +77,7 @@ abstract class IntegrationTestBase {
 
   @AfterEach
   fun teardownUsers() {
+    clock.reset()
     userRepository.deleteAll()
   }
 
