@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
@@ -31,6 +32,9 @@ class DutyToReferControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
+
+  @Autowired
+  private lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
 
   @Autowired
   private lateinit var outboxEventRepository: OutboxEventRepository
@@ -64,7 +68,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should create duty to refer and publish domain event`() {
-    val localAuthorityAreaId = UUID.randomUUID()
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveOrderByName(true).first().id
 
     val result = restTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
