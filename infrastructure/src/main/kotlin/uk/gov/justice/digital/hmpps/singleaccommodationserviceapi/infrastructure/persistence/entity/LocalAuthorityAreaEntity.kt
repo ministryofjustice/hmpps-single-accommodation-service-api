@@ -3,9 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Immutable
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReferenceData
 import java.util.UUID
 
 @Entity
@@ -14,8 +16,11 @@ import java.util.UUID
 @Immutable
 data class LocalAuthorityAreaEntity(
   @Id
-  val id: UUID,
+  override val id: UUID,
   val identifier: String,
-  val name: String,
+  override val name: String,
   val active: Boolean,
-)
+) : ReferenceData {
+  @Transient
+  override val description: String? = null
+}

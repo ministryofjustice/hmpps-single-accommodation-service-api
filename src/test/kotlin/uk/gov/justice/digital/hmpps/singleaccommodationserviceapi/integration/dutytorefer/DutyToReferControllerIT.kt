@@ -68,7 +68,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should create duty to refer and publish domain event`() {
-    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveOrderByName(true).first().id
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
     val result = restTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
