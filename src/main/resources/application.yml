@@ -10,8 +10,6 @@ spring:
     import: classpath:application-infrastructure.yml
   application:
     name: hmpps-single-accommodation-service-api
-  jackson:
-    date-format: "yyyy-MM-dd HH:mm:ss"
   security:
     oauth2:
       resourceserver:

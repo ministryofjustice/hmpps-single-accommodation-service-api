@@ -405,8 +405,8 @@ class OutboxMessage(
     val destination: String, // e.g., "sns:domain-events" or "sqs:orders-events"
     val dedupKey: String? = null,
     val partitionKey: String? = null,
-    val createdAt: Instant = Instant.now(),
-    val availableAt: Instant = Instant.now(),
+    val createdAt: Instant = Instant.now(clock),
+    val availableAt: Instant = Instant.now(clock),
     var attempts: Int = 0,
     var lastError: String? = null,
     var status: String = "PENDING" // PENDING|SENDING|SENT|FAILED

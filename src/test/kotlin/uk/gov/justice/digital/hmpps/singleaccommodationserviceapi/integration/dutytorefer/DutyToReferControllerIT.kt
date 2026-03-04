@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
@@ -41,7 +40,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    beforeTest = Instant.now()
+    beforeTest = clock.instant()
     dutyToReferRepository.deleteAll()
     outboxEventRepository.deleteAll()
 
@@ -92,7 +91,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
         submissionDate = "2026-01-15",
         referenceNumber = "DTR-REF-001",
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
-        createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        createdAt = persistedRecord.createdAt!!.toString(),
       ),
     )
 
@@ -116,7 +115,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(persistedRecord.createdByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
     assertThat(persistedRecord.createdAt).isBetween(
       beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
+      clock.instant().plusSeconds(1),
     )
   }
 

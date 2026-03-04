@@ -84,6 +84,7 @@ Create a new class implementing `InboxEventHandler` in the `handler` package:
 @Component
 class MyNewEventHandler(
   private val inboxEventRepository: InboxEventRepository,
+  private val clock: Clock,
   // inject any services you need
 ) : InboxEventHandler {
 
@@ -103,12 +104,12 @@ class MyNewEventHandler(
       // Your business logic here - update domain, call services, etc.
       
       inboxEvent.processedStatus = ProcessedStatus.SUCCESS
-      inboxEvent.processedAt = Instant.now()
+      inboxEvent.processedAt = Instant.now(clock)
       inboxEventRepository.save(inboxEvent)
     } catch (e: Exception) {
       log.error("Failed to process event [inboxEventId={}]", inboxEvent.id, e)
       inboxEvent.processedStatus = ProcessedStatus.FAILED
-      inboxEvent.processedAt = Instant.now()
+      inboxEvent.processedAt = Instant.now(clock)
       inboxEventRepository.save(inboxEvent)
     }
   }

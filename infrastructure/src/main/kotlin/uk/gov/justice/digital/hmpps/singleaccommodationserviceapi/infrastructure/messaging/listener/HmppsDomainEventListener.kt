@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import java.time.Instant
+import java.time.Clock
 import java.util.UUID
 
 @Profile(value = ["local", "dev", "test"])
@@ -18,6 +18,7 @@ import java.util.UUID
 class HmppsDomainEventListener(
   private val jsonMapper: JsonMapper,
   private val inboxEventRepository: InboxEventRepository,
+  private val clock: Clock,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -32,7 +33,7 @@ class HmppsDomainEventListener(
           eventType = event.eventType,
           eventDetailUrl = event.detailUrl,
           eventOccurredAt = event.occurredAt,
-          createdAt = Instant.now(),
+          createdAt = clock.instant(),
           processedStatus = ProcessedStatus.PENDING,
           processedAt = null,
           payload = message,

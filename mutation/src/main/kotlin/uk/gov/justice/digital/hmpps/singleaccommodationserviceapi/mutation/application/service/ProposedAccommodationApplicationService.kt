@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
-import java.time.Instant
+import java.time.Clock
 import java.util.UUID
 
 @Service
@@ -22,6 +22,7 @@ class ProposedAccommodationApplicationService(
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
+  private val clock: Clock,
 ) {
   @Transactional
   fun createProposedAccommodation(crn: String, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
@@ -89,7 +90,7 @@ class ProposedAccommodationApplicationService(
         aggregateType = "ProposedAccommodation",
         domainEventType = event.type.name,
         payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(),
+        createdAt = clock.instant(),
         processedStatus = ProcessedStatus.PENDING,
         processedAt = null,
       ),

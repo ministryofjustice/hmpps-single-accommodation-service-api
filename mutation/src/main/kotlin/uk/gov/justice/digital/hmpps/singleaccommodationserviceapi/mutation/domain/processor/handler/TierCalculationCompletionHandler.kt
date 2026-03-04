@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
-import java.time.Instant
+import java.time.Clock
 
 @Component
 class TierCalculationCompletionHandler(
@@ -21,6 +21,7 @@ class TierCalculationCompletionHandler(
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val tierClient: TierClient,
+  private val clock: Clock,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -56,7 +57,7 @@ class TierCalculationCompletionHandler(
       caseApplicationService.upsertTier(tier = newTier, crn = crn)
 
       inboxEvent.processedStatus = ProcessedStatus.SUCCESS
-      inboxEvent.processedAt = Instant.now()
+      inboxEvent.processedAt = clock.instant()
       inboxEventRepository.save(inboxEvent)
       log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
     } catch (e: Exception) {
@@ -67,7 +68,7 @@ class TierCalculationCompletionHandler(
       )
       log.debug("Tier processing failure details", e)
       inboxEvent.processedStatus = ProcessedStatus.FAILED
-      inboxEvent.processedAt = Instant.now()
+      inboxEvent.processedAt = clock.instant()
       inboxEventRepository.save(inboxEvent)
     }
   }
