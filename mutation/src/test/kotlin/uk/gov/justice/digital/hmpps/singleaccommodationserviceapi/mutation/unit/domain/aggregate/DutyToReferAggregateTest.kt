@@ -1,0 +1,154 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.domain.aggregate
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import java.time.LocalDate
+import java.util.UUID
+
+class DutyToReferAggregateTest {
+
+  private val localAuthorityAreaId = UUID.randomUUID()
+  private val submissionDate = LocalDate.of(2026, 1, 15)
+
+  @Test
+  fun `create with SUBMITTED status should set all fields and emit domain event`() {
+    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = "DTR-REF-001",
+      status = DtrStatus.SUBMITTED,
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.id).isNotNull()
+    assertThat(snapshot.crn).isEqualTo("ABC1234")
+    assertThat(snapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+    assertThat(snapshot.submissionDate).isEqualTo(submissionDate)
+    assertThat(snapshot.referenceNumber).isEqualTo("DTR-REF-001")
+    assertThat(snapshot.status).isEqualTo(DtrStatus.SUBMITTED)
+
+    val domainEvents = aggregate.pullDomainEvents()
+    assertThat(domainEvents).hasSize(1)
+    assertThat(domainEvents.first()).isInstanceOf(DutyToReferUpdatedDomainEvent::class.java)
+    assertThat(domainEvents.first().aggregateId).isEqualTo(snapshot.id)
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
+  fun `create should throw DutyToReferInvalidStatusException when status is not SUBMITTED`(status: DtrStatus) {
+    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+
+    assertThrows<DutyToReferInvalidStatusException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = status,
+      )
+    }
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    "SUBMITTED, ACCEPTED",
+    "SUBMITTED, NOT_ACCEPTED",
+    "ACCEPTED, NOT_ACCEPTED",
+    "NOT_ACCEPTED, ACCEPTED",
+  )
+  fun `update should emit domain event when status changes`(currentStatus: DtrStatus, newStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(currentStatus)
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = newStatus,
+    )
+
+    assertThat(aggregate.snapshot().status).isEqualTo(newStatus)
+    val domainEvents = aggregate.pullDomainEvents()
+    assertThat(domainEvents).hasSize(1)
+    assertThat(domainEvents.first()).isInstanceOf(DutyToReferUpdatedDomainEvent::class.java)
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = DtrStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"])
+  fun `update should not emit domain event when status stays the same`(status: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(status)
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = status,
+    )
+
+    assertThat(aggregate.snapshot().status).isEqualTo(status)
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
+  fun `update should throw DutyToReferInvalidStatusTransitionException when reverting to SUBMITTED`(currentStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(currentStatus)
+
+    assertThrows<DutyToReferInvalidStatusTransitionException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.SUBMITTED,
+      )
+    }
+  }
+
+  @Test
+  fun `pullDomainEvents should clear events after pulling`() {
+    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+    )
+
+    val firstPull = aggregate.pullDomainEvents()
+    assertThat(firstPull).hasSize(1)
+
+    val secondPull = aggregate.pullDomainEvents()
+    assertThat(secondPull).isEmpty()
+  }
+
+  private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
+    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+    )
+    aggregate.pullDomainEvents()
+
+    if (status != DtrStatus.SUBMITTED) {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = status,
+      )
+      aggregate.pullDomainEvents()
+    }
+
+    return aggregate
+  }
+}

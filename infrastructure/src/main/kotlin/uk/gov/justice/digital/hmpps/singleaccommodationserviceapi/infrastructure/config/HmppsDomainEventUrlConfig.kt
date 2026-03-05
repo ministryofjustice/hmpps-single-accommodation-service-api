@@ -9,11 +9,14 @@ import java.util.UUID
 class HmppsDomainEventUrlConfig(
   @Value($$"${event.details-url.proposed-accommodation-updated}")
   val proposedAccommodationUpdatedEventDetailsUrl: String,
+  @Value($$"${event.details-url.duty-to-refer-updated}")
+  val dutyToReferUpdatedEventDetailsUrl: String,
 ) {
 
   fun getUrlForDomainEventId(domainEventType: SingleAccommodationServiceDomainEventType, id: UUID): String {
     val template = when (domainEventType) {
       SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED -> UrlTemplate(proposedAccommodationUpdatedEventDetailsUrl)
+      SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED -> UrlTemplate(dutyToReferUpdatedEventDetailsUrl)
     }
     return template.resolve("id", id.toString())
   }
