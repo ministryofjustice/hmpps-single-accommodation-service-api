@@ -26,16 +26,6 @@ class ReferenceDataTransformerTest {
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.name).isEqualTo("City of London")
-      assertThat(result.description).isNull()
-    }
-
-    @Test
-    fun `should handle nullable fields correctly`() {
-      val entity = buildLocalAuthorityAreaEntity()
-
-      val result = ReferenceDataTransformer.toReferenceDataDto(entity)
-
-      assertThat(result.description).isNull()
     }
   }
 }

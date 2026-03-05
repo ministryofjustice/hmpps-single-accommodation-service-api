@@ -7,10 +7,10 @@ import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReferenceDataDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildLocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.referencedata.LocalAuthorityAreaQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.referencedata.ReferenceDataTransformer
 
 @ExtendWith(MockKExtension::class)
 class LocalAuthorityAreaQueryServiceTest {
@@ -30,7 +30,7 @@ class LocalAuthorityAreaQueryServiceTest {
     val result = service.getLocalAuthorityAreas()
 
     assertThat(result).hasSize(2)
-    assertThat(result[0]).isEqualTo(ReferenceDataTransformer.toReferenceDataDto(entity1))
-    assertThat(result[1]).isEqualTo(ReferenceDataTransformer.toReferenceDataDto(entity2))
+    assertThat(result[0]).isEqualTo(ReferenceDataDto(id = entity1.id, name = "City of London"))
+    assertThat(result[1]).isEqualTo(ReferenceDataDto(id = entity2.id, name = "London Borough of Hackney"))
   }
 }
