@@ -7,11 +7,13 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.DutyToReferApplicationService
+import java.util.UUID
 
 @RestController
 class DutyToReferController(
@@ -34,5 +36,16 @@ class DutyToReferController(
   ): ResponseEntity<DutyToReferDto> {
     val createdDutyToRefer = dutyToReferApplicationService.createDutyToRefer(crn, command)
     return ResponseEntity(createdDutyToRefer, HttpStatus.CREATED)
+  }
+
+  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PutMapping("/cases/{crn}/dtr/{id}")
+  fun update(
+    @PathVariable crn: String,
+    @PathVariable id: UUID,
+    @RequestBody command: DtrCommand,
+  ): ResponseEntity<DutyToReferDto> {
+    val updatedDutyToRefer = dutyToReferApplicationService.updateDutyToRefer(crn, id, command)
+    return ResponseEntity.ok(updatedDutyToRefer)
   }
 }
