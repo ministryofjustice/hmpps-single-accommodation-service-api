@@ -33,6 +33,7 @@ class DomainDataTest {
         UUID.randomUUID(),
         Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         null,
+        null,
       ),
       cas2HdcApplication = Cas2HdcApplication(
         UUID.randomUUID(),

@@ -32,8 +32,8 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
-    val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
+    val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION)
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -47,8 +47,8 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_REFERRAL} in 31 days", true)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, false)
+    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days")
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -62,8 +62,8 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
-    val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
+    val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION)
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -77,8 +77,8 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_REFERRAL} in 1 day", true)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, false)
+    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day")
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -92,8 +92,8 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_REFERRAL} in 2 days", true)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, false)
+    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days")
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -105,7 +105,7 @@ class Cas1ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = null,
     )
-    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
+    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock, false) }
       .isInstanceOf(IllegalStateException::class.java)
       .hasMessageContaining("Release date for crn: ABC234 is null")
   }
@@ -117,6 +117,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -127,7 +128,7 @@ class Cas1ActionTransformerTest {
       cas1Application = cas1Application,
     )
 
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.CREATE_PLACEMENT))
   }
@@ -139,6 +140,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -149,7 +151,7 @@ class Cas1ActionTransformerTest {
       cas1Application = cas1Application,
     )
 
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.CREATE_PLACEMENT))
   }
@@ -161,6 +163,7 @@ class Cas1ActionTransformerTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -171,9 +174,9 @@ class Cas1ActionTransformerTest {
       cas1Application = cas1Application,
     )
 
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.AWAIT_ASSESSMENT, true))
+    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.WAIT_FOR_ASSESSMENT_RESULT))
   }
 
   @Test
@@ -187,21 +190,43 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
         placementStatus = null,
+        requestForPlacementStatus = null,
       ),
     )
 
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.PROVIDE_INFORMATION))
   }
 
+  @Test
+  fun `Build action when application is STARTED`() {
+    val data = DomainData(
+      crn = crn,
+      tier = tier,
+      sex = SexCode.M,
+      releaseDate = LocalDate.now().plusMonths(5),
+      cas1Application = Cas1Application(
+        id = UUID.randomUUID(),
+        applicationStatus = Cas1ApplicationStatus.STARTED,
+        placementStatus = null,
+        requestForPlacementStatus = null,
+      ),
+    )
+
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
+
+    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION))
+  }
+
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1ApplicationStatus::class, names = ["EXPIRED", "INAPPLICABLE", "STARTED", "REJECTED", "WITHDRAWN"])
+  @EnumSource(value = Cas1ApplicationStatus::class, names = ["EXPIRED", "INAPPLICABLE", "REJECTED", "WITHDRAWN"])
   fun `Build action when application is not suitable`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -212,9 +237,9 @@ class Cas1ActionTransformerTest {
       cas1Application = cas1Application,
     )
 
-    val result = Cas1ActionTransformer.buildCas1Action(data, clock)
+    val result = Cas1ActionTransformer.buildCas1Action(data, clock, true)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL))
+    Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION))
   }
 
   @Test
@@ -228,10 +253,11 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         placementStatus = null,
+        requestForPlacementStatus = null,
       ),
     )
 
-    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
+    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock, true) }
       .isInstanceOf(IllegalStateException::class.java)
       .hasMessageContaining("Invalid placement status: null")
   }
@@ -248,10 +274,11 @@ class Cas1ActionTransformerTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         placementStatus = status,
+        requestForPlacementStatus = null,
       ),
     )
 
-    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
+    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock, true) }
       .isInstanceOf(IllegalStateException::class.java)
       .hasMessageContaining("Invalid placement status: $status")
   }

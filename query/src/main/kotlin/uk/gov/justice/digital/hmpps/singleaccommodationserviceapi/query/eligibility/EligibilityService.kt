@@ -106,8 +106,9 @@ class EligibilityService(
         data = data,
         currentResult =
         ServiceResult(
-          serviceStatus = ServiceStatus.CONFIRMED,
+          serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
           suitableApplicationId = data.cas1Application?.id,
+          link = "View application",
         ),
       )
 
