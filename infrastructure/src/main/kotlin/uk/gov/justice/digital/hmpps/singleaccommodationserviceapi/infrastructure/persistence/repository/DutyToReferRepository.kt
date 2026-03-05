@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
   fun findByCrn(crn: String): DutyToReferEntity?
+  fun findByIdAndCrn(id: UUID, crn: String): DutyToReferEntity?
 }

@@ -23,6 +23,22 @@ class DutyToReferAggregate private constructor(
       id = UUID.randomUUID(),
       crn = crn,
     )
+
+    fun hydrateExisting(
+      id: UUID,
+      crn: String,
+      localAuthorityAreaId: UUID,
+      referenceNumber: String?,
+      submissionDate: LocalDate,
+      status: DtrStatus,
+    ) = DutyToReferAggregate(
+      id = id,
+      crn = crn,
+      localAuthorityAreaId = localAuthorityAreaId,
+      referenceNumber = referenceNumber,
+      submissionDate = submissionDate,
+      status = status,
+    )
   }
 
   fun updateDutyToRefer(

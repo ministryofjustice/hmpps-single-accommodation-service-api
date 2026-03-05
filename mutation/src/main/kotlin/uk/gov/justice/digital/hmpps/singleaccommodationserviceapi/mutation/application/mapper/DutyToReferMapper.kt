@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate.DutyToReferSnapshot
 import java.time.Instant
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
@@ -17,6 +18,22 @@ object DutyToReferMapper {
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
     status = EntityDtrStatus.valueOf(snapshot.status.name),
+  )
+
+  fun applyToEntity(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity) {
+    entity.localAuthorityAreaId = snapshot.localAuthorityAreaId
+    entity.referenceNumber = snapshot.referenceNumber
+    entity.submissionDate = snapshot.submissionDate
+    entity.status = EntityDtrStatus.valueOf(snapshot.status.name)
+  }
+
+  fun toAggregate(entity: DutyToReferEntity): DutyToReferAggregate = DutyToReferAggregate.hydrateExisting(
+    id = entity.id,
+    crn = entity.crn,
+    localAuthorityAreaId = entity.localAuthorityAreaId,
+    referenceNumber = entity.referenceNumber,
+    submissionDate = entity.submissionDate,
+    status = DtrStatus.valueOf(entity.status.name),
   )
 
   fun toDto(
