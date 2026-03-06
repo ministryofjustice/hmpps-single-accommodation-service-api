@@ -30,8 +30,10 @@ class RestClientForAuthorizationCodeFlowConfig(
       .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofSeconds(5)))
       .baseUrl(baseUrl)
       .requestInterceptor { request, body, execution ->
-        val jwt = httpAuthService.getJwt()
-        request.headers.setBearerAuth(jwt.tokenValue)
+        if (!request.headers.containsHeader("Authorization")) {
+          val jwt = httpAuthService.getJwt()
+          request.headers.setBearerAuth(jwt.tokenValue)
+        }
         execution.execute(request, body)
       }
       .build()

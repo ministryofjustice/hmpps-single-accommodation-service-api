@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security
 
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
@@ -9,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import java.util.UUID
-import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource as AuthSourceEntity
 
 @Service
@@ -32,7 +32,7 @@ class UserService(
         )!!
       }
       AuthSource.NOMIS -> {
-        val user = getAndUpdateNomisUserOrCreate(username = principal.username.uppercase())
+        val user = getAndUpdateNomisUserOrCreate(username = principal.username.uppercase(), httpAuthService.getJwt())
         httpAuthService.setPrincipalUserId(sasUserId = user.id)
         user
       }
@@ -66,22 +66,16 @@ class UserService(
     return savedUser
   }
 
-  fun getAndUpdateNomisUserOrCreate(username: String): UserEntity {
-    val nomisUserDetails = nomisUserRolesService.getUserDetailsForMe()
-      ?: throw NotFoundException("User details for Nomis user $username do not exist")
+  fun getAndUpdateNomisUserOrCreate(username: String, jwt: Jwt): UserEntity {
+    val nomisUserDetails =
+      nomisUserRolesService.getUserDetailsForMe(jwt)
+        ?: throw NotFoundException("User details for Nomis user $username do not exist")
     val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSourceEntity.NOMIS)
     if (existingUser != null) {
-      if (
-        existingUser.email != nomisUserDetails.primaryEmail ||
-        existingUser.nomisActiveCaseloadId != nomisUserDetails.activeCaseloadId
-      ) {
-        existingUser.email = nomisUserDetails.primaryEmail
-        existingUser.nomisActiveCaseloadId = nomisUserDetails.activeCaseloadId
-
-        return userRepository.save(existingUser)
-      }
-
-      return existingUser
+      // always set the latest email address and active caseload
+      existingUser.email = nomisUserDetails.primaryEmail
+      existingUser.nomisActiveCaseloadId = nomisUserDetails.activeCaseloadId
+      return userRepository.save(existingUser)
     }
     return userRepository.save(
       UserEntity(
