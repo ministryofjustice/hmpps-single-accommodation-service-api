@@ -36,6 +36,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val prisoner = buildPrisoner(prisonerNumber = prisonerNumber)
 
     HmppsAuthStubs.stubGrantToken()
+    createTestDataSetupUserAndDeliusUser()
 
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
 

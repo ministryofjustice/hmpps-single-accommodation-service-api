@@ -35,6 +35,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val roshMedium = buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.MEDIUM))
     val tier = buildTier()
 
+    createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
 
     // bulk call

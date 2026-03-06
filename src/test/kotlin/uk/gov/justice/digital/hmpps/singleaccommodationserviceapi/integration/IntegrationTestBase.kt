@@ -18,21 +18,22 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource as AuthSourceEntity
 
 const val USERNAME_OF_TEST_DATA_SETUP_USER = "TEST_DATA_SETUP_USER"
 const val NAME_OF_TEST_DATA_SETUP_USER: String = "Test Data Setup User"
 const val USERNAME_OF_LOGGED_IN_DELIUS_USER = "DELIUS_USER"
 const val NAME_OF_LOGGED_IN_DELIUS_USER: String = "DeliusUser"
 const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
-const val NAME_OF_LOGGED_IN_NOMIS_USER: String = "NomisUser"
 
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -83,7 +84,7 @@ abstract class IntegrationTestBase {
   protected fun testDataSetupUser() = UserEntity(
     id = userIdOfTestDataSetupUser,
     username = USERNAME_OF_TEST_DATA_SETUP_USER,
-    authSource = AuthSource.DELIUS,
+    authSource = AuthSourceEntity.DELIUS,
     name = NAME_OF_TEST_DATA_SETUP_USER,
     email = USERNAME_OF_TEST_DATA_SETUP_USER,
     telephoneNumber = null,
@@ -98,7 +99,7 @@ abstract class IntegrationTestBase {
   protected fun delisUserEntityForJwtLoggedInUser() = UserEntity(
     id = userIdOfLoggedInDeliusUser,
     username = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-    authSource = AuthSource.DELIUS,
+    authSource = AuthSourceEntity.DELIUS,
     name = NAME_OF_LOGGED_IN_DELIUS_USER,
     email = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     telephoneNumber = null,
@@ -131,9 +132,10 @@ abstract class IntegrationTestBase {
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(
+        grantType = GrantType.AUTHORIZATION_CODE.type,
         username = username,
         roles = roles,
-        authSource = AuthSource.DELIUS.authSource,
+        authSource = AuthSource.DELIUS.source,
       ),
     )
   }
@@ -142,11 +144,26 @@ abstract class IntegrationTestBase {
     username: String = USERNAME_OF_LOGGED_IN_NOMIS_USER,
     roles: List<String> = listOf("ROLE_POM", "ROLE_PRISON"),
     jwt: String = jwtAuthHelper.createJwtAccessToken(
+      grantType = GrantType.AUTHORIZATION_CODE.type,
       username = username,
       roles = roles,
-      authSource = AuthSource.NOMIS.authSource,
+      authSource = AuthSource.NOMIS.source,
     ),
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(jwt)
+  }
+
+  fun RestTestClient.RequestHeadersSpec<*>.withClientCredentialsJwt(
+    roles: List<String> = listOf("ROLE_PROBATION"),
+  ): RestTestClient.RequestHeadersSpec<*> = this.headers {
+    it.setBearerAuth(
+      jwtAuthHelper.createJwtAccessToken(
+        grantType = GrantType.CLIENT_CREDENTIALS.type,
+        clientId = "test-client-id",
+        username = null,
+        roles = roles,
+        authSource = AuthSource.NONE.source,
+      ),
+    )
   }
 }

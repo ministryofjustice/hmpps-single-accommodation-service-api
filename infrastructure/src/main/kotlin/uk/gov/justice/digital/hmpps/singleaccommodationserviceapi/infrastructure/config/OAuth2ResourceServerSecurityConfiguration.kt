@@ -16,11 +16,17 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.ClientCredentialsPrincipal
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
 @Configuration
 @EnableMethodSecurity
 @EnableWebSecurity
-class OAuth2ResourceServerSecurityConfiguration {
+class OAuth2ResourceServerSecurityConfiguration(
+  private val userService: UserService,
+) {
   @Bean
   @Throws(Exception::class)
   fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -28,7 +34,7 @@ class OAuth2ResourceServerSecurityConfiguration {
       csrf { disable() }
       anonymous { disable() }
       oauth2ResourceServer {
-        jwt { jwtAuthenticationConverter = AuthAwareTokenConverter() }
+        jwt { jwtAuthenticationConverter = AuthAwareTokenConverter(userService) }
 
         authenticationEntryPoint = AuthenticationEntryPoint { _, response, _ ->
           response.apply {
@@ -55,15 +61,59 @@ class OAuth2ResourceServerSecurityConfiguration {
   }
 }
 
-class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
+class AuthAwareTokenConverter(private val userService: UserService) : Converter<Jwt, AbstractAuthenticationToken> {
   private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> =
     JwtGrantedAuthoritiesConverter()
 
   override fun convert(jwt: Jwt): AbstractAuthenticationToken {
     val claims = jwt.claims
-    val principal = findPrincipal(claims)
+    val grantType = GrantType.findByType(claims[CLAIM_GRANT_TYPE] as String) ?: throw RuntimeException("JWT grant_type failure")
+    return when (grantType) {
+      GrantType.AUTHORIZATION_CODE -> convertForAuthorizationCodeFlow(jwt)
+      GrantType.CLIENT_CREDENTIALS -> convertForClientCredentialsFlow(jwt)
+    }
+  }
+
+  private fun convertForAuthorizationCodeFlow(jwt: Jwt): AuthAwareAuthenticationToken {
+    val authSource = AuthSource.findBySource(jwt.claims[CLAIM_AUTH_SOURCE] as String)
+    val username = findPrincipal(jwt.claims)
+    val principal = when (authSource) {
+      AuthSource.DELIUS -> {
+        val user = userService.getExistingDeliusUserOrCreate(username.uppercase())
+        UserPrincipal(
+          sasUserId = user.id,
+          username = username,
+          authSource = authSource,
+        )
+      }
+      AuthSource.NOMIS -> {
+        val user = userService.getAndUpdateNomisUserOrCreate(username.uppercase(), jwt)
+        UserPrincipal(
+          sasUserId = user.id,
+          username = username,
+          authSource = authSource,
+        )
+      }
+      else -> throw RuntimeException("JWT auth_source claim is not appropriate for authorization code flow: $authSource")
+    }
     val authorities = extractAuthorities(jwt)
-    return AuthAwareAuthenticationToken(jwt, principal, authorities)
+    return AuthAwareAuthenticationToken(
+      jwt,
+      principal,
+      authorities,
+    )
+  }
+
+  fun convertForClientCredentialsFlow(jwt: Jwt): AbstractAuthenticationToken {
+    val claims = jwt.claims
+    return AuthAwareAuthenticationToken(
+      jwt,
+      principal = ClientCredentialsPrincipal(
+        clientId = claims[CLAIM_CLIENT_ID] as String,
+        authSource = AuthSource.NONE,
+      ),
+      authorities = extractAuthorities(jwt),
+    )
   }
 
   private fun findPrincipal(claims: Map<String, Any?>): String = if (claims.containsKey(CLAIM_USERNAME)) {
@@ -91,9 +141,21 @@ class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
   }
 
   companion object {
+    const val CLAIM_GRANT_TYPE = "grant_type"
     const val CLAIM_USERNAME = "user_name"
+    const val CLAIM_AUTH_SOURCE = "auth_source"
     const val CLAIM_USER_ID = "user_id"
     const val CLAIM_CLIENT_ID = "client_id"
     const val CLAIM_AUTHORITY = "authorities"
+  }
+}
+
+enum class GrantType(val type: String) {
+  AUTHORIZATION_CODE("authorization_code"),
+  CLIENT_CREDENTIALS("client_credentials"),
+  ;
+
+  companion object {
+    fun findByType(type: String) = entries.firstOrNull { it.type == type }
   }
 }

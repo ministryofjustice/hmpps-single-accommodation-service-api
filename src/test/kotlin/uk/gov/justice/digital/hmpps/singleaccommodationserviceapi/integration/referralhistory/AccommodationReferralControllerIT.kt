@@ -19,6 +19,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
+    createTestDataSetupUserAndDeliusUser()
   }
 
   @Test
