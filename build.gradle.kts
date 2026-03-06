@@ -56,12 +56,12 @@ configurations.detekt {
 tasks.register<Copy>("copyPreCommitHook") {
   description = "Copy the pre-commit git hook from the scripts to the .git/hooks folder."
   group = "git hooks"
-  outputs.upToDateWhen { false }
   from("$rootDir/scripts/pre-commit")
   into("$rootDir/.git/hooks/")
+  doLast { file("$rootDir/.git/hooks/pre-commit").setExecutable(true) }
 }
 
-tasks.build {
+tasks.compileKotlin {
   dependsOn("copyPreCommitHook")
 }
 
