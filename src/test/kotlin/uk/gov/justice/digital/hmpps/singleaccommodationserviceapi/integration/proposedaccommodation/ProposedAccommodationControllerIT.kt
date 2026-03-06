@@ -133,7 +133,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     )
 
     restTestClient.get().uri("/proposed-accommodations/{id}", entity.id)
-      .withClientCredentialsJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
+      .withClientCredentialsJwt(
+        roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
+      )
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
@@ -157,11 +159,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return 403 when using ROLE_PROBATION for ADDA endpoint`() {
+  fun `should return 403 when using token with SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER for ADDA endpoint`() {
     val nonExistentId = UUID.randomUUID()
 
     restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
-      .withDeliusUserJwt(roles = listOf("ROLE_PROBATION"))
+      .withDeliusUserJwt(roles = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
       .exchange()
       .expectStatus().isForbidden
   }

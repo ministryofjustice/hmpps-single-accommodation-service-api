@@ -17,7 +17,7 @@ class ReferenceDataController(
   private val localAuthorityAreaQueryService: LocalAuthorityAreaQueryService,
 ) {
 
-  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/reference-data")
   fun getReferenceData(
     @RequestParam(required = true) type: ReferenceDataType,
