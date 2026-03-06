@@ -15,7 +15,7 @@ class CaseController(
   private val caseService: CaseService,
 ) {
 
-  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases")
   fun getCases(
     @RequestParam(required = false) searchTerm: String?,
@@ -32,7 +32,7 @@ class CaseController(
     }
   }
 
-  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
     val case = caseService.getCase(crn)

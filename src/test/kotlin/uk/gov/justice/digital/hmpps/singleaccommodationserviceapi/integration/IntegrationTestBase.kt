@@ -128,7 +128,7 @@ abstract class IntegrationTestBase {
 
   fun RestTestClient.RequestHeadersSpec<*>.withDeliusUserJwt(
     username: String = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-    roles: List<String> = listOf("ROLE_PROBATION"),
+    roles: List<String> = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(
@@ -154,7 +154,7 @@ abstract class IntegrationTestBase {
   }
 
   fun RestTestClient.RequestHeadersSpec<*>.withClientCredentialsJwt(
-    roles: List<String> = listOf("ROLE_PROBATION"),
+    roles: List<String>,
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(

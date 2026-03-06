@@ -34,7 +34,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .components(
       Components().addSecuritySchemes(
         "role-probation",
-        SecurityScheme().addBearerJwtRequirement("ROLE_PROBATION"),
+        SecurityScheme().addBearerJwtRequirement("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
       ),
     )
   // TODO Add security schema and roles in `.addSecurityItem()`
