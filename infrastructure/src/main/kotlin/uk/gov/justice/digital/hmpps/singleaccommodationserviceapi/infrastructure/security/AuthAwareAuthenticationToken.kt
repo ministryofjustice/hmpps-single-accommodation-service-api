@@ -14,8 +14,17 @@ class AuthAwareAuthenticationToken(
   override fun getPrincipal(): Principal = principal
 }
 
-data class Principal(
+interface Principal {
+  val authSource: AuthSource
+}
+
+data class UserPrincipal(
   var sasUserId: UUID,
   val username: String,
-  val authSource: AuthSource,
-)
+  override val authSource: AuthSource,
+) : Principal
+
+data class ClientCredentialsPrincipal(
+  val clientId: String,
+  override val authSource: AuthSource,
+) : Principal

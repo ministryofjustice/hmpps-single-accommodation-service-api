@@ -32,9 +32,7 @@ class UserService(
         )!!
       }
       AuthSource.NOMIS -> {
-        val user = getAndUpdateNomisUserOrCreate(username = principal.username.uppercase(), httpAuthService.getJwt())
-        httpAuthService.setPrincipalUserId(sasUserId = user.id)
-        user
+        getAndUpdateNomisUserOrCreate(username = principal.username.uppercase(), httpAuthService.getJwt())
       }
       else -> throw RuntimeException("Unexpected auth_source: ${principal.authSource}")
     }

@@ -16,7 +16,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Principal
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.ClientCredentialsPrincipal
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
@@ -79,7 +80,7 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
     val principal = when (authSource) {
       AuthSource.DELIUS -> {
         val user = userService.getExistingDeliusUserOrCreate(username.uppercase())
-        Principal(
+        UserPrincipal(
           sasUserId = user.id,
           username = username,
           authSource = authSource,
@@ -87,7 +88,7 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
       }
       AuthSource.NOMIS -> {
         val user = userService.getAndUpdateNomisUserOrCreate(username.uppercase(), jwt)
-        Principal(
+        UserPrincipal(
           sasUserId = user.id,
           username = username,
           authSource = authSource,
@@ -107,8 +108,8 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
     val claims = jwt.claims
     return AuthAwareAuthenticationToken(
       jwt,
-      principal = Principal(
-        username = findPrincipal(claims),
+      principal = ClientCredentialsPrincipal(
+        clientId = claims[CLAIM_CLIENT_ID] as String,
         authSource = AuthSource.NONE,
       ),
       authorities = extractAuthorities(jwt),

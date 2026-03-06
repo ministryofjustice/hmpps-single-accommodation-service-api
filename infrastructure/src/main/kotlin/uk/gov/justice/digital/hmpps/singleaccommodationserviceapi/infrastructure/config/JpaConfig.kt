@@ -7,6 +7,7 @@ import org.springframework.data.domain.AuditorAware
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.security.core.context.SecurityContextHolder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import java.util.Optional
 import java.util.UUID
 
@@ -21,6 +22,7 @@ class JpaAuditorConfig {
   @Profile("local", "dev", "preprod", "prod")
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
     val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-    Optional.of(authToken.principal.sasUserId!!)
+    val userPrincipal = authToken.principal as UserPrincipal
+    Optional.of(userPrincipal.sasUserId)
   }
 }
