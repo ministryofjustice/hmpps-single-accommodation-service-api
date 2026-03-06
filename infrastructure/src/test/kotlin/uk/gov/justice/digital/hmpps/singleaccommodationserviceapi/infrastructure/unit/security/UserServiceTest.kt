@@ -96,11 +96,14 @@ class UserServiceTest {
   inner class GetAndUpdateNomisUserOrCreate {
     private val userUuid = UUID.randomUUID()
     private val username = "SOMENOMISPERSON"
-    private val jwt = Jwt.withTokenValue("token").build()
+    private val jwt = Jwt.withTokenValue("token")
+      .header("Authroization", "jwt")
+      .claim("username", username)
+      .build()
 
     @Test
     fun `getAndUpdateNomisUserOrCreate should throw NotFoundException when user-details not found`() {
-      every { nomisUserRolesService.getUserDetailsForMe() } returns null
+      every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns null
 
       assertThatThrownBy { userService.getAndUpdateNomisUserOrCreate(username, jwt) }
         .isInstanceOf(NotFoundException::class.java)
@@ -118,7 +121,7 @@ class UserServiceTest {
         username = username,
         authSource = AuthSource.NOMIS,
       )
-      every { nomisUserRolesService.getUserDetailsForMe() } returns nomisUser
+      every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns nomisUser
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns nomisUserEntity
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
 
@@ -136,7 +139,7 @@ class UserServiceTest {
       val nomisUser = buildNomisUserDetail(
         username = username,
       )
-      every { nomisUserRolesService.getUserDetailsForMe() } returns nomisUser
+      every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns nomisUser
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
 
