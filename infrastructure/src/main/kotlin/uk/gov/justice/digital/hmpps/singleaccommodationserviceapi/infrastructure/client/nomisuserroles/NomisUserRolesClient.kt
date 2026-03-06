@@ -7,9 +7,6 @@ import org.springframework.web.service.annotation.GetExchange
 
 interface NomisUserRolesClient {
   @GetExchange(value = "/me")
-  fun getUserDetailsForMe(): NomisUserDetail?
-
-  @GetExchange(value = "/me")
   fun getUserDetailsForMe(@RequestHeader(required = false) bearer: String): NomisUserDetail?
 }
 

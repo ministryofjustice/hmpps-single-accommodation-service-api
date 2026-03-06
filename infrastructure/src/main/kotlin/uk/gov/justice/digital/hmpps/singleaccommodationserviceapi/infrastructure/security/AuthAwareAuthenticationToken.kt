@@ -15,7 +15,7 @@ class AuthAwareAuthenticationToken(
 }
 
 data class Principal(
-  var sasUserId: UUID? = null,
+  var sasUserId: UUID,
   val username: String,
   val authSource: AuthSource,
 )

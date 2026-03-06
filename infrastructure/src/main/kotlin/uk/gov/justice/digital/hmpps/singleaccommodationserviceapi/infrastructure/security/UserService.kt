@@ -72,7 +72,6 @@ class UserService(
         ?: throw NotFoundException("User details for Nomis user $username do not exist")
     val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSourceEntity.NOMIS)
     if (existingUser != null) {
-      // always set the latest email address and active caseload
       existingUser.email = nomisUserDetails.primaryEmail
       existingUser.nomisActiveCaseloadId = nomisUserDetails.activeCaseloadId
       return userRepository.save(existingUser)
