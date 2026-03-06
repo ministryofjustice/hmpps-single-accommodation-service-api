@@ -14,7 +14,7 @@ open class DutyToReferEntity(
   @Id
   val id: UUID,
   val crn: String,
-  val localAuthorityAreaId: UUID,
+  var localAuthorityAreaId: UUID,
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)
