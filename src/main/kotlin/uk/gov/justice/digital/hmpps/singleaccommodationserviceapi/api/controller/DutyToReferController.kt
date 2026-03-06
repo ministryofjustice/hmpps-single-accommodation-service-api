@@ -19,14 +19,14 @@ class DutyToReferController(
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}/dtrs")
   fun getDutyToRefersByCrn(@PathVariable crn: String): ResponseEntity<List<DutyToReferDto>> {
     log.warn("/cases/{crn}/dtrs has not been implemented.")
     return ResponseEntity.ok(emptyList())
   }
 
-  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @PostMapping("/cases/{crn}/dtr")
   fun create(
     @PathVariable crn: String,

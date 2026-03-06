@@ -13,7 +13,7 @@ class AccommodationController {
 
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  @PreAuthorize("hasRole('ROLE_PROBATION')")
+  @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/accommodations")
   fun getAccommodations(@PathVariable crn: String): ResponseEntity<AccommodationDto> {
     log.warn("/cases/{crn}/accommodations has not been implemented.")
