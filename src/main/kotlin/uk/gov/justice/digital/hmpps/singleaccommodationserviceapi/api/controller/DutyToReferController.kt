@@ -38,7 +38,7 @@ class DutyToReferController(
     return ResponseEntity(createdDutyToRefer, HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasAnyRole('PROBATION', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @PutMapping("/cases/{crn}/dtr/{id}")
   fun update(
     @PathVariable crn: String,

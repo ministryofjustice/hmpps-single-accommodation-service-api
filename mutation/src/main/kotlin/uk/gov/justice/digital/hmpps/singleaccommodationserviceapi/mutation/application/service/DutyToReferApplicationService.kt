@@ -46,7 +46,6 @@ class DutyToReferApplicationService(
 
   @Transactional
   fun updateDutyToRefer(crn: String, id: UUID, command: DtrCommand): DutyToReferDto {
-    userService.authorizeUser()
     val entity = dutyToReferRepository.findByIdAndCrn(id, crn)
       ?: throw NotFoundException("Duty To Refer not found for id: $id and crn: $crn")
     val aggregate = DutyToReferMapper.toAggregate(entity)
