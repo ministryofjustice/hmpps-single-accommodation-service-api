@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
@@ -24,6 +23,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.validation.ValidationContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 @Service
@@ -34,10 +35,11 @@ class EligibilityService(
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
   private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
+  private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
   private val cas2HdcRuleSet: Cas2HdcRuleSet,
   private val cas2PrisonBailRuleSet: Cas2PrisonBailRuleSet,
   private val cas1ContextUpdater: Cas1ContextUpdater,
-  private val cas1ValidationContextUpdater: Cas1ValidationContextUpdater,
+  private val validationContextUpdater: ValidationContextUpdater,
   private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
   private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
@@ -96,7 +98,7 @@ class EligibilityService(
 
     val tree =
       treeBuilder
-        .ruleSet("Cas1Validation", cas1ValidationRuleSet, cas1ValidationContextUpdater)
+        .ruleSet("Cas1Validation", cas1ValidationRuleSet, validationContextUpdater)
         .onPass(completion)
         .onFail(notEligible)
         .build()
@@ -210,11 +212,18 @@ class EligibilityService(
         .onFail(eligibility)
         .build()
 
-    val tree =
+    val completion =
       treeBuilder
         .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3ContextUpdater)
         .onPass(confirmed)
         .onFail(suitability)
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("Cas3Validation", cas3ValidationRuleSet, validationContextUpdater)
+        .onPass(completion)
+        .onFail(notEligible)
         .build()
 
     val initialContext =
@@ -233,9 +242,9 @@ class EligibilityService(
   fun getDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
 
-    val prisonerNumbers = eligibilityOrchestrationDto.cpr.identifiers?.prisonNumbers ?: error("No prisoner numbers found for crn: $crn")
+    val prisonerNumbers = eligibilityOrchestrationDto.cpr.identifiers?.prisonNumbers
 
-    val prisonerData = eligibilityOrchestrationService.getPrisonerData(prisonerNumbers)
+    val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
 
     // read the tier from the db, falling back to api if its not found (to be resolved)
     val tier = caseRepository.findTierScoreByCrn(crn)?.let { Tier.placeholder(it) } ?: eligibilityOrchestrationDto.tier

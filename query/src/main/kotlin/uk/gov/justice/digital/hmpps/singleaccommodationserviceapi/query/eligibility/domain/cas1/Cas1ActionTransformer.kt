@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.AWAIT_ASSESSMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
@@ -16,16 +15,6 @@ import java.time.temporal.ChronoUnit.YEARS
 object Cas1ActionTransformer {
   fun buildCas1Action(data: DomainData, clock: Clock) = when (data.cas1Application?.applicationStatus) {
     Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-    -> {
-      val acceptableStatus = listOf(
-        Cas1PlacementStatus.DEPARTED,
-        Cas1PlacementStatus.NOT_ARRIVED,
-        Cas1PlacementStatus.CANCELLED,
-      )
-      if (!acceptableStatus.contains(data.cas1Application.placementStatus)) error("Invalid placement status: ${data.cas1Application.placementStatus}")
-      RuleAction(CREATE_PLACEMENT)
-    }
-
     Cas1ApplicationStatus.AWAITING_PLACEMENT,
     Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
     -> RuleAction(CREATE_PLACEMENT)

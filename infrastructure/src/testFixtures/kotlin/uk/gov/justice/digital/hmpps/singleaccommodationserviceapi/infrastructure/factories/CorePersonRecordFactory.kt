@@ -28,7 +28,7 @@ fun buildCorePersonRecord(
 )
 
 fun buildSex(
-  code: SexCode = SexCode.F,
+  code: SexCode? = SexCode.F,
 ) = Sex(
   code = code,
   description = when (code) {
@@ -36,6 +36,7 @@ fun buildSex(
     SexCode.M -> "Male"
     SexCode.N -> "Not Known / Not Recorded"
     SexCode.NS -> "Not Specified"
+    null -> throw IllegalArgumentException("Invalid sex code: $code")
   },
 )
 
