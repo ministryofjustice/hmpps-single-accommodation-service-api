@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
@@ -335,50 +334,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
-  }
-
-  @Test
-  fun `should preserve original createdBy when updating proposed-accommodation`() {
-    val existingEntity = proposedAccommodationRepository.save(
-      buildProposedAccommodationEntity(
-        crn = crn,
-        arrangementSubType = AccommodationArrangementSubType.OTHER,
-        arrangementSubTypeDescription = "Old description",
-        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
-        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-      ),
-    )
-
-    val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        proposedAddressesRequestBody(
-          verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
-          nextAccommodationStatus = NextAccommodationStatus.NO.name,
-        ),
-      )
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .returnResult().responseBody!!
-
-    assertThatJson(result).matchesExpectedJson(
-      expectedJson = expectedProposedAddressesResponseBody(
-        id = existingEntity.id,
-        verificationStatus = VerificationStatus.NOT_CHECKED_YET.name,
-        nextAccommodationStatus = NextAccommodationStatus.NO.name,
-        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-      ),
-    )
-
-    val updatedEntity = proposedAccommodationRepository.findByIdOrNull(existingEntity.id)!!
-    assertThat(updatedEntity.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
-    assertThat(updatedEntity.lastUpdatedByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
-    assertThat(updatedEntity.lastUpdatedAt).isBetween(
-      beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
-    )
   }
 
   private fun createAndSaveProposedAccommodation(

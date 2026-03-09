@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -15,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedCreateDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
@@ -106,6 +109,128 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(persistedRecord.id)
+  }
+
+  @Test
+  fun `should update duty to refer and return 200 with updated data`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val newLocalAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        crn = crn,
+        localAuthorityAreaId = localAuthorityAreaId,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 15),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = newLocalAuthorityAreaId,
+          submissionDate = LocalDate.of(2026, 1, 20).toString(),
+          referenceNumber = "DTR-REF-002",
+          status = EntityDtrStatus.ACCEPTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedCreateDtrResponseBody(
+        id = existingEntity.id,
+        crn = crn,
+        localAuthorityAreaId = newLocalAuthorityAreaId,
+        submissionDate = LocalDate.of(2026, 1, 20).toString(),
+        referenceNumber = "DTR-REF-002",
+        status = DtrStatus.ACCEPTED.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+      ),
+    )
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingEntity.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
+    )
+    assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
+  fun `should return 404 when updating nonexistent duty to refer`() {
+    val nonExistentId = UUID.randomUUID()
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    restTestClient.put().uri("/cases/$crn/dtr/$nonExistentId")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.SUBMITTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should return 404 when CRN does not match duty to refer`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        crn = "DIFFERENT_CRN",
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.ACCEPTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should update duty to refer and not publish domain event when status stays the same`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        crn = crn,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = "2026-01-20",
+          referenceNumber = "DTR-REF-001",
+          status = EntityDtrStatus.SUBMITTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    assertThat(outboxEventRepository.findAll()).isEmpty()
   }
 
   private fun assertPersistedDutyToRefer(

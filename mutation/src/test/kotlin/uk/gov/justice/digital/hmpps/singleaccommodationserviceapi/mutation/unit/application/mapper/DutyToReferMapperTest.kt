@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildDutyToReferSnapshot
 import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 class DutyToReferMapperTest {
@@ -55,5 +58,57 @@ class DutyToReferMapperTest {
     assertThat(submission.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(submission.createdBy).isEqualTo(createdBy)
     assertThat(submission.createdAt).isEqualTo(createdAt)
+  }
+
+  @Test
+  fun `applyToEntity should copy all fields from snapshot to entity`() {
+    val entityId = UUID.randomUUID()
+    val entityCrn = "X123456"
+    val snapshot = buildDutyToReferSnapshot()
+    val entity = buildDutyToReferEntity(
+      id = entityId,
+      crn = entityCrn,
+    )
+    DutyToReferMapper.applyToEntity(snapshot, entity)
+
+    assertThat(entity.id).isEqualTo(entityId)
+    assertThat(entity.crn).isEqualTo(entityCrn)
+    assertThat(entity.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
+    assertThat(entity.referenceNumber).isEqualTo(snapshot.referenceNumber)
+    assertThat(entity.submissionDate).isEqualTo(snapshot.submissionDate)
+    assertThat(entity.status).isEqualTo(EntityDtrStatus.valueOf(snapshot.status.name))
+  }
+
+  @Test
+  fun `toAggregate maps all fields correctly`() {
+    val entity = buildDutyToReferEntity(
+      localAuthorityAreaId = UUID.randomUUID(),
+      referenceNumber = "DTR-REF-001",
+      submissionDate = LocalDate.of(2026, 1, 15),
+      status = EntityDtrStatus.SUBMITTED,
+    )
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.id).isEqualTo(entity.id)
+    assertThat(snapshot.crn).isEqualTo(entity.crn)
+    assertThat(snapshot.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
+    assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
+    assertThat(snapshot.submissionDate).isEqualTo(entity.submissionDate)
+    assertThat(snapshot.status).isEqualTo(DtrStatus.SUBMITTED)
+  }
+
+  @ParameterizedTest
+  @EnumSource(EntityDtrStatus::class)
+  fun `toAggregate maps status enum values correctly`(
+    status: EntityDtrStatus,
+  ) {
+    val entity = buildDutyToReferEntity(status = status)
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.status).isEqualTo(DtrStatus.valueOf(status.name))
   }
 }
