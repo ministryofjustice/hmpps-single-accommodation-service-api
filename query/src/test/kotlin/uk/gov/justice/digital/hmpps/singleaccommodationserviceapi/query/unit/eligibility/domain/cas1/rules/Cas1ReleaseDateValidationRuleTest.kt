@@ -6,10 +6,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ReleaseDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.Cas1ReleaseDateValidationRule
 import java.time.LocalDate
 
-class ReleaseDateValidationRuleTest {
+class Cas1ReleaseDateValidationRuleTest {
   private val crn = "ABC234"
 
   @Test
@@ -21,7 +21,7 @@ class ReleaseDateValidationRuleTest {
       releaseDate = LocalDate.now().plusYears(1),
     )
 
-    val result = ReleaseDateValidationRule().evaluate(data)
+    val result = Cas1ReleaseDateValidationRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -35,14 +35,14 @@ class ReleaseDateValidationRuleTest {
       releaseDate = null,
     )
 
-    val result = ReleaseDateValidationRule().evaluate(data)
+    val result = Cas1ReleaseDateValidationRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    val result = ReleaseDateValidationRule().description
+    val result = Cas1ReleaseDateValidationRule().description
     assertThat(result).isEqualTo("FAIL if candidate has no release date")
   }
 }

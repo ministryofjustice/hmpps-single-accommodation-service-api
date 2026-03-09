@@ -16,7 +16,7 @@ import java.time.LocalDate
 data class DomainData(
   val crn: String,
   val tier: TierScore,
-  val sex: SexCode,
+  val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodation: AccommodationDetail? = null,
   val nextAccommodation: AccommodationDetail? = null,
@@ -32,7 +32,7 @@ data class DomainData(
     crn: String,
     cpr: CorePersonRecord,
     tier: Tier,
-    prisonerData: List<Prisoner>,
+    prisonerData: List<Prisoner>?,
     currentAccommodation: AccommodationDetail? = null,
     nextAccommodation: AccommodationDetail? = null,
     cas1Application: Cas1Application?,
@@ -45,9 +45,8 @@ data class DomainData(
   ) : this(
     crn = crn,
     tier = tier.tierScore,
-    sex = cpr.sex?.code ?: error("Sex must not be null for DomainData"),
-    releaseDate = prisonerData.mapNotNull { it.releaseDate }
-      .maxByOrNull { it },
+    sex = cpr.sex?.code,
+    releaseDate = prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } },
     currentAccommodation = currentAccommodation,
     nextAccommodation = nextAccommodation,
     cas1Application = cas1Application,

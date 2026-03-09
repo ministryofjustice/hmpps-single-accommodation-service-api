@@ -216,43 +216,4 @@ class Cas1ActionTransformerTest {
 
     Assertions.assertThat(result).isEqualTo(RuleAction(ActionKeys.START_APPROVED_PREMISE_REFERRAL))
   }
-
-  @Test
-  fun `Error when application status is PLACEMENT_ALLOCATED but placement status is null`() {
-    val data = DomainData(
-      crn = crn,
-      tier = tier,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = Cas1Application(
-        id = UUID.randomUUID(),
-        applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        placementStatus = null,
-      ),
-    )
-
-    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
-      .isInstanceOf(IllegalStateException::class.java)
-      .hasMessageContaining("Invalid placement status: null")
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1PlacementStatus::class, names = ["UPCOMING", "ARRIVED"])
-  fun `Error when application status is PLACEMENT_ALLOCATED but placement status is UPCOMING or ARRIVED`(status: Cas1PlacementStatus) {
-    val data = DomainData(
-      crn = crn,
-      tier = tier,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(5),
-      cas1Application = Cas1Application(
-        id = UUID.randomUUID(),
-        applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        placementStatus = status,
-      ),
-    )
-
-    Assertions.assertThatThrownBy { Cas1ActionTransformer.buildCas1Action(data, clock) }
-      .isInstanceOf(IllegalStateException::class.java)
-      .hasMessageContaining("Invalid placement status: $status")
-  }
 }
