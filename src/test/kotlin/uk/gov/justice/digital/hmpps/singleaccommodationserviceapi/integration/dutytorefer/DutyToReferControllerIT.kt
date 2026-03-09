@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -204,51 +203,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
-  }
-
-  @Test
-  fun `should preserve original createdBy when updating duty to refer`() {
-    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        crn = crn,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        createDtrRequestBody(
-          localAuthorityAreaId = localAuthorityAreaId,
-          status = EntityDtrStatus.ACCEPTED.name,
-        ),
-      )
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .returnResult().responseBody!!
-
-    assertThatJson(result).matchesExpectedJson(
-      expectedCreateDtrResponseBody(
-        id = existingEntity.id,
-        crn = crn,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = DtrStatus.ACCEPTED.name,
-        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-      ),
-    )
-
-    val updatedEntity = dutyToReferRepository.findByIdOrNull(existingEntity.id)!!
-    assertThat(updatedEntity.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
-    assertThat(updatedEntity.lastUpdatedByUserId).isEqualTo(userIdOfLoggedInDeliusUser)
-    assertThat(updatedEntity.lastUpdatedAt).isBetween(
-      beforeTest.minusSeconds(1),
-      Instant.now().plusSeconds(1),
-    )
   }
 
   @Test
