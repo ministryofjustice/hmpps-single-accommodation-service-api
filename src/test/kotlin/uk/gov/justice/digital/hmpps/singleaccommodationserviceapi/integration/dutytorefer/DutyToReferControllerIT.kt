@@ -21,6 +21,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NA
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedCreateDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDtrResponseBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedNotStartedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
@@ -63,21 +65,59 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should get dutyToRefers for crn`() {
-    restTestClient.get().uri("/cases/{crn}/dtrs", crn)
+  fun `should return NOT_STARTED when no DTR exists`() {
+    restTestClient.get().uri("/cases/{crn}/dtr", crn)
       .withDeliusUserJwt()
-      .exchangeSuccessfully().expectStatus().isOk
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedNotStartedDtrResponseBody(crn))
+      }
+  }
+
+  @Test
+  fun `should return DTR with submission and localAuthorityAreaName`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 15),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/dtr", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetDtrResponseBody(
+            id = existingEntity.id,
+            crn = crn,
+            localAuthorityAreaId = localAuthorityArea.id,
+            localAuthorityAreaName = localAuthorityArea.name,
+            submissionDate = "2026-01-15",
+            referenceNumber = "DTR-REF-001",
+            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
   }
 
   @Test
   fun `should create duty to refer and publish domain event`() {
-    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
     val result = restTestClient.post().uri("/cases/$crn/dtr")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         createDtrRequestBody(
-          localAuthorityAreaId = localAuthorityAreaId,
+          localAuthorityAreaId = localAuthorityArea.id,
           submissionDate = "2026-01-15",
           referenceNumber = "DTR-REF-001",
           status = "SUBMITTED",
@@ -89,13 +129,14 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .returnResult().responseBody!!
 
     val persistedRecord = dutyToReferRepository.findByCrn(crn)!!
-    assertPersistedDutyToRefer(persistedRecord, localAuthorityAreaId)
+    assertPersistedDutyToRefer(persistedRecord, localAuthorityArea.id)
 
     assertThatJson(result).matchesExpectedJson(
       expectedCreateDtrResponseBody(
         id = persistedRecord.id,
         crn = crn,
-        localAuthorityAreaId = localAuthorityAreaId,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
         submissionDate = "2026-01-15",
         referenceNumber = "DTR-REF-001",
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
@@ -114,7 +155,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should update duty to refer and return 200 with updated data`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val newLocalAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last().id
+    val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
 
     val existingEntity = dutyToReferRepository.save(
       buildDutyToReferEntity(
@@ -130,7 +171,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         createDtrRequestBody(
-          localAuthorityAreaId = newLocalAuthorityAreaId,
+          localAuthorityAreaId = newLocalAuthorityArea.id,
           submissionDate = LocalDate.of(2026, 1, 20).toString(),
           referenceNumber = "DTR-REF-002",
           status = EntityDtrStatus.ACCEPTED.name,
@@ -145,7 +186,8 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       expectedCreateDtrResponseBody(
         id = existingEntity.id,
         crn = crn,
-        localAuthorityAreaId = newLocalAuthorityAreaId,
+        localAuthorityAreaId = newLocalAuthorityArea.id,
+        localAuthorityAreaName = newLocalAuthorityArea.name,
         submissionDate = LocalDate.of(2026, 1, 20).toString(),
         referenceNumber = "DTR-REF-002",
         status = DtrStatus.ACCEPTED.name,

@@ -14,6 +14,7 @@ data class DutyToReferDto(
 data class DtrSubmissionDto(
   val id: UUID,
   val localAuthorityAreaId: UUID,
+  val localAuthorityAreaName: String?,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val createdBy: String,

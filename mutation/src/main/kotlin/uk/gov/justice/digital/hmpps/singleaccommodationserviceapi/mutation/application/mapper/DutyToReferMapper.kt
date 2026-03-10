@@ -40,12 +40,14 @@ object DutyToReferMapper {
     snapshot: DutyToReferSnapshot,
     createdBy: String,
     createdAt: Instant,
+    localAuthorityAreaName: String,
   ) = DutyToReferDto(
     crn = snapshot.crn,
     status = DtrStatus.valueOf(snapshot.status.name),
     submission = DtrSubmissionDto(
       id = snapshot.id,
       localAuthorityAreaId = snapshot.localAuthorityAreaId,
+      localAuthorityAreaName = localAuthorityAreaName,
       referenceNumber = snapshot.referenceNumber,
       submissionDate = snapshot.submissionDate,
       createdBy = createdBy,
