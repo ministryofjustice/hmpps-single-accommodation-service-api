@@ -19,36 +19,34 @@ class UserService(
   private val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
-  fun authorizeUser() {
-    authorizeAndRetrieveUser()
-  }
+
   fun authorizeAndRetrieveUser(): UserEntity {
     val principal = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
     return when (principal.authSource) {
       AuthSource.DELIUS -> {
         userRepository.findByUsernameAndAuthSource(
-          username = principal.username.uppercase(),
+          username = principal.username,
           authSource = AuthSourceEntity.DELIUS,
         )!!
       }
       AuthSource.NOMIS -> {
-        getAndUpdateNomisUserOrCreate(username = principal.username.uppercase(), httpAuthService.getJwt())
+        getAndUpdateNomisUserOrCreate(username = principal.username, httpAuthService.getJwt())
       }
       else -> throw RuntimeException("Unexpected auth_source: ${principal.authSource}")
     }
   }
 
-  fun getExistingDeliusUserOrCreate(username: String): UserEntity {
+  fun getExistingDeliusUserOrCreate(username: Username): UserEntity {
     val existingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)
     if (existingUser != null) {
       return existingUser
     }
-    val staffUserDetails = probationIntegrationDeliusCachingService.getStaffDetail(username)
-      ?: throw NotFoundException("Staff details for Delius user $username do not exist")
+    val staffUserDetails = probationIntegrationDeliusCachingService.getStaffDetail(username.value)
+      ?: throw NotFoundException("Staff details for Delius user ${username.value} do not exist")
     val savedUser = userRepository.save(
       UserEntity(
         id = UUID.randomUUID(),
-        username = username,
+        username = username.value,
         authSource = AuthSourceEntity.DELIUS,
         name = staffUserDetails.name.deliusName(),
         deliusStaffCode = staffUserDetails.code,
@@ -64,7 +62,7 @@ class UserService(
     return savedUser
   }
 
-  fun getAndUpdateNomisUserOrCreate(username: String, jwt: Jwt): UserEntity {
+  fun getAndUpdateNomisUserOrCreate(username: Username, jwt: Jwt): UserEntity {
     val nomisUserDetails =
       nomisUserRolesService.getUserDetailsForMe(jwt)
         ?: throw NotFoundException("User details for Nomis user $username do not exist")
@@ -77,7 +75,7 @@ class UserService(
     return userRepository.save(
       UserEntity(
         id = UUID.randomUUID(),
-        username = username,
+        username = username.value,
         authSource = AuthSourceEntity.NOMIS,
         name = "${nomisUserDetails.firstName} ${nomisUserDetails.lastName}",
         email = nomisUserDetails.primaryEmail,

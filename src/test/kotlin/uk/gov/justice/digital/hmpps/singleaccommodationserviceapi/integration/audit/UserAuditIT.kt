@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
@@ -187,7 +188,7 @@ class UserAuditIT : IntegrationTestBase() {
     expectedCreatedByUsername: String,
     expectedUpdatedByUsername: String?,
   ) {
-    val newUserWhoShouldNotExistYet = userRepository.findByUsernameAndAuthSource(usernameOfNewDeliusUser, authSource = AuthSource.DELIUS)
+    val newUserWhoShouldNotExistYet = userRepository.findByUsernameAndAuthSource(Username(usernameOfNewDeliusUser), authSource = AuthSource.DELIUS)
     assertThat(newUserWhoShouldNotExistYet).isNull()
 
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/$createdProposedAccommodationEntityId")
@@ -201,7 +202,7 @@ class UserAuditIT : IntegrationTestBase() {
       .withJwt()
       .exchangeSuccessfully()
 
-    val newUserShouldNowExist = userRepository.findByUsernameAndAuthSource(usernameOfNewDeliusUser.uppercase(), authSource = AuthSource.DELIUS)
+    val newUserShouldNowExist = userRepository.findByUsernameAndAuthSource(Username(usernameOfNewDeliusUser), authSource = AuthSource.DELIUS)
     assertThat(newUserShouldNowExist).isNotNull
 
     val updatedEntity = proposedAccommodationRepository.findByIdOrNull(createdProposedAccommodationEntityId)
@@ -222,9 +223,9 @@ class UserAuditIT : IntegrationTestBase() {
     expectedCreatedByUsername: String,
     expectedUpdateByUsername: String? = null,
   ) {
-    val createdByUser = userRepository.findByUsernameAndAuthSource(expectedCreatedByUsername, authSource)!!
+    val createdByUser = userRepository.findByUsernameAndAuthSource(Username(expectedCreatedByUsername), authSource)!!
     val updatedByUser = expectedUpdateByUsername?.let {
-      userRepository.findByUsernameAndAuthSource(expectedUpdateByUsername.uppercase(), authSource)
+      userRepository.findByUsernameAndAuthSource(Username(expectedUpdateByUsername), authSource)
     } ?: createdByUser
     assertThat(persistedProposedAccommodationEntity.createdByUserId).isEqualTo(createdByUser.id)
     assertThat(persistedProposedAccommodationEntity.lastUpdatedByUserId).isEqualTo(updatedByUser.id)

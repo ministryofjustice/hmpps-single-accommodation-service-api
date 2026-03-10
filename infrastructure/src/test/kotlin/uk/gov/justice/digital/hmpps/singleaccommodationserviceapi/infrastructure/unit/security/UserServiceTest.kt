@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import java.util.UUID
 
 @ExtendWith(value = [MockKExtension::class])
@@ -44,16 +45,16 @@ class UserServiceTest {
   @Nested
   inner class GetExistingDeliusUserOrCreate {
     private val userUuid = UUID.randomUUID()
-    private val username = "SOMEPERSON"
+    private val username = Username("SOMEPERSON")
 
     @Test
     fun `getExistingDeliusUserOrCreate should throw NotFoundException when staff-detail not found`() {
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
-      every { probationIntegrationDeliusCachingService.getStaffDetail(username) } returns null
+      every { probationIntegrationDeliusCachingService.getStaffDetail(username.value) } returns null
 
       assertThatThrownBy { userService.getExistingDeliusUserOrCreate(username) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(username)
+        .hasMessageContaining(username.value)
     }
 
     @Test
@@ -72,7 +73,7 @@ class UserServiceTest {
       val deliusUser = buildStaffDetail()
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
-      every { probationIntegrationDeliusCachingService.getStaffDetail(username) } returns deliusUser
+      every { probationIntegrationDeliusCachingService.getStaffDetail(username.value) } returns deliusUser
 
       val result = userService.getExistingDeliusUserOrCreate(username)
 
@@ -92,7 +93,7 @@ class UserServiceTest {
 
   @Nested
   inner class GetAndUpdateNomisUserOrCreate {
-    private val username = "SOMENOMISPERSON"
+    private val username = Username("somenomisperson")
     private val jwt = Jwt.withTokenValue("token")
       .header("Authroization", "jwt")
       .claim("username", username)
@@ -104,18 +105,18 @@ class UserServiceTest {
 
       assertThatThrownBy { userService.getAndUpdateNomisUserOrCreate(username, jwt) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(username)
+        .hasMessageContaining(username.value)
     }
 
     @Test
     fun `getAndUpdateNomisUserOrCreate returns and updates existing nomis user`() {
       val nomisUser = buildNomisUserDetail(
-        username = username,
+        username = username.value,
         primaryEmail = "changed.email@gmail.com",
         activeCaseloadId = "1234",
       )
       val nomisUserEntity = buildUserEntity(
-        username = username,
+        username = username.value,
         authSource = AuthSource.NOMIS,
       )
       every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns nomisUser
@@ -134,7 +135,7 @@ class UserServiceTest {
     @Test
     fun `getAndUpdateNomisUserOrCreate creates new nomis user`() {
       val nomisUser = buildNomisUserDetail(
-        username = username,
+        username = username.value,
       )
       every { nomisUserRolesService.getUserDetailsForMe(jwt) } returns nomisUser
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.NOMIS) } returns null
@@ -142,7 +143,7 @@ class UserServiceTest {
 
       val result = userService.getAndUpdateNomisUserOrCreate(username, jwt)
 
-      assertThat(result.username).isEqualTo(nomisUser.username)
+      assertThat(result.username).isUpperCase.isEqualTo(nomisUser.username)
       assertThat(result.authSource).isEqualTo(AuthSource.NOMIS)
       assertThat(result.name).isEqualTo("${nomisUser.firstName} ${nomisUser.lastName}")
       assertThat(result.email).isEqualTo(nomisUser.primaryEmail)
