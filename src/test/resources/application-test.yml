@@ -45,5 +45,9 @@ hmpps.sqs:
       queueName: ${random.uuid}
       subscribeTopicId: hmpps-domain-event-topic
 
+os:
+  places:
+    api-key: test-api-key
+
 test-data-setup:
   user-id: 48785d6e-19f2-49e6-9530-d48423f95e66

@@ -22,5 +22,10 @@ service:
   nomis-user-roles:
     base-url: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
 
+os:
+  places:
+    base-url: https://api.os.uk/search/places/v1
+    api-key: ${OS_PLACES_API_KEY:changeme}
+
 redis:
   host: localhost
