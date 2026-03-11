@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.ClientCredentialsPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
 @Configuration
@@ -76,10 +77,10 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
 
   private fun convertForAuthorizationCodeFlow(jwt: Jwt): AuthAwareAuthenticationToken {
     val authSource = AuthSource.findBySource(jwt.claims[CLAIM_AUTH_SOURCE] as String)
-    val username = findPrincipal(jwt.claims)
+    val username = findUsername(jwt.claims)
     val principal = when (authSource) {
       AuthSource.DELIUS -> {
-        val user = userService.getExistingDeliusUserOrCreate(username.uppercase())
+        val user = userService.getExistingDeliusUserOrCreate(username)
         UserPrincipal(
           sasUserId = user.id,
           username = username,
@@ -87,7 +88,7 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
         )
       }
       AuthSource.NOMIS -> {
-        val user = userService.getAndUpdateNomisUserOrCreate(username.uppercase(), jwt)
+        val user = userService.getAndUpdateNomisUserOrCreate(username, jwt)
         UserPrincipal(
           sasUserId = user.id,
           username = username,
@@ -116,14 +117,11 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
     )
   }
 
-  private fun findPrincipal(claims: Map<String, Any?>): String = if (claims.containsKey(CLAIM_USERNAME)) {
-    claims[CLAIM_USERNAME] as String
-  } else if (claims.containsKey(CLAIM_USER_ID)) {
-    claims[CLAIM_USER_ID] as String
-  } else if (claims.containsKey(CLAIM_CLIENT_ID)) {
-    claims[CLAIM_CLIENT_ID] as String
-  } else {
-    throw RuntimeException("Unable to find a claim to identify Subject by")
+  private fun findUsername(claims: Map<String, Any?>): Username {
+    val username = (claims[CLAIM_USERNAME] ?: claims[CLAIM_USER_ID]) as? String
+      ?: throw RuntimeException("Unable to find a claim to identify Subject by")
+
+    return Username(username)
   }
 
   private fun extractAuthorities(jwt: Jwt): Collection<GrantedAuthority> {

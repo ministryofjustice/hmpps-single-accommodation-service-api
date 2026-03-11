@@ -20,7 +20,7 @@ interface Principal {
 
 data class UserPrincipal(
   var sasUserId: UUID,
-  val username: String,
+  val username: Username,
   override val authSource: AuthSource,
 ) : Principal
 
@@ -28,3 +28,17 @@ data class ClientCredentialsPrincipal(
   val clientId: String,
   override val authSource: AuthSource,
 ) : Principal
+
+@JvmInline
+value class Username private constructor(val value: String) {
+
+  init {
+    require(value.isNotBlank()) { "Username must not be blank" }
+  }
+
+  companion object {
+    operator fun invoke(value: String): Username = Username(value.uppercase())
+  }
+
+  override fun toString(): String = value
+}
