@@ -75,8 +75,8 @@ class DutyToReferQueryServiceTest {
       assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
       assertThat(result.submission).isNotNull()
       val submission = result.submission!!
-      assertThat(submission.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(submission.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
+      assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
       assertThat(submission.createdBy).isEqualTo(userEntity.name)
     }
   }

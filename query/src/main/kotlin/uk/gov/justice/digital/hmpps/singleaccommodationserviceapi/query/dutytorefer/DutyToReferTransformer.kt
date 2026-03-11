@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
@@ -30,12 +31,16 @@ object DutyToReferTransformer {
     localAuthorityAreaName: String?,
   ) = DtrSubmissionDto(
     id = entity.id,
-    localAuthorityAreaId = entity.localAuthorityAreaId,
-    localAuthorityAreaName = localAuthorityAreaName,
+    localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
     createdBy = createdByName,
     createdAt = entity.createdAt!!,
+  )
+
+  fun toLocalAuthority(entity: DutyToReferEntity, localAuthorityAreaName: String?) = LocalAuthorityDto(
+    localAuthorityAreaId = entity.localAuthorityAreaId,
+    localAuthorityAreaName = localAuthorityAreaName,
   )
 
   fun toStatus(status: EntityDtrStatus): DtrStatus = DtrStatus.valueOf(status.name)

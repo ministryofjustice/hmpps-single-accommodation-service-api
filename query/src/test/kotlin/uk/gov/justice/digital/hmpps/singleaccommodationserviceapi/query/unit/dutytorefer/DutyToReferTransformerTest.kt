@@ -68,8 +68,8 @@ class DutyToReferTransformerTest {
       val result = DutyToReferTransformer.toSubmission(entity, createdByName, localAuthorityAreaName)
 
       assertThat(result.id).isEqualTo(id)
-      assertThat(result.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(result.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
+      assertThat(result.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(result.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
       assertThat(result.referenceNumber).isEqualTo("DTR-REF-001")
       assertThat(result.submissionDate).isEqualTo(LocalDate.of(2026, 1, 15))
       assertThat(result.createdBy).isEqualTo(createdByName)
@@ -82,8 +82,34 @@ class DutyToReferTransformerTest {
 
       val result = DutyToReferTransformer.toSubmission(entity, createdByName, null)
 
-      assertThat(result.localAuthorityAreaName).isNull()
+      assertThat(result.localAuthority.localAuthorityAreaName).isNull()
       assertThat(result.referenceNumber).isNull()
+    }
+  }
+
+  @Nested
+  inner class ToLocalAuthority {
+
+    @Test
+    fun `should map all fields correctly`() {
+      val localAuthorityAreaId = UUID.randomUUID()
+      val entity = buildDutyToReferEntity(localAuthorityAreaId = localAuthorityAreaId)
+      val localAuthorityAreaName = "Test Local Authority"
+
+      val result = DutyToReferTransformer.toLocalAuthority(entity, localAuthorityAreaName)
+
+      assertThat(result.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(result.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
+    }
+
+    @Test
+    fun `should handle null name`() {
+      val entity = buildDutyToReferEntity()
+
+      val result = DutyToReferTransformer.toLocalAuthority(entity, null)
+
+      assertThat(result.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
+      assertThat(result.localAuthorityAreaName).isNull()
     }
   }
 

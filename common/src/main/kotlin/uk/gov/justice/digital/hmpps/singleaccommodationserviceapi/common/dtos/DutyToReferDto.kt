@@ -13,8 +13,7 @@ data class DutyToReferDto(
 
 data class DtrSubmissionDto(
   val id: UUID,
-  val localAuthorityAreaId: UUID,
-  val localAuthorityAreaName: String?,
+  val localAuthority: LocalAuthorityDto,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val createdBy: String,
@@ -24,6 +23,11 @@ data class DtrSubmissionDto(
     timezone = "UTC",
   )
   val createdAt: Instant,
+)
+
+data class LocalAuthorityDto(
+  val localAuthorityAreaId: UUID,
+  val localAuthorityAreaName: String?,
 )
 
 data class DtrCommand(

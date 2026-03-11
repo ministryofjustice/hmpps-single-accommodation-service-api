@@ -36,8 +36,10 @@ fun expectedCreateDtrResponseBody(
   "status": "$status",
   "submission": {
     "id": "$id",
-    "localAuthorityAreaId": "$localAuthorityAreaId",
-    "localAuthorityAreaName": ${if (localAuthorityAreaName != null) "\"$localAuthorityAreaName\"" else "null"},
+    "localAuthority": {
+      "localAuthorityAreaId": "$localAuthorityAreaId",
+      "localAuthorityAreaName": ${if (localAuthorityAreaName != null) "\"$localAuthorityAreaName\"" else "null"}
+    },
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "createdBy": "$createdBy",
