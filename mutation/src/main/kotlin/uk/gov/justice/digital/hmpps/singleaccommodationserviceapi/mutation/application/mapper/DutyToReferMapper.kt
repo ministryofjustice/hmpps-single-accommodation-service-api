@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate.DutyToReferSnapshot
@@ -40,12 +41,16 @@ object DutyToReferMapper {
     snapshot: DutyToReferSnapshot,
     createdBy: String,
     createdAt: Instant,
+    localAuthorityAreaName: String,
   ) = DutyToReferDto(
     crn = snapshot.crn,
     status = DtrStatus.valueOf(snapshot.status.name),
     submission = DtrSubmissionDto(
       id = snapshot.id,
-      localAuthorityAreaId = snapshot.localAuthorityAreaId,
+      localAuthority = LocalAuthorityDto(
+        localAuthorityAreaId = snapshot.localAuthorityAreaId,
+        localAuthorityAreaName = localAuthorityAreaName,
+      ),
       referenceNumber = snapshot.referenceNumber,
       submissionDate = snapshot.submissionDate,
       createdBy = createdBy,

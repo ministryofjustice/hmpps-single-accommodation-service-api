@@ -45,15 +45,17 @@ class DutyToReferMapperTest {
     val snapshot = buildDutyToReferSnapshot(status = DtrStatus.ACCEPTED)
     val createdBy = "Joe Bloggs"
     val createdAt = Instant.now()
+    val localAuthorityAreaName = "Test Local Authority"
 
-    val dto = DutyToReferMapper.toDto(snapshot, createdBy, createdAt)
+    val dto = DutyToReferMapper.toDto(snapshot, createdBy, createdAt, localAuthorityAreaName)
 
     assertThat(dto.crn).isEqualTo(snapshot.crn)
     assertThat(dto.status).isEqualTo(DtrStatus.ACCEPTED)
     assertThat(dto.submission).isNotNull()
     val submission = dto.submission!!
     assertThat(submission.id).isEqualTo(snapshot.id)
-    assertThat(submission.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
+    assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
+    assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
     assertThat(submission.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(submission.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(submission.createdBy).isEqualTo(createdBy)

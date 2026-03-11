@@ -20,10 +20,11 @@ fun createDtrRequestBody(
 }
 """.trimIndent()
 
-fun expectedCreateDtrResponseBody(
+fun expectedDtrResponseBody(
   id: UUID,
   crn: String,
   localAuthorityAreaId: UUID,
+  localAuthorityAreaName: String? = null,
   submissionDate: String = "2026-01-15",
   referenceNumber: String? = "DTR-REF-001",
   status: String = "SUBMITTED",
@@ -35,12 +36,23 @@ fun expectedCreateDtrResponseBody(
   "status": "$status",
   "submission": {
     "id": "$id",
-    "localAuthorityAreaId": "$localAuthorityAreaId",
+    "localAuthority": {
+      "localAuthorityAreaId": "$localAuthorityAreaId",
+      "localAuthorityAreaName": ${if (localAuthorityAreaName != null) "\"$localAuthorityAreaName\"" else "null"}
+    },
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "createdBy": "$createdBy",
     "createdAt": "$createdAt"
   }
+}
+""".trimIndent()
+
+fun expectedNotStartedDtrResponseBody(crn: String): String = """
+{
+  "crn": "$crn",
+  "status": "NOT_STARTED",
+  "submission": null
 }
 """.trimIndent()
 
