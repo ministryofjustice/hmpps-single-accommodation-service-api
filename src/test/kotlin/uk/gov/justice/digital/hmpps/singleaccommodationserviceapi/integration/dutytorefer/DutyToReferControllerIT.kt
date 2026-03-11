@@ -19,9 +19,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedCreateDtrResponseBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedNotStartedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
@@ -95,7 +94,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
-          expectedGetDtrResponseBody(
+          expectedDtrResponseBody(
             id = existingEntity.id,
             crn = crn,
             localAuthorityAreaId = localAuthorityArea.id,
@@ -132,7 +131,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertPersistedDutyToRefer(persistedRecord, localAuthorityArea.id)
 
     assertThatJson(result).matchesExpectedJson(
-      expectedCreateDtrResponseBody(
+      expectedDtrResponseBody(
         id = persistedRecord.id,
         crn = crn,
         localAuthorityAreaId = localAuthorityArea.id,
@@ -183,7 +182,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
-      expectedCreateDtrResponseBody(
+      expectedDtrResponseBody(
         id = existingEntity.id,
         crn = crn,
         localAuthorityAreaId = newLocalAuthorityArea.id,

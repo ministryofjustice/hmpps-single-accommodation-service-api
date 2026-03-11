@@ -20,7 +20,7 @@ fun createDtrRequestBody(
 }
 """.trimIndent()
 
-fun expectedCreateDtrResponseBody(
+fun expectedDtrResponseBody(
   id: UUID,
   crn: String,
   localAuthorityAreaId: UUID,
@@ -47,28 +47,6 @@ fun expectedCreateDtrResponseBody(
   }
 }
 """.trimIndent()
-
-fun expectedGetDtrResponseBody(
-  id: UUID,
-  crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String? = null,
-  submissionDate: String = "2026-01-15",
-  referenceNumber: String? = "DTR-REF-001",
-  status: String = "SUBMITTED",
-  createdBy: String,
-  createdAt: String,
-): String = expectedCreateDtrResponseBody(
-  id = id,
-  crn = crn,
-  localAuthorityAreaId = localAuthorityAreaId,
-  localAuthorityAreaName = localAuthorityAreaName,
-  submissionDate = submissionDate,
-  referenceNumber = referenceNumber,
-  status = status,
-  createdBy = createdBy,
-  createdAt = createdAt,
-)
 
 fun expectedNotStartedDtrResponseBody(crn: String): String = """
 {
