@@ -32,7 +32,13 @@ data class ClientCredentialsPrincipal(
 @JvmInline
 value class Username private constructor(val value: String) {
 
+  init {
+    require(value.isNotBlank()) { "Username must not be blank" }
+  }
+
   companion object {
     operator fun invoke(value: String): Username = Username(value.uppercase())
   }
+
+  override fun toString(): String = value
 }
