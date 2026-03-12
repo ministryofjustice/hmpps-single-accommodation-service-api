@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
+import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
@@ -18,6 +19,7 @@ class OutcomeNode(private val outcome: (EvaluationContext) -> ServiceResult) : D
  * Node that executes a RuleSet and branches based on the result.
  */
 class RuleSetNode(
+  private val ruleSetName: String,
   private val ruleSet: RuleSet,
   private val engine: RulesEngine,
   private val onPass: DecisionNode,
@@ -26,7 +28,13 @@ class RuleSetNode(
 ) : DecisionNode {
 
   override fun eval(context: EvaluationContext): ServiceResult {
+    val log = LoggerFactory.getLogger(this::class.java)
+
+    log.info("Executing RuleSet: $ruleSetName")
+
     val ruleSetStatus = engine.execute(ruleSet, context.data)
+
+    log.info("RuleSet Result: $ruleSetStatus")
 
     // Branch based on result: PASS returns current context unchanged, FAIL updates context
     return when (ruleSetStatus) {
