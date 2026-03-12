@@ -22,6 +22,7 @@ class RuleSetNodeBuilder(
   }
 
   fun build(): RuleSetNode = RuleSetNode(
+    ruleSetName = name,
     ruleSet = ruleSet,
     engine = engine,
     onPass = requireNotNull(onPassNode) { "onPass node not set for RuleSetNode $name" },

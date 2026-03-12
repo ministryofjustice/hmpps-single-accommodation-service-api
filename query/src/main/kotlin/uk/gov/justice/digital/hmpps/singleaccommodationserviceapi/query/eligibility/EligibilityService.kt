@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
@@ -48,11 +49,22 @@ class EligibilityService(
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
-
   private val treeBuilder = DecisionTreeBuilder(engine)
+  private val log = LoggerFactory.getLogger(this::class.java)
 
   fun getEligibility(crn: String): EligibilityDto {
+    log.info("Calculating eligibility for CRN: $crn")
     val data = getDomainData(crn)
+
+    log.info("External Data")
+    log.info("CRN: ${data.crn}")
+    log.info("Release date: ${data.releaseDate}")
+    log.info("Tier: ${data.tier}")
+    log.info("Sex code: ${data.sex}")
+    log.info("CRS Status: ${data.crsStatus}")
+    log.info("DTR Status: ${data.dtrStatus}")
+    log.info("Current Accommodation: ${data.currentAccommodation?.name}")
+    log.info("Next Accommodation: ${data.nextAccommodation?.name}")
 
     val cas1 = calculateEligibilityForCas1(data)
     val cas2Hdc = calculateEligibilityForCas2Hdc(data)
@@ -60,7 +72,7 @@ class EligibilityService(
     val cas2CourtBail = calculateEligibilityForCas2CourtBail(data)
     val cas3 = calculateEligibilityForCas3(data)
 
-    return EligibilityTransformer.toEligibilityDto(
+    val eligibility = EligibilityTransformer.toEligibilityDto(
       crn = crn,
       cas1 = cas1,
       cas2Hdc = cas2Hdc,
@@ -68,9 +80,24 @@ class EligibilityService(
       cas2CourtBail = cas2CourtBail,
       cas3 = cas3,
     )
+
+    log.info("Finished calculating eligibility for CRN: $crn")
+
+    return eligibility
   }
 
   fun calculateEligibilityForCas1(data: DomainData): ServiceResult {
+    log.info("Calculating CAS1 eligibility for CRN: ${data.crn}")
+
+    log.info("CAS1 Data")
+    if (data.cas1Application == null) {
+      log.info("No CAS1 application")
+    } else {
+      log.info("Application ID: ${data.cas1Application.id}")
+      log.info("Application Status: ${data.cas1Application.applicationStatus}")
+      log.info("Placement Status: ${data.cas1Application.placementStatus}")
+    }
+
     // Build tree declaratively:
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
@@ -113,10 +140,30 @@ class EligibilityService(
         ),
       )
 
-    return tree.eval(initialContext)
+    val result = tree.eval(initialContext)
+
+    log.info("Finished CAS1 calculating eligibility for CRN: ${data.crn}")
+    logServiceResult(result)
+
+    return result
+  }
+
+  private fun logServiceResult(result: ServiceResult) {
+    log.info("Service Status: ${result.serviceStatus}")
+    log.info("Suitable Application ID: ${result.suitableApplicationId}")
+    log.info("Action: ${result.action?.text}")
   }
 
   fun calculateEligibilityForCas2Hdc(data: DomainData): ServiceResult {
+    log.info("Calculating CAS2 HDC eligibility for CRN: ${data.crn}")
+
+    log.info("CAS2 HDC Data")
+    if (data.cas2HdcApplication == null) {
+      log.info("No CAS2 HDC application")
+    } else {
+      log.info("Application ID: ${data.cas2HdcApplication.id}")
+    }
+
     val cas2ContextUpdater = Cas2ContextUpdater(data.cas2HdcApplication?.id)
 
     // Build tree declaratively:
@@ -139,10 +186,24 @@ class EligibilityService(
         ),
       )
 
-    return tree.eval(initialContext)
+    val result = tree.eval(initialContext)
+
+    log.info("Finished CAS2 HDC calculating eligibility for CRN: ${data.crn}")
+    logServiceResult(result)
+
+    return result
   }
 
   fun calculateEligibilityForCas2CourtBail(data: DomainData): ServiceResult {
+    log.info("Calculating CAS2 Court Bail eligibility for CRN: ${data.crn}")
+
+    log.info("CAS2 Court Bail Data")
+    if (data.cas2CourtBailApplication == null) {
+      log.info("No CAS2 Court Bail application")
+    } else {
+      log.info("Application ID: ${data.cas2CourtBailApplication.id}")
+    }
+
     val cas2ContextUpdater = Cas2ContextUpdater(data.cas2CourtBailApplication?.id)
 
     // Build tree declaratively:
@@ -165,10 +226,24 @@ class EligibilityService(
         ),
       )
 
-    return tree.eval(initialContext)
+    val result = tree.eval(initialContext)
+
+    log.info("Finished CAS2 Court Bail calculating eligibility for CRN: ${data.crn}")
+    logServiceResult(result)
+
+    return result
   }
 
   fun calculateEligibilityForCas2PrisonBail(data: DomainData): ServiceResult {
+    log.info("Calculating CAS2 Prison Bail eligibility for CRN: ${data.crn}")
+
+    log.info("CAS2 Prison Bail Data")
+    if (data.cas2PrisonBailApplication == null) {
+      log.info("No CAS2 Prison Bail application")
+    } else {
+      log.info("Application ID: ${data.cas2PrisonBailApplication.id}")
+    }
+
     val cas2ContextUpdater = Cas2ContextUpdater(data.cas2PrisonBailApplication?.id)
 
     // Build tree declaratively:
@@ -191,10 +266,26 @@ class EligibilityService(
         ),
       )
 
-    return tree.eval(initialContext)
+    val result = tree.eval(initialContext)
+
+    log.info("Finished CAS2 Prison Bail calculating eligibility for CRN: ${data.crn}")
+    logServiceResult(result)
+
+    return result
   }
 
   fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
+    log.info("Calculating CAS3 eligibility for CRN: ${data.crn}")
+
+    log.info("CAS3 Data")
+    if (data.cas3Application == null) {
+      log.info("No CAS3 application")
+    } else {
+      log.info("Application ID: ${data.cas3Application.id}")
+      log.info("Application Status: ${data.cas3Application.applicationStatus}")
+      log.info("Placement Status: ${data.cas3Application.placementStatus}")
+    }
+
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
 
@@ -236,7 +327,12 @@ class EligibilityService(
         ),
       )
 
-    return tree.eval(initialContext)
+    val result = tree.eval(initialContext)
+
+    log.info("Finished CAS3 calculating eligibility for CRN: ${data.crn}")
+    logServiceResult(result)
+
+    return result
   }
 
   fun getDomainData(crn: String): DomainData {
