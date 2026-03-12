@@ -11,8 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
@@ -220,21 +221,23 @@ class EligibilityServiceTest {
     @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
     @TestData
     fun `should calculate eligibility for cas1 for all scenarios`(
+      testCaseId: String,
       description: String,
       referenceDate: String,
       sex: SexCode,
       tier: TierScore,
       releaseDate: String?,
       cas1Status: Cas1ApplicationStatus?,
+      cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
       cas1PlacementStatus: Cas1PlacementStatus?,
       expectedCas1Status: ServiceStatus?,
       expectedCas1ActionsString: String?,
-      cas1ActionsAreUpcoming: Boolean,
+      expectedCas1Link: String?,
     ) {
       clock.setNow(referenceDate.toLocalDate())
 
       val cas1Application = cas1Status?.let {
-        buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus)
+        buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus, requestForPlacementStatus = cas1RequestForPlacementStatus)
       }
       val data = buildDomainData(crn, tier, sex, releaseDate?.toLocalDate(), cas1Application = cas1Application)
 
@@ -242,9 +245,10 @@ class EligibilityServiceTest {
 
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
       val expectedActions = expectedCas1ActionsString?.let {
-        RuleAction(it, cas1ActionsAreUpcoming)
+        RuleAction(it, false)
       }
       assertThat(result.action).isEqualTo(expectedActions)
+      assertThat(result.link).isEqualTo(expectedCas1Link)
     }
   }
 }

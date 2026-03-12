@@ -5,8 +5,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -21,13 +22,13 @@ class ApplicationCompletionRuleTest {
   private val tier = TierScore.A1
   private val description = "FAIL if application is not complete"
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1PlacementStatus::class, names = ["UPCOMING", "ARRIVED"])
-  fun `application is completed so rule passes - status = `(status: Cas1PlacementStatus) {
+  @Test
+  fun `application is completed so rule passes - status = `() {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      placementStatus = status,
+      placementStatus = Cas1PlacementStatus.UPCOMING,
+      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
     )
 
     val data = DomainData(
@@ -49,12 +50,13 @@ class ApplicationCompletionRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED"])
+  @EnumSource(value = Cas1PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED", "ARRIVED"])
   fun `application is suitable (PLACEMENT_ALLOCATED) but not completed so rule fails - status = `(status: Cas1PlacementStatus) {
     val cas1Application = Cas1Application(
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
+      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
     )
 
     val data = DomainData(
@@ -82,6 +84,7 @@ class ApplicationCompletionRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -109,6 +112,7 @@ class ApplicationCompletionRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -140,6 +144,7 @@ class ApplicationCompletionRuleTest {
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
         placementStatus = null,
+        requestForPlacementStatus = null,
       ),
     )
 
@@ -160,6 +165,7 @@ class ApplicationCompletionRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
