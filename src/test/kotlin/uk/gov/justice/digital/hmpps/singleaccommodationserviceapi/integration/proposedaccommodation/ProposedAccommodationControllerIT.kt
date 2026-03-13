@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
+import org.javers.core.Javers
+import org.javers.repository.jql.QueryBuilder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -9,11 +12,13 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -22,12 +27,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedSasAddressUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
@@ -46,6 +54,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var outboxEventRepository: OutboxEventRepository
+
+  @Autowired
+  private lateinit var javers: Javers
 
   private val crn = "FAKECRN1"
 
@@ -334,6 +345,92 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should return proposed accommodation timeline when it is created and then updated a couple of times`() {
+    val createdProposedAccommodation = restTestClient.post()
+      .uri("/cases/{crn}/proposed-accommodations", crn)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val createdProposedAccommodationId = ObjectMapper()
+      .readTree(createdProposedAccommodation)
+      .get("id").asText()
+
+    NomisUserRolesStubs.stubMe(
+      jwt = jwtAuthHelper.createJwtAccessToken(
+        USERNAME_OF_LOGGED_IN_NOMIS_USER,
+        roles = listOf("ROLE_POM", "ROLE_PRISON"),
+        authSource = AuthSource.NOMIS.source,
+      ),
+      response = buildNomisUserDetail(
+        USERNAME_OF_LOGGED_IN_NOMIS_USER,
+        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          verificationStatus = VerificationStatus.FAILED.name,
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withNomisUserJwt()
+      .exchangeSuccessfully()
+
+    restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          postcode = "correct postcode",
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdProposedAccommodationId))
+    assertThat(commitTimesAsc).hasSize(3)
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetProposedAccommodationTimelineResponse(
+            proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
+            createCommitTime = commitTimesAsc.first().toString(),
+            update1CommitTime = commitTimesAsc[1].toString(),
+            update2CommitTime = commitTimesAsc[2].toString(),
+          ),
+        )
+      }
+  }
+
+  private fun getCommitTimesAsc(createdProposedAccommodationId: UUID): List<Instant> {
+    val changes = javers.findChanges(
+      QueryBuilder.byInstanceId(createdProposedAccommodationId, ProposedAccommodationEntity::class.java).build(),
+    )
+    return changes.groupBy {
+      it.commitMetadata.get().id
+    }.entries
+      .map { (_, commitChanges) ->
+        commitChanges.first().commitMetadata.get().commitDateInstant
+      }.sorted()
   }
 
   private fun createAndSaveProposedAccommodation(

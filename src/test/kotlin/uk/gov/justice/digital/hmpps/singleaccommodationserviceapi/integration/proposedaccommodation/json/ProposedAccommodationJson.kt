@@ -102,7 +102,11 @@ fun expectedGetProposedAccommodationByIdResponse(
 }
 """.trimIndent()
 
-fun proposedAddressesRequestBody(verificationStatus: String, nextAccommodationStatus: String): String = """
+fun proposedAddressesRequestBody(
+  verificationStatus: String,
+  nextAccommodationStatus: String,
+  postcode: String = "test postcode",
+): String = """
   {
     "name" : "Mother's caravan",
     "arrangementType" : "PRIVATE",
@@ -113,7 +117,7 @@ fun proposedAddressesRequestBody(verificationStatus: String, nextAccommodationSt
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
-      "postcode" : "test postcode",
+      "postcode" : "$postcode",
       "subBuildingName" : "test sub building name",
       "buildingName" : "test building name",
       "buildingNumber" : "4",
