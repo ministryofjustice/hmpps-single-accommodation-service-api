@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.LocalDate
-import java.time.ZonedDateTime
 
 data class CaseSummaries(val cases: List<CaseSummary>)
 
@@ -20,15 +19,6 @@ data class CaseSummary(
   val currentRestriction: Boolean,
 )
 
-data class CaseDetail(
-  val case: CaseSummary,
-  val offences: List<Offence>,
-  val registrations: List<Registration>,
-  val mappaDetail: MappaDetail?,
-  val careLeaver: Boolean,
-  val veteran: Boolean,
-)
-
 data class Name(val forename: String, val surname: String, val middleNames: List<String>)
 
 data class Profile(
@@ -39,26 +29,3 @@ data class Profile(
 )
 
 data class Manager(val team: Team)
-
-data class MappaDetail(
-  val level: Int?,
-  val levelDescription: String?,
-  val category: Int?,
-  val categoryDescription: String?,
-  val startDate: LocalDate,
-  val lastUpdated: ZonedDateTime,
-)
-
-data class Offence(
-  val id: String,
-  val code: String,
-  val description: String,
-  val mainCategoryDescription: String,
-  val subCategoryDescription: String,
-  val date: LocalDate?,
-  val main: Boolean,
-  val eventId: Long,
-  val eventNumber: String,
-)
-
-data class Registration(val code: String, val description: String, val startDate: LocalDate)

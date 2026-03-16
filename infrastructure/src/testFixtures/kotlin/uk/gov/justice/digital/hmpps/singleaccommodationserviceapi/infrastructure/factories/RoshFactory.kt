@@ -19,6 +19,7 @@ fun buildRoshDetails(
   limitedAccessOffender: Boolean = false,
   lastUpdatedDate: ZonedDateTime = ZonedDateTime.now(),
   rosh: Rosh = buildRosh(),
+  crn: String = "X123456",
 ) = RoshDetails(
   assessmentId = assessmentId,
   assessmentType = assessmentType,
@@ -31,6 +32,7 @@ fun buildRoshDetails(
   limitedAccessOffender = limitedAccessOffender,
   lastUpdatedDate = lastUpdatedDate,
   rosh = rosh,
+  crn = crn,
 )
 
 @TestData

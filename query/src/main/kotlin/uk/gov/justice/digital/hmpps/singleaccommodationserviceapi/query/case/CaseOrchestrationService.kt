@@ -29,7 +29,7 @@ class CaseOrchestrationService(
 
     val callsPerIdentifier = mapOf(
       ApiCallKeys.GET_CORE_PERSON_RECORD to { crn: String -> corePersonRecordCachingService.getCorePersonRecord(crn) },
-      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
+      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetail(crn) },
       ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
@@ -65,7 +65,7 @@ class CaseOrchestrationService(
     val calls = mapOf(
       ApiCallKeys.GET_CASE_SUMMARY to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
       ApiCallKeys.GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
-      ApiCallKeys.GET_ROSH_DETAIL to { probationIntegrationOasysCachingService.getRoshDetails(crn) },
+      ApiCallKeys.GET_ROSH_DETAIL to { probationIntegrationOasysCachingService.getRoshDetail(crn) },
       ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(

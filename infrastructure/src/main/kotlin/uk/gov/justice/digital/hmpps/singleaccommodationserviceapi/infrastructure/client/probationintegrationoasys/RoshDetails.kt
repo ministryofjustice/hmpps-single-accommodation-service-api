@@ -14,6 +14,7 @@ data class RoshDetails(
   val limitedAccessOffender: Boolean,
   val lastUpdatedDate: ZonedDateTime? = null,
   val rosh: Rosh,
+  val crn: String,
 )
 
 data class Rosh(

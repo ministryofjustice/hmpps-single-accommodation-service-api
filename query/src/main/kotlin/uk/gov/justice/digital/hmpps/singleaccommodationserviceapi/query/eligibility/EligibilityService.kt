@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseListItem
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys.VIEW_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Service
 class EligibilityService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  private val caseRepository: CaseRepository,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
@@ -52,8 +51,8 @@ class EligibilityService(
 
   private val treeBuilder = DecisionTreeBuilder(engine)
 
-  fun getEligibility(crn: String): EligibilityDto {
-    val data = getDomainData(crn)
+  fun getEligibility(crn: String, caseEntity: CaseEntity? = null, caseListItem: CaseListItem? = null): EligibilityDto {
+    val data = caseEntity?.let { DomainData(it, caseListItem!!) } ?: getFreshDomainData(crn)
 
     val cas1 = calculateEligibilityForCas1(data)
     val cas2Hdc = calculateEligibilityForCas2Hdc(data)
@@ -241,20 +240,18 @@ class EligibilityService(
     return tree.eval(initialContext)
   }
 
-  fun getDomainData(crn: String): DomainData {
+  fun getFreshDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
 
     val prisonerNumbers = eligibilityOrchestrationDto.cpr.identifiers?.prisonNumbers
 
     val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
 
-    // read the tier from the db, falling back to api if its not found (to be resolved)
-    val tier = caseRepository.findTierScoreByCrn(crn)?.let { Tier.placeholder(it) } ?: eligibilityOrchestrationDto.tier
-
+    // at this point we should save the data to the sas_case table
     return DomainData(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
-      tier = tier,
+      tier = eligibilityOrchestrationDto.tier,
       prisonerData = prisonerData,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,

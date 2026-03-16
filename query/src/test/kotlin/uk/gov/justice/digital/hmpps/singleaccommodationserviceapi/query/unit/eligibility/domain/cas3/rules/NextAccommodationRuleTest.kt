@@ -2,18 +2,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.NextAccommodationRule
-import java.time.Instant
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 import java.util.UUID
 
@@ -24,12 +17,12 @@ class NextAccommodationRuleTest {
 
   @Test
   fun `candidate passes when next accommodation is null`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      nextAccommodation = null,
+      nextAccommodationId = null,
     )
 
     val result = NextAccommodationRule().evaluate(data)
@@ -37,15 +30,14 @@ class NextAccommodationRuleTest {
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(AccommodationArrangementType::class)
-  fun `candidate fails when next accommodation exists`(accommodationType: AccommodationArrangementType) {
-    val data = DomainData(
+  @Test
+  fun `candidate fails when next accommodation exists`() {
+    val data = buildDomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      nextAccommodation = buildAccommodationDetail(accommodationType),
+      nextAccommodationId = UUID.randomUUID(),
     )
 
     val result = NextAccommodationRule().evaluate(data)
@@ -58,33 +50,4 @@ class NextAccommodationRuleTest {
     assertThat(NextAccommodationRule().description)
       .isEqualTo("FAIL if candidate has next accommodation")
   }
-
-  private fun buildAccommodationDetail(type: AccommodationArrangementType) = AccommodationDetail(
-    id = UUID.randomUUID(),
-    crn = crn,
-    name = null,
-    arrangementType = type,
-    arrangementSubType = null,
-    arrangementSubTypeDescription = null,
-    settledType = AccommodationSettledType.TRANSIENT,
-    offenderReleaseType = null,
-    verificationStatus = null,
-    nextAccommodationStatus = null,
-    address = AccommodationAddressDetails(
-      postcode = null,
-      subBuildingName = null,
-      buildingName = null,
-      buildingNumber = null,
-      thoroughfareName = null,
-      dependentLocality = null,
-      postTown = null,
-      county = null,
-      country = null,
-      uprn = null,
-    ),
-    startDate = null,
-    endDate = null,
-    createdBy = "Joe Bloggs",
-    createdAt = Instant.now(),
-  )
 }

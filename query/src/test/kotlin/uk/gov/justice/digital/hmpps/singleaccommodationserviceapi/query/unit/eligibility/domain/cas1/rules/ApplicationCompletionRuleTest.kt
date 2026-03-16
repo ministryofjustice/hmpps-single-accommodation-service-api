@@ -25,6 +25,7 @@ class ApplicationCompletionRuleTest {
   @Test
   fun `application is completed so rule passes - status = `() {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = Cas1PlacementStatus.UPCOMING,
@@ -53,6 +54,7 @@ class ApplicationCompletionRuleTest {
   @EnumSource(value = Cas1PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED", "ARRIVED"])
   fun `application is suitable (PLACEMENT_ALLOCATED) but not completed so rule fails - status = `(status: Cas1PlacementStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
@@ -81,6 +83,7 @@ class ApplicationCompletionRuleTest {
   @EnumSource(value = Cas1ApplicationStatus::class, names = ["AWAITING_PLACEMENT", "PENDING_PLACEMENT_REQUEST"])
   fun `application is suitable (not PLACEMENT_ALLOCATED) but not completed and needs to create a placement so rule fails`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -109,6 +112,7 @@ class ApplicationCompletionRuleTest {
   @EnumSource(value = Cas1ApplicationStatus::class, names = ["AWAITING_ASSESSMENT", "UNALLOCATED_ASSESSMENT", "ASSESSMENT_IN_PROGRESS"])
   fun `application is suitable (not PLACEMENT_ALLOCATED) but not completed and needs to await assessment so rule fails`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -141,6 +145,7 @@ class ApplicationCompletionRuleTest {
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = Cas1Application(
+        crn = crn,
         id = UUID.randomUUID(),
         applicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
         placementStatus = null,
@@ -162,6 +167,7 @@ class ApplicationCompletionRuleTest {
   @EnumSource(value = Cas1ApplicationStatus::class, names = ["EXPIRED", "INAPPLICABLE", "STARTED", "REJECTED", "WITHDRAWN"])
   fun `application is unsuitable  so rule fails`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,

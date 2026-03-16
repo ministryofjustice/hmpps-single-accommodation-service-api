@@ -30,18 +30,22 @@ class DomainDataTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
       cas1Application = Cas1Application(
+        crn,
         UUID.randomUUID(),
         Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         null,
         null,
       ),
       cas2HdcApplication = Cas2HdcApplication(
+        crn,
         UUID.randomUUID(),
       ),
       cas2PrisonBailApplication = Cas2PrisonBailApplication(
+        crn,
         UUID.randomUUID(),
       ),
       cas2CourtBailApplication = Cas2CourtBailApplication(
+        crn,
         UUID.randomUUID(),
       ),
     )
@@ -49,7 +53,8 @@ class DomainDataTest {
       sex = buildSex(expected.sex),
     )
     val tier = Tier(
-      tierScore = expected.tier,
+      crn = crn,
+      tierScore = expected.tier!!,
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,
@@ -77,7 +82,6 @@ class DomainDataTest {
       cas2HdcApplication = expected.cas2HdcApplication,
       cas2CourtBailApplication = expected.cas2CourtBailApplication,
       cas2PrisonBailApplication = expected.cas2PrisonBailApplication,
-
     )
     assertThat(result).isEqualTo(expected)
   }

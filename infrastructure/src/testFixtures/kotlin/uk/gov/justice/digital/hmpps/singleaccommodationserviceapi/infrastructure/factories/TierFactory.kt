@@ -10,4 +10,5 @@ fun buildTier(tierScore: TierScore = TierScore.C1) = Tier(
   calculationId = UUID.randomUUID(),
   calculationDate = LocalDateTime.now(),
   changeReason = "TODO()",
+  crn = "X12345",
 )

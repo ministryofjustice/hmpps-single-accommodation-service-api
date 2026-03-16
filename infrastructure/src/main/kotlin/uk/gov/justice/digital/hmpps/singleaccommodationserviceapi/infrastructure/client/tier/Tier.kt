@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class Tier(
+  val crn: String,
   val tierScore: TierScore,
   val calculationId: UUID,
   val calculationDate: LocalDateTime,
@@ -15,11 +16,12 @@ data class Tier(
    * This will be removed in subsequent code changes
    */
   companion object {
-    fun placeholder(tierScore: TierScore): Tier = Tier(
+    fun placeholder(tierScore: TierScore, crn: String): Tier = Tier(
       tierScore = tierScore,
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,
+      crn = crn,
     )
   }
 }

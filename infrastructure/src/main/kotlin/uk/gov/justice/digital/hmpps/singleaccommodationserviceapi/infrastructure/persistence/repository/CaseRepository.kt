@@ -11,6 +11,9 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
 
   fun findByCrn(crn: String): CaseEntity?
 
+  @Query("SELECT c FROM CaseEntity c WHERE c.crn in :crns")
+  fun findByCrns(@Param("crns") crns: List<String>): List<CaseEntity>
+
   /**
    * Basic projection, ensuring we bypass the hibernate cache and get the database data
    */

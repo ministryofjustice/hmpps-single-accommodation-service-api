@@ -10,9 +10,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -25,12 +25,12 @@ class CurrentAddressTypeRuleTest {
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = AccommodationArrangementType::class, names = ["PRISON", "CAS1", "CAS2", "CAS2V2"])
   fun `candidate passes when current accommodation is eligible type`(accommodationType: AccommodationArrangementType) {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      currentAccommodation = buildAccommodationDetail(accommodationType),
+      currentAccommodationArrangementType = accommodationType,
     )
 
     val result = CurrentAddressTypeRule().evaluate(data)
@@ -41,12 +41,12 @@ class CurrentAddressTypeRuleTest {
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = AccommodationArrangementType::class, names = ["CAS3", "PRIVATE", "NO_FIXED_ABODE"])
   fun `candidate fails when current accommodation is ineligible type`(accommodationType: AccommodationArrangementType) {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      currentAccommodation = buildAccommodationDetail(accommodationType),
+      currentAccommodationArrangementType = accommodationType,
     )
 
     val result = CurrentAddressTypeRule().evaluate(data)
@@ -56,12 +56,12 @@ class CurrentAddressTypeRuleTest {
 
   @Test
   fun `candidate fails when current accommodation is null`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tier = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      currentAccommodation = null,
+      currentAccommodationArrangementType = null,
     )
 
     val result = CurrentAddressTypeRule().evaluate(data)
