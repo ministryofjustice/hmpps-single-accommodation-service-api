@@ -1,18 +1,26 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import java.time.LocalDate
 import java.util.UUID
 
 class CaseAggregate private constructor(
   private val id: UUID,
   private val crn: String,
   private var tier: TierScore? = null,
+  private var releaseDate: LocalDate? = null,
 ) {
 
   fun upsertTier(
     newTier: TierScore,
   ) {
     tier = newTier
+  }
+
+  fun upsertReleaseDate(
+    newReleaseDate: LocalDate?,
+  ) {
+    releaseDate = newReleaseDate
   }
 
   companion object {

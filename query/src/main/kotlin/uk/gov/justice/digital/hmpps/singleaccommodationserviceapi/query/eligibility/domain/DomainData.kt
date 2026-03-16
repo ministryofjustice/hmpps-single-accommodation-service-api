@@ -8,14 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
-  val tier: TierScore,
+  val tier: TierScore?,
   val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodation: AccommodationDetail? = null,
@@ -30,9 +28,9 @@ data class DomainData(
 ) {
   constructor(
     crn: String,
-    cpr: CorePersonRecord,
-    tier: Tier,
-    prisonerData: List<Prisoner>?,
+    cpr: CorePersonRecord?,
+    tier: TierScore?,
+    releaseDate: LocalDate?,
     currentAccommodation: AccommodationDetail? = null,
     nextAccommodation: AccommodationDetail? = null,
     cas1Application: Cas1Application?,
@@ -44,9 +42,9 @@ data class DomainData(
     crsStatus: String? = null,
   ) : this(
     crn = crn,
-    tier = tier.tierScore,
-    sex = cpr.sex?.code,
-    releaseDate = prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } },
+    tier = tier,
+    sex = cpr?.sex?.code,
+    releaseDate = releaseDate,
     currentAccommodation = currentAccommodation,
     nextAccommodation = nextAccommodation,
     cas1Application = cas1Application,

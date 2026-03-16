@@ -15,5 +15,5 @@ class EligibilityController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}/eligibility")
-  fun getEligibility(@PathVariable crn: String): ResponseEntity<EligibilityDto> = ResponseEntity.ok(eligibilityService.getEligibility(crn))
+  fun getEligibility(@PathVariable crn: String): ResponseEntity<EligibilityDto> = ResponseEntity.ok(eligibilityService.getSingleEligibility(crn))
 }

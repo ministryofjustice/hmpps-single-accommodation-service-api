@@ -5,8 +5,9 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -51,9 +52,13 @@ class EligibilityService(
 
   private val treeBuilder = DecisionTreeBuilder(engine)
 
-  fun getEligibility(crn: String): EligibilityDto {
-    val data = getDomainData(crn)
+  fun getBulkEligibility(caseOrchestration: CaseOrchestrationDto): EligibilityDto {
+    val data = getBulkDomainData(caseOrchestration)
 
+    return calculateEligibility(data)
+  }
+
+  fun calculateEligibility(data: DomainData): EligibilityDto {
     val cas1 = calculateEligibilityForCas1(data)
     val cas2Hdc = calculateEligibilityForCas2Hdc(data)
     val cas2PrisonBail = calculateEligibilityForCas2PrisonBail(data)
@@ -61,13 +66,19 @@ class EligibilityService(
     val cas3 = calculateEligibilityForCas3(data)
 
     return EligibilityTransformer.toEligibilityDto(
-      crn = crn,
+      crn = data.crn,
       cas1 = cas1,
       cas2Hdc = cas2Hdc,
       cas2PrisonBail = cas2PrisonBail,
       cas2CourtBail = cas2CourtBail,
       cas3 = cas3,
     )
+  }
+
+  fun getSingleEligibility(crn: String): EligibilityDto {
+    val data = getFreshDomainData(crn)
+
+    return calculateEligibility(data)
   }
 
   fun calculateEligibilityForCas1(data: DomainData): ServiceResult {
@@ -239,21 +250,51 @@ class EligibilityService(
     return tree.eval(initialContext)
   }
 
-  fun getDomainData(crn: String): DomainData {
+  fun getFreshDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
 
-    val prisonerNumbers = eligibilityOrchestrationDto.cpr.identifiers?.prisonNumbers
+    val prisonerNumbers = eligibilityOrchestrationDto.cpr?.identifiers?.prisonNumbers
 
     val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
-
-    // read the tier from the db, falling back to api if its not found (to be resolved)
-    val tier = caseRepository.findTierScoreByCrn(crn)?.let { Tier.placeholder(it) } ?: eligibilityOrchestrationDto.tier
+    val releaseDate = prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } }
 
     return DomainData(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
-      tier = tier,
-      prisonerData = prisonerData,
+      tier = eligibilityOrchestrationDto.tier,
+      releaseDate = releaseDate,
+      cas1Application = eligibilityOrchestrationDto.cas1Application,
+      cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,
+      cas2PrisonBailApplication = eligibilityOrchestrationDto.cas2PrisonBailApplication,
+      cas2CourtBailApplication = eligibilityOrchestrationDto.cas2CourtBailApplication,
+    )
+  }
+
+  fun getBulkDomainData(caseOrchestration: CaseOrchestrationDto): DomainData {
+    val case = caseRepository.findByCrn(caseOrchestration.crn) ?: return getFreshDomainData(caseOrchestration.crn)
+
+    val calls = mutableListOf<String>()
+
+    if (case.tier == null) {
+      calls.add(GET_TIER)
+    }
+
+    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getPartialData(caseOrchestration.crn, calls)
+
+    val releaseDate = if (case.releaseDate == null) {
+      val prisonerNumbers = eligibilityOrchestrationDto.cpr?.identifiers?.prisonNumbers
+
+      val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
+      prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } }
+    } else {
+      case.releaseDate
+    }
+
+    return DomainData(
+      crn = caseOrchestration.crn,
+      cpr = caseOrchestration.cpr,
+      tier = caseOrchestration.tier?.tierScore,
+      releaseDate = releaseDate,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,
       cas2PrisonBailApplication = eligibilityOrchestrationDto.cas2PrisonBailApplication,

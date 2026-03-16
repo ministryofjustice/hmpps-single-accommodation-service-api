@@ -5,10 +5,14 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import java.net.URI
 
 interface PrisonerSearchClient {
   @GetExchange(value = "/prisoner/{prisonerNumber}")
   fun getPrisoner(@PathVariable prisonerNumber: String): Prisoner
+
+  @GetExchange
+  fun getPrisoner(uri: URI): Prisoner
 }
 
 @Service

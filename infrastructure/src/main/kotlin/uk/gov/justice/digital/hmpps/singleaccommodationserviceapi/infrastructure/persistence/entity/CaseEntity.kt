@@ -4,6 +4,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -13,4 +14,5 @@ data class CaseEntity(
   val id: UUID,
   val crn: String,
   val tier: TierScore?,
+  val releaseDate: LocalDate?,
 )
