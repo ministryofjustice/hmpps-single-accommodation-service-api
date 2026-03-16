@@ -1,4 +1,4 @@
-val hmppsSqsVersion = "7.0.1"
+val hmppsSqsVersion = "7.1.0"
 val shedlockVersion = "7.6.0"
 
 dependencies {
