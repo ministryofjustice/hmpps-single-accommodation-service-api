@@ -38,13 +38,9 @@ class TierCalculationCompletionHandler(
     log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
 
     try {
-      val newTier = tierClient.getTier(uri = inboxEvent.uri())
-      log.info(
-        "Tier fetched successfully [inboxEventId={}, tierScore={}]",
-        inboxEvent.id,
-        newTier.tierScore,
-      )
-      log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, newTier)
+      val tier = tierClient.getTier(uri = inboxEvent.uri())
+      log.info("Tier fetched successfully [inboxEventId={}, tierScore={}]", inboxEvent.id, tier.tierScore)
+      log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, tier)
 
       val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
 
@@ -52,9 +48,8 @@ class TierCalculationCompletionHandler(
         "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
       }
 
-      log.debug("Upserting case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-      caseApplicationService.upsertTier(tier = newTier, crn = crn)
-
+      log.debug("Updating case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+      caseApplicationService.updateTier(tier = tier, crn = crn)
       inboxEvent.processedStatus = ProcessedStatus.SUCCESS
       inboxEvent.processedAt = Instant.now()
       inboxEventRepository.save(inboxEvent)

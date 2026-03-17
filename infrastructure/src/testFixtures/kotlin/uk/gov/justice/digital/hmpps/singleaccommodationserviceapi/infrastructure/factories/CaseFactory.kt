@@ -2,14 +2,31 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import java.time.Instant
 import java.util.UUID
 
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
-  crn: String = "X12345",
-  tier: TierScore? = null,
-) = CaseEntity(
+  identifier: String = UUID.randomUUID().toString(),
+  identifierType: IdentifierType = IdentifierType.CRN,
+  tier: TierScore? = TierScore.A1,
+) = CaseEntity(id = id, tierScore = tier).also { case ->
+  case.caseIdentifiers =
+    mutableSetOf(buildCaseIdentifier(identifier = identifier, identifierType = identifierType, caseEntity = case))
+}
+
+fun buildCaseIdentifier(
+  id: UUID = UUID.randomUUID(),
+  caseEntity: CaseEntity,
+  identifier: String = "DEFAULT",
+  identifierType: IdentifierType = IdentifierType.CRN,
+  createdAt: Instant = Instant.now(),
+) = CaseIdentifierEntity(
   id = id,
-  crn = crn,
-  tier = tier,
+  caseEntity = caseEntity,
+  identifier = identifier,
+  identifierType = identifierType,
+  createdAt = createdAt,
 )

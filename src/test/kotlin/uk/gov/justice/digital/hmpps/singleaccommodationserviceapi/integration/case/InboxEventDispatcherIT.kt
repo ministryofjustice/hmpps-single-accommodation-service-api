@@ -12,10 +12,12 @@ import org.springframework.data.domain.Sort
 import org.springframework.test.context.TestPropertySource
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -51,7 +53,7 @@ class InboxEventDispatcherIT {
     @Autowired
     lateinit var jsonMapper: JsonMapper
 
-    protected val crn = "X123456"
+    protected val crn = UUID.randomUUID().toString()
 
     @BeforeEach
     fun setup() {
@@ -108,6 +110,9 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes only maxEventsPerBatch events per invocation`() {
       val crns = listOf("X123451", "X123452", "X123453", "X123454", "X123455")
+      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      caseRepository.saveAll(caseEntities)
+
       crns.forEach {
         TierStubs.getTierOKResponse(
           it,
@@ -137,7 +142,7 @@ class InboxEventDispatcherIT {
 
       assertThat(processed).hasSize(2)
       assertThat(pending).hasSize(3)
-      assertThat(caseRepository.findAll()).hasSize(2)
+      assertThat(caseRepository.findAll().mapNotNull { it.tierScore }).hasSize(2)
     }
   }
 
@@ -148,6 +153,9 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes events in eventOccurredAt ascending order`() {
       val crns = listOf("X123451", "X123452", "X123453")
+      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      caseRepository.saveAll(caseEntities)
+
       crns.forEach {
         TierStubs.getTierOKResponse(
           it,
@@ -208,6 +216,9 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes concurrent events for same CRN without creating duplicate case rows`() {
       val sharedCrn = "X123456"
+      val caseEntitiy = buildCaseEntity(identifier = sharedCrn, identifierType = IdentifierType.CRN, tier = null)
+      caseRepository.save(caseEntitiy)
+
       TierStubs.getTierOKResponse(
         sharedCrn,
         buildTier(tierScore = TierScore.A3),
@@ -225,7 +236,12 @@ class InboxEventDispatcherIT {
 
       assertThat(inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.SUCCESS, PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()))).hasSize(2)
       assertThat(caseRepository.findAll()).hasSize(1)
-      assertThat(caseRepository.findByCrn(sharedCrn)?.tier?.name).isEqualTo(TierScore.A3.name)
+      assertThat(
+        caseRepository.findByIdentifier(
+          sharedCrn,
+          IdentifierType.CRN,
+        )?.tierScore?.name,
+      ).isEqualTo(TierScore.A3.name)
     }
   }
 
@@ -245,6 +261,9 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes at most 4 events concurrently due to semaphore limit`() {
       val crns = (1..5).map { "X12345$it" }
+
+      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      caseRepository.saveAll(caseEntities)
       crns.forEach {
         TierStubs.getTierOKResponse(
           it,
@@ -280,6 +299,9 @@ class InboxEventDispatcherIT {
     fun `processes multiple events concurrently using coroutines`() {
       val delayMs = 200
       val crns = listOf("X123451", "X123452", "X123453", "X123454")
+      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      caseRepository.saveAll(caseEntities)
+
       crns.forEach {
         TierStubs.getTierOKResponse(
           it,
