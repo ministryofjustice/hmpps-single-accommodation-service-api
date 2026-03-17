@@ -11,8 +11,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
@@ -29,6 +32,9 @@ class ProposedAccommodationQueryServiceTest {
 
   @MockK
   lateinit var userRepository: UserRepository
+
+  @MockK
+  lateinit var auditService: AuditService
 
   @InjectMockKs
   lateinit var service: ProposedAccommodationQueryService
@@ -152,6 +158,36 @@ class ProposedAccommodationQueryServiceTest {
       every { proposedAccommodationRepository.findById(id) } returns Optional.empty()
 
       assertThatThrownBy { service.getProposedAccommodation(id) }
+        .isInstanceOf(NotFoundException::class.java)
+        .hasMessageContaining(id.toString())
+    }
+  }
+
+  @Nested
+  inner class GetProposedAccommodationTimeline {
+
+    @Test
+    fun `should return proposed accommodation timeline when proposed accommodation record exists`() {
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(crn = crn)
+      val auditEvent = buildAuditRecordDto()
+
+      every { proposedAccommodationRepository.findByIdAndCrn(eq(proposedAccommodationEntity.id), eq(crn)) } returns proposedAccommodationEntity
+      every {
+        auditService.fullAuditHistory(eq(proposedAccommodationEntity.id), eq(ProposedAccommodationEntity::class.java))
+      } returns listOf(auditEvent)
+
+      val result = service.getProposedAccommodationTimeline(proposedAccommodationEntity.id, crn)
+
+      assertThat(result).hasSize(1)
+      assertThat(result.first()).isEqualTo(auditEvent)
+    }
+
+    @Test
+    fun `should throw NotFoundException when not found`() {
+      val id = UUID.randomUUID()
+      every { proposedAccommodationRepository.findByIdAndCrn(id, crn) } returns null
+
+      assertThatThrownBy { service.getProposedAccommodationTimeline(id, crn) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessageContaining(id.toString())
     }

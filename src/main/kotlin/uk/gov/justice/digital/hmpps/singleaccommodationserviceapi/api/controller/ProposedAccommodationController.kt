@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import java.util.UUID
@@ -33,6 +34,13 @@ class ProposedAccommodationController(
   fun getById(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<AccommodationDetail> {
     val accommodation = proposedAccommodationQueryService.getProposedAccommodation(crn, id)
     return ResponseEntity.ok(accommodation)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @GetMapping("/cases/{crn}/proposed-accommodations/{id}/timeline")
+  fun getTimeline(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<List<AuditRecordDto>> {
+    val timelineEntries = proposedAccommodationQueryService.getProposedAccommodationTimeline(id, crn)
+    return ResponseEntity.ok(timelineEntries)
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")

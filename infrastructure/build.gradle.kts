@@ -13,6 +13,7 @@ dependencies {
   implementation(libs.coroutines.core)
   implementation(libs.shedlock.spring)
   implementation(libs.shedlock.jdbc)
+  implementation(libs.javers)
 
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation(libs.hmpps.starter.test)

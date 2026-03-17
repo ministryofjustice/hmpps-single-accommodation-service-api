@@ -12,6 +12,7 @@ hmpps-gradle-spring-boot = "10.0.5"
 kotlin = "2.3.10"
 detekt = "2.0.0-alpha.2"
 awaitility = "4.3.0"
+javers = "7.10.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -56,3 +57,6 @@ awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "await
 postgres = { module = "org.postgresql:postgresql" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql" }
+
+# Timeline auditing
+javers = { module = "org.javers:javers-spring-boot-starter-sql", version.ref = "javers" }
