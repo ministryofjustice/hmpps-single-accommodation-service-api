@@ -7,15 +7,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 
 object CaseMapper {
 
-  fun toEntity(snapshot: CaseSnapshot) = CaseEntity(
+  fun toEntity(snapshot: CaseSnapshot): CaseEntity = CaseEntity(
     id = snapshot.id,
-    crn = snapshot.crn,
     tier = snapshot.tier?.let { TierScore.valueOf(snapshot.tier.name) },
-  )
+  ).also {
+    snapshot.caseIdentifiers.forEach { identifier ->
+      it.addIdentifier(
+        identifier.identifier,
+        identifier.identifierType,
+      )
+    }
+  }
 
   fun toAggregate(entity: CaseEntity): CaseAggregate = CaseAggregate.hydrate(
     id = entity.id,
-    crn = entity.crn,
     tier = entity.tier,
+    caseIdentifiers = entity.caseIdentifiers.map { CaseAggregate.CaseIdentifier(it.identifier, it.identifierType) },
   )
 }

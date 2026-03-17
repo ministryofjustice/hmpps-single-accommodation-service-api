@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildCaseSnapshot
 
 class CaseMapperTest {
@@ -17,7 +18,8 @@ class CaseMapperTest {
     val entity = CaseMapper.toEntity(snapshot)
 
     Assertions.assertThat(entity.id).isEqualTo(snapshot.id)
-    Assertions.assertThat(entity.crn).isEqualTo(snapshot.crn)
+    Assertions.assertThat(entity.caseIdentifiers.map { it.identifier to it.identifierType })
+      .isEqualTo(snapshot.caseIdentifiers.map { it.identifier to it.identifierType })
     Assertions.assertThat(entity.tier).isEqualTo(snapshot.tier)
   }
 
@@ -50,7 +52,8 @@ class CaseMapperTest {
     val snapshot = caseAggregate.snapshot()
 
     Assertions.assertThat(snapshot.id).isEqualTo(caseEntity.id)
-    Assertions.assertThat(snapshot.crn).isEqualTo(caseEntity.crn)
+    Assertions.assertThat(snapshot.caseIdentifiers)
+      .isEqualTo(caseEntity.caseIdentifiers.map { CaseAggregate.CaseIdentifier(it.identifier, it.identifierType) })
     Assertions.assertThat(snapshot.tier).isEqualTo(caseEntity.tier)
   }
 

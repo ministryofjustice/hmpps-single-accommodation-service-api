@@ -28,7 +28,11 @@ class CaseOrchestrationService(
     )
 
     val callsPerIdentifier = mapOf(
-      ApiCallKeys.GET_CORE_PERSON_RECORD to { crn: String -> corePersonRecordCachingService.getCorePersonRecord(crn) },
+      ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String ->
+        corePersonRecordCachingService.getCorePersonRecordByCrn(
+          crn,
+        )
+      },
       ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
     )
@@ -46,7 +50,7 @@ class CaseOrchestrationService(
     return results.callsPerIdentifierResults!!.map { (crn, calls) ->
       val cases = caseSummaries.cases.filter { it.crn == crn }
 
-      val cpr = calls[ApiCallKeys.GET_CORE_PERSON_RECORD] as? CorePersonRecord
+      val cpr = calls[ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN] as? CorePersonRecord
       val roshDetails = calls[ApiCallKeys.GET_ROSH_DETAIL] as? RoshDetails
 
       val tier = calls[ApiCallKeys.GET_TIER] as? Tier
@@ -64,7 +68,7 @@ class CaseOrchestrationService(
   fun getCase(crn: String): CaseOrchestrationDto {
     val calls = mapOf(
       ApiCallKeys.GET_CASE_SUMMARY to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
-      ApiCallKeys.GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
+      ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
       ApiCallKeys.GET_ROSH_DETAIL to { probationIntegrationOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
     )
@@ -74,8 +78,8 @@ class CaseOrchestrationService(
 
     val caseSummaries = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CASE_SUMMARY] as? CaseSummaries
       ?: error("${ApiCallKeys.GET_CASE_SUMMARY} failed for $crn")
-    val cpr = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CORE_PERSON_RECORD] as? CorePersonRecord
-      ?: error("${ApiCallKeys.GET_CORE_PERSON_RECORD} failed for $crn")
+    val cpr = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN] as? CorePersonRecord
+      ?: error("${ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN} failed for $crn")
     val roshDetails = results.standardCallsNoIterationResults!![ApiCallKeys.GET_ROSH_DETAIL] as? RoshDetails
       ?: error("${ApiCallKeys.GET_ROSH_DETAIL} failed for $crn")
     val tier = results.standardCallsNoIterationResults!![ApiCallKeys.GET_TIER] as? Tier

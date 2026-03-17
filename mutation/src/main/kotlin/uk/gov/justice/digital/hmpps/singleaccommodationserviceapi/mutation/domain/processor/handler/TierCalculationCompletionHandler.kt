@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
@@ -21,6 +22,7 @@ class TierCalculationCompletionHandler(
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val tierClient: TierClient,
+  private val corePersonRecordClient: CorePersonRecordClient,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -51,6 +53,9 @@ class TierCalculationCompletionHandler(
       val crn = checkNotNull(tierDomainEvent.personReference.findCrn()) {
         "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
       }
+
+      // call cpr to get details
+      val person = corePersonRecordClient.getByCrn(crn)
 
       log.debug("Upserting case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
       caseApplicationService.upsertTier(tier = newTier, crn = crn)

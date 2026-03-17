@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.util.UUID
 
@@ -15,10 +16,11 @@ class CaseAggregateTest {
     val tier = TierScore.A1
     val aggregate = CaseAggregate.createNew(
       id = id,
-      crn = crn,
+      identifier = crn,
+      identifierType = IdentifierType.CRN,
     )
     aggregate.upsertTier(
-      newTier = tier,
+      tier = tier,
     )
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.tier).isEqualTo(tier)

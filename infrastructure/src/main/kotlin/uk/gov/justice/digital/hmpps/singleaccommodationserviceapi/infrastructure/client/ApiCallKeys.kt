@@ -10,7 +10,8 @@ object ApiCallKeys {
   const val GET_ROSH_DETAIL = "getRoshSummaryByCrn"
 
   // core-person-record service
-  const val GET_CORE_PERSON_RECORD = "getCorePersonRecordByCrn"
+  const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
+  const val GET_CORE_PERSON_RECORD_BY_NOMS = "getCorePersonRecordByNoms"
 
   // tier service
   const val GET_TIER = "getTierByCrn"
