@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.enums.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -38,6 +38,7 @@ class ApplicationSuitabilityRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -65,6 +66,7 @@ class ApplicationSuitabilityRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(
@@ -101,6 +103,7 @@ class ApplicationSuitabilityRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
+      requestForPlacementStatus = null,
     )
 
     val data = DomainData(

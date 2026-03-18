@@ -12,7 +12,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext can be created with DomainData and ServiceResult`() {
     val domainData = buildDomainData()
-    val serviceResult = ServiceResult(ServiceStatus.CONFIRMED)
+    val serviceResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
     val context = EvaluationContext(data = domainData, currentResult = serviceResult)
 
@@ -23,7 +23,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext update creates new instance with updated fields`() {
     val originalData = buildDomainData()
-    val originalResult = ServiceResult(ServiceStatus.CONFIRMED)
+    val originalResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
     val updatedResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
@@ -37,7 +37,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext copy can update data field`() {
     val originalData = buildDomainData()
-    val originalResult = ServiceResult(ServiceStatus.CONFIRMED)
+    val originalResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
     val updatedData = buildDomainData(crn = "DIFFERENT_CRN")
@@ -52,7 +52,7 @@ class EvalContextTest {
   fun `EvalContext instances with same values are equal`() {
     val domainData = buildDomainData()
     val serviceResult = ServiceResult(
-      serviceStatus = ServiceStatus.CONFIRMED,
+      serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
       suitableApplicationId = UUID.randomUUID(),
     )
 
@@ -67,7 +67,7 @@ class EvalContextTest {
   fun `EvalContext instances with different values are not equal`() {
     val domainData1 = buildDomainData()
     val domainData2 = buildDomainData(crn = "DIFFERENT_CRN")
-    val serviceResult = ServiceResult(ServiceStatus.CONFIRMED)
+    val serviceResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
     val context1 = EvaluationContext(data = domainData1, currentResult = serviceResult)
     val context2 = EvaluationContext(data = domainData2, currentResult = serviceResult)
@@ -78,7 +78,7 @@ class EvalContextTest {
   @Test
   fun `EvalContext instances with different ServiceResult are not equal`() {
     val domainData = buildDomainData()
-    val result1 = ServiceResult(ServiceStatus.CONFIRMED)
+    val result1 = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val result2 = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
     val context1 = EvaluationContext(data = domainData, currentResult = result1)
