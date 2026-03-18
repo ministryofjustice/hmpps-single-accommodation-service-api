@@ -164,6 +164,8 @@ private val caseControllerMap: Map<String, Set<String>> =
     "GET /cases" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "GET /case-list" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "GET /cases/{crn}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /v2/cases" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /v2/cases/{crn}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
   )
 
 private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
