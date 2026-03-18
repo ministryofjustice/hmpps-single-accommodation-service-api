@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
@@ -16,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResult
 
 @Service
 class EligibilityOrchestrationService(
@@ -26,7 +29,7 @@ class EligibilityOrchestrationService(
   val prisonerSearchCachingService: PrisonerSearchCachingService,
 ) {
 
-  fun getData(crn: String): EligibilityOrchestrationDto {
+  fun getData(crn: String): OrchestrationResult<EligibilityOrchestrationDto> {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
       GET_TIER to { tierCachingService.getTier(crn) },
@@ -37,23 +40,25 @@ class EligibilityOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
-    val cpr = results.standardCallsNoIterationResults!![GET_CORE_PERSON_RECORD_BY_CRN] as? CorePersonRecord
-      ?: error("$GET_CORE_PERSON_RECORD_BY_CRN failed for $crn")
-    val tier = results.standardCallsNoIterationResults!![GET_TIER] as? Tier
-      ?: error("$GET_TIER failed for $crn")
-    val cas1Application = results.standardCallsNoIterationResults!![GET_CAS_1_APPLICATION] as? Cas1Application
-    val cas3Application = results.standardCallsNoIterationResults!![GET_CAS_3_APPLICATION] as? Cas3Application
+    val stdResults = results.standardCallsNoIterationResults!!
+    val cpr = stdResults.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
+    val tier = stdResults.getResult<Tier>(GET_TIER)
+    val cas1Application = stdResults.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas3Application = stdResults.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
 
-    return EligibilityOrchestrationDto(
-      crn,
-      cpr,
-      tier,
-      cas1Application,
-      cas3Application,
+    return OrchestrationResult(
+      data = EligibilityOrchestrationDto(
+        crn,
+        cpr,
+        tier,
+        cas1Application,
+        cas3Application,
+      ),
+      upstreamFailures = stdResults.getFailures(),
     )
   }
 
-  fun getPrisonerData(prisonerNumbers: List<String>): List<Prisoner> {
+  fun getPrisonerData(prisonerNumbers: List<String>): OrchestrationResult<List<Prisoner>> {
     val calls = prisonerNumbers.associate {
       "$GET_PRISONER$it" to { prisonerSearchCachingService.getPrisoner(it) }
     }
@@ -62,8 +67,13 @@ class EligibilityOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
-    return prisonerNumbers.mapNotNull {
-      results.standardCallsNoIterationResults!!["$GET_PRISONER$it"] as? Prisoner
-    }
+    val stdResults = results.standardCallsNoIterationResults!!
+
+    return OrchestrationResult(
+      data = prisonerNumbers.mapNotNull {
+        stdResults.getResult<Prisoner>("$GET_PRISONER$it")
+      },
+      upstreamFailures = stdResults.getFailures(),
+    )
   }
 }

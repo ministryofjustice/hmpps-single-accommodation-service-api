@@ -30,6 +30,7 @@ class CaseQueryService(
         roshDetails = it.roshDetails,
         tier = it.tier,
         caseSummaries = it.cases,
+        upstreamFailures = it.upstreamFailures
       )
     }
       .filter { riskLevel == null || it.riskLevel == riskLevel }
@@ -38,6 +39,6 @@ class CaseQueryService(
 
   fun getCase(crn: String): CaseDto {
     val case = caseOrchestrationService.getCase(crn)
-    return toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
+    return toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases, case.upstreamFailures)
   }
 }

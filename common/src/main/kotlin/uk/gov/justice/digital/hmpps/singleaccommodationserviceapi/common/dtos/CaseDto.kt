@@ -18,6 +18,7 @@ data class CaseDto(
   val nextAccommodation: AccommodationDetail?,
   val status: Status? = null,
   val actions: List<String> = emptyList(),
+  val upstreamFailures: List<UpstreamFailureDto> = emptyList(),
 )
 
 data class AssignedToDto(

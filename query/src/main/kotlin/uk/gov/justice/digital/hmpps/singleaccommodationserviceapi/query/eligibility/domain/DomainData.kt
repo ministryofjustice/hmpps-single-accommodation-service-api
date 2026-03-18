@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
-  val tierScore: TierScore,
+  val tierScore: TierScore?,
   val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodationArrangementType: AccommodationArrangementType? = null,
@@ -25,8 +25,8 @@ data class DomainData(
 ) {
   constructor(
     crn: String,
-    cpr: CorePersonRecord,
-    tier: Tier,
+    cpr: CorePersonRecord?,
+    tier: Tier?,
     prisonerData: List<Prisoner>?,
     // TODO: remove once we have a better way to determine currentAccommodationArrangementType and hasNextAccommodation
     currentAccommodation: AccommodationDetail? = null,
@@ -38,8 +38,8 @@ data class DomainData(
     crsStatus: String? = "OK",
   ) : this(
     crn = crn,
-    tierScore = tier.tierScore,
-    sex = cpr.sex?.code,
+    tierScore = tier?.tierScore,
+    sex = cpr?.sex?.code,
     releaseDate = prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } },
     currentAccommodationArrangementType = currentAccommodation?.arrangementType,
     hasNextAccommodation = nextAccommodation != null,
