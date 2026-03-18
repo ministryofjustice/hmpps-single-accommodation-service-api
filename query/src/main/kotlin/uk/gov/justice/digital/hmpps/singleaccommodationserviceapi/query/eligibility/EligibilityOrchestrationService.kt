@@ -2,6 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getOptionalResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.extractFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getRequiredResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD
@@ -37,12 +40,11 @@ class EligibilityOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
-    val cpr = results.standardCallsNoIterationResults!![GET_CORE_PERSON_RECORD] as? CorePersonRecord
-      ?: error("$GET_CORE_PERSON_RECORD failed for $crn")
-    val tier = results.standardCallsNoIterationResults!![GET_TIER] as? Tier
-      ?: error("$GET_TIER failed for $crn")
-    val cas1Application = results.standardCallsNoIterationResults!![GET_CAS_1_APPLICATION] as? Cas1Application
-    val cas3Application = results.standardCallsNoIterationResults!![GET_CAS_3_APPLICATION] as? Cas3Application
+    val stdResults = results.standardCallsNoIterationResults!!
+    val cpr = stdResults.getRequiredResult<CorePersonRecord>(GET_CORE_PERSON_RECORD)
+    val tier = stdResults.getRequiredResult<Tier>(GET_TIER)
+    val cas1Application = stdResults.getOptionalResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas3Application = stdResults.getOptionalResult<Cas3Application>(GET_CAS_3_APPLICATION)
 
     return EligibilityOrchestrationDto(
       crn,
@@ -50,6 +52,7 @@ class EligibilityOrchestrationService(
       tier,
       cas1Application,
       cas3Application,
+      upstreamFailures = stdResults.extractFailures(),
     )
   }
 
@@ -63,7 +66,7 @@ class EligibilityOrchestrationService(
     )
 
     return prisonerNumbers.mapNotNull {
-      results.standardCallsNoIterationResults!!["$GET_PRISONER$it"] as? Prisoner
+      results.standardCallsNoIterationResults!!.getOptionalResult<Prisoner>("$GET_PRISONER$it")
     }
   }
 }

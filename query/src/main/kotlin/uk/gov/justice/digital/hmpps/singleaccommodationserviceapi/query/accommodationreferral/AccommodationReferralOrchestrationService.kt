@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.extractFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getOptionalResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
@@ -29,19 +31,28 @@ class AccommodationReferralOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
+    val stdResults = results.standardCallsNoIterationResults
     val cas1 =
-      results.standardCallsNoIterationResults?.get(GET_CAS1_REFERRAL) as? List<ReferralHistory<Cas1AssessmentStatus>>
+      stdResults?.getOptionalResult<List<ReferralHistory<Cas1AssessmentStatus>>>(GET_CAS1_REFERRAL)
         ?: emptyList()
     val cas2 =
-      results.standardCallsNoIterationResults?.get(GET_CAS2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+      stdResults?.getOptionalResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2_REFERRAL)
         ?: emptyList()
     val cas2v2 =
-      results.standardCallsNoIterationResults?.get(GET_CAS2V2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+      stdResults?.getOptionalResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2V2_REFERRAL)
         ?: emptyList()
     val cas3 =
-      results.standardCallsNoIterationResults?.get(GET_CAS3_REFERRAL) as? List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
+      stdResults?.getOptionalResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
-    return AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3)
+    val failures = stdResults?.extractFailures() ?: emptyList()
+
+    return AccommodationReferralOrchestrationDto(
+      cas1,
+      cas2,
+      cas2v2,
+      cas3,
+      upstreamFailures = failures,
+    )
   }
 }
