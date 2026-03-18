@@ -9,4 +9,5 @@ dependencies {
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation(testFixtures(project(":common")))
 }
