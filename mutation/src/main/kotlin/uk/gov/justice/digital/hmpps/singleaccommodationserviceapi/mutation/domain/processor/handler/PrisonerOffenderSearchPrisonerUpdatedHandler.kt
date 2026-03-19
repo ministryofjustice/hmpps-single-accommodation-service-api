@@ -46,6 +46,9 @@ class PrisonerOffenderSearchPrisonerUpdatedHandler(
 
       if (!isRelevant) {
         log.info("Sentence information has not changed so event is irrelevant")
+        inboxEvent.processedStatus = ProcessedStatus.IGNORED
+        inboxEvent.processedAt = Instant.now()
+        inboxEventRepository.save(inboxEvent)
         return
       }
 

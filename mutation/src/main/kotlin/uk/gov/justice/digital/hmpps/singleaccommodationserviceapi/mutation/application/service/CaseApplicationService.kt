@@ -46,7 +46,6 @@ class CaseApplicationService(
     } ?: CaseAggregate.createNew(
       id = UUID.randomUUID(),
       crn = crn,
-
     )
     aggregate.upsertReleaseDate(
       newReleaseDate = prisoner.releaseDate,

@@ -28,10 +28,12 @@ class CaseAggregate private constructor(
       id: UUID,
       crn: String,
       tier: TierScore?,
+      releaseDate: LocalDate?,
     ) = CaseAggregate(
       id = id,
       crn = crn,
       tier = tier,
+      releaseDate = releaseDate,
     )
 
     fun createNew(id: UUID, crn: String) = CaseAggregate(
@@ -44,7 +46,8 @@ class CaseAggregate private constructor(
     val id: UUID,
     val crn: String,
     val tier: TierScore?,
+    val releaseDate: LocalDate?,
   )
 
-  fun snapshot() = CaseSnapshot(id, crn, tier)
+  fun snapshot() = CaseSnapshot(id, crn, tier, releaseDate)
 }
