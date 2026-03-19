@@ -14,7 +14,6 @@ data class CaseDto(
   val assignedTo: AssignedToDto?,
   val currentAccommodation: AccommodationDetail?,
   val nextAccommodation: AccommodationDetail?,
-  val eligibility: EligibilityDto? = null,
 )
 
 data class AssignedToDto(val id: Long, val name: String)

@@ -55,48 +55,7 @@ class EligibilityOrchestrationService(
     return EligibilityOrchestrationDto(
       crn,
       cpr,
-      tier.tierScore,
-      cas1Application,
-      cas2HdcApplication,
-      cas2PrisonBailApplication,
-      cas2CourtBailApplication,
-    )
-  }
-
-  fun getPartialData(crn: String, extraCalls: List<String>): EligibilityOrchestrationDto {
-    val calls = mutableMapOf(
-      GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
-      GET_CAS_1_APPLICATION to { approvedPremisesCachingService.getSuitableCas1Application(crn) },
-      GET_CAS_2_HDC_APPLICATION to { approvedPremisesCachingService.getSuitableCas2HdcApplication(crn) },
-      GET_CAS_2_PRISON_BAIL_APPLICATION to { approvedPremisesCachingService.getSuitableCas2PrisonBailApplication(crn) },
-      GET_CAS_2_COURT_BAIL_APPLICATION to { approvedPremisesCachingService.getSuitableCas2CourtBailApplication(crn) },
-    )
-
-    if (extraCalls.contains(GET_TIER)) {
-      calls[GET_TIER] = { tierCachingService.getTier(crn) }
-    }
-
-    val results = aggregatorService.orchestrateAsyncCalls(
-      standardCallsNoIteration = calls,
-    )
-
-    val cpr = results.standardCallsNoIterationResults!![GET_CORE_PERSON_RECORD] as? CorePersonRecord
-      ?: error("$GET_CORE_PERSON_RECORD failed for $crn")
-    val tier = if (extraCalls.contains(GET_TIER)) {
-      results.standardCallsNoIterationResults!![GET_TIER] as? Tier
-        ?: error("$GET_TIER failed for $crn")
-    } else {
-      null
-    }
-    val cas1Application = results.standardCallsNoIterationResults!![GET_CAS_1_APPLICATION] as? Cas1Application
-    val cas2HdcApplication = results.standardCallsNoIterationResults!![GET_CAS_2_HDC_APPLICATION] as? Cas2HdcApplication
-    val cas2PrisonBailApplication = results.standardCallsNoIterationResults!![GET_CAS_2_PRISON_BAIL_APPLICATION] as? Cas2PrisonBailApplication
-    val cas2CourtBailApplication = results.standardCallsNoIterationResults!![GET_CAS_2_COURT_BAIL_APPLICATION] as? Cas2CourtBailApplication
-
-    return EligibilityOrchestrationDto(
-      crn,
-      cpr,
-      tier?.tierScore,
+      tier,
       cas1Application,
       cas2HdcApplication,
       cas2PrisonBailApplication,

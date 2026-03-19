@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
@@ -61,7 +62,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.TestData
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @ExtendWith(value = [MockKExtension::class])
 class EligibilityServiceTest {
@@ -127,11 +130,17 @@ class EligibilityServiceTest {
     @Test
     fun `buildDomainData maps all fields correctly`() {
       val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
-      val tier = TierScore.A1
+      val tier = Tier(TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
       val releaseDate = LocalDate.now().plusYears(1)
+      val prisoner = listOf(
+        Prisoner(releaseDate = LocalDate.now().plusMonths(5)),
+        Prisoner(releaseDate = releaseDate),
+        Prisoner(releaseDate = LocalDate.now().plusMonths(4)),
+        Prisoner(releaseDate = null),
+      )
 
-      val result = DomainData(crn, cpr, tier, releaseDate, null, null, null, null, null, null)
-      assertThat(result.tier).isEqualTo(tier)
+      val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null, null, null)
+      assertThat(result.tier).isEqualTo(tier.tierScore)
       assertThat(result.sex).isEqualTo(cpr.sex?.code)
       assertThat(result.releaseDate).isEqualTo(releaseDate)
     }
@@ -143,14 +152,15 @@ class EligibilityServiceTest {
 
       val prisonerNumber = "PN1"
       val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
+      val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val prisoner = Prisoner(releaseDate = expectedReleaseDate)
-      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, expectedTier, null, null, null, null)
+      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null, null, null)
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
       every { caseRepository.findTierScoreByCrn(crn) } returns null
 
-      val result = eligibilityService.getFreshDomainData(crn)
+      val result = eligibilityService.getDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
       assertThat(result.sex).isEqualTo(SexCode.M)
       assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
@@ -168,7 +178,7 @@ class EligibilityServiceTest {
         EligibilityOrchestrationDto(
           crn,
           cpr,
-          dtoTier,
+          Tier(dtoTier, UUID.randomUUID(), LocalDateTime.now(), null),
           null,
           null,
           null,
@@ -181,7 +191,7 @@ class EligibilityServiceTest {
         listOf(prisoner)
       every { caseRepository.findTierScoreByCrn(crn) } returns dbTier
 
-      val result = eligibilityService.getFreshDomainData(crn)
+      val result = eligibilityService.getDomainData(crn)
 
       assertThat(result.tier).isEqualTo(dbTier)
       assertThat(result.tier).isNotEqualTo(dtoTier)
