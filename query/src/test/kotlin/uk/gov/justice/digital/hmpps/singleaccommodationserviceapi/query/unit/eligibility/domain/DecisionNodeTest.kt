@@ -108,6 +108,7 @@ class DecisionNodeTest {
           onPass = onPassNode,
           onFail = onFailNode,
           contextUpdater = contextUpdater,
+          ruleSetName = "Test RuleSet",
         )
 
       val result = ruleSetNode.eval(initialContext)
@@ -151,6 +152,7 @@ class DecisionNodeTest {
           onPass = onPassNode,
           onFail = onFailNode,
           contextUpdater = contextUpdater,
+          ruleSetName = "Test RuleSet",
         )
 
       val result = ruleSetNode.eval(initialContext)
@@ -187,6 +189,7 @@ class DecisionNodeTest {
           onPass = onPassNode,
           onFail = onFailNode,
           contextUpdater = contextUpdater,
+          ruleSetName = "Test RuleSet",
         )
 
       ruleSetNode.eval(context)
@@ -223,6 +226,7 @@ class DecisionNodeTest {
           onPass = onPassNode,
           onFail = onFailNode,
           contextUpdater = contextUpdater,
+          ruleSetName = "Test RuleSet",
         )
 
       ruleSetNode.eval(context)
