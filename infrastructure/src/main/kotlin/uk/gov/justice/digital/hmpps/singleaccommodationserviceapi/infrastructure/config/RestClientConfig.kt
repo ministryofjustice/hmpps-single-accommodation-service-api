@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.ProbationIntegrationOasysClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.ProbationIntegrationSasDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import java.net.http.HttpClient
 import java.time.Duration
@@ -26,6 +27,12 @@ class RestClientConfig(
   private val clientManager: OAuth2AuthorizedClientManager,
 
 ) {
+  @Bean
+  open fun probationIntegrationSasDeliusClient(@Value($$"${service.probation-integration-sas-delius.base-url}") baseUrl: String) = createClient(
+    baseUrl,
+    ProbationIntegrationSasDeliusClient::class,
+  )
+
   @Bean
   open fun probationIntegrationDeliusClient(@Value($$"${service.probation-integration-delius.base-url}") baseUrl: String) = createClient(
     baseUrl,
