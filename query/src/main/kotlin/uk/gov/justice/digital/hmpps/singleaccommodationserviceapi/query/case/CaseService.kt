@@ -17,6 +17,7 @@ class CaseService(
         roshDetails = it.roshDetails,
         tier = it.tier,
         caseSummaries = it.cases,
+        upstreamFailures = it.upstreamFailures,
       )
     }
       .filter { riskLevel == null || it.riskLevel == riskLevel }

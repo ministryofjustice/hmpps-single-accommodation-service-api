@@ -3,6 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RoshDetails
@@ -16,6 +19,7 @@ object CaseTransformer {
     roshDetails: RoshDetails?,
     tier: Tier?,
     caseSummaries: List<CaseSummary>?,
+    upstreamFailures: List<UpstreamFailure> = emptyList(),
   ) = CaseDto(
     name = cpr?.let { toFullName(it) },
     dateOfBirth = cpr?.dateOfBirth,
@@ -30,6 +34,14 @@ object CaseTransformer {
     photoUrl = null,
     currentAccommodation = null,
     nextAccommodation = null,
+    upstreamFailures = upstreamFailures.map { toUpstreamFailureDto(it) },
+  )
+
+  fun toUpstreamFailureDto(failure: UpstreamFailure) = UpstreamFailureDto(
+    service = failure.callKey,
+    type = UpstreamFailureType.valueOf(failure.type.name),
+    httpStatus = failure.errorDetail.httpStatus,
+    message = failure.errorDetail.message,
   )
 
   fun toFullName(cpr: CorePersonRecord) = listOfNotNull(
