@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.service.annotation.PostExchange
+import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 
 interface ProbationIntegrationSasDeliusClient {
-  @PostExchange(value = "/case-list/{username}")
+  @GetExchange(value = "/case-list/{username}")
   fun getCaseList(@PathVariable username: String): CaseList
 }
 
