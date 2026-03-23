@@ -6,6 +6,7 @@ management.endpoint:
   info.cache.time-to-live: 0
 
 service:
+  - probation-integration-sas-delius
   - probation-integration-delius
   - probation-integration-oasys
   - approved-premises-api

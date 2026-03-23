@@ -3,20 +3,21 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 import java.time.LocalDate
 
 data class CaseDto(
-  val name: String?,
-  val dateOfBirth: LocalDate?,
-  val crn: String?,
-  val prisonNumber: String?,
+  val name: String,
+  val dateOfBirth: LocalDate,
+  val crn: String,
+  val prisonNumber: String,
   val photoUrl: String?,
-  val tier: TierScore?,
-  val riskLevel: RiskLevel?,
-  val pncReference: String?,
-  val assignedTo: AssignedToDto?,
+  val tier: TierScore,
+  val riskLevel: RiskLevel,
+  val pncReference: String,
+  val assignedTo: AssignedToDto,
   val currentAccommodation: AccommodationDetail?,
   val nextAccommodation: AccommodationDetail?,
+  val eligibility: EligibilityDto?,
 )
 
-data class AssignedToDto(val id: Long, val name: String)
+data class AssignedToDto(val code: String, val name: String)
 
 enum class RiskLevel(val priority: Int) {
   LOW(1),

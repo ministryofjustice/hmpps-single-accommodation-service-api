@@ -12,6 +12,7 @@ generic-service:
     SPRING_PROFILES_ACTIVE: dev
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.nonprod.json"
     HMPPS_AUTH_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+    SERVICE_PROBATION-INTEGRATION-SAS-DELIUS_BASE-URL: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_PROBATION-INTEGRATION-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_PROBATION-INTEGRATION-OASYS_BASE-URL: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
@@ -29,4 +30,4 @@ generic-prometheus-alerts:
   alertSeverity: hmpps-approved-premises
 
   env_details:
-      production_env: false
+    production_env: false

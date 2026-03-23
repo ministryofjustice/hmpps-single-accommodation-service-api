@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
 
 @RestController
 class CaseController(
   private val caseService: CaseService,
+  private val caseApplicationService: CaseApplicationService,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
@@ -30,6 +32,19 @@ class CaseController(
     } else {
       ResponseEntity.ok(emptyList())
     }
+  }
+
+  // probably should make a separate v2/cases endpoint instead of editing this one
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @GetMapping("/case-list")
+  fun getCases(
+    @RequestParam(required = true) userName: String,
+  ): ResponseEntity<List<CaseDto>> {
+    // mutation
+    val caseList = caseApplicationService.upsertCases(userName)
+
+    // query
+    return ResponseEntity.ok(caseService.getCaseList(caseList))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")

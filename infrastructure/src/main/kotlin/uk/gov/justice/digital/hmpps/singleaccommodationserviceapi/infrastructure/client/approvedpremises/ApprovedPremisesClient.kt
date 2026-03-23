@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
+import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 
 interface ApprovedPremisesClient {
@@ -19,6 +21,18 @@ interface ApprovedPremisesClient {
 
   @GetExchange(value = "/cas2v2/external/cases/{crn}/applications/suitable/court")
   fun getSuitableCas2CourtBailApplicationInternal(@PathVariable crn: String): Cas2CourtBailApplication
+
+  @PostExchange(value = "/cas1/external/cases/bulk/applications/suitable")
+  fun postSuitableCas1ApplicationsInternal(@RequestBody crns: List<String>): List<Cas1Application>
+
+  @PostExchange(value = "/cas2/external/cases/bulk/applications/suitable")
+  fun postSuitableCas2HdcApplicationsInternal(@RequestBody crns: List<String>): List<Cas2HdcApplication>
+
+  @PostExchange(value = "/cas2v2/external/cases/bulk/applications/suitable/prison")
+  fun postSuitableCas2PrisonBailApplicationsInternal(@RequestBody crns: List<String>): List<Cas2PrisonBailApplication>
+
+  @PostExchange(value = "/cas2v2/external/cases/bulk/applications/suitable/court")
+  fun postSuitableCas2CourtBailApplicationsInternal(@RequestBody crns: List<String>): List<Cas2CourtBailApplication>
 
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<ReferralHistory<Cas1AssessmentStatus>>
@@ -49,15 +63,27 @@ open class ApprovedPremisesCachingService(
   @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL, key = "#crn")
   open fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn)
 
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS1_APPLICATION, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas1Application(crn: String) = approvedPremisesClient.getSuitableCas1ApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_HDC_APPLICATION, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATIONS, key = "#crns", sync = true)
+  open fun getSuitableCas1Applications(crns: List<String>) = approvedPremisesClient.postSuitableCas1ApplicationsInternal(crns)
+
+  @Cacheable(ApiCallKeys.GET_CAS_2_HDC_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas2HdcApplication(crn: String) = approvedPremisesClient.getSuitableCas2HdcApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_PRISON_BAIL_APPLICATION, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CAS_2_HDC_APPLICATIONS, key = "#crns", sync = true)
+  open fun getSuitableCas2HdcApplications(crns: List<String>) = approvedPremisesClient.postSuitableCas2HdcApplicationsInternal(crns)
+
+  @Cacheable(ApiCallKeys.GET_CAS_2_PRISON_BAIL_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas2PrisonBailApplication(crn: String) = approvedPremisesClient.getSuitableCas2PrisonBailApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_COURT_BAIL_APPLICATION, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CAS_2_PRISON_BAIL_APPLICATIONS, key = "#crns", sync = true)
+  open fun getSuitableCas2PrisonBailApplications(crns: List<String>) = approvedPremisesClient.postSuitableCas2PrisonBailApplicationsInternal(crns)
+
+  @Cacheable(ApiCallKeys.GET_CAS_2_COURT_BAIL_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas2CourtBailApplication(crn: String) = approvedPremisesClient.getSuitableCas2CourtBailApplicationInternal(crn)
+
+  @Cacheable(ApiCallKeys.GET_CAS_2_COURT_BAIL_APPLICATIONS, key = "#crns", sync = true)
+  open fun getSuitableCas2CourtBailApplications(crns: List<String>) = approvedPremisesClient.postSuitableCas2CourtBailApplicationsInternal(crns)
 }

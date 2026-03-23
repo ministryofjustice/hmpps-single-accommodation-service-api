@@ -7,6 +7,8 @@ spring:
 service:
   probation-integration-delius:
     base-url: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
+  probation-integration-sas-delius:
+    base-url: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
   probation-integration-oasys:
     base-url: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
   approved-premises-api:

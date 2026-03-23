@@ -14,6 +14,7 @@ detekt {
 dependencies {
   implementation(project(":common"))
   implementation(project(":query"))
+  implementation(project(":infrastructure"))
   implementation(project(":mutation"))
 
   implementation(libs.hmpps.starter)

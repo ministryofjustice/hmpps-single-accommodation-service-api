@@ -11,13 +11,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import java.util.UUID
 
 class Cas2ServiceStatusTransformerTest {
+  val crn = "X123456"
 
   @Nested
   inner class Cas2HdcApplicationToServiceStatus {
-
     @Test
     fun `transform to serviceStatus`() {
       val cas2HdcApplication = Cas2HdcApplication(
+        crn = crn,
         id = UUID.randomUUID(),
       )
       assertThat(Cas2ServiceStatusTransformer.toServiceStatus(cas2HdcApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
@@ -30,6 +31,7 @@ class Cas2ServiceStatusTransformerTest {
     @Test
     fun `transform to serviceStatus`() {
       val cas2CourtBailApplication = Cas2CourtBailApplication(
+        crn = crn,
         id = UUID.randomUUID(),
       )
       assertThat(Cas2ServiceStatusTransformer.toServiceStatus(cas2CourtBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)
@@ -42,6 +44,7 @@ class Cas2ServiceStatusTransformerTest {
     @Test
     fun `transform to serviceStatus`() {
       val cas2PrisonBailApplication = Cas2PrisonBailApplication(
+        crn = crn,
         id = UUID.randomUUID(),
       )
       assertThat(Cas2ServiceStatusTransformer.toServiceStatus(cas2PrisonBailApplication)).isEqualTo(ServiceStatus.NOT_STARTED)

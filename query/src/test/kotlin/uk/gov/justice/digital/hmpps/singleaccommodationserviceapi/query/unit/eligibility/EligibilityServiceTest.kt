@@ -9,7 +9,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -22,7 +25,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
@@ -107,7 +113,6 @@ class EligibilityServiceTest {
 
   private val eligibilityService = EligibilityService(
     eligibilityOrchestrationService = eligibilityOrchestrationService,
-    caseRepository = caseRepository,
     cas1EligibilityRuleSet = cas1EligibilityRuleSet,
     cas1SuitabilityRuleSet = cas1SuitabilityRuleSet,
     cas1CompletionRuleSet = cas1CompletionRuleSet,
@@ -131,7 +136,7 @@ class EligibilityServiceTest {
     @Test
     fun `buildDomainData maps all fields correctly`() {
       val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
-      val tier = Tier(TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
+      val tier = Tier(crn, TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
       val releaseDate = LocalDate.now().plusYears(1)
       val prisoner = listOf(
         Prisoner(releaseDate = LocalDate.now().plusMonths(5)),
@@ -153,7 +158,7 @@ class EligibilityServiceTest {
 
       val prisonerNumber = "PN1"
       val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
-      val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
+      val tier = Tier(crn, expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val prisoner = Prisoner(releaseDate = expectedReleaseDate)
       val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null, null, null)
 
@@ -161,41 +166,8 @@ class EligibilityServiceTest {
       every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
       every { caseRepository.findTierScoreByCrn(crn) } returns null
 
-      val result = eligibilityService.getDomainData(crn)
+      val result = eligibilityService.getFreshDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
-      assertThat(result.sex).isEqualTo(SexCode.M)
-      assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
-    }
-
-    @Test
-    fun `getDomainData uses tier from CaseRepository when case exists - not DTO tier`() {
-      val dtoTier = TierScore.A1
-      val dbTier = TierScore.B2
-      val expectedReleaseDate = LocalDate.now().plusYears(1)
-
-      val prisonerNumber = "PN1"
-      val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
-      val orchestrationDto =
-        EligibilityOrchestrationDto(
-          crn,
-          cpr,
-          Tier(dtoTier, UUID.randomUUID(), LocalDateTime.now(), null),
-          null,
-          null,
-          null,
-          null,
-        )
-      val prisoner = Prisoner(releaseDate = expectedReleaseDate)
-
-      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
-      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns
-        listOf(prisoner)
-      every { caseRepository.findTierScoreByCrn(crn) } returns dbTier
-
-      val result = eligibilityService.getDomainData(crn)
-
-      assertThat(result.tier).isEqualTo(dbTier)
-      assertThat(result.tier).isNotEqualTo(dtoTier)
       assertThat(result.sex).isEqualTo(SexCode.M)
       assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
@@ -249,6 +221,61 @@ class EligibilityServiceTest {
       }
       assertThat(result.action).isEqualTo(expectedActions)
       assertThat(result.link).isEqualTo(expectedCas1Link)
+    }
+  }
+
+  @Nested
+  inner class GetEligibility {
+
+    @Test
+    fun `get eligibility`() {
+      val eligibilityOrchestrationDto = EligibilityOrchestrationDto(
+        crn = crn,
+        cpr = buildCorePersonRecord(),
+        tier = buildTier(),
+        cas1Application = null,
+        cas2CourtBailApplication = null,
+        cas2PrisonBailApplication = null,
+        cas2HdcApplication = null,
+      )
+
+      val prisonerData = listOf(buildPrisoner(releaseDate = LocalDate.now().plusMonths(5)))
+
+      every { eligibilityOrchestrationService.getData(crn) } returns eligibilityOrchestrationDto
+      every { eligibilityOrchestrationService.getPrisonerData(eligibilityOrchestrationDto.cpr.identifiers!!.prisonNumbers) } returns prisonerData
+
+      assertThat(eligibilityService.getEligibility(crn)).isEqualTo(
+        EligibilityDto(
+          crn = crn,
+          cas1 = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+            suitableApplicationId = null,
+            action = null,
+          ),
+          cas2Hdc = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+            suitableApplicationId = null,
+            action = null,
+          ),
+          cas2PrisonBail = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+            suitableApplicationId = null,
+            action = null,
+          ),
+          cas2CourtBail = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+            suitableApplicationId = null,
+            action = null,
+          ),
+          cas3 = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+            suitableApplicationId = null,
+            action = null,
+          ),
+          caseActions = emptyList(),
+          caseStatus = CaseStatus.NO_ACTION_REQUIRED,
+        ),
+      )
     }
   }
 }

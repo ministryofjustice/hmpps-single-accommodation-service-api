@@ -16,7 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger
 @TestConfiguration
 class SemaphoreConcurrencyTestConfig {
 
-  @Bean fun concurrencyCounter() = ConcurrencyCounter()
+  @Bean
+  fun concurrencyCounter() = ConcurrencyCounter()
 
   @Bean
   @Primary
@@ -33,6 +34,8 @@ class SemaphoreConcurrencyTestConfig {
         counter.exit()
       }
     }
+
+    override fun postTiers(crns: List<String>) = delegate.postTiers(crns)
 
     override fun getTier(crn: String) = delegate.getTier(crn)
   }

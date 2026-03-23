@@ -3,12 +3,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
+import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 
 interface PrisonerSearchClient {
   @GetExchange(value = "/prisoner/{prisonerNumber}")
   fun getPrisoner(@PathVariable prisonerNumber: String): Prisoner
+
+  @PostExchange(value = "/prisoner/bulk")
+  fun postPrisoner(@RequestBody prisonerNumbers: List<String>): List<Prisoner>
 }
 
 @Service
@@ -17,4 +22,7 @@ open class PrisonerSearchCachingService(
 ) {
   @Cacheable(ApiCallKeys.GET_PRISONER, key = "#prisonerNumber")
   open fun getPrisoner(prisonerNumber: String) = prisonerSearchClient.getPrisoner(prisonerNumber)
+
+  @Cacheable(ApiCallKeys.GET_PRISONERS, key = "#prisonerNumbers")
+  open fun getPrisoners(prisonerNumbers: List<String>) = prisonerSearchClient.postPrisoner(prisonerNumbers)
 }

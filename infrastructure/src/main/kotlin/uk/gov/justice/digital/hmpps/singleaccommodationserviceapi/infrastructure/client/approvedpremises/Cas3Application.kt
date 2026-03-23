@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import java.util.UUID
 
 data class Cas3Application(
+  val crn: String,
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
   val placementStatus: Cas3PlacementStatus?,

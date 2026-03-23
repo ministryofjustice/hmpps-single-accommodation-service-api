@@ -14,19 +14,23 @@ fun buildCas1Application(
   applicationStatus: Cas1ApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
   placementStatus: Cas1PlacementStatus? = null,
   requestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
+  crn: String = "X12345",
 ) = Cas1Application(
   id = id,
   applicationStatus = applicationStatus,
   placementStatus = placementStatus,
   requestForPlacementStatus = requestForPlacementStatus,
+  crn = crn,
 )
 
 fun buildCas3Application(
   id: UUID = UUID.randomUUID(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
   placementStatus: Cas3PlacementStatus? = null,
+  crn: String = "X12345",
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
   placementStatus = placementStatus,
+  crn = crn,
 )

@@ -35,6 +35,7 @@ class ApplicationSuitabilityRuleTest {
   )
   fun `application is suitable (but not PLACEMENT_ALLOCATED) so rule passes`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -63,6 +64,7 @@ class ApplicationSuitabilityRuleTest {
   @EnumSource(value = Cas1PlacementStatus::class)
   fun `application is suitable (PLACEMENT_ALLOCATED) so rule passes`(status: Cas1PlacementStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
@@ -100,6 +102,7 @@ class ApplicationSuitabilityRuleTest {
   )
   fun `application does not have a suitable status so rule fails`(status: Cas1ApplicationStatus) {
     val cas1Application = Cas1Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,

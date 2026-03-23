@@ -11,6 +11,7 @@ generic-service:
     SPRING_PROFILES_ACTIVE: prod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
+    SERVICE_PROBATION-INTEGRATION-SAS-DELIUS_BASE-URL: https://single-accommodation-and-delius.hmpps.service.justice.gov.uk
     SERVICE_PROBATION-INTEGRATION-DELIUS_BASE-URL: https://approved-premises-and-delius.hmpps.service.justice.gov.uk
     SERVICE_PROBATION-INTEGRATION-OASYS_BASE-URL: https://approved-premises-and-oasys.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api.hmpps.service.justice.gov.uk

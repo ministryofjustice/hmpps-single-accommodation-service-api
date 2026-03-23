@@ -3,5 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import java.util.UUID
 
 data class Cas2PrisonBailApplication(
+  val crn: String,
   val id: UUID,
 )

@@ -101,6 +101,7 @@ class Cas3ActionTransformerTest {
   @EnumSource(value = Cas3PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED", "CLOSED"])
   fun `Build action when application is PLACED but placement not completed`(status: Cas3PlacementStatus) {
     val cas3Application = Cas3Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = Cas3ApplicationStatus.PLACED,
       placementStatus = status,
@@ -123,6 +124,7 @@ class Cas3ActionTransformerTest {
   @EnumSource(value = Cas3ApplicationStatus::class, names = ["AWAITING_PLACEMENT", "PENDING"])
   fun `Build action when application needs to create a placement`(status: Cas3ApplicationStatus) {
     val cas3Application = Cas3Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -149,6 +151,7 @@ class Cas3ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
+        crn = crn,
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
         placementStatus = null,
@@ -164,6 +167,7 @@ class Cas3ActionTransformerTest {
   @EnumSource(value = Cas3ApplicationStatus::class, names = ["IN_PROGRESS", "SUBMITTED", "REJECTED", "INAPPLICABLE", "WITHDRAWN"])
   fun `Build action when application is not suitable`(status: Cas3ApplicationStatus) {
     val cas3Application = Cas3Application(
+      crn = crn,
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -190,6 +194,7 @@ class Cas3ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
+        crn = crn,
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.PLACED,
         placementStatus = null,
@@ -210,6 +215,7 @@ class Cas3ActionTransformerTest {
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
+        crn = crn,
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.PLACED,
         placementStatus = status,
