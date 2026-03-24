@@ -10,13 +10,60 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper.creatNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper.merge
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
+import java.util.UUID
 
 @Service
 class CaseApplicationService(
   private val caseRepository: CaseRepository,
+  private val caseOrchestrationService: CaseMutationOrchestrationService,
   private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
+
+  @Transactional
+  fun upsertCases(crns: List<String>) {
+    val missingCrns = caseRepository.findMissingCrns(crns = crns.toTypedArray())
+
+    if (missingCrns.isNotEmpty()) {
+      // assume a row from the case table is always complete, so only need to get fresh cases if that row is missing
+      val freshCases = caseOrchestrationService.getCases(missingCrns)
+      upsertFreshCases(freshCases)
+    }
+  }
+
+  private fun upsertFreshCases(
+    freshCases: List<CaseMutationOrchestrationDto>,
+  ) {
+    freshCases.forEach { freshCase ->
+
+      val aggregate = CaseAggregate.createNew(
+        id = UUID.randomUUID(),
+        caseIdentifiers = mutableSetOf(
+          CaseIdentifier(
+            UUID.randomUUID(),
+            freshCase.crn,
+            IdentifierType.CRN,
+          ),
+        ),
+      )
+
+      aggregate.upsertCase(
+        tierScore = freshCase.tier?.tierScore,
+        cas1ApplicationId = freshCase.cas1Application?.id,
+        cas1ApplicationApplicationStatus = freshCase.cas1Application?.applicationStatus,
+        cas1ApplicationRequestForPlacementStatus = freshCase.cas1Application?.requestForPlacementStatus,
+        cas1ApplicationPlacementStatus = freshCase.cas1Application?.placementStatus,
+      )
+
+      val caseIdentifiers = freshCases.associate { it.crn to IdentifierType.CRN }
+      caseRepository.save(
+        merge(creatNew(), aggregate.snapshot(), caseIdentifiers),
+      )
+    }
+  }
 
   fun getCorePersonRecord(identifier: String, identifierType: IdentifierType): CorePersonRecord = when (identifierType) {
     IdentifierType.CRN -> corePersonRecordCachingService.getCorePersonRecordByCrn(identifier)

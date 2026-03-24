@@ -17,7 +17,7 @@ fun buildCaseSummary(
   crn: String = "XX12345X",
   nomsId: String? = "YY09876Y",
   pnc: String? = "Some PNC Reference",
-  name: Name = buildName(),
+  name: Name = buildCaseSummaryName(),
   dateOfBirth: LocalDate = LocalDate.now().minusYears(25),
   gender: String? = "F",
   profile: Profile? = buildProfile(),
@@ -37,7 +37,7 @@ fun buildCaseSummary(
   currentRestriction = currentRestriction,
 )
 
-fun buildName(
+fun buildCaseSummaryName(
   forename: String = "Fore",
   surname: String = "Sur",
   middleNames: List<String> = listOf("Middle", "Name"),

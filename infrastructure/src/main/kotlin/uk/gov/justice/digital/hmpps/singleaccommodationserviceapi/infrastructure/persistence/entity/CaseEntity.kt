@@ -8,6 +8,9 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.util.UUID
 
@@ -28,6 +31,13 @@ class CaseEntity(
     orphanRemoval = true,
   )
   var caseIdentifiers: MutableSet<CaseIdentifierEntity> = mutableSetOf(),
+  var cas1ApplicationId: UUID? = null,
+  @Enumerated(EnumType.STRING)
+  var cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
+  @Enumerated(EnumType.STRING)
+  var cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
+  @Enumerated(EnumType.STRING)
+  var cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
 
 ) {
   fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }

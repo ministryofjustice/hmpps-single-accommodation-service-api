@@ -8,15 +8,24 @@ data class CaseDto(
   val crn: String?,
   val prisonNumber: String?,
   val photoUrl: String?,
+  val tierScore: TierScore?,
+  @Deprecated("no longer be surfacing this with the new `case-list` endpoint - to be removed soon")
   val tier: TierScore?,
   val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedToDto?,
   val currentAccommodation: AccommodationDetail?,
   val nextAccommodation: AccommodationDetail?,
+  val status: Status? = null,
+  val actions: List<String> = emptyList(),
 )
 
-data class AssignedToDto(val id: Long, val name: String)
+data class AssignedToDto(
+  @Deprecated("no longer be surfacing this with the new `case-list` endpoint - to be removed soon")
+  val id: Long?, // actual name
+  val name: String, // actual name
+  val username: String? = null,
+)
 
 enum class RiskLevel(val priority: Int) {
   LOW(1),
@@ -50,4 +59,11 @@ enum class TierScore {
   D3S,
   D2S,
   D1S,
+}
+
+enum class Status {
+  RISK_OF_NO_FIXED_ABODE,
+  NO_FIXED_ABODE,
+  TRANSIENT,
+  SETTLED,
 }

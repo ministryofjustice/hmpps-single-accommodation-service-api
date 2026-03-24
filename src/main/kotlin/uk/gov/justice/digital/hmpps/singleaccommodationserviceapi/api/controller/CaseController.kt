@@ -8,12 +8,28 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 
 @RestController
 class CaseController(
-  private val caseService: CaseService,
+  private val caseQueryService: CaseQueryService,
+  private val caseApplicationService: CaseApplicationService,
 ) {
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @GetMapping("/case-list")
+  fun getCases(): ResponseEntity<List<CaseDto>> {
+    val personDtos = caseQueryService.getCaseList()
+    caseApplicationService.upsertCases(personDtos.map { it.crn })
+
+    // TODO remove once we get data from sas_case table in the following PR
+    val cases = personDtos.map { toCaseDto(it) }
+
+    return ResponseEntity.ok(cases)
+  }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases")
@@ -26,7 +42,7 @@ class CaseController(
   ): ResponseEntity<List<CaseDto>> {
     // TODO this allows for testing with multiple CRNs and will be removed in future.
     return if (crns.isNotEmpty()) {
-      ResponseEntity.ok(caseService.getCases(crns, riskLevel))
+      ResponseEntity.ok(caseQueryService.getCases(crns, riskLevel))
     } else {
       ResponseEntity.ok(emptyList())
     }
@@ -35,10 +51,7 @@ class CaseController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
-    val case = caseService.getCase(crn)
+    val case = caseQueryService.getCase(crn)
     return ResponseEntity.ok(case)
   }
 }
-
-// TODO fill in enums for Status
-enum class Status
