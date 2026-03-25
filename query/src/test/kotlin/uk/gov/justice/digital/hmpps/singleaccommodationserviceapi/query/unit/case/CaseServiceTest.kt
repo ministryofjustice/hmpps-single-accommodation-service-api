@@ -10,7 +10,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIndividualName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -41,6 +51,100 @@ class CaseServiceTest {
 
   @Nested
   inner class GetCases {
+    @Test
+    fun `should get all cases`() {
+      val crnList = listOf(crnOne, crnTwo)
+
+      val caseListItem1 = buildCase(crn = crnOne, name = buildIndividualName("Anne", "Smith"))
+      val caseListItem2 = buildCase(crn = crnTwo, name = buildIndividualName("Bob", "Smith"))
+      val caseListItems = listOf(caseListItem1, caseListItem2)
+
+      val caseEntity1 = buildCaseEntity(crn = crnOne, tier = TierScore.A1, cas1ApplicationId = null)
+      val caseEntity2 = buildCaseEntity(crn = crnTwo, tier = TierScore.B1)
+      val caseEntities = listOf(caseEntity1, caseEntity2)
+
+      val eligibilityDto1 = EligibilityDto(
+        crn = crnOne,
+        cas1 = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas2Hdc = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas2PrisonBail = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas2CourtBail = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas3 = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        caseActions = emptyList(),
+        caseStatus = CaseStatus.NO_ACTION_REQUIRED,
+      )
+
+      val eligibilityDto2 = EligibilityDto(
+        crn = crnTwo,
+        cas1 = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas2Hdc = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas2PrisonBail = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas2CourtBail = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        cas3 = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+        ),
+        caseActions = emptyList(),
+        caseStatus = CaseStatus.NO_ACTION_REQUIRED,
+      )
+
+      every { caseRepository.findByCrns(crnList) } returns caseEntities
+      every { eligibilityService.getCachedEligibility(caseListItem1, caseEntity1) } returns eligibilityDto1
+      every { eligibilityService.getCachedEligibility(caseListItem2, caseEntity2) } returns eligibilityDto2
+
+      val result = caseService.getCases(caseListItems)
+      assertThat(result).hasSize(2)
+
+      assertThat(result.first()).isEqualTo(
+        CaseDto(
+          name = "Anne Smith",
+          dateOfBirth = caseListItem1.dateOfBirth,
+          crn = crnOne,
+          prisonNumber = caseListItem1.nomsNumber,
+          photoUrl = null,
+          tier = uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore.A1,
+          riskLevel = null,
+          pncReference = caseListItem1.pncNumber,
+          assignedTo = AssignedToDto(caseListItem1.staff.code, name = "Anne Smith"),
+          currentAccommodation = null,
+          nextAccommodation = null,
+          eligibilityDto = eligibilityDto1,
+        ),
+      )
+      assertThat(result[1]).isEqualTo(
+        CaseDto(
+          name = "Bob Smith",
+          dateOfBirth = caseListItem1.dateOfBirth,
+          crn = crnTwo,
+          prisonNumber = caseListItem1.nomsNumber,
+          photoUrl = null,
+          tier = uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore.A1,
+          riskLevel = null,
+          pncReference = caseListItem1.pncNumber,
+          assignedTo = AssignedToDto(caseListItem1.staff.code, name = "Anne Smith"),
+          currentAccommodation = null,
+          nextAccommodation = null,
+          eligibilityDto = eligibilityDto2,
+        ),
+      )
+    }
 
     @ParameterizedTest(name = "getCases() should return all cases with risk level = {0}")
     @EnumSource(RiskLevelInfra::class)
