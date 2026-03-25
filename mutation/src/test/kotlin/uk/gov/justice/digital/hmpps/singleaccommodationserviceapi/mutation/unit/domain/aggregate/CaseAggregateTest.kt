@@ -37,14 +37,14 @@ class CaseAggregateTest {
       crn = crn,
     )
     val cas1ApplicationId = buildCas1Application()
-    val freshCase = CaseApplicationOrchestrationDto(
+    val case = CaseApplicationOrchestrationDto(
       crn = crn,
       tier = buildTier(tier),
       cas1Application = cas1ApplicationId,
     )
 
     aggregate.upsertCase(
-      freshCase = freshCase,
+      case = case,
     )
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.tier).isEqualTo(tier)

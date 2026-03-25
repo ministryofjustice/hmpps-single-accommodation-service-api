@@ -32,7 +32,7 @@ class CaseApplicationService(
 
     if (missingCrns.isNotEmpty()) {
       // assume a row from the case table is always complete, so only need to get fresh cases if that row is missing
-      val freshCases = caseApplicationOrchestrationService.getFreshCases(missingCrns)
+      val freshCases = caseApplicationOrchestrationService.getCases(missingCrns)
       upsertFreshCases(freshCases)
     }
 
@@ -50,7 +50,7 @@ class CaseApplicationService(
       )
 
       aggregate.upsertCase(
-        freshCase = freshCase,
+        case = freshCase,
       )
 
       caseRepository.save(

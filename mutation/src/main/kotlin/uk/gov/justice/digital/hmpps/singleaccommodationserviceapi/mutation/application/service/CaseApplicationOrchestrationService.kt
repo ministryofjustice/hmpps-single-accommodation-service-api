@@ -21,7 +21,7 @@ class CaseApplicationOrchestrationService(
 
 ) {
 
-  fun getFreshCases(crns: List<String>): List<CaseApplicationOrchestrationDto> {
+  fun getCases(crns: List<String>): List<CaseApplicationOrchestrationDto> {
     val callsPerIdentifier = mapOf(
       ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
       ApiCallKeys.GET_CAS_1_APPLICATION to { crn: String -> approvedPremisesCachingService.getSuitableCas1Application(crn) },

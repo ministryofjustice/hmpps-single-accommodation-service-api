@@ -24,13 +24,13 @@ class CaseAggregate private constructor(
   }
 
   fun upsertCase(
-    freshCase: CaseApplicationOrchestrationDto,
+    case: CaseApplicationOrchestrationDto,
   ) {
-    tier = freshCase.tier?.tierScore
-    cas1ApplicationId = freshCase.cas1Application?.id
-    cas1ApplicationApplicationStatus = freshCase.cas1Application?.applicationStatus
-    cas1ApplicationRequestForPlacementStatus = freshCase.cas1Application?.requestForPlacementStatus
-    cas1ApplicationPlacementStatus = freshCase.cas1Application?.placementStatus
+    tier = case.tier?.tierScore
+    cas1ApplicationId = case.cas1Application?.id
+    cas1ApplicationApplicationStatus = case.cas1Application?.applicationStatus
+    cas1ApplicationRequestForPlacementStatus = case.cas1Application?.requestForPlacementStatus
+    cas1ApplicationPlacementStatus = case.cas1Application?.placementStatus
   }
 
   companion object {

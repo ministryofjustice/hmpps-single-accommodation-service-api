@@ -12,12 +12,7 @@ class PersonDto(
   val pncNumber: String?,
   val dateOfBirth: LocalDate,
   val staff: Officer,
-  val team: CodeDescription,
   val gender: String,
   val roshLevel: CodeDescription?,
   val expectedReleaseDate: LocalDate?,
-  val userExcluded: Boolean,
-  val userRestricted: Boolean,
-  val exclusionMessage: String?,
-  val restrictionMessage: String?,
 )

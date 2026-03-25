@@ -48,10 +48,10 @@ class CaseApplicationServiceTest {
     fun `should upsert all cases as all cases as all are new`() {
       val crnList = listOf(crnOne, crnTwo)
 
-      val caseListItem1 = buildCase(crn = crnOne)
-      val caseListItem2 = buildCase(crn = crnTwo)
+      val case1 = buildCase(crn = crnOne)
+      val case2 = buildCase(crn = crnTwo)
       val caseList = CaseList(
-        cases = listOf(caseListItem1, caseListItem2),
+        cases = listOf(case1, case2),
       )
 
       val orch1 = buildCaseApplicationOrchestrationDto(
@@ -71,7 +71,7 @@ class CaseApplicationServiceTest {
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       every { caseApplicationOrchestrationService.getCaseList(username) } returns caseList
       every { caseRepository.findByCrns(crnList) } returns emptyList()
-      every { caseApplicationOrchestrationService.getFreshCases(crnList) } returns orchestrationDtoList
+      every { caseApplicationOrchestrationService.getCases(crnList) } returns orchestrationDtoList
 
       val slot = slot<CaseEntity>()
 
@@ -81,44 +81,34 @@ class CaseApplicationServiceTest {
       assertThat(result).hasSize(2)
 
       assertThat(result.first().crn).isEqualTo(crnOne)
-      assertThat(result.first().name).isEqualTo(caseListItem1.name)
-      assertThat(result.first().nomsNumber).isEqualTo(caseListItem1.nomsNumber)
-      assertThat(result.first().pncNumber).isEqualTo(caseListItem1.pncNumber)
-      assertThat(result.first().dateOfBirth).isEqualTo(caseListItem1.dateOfBirth)
-      assertThat(result.first().staff).isEqualTo(caseListItem1.staff)
-      assertThat(result.first().team).isEqualTo(caseListItem1.team)
-      assertThat(result.first().gender).isEqualTo(caseListItem1.gender)
-      assertThat(result.first().roshLevel).isEqualTo(caseListItem1.roshLevel)
-      assertThat(result.first().expectedReleaseDate).isEqualTo(caseListItem1.expectedReleaseDate)
-      assertThat(result.first().userExcluded).isEqualTo(caseListItem1.userExcluded)
-      assertThat(result.first().userRestricted).isEqualTo(caseListItem1.userRestricted)
-      assertThat(result.first().exclusionMessage).isEqualTo(caseListItem1.exclusionMessage)
-      assertThat(result.first().restrictionMessage).isEqualTo(caseListItem1.restrictionMessage)
+      assertThat(result.first().name).isEqualTo(case1.name)
+      assertThat(result.first().nomsNumber).isEqualTo(case1.nomsNumber)
+      assertThat(result.first().pncNumber).isEqualTo(case1.pncNumber)
+      assertThat(result.first().dateOfBirth).isEqualTo(case1.dateOfBirth)
+      assertThat(result.first().staff).isEqualTo(case1.staff)
+      assertThat(result.first().gender).isEqualTo(case1.gender)
+      assertThat(result.first().roshLevel).isEqualTo(case1.roshLevel)
+      assertThat(result.first().expectedReleaseDate).isEqualTo(case1.expectedReleaseDate)
 
       assertThat(result.last().crn).isEqualTo(crnTwo)
-      assertThat(result.last().name).isEqualTo(caseListItem2.name)
-      assertThat(result.last().nomsNumber).isEqualTo(caseListItem2.nomsNumber)
-      assertThat(result.last().pncNumber).isEqualTo(caseListItem2.pncNumber)
-      assertThat(result.last().dateOfBirth).isEqualTo(caseListItem2.dateOfBirth)
-      assertThat(result.last().staff).isEqualTo(caseListItem2.staff)
-      assertThat(result.last().team).isEqualTo(caseListItem2.team)
-      assertThat(result.last().gender).isEqualTo(caseListItem2.gender)
-      assertThat(result.last().roshLevel).isEqualTo(caseListItem2.roshLevel)
-      assertThat(result.last().expectedReleaseDate).isEqualTo(caseListItem2.expectedReleaseDate)
-      assertThat(result.last().userExcluded).isEqualTo(caseListItem2.userExcluded)
-      assertThat(result.last().userRestricted).isEqualTo(caseListItem2.userRestricted)
-      assertThat(result.last().exclusionMessage).isEqualTo(caseListItem2.exclusionMessage)
-      assertThat(result.last().restrictionMessage).isEqualTo(caseListItem2.restrictionMessage)
+      assertThat(result.last().name).isEqualTo(case2.name)
+      assertThat(result.last().nomsNumber).isEqualTo(case2.nomsNumber)
+      assertThat(result.last().pncNumber).isEqualTo(case2.pncNumber)
+      assertThat(result.last().dateOfBirth).isEqualTo(case2.dateOfBirth)
+      assertThat(result.last().staff).isEqualTo(case2.staff)
+      assertThat(result.last().gender).isEqualTo(case2.gender)
+      assertThat(result.last().roshLevel).isEqualTo(case2.roshLevel)
+      assertThat(result.last().expectedReleaseDate).isEqualTo(case2.expectedReleaseDate)
     }
 
     @Test
     fun `should upsert no cases as all cases as none are new`() {
       val crnList = listOf(crnOne, crnTwo)
 
-      val caseListItem1 = buildCase(crn = crnOne)
-      val caseListItem2 = buildCase(crn = crnTwo)
+      val case1 = buildCase(crn = crnOne)
+      val case2 = buildCase(crn = crnTwo)
       val caseList = CaseList(
-        cases = listOf(caseListItem1, caseListItem2),
+        cases = listOf(case1, case2),
       )
 
       val cas1Application = buildCas1Application()
@@ -145,34 +135,24 @@ class CaseApplicationServiceTest {
       assertThat(result).hasSize(2)
 
       assertThat(result.first().crn).isEqualTo(crnOne)
-      assertThat(result.first().name).isEqualTo(caseListItem1.name)
-      assertThat(result.first().nomsNumber).isEqualTo(caseListItem1.nomsNumber)
-      assertThat(result.first().pncNumber).isEqualTo(caseListItem1.pncNumber)
-      assertThat(result.first().dateOfBirth).isEqualTo(caseListItem1.dateOfBirth)
-      assertThat(result.first().staff).isEqualTo(caseListItem1.staff)
-      assertThat(result.first().team).isEqualTo(caseListItem1.team)
-      assertThat(result.first().gender).isEqualTo(caseListItem1.gender)
-      assertThat(result.first().roshLevel).isEqualTo(caseListItem1.roshLevel)
-      assertThat(result.first().expectedReleaseDate).isEqualTo(caseListItem1.expectedReleaseDate)
-      assertThat(result.first().userExcluded).isEqualTo(caseListItem1.userExcluded)
-      assertThat(result.first().userRestricted).isEqualTo(caseListItem1.userRestricted)
-      assertThat(result.first().exclusionMessage).isEqualTo(caseListItem1.exclusionMessage)
-      assertThat(result.first().restrictionMessage).isEqualTo(caseListItem1.restrictionMessage)
+      assertThat(result.first().name).isEqualTo(case1.name)
+      assertThat(result.first().nomsNumber).isEqualTo(case1.nomsNumber)
+      assertThat(result.first().pncNumber).isEqualTo(case1.pncNumber)
+      assertThat(result.first().dateOfBirth).isEqualTo(case1.dateOfBirth)
+      assertThat(result.first().staff).isEqualTo(case1.staff)
+      assertThat(result.first().gender).isEqualTo(case1.gender)
+      assertThat(result.first().roshLevel).isEqualTo(case1.roshLevel)
+      assertThat(result.first().expectedReleaseDate).isEqualTo(case1.expectedReleaseDate)
 
       assertThat(result.last().crn).isEqualTo(crnTwo)
-      assertThat(result.last().name).isEqualTo(caseListItem2.name)
-      assertThat(result.last().nomsNumber).isEqualTo(caseListItem2.nomsNumber)
-      assertThat(result.last().pncNumber).isEqualTo(caseListItem2.pncNumber)
-      assertThat(result.last().dateOfBirth).isEqualTo(caseListItem2.dateOfBirth)
-      assertThat(result.last().staff).isEqualTo(caseListItem2.staff)
-      assertThat(result.last().team).isEqualTo(caseListItem2.team)
-      assertThat(result.last().gender).isEqualTo(caseListItem2.gender)
-      assertThat(result.last().roshLevel).isEqualTo(caseListItem2.roshLevel)
-      assertThat(result.last().expectedReleaseDate).isEqualTo(caseListItem2.expectedReleaseDate)
-      assertThat(result.last().userExcluded).isEqualTo(caseListItem2.userExcluded)
-      assertThat(result.last().userRestricted).isEqualTo(caseListItem2.userRestricted)
-      assertThat(result.last().exclusionMessage).isEqualTo(caseListItem2.exclusionMessage)
-      assertThat(result.last().restrictionMessage).isEqualTo(caseListItem2.restrictionMessage)
+      assertThat(result.last().name).isEqualTo(case2.name)
+      assertThat(result.last().nomsNumber).isEqualTo(case2.nomsNumber)
+      assertThat(result.last().pncNumber).isEqualTo(case2.pncNumber)
+      assertThat(result.last().dateOfBirth).isEqualTo(case2.dateOfBirth)
+      assertThat(result.last().staff).isEqualTo(case2.staff)
+      assertThat(result.last().gender).isEqualTo(case2.gender)
+      assertThat(result.last().roshLevel).isEqualTo(case2.roshLevel)
+      assertThat(result.last().expectedReleaseDate).isEqualTo(case2.expectedReleaseDate)
     }
   }
 }

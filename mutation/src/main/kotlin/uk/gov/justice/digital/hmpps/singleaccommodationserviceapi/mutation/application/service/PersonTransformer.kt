@@ -4,21 +4,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 object PersonTransformer {
   fun toPersonDto(
-    caseListItem: Case,
+    case: Case,
   ) = PersonDto(
-    crn = caseListItem.crn,
-    name = caseListItem.name,
-    nomsNumber = caseListItem.nomsNumber,
-    pncNumber = caseListItem.pncNumber,
-    dateOfBirth = caseListItem.dateOfBirth,
-    staff = caseListItem.staff,
-    team = caseListItem.team,
-    gender = caseListItem.gender,
-    roshLevel = caseListItem.roshLevel,
-    expectedReleaseDate = caseListItem.expectedReleaseDate,
-    userExcluded = caseListItem.userExcluded,
-    userRestricted = caseListItem.userRestricted,
-    exclusionMessage = caseListItem.exclusionMessage,
-    restrictionMessage = caseListItem.restrictionMessage,
+    crn = case.crn,
+    name = case.name,
+    nomsNumber = case.nomsNumber,
+    pncNumber = case.pncNumber,
+    dateOfBirth = case.dateOfBirth,
+    staff = case.staff,
+    gender = case.gender,
+    roshLevel = case.roshLevel,
+    expectedReleaseDate = case.expectedReleaseDate,
   )
 }
