@@ -74,10 +74,11 @@ class CaseTransformerTest {
       tier = TierScore.C1,
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
-      assignedTo = AssignedToDto(1L, name = "Team 1"),
+      assignedTo = AssignedToDto("1L", name = "Team 1"),
       photoUrl = null,
       currentAccommodation = null,
       nextAccommodation = null,
+      eligibilityDto = null,
     )
 
     @JvmStatic
