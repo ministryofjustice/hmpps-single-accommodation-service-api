@@ -14,9 +14,10 @@ data class CaseDto(
   val assignedTo: AssignedToDto?,
   val currentAccommodation: AccommodationDetail?,
   val nextAccommodation: AccommodationDetail?,
+  val eligibilityDto: EligibilityDto?,
 )
 
-data class AssignedToDto(val id: Long, val name: String)
+data class AssignedToDto(val id: String, val name: String)
 
 enum class RiskLevel(val priority: Int) {
   LOW(1),

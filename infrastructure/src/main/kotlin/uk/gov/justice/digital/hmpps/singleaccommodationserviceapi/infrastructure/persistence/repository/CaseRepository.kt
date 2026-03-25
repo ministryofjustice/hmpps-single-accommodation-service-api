@@ -9,6 +9,9 @@ import java.util.UUID
 
 interface CaseRepository : JpaRepository<CaseEntity, UUID> {
 
+  @Query("SELECT c FROM CaseEntity c WHERE c.crn in :crns")
+  fun findByCrns(@Param("crns") crns: List<String>): List<CaseEntity>
+
   fun findByCrn(crn: String): CaseEntity?
 
   /**

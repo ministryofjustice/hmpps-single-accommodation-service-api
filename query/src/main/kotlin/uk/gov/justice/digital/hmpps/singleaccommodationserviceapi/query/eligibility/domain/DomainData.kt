@@ -9,13 +9,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
-  val tier: TierScore,
+  val tier: TierScore?,
   val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodation: AccommodationDetail? = null,
@@ -56,5 +58,32 @@ data class DomainData(
     cas3Application = cas3Application,
     dtrStatus = dtrStatus,
     crsStatus = crsStatus,
+  )
+
+  constructor(
+    caseListItem: Case,
+    caseEntity: CaseEntity,
+  ) : this(
+    crn = caseListItem.crn,
+    tier = caseEntity.tier,
+    // TODO check that we are transforming the gender correctly
+    sex = SexCode.valueOf(caseListItem.gender),
+    releaseDate = caseListItem.expectedReleaseDate,
+    currentAccommodation = null,
+    nextAccommodation = null,
+    cas1Application = caseEntity.cas1ApplicationId?.let {
+      Cas1Application(
+        id = it,
+        applicationStatus = caseEntity.cas1ApplicationApplicationStatus!!,
+        requestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
+        placementStatus = caseEntity.cas1ApplicationPlacementStatus,
+      )
+    },
+    cas2CourtBailApplication = null,
+    cas2PrisonBailApplication = null,
+    cas2HdcApplication = null,
+    cas3Application = null,
+    dtrStatus = null,
+    crsStatus = null,
   )
 }
