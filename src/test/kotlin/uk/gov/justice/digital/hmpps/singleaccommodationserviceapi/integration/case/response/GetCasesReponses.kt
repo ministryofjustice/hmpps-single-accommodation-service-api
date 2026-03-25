@@ -14,11 +14,12 @@ fun expectedGetCasesResponse(): String = """
   "riskLevel" : "VERY_HIGH",
   "pncReference" : "Some PNC Reference",
   "assignedTo" : {
-    "id" : 1,
+    "id" : "1L",
     "name" : "Team 1"
   },
   "currentAccommodation" : null,
-  "nextAccommodation" : null
+  "nextAccommodation" : null,
+  "eligibilityDto" : null
 }, {
   "name" : "Zack Middle Smith",
   "dateOfBirth" : "2000-12-03",
@@ -29,11 +30,12 @@ fun expectedGetCasesResponse(): String = """
   "riskLevel" : "MEDIUM",
   "pncReference" : "Some PNC Reference",
   "assignedTo" : {
-    "id" : 1,
+    "id" : "1L",
     "name" : "Team 1"
   },
   "currentAccommodation" : null,
-  "nextAccommodation" : null
+  "nextAccommodation" : null,
+  "eligibilityDto" : null
 } ]
 """.trimIndent()
 
@@ -48,10 +50,11 @@ fun expectedGetCasesWithFilterResponse(): String = """
   "riskLevel" : "MEDIUM",
   "pncReference" : "Some PNC Reference",
   "assignedTo" : {
-    "id" : 1,
+    "id" : "1L",
     "name" : "Team 1"
   },
   "currentAccommodation" : null,
-  "nextAccommodation" : null
+  "nextAccommodation" : null,
+  "eligibilityDto" : null
 } ]
 """.trimIndent()

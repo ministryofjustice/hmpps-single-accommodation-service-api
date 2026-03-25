@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys.VIEW_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -53,10 +55,22 @@ class EligibilityService(
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun getEligibility(crn: String): EligibilityDto {
-    log.info("Calculating eligibility for CRN: $crn")
-    val data = getDomainData(crn)
+  fun getCachedEligibility(caseListItem: Case, caseEntity: CaseEntity): EligibilityDto {
+    log.info("Calculating cached eligibility for CRN: ${caseListItem.crn}")
+    val data = DomainData(
+      caseListItem,
+      caseEntity,
+    )
+    return getEligibility(data)
+  }
 
+  fun getFreshEligibility(crn: String): EligibilityDto {
+    log.info("Calculating fresh eligibility for CRN: $crn")
+    val data = getDomainData(crn)
+    return getEligibility(data)
+  }
+
+  fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
       "External data received: crn={}, releaseDate={}, tier={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodation={}, nextAccommodation={}",
       data.crn,
@@ -76,13 +90,13 @@ class EligibilityService(
     val cas3 = calculateEligibilityForCas3(data)
 
     return EligibilityTransformer.toEligibilityDto(
-      crn = crn,
+      crn = data.crn,
       cas1 = cas1,
       cas2Hdc = cas2Hdc,
       cas2PrisonBail = cas2PrisonBail,
       cas2CourtBail = cas2CourtBail,
       cas3 = cas3,
-    ).also { log.info("Finished calculating eligibility for CRN: $crn") }
+    ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
   fun calculateEligibilityForCas1(data: DomainData): ServiceResult {

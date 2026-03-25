@@ -49,7 +49,7 @@ class DomainDataTest {
       sex = buildSex(expected.sex),
     )
     val tier = Tier(
-      tierScore = expected.tier,
+      tierScore = expected.tier!!,
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,

@@ -8,7 +8,7 @@ data class CaseList(
 
 data class Case(
   val crn: String,
-  val name: Name,
+  val name: IndividualName,
   val nomsNumber: String?,
   val pncNumber: String?,
   val dateOfBirth: LocalDate,
@@ -23,14 +23,14 @@ data class Case(
   val restrictionMessage: String?,
 )
 
-data class Name(
+data class IndividualName(
   val forename: String,
   val middleName: String?,
   val surname: String,
 )
 
 data class Officer(
-  val name: Name,
+  val name: IndividualName,
   val username: String,
   val code: String,
 )
