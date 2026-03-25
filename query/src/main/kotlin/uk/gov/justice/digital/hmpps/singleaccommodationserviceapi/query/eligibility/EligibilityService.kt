@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys.VIEW_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -17,10 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2ContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2CourtBailRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2HdcRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2PrisonBailRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
@@ -32,17 +26,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Service
 class EligibilityService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  private val caseRepository: CaseRepository,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
   private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
   private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
-  private val cas2HdcRuleSet: Cas2HdcRuleSet,
-  private val cas2PrisonBailRuleSet: Cas2PrisonBailRuleSet,
   private val cas1ContextUpdater: Cas1ContextUpdater,
   private val validationContextUpdater: ValidationContextUpdater,
-  private val cas2CourtBailRuleSet: Cas2CourtBailRuleSet,
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
   private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
@@ -58,29 +48,23 @@ class EligibilityService(
     val data = getDomainData(crn)
 
     log.debug(
-      "External data received: crn={}, releaseDate={}, tier={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodation={}, nextAccommodation={}",
+      "External data received: crn={}, releaseDate={}, tier={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationArrangementType={}, hasNextAccommodation={}",
       data.crn,
       data.releaseDate,
       data.tier,
       data.sex,
       data.crsStatus,
       data.dtrStatus,
-      data.currentAccommodation?.name,
-      data.nextAccommodation?.name,
+      data.currentAccommodationArrangementType,
+      data.hasNextAccommodation,
     )
 
     val cas1 = calculateEligibilityForCas1(data)
-    val cas2Hdc = calculateEligibilityForCas2Hdc(data)
-    val cas2PrisonBail = calculateEligibilityForCas2PrisonBail(data)
-    val cas2CourtBail = calculateEligibilityForCas2CourtBail(data)
     val cas3 = calculateEligibilityForCas3(data)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = crn,
       cas1 = cas1,
-      cas2Hdc = cas2Hdc,
-      cas2PrisonBail = cas2PrisonBail,
-      cas2CourtBail = cas2CourtBail,
       cas3 = cas3,
     ).also { log.info("Finished calculating eligibility for CRN: $crn") }
   }
@@ -157,111 +141,6 @@ class EligibilityService(
     )
   }
 
-  fun calculateEligibilityForCas2Hdc(data: DomainData): ServiceResult {
-    log.info("Calculating CAS2 HDC eligibility for CRN: ${data.crn}")
-
-    data.cas2HdcApplication?.let {
-      log.info("CAS2 HDC Data received: id={}", data.cas2HdcApplication.id)
-    } ?: log.info("CAS2 HDC Data received: No CAS2 HDC application")
-
-    val cas2ContextUpdater = Cas2ContextUpdater(data.cas2HdcApplication?.id)
-
-    // Build tree declaratively:
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-
-    val tree =
-      treeBuilder
-        .ruleSet("Cas2Hdc", cas2HdcRuleSet, cas2ContextUpdater)
-        .onPass(confirmed)
-        .onFail(notEligible)
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished CAS2 HDC calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
-    }
-  }
-
-  fun calculateEligibilityForCas2CourtBail(data: DomainData): ServiceResult {
-    log.info("Calculating CAS2 Court Bail eligibility for CRN: ${data.crn}")
-
-    data.cas2CourtBailApplication?.let {
-      log.info("CAS2 Court Bail Data received: id={}", data.cas2CourtBailApplication.id)
-    } ?: log.info("CAS2 Court Bail Data received: No CAS2 Court Bail application")
-
-    val cas2ContextUpdater = Cas2ContextUpdater(data.cas2CourtBailApplication?.id)
-
-    // Build tree declaratively:
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-
-    val tree =
-      treeBuilder
-        .ruleSet("Cas2CourtBail", cas2CourtBailRuleSet, cas2ContextUpdater)
-        .onPass(confirmed)
-        .onFail(notEligible) // node above
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished CAS2 Court Bail calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
-    }
-  }
-
-  fun calculateEligibilityForCas2PrisonBail(data: DomainData): ServiceResult {
-    log.info("Calculating CAS2 Prison Bail eligibility for CRN: ${data.crn}")
-
-    data.cas2PrisonBailApplication?.let {
-      log.info("CAS2 Prison Bail Data received: id={}", data.cas2PrisonBailApplication.id)
-    } ?: log.info("CAS2 Prison Bail Data received: No CAS2 Prison Bail application")
-
-    val cas2ContextUpdater = Cas2ContextUpdater(data.cas2PrisonBailApplication?.id)
-
-    // Build tree declaratively:
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-
-    val tree =
-      treeBuilder
-        .ruleSet("Cas2PrisonBail", cas2PrisonBailRuleSet, cas2ContextUpdater)
-        .onPass(confirmed)
-        .onFail(notEligible) // node above
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished CAS2 Prison Bail calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
-    }
-  }
-
   fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
     log.info("Calculating CAS3 eligibility for CRN: ${data.crn}")
 
@@ -328,18 +207,13 @@ class EligibilityService(
 
     val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
 
-    // read the tier from the db, falling back to api if its not found (to be resolved)
-    val tier = caseRepository.findTierScoreByCrn(crn)?.let { Tier.placeholder(it) } ?: eligibilityOrchestrationDto.tier
-
     return DomainData(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
-      tier = tier,
+      tier = eligibilityOrchestrationDto.tier,
       prisonerData = prisonerData,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
-      cas2HdcApplication = eligibilityOrchestrationDto.cas2HdcApplication,
-      cas2PrisonBailApplication = eligibilityOrchestrationDto.cas2PrisonBailApplication,
-      cas2CourtBailApplication = eligibilityOrchestrationDto.cas2CourtBailApplication,
+      cas3Application = eligibilityOrchestrationDto.cas3Application,
     )
   }
 }

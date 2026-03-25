@@ -4,9 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2CourtBailApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2HdcApplication
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2PrisonBailApplication
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
@@ -35,14 +34,10 @@ class DomainDataTest {
         null,
         null,
       ),
-      cas2HdcApplication = Cas2HdcApplication(
+      cas3Application = Cas3Application(
         UUID.randomUUID(),
-      ),
-      cas2PrisonBailApplication = Cas2PrisonBailApplication(
-        UUID.randomUUID(),
-      ),
-      cas2CourtBailApplication = Cas2CourtBailApplication(
-        UUID.randomUUID(),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        placementStatus = null,
       ),
     )
     val cpr = CorePersonRecord(
@@ -74,10 +69,7 @@ class DomainDataTest {
       tier = tier,
       prisonerData = prisonerData,
       cas1Application = expected.cas1Application,
-      cas2HdcApplication = expected.cas2HdcApplication,
-      cas2CourtBailApplication = expected.cas2CourtBailApplication,
-      cas2PrisonBailApplication = expected.cas2PrisonBailApplication,
-
+      cas3Application = expected.cas3Application,
     )
     assertThat(result).isEqualTo(expected)
   }

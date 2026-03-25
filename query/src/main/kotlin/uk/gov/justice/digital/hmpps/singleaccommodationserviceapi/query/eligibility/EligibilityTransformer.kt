@@ -3,35 +3,24 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 
 object EligibilityTransformer {
   fun toEligibilityDto(
     crn: String,
     cas1: ServiceResult,
-    cas2Hdc: ServiceResult? = null,
-    cas2PrisonBail: ServiceResult? = null,
-    cas2CourtBail: ServiceResult? = null,
-    cas3: ServiceResult? = null,
+    cas3: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   ) = EligibilityDto(
     crn = crn,
     cas1 = cas1,
-    cas2Hdc = cas2Hdc,
-    cas2PrisonBail = cas2PrisonBail,
-    cas2CourtBail = cas2CourtBail,
     cas3 = cas3,
     caseActions =
     listOf(
       cas1.action?.text,
-      cas2Hdc?.action?.text,
-      cas2CourtBail?.action?.text,
-      cas2PrisonBail?.action?.text,
-      cas3?.action?.text,
+      cas3.action?.text,
     ).mapNotNull { it },
     caseStatus = listOf(
       getCaseStatus(cas1),
-      getCaseStatusOrDefault(cas2Hdc),
-      getCaseStatusOrDefault(cas2CourtBail),
-      getCaseStatusOrDefault(cas2PrisonBail),
       getCaseStatusOrDefault(cas3),
     ).maxWith(compareBy<CaseStatus> { it.caseStatusOrder }),
   )
