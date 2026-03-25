@@ -11,7 +11,6 @@ data class EligibilityDto(
   val cas2CourtBail: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   val cas3: ServiceResult,
   val caseActions: List<String>,
-  val caseStatus: CaseStatus,
 )
 
 data class ServiceResult(
@@ -20,12 +19,6 @@ data class ServiceResult(
   val action: String? = null,
   val link: String? = null,
 )
-
-enum class CaseStatus(val caseStatusOrder: Int) {
-  NO_ACTION_REQUIRED(0),
-  ACTION_UPCOMING(1),
-  ACTION_NEEDED(2),
-}
 
 enum class ServiceStatus {
   NOT_ELIGIBLE, // NO APPLICATION

@@ -11,7 +11,7 @@ data class CaseSummary(
   val crn: String,
   val nomsId: String?,
   val pnc: String?,
-  val name: Name,
+  val name: CaseSummaryName,
   val dateOfBirth: LocalDate,
   val gender: String?,
   val profile: Profile?,
@@ -20,16 +20,7 @@ data class CaseSummary(
   val currentRestriction: Boolean,
 )
 
-data class CaseDetail(
-  val case: CaseSummary,
-  val offences: List<Offence>,
-  val registrations: List<Registration>,
-  val mappaDetail: MappaDetail?,
-  val careLeaver: Boolean,
-  val veteran: Boolean,
-)
-
-data class Name(val forename: String, val surname: String, val middleNames: List<String>)
+data class CaseSummaryName(val forename: String, val surname: String, val middleNames: List<String>)
 
 data class Profile(
   val ethnicity: String?,

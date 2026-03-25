@@ -152,7 +152,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
       buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
     )
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
-    TierStubs.getTierFailResponse(crn)
+    TierStubs.getTierServerErrorResponse(crn)
     ApprovedPremisesStubs.getSuitableApplicationServerErrorResponse(crn = crn)
 
     // when

@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Borough
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummaryName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Ldu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Manager
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.PersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.Profile
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.StaffDetail
@@ -17,8 +17,8 @@ fun buildCaseSummary(
   crn: String = "XX12345X",
   nomsId: String? = "YY09876Y",
   pnc: String? = "Some PNC Reference",
-  name: Name = buildCaseSummaryName(),
-  dateOfBirth: LocalDate = LocalDate.now().minusYears(25),
+  name: CaseSummaryName = buildCaseSummaryName(),
+  dateOfBirth: LocalDate = LocalDate.of(2000, 12, 3),
   gender: String? = "F",
   profile: Profile? = buildProfile(),
   manager: Manager = buildManager(),
@@ -41,7 +41,7 @@ fun buildCaseSummaryName(
   forename: String = "Fore",
   surname: String = "Sur",
   middleNames: List<String> = listOf("Middle", "Name"),
-) = Name(
+) = CaseSummaryName(
   forename = forename,
   surname = surname,
   middleNames = middleNames,
