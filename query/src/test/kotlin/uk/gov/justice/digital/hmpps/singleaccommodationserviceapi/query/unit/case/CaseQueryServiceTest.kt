@@ -11,18 +11,25 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.RiskLevelTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel as RiskLevelInfra
 
 @ExtendWith(MockKExtension::class)
@@ -32,6 +39,12 @@ class CaseQueryServiceTest {
 
   @MockK
   lateinit var userService: UserService
+
+  @MockK
+  lateinit var caseRepository: CaseRepository
+
+  @MockK
+  lateinit var eligibilityService: EligibilityService
 
   @InjectMockKs
   lateinit var caseQueryService: CaseQueryService
@@ -76,24 +89,24 @@ class CaseQueryServiceTest {
 
       val firstPerson = result.first()
       assertThat(firstPerson.crn).isEqualTo(crnOne)
-      assertThat(firstPerson.name).isEqualTo("Dave Middle Sur")
+      assertThat(firstPerson.name).isEqualTo(case1.name)
       assertThat(firstPerson.nomsNumber).isEqualTo(case1.nomsNumber)
       assertThat(firstPerson.pncNumber).isEqualTo(case1.pncNumber)
       assertThat(firstPerson.dateOfBirth).isEqualTo(case1.dateOfBirth)
       assertThat(firstPerson.staff).isEqualTo(case1.staff)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
-      assertThat(firstPerson.roshLevelCode).isEqualTo(case1.roshLevel?.code)
+      assertThat(firstPerson.roshLevel).isEqualTo(case1.roshLevel)
       assertThat(firstPerson.expectedReleaseDate).isEqualTo(case1.expectedReleaseDate)
 
       val lastPerson = result.last()
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
-      assertThat(lastPerson.name).isEqualTo("Bob Middle Sur")
+      assertThat(lastPerson.name).isEqualTo(case2.name)
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
       assertThat(lastPerson.staff).isEqualTo(case2.staff)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
-      assertThat(lastPerson.roshLevelCode).isEqualTo(case2.roshLevel?.code)
+      assertThat(lastPerson.roshLevel).isEqualTo(case2.roshLevel)
       assertThat(lastPerson.expectedReleaseDate).isEqualTo(case2.expectedReleaseDate)
     }
   }
@@ -101,7 +114,48 @@ class CaseQueryServiceTest {
   @Nested
   inner class GetCases {
 
-    @ParameterizedTest(name = "getCases() should return all cases with risk level = {0}")
+    @Test
+    fun `should get cases as all cases from case table and populate missing data from personDtos`() {
+      val crnList = listOf(crnOne, crnTwo)
+      val personDto1 = buildPersonDto(crn = crnOne)
+      val personDto2 = buildPersonDto(crn = crnTwo)
+      val personDtos = listOf(
+        personDto1,
+        personDto2,
+      )
+      val caseEntity1 = buildCaseEntity { withCrn(crnOne) }
+      val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
+      val caseEntities = listOf(
+        caseEntity1,
+        caseEntity2,
+      )
+      val eligibilityDto1 = buildEligibilityDto(
+        crn = crnOne,
+      )
+      val eligibilityDto2 = buildEligibilityDto(
+        crn = crnTwo,
+      )
+
+      val caseDto1 = buildCaseDto(crn = crnOne)
+      val caseDto2 = buildCaseDto(crn = crnTwo)
+
+      every { caseRepository.findByCrns(crnList) } returns caseEntities
+      every { eligibilityService.getEligibility(personDto1, caseEntity1) } returns eligibilityDto1
+      every { eligibilityService.getEligibility(personDto2, caseEntity2) } returns eligibilityDto2
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+      assertThat(result).hasSize(2)
+
+      assertThat(result.first()).isEqualTo(
+        caseDto1,
+      )
+
+      assertThat(result.last()).isEqualTo(
+        caseDto2,
+      )
+    }
+
+    @ParameterizedTest(name = "getCases() should return all cases from db")
     @EnumSource(RiskLevelInfra::class)
     fun `should get cases as all cases meet risk-level requirements`(riskLevelInfra: RiskLevelInfra) {
       val crnList = listOf(crnOne, crnTwo)

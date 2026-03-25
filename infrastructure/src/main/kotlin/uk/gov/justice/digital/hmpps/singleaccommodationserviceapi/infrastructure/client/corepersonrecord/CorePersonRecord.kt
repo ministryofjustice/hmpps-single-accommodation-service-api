@@ -29,11 +29,16 @@ data class Sex(
   val description: String? = null,
 )
 
-enum class SexCode {
-  M,
-  F,
-  N,
-  NS,
+enum class SexCode(val gender: String) {
+  M("Male"),
+  F("Female"),
+  N("Not Known / Not Recorded"),
+  NS("Non-Specified"),
+  ;
+
+  companion object {
+    fun findByGender(gender: String) = SexCode.entries.firstOrNull { it.gender == gender }
+  }
 }
 
 data class Religion(

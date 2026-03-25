@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.CsvSource
@@ -8,13 +9,17 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
 import java.time.LocalDate
 import java.util.stream.Stream
 
@@ -37,6 +42,22 @@ class CaseTransformerTest {
         caseSummaries = caseOrchestrationDto.cases,
       ),
     ).isEqualTo(expectedCaseDto)
+  }
+
+  @Test
+  fun `should transform from case entity and person dto to case dto`() {
+    val caseEntity = buildCaseEntity { withCrn(CRN) }
+    val personDto = buildPersonDto(CRN)
+    val eligibilityDto = buildEligibilityDto(CRN)
+    val caseDto = buildCaseDto(CRN)
+
+    assertThat(
+      CaseTransformer.toCaseDto(
+        person = personDto,
+        caseEntity = caseEntity,
+        eligibility = eligibilityDto,
+      ),
+    ).isEqualTo(caseDto)
   }
 
   @ParameterizedTest
@@ -72,19 +93,20 @@ class CaseTransformerTest {
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",
-      tierScore = TierScore.C1,
-      tier = TierScore.C1,
+      tierScore = TierScore.A1,
+      tier = TierScore.A1,
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(
         1L,
         name = "Team 1",
-        username = "Team 1",
+        username = null,
+        staffCode = null,
       ),
       photoUrl = null,
       currentAccommodation = null,
       nextAccommodation = null,
-      status = Status.RISK_OF_NO_FIXED_ABODE,
+      status = null,
       actions = emptyList(),
     )
 
