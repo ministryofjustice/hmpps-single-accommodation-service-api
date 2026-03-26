@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 data class UpstreamFailureDto(
-  val service: String,
-  val type: UpstreamFailureType,
-  val httpStatus: Int?,
+  val endpoint: String,
+  val failureType: UpstreamFailureType,
+  val httpResponseStatus: Int?,
   val message: String,
 )
 
