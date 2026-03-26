@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+import org.springframework.http.HttpStatus
+
 data class UpstreamFailureDto(
   val endpoint: String,
   val failureType: UpstreamFailureType,
-  val httpResponseStatus: Int?,
+  val httpResponseStatus: HttpStatus?,
   val message: String,
 )
 

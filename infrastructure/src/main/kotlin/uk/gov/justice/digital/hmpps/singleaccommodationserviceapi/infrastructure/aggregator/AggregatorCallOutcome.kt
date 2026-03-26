@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator
 
+import org.springframework.http.HttpStatus
+
 data class UpstreamFailure(
   val callKey: String,
   val type: FailureType,
@@ -13,7 +15,7 @@ enum class FailureType {
 }
 
 data class ErrorDetail(
-  val httpStatus: Int? = null,
+  val httpStatus: HttpStatus?,
   val message: String,
 )
 

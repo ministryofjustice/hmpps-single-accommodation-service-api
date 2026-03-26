@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientResponseException
@@ -123,7 +124,7 @@ class AggregatorService {
       AggregatorCallOutcome.Failure(
         FailureType.UPSTREAM_HTTP_ERROR,
         ErrorDetail(
-          httpStatus = exception.statusCode.value(),
+          httpStatus = HttpStatus.resolve(exception.statusCode.value()),
           message = exception.message ?: "Upstream HTTP error",
         ),
       )
@@ -134,13 +135,13 @@ class AggregatorService {
         log.error("Timeout for call '{}': {}", key, exception.message)
         AggregatorCallOutcome.Failure(
           FailureType.TIMEOUT,
-          ErrorDetail(message = exception.message ?: "Request timed out"),
+          ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
         )
       } else {
         log.error("Unknown error for call '{}': {}", key, exception.message, exception)
         AggregatorCallOutcome.Failure(
           FailureType.UNKNOWN_ERROR,
-          ErrorDetail(message = exception.message ?: "Unknown error"),
+          ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
         )
       }
     }
@@ -148,7 +149,7 @@ class AggregatorService {
       log.error("Unknown error for call '{}': {}", key, exception.message, exception)
       AggregatorCallOutcome.Failure(
         FailureType.UNKNOWN_ERROR,
-        ErrorDetail(message = exception.message ?: "Unknown error"),
+        ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
       )
     }
   }
