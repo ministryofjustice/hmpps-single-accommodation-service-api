@@ -13,6 +13,7 @@ import java.util.UUID
 class CaseApplicationService(
   private val caseRepository: CaseRepository,
   private val corePersonRecordCachingService: CorePersonRecordCachingService,
+  private val caseOrchestrationService: CaseOrchestrationService,
 ) {
 
   fun getCorePersonRecord(identifier: String, identifierType: IdentifierType): CorePersonRecord = when (identifierType) {
@@ -42,10 +43,7 @@ class CaseApplicationService(
 
   @Transactional
   fun updateTier(tier: Tier, crn: String) {
-    val caseEntity: CaseEntity = findByIdentifier(crn, IdentifierType.CRN)
-      ?: findByAndUpdatePersonIdentifiers(getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!)
-      ?: return
-
+    val caseEntity = getCase(crn) ?: return
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     caseAggregate.updateTier(tier.tierScore)
     caseRepository.save(merge(caseEntity, caseAggregate.snapshot()))
@@ -80,4 +78,28 @@ class CaseApplicationService(
       caseRepository.save(CaseMapper.toEntity(it.snapshot()))
     }
   }
+
+  @Transactional
+  fun createCase(crn: String) {
+    val caseEntity = getCase(crn) ?: return
+    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
+    caseAggregate.upsertCase(
+      tier = caseOrchestrationDto.tier.tierScore,
+      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
+      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
+      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
+      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
+    )
+  }
+
+  @Transactional
+  fun getCase(crn: String): CaseEntity? = findByIdentifier(crn, IdentifierType.CRN)
+    ?: findByAndUpdatePersonIdentifiers(getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!)
+
+  /*
+  val caseEntity: CaseEntity = findByIdentifier(crn, IdentifierType.CRN)
+      ?: findByAndUpdatePersonIdentifiers(getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!)
+      ?: return
+   */
 }
