@@ -119,19 +119,19 @@ class AggregatorService {
 
   private fun classifyAndWrap(key: String, exception: Exception): AggregatorCallOutcome.Failure = when (exception) {
     is RestClientResponseException -> {
-      log.warn("Upstream HTTP error for call '{}': {} {}", key, exception.statusCode, exception.message)
+      log.error("Upstream HTTP error for call '{}': {} {}", key, exception.statusCode, exception.message)
       AggregatorCallOutcome.Failure(
         FailureType.UPSTREAM_HTTP_ERROR,
         ErrorDetail(
           httpStatus = exception.statusCode.value(),
-          message = exception.message ?: "Upstream HTTP errror",
+          message = exception.message ?: "Upstream HTTP error",
         ),
       )
     }
     is ResourceAccessException -> {
       val isTimeout = exception.cause is HttpTimeoutException
       if (isTimeout) {
-        log.warn("Timeout for call '{}': {}", key, exception.message)
+        log.error("Timeout for call '{}': {}", key, exception.message)
         AggregatorCallOutcome.Failure(
           FailureType.TIMEOUT,
           ErrorDetail(message = exception.message ?: "Request timed out"),
