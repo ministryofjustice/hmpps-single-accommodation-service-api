@@ -8,12 +8,21 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseService
 
 @RestController
 class CaseController(
   private val caseService: CaseService,
+  private val caseApplicationService: CaseApplicationService,
 ) {
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM', 'ROLE_PROBATION_API__SINGLE_ACCOMMODATION__CASE_LIST')")
+  @GetMapping("/case-list")
+  fun getCases(): ResponseEntity<List<CaseDto>> {
+    val people = caseApplicationService.upsertCases()
+    return ResponseEntity.ok(emptyList())
+  }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases")
