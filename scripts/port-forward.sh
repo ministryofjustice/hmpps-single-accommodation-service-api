@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trap "pkill -f 'port-forward'" EXIT
+trap "kill 0" EXIT
 
 NAMESPACE=
 PORT=
