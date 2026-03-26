@@ -73,7 +73,7 @@ if [ -z "$ENV" ] || { [ "$ENV" != "dev" ] && [ "$ENV" != "test" ] && [ "$ENV" !=
   echo "    5) Destroy the port forwarding pod on completion"
   echo "    "
   echo "    It's recommended that an environment variable named 'CAS_PORT_FORWARD_CONTAINER_NAME' is"
-  echo "    setup to provide the default port froward port name. This should be unique for each user"
+  echo "    setup to provide the default port forward port name. This should be unique for each user"
   echo "    (e.g. port-forward-pod-{initials}) because each pod can only be used for one port forward"
   echo "    session at a time"
   echo ""
