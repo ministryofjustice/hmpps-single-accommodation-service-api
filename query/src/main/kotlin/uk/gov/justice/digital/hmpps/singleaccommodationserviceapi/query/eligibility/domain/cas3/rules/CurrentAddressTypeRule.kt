@@ -18,7 +18,7 @@ class CurrentAddressTypeRule : Cas3EligibilityRule {
   )
 
   override fun evaluate(data: DomainData): RuleResult {
-    val currentType = data.currentAccommodation?.arrangementType
+    val currentType = data.currentAccommodationArrangementType
 
     val isEligible = currentType != null && eligibleAccommodationTypes.contains(currentType)
 

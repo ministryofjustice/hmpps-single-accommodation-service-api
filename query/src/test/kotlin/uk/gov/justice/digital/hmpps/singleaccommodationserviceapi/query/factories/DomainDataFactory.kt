@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -15,8 +15,8 @@ fun buildDomainData(
   sex: SexCode = SexCode.M,
   releaseDate: LocalDate? = LocalDate.now()
     .plusYears(1),
-  currentAccommodation: AccommodationDetail? = null,
-  nextAccommodation: AccommodationDetail? = null,
+  currentAccommodationArrangementType: AccommodationArrangementType? = AccommodationArrangementType.NO_FIXED_ABODE,
+  hasNextAccommodation: Boolean = false,
   cas1Application: Cas1Application? = buildCas1Application(),
   cas3Application: Cas3Application? = null,
 ) = DomainData(
@@ -24,8 +24,10 @@ fun buildDomainData(
   tier = tier,
   sex = sex,
   releaseDate = releaseDate,
-  currentAccommodation = currentAccommodation,
-  nextAccommodation = nextAccommodation,
+  currentAccommodationArrangementType = currentAccommodationArrangementType,
+  hasNextAccommodation = hasNextAccommodation,
   cas1Application = cas1Application,
   cas3Application = cas3Application,
+  dtrStatus = "OK",
+  crsStatus = "OK",
 )

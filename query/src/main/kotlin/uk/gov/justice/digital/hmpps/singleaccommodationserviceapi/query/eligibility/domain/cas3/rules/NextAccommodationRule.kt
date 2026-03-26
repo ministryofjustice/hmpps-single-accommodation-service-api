@@ -9,12 +9,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class NextAccommodationRule : Cas3EligibilityRule {
   override val description = "FAIL if candidate has next accommodation"
 
-  override fun evaluate(data: DomainData): RuleResult {
-    val isEligible = data.nextAccommodation == null
-
-    return RuleResult(
-      description = description,
-      ruleStatus = if (isEligible) RuleStatus.PASS else RuleStatus.FAIL,
-    )
-  }
+  override fun evaluate(data: DomainData) = RuleResult(
+    description = description,
+    ruleStatus = if (data.hasNextAccommodation) RuleStatus.FAIL else RuleStatus.PASS,
+  )
 }

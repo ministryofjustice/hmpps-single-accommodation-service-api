@@ -11,14 +11,8 @@ interface ApprovedPremisesClient {
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
 
-  @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
-  fun getSuitableCas2HdcApplicationInternal(@PathVariable crn: String): Cas2HdcApplication
-
-  @GetExchange(value = "/cas2v2/external/cases/{crn}/applications/suitable/prison")
-  fun getSuitableCas2PrisonBailApplicationInternal(@PathVariable crn: String): Cas2PrisonBailApplication
-
-  @GetExchange(value = "/cas2v2/external/cases/{crn}/applications/suitable/court")
-  fun getSuitableCas2CourtBailApplicationInternal(@PathVariable crn: String): Cas2CourtBailApplication
+  @GetExchange(value = "/cas3/external/cases/{crn}/applications/suitable")
+  fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application
 
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<ReferralHistory<Cas1AssessmentStatus>>
@@ -49,15 +43,9 @@ open class ApprovedPremisesCachingService(
   @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL, key = "#crn")
   open fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn)
 
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS1_APPLICATION, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas1Application(crn: String) = approvedPremisesClient.getSuitableCas1ApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_HDC_APPLICATION, key = "#crn", sync = true)
-  open fun getSuitableCas2HdcApplication(crn: String) = approvedPremisesClient.getSuitableCas2HdcApplicationInternal(crn)
-
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_PRISON_BAIL_APPLICATION, key = "#crn", sync = true)
-  open fun getSuitableCas2PrisonBailApplication(crn: String) = approvedPremisesClient.getSuitableCas2PrisonBailApplicationInternal(crn)
-
-  @Cacheable(ApiCallKeys.GET_SUITABLE_CAS2_COURT_BAIL_APPLICATION, key = "#crn", sync = true)
-  open fun getSuitableCas2CourtBailApplication(crn: String) = approvedPremisesClient.getSuitableCas2CourtBailApplicationInternal(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, key = "#crn", sync = true)
+  open fun getSuitableCas3Application(crn: String) = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
 }
