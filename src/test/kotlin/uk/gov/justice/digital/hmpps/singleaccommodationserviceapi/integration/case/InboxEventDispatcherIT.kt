@@ -216,8 +216,8 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes concurrent events for same CRN without creating duplicate case rows`() {
       val sharedCrn = "X123456"
-      val caseEntitiy = buildCaseEntity(identifier = sharedCrn, identifierType = IdentifierType.CRN, tier = null)
-      caseRepository.save(caseEntitiy)
+      val caseEntity = buildCaseEntity(identifier = sharedCrn, identifierType = IdentifierType.CRN, tier = null)
+      caseRepository.save(caseEntity)
 
       TierStubs.getTierOKResponse(
         sharedCrn,
