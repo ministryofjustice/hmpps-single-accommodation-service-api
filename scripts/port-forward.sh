@@ -61,7 +61,7 @@ if [ -z "$ENV" ] || { [ "$ENV" != "dev" ] && [ "$ENV" != "test" ] && [ "$ENV" !=
   echo ""
   echo "Description:"
   echo ""
-  echo "    To connect to a remove database port forwarding must be used, as per guidance available from "
+  echo "    To connect to a remote database port forwarding must be used, as per guidance available from "
   echo "    https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html"
   echo ""
   echo "    This script will"
