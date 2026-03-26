@@ -193,7 +193,7 @@ else
     postgres_driver_path="$bin_dir/postgresql-42.7.3.jar"
 
     if [ ! -f "$jaqy_path" ]; then
-        echo "Downloading jacqy to $jaqy_path"
+        echo "Downloading jaqy to $jaqy_path"
        curl -L $JAQY_URL --output "$jaqy_path"
     fi
 
