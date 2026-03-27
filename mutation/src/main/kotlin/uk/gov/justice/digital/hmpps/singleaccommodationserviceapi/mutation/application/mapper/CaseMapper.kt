@@ -1,21 +1,51 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseSnapshot
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
 
 object CaseMapper {
 
-  fun toEntity(snapshot: CaseSnapshot) = CaseEntity(
-    id = snapshot.id,
-    crn = snapshot.crn,
-    tier = snapshot.tier?.let { TierScore.valueOf(snapshot.tier.name) },
-  )
-
   fun toAggregate(entity: CaseEntity): CaseAggregate = CaseAggregate.hydrate(
     id = entity.id,
-    crn = entity.crn,
-    tier = entity.tier,
+    tierScore = entity.tierScore,
+    caseIdentifiers = entity.caseIdentifiers.toCaseIdentifiers(),
   )
+
+  fun MutableSet<CaseIdentifierEntity>.toCaseIdentifiers() = this.map {
+    CaseIdentifier(
+      it.id,
+      it.identifier,
+      it.identifierType,
+    )
+  }.toMutableSet()
+
+  fun merge(
+    entity: CaseEntity,
+    snapshot: CaseAggregate.CaseSnapshot,
+    identifiers: Map<String, IdentifierType>? = null,
+  ): CaseEntity {
+    entity.tierScore = snapshot.tier
+    identifiers?.let { entity.addMissingIdentifiers(it) }
+
+    return entity
+  }
+
+  fun CaseEntity.addMissingIdentifiers(snapshotIdentifiers: Map<String, IdentifierType>) {
+    val existingIdentifiers = this.caseIdentifiers.associate { it.identifier to it.identifierType }
+
+    snapshotIdentifiers.forEach { (identifier, type) ->
+      if (existingIdentifiers[identifier] != type) {
+        caseIdentifiers.add(
+          CaseIdentifierEntity(
+            identifier = identifier,
+            identifierType = type,
+            caseEntity = this,
+          ),
+        )
+      }
+    }
+  }
 }

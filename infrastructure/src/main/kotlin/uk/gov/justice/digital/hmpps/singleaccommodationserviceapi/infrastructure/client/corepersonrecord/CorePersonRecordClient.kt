@@ -8,13 +8,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 interface CorePersonRecordClient {
   @GetExchange(value = "/person/probation/{crn}")
-  fun getCorePersonRecord(@PathVariable crn: String): CorePersonRecord
+  fun getByCrn(@PathVariable crn: String): CorePersonRecord
+
+  @GetExchange(value = "/person/prison/{prisonNumber}")
+  fun getByPrisonNumber(@PathVariable prisonNumber: String): CorePersonRecord
 }
 
 @Service
-open class CorePersonRecordCachingService(
+class CorePersonRecordCachingService(
   private val corePersonRecordClient: CorePersonRecordClient,
 ) {
-  @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD, key = "#crn", sync = true)
-  open fun getCorePersonRecord(crn: String) = corePersonRecordClient.getCorePersonRecord(crn)
+  @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN, key = "#crn", sync = true)
+  fun getCorePersonRecordByCrn(crn: String) = corePersonRecordClient.getByCrn(crn)
+
+  @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER, key = "#prisonNumber", sync = true)
+  fun getCorePersonRecordByNoms(prisonNumber: String) = corePersonRecordClient.getByPrisonNumber(prisonNumber)
 }

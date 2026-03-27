@@ -1,42 +1,48 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import java.util.UUID
 
 class CaseAggregate private constructor(
   private val id: UUID,
-  private val crn: String,
   private var tier: TierScore? = null,
+  private val caseIdentifiers: MutableSet<CaseIdentifier> = mutableSetOf(),
 ) {
-
-  fun upsertTier(
-    newTier: TierScore,
-  ) {
-    tier = newTier
-  }
-
   companion object {
     fun hydrate(
       id: UUID,
-      crn: String,
-      tier: TierScore?,
+      tierScore: TierScore?,
+      caseIdentifiers: MutableSet<CaseIdentifier>,
     ) = CaseAggregate(
       id = id,
-      crn = crn,
-      tier = tier,
+      tier = tierScore,
+      caseIdentifiers = caseIdentifiers,
     )
 
-    fun createNew(id: UUID, crn: String) = CaseAggregate(
+    fun createNew(id: UUID, caseIdentifiers: MutableSet<CaseIdentifier>) = CaseAggregate(
       id = id,
-      crn = crn,
+      caseIdentifiers = caseIdentifiers,
     )
+  }
+
+  fun updateTier(
+    tierScore: TierScore,
+  ) {
+    this.tier = tierScore
   }
 
   data class CaseSnapshot(
     val id: UUID,
-    val crn: String,
+    val caseIdentifiers: Set<CaseIdentifier>,
     val tier: TierScore?,
   )
 
-  fun snapshot() = CaseSnapshot(id, crn, tier)
+  data class CaseIdentifier(
+    val id: UUID,
+    val identifier: String,
+    val identifierType: IdentifierType,
+  )
+
+  fun snapshot() = CaseSnapshot(id, caseIdentifiers, tier)
 }

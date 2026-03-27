@@ -2,35 +2,55 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper.merge
 
 @Service
 class CaseApplicationService(
   private val caseRepository: CaseRepository,
+  private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
 
-  @Transactional
-  fun upsertTier(
-    tier: Tier,
-    crn: String,
-  ) {
-    val case = caseRepository.findByCrn(crn)
-    val aggregate = case?.let {
-      CaseMapper.toAggregate(it)
-    } ?: CaseAggregate.createNew(
-      id = UUID.randomUUID(),
-      crn = crn,
+  fun getCorePersonRecord(identifier: String, identifierType: IdentifierType): CorePersonRecord = when (identifierType) {
+    IdentifierType.CRN -> corePersonRecordCachingService.getCorePersonRecordByCrn(identifier)
+    IdentifierType.PRISON_NUMBER -> corePersonRecordCachingService.getCorePersonRecordByNoms(identifier)
+  }
 
-    )
-    aggregate.upsertTier(
-      newTier = tier.tierScore,
-    )
-    caseRepository.save(
-      CaseMapper.toEntity(aggregate.snapshot()),
-    )
+  fun findByIdentifier(identifier: String, identifierType: IdentifierType) = caseRepository.findByIdentifier(identifier, identifierType)
+
+  @Transactional
+  fun findByAndUpdatePersonIdentifiers(
+    identifiers: Identifiers,
+  ): CaseEntity? {
+    val crns = identifiers.crns
+    val prisonNumbers = identifiers.prisonNumbers
+    require(crns.isNotEmpty() || prisonNumbers.isNotEmpty()) {
+      "At least one identifier must be provided"
+    }
+    return caseRepository.findByIdentifiers(crns = crns, prisonNumbers = prisonNumbers)?.also { caseEntity ->
+      CaseMapper.toAggregate(caseEntity).also { caseAggregate ->
+        val caseIdentifiers = crns.associate { it to IdentifierType.CRN } +
+          prisonNumbers.associate { it to IdentifierType.PRISON_NUMBER }
+        caseRepository.save(merge(caseEntity, caseAggregate.snapshot(), caseIdentifiers))
+      }
+    }
+  }
+
+  @Transactional
+  fun updateTier(tier: Tier, crn: String) {
+    val caseEntity: CaseEntity = findByIdentifier(crn, IdentifierType.CRN)
+      ?: findByAndUpdatePersonIdentifiers(getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!)
+      ?: return
+
+    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    caseAggregate.updateTier(tier.tierScore)
+    caseRepository.save(merge(caseEntity, caseAggregate.snapshot()))
   }
 }

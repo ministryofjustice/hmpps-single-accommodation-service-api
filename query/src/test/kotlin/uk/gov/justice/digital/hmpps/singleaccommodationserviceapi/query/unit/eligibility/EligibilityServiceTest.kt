@@ -149,7 +149,7 @@ class EligibilityServiceTest {
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
-      every { caseRepository.findTierScoreByCrn(crn) } returns null
+      every { caseRepository.findByCrn(crn) } returns null
 
       val result = eligibilityService.getDomainData(crn)
       assertThat(result.tier).isEqualTo(expectedTier)
