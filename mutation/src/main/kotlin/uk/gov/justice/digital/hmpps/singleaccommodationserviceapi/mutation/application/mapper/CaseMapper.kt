@@ -23,7 +23,6 @@ object CaseMapper {
 
   fun merge(entity: CaseEntity, snapshot: CaseAggregate.CaseSnapshot): CaseEntity {
     entity.tierScore = snapshot.tier
-    entity.caseIdentifiers.clear()
     entity.addMissingIdentifiers(snapshot.caseIdentifiers)
 
     return entity

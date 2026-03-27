@@ -14,6 +14,7 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
@@ -153,7 +154,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes events in eventOccurredAt ascending order`() {
       val crns = listOf("X123451", "X123452", "X123453")
-      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
 
       crns.forEach {

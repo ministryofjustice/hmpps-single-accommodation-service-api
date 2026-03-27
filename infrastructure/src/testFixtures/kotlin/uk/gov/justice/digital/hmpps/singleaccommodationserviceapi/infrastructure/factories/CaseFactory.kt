@@ -9,13 +9,33 @@ import java.util.UUID
 
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
-  identifier: String = UUID.randomUUID().toString(),
-  identifierType: IdentifierType = IdentifierType.CRN,
   tier: TierScore? = TierScore.A1,
+  customise: (CaseEntity.() -> Unit)? = {},
 ) = CaseEntity(id = id, tierScore = tier).also { case ->
-  case.caseIdentifiers =
-    mutableSetOf(buildCaseIdentifier(identifier = identifier, identifierType = identifierType, caseEntity = case))
+
+  if (customise != null) {
+    case.customise()
+  } else {
+    case.withCrn(UUID.randomUUID().toString())
+  }
 }
+
+fun CaseEntity.withIdentifier(
+  identifier: String,
+  type: IdentifierType,
+) {
+  caseIdentifiers.add(
+    buildCaseIdentifier(
+      identifier = identifier,
+      identifierType = type,
+      caseEntity = this,
+    ),
+  )
+}
+
+fun CaseEntity.withCrn(crn: String) = withIdentifier(crn, IdentifierType.CRN)
+
+fun CaseEntity.withPrisonNumber(prisonNumber: String) = this.withIdentifier(prisonNumber, IdentifierType.PRISON_NUMBER)
 
 fun buildCaseIdentifier(
   id: UUID = UUID.randomUUID(),
