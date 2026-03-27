@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
 
 import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -18,8 +17,8 @@ class CaseEntity(
 
   @Id
   val id: UUID,
+
   @Enumerated(EnumType.STRING)
-  @Column(name = "tier")
   var tierScore: TierScore? = null,
 
   @OneToMany(

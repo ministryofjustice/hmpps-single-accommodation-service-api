@@ -12,3 +12,5 @@ create unique index idx_unique_identifier
 
 drop index idx_sas_case_crn;
 alter table sas_case drop column crn;
+
+alter table sas_case rename column tier to tier_score;
