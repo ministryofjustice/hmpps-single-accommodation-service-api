@@ -4,23 +4,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
 
 object CaseMapper {
 
   fun toAggregate(entity: CaseEntity): CaseAggregate = CaseAggregate.hydrate(
     id = entity.id,
     tierScore = entity.tierScore,
-    caseIdentifiers = entity.caseIdentifiers.toCaseIdentifiers(),
   )
-
-  fun MutableSet<CaseIdentifierEntity>.toCaseIdentifiers() = this.map {
-    CaseIdentifier(
-      it.id,
-      it.identifier,
-      it.identifierType,
-    )
-  }.toMutableSet()
 
   fun merge(
     entity: CaseEntity,

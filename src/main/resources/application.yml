@@ -59,3 +59,6 @@ management:
 
 javers:
   springDataAuditableRepositoryAspectEnabled: true
+
+case-list:
+  onboarded-teams: []

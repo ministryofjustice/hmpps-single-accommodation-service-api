@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
 import java.util.UUID
 
 class CaseMapperTest {
@@ -23,18 +22,6 @@ class CaseMapperTest {
 
     assertAll(
       { assertThat(snapshot.id).isEqualTo(caseEntity.id) },
-      {
-        assertThat(snapshot.caseIdentifiers)
-          .isEqualTo(
-            caseEntity.caseIdentifiers.map {
-              CaseIdentifier(
-                it.id,
-                it.identifier,
-                it.identifierType,
-              )
-            }.toSet(),
-          )
-      },
       {
         assertThat(snapshot.tier).isNotNull.isEqualTo(caseEntity.tierScore)
       },
@@ -55,16 +42,7 @@ class CaseMapperTest {
     val id = UUID.randomUUID()
     val identifier = UUID.randomUUID().toString()
     val caseEntity = buildCaseEntity(id = id, tier = null) { withCrn(identifier) }
-    val caseAggregate = CaseAggregate.createNew(
-      id,
-      mutableSetOf(
-        CaseIdentifier(
-          UUID.randomUUID(),
-          identifier,
-          IdentifierType.CRN,
-        ),
-      ),
-    )
+    val caseAggregate = CaseAggregate.hydrateNew()
 
     val identifiersToMerge = mapOf(
       "NEW" to IdentifierType.PRISON_NUMBER,
@@ -105,21 +83,7 @@ class CaseMapperTest {
     }
 
     // add the same identifiers onto the aggregate
-    val caseAggregate = CaseAggregate.createNew(
-      id,
-      mutableSetOf(
-        CaseIdentifier(
-          UUID.randomUUID(),
-          identifier1,
-          IdentifierType.CRN,
-        ),
-        CaseIdentifier(
-          UUID.randomUUID(),
-          identifier3,
-          IdentifierType.PRISON_NUMBER,
-        ),
-      ),
-    )
+    val caseAggregate = CaseAggregate.hydrateNew()
 
     // crete a set of identifiers containing existing and new
     val identifiersToMerge = mapOf(
