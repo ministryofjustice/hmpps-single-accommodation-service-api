@@ -111,7 +111,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes only maxEventsPerBatch events per invocation`() {
       val crns = listOf("X123451", "X123452", "X123453", "X123454", "X123455")
-      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
 
       crns.forEach {
@@ -217,7 +217,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes concurrent events for same CRN without creating duplicate case rows`() {
       val sharedCrn = "X123456"
-      val caseEntity = buildCaseEntity(identifier = sharedCrn, identifierType = IdentifierType.CRN, tier = null)
+      val caseEntity = buildCaseEntity(tier = null) { withCrn(sharedCrn) }
       caseRepository.save(caseEntity)
 
       TierStubs.getTierOKResponse(
@@ -263,7 +263,7 @@ class InboxEventDispatcherIT {
     fun `processes at most 4 events concurrently due to semaphore limit`() {
       val crns = (1..5).map { "X12345$it" }
 
-      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
       crns.forEach {
         TierStubs.getTierOKResponse(
@@ -300,7 +300,7 @@ class InboxEventDispatcherIT {
     fun `processes multiple events concurrently using coroutines`() {
       val delayMs = 200
       val crns = listOf("X123451", "X123452", "X123453", "X123454")
-      val caseEntities = crns.map { buildCaseEntity(identifier = it, identifierType = IdentifierType.CRN, tier = null) }
+      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
 
       crns.forEach {

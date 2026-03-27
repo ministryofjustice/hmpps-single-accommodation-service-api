@@ -36,10 +36,9 @@ class CaseApplicationService(
     }
     return caseRepository.findByIdentifiers(crns = crns, prisonNumbers = prisonNumbers)?.also { caseEntity ->
       CaseMapper.toAggregate(caseEntity).also { caseAggregate ->
-        val caseIdentifiers = crns.map { it to IdentifierType.CRN }.toSet() +
-          prisonNumbers.map { it to IdentifierType.PRISON_NUMBER }.toSet()
-        caseAggregate.updateIdentifiers(caseIdentifiers)
-        caseRepository.save(merge(caseEntity, caseAggregate.snapshot()))
+        val caseIdentifiers = crns.associate { it to IdentifierType.CRN } +
+          prisonNumbers.associate { it to IdentifierType.PRISON_NUMBER }
+        caseRepository.save(merge(caseEntity, caseAggregate.snapshot(), caseIdentifiers))
       }
     }
   }

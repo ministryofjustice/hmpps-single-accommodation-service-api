@@ -32,23 +32,6 @@ class CaseAggregate private constructor(
     this.tier = tierScore
   }
 
-  fun updateIdentifiers(
-    identifiers: Set<Pair<String, IdentifierType>>,
-  ) {
-    val existingIdentifiers = this.caseIdentifiers.map { it.identifier to it.identifierType }.toSet()
-    identifiers.forEach { identifier ->
-      if (!existingIdentifiers.contains(identifier)) {
-        caseIdentifiers.add(
-          CaseIdentifier(
-            id = UUID.randomUUID(),
-            identifier = identifier.first,
-            identifierType = identifier.second,
-          ),
-        )
-      }
-    }
-  }
-
   data class CaseSnapshot(
     val id: UUID,
     val caseIdentifiers: Set<CaseIdentifier>,

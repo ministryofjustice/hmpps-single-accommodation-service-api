@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
 
@@ -21,26 +22,28 @@ object CaseMapper {
     )
   }.toMutableSet()
 
-  fun merge(entity: CaseEntity, snapshot: CaseAggregate.CaseSnapshot): CaseEntity {
+  fun merge(
+    entity: CaseEntity,
+    snapshot: CaseAggregate.CaseSnapshot,
+    identifiers: Map<String, IdentifierType>? = null,
+  ): CaseEntity {
     entity.tierScore = snapshot.tier
-    entity.addMissingIdentifiers(snapshot.caseIdentifiers)
+    identifiers?.let { entity.addMissingIdentifiers(it) }
 
     return entity
   }
 
-  fun CaseEntity.addMissingIdentifiers(snapshotIdentifiers: Set<CaseIdentifier>) {
-    val existingKeys = caseIdentifiers
-      .map { it.identifier to it.identifierType }.toSet()
+  fun CaseEntity.addMissingIdentifiers(snapshotIdentifiers: Map<String, IdentifierType>) {
+    val existingKeys = caseIdentifiers.associate { it.identifier to it.identifierType }
 
     snapshotIdentifiers
       .asSequence()
-      .filterNot { (it.identifier to it.identifierType) in existingKeys }
+      .filterNot { existingKeys.contains(it.key) }
       .forEach {
         this.caseIdentifiers.add(
           CaseIdentifierEntity(
-            id = it.id,
-            identifier = it.identifier,
-            identifierType = it.identifierType,
+            identifier = it.key,
+            identifierType = it.value,
             caseEntity = this,
           ),
         )

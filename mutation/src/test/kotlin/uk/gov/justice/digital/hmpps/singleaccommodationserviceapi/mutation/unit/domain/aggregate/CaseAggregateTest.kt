@@ -61,41 +61,4 @@ class CaseAggregateTest {
     val afterUpdate = aggregate.snapshot()
     assertThat(afterUpdate.tier).isEqualTo(TierScore.A1)
   }
-
-  @Test
-  fun `updateIdentifiers() should only add missing caseIdentifiers`() {
-    val aggregate = CaseAggregate.createNew(
-      id = id,
-      caseIdentifiers = caseIdentifiers,
-    )
-
-    val beforeUpdate = aggregate.snapshot()
-    assertThat(beforeUpdate.caseIdentifiers).hasSize(1)
-
-    val identifiersToUpdate = setOf(
-      crn to IdentifierType.CRN,
-      "NEWCRN" to IdentifierType.CRN,
-      "NEWPRISONNUMBER" to IdentifierType.PRISON_NUMBER,
-    )
-
-    aggregate.updateIdentifiers(identifiersToUpdate)
-
-    val afterUpdate = aggregate.snapshot()
-
-    assertThat(afterUpdate.caseIdentifiers).satisfies(
-      {
-        assertThat(it).hasSize(3)
-        val crns = afterUpdate.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }
-        val prisonNumbers = afterUpdate.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }
-
-        assertThat(prisonNumbers).hasSize(1)
-        assertThat(prisonNumbers.map { it.identifier }).containsExactly("NEWPRISONNUMBER")
-        assertThat(crns).hasSize(2)
-        assertThat(crns.map { it.identifier }).containsExactlyInAnyOrder(
-          "NEWCRN",
-          crn,
-        )
-      },
-    )
-  }
 }

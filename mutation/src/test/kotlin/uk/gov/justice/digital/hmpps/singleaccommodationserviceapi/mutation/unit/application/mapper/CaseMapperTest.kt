@@ -66,23 +66,25 @@ class CaseMapperTest {
       ),
     )
 
-    val identifiersToMerge = setOf(
+    val identifiersToMerge = mapOf(
       "NEW" to IdentifierType.PRISON_NUMBER,
       identifier to IdentifierType.CRN,
     )
 
-    caseAggregate.updateIdentifiers(identifiersToMerge)
     caseAggregate.updateTier(TierScore.A3S)
 
-    val mergedEntity = CaseMapper.merge(entity = caseEntity, snapshot = caseAggregate.snapshot())
+    val mergedEntity = CaseMapper.merge(
+      entity = caseEntity,
+      snapshot = caseAggregate.snapshot(),
+      identifiers = identifiersToMerge,
+    )
 
     assertAll(
       { assertThat(mergedEntity.caseIdentifiers).hasSize(2) },
       {
         assertThat(
           mergedEntity.caseIdentifiers
-            .map { it.identifier to it.identifierType }
-            .toSet(),
+            .associate { it.identifier to it.identifierType },
         ).isEqualTo(identifiersToMerge)
       },
       { assertThat(mergedEntity.tierScore).isEqualTo(TierScore.A3S) },
@@ -120,25 +122,26 @@ class CaseMapperTest {
     )
 
     // crete a set of identifiers containing existing and new
-    val identifiersToMerge = setOf(
+    val identifiersToMerge = mapOf(
       identifier1 to IdentifierType.CRN,
       identifier2 to IdentifierType.CRN,
       identifier3 to IdentifierType.PRISON_NUMBER,
       identifier4 to IdentifierType.PRISON_NUMBER,
     )
 
-    caseAggregate.updateIdentifiers(identifiersToMerge)
     caseAggregate.updateTier(TierScore.A3S)
 
-    val mergedEntity = CaseMapper.merge(entity = caseEntity, snapshot = caseAggregate.snapshot())
+    val mergedEntity = CaseMapper.merge(
+      entity = caseEntity,
+      snapshot = caseAggregate.snapshot(),
+      identifiers = identifiersToMerge,
+    )
 
     assertAll(
       { assertThat(mergedEntity.caseIdentifiers).hasSize(4) },
       {
         assertThat(
-          mergedEntity.caseIdentifiers
-            .map { it.identifier to it.identifierType }
-            .toSet(),
+          mergedEntity.caseIdentifiers.associate { it.identifier to it.identifierType },
         ).isEqualTo(identifiersToMerge)
       },
       { assertThat(mergedEntity.tierScore).isEqualTo(TierScore.A3S) },
