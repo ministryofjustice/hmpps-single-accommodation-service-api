@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
@@ -28,7 +28,7 @@ class TierCalculationCompletionHandler(
   override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE
 
   override fun getPartitionKey(inboxEvent: InboxEventEntity): String? {
-    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
+    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, HmppsDomainEvent::class.java)
     return tierDomainEvent.personReference.findCrn()
   }
 
