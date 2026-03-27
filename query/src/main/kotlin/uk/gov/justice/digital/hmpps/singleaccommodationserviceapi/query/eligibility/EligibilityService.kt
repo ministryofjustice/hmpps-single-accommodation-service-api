@@ -201,19 +201,22 @@ class EligibilityService(
   }
 
   fun getDomainData(crn: String): DomainData {
-    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
+    val orchestrationResult = eligibilityOrchestrationService.getData(crn)
+    val dto = orchestrationResult.data
 
-    val prisonerNumbers = eligibilityOrchestrationDto.cpr.identifiers?.prisonNumbers
+    // we would need to determine how to handle orchestrationResult.upstreamFailures here
 
-    val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
+    val prisonerNumbers = dto.cpr.identifiers?.prisonNumbers
+
+    val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers).data }
 
     return DomainData(
       crn = crn,
-      cpr = eligibilityOrchestrationDto.cpr,
-      tier = eligibilityOrchestrationDto.tier,
+      cpr = dto.cpr,
+      tier = dto.tier,
       prisonerData = prisonerData,
-      cas1Application = eligibilityOrchestrationDto.cas1Application,
-      cas3Application = eligibilityOrchestrationDto.cas3Application,
+      cas1Application = dto.cas1Application,
+      cas3Application = dto.cas3Application,
     )
   }
 }

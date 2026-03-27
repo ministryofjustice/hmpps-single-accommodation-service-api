@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResult
 
 @Service
 class EligibilityOrchestrationService(
@@ -29,7 +30,7 @@ class EligibilityOrchestrationService(
   val prisonerSearchCachingService: PrisonerSearchCachingService,
 ) {
 
-  fun getData(crn: String): EligibilityOrchestrationDto {
+  fun getData(crn: String): OrchestrationResult<EligibilityOrchestrationDto> {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD to { corePersonRecordCachingService.getCorePersonRecord(crn) },
       GET_TIER to { tierCachingService.getTier(crn) },
@@ -46,17 +47,19 @@ class EligibilityOrchestrationService(
     val cas1Application = stdResults.getOptionalResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas3Application = stdResults.getOptionalResult<Cas3Application>(GET_CAS_3_APPLICATION)
 
-    return EligibilityOrchestrationDto(
-      crn,
-      cpr,
-      tier,
-      cas1Application,
-      cas3Application,
+    return OrchestrationResult(
+      data = EligibilityOrchestrationDto(
+        crn,
+        cpr,
+        tier,
+        cas1Application,
+        cas3Application,
+      ),
       upstreamFailures = stdResults.extractFailures(),
     )
   }
 
-  fun getPrisonerData(prisonerNumbers: List<String>): List<Prisoner> {
+  fun getPrisonerData(prisonerNumbers: List<String>): OrchestrationResult<List<Prisoner>> {
     val calls = prisonerNumbers.associate {
       "$GET_PRISONER$it" to { prisonerSearchCachingService.getPrisoner(it) }
     }
@@ -65,8 +68,13 @@ class EligibilityOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
-    return prisonerNumbers.mapNotNull {
-      results.standardCallsNoIterationResults!!.getOptionalResult<Prisoner>("$GET_PRISONER$it")
-    }
+    val stdResults = results.standardCallsNoIterationResults!!
+
+    return OrchestrationResult(
+      data = prisonerNumbers.mapNotNull {
+        stdResults.getOptionalResult<Prisoner>("$GET_PRISONER$it")
+      },
+      upstreamFailures = stdResults.extractFailures(),
+    )
   }
 }

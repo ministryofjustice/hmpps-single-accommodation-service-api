@@ -10,8 +10,8 @@ import kotlin.collections.sortedByDescending
 class AccommodationReferralService(private val orchestrationService: AccommodationReferralOrchestrationService) {
 
   fun getReferralHistory(crn: String): List<AccommodationReferralDto> {
-    val orchestrationDto = orchestrationService.fetchAllReferralsAggregated(crn)
-    val allReferrals = AccommodationReferralTransformer.transformReferrals(orchestrationDto)
+    val result = orchestrationService.fetchAllReferralsAggregated(crn)
+    val allReferrals = AccommodationReferralTransformer.transformReferrals(result.data)
     return allReferrals.sortedByDescending { it.date }
   }
 }

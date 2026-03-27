@@ -13,13 +13,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResult
 
 @Service
 class AccommodationReferralOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
-  fun fetchAllReferralsAggregated(crn: String): AccommodationReferralOrchestrationDto {
+  fun fetchAllReferralsAggregated(crn: String): OrchestrationResult<AccommodationReferralOrchestrationDto> {
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },
       GET_CAS2_REFERRAL to { approvedPremisesCachingService.getCas2Referral(crn) },
@@ -47,11 +48,13 @@ class AccommodationReferralOrchestrationService(
 
     val failures = stdResults?.extractFailures() ?: emptyList()
 
-    return AccommodationReferralOrchestrationDto(
-      cas1,
-      cas2,
-      cas2v2,
-      cas3,
+    return OrchestrationResult(
+      data = AccommodationReferralOrchestrationDto(
+        cas1,
+        cas2,
+        cas2v2,
+        cas3,
+      ),
       upstreamFailures = failures,
     )
   }
