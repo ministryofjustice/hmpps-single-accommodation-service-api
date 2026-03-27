@@ -1,5 +1,5 @@
-val hmppsSqsVersion = "7.1.0"
-val shedlockVersion = "7.6.0"
+val hmppsSqsVersion = "7.3.0"
+val shedlockVersion = "7.7.0"
 
 dependencies {
   implementation(project(":common"))
