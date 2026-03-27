@@ -2,9 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.extractFailures
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getOptionalResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getRequiredResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD
@@ -42,10 +41,10 @@ class EligibilityOrchestrationService(
     )
 
     val stdResults = results.standardCallsNoIterationResults!!
-    val cpr = stdResults.getRequiredResult<CorePersonRecord>(GET_CORE_PERSON_RECORD)
-    val tier = stdResults.getRequiredResult<Tier>(GET_TIER)
-    val cas1Application = stdResults.getOptionalResult<Cas1Application>(GET_CAS_1_APPLICATION)
-    val cas3Application = stdResults.getOptionalResult<Cas3Application>(GET_CAS_3_APPLICATION)
+    val cpr = stdResults.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD)
+    val tier = stdResults.getResult<Tier>(GET_TIER)
+    val cas1Application = stdResults.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas3Application = stdResults.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
 
     return OrchestrationResult(
       data = EligibilityOrchestrationDto(
@@ -55,7 +54,7 @@ class EligibilityOrchestrationService(
         cas1Application,
         cas3Application,
       ),
-      upstreamFailures = stdResults.extractFailures(),
+      upstreamFailures = stdResults.getFailures(),
     )
   }
 
@@ -72,9 +71,9 @@ class EligibilityOrchestrationService(
 
     return OrchestrationResult(
       data = prisonerNumbers.mapNotNull {
-        stdResults.getOptionalResult<Prisoner>("$GET_PRISONER$it")
+        stdResults.getResult<Prisoner>("$GET_PRISONER$it")
       },
-      upstreamFailures = stdResults.extractFailures(),
+      upstreamFailures = stdResults.getFailures(),
     )
   }
 }

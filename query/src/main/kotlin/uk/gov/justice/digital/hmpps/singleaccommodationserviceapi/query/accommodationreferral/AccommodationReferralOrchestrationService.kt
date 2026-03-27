@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.extractFailures
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getOptionalResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
@@ -34,19 +34,19 @@ class AccommodationReferralOrchestrationService(
 
     val stdResults = results.standardCallsNoIterationResults
     val cas1 =
-      stdResults?.getOptionalResult<List<ReferralHistory<Cas1AssessmentStatus>>>(GET_CAS1_REFERRAL)
+      stdResults?.getResult<List<ReferralHistory<Cas1AssessmentStatus>>>(GET_CAS1_REFERRAL)
         ?: emptyList()
     val cas2 =
-      stdResults?.getOptionalResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2_REFERRAL)
+      stdResults?.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2_REFERRAL)
         ?: emptyList()
     val cas2v2 =
-      stdResults?.getOptionalResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2V2_REFERRAL)
+      stdResults?.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2V2_REFERRAL)
         ?: emptyList()
     val cas3 =
-      stdResults?.getOptionalResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
+      stdResults?.getResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
-    val failures = stdResults?.extractFailures() ?: emptyList()
+    val failures = stdResults?.getFailures() ?: emptyList()
 
     return OrchestrationResult(
       data = AccommodationReferralOrchestrationDto(

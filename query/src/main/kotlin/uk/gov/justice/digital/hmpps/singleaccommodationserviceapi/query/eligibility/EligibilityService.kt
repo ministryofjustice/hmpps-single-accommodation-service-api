@@ -206,7 +206,7 @@ class EligibilityService(
 
     // we would need to determine how to handle orchestrationResult.upstreamFailures here
 
-    val prisonerNumbers = dto.cpr.identifiers?.prisonNumbers
+    val prisonerNumbers = dto.cpr?.identifiers?.prisonNumbers
 
     val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers).data }
 
