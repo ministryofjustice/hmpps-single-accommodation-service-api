@@ -34,19 +34,18 @@ object CaseMapper {
   }
 
   fun CaseEntity.addMissingIdentifiers(snapshotIdentifiers: Map<String, IdentifierType>) {
-    val existingKeys = caseIdentifiers.associate { it.identifier to it.identifierType }
+    val existingIdentifiers = this.caseIdentifiers.associate { it.identifier to it.identifierType }
 
-    snapshotIdentifiers
-      .asSequence()
-      .filterNot { existingKeys.contains(it.key) }
-      .forEach {
-        this.caseIdentifiers.add(
+    snapshotIdentifiers.forEach { (identifier, type) ->
+      if (existingIdentifiers[identifier] != type) {
+        caseIdentifiers.add(
           CaseIdentifierEntity(
-            identifier = it.key,
-            identifierType = it.value,
+            identifier = identifier,
+            identifierType = type,
             caseEntity = this,
           ),
         )
       }
+    }
   }
 }
