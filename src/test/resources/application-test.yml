@@ -40,7 +40,6 @@ hmpps.sqs:
       queueName: sas_domain_events_queue
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.complete"]}'
     test-domain-events-queue:
       dlqName: ${random.uuid}
       queueName: ${random.uuid}
@@ -48,3 +47,6 @@ hmpps.sqs:
 
 test-data-setup:
   user-id: 48785d6e-19f2-49e6-9530-d48423f95e66
+
+case-list:
+  onboarded-teams: 12345,54321

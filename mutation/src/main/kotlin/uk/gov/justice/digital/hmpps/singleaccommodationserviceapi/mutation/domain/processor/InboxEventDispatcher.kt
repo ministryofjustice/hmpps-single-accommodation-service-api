@@ -136,7 +136,7 @@ class InboxEventDispatcher(
     try {
       handler.handle(inboxEvent)
       when (inboxEvent.processedStatus) {
-        ProcessedStatus.SUCCESS -> successCount.incrementAndGet()
+        ProcessedStatus.PROCESSED -> successCount.incrementAndGet()
         ProcessedStatus.FAILED -> failureCount.incrementAndGet()
         else -> skippedCount.incrementAndGet()
       }

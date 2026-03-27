@@ -493,6 +493,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(outboxRecord.aggregateType).isEqualTo("ProposedAccommodation")
     assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.name)
     assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId))
-    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
+    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
   }
 }

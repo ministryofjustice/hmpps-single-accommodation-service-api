@@ -17,4 +17,3 @@ hmpps.sqs:
       queueName: sas_domain_events_queue
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.complete"]}'

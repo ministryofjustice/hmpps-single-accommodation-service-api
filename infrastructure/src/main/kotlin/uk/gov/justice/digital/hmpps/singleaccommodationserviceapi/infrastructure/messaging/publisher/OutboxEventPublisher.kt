@@ -53,7 +53,7 @@ class OutboxEventPublisher(
       val publishResult = publishHmppsDomainEvent(outboxEventEntity = it, eventType)
       log.info("Emitted SNS event (Message Id: ${publishResult.messageId()}, Sequence Id: ${publishResult.sequenceNumber()}) for Outbox Event: ${it.id} of type: $eventType")
       outboxEventRepository.save(
-        it.copy(processedStatus = ProcessedStatus.SUCCESS),
+        it.copy(processedStatus = ProcessedStatus.PROCESSED),
       )
     }
   }

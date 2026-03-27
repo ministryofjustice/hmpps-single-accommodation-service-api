@@ -11,11 +11,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper.merge
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper.toEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
 @Service
 class CaseApplicationService(
   private val caseRepository: CaseRepository,
   private val corePersonRecordCachingService: CorePersonRecordCachingService,
+  private val caseMutationOrchestrationService: CaseMutationOrchestrationService,
 ) {
 
   fun getCorePersonRecord(identifier: String, identifierType: IdentifierType): CorePersonRecord = when (identifierType) {
@@ -36,8 +39,7 @@ class CaseApplicationService(
     }
     return caseRepository.findByIdentifiers(crns = crns, prisonNumbers = prisonNumbers)?.also { caseEntity ->
       CaseMapper.toAggregate(caseEntity).also { caseAggregate ->
-        val caseIdentifiers = crns.associate { it to IdentifierType.CRN } +
-          prisonNumbers.associate { it to IdentifierType.PRISON_NUMBER }
+        val caseIdentifiers = getCaseIdentifiers(identifiers)
         caseRepository.save(merge(caseEntity, caseAggregate.snapshot(), caseIdentifiers))
       }
     }
@@ -48,9 +50,67 @@ class CaseApplicationService(
     val caseEntity: CaseEntity = findByIdentifier(crn, IdentifierType.CRN)
       ?: findByAndUpdatePersonIdentifiers(getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!)
       ?: return
-
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     caseAggregate.updateTier(tier.tierScore)
     caseRepository.save(merge(caseEntity, caseAggregate.snapshot()))
+  }
+
+  @Transactional
+  fun upsertCase(crn: String) {
+    var caseEntity = findByIdentifier(crn, IdentifierType.CRN)
+    var cprIdentifiers: Identifiers? = null
+    if (caseEntity == null) {
+      cprIdentifiers = getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!
+      caseEntity = findByAndUpdatePersonIdentifiers(identifiers = cprIdentifiers)
+    }
+    if (caseEntity != null) {
+      upsertPreExistingCase(crn, caseEntity)
+    } else {
+      createNewCase(crn, cprIdentifiers!!)
+    }
+  }
+
+  private fun upsertPreExistingCase(crn: String, caseEntity: CaseEntity) {
+    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val caseOrchestrationDto = caseMutationOrchestrationService.getCase(crn)
+    caseAggregate.upsertCase(
+      tier = caseOrchestrationDto.tier.tierScore,
+      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
+      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
+      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
+      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
+    )
+    caseRepository.save(
+      merge(
+        entity = caseEntity,
+        snapshot = caseAggregate.snapshot(),
+      ),
+    )
+  }
+
+  private fun createNewCase(crn: String, cprIdentifiers: Identifiers) {
+    val caseAggregate = CaseAggregate.hydrateNew()
+    val caseOrchestrationDto = caseMutationOrchestrationService.getCase(crn)
+    caseAggregate.upsertCase(
+      tier = caseOrchestrationDto.tier.tierScore,
+      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
+      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
+      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
+      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
+    )
+    caseRepository.save(
+      toEntity(
+        snapshot = caseAggregate.snapshot(),
+        identifiers = getCaseIdentifiers(cprIdentifiers),
+      ),
+    )
+  }
+
+  private fun getCaseIdentifiers(
+    identifiers: Identifiers,
+  ): Map<String, IdentifierType> {
+    val caseIdentifiers = identifiers.crns.associate { it to IdentifierType.CRN } +
+      identifiers.prisonNumbers.associate { it to IdentifierType.PRISON_NUMBER }
+    return caseIdentifiers
   }
 }

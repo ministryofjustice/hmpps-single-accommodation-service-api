@@ -8,6 +8,9 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.util.UUID
 
@@ -20,6 +23,14 @@ class CaseEntity(
 
   @Enumerated(EnumType.STRING)
   var tierScore: TierScore? = null,
+
+  var cas1ApplicationId: UUID?,
+  @Enumerated(EnumType.STRING)
+  var cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
+  @Enumerated(EnumType.STRING)
+  var cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,
+  @Enumerated(EnumType.STRING)
+  var cas1ApplicationPlacementStatus: Cas1PlacementStatus?,
 
   @OneToMany(
     mappedBy = "caseEntity",
