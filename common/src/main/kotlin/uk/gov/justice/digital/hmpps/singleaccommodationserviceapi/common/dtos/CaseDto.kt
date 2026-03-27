@@ -14,6 +14,7 @@ data class CaseDto(
   val assignedTo: AssignedToDto?,
   val currentAccommodation: AccommodationDetail?,
   val nextAccommodation: AccommodationDetail?,
+  val upstreamFailures: List<UpstreamFailureDto> = emptyList(),
 )
 
 data class AssignedToDto(val id: Long, val name: String)

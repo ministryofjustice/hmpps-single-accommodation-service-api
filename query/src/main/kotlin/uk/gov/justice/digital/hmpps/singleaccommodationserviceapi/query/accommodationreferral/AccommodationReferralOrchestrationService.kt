@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
@@ -11,13 +13,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResult
 
 @Service
 class AccommodationReferralOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
-  fun fetchAllReferralsAggregated(crn: String): AccommodationReferralOrchestrationDto {
+  fun fetchAllReferralsAggregated(crn: String): OrchestrationResult<AccommodationReferralOrchestrationDto> {
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },
       GET_CAS2_REFERRAL to { approvedPremisesCachingService.getCas2Referral(crn) },
@@ -29,19 +32,30 @@ class AccommodationReferralOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
+    val stdResults = results.standardCallsNoIterationResults
     val cas1 =
-      results.standardCallsNoIterationResults?.get(GET_CAS1_REFERRAL) as? List<ReferralHistory<Cas1AssessmentStatus>>
+      stdResults?.getResult<List<ReferralHistory<Cas1AssessmentStatus>>>(GET_CAS1_REFERRAL)
         ?: emptyList()
     val cas2 =
-      results.standardCallsNoIterationResults?.get(GET_CAS2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+      stdResults?.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2_REFERRAL)
         ?: emptyList()
     val cas2v2 =
-      results.standardCallsNoIterationResults?.get(GET_CAS2V2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+      stdResults?.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2V2_REFERRAL)
         ?: emptyList()
     val cas3 =
-      results.standardCallsNoIterationResults?.get(GET_CAS3_REFERRAL) as? List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
+      stdResults?.getResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
-    return AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3)
+    val failures = stdResults?.getFailures() ?: emptyList()
+
+    return OrchestrationResult(
+      data = AccommodationReferralOrchestrationDto(
+        cas1,
+        cas2,
+        cas2v2,
+        cas3,
+      ),
+      upstreamFailures = failures,
+    )
   }
 }

@@ -9,14 +9,15 @@ class CaseService(
   private val caseOrchestrationService: CaseOrchestrationService,
 ) {
   fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {
-    val list = caseOrchestrationService.getCases(crns)
-    return list.map {
+    val results = caseOrchestrationService.getCases(crns)
+    return results.map {
       CaseTransformer.toCaseDto(
-        crn = it.crn,
-        cpr = it.cpr,
-        roshDetails = it.roshDetails,
-        tier = it.tier,
-        caseSummaries = it.cases,
+        crn = it.data.crn,
+        cpr = it.data.cpr,
+        roshDetails = it.data.roshDetails,
+        tier = it.data.tier,
+        caseSummaries = it.data.cases,
+        upstreamFailures = it.upstreamFailures,
       )
     }
       .filter { riskLevel == null || it.riskLevel == riskLevel }
@@ -24,7 +25,14 @@ class CaseService(
   }
 
   fun getCase(crn: String): CaseDto {
-    val case = caseOrchestrationService.getCase(crn)
-    return CaseTransformer.toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
+    val result = caseOrchestrationService.getCase(crn)
+    return CaseTransformer.toCaseDto(
+      crn = result.data.crn,
+      cpr = result.data.cpr,
+      roshDetails = result.data.roshDetails,
+      tier = result.data.tier,
+      caseSummaries = result.data.cases,
+      upstreamFailures = result.upstreamFailures,
+    )
   }
 }

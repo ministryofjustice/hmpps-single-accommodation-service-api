@@ -3,10 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore as TierScoreInfra
 
 object CaseTransformer {
@@ -16,6 +18,7 @@ object CaseTransformer {
     roshDetails: RoshDetails?,
     tier: Tier?,
     caseSummaries: List<CaseSummary>?,
+    upstreamFailures: List<UpstreamFailure> = emptyList(),
   ) = CaseDto(
     name = cpr?.let { toFullName(it) },
     dateOfBirth = cpr?.dateOfBirth,
@@ -30,6 +33,7 @@ object CaseTransformer {
     photoUrl = null,
     currentAccommodation = null,
     nextAccommodation = null,
+    upstreamFailures = upstreamFailures.map { UpstreamFailureTransformer.toUpstreamFailureDto(it) },
   )
 
   fun toFullName(cpr: CorePersonRecord) = listOfNotNull(
