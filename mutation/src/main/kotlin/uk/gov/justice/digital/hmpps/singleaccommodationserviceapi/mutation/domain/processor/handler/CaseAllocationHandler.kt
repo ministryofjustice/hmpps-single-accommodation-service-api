@@ -26,7 +26,7 @@ class CaseAllocationHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED_TO_PROBATION_PRACTITIONER
+  override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED
 
   override fun getPartitionKey(inboxEvent: InboxEventEntity): String? {
     val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
