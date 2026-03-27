@@ -8,6 +8,10 @@ enum class IncomingHmppsDomainEventType(
     "tier.calculation.complete",
     "Tier calculation complete from Tier service",
   ),
+  PRISONER_OFFENDER_SEARCH_PRISONER_UPDATED(
+    "prisoner-offender-search.prisoner.updated",
+    "A prisoner record has been updated",
+  ),
   ;
 
   companion object {

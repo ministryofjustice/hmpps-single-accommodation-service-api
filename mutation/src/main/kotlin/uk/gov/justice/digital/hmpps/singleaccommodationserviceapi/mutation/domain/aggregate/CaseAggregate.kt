@@ -1,12 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import java.time.LocalDate
 import java.util.UUID
 
 class CaseAggregate private constructor(
   private val id: UUID,
   private val crn: String,
   private var tier: TierScore? = null,
+  private var releaseDate: LocalDate? = null,
 ) {
 
   fun upsertTier(
@@ -15,15 +17,23 @@ class CaseAggregate private constructor(
     tier = newTier
   }
 
+  fun upsertReleaseDate(
+    newReleaseDate: LocalDate?,
+  ) {
+    releaseDate = newReleaseDate
+  }
+
   companion object {
     fun hydrate(
       id: UUID,
       crn: String,
       tier: TierScore?,
+      releaseDate: LocalDate?,
     ) = CaseAggregate(
       id = id,
       crn = crn,
       tier = tier,
+      releaseDate = releaseDate,
     )
 
     fun createNew(id: UUID, crn: String) = CaseAggregate(
@@ -36,7 +46,8 @@ class CaseAggregate private constructor(
     val id: UUID,
     val crn: String,
     val tier: TierScore?,
+    val releaseDate: LocalDate?,
   )
 
-  fun snapshot() = CaseSnapshot(id, crn, tier)
+  fun snapshot() = CaseSnapshot(id, crn, tier, releaseDate)
 }

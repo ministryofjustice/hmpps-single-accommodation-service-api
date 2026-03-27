@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
@@ -28,6 +29,26 @@ class CaseApplicationService(
     )
     aggregate.upsertTier(
       newTier = tier.tierScore,
+    )
+    caseRepository.save(
+      CaseMapper.toEntity(aggregate.snapshot()),
+    )
+  }
+
+  @Transactional
+  fun upsertReleaseDate(
+    prisoner: Prisoner,
+    crn: String,
+  ) {
+    val case = caseRepository.findByCrn(crn)
+    val aggregate = case?.let {
+      CaseMapper.toAggregate(it)
+    } ?: CaseAggregate.createNew(
+      id = UUID.randomUUID(),
+      crn = crn,
+    )
+    aggregate.upsertReleaseDate(
+      newReleaseDate = prisoner.releaseDate,
     )
     caseRepository.save(
       CaseMapper.toEntity(aggregate.snapshot()),

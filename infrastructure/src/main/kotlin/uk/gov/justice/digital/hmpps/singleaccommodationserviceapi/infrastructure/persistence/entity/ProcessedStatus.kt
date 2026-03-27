@@ -4,4 +4,5 @@ enum class ProcessedStatus {
   PENDING,
   SUCCESS,
   FAILED,
+  IGNORED,
 }
