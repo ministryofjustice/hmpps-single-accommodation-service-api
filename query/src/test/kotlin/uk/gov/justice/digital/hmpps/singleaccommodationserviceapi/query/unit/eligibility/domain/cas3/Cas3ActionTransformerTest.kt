@@ -94,7 +94,7 @@ class Cas3ActionTransformerTest {
     )
     Assertions.assertThatThrownBy { buildCas3Action(data, clock) }
       .isInstanceOf(IllegalStateException::class.java)
-      .hasMessageContaining("Release date for crn: ABC234 is null")
+      .hasMessage("Release date for crn: ABC234 is null")
   }
 
   @ParameterizedTest(name = "{0}")
@@ -198,7 +198,7 @@ class Cas3ActionTransformerTest {
 
     Assertions.assertThatThrownBy { buildCas3Action(data, clock) }
       .isInstanceOf(IllegalStateException::class.java)
-      .hasMessageContaining("Invalid placement status: null")
+      .hasMessage("Invalid placement status: null")
   }
 
   @ParameterizedTest(name = "{0}")
@@ -218,6 +218,6 @@ class Cas3ActionTransformerTest {
 
     Assertions.assertThatThrownBy { buildCas3Action(data, clock) }
       .isInstanceOf(IllegalStateException::class.java)
-      .hasMessageContaining("Invalid placement status: $status")
+      .hasMessage("Invalid placement status: $status")
   }
 }

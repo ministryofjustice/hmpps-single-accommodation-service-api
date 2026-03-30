@@ -39,7 +39,7 @@ class ProposedAccommodationQueryServiceTest {
   @InjectMockKs
   lateinit var service: ProposedAccommodationQueryService
 
-  private val crn = "X12345"
+  private val crn = UUID.randomUUID().toString()
 
   @Nested
   inner class GetProposedAccommodations {
@@ -126,7 +126,7 @@ class ProposedAccommodationQueryServiceTest {
 
       assertThatThrownBy { service.getProposedAccommodation(crn, id) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(id.toString())
+        .hasMessage("ProposedAccommodationEntity not found for [id=$id, crn=$crn]")
     }
   }
 
@@ -159,7 +159,7 @@ class ProposedAccommodationQueryServiceTest {
 
       assertThatThrownBy { service.getProposedAccommodation(id) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(id.toString())
+        .hasMessage("ProposedAccommodationEntity not found for [id=$id]")
     }
   }
 
@@ -189,7 +189,7 @@ class ProposedAccommodationQueryServiceTest {
 
       assertThatThrownBy { service.getProposedAccommodationTimeline(id, crn) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(id.toString())
+        .hasMessage("ProposedAccommodationEntity not found for [id=$id, crn=$crn]")
     }
   }
 }

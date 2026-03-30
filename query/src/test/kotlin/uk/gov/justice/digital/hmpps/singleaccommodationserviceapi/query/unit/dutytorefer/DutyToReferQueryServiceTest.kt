@@ -120,11 +120,11 @@ class DutyToReferQueryServiceTest {
 
     @Test
     fun `should throw NotFoundException when not found`() {
-      every { dutyToReferRepository.findById(id) } returns Optional.empty()
+      every { dutyToReferRepository.findByIdOrNull(id) } returns null
 
       assertThatThrownBy { service.getDutyToRefer(id) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(id.toString())
+        .hasMessage("DutyToReferEntity not found for [id=$id]")
     }
   }
 }
