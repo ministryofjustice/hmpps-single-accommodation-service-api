@@ -26,7 +26,7 @@ class Cas3ApplicationCompletionRuleTest {
   fun `application is completed so rule passes`(placementStatus: Cas3PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
@@ -50,7 +50,7 @@ class Cas3ApplicationCompletionRuleTest {
   fun `application is PLACED but placement not completed so rule fails`(placementStatus: Cas3PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
@@ -74,7 +74,7 @@ class Cas3ApplicationCompletionRuleTest {
   fun `application is not PLACED so rule fails`(applicationStatus: Cas3ApplicationStatus) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
@@ -96,7 +96,7 @@ class Cas3ApplicationCompletionRuleTest {
   fun `application is not present so rule fails`() {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = null,

@@ -25,7 +25,7 @@ class DomainDataTest {
     val releaseDate = LocalDate.parse("2020-12-04")
     val expected = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
       cas1Application = Cas1Application(
@@ -44,7 +44,7 @@ class DomainDataTest {
       sex = buildSex(expected.sex),
     )
     val tier = Tier(
-      tierScore = expected.tier,
+      tierScore = expected.tierScore,
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,

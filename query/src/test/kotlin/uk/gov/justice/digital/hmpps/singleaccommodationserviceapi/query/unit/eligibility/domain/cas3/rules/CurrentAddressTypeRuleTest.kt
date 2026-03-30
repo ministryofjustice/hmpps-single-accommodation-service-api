@@ -22,7 +22,7 @@ class CurrentAddressTypeRuleTest {
   fun `candidate passes when current accommodation is eligible type`(accommodationType: AccommodationArrangementType) {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       currentAccommodationArrangementType = accommodationType,
@@ -38,7 +38,7 @@ class CurrentAddressTypeRuleTest {
   fun `candidate fails when current accommodation is ineligible type`(accommodationType: AccommodationArrangementType) {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       currentAccommodationArrangementType = accommodationType,
@@ -53,7 +53,7 @@ class CurrentAddressTypeRuleTest {
   fun `candidate fails when current accommodation is null`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       currentAccommodationArrangementType = null,

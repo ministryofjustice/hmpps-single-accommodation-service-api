@@ -26,7 +26,7 @@ class STierEligibilityRule : Cas1EligibilityRule {
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (sRiskTiers.contains(data.tier)) {
+    ruleStatus = if (sRiskTiers.contains(data.tierScore)) {
       RuleStatus.FAIL
     } else {
       RuleStatus.PASS

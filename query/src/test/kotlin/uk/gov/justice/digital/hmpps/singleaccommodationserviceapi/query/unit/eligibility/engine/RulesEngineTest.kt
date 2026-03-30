@@ -44,7 +44,7 @@ class RulesEngineTest {
   fun `rules engine passes cas1Eligibility rules`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(7),
     )
@@ -58,7 +58,7 @@ class RulesEngineTest {
   fun `rules engine fails some cas1Eligibility rules`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.C1S,
+      tierScore = TierScore.C1S,
       sex = SexCode.F,
       releaseDate = LocalDate.now().plusMonths(7),
     )

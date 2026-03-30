@@ -18,7 +18,7 @@ class CrsStatusRuleTest {
   fun `candidate passes when CRS status is submitted`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       crsStatus = "submitted",
@@ -33,7 +33,7 @@ class CrsStatusRuleTest {
   fun `candidate fails when CRS status is not submitted`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       crsStatus = null,

@@ -24,7 +24,7 @@ class Cas1ServiceResultTransformerTest {
     clock.setNow(releaseDate.minusDays(3))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -46,7 +46,7 @@ class Cas1ServiceResultTransformerTest {
     clock.setNow(releaseDate.minusMonths(13))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -68,7 +68,7 @@ class Cas1ServiceResultTransformerTest {
     clock.setNow(releaseDate.minusYears(1))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -90,7 +90,7 @@ class Cas1ServiceResultTransformerTest {
     clock.setNow(releaseDate.minusYears(1).minusDays(1))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -112,7 +112,7 @@ class Cas1ServiceResultTransformerTest {
     clock.setNow(releaseDate.minusYears(1).minusDays(2))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -132,7 +132,7 @@ class Cas1ServiceResultTransformerTest {
   fun `Build action when release date null and no application so return NOT_ELIGIBLE`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = null,
     )

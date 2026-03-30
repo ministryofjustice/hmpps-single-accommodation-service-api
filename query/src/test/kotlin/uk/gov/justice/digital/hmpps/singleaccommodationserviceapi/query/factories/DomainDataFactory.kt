@@ -21,7 +21,7 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
 ) = DomainData(
   crn = crn,
-  tier = tier,
+  tierScore = tier,
   sex = sex,
   releaseDate = releaseDate,
   currentAccommodationArrangementType = currentAccommodationArrangementType,

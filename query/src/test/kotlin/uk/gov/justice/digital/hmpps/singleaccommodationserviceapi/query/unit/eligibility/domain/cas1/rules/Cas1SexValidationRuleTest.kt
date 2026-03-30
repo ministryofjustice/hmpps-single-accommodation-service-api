@@ -16,7 +16,7 @@ class Cas1SexValidationRuleTest {
   fun `candidate passes if sex is present`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusYears(1),
     )
@@ -30,7 +30,7 @@ class Cas1SexValidationRuleTest {
   fun `candidate fails if sex is missing`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = null,
       releaseDate = LocalDate.now().plusYears(1),
     )

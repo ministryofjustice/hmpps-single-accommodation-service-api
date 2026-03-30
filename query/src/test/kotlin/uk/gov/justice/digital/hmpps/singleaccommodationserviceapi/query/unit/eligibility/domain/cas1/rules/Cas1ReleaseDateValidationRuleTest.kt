@@ -16,7 +16,7 @@ class Cas1ReleaseDateValidationRuleTest {
   fun `candidate passes if release date is present`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusYears(1),
     )
@@ -30,7 +30,7 @@ class Cas1ReleaseDateValidationRuleTest {
   fun `candidate fails if release date is missing`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = null,
     )
