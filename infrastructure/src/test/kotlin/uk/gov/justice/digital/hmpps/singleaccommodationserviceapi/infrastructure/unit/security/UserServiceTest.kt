@@ -54,7 +54,7 @@ class UserServiceTest {
 
       assertThatThrownBy { userService.getExistingDeliusUserOrCreate(username) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(username.value)
+        .hasMessage("StaffDetail not found for [username=$username]")
     }
 
     @Test
@@ -105,7 +105,7 @@ class UserServiceTest {
 
       assertThatThrownBy { userService.getAndUpdateNomisUserOrCreate(username, jwt) }
         .isInstanceOf(NotFoundException::class.java)
-        .hasMessageContaining(username.value)
+        .hasMessage("NomisUserDetail not found for [username=$username]")
     }
 
     @Test

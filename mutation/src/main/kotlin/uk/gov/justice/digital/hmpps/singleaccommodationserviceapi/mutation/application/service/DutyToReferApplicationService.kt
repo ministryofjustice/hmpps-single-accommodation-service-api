@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
@@ -51,8 +51,7 @@ class DutyToReferApplicationService(
 
   @Transactional
   fun updateDutyToRefer(crn: String, id: UUID, command: DtrCommand): DutyToReferDto {
-    val entity = dutyToReferRepository.findByIdAndCrn(id, crn)
-      ?: throw NotFoundException("Duty To Refer not found for id: $id and crn: $crn")
+    val entity = dutyToReferRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val aggregate = DutyToReferMapper.toAggregate(entity)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = command.localAuthorityAreaId,
@@ -64,7 +63,7 @@ class DutyToReferApplicationService(
     val updatedRecord = dutyToReferRepository.save(entity)
     pullEventAndPersistToOutbox(aggregate)
 
-    val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)!!
+    val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!).orThrowNotFound("createdByUserId" to updatedRecord.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(updatedRecord.localAuthorityAreaId)!!
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),

@@ -4,7 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
@@ -23,23 +23,19 @@ class ProposedAccommodationQueryService(
   }
 
   fun getProposedAccommodation(crn: String, id: UUID): AccommodationDetail {
-    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
-      ?: throw NotFoundException("Proposed accommodation with id $id not found for crn $crn")
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     return ProposedAccommodationTransformer.toAccommodationDetail(entity, createdByUser!!.name)
   }
 
   fun getProposedAccommodation(id: UUID): AccommodationDetail {
-    val entity = proposedAccommodationRepository.findById(id).orElseThrow {
-      NotFoundException("Proposed accommodation with id $id not found")
-    }
+    val entity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     return ProposedAccommodationTransformer.toAccommodationDetail(entity, createdByUser!!.name)
   }
 
   fun getProposedAccommodationTimeline(id: UUID, crn: String): List<AuditRecordDto> {
-    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
-      ?: throw NotFoundException("Proposed accommodation with id $id not found for crn $crn")
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     return auditService.fullAuditHistory(id = entity.id, ProposedAccommodationEntity::class.java)
   }
 }

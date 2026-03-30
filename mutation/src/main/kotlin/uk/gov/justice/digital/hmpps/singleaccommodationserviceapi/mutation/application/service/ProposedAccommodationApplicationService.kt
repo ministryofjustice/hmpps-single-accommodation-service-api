@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
@@ -53,8 +53,7 @@ class ProposedAccommodationApplicationService(
 
   @Transactional
   fun updateProposedAccommodation(crn: String, id: UUID, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
-    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
-      ?: throw NotFoundException("Proposed Accommodation not found for id: $id and crn: $crn")
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val aggregate = ProposedAccommodationMapper.toAggregate(entity)
     aggregate.updateProposedAccommodation(
       newName = accommodationDetailCommand.name,
@@ -73,7 +72,8 @@ class ProposedAccommodationApplicationService(
     val updatedRecord = proposedAccommodationRepository.save(entity)
     pullEventAndPersistToOutbox(aggregate)
 
-    val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)!!
+    val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
+      .orThrowNotFound("createdByUserId" to updatedRecord.createdByUserId!!)
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       createdBy = createdByUser.name,

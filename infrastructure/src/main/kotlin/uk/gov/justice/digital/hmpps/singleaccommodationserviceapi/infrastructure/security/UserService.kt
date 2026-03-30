@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.ProbationIntegrationDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
@@ -41,8 +41,8 @@ class UserService(
     if (existingUser != null) {
       return existingUser
     }
-    val staffUserDetails = probationIntegrationDeliusCachingService.getStaffDetail(username.value)
-      ?: throw NotFoundException("Staff details for Delius user ${username.value} do not exist")
+    val staffUserDetails =
+      probationIntegrationDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
     val savedUser = userRepository.save(
       UserEntity(
         id = UUID.randomUUID(),
@@ -64,8 +64,7 @@ class UserService(
 
   fun getAndUpdateNomisUserOrCreate(username: Username, jwt: Jwt): UserEntity {
     val nomisUserDetails =
-      nomisUserRolesService.getUserDetailsForMe(jwt)
-        ?: throw NotFoundException("User details for Nomis user $username do not exist")
+      nomisUserRolesService.getUserDetailsForMe(jwt).orThrowNotFound("username" to username)
     val existingUser = userRepository.findByUsernameAndAuthSource(username = username, authSource = AuthSourceEntity.NOMIS)
     if (existingUser != null) {
       existingUser.email = nomisUserDetails.primaryEmail
