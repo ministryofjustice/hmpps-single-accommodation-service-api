@@ -17,10 +17,6 @@ on:
         default: false
         type: boolean
 
-permissions:
-  contents: read
-  packages: write
-
 concurrency:
   # Only cancel in progress when on a branch - use SHA on main to ensure uniqueness.
   # This will allow multiple pipelines to run at the same time on main.
@@ -31,6 +27,8 @@ concurrency:
 
 jobs:
   helm_lint:
+    permissions:
+      contents: read
     strategy:
       matrix:
         environments: ["development", "preprod", "prod"]
@@ -40,6 +38,8 @@ jobs:
     with:
       environment: ${{ matrix.environments }}
   kotlin_validate:
+    permissions:
+      contents: read
     name: Validate the kotlin
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     with:
@@ -47,6 +47,8 @@ jobs:
       gradle-command: './gradlew check -x test'
     secrets: inherit
   unit_test:
+    permissions:
+      contents: read
     name: Unit Tests
     needs: kotlin_validate
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
@@ -55,6 +57,8 @@ jobs:
       artifact-name: 'unit-test-results'
     secrets: inherit
   integration_test:
+    permissions:
+      contents: read
     name: Integration Tests
     needs: kotlin_validate
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
@@ -68,6 +72,9 @@ jobs:
       postgres-db: sas_db
     secrets: inherit
   build:
+    permissions:
+      contents: read
+      packages: write
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
@@ -78,6 +85,9 @@ jobs:
       push: ${{ inputs.push || true }}
       docker_multiplatform: false
   deploy_dev:
+    permissions:
+      contents: read
+      packages: write
     name: Deploy to development environment
     needs:
       - kotlin_validate
@@ -97,6 +107,9 @@ jobs:
     uses: ./.github/workflows/generate-sas-ui-types.yml
     secrets: inherit
   deploy_preprod:
+    permissions:
+      contents: read
+      packages: write
     name: Deploy to pre-production environment
     needs:
       - build
@@ -108,6 +121,9 @@ jobs:
       app_version: '${{ needs.build.outputs.app_version }}'
       slack_notification: 'false' # if 'true', it needs a valid NONPROD_RELEASES_SLACK_CHANNEL variable to be set
   deploy_prod:
+    permissions:
+      contents: read
+      packages: write
     name: Deploy to production environment
     needs:
       - build
