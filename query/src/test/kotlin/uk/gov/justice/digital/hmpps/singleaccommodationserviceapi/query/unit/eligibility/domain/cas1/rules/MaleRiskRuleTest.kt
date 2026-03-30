@@ -18,10 +18,10 @@ class MaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.rules.MaleRiskRuleTest#provideSexAndTierToPass")
-  fun `candidate passes`(sex: SexCode, tier: TierScore) {
+  fun `candidate passes`(sex: SexCode, tierScore: TierScore) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = sex,
       releaseDate = LocalDate.now().plusYears(1),
     )
@@ -33,10 +33,10 @@ class MaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.rules.MaleRiskRuleTest#provideSexAndTierToFail")
-  fun `candidate fails`(sex: SexCode, tier: TierScore) {
+  fun `candidate fails`(sex: SexCode, tierScore: TierScore) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = sex,
       releaseDate = LocalDate.now().plusYears(1),
     )

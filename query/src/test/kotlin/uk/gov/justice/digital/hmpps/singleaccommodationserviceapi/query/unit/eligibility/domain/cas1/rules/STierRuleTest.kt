@@ -32,10 +32,10 @@ class STierRuleTest {
       "D1",
     ],
   )
-  fun `candidate passes`(tier: TierScore) {
+  fun `candidate passes`(tierScore: TierScore) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusYears(1),
     )
@@ -63,10 +63,10 @@ class STierRuleTest {
       "D1S",
     ],
   )
-  fun `candidate fails`(tier: TierScore) {
+  fun `candidate fails`(tierScore: TierScore) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusYears(1),
     )

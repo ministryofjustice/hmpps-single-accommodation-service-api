@@ -30,7 +30,7 @@ class Cas3ActionTransformerTest {
     clock.setNow(releaseDate.minusDays(3))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -45,7 +45,7 @@ class Cas3ActionTransformerTest {
     clock.setNow(releaseDate.minusDays(28))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -60,7 +60,7 @@ class Cas3ActionTransformerTest {
     clock.setNow(releaseDate.minusDays(29))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -75,7 +75,7 @@ class Cas3ActionTransformerTest {
     clock.setNow(releaseDate.minusDays(60))
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
@@ -88,7 +88,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when release date null and error and no application`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = null,
     )
@@ -108,7 +108,7 @@ class Cas3ActionTransformerTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = cas3Application,
@@ -130,7 +130,7 @@ class Cas3ActionTransformerTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = cas3Application,
@@ -145,7 +145,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when application is REQUESTED_FURTHER_INFORMATION`() {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
@@ -171,7 +171,7 @@ class Cas3ActionTransformerTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusDays(10),
       cas3Application = cas3Application,
@@ -186,7 +186,7 @@ class Cas3ActionTransformerTest {
   fun `Error when application status is PLACED but placement status is null`() {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
@@ -206,7 +206,7 @@ class Cas3ActionTransformerTest {
   fun `Error when application status is PLACED but placement status is completed`(status: Cas3PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(

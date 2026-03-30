@@ -18,7 +18,7 @@ class NextAccommodationRuleTest {
   fun `candidate passes when next accommodation is null`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       hasNextAccommodation = false,
@@ -33,7 +33,7 @@ class NextAccommodationRuleTest {
   fun `candidate fails when next accommodation exists`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       hasNextAccommodation = true,

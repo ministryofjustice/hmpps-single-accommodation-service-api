@@ -19,7 +19,7 @@ import java.util.UUID
 
 class ApplicationCompletionRuleTest {
   private val crn = "ABC234"
-  private val tier = TierScore.A1
+  private val tierScore = TierScore.A1
   private val description = "FAIL if application is not complete"
 
   @Test
@@ -33,7 +33,7 @@ class ApplicationCompletionRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -61,7 +61,7 @@ class ApplicationCompletionRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -89,7 +89,7 @@ class ApplicationCompletionRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -117,7 +117,7 @@ class ApplicationCompletionRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -137,7 +137,7 @@ class ApplicationCompletionRuleTest {
   fun `application is REQUEST_FOR_FURTHER_INFORMATION so rule fails`() {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = Cas1Application(
@@ -170,7 +170,7 @@ class ApplicationCompletionRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -190,7 +190,7 @@ class ApplicationCompletionRuleTest {
   fun `application is not present so rule fails`() {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = null,

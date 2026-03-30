@@ -18,7 +18,7 @@ class DtrStatusRuleTest {
   fun `candidate passes when DTR status is submitted`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       dtrStatus = "submitted",
@@ -33,7 +33,7 @@ class DtrStatusRuleTest {
   fun `candidate fails when DTR status is not submitted`() {
     val data = DomainData(
       crn = crn,
-      tier = TierScore.A1,
+      tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
       dtrStatus = null,

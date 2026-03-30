@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
-  val tier: TierScore,
+  val tierScore: TierScore,
   val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodationArrangementType: AccommodationArrangementType? = null,
@@ -38,7 +38,7 @@ data class DomainData(
     crsStatus: String? = "OK",
   ) : this(
     crn = crn,
-    tier = tier.tierScore,
+    tierScore = tier.tierScore,
     sex = cpr.sex?.code,
     releaseDate = prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } },
     currentAccommodationArrangementType = currentAccommodation?.arrangementType,

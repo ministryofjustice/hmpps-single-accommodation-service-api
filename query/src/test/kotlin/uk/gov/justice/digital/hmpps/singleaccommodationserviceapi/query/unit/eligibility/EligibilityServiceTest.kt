@@ -131,7 +131,7 @@ class EligibilityServiceTest {
       )
 
       val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null)
-      assertThat(result.tier).isEqualTo(tier.tierScore)
+      assertThat(result.tierScore).isEqualTo(tier.tierScore)
       assertThat(result.sex).isEqualTo(cpr.sex?.code)
       assertThat(result.releaseDate).isEqualTo(releaseDate)
     }
@@ -152,7 +152,7 @@ class EligibilityServiceTest {
       every { caseRepository.findByCrn(crn) } returns null
 
       val result = eligibilityService.getDomainData(crn)
-      assertThat(result.tier).isEqualTo(expectedTier)
+      assertThat(result.tierScore).isEqualTo(expectedTier)
       assertThat(result.sex).isEqualTo(SexCode.M)
       assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
     }
@@ -182,7 +182,7 @@ class EligibilityServiceTest {
       description: String,
       referenceDate: String,
       sex: SexCode,
-      tier: TierScore,
+      tierScore: TierScore,
       releaseDate: String?,
       cas1Status: Cas1ApplicationStatus?,
       cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
@@ -196,7 +196,7 @@ class EligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus, requestForPlacementStatus = cas1RequestForPlacementStatus)
       }
-      val data = buildDomainData(crn, tier, sex, releaseDate?.toLocalDate(), cas1Application = cas1Application)
+      val data = buildDomainData(crn, tierScore, sex, releaseDate?.toLocalDate(), cas1Application = cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 

@@ -70,7 +70,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator everything passes (male)`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.A1,
+        tierScore = TierScore.A1,
         sex = SexCode.M,
         releaseDate = LocalDate.now().plusMonths(7),
       )
@@ -90,7 +90,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator nearly everything fails (female)`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.C2S,
+        tierScore = TierScore.C2S,
         sex = SexCode.F,
         releaseDate = null,
       )
@@ -109,7 +109,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator first fails, second passes`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.A1S,
+        tierScore = TierScore.A1S,
         sex = SexCode.M,
         releaseDate = LocalDate.now().plusMonths(7),
       )
@@ -128,7 +128,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator first passes, second fails`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.C1,
+        tierScore = TierScore.C1,
         sex = SexCode.F,
         releaseDate = LocalDate.now().plusMonths(3),
       )
@@ -151,7 +151,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set evaluator everything passes`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.A1,
+        tierScore = TierScore.A1,
         sex = SexCode.M,
         releaseDate = LocalDate.now().plusMonths(7),
       )
@@ -167,7 +167,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set nearly evaluator everything fails`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.A1S,
+        tierScore = TierScore.A1S,
         sex = SexCode.F,
         releaseDate = LocalDate.now().plusMonths(7),
       )
@@ -184,7 +184,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set evaluator first fails, second passes`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.A1S,
+        tierScore = TierScore.A1S,
         sex = SexCode.M,
         releaseDate = LocalDate.now().plusMonths(7),
       )
@@ -201,7 +201,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set evaluator first passes, second fails`() {
       val data = DomainData(
         crn = crn,
-        tier = TierScore.C1,
+        tierScore = TierScore.C1,
         sex = SexCode.F,
         releaseDate = LocalDate.now().plusMonths(7),
       )

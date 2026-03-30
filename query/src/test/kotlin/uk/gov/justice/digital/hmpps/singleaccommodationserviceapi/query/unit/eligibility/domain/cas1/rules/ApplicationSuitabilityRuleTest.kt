@@ -18,7 +18,7 @@ import java.util.UUID
 
 class ApplicationSuitabilityRuleTest {
   private val crn = "ABC234"
-  private val tier = TierScore.A1
+  private val tierScore = TierScore.A1
   private val description = "FAIL if candidate does not have a suitable application"
 
   @ParameterizedTest(name = "{0}")
@@ -43,7 +43,7 @@ class ApplicationSuitabilityRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -71,7 +71,7 @@ class ApplicationSuitabilityRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -108,7 +108,7 @@ class ApplicationSuitabilityRuleTest {
 
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
@@ -128,7 +128,7 @@ class ApplicationSuitabilityRuleTest {
   fun `application is not present so rule fails`() {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = null,

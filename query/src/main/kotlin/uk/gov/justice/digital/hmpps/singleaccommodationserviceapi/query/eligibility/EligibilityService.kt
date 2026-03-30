@@ -48,10 +48,10 @@ class EligibilityService(
     val data = getDomainData(crn)
 
     log.debug(
-      "External data received: crn={}, releaseDate={}, tier={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationArrangementType={}, hasNextAccommodation={}",
+      "External data received: crn={}, releaseDate={}, tierScore={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationArrangementType={}, hasNextAccommodation={}",
       data.crn,
       data.releaseDate,
-      data.tier,
+      data.tierScore,
       data.sex,
       data.crsStatus,
       data.dtrStatus,

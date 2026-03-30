@@ -19,10 +19,10 @@ class NonMaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.rules.NonMaleRiskRuleTest#provideSexAndTierToPass")
-  fun `candidate passes`(sex: SexCode, tier: TierScore) {
+  fun `candidate passes`(sex: SexCode, tierScore: TierScore) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tierScore,
       sex = sex,
       releaseDate = LocalDate.now().plusYears(1),
     )
@@ -37,7 +37,7 @@ class NonMaleRiskRuleTest {
   fun `candidate fails`(sex: SexCode, tier: TierScore) {
     val data = DomainData(
       crn = crn,
-      tier = tier,
+      tierScore = tier,
       sex = sex,
       releaseDate = LocalDate.now().plusYears(1),
     )
