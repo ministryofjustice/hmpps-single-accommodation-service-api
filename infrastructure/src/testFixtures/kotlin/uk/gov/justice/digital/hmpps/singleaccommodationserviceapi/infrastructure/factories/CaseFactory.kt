@@ -10,7 +10,7 @@ import java.util.UUID
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
   tierScore: TierScore? = TierScore.A1,
-  customise: (CaseEntity.() -> Unit)? = {},
+  customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(id = id, tierScore = tierScore).also { case ->
 
   if (customise != null) {

@@ -10,7 +10,7 @@ import java.util.UUID
 
 class DutyToReferAggregate private constructor(
   private val id: UUID,
-  private val crn: String,
+  private val caseId: UUID,
   private var localAuthorityAreaId: UUID? = null,
   private var referenceNumber: String? = null,
   private var submissionDate: LocalDate? = null,
@@ -19,21 +19,21 @@ class DutyToReferAggregate private constructor(
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
   companion object {
-    fun hydrateNew(crn: String) = DutyToReferAggregate(
+    fun hydrateNew(caseId: UUID) = DutyToReferAggregate(
       id = UUID.randomUUID(),
-      crn = crn,
+      caseId = caseId,
     )
 
     fun hydrateExisting(
       id: UUID,
-      crn: String,
+      caseId: UUID,
       localAuthorityAreaId: UUID,
       referenceNumber: String?,
       submissionDate: LocalDate,
       status: DtrStatus,
     ) = DutyToReferAggregate(
       id = id,
-      crn = crn,
+      caseId = caseId,
       localAuthorityAreaId = localAuthorityAreaId,
       referenceNumber = referenceNumber,
       submissionDate = submissionDate,
@@ -73,7 +73,7 @@ class DutyToReferAggregate private constructor(
 
   fun snapshot() = DutyToReferSnapshot(
     id = id,
-    crn = crn,
+    caseId = caseId,
     localAuthorityAreaId = localAuthorityAreaId!!,
     referenceNumber = referenceNumber,
     submissionDate = submissionDate!!,
@@ -82,7 +82,7 @@ class DutyToReferAggregate private constructor(
 
   data class DutyToReferSnapshot(
     val id: UUID,
-    val crn: String,
+    val caseId: UUID,
     val localAuthorityAreaId: UUID,
     val referenceNumber: String?,
     val submissionDate: LocalDate,

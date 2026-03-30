@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
@@ -25,11 +26,13 @@ class DutyToReferApplicationService(
   private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
+  private val caseRepository: CaseRepository,
 ) {
   @Transactional
   fun createDutyToRefer(crn: String, command: DtrCommand): DutyToReferDto {
     val user = userService.authorizeAndRetrieveUser()
-    val aggregate = DutyToReferAggregate.hydrateNew(crn)
+    val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId = case.id)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = command.localAuthorityAreaId,
       submissionDate = command.submissionDate,
@@ -43,6 +46,7 @@ class DutyToReferApplicationService(
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(persistedRecord.localAuthorityAreaId)!!
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
+      crn = crn,
       createdBy = user.name,
       createdAt = persistedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
@@ -51,22 +55,24 @@ class DutyToReferApplicationService(
 
   @Transactional
   fun updateDutyToRefer(crn: String, id: UUID, command: DtrCommand): DutyToReferDto {
-    val entity = dutyToReferRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    val dtr = dutyToReferRepository.findByIdAndCaseId(id, case.id).orThrowNotFound("id" to id, "crn" to crn)
+    val aggregate = DutyToReferMapper.toAggregate(dtr)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = command.localAuthorityAreaId,
       submissionDate = command.submissionDate,
       referenceNumber = command.referenceNumber,
       status = command.status,
     )
-    DutyToReferMapper.applyToEntity(aggregate.snapshot(), entity)
-    val updatedRecord = dutyToReferRepository.save(entity)
+    DutyToReferMapper.applyToEntity(aggregate.snapshot(), dtr)
+    val updatedRecord = dutyToReferRepository.save(dtr)
     pullEventAndPersistToOutbox(aggregate)
 
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!).orThrowNotFound("createdByUserId" to updatedRecord.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(updatedRecord.localAuthorityAreaId)!!
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
+      crn = crn,
       createdBy = createdByUser.name,
       createdAt = updatedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,

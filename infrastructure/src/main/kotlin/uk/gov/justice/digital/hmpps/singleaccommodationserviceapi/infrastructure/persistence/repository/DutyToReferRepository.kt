@@ -5,7 +5,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.util.UUID
 
 interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
-  fun findByCrn(crn: String): DutyToReferEntity?
-  fun findByIdAndCrn(id: UUID, crn: String): DutyToReferEntity?
-  fun findFirstByCrnOrderByCreatedAtDesc(crn: String): DutyToReferEntity?
+
+  fun findByCaseId(caseId: UUID): DutyToReferEntity?
+  fun findByIdAndCaseId(id: UUID, caseId: UUID): DutyToReferEntity?
+  fun findFirstByCaseIdOrderByCreatedAtDesc(caseId: UUID): DutyToReferEntity?
 }

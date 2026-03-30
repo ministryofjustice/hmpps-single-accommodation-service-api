@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class DutyToReferDto(
+  val caseId: UUID,
   val crn: String,
   val status: DtrStatus,
   val submission: DtrSubmissionDto?,

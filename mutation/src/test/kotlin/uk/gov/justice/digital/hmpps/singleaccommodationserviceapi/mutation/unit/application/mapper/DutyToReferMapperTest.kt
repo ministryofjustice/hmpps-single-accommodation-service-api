@@ -22,7 +22,7 @@ class DutyToReferMapperTest {
     val entity = DutyToReferMapper.toEntity(snapshot)
 
     assertThat(entity.id).isEqualTo(snapshot.id)
-    assertThat(entity.crn).isEqualTo(snapshot.crn)
+    assertThat(entity.caseId).isEqualTo(snapshot.caseId)
     assertThat(entity.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
     assertThat(entity.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(entity.submissionDate).isEqualTo(snapshot.submissionDate)
@@ -46,10 +46,12 @@ class DutyToReferMapperTest {
     val createdBy = "Joe Bloggs"
     val createdAt = Instant.now()
     val localAuthorityAreaName = "Test Local Authority"
+    var crn = UUID.randomUUID().toString()
 
-    val dto = DutyToReferMapper.toDto(snapshot, createdBy, createdAt, localAuthorityAreaName)
+    val dto = DutyToReferMapper.toDto(snapshot, crn, createdBy, createdAt, localAuthorityAreaName)
 
-    assertThat(dto.crn).isEqualTo(snapshot.crn)
+    assertThat(dto.caseId).isEqualTo(snapshot.caseId)
+    assertThat(dto.crn).isEqualTo(crn)
     assertThat(dto.status).isEqualTo(DtrStatus.ACCEPTED)
     assertThat(dto.submission).isNotNull()
     val submission = dto.submission!!
@@ -65,16 +67,16 @@ class DutyToReferMapperTest {
   @Test
   fun `applyToEntity should copy all fields from snapshot to entity`() {
     val entityId = UUID.randomUUID()
-    val entityCrn = "X123456"
+    val caseId = UUID.randomUUID()
     val snapshot = buildDutyToReferSnapshot()
     val entity = buildDutyToReferEntity(
       id = entityId,
-      crn = entityCrn,
+      caseId = caseId,
     )
     DutyToReferMapper.applyToEntity(snapshot, entity)
 
     assertThat(entity.id).isEqualTo(entityId)
-    assertThat(entity.crn).isEqualTo(entityCrn)
+    assertThat(entity.caseId).isEqualTo(caseId)
     assertThat(entity.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
     assertThat(entity.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(entity.submissionDate).isEqualTo(snapshot.submissionDate)
@@ -94,7 +96,7 @@ class DutyToReferMapperTest {
     val snapshot = aggregate.snapshot()
 
     assertThat(snapshot.id).isEqualTo(entity.id)
-    assertThat(snapshot.crn).isEqualTo(entity.crn)
+    assertThat(snapshot.caseId).isEqualTo(entity.caseId)
     assertThat(snapshot.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
     assertThat(snapshot.submissionDate).isEqualTo(entity.submissionDate)

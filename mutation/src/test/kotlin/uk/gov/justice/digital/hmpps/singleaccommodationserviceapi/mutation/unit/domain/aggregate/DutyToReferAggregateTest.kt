@@ -18,10 +18,11 @@ class DutyToReferAggregateTest {
 
   private val localAuthorityAreaId = UUID.randomUUID()
   private val submissionDate = LocalDate.of(2026, 1, 15)
+  private val caseId = UUID.randomUUID()
 
   @Test
   fun `create with SUBMITTED status should set all fields and emit domain event`() {
-    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
@@ -31,7 +32,7 @@ class DutyToReferAggregateTest {
 
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.id).isNotNull()
-    assertThat(snapshot.crn).isEqualTo("ABC1234")
+    assertThat(snapshot.caseId).isEqualTo(caseId)
     assertThat(snapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
     assertThat(snapshot.submissionDate).isEqualTo(submissionDate)
     assertThat(snapshot.referenceNumber).isEqualTo("DTR-REF-001")
@@ -46,7 +47,7 @@ class DutyToReferAggregateTest {
   @ParameterizedTest
   @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
   fun `create should throw DutyToReferInvalidStatusException when status is not SUBMITTED`(status: DtrStatus) {
-    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
 
     assertThrows<DutyToReferInvalidStatusException> {
       aggregate.updateDutyToRefer(
@@ -114,7 +115,7 @@ class DutyToReferAggregateTest {
 
   @Test
   fun `pullDomainEvents should clear events after pulling`() {
-    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
@@ -130,7 +131,7 @@ class DutyToReferAggregateTest {
   }
 
   private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
-    val aggregate = DutyToReferAggregate.hydrateNew("ABC1234")
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,

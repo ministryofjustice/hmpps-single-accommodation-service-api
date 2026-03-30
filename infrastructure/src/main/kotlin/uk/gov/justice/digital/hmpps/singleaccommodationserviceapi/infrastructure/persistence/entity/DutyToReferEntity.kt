@@ -13,7 +13,7 @@ import java.util.UUID
 open class DutyToReferEntity(
   @Id
   val id: UUID,
-  val crn: String,
+  val caseId: UUID,
   var localAuthorityAreaId: UUID,
   var referenceNumber: String?,
   var submissionDate: LocalDate,

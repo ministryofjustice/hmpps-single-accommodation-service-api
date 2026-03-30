@@ -14,7 +14,7 @@ object DutyToReferMapper {
 
   fun toEntity(snapshot: DutyToReferSnapshot) = DutyToReferEntity(
     id = snapshot.id,
-    crn = snapshot.crn,
+    caseId = snapshot.caseId,
     localAuthorityAreaId = snapshot.localAuthorityAreaId,
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
@@ -30,7 +30,7 @@ object DutyToReferMapper {
 
   fun toAggregate(entity: DutyToReferEntity): DutyToReferAggregate = DutyToReferAggregate.hydrateExisting(
     id = entity.id,
-    crn = entity.crn,
+    caseId = entity.caseId,
     localAuthorityAreaId = entity.localAuthorityAreaId,
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
@@ -39,11 +39,13 @@ object DutyToReferMapper {
 
   fun toDto(
     snapshot: DutyToReferSnapshot,
+    crn: String,
     createdBy: String,
     createdAt: Instant,
     localAuthorityAreaName: String,
   ) = DutyToReferDto(
-    crn = snapshot.crn,
+    caseId = snapshot.caseId,
+    crn = crn,
     status = DtrStatus.valueOf(snapshot.status.name),
     submission = DtrSubmissionDto(
       id = snapshot.id,
