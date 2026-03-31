@@ -7,11 +7,14 @@ fun expectedGetProposedAccommodationsResponse(
   firstCreatedAt: String,
   secondId: UUID,
   secondCreatedAt: String,
+  crn: String,
+  caseId: UUID,
 ): String = """
 [
   {
     "id" : "$firstId",
-    "crn":"FAKECRN1",
+    "caseId" : "$caseId",
+    "crn":"$crn",
     "name" : "Test Accommodation",
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -39,7 +42,8 @@ fun expectedGetProposedAccommodationsResponse(
   },
   {
     "id" : "$secondId",
-    "crn":"FAKECRN1",
+    "caseId" : "$caseId", 
+    "crn":"$crn",
     "name" : "Test Accommodation",
     "arrangementType" : "PRIVATE",
     "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -70,11 +74,14 @@ fun expectedGetProposedAccommodationsResponse(
 
 fun expectedGetProposedAccommodationByIdResponse(
   id: UUID,
+  caseId: UUID,
+  crn: String,
   createdAt: String,
 ): String = """
 {
   "id" : "$id",
-  "crn":"FAKECRN1",
+  "caseId" : "$caseId",
+  "crn": "$crn",
   "name" : "Test Accommodation",
   "arrangementType" : "PRIVATE",
   "arrangementSubType" : "FRIENDS_OR_FAMILY",
@@ -135,6 +142,8 @@ fun proposedAddressesRequestBody(
 
 fun expectedProposedAddressesResponseBody(
   id: UUID,
+  caseId: UUID,
+  crn: String,
   verificationStatus: String,
   nextAccommodationStatus: String,
   createdBy: String,
@@ -142,7 +151,8 @@ fun expectedProposedAddressesResponseBody(
 ): String = """
 {
   "id" : "$id",
-  "crn":"FAKECRN1",
+  "caseId" : "$caseId",
+  "crn":"$crn",
   "name" : "Mother's caravan",
   "arrangementType" : "PRIVATE",
   "arrangementSubType" : "OTHER",

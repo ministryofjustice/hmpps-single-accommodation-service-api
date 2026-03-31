@@ -10,11 +10,14 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
@@ -33,7 +36,10 @@ class UserAuditIT : IntegrationTestBase() {
   @Autowired
   private lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
 
-  private val crn = "FAKECRN1"
+  @Autowired
+  private lateinit var caseRepository: CaseRepository
+
+  private lateinit var crn: String
   private val usernameOfNewDeliusUser = "newDeliusUser@justice.gov.uk"
 
   private lateinit var beforeTest: Instant
@@ -53,6 +59,8 @@ class UserAuditIT : IntegrationTestBase() {
     beforeTest = Instant.now()
     proposedAccommodationRepository.deleteAll()
     userRepository.deleteAll()
+    crn = UUID.randomUUID().toString()
+    caseRepository.save(buildCaseEntity { withCrn(crn) })
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
@@ -171,15 +179,15 @@ class UserAuditIT : IntegrationTestBase() {
       .withJwt()
       .exchangeSuccessfully()
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findByCrn(crn)
-    assertThat(proposedAccommodationPersistedResult).isNotNull
+    val persistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    assertThat(persistedResult).isNotNull
     assertPersistedProposedAccommodationAuditFields(
-      persistedProposedAccommodationEntity = proposedAccommodationPersistedResult!!,
+      persistedProposedAccommodationEntity = persistedResult,
       authSource,
       expectedCreatedByUsername,
     )
-    assertThat(proposedAccommodationPersistedResult.lastUpdatedAt).isEqualTo(proposedAccommodationPersistedResult.createdAt)
-    return proposedAccommodationPersistedResult
+    assertThat(persistedResult.lastUpdatedAt).isEqualTo(persistedResult.createdAt)
+    return persistedResult
   }
 
   private fun updateAndAssertAuditData(

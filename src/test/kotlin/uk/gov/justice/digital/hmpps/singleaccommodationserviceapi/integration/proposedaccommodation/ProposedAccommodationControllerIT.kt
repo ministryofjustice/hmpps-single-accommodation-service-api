@@ -12,16 +12,20 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
@@ -41,7 +45,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
@@ -56,17 +59,23 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   private lateinit var outboxEventRepository: OutboxEventRepository
 
   @Autowired
+  private lateinit var caseRepository: CaseRepository
+
+  @Autowired
   private lateinit var javers: Javers
 
-  private val crn = "FAKECRN1"
+  private lateinit var crn: String
 
   private lateinit var beforeTest: Instant
+  private lateinit var caseEntity: CaseEntity
 
   @BeforeEach
   fun setup() {
     beforeTest = Instant.now()
     proposedAccommodationRepository.deleteAll()
     outboxEventRepository.deleteAll()
+    crn = UUID.randomUUID().toString()
+    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
@@ -105,6 +114,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
             firstCreatedAt = newerEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             secondId = olderEntity.id,
             secondCreatedAt = olderEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            crn = crn,
+            caseId = caseEntity.id,
           ),
         )
       }
@@ -127,6 +138,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
+            caseId = entity.caseId,
+            crn = crn,
             createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
@@ -152,6 +165,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
+            caseId = entity.caseId,
+            crn = crn,
             createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
@@ -214,11 +229,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findByCrn(crn)!!
+    val proposedAccommodationPersistedResult =
+      proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
     assertPersistedProposedAccommodation(proposedAccommodationPersistedResult)
 
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
+        caseId = caseEntity.id,
+        crn = crn,
         id = proposedAccommodationPersistedResult.id,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
@@ -240,8 +258,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should update proposed-accommodation and return 200 with updated data`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
-        crn = crn,
         name = "Old Name",
+        caseId = caseEntity.id,
         arrangementSubType = AccommodationArrangementSubType.OTHER,
         arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
@@ -270,6 +288,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        caseId = caseEntity.id,
+        crn = crn,
       ),
     )
 
@@ -287,7 +307,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should update proposed-accommodation and not publish domain event when nextAccommodationStatus is NO`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
-        crn = crn,
+        caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
@@ -328,13 +348,15 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should return 404 when CRN does not match proposed-accommodation`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
-        crn = "DIFFERENT_CRN",
+        caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
+    val otherCase = caseRepository.save(buildCaseEntity { withCrn(UUID.randomUUID().toString()) })
+    val otherEntity = proposedAccommodationRepository.save(buildProposedAccommodationEntity(caseId = otherCase.id))
 
-    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
+    restTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
@@ -413,6 +435,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationTimelineResponse(
             proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
+            caseId = caseEntity.id,
             createCommitTime = commitTimesAsc.first().toString(),
             update1CommitTime = commitTimesAsc[1].toString(),
             update2CommitTime = commitTimesAsc[2].toString(),
@@ -440,7 +463,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     postTown: String,
   ): ProposedAccommodationEntity {
     val entity = buildProposedAccommodationEntity(
-      crn = crn,
+      caseId = caseEntity.id,
       postcode = postcode,
       buildingNumber = buildingNumber,
       throughfareName = thoroughfareName,
