@@ -6,7 +6,11 @@ complexity:
     ignoreAnnotated:
       - 'TestData'
   LongParameterList:
+    excludes:
+      - '**Factory.kt'
+      - '**Aggregate.kt'
     active: true
     ignoreAnnotated:
       - 'Configuration'
+      - 'Entity'
       - 'TestData'
