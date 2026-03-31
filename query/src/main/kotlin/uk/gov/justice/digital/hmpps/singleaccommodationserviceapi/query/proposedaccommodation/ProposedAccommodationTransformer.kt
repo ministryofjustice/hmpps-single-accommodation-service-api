@@ -18,10 +18,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 object ProposedAccommodationTransformer {
 
-  fun toAccommodationDetail(entity: ProposedAccommodationEntity, createdBy: String): AccommodationDetail = AccommodationDetail(
+  fun toAccommodationDetail(entity: ProposedAccommodationEntity, crn: String, createdBy: String): AccommodationDetail = AccommodationDetail(
     id = entity.id,
     name = entity.name,
-    crn = entity.crn,
+    caseId = entity.caseId,
+    crn = crn,
     arrangementType = toArrangementType(entity.arrangementType),
     arrangementSubType = entity.arrangementSubType?.let { toArrangementSubType(it) },
     arrangementSubTypeDescription = entity.arrangementSubTypeDescription,

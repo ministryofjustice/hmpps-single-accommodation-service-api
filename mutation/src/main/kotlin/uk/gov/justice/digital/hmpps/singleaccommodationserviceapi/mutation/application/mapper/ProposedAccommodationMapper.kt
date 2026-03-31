@@ -23,7 +23,7 @@ object ProposedAccommodationMapper {
 
   fun toEntity(snapshot: ProposedAccommodationSnapshot) = ProposedAccommodationEntity(
     id = snapshot.id,
-    crn = snapshot.crn,
+    caseId = snapshot.caseId,
     name = snapshot.name,
     arrangementType = EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name),
     arrangementSubType = snapshot.arrangementSubType?.let { EntityAccommodationArrangementSubType.valueOf(it.name) },
@@ -74,7 +74,7 @@ object ProposedAccommodationMapper {
 
   fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
     id = entity.id,
-    crn = entity.crn,
+    caseId = entity.caseId,
     name = entity.name,
     arrangementType = AccommodationArrangementType.valueOf(entity.arrangementType.name),
     arrangementSubType = entity.arrangementSubType?.let { AccommodationArrangementSubType.valueOf(it.name) },
@@ -101,11 +101,13 @@ object ProposedAccommodationMapper {
 
   fun toDto(
     snapshot: ProposedAccommodationSnapshot,
+    crn: String,
     createdBy: String,
     createdAt: Instant,
   ) = AccommodationDetail(
     id = snapshot.id,
-    crn = snapshot.crn,
+    caseId = snapshot.caseId,
+    crn = crn,
     name = snapshot.name,
     arrangementType = snapshot.arrangementType,
     arrangementSubType = snapshot.arrangementSubType,

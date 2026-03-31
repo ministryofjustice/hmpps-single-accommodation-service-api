@@ -16,7 +16,7 @@ import java.util.UUID
 
 class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
-  private val crn: String,
+  private val caseId: UUID,
   private var name: String? = null,
   private var arrangementType: AccommodationArrangementType? = null,
   private var arrangementSubType: AccommodationArrangementSubType? = null,
@@ -32,14 +32,14 @@ class ProposedAccommodationAggregate private constructor(
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
   companion object {
-    fun hydrateNew(crn: String) = ProposedAccommodationAggregate(
+    fun hydrateNew(caseId: UUID) = ProposedAccommodationAggregate(
       id = UUID.randomUUID(),
-      crn = crn,
+      caseId = caseId,
     )
 
     fun hydrateExisting(
       id: UUID,
-      crn: String,
+      caseId: UUID,
       name: String?,
       arrangementType: AccommodationArrangementType,
       arrangementSubType: AccommodationArrangementSubType?,
@@ -53,7 +53,7 @@ class ProposedAccommodationAggregate private constructor(
       endDate: LocalDate?,
     ) = ProposedAccommodationAggregate(
       id = id,
-      crn = crn,
+      caseId = caseId,
       name = name,
       arrangementType = arrangementType,
       arrangementSubType = arrangementSubType,
@@ -123,7 +123,7 @@ class ProposedAccommodationAggregate private constructor(
 
   fun snapshot() = ProposedAccommodationSnapshot(
     id,
-    crn,
+    caseId,
     name,
     arrangementType!!,
     arrangementSubType,
@@ -139,7 +139,7 @@ class ProposedAccommodationAggregate private constructor(
 
   data class ProposedAccommodationSnapshot(
     val id: UUID,
-    val crn: String,
+    val caseId: UUID,
     val name: String?,
     val arrangementType: AccommodationArrangementType,
     val arrangementSubType: AccommodationArrangementSubType?,
