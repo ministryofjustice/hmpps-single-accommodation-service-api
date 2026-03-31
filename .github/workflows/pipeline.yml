@@ -82,7 +82,7 @@ jobs:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
-      push: ${{ inputs.push || true }}
+      push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
       docker_multiplatform: false
   deploy_dev:
     permissions:
