@@ -11,11 +11,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ve
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.String
 
 fun buildAccommodationDetail(
   id: UUID = UUID.randomUUID(),
   name: String? = null,
+  caseId: UUID = UUID.randomUUID(),
   crn: String = "X12345",
   arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
@@ -31,6 +31,7 @@ fun buildAccommodationDetail(
   createdAt: Instant = Instant.now(),
 ) = AccommodationDetail(
   id = id,
+  caseId = caseId,
   crn = crn,
   name = name,
   arrangementType = arrangementType,

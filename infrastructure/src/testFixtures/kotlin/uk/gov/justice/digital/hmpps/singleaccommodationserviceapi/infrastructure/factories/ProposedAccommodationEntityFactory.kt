@@ -7,13 +7,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
+@TestData
 fun buildProposedAccommodationEntity(
   id: UUID = UUID.randomUUID(),
-  crn: String = "X12345",
+  caseId: UUID = UUID.randomUUID(),
   name: String? = "Test Accommodation",
   arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
   arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
@@ -40,7 +42,7 @@ fun buildProposedAccommodationEntity(
   lastUpdatedAt: Instant = Instant.now(),
 ) = ProposedAccommodationEntity(
   id = id,
-  crn = crn,
+  caseId = caseId,
   name = name,
   arrangementType = arrangementType,
   arrangementSubType = arrangementSubType,

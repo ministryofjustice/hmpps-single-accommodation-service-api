@@ -32,6 +32,7 @@ class ProposedAccommodationTransformerTest {
     @Test
     fun `should transform entity to AccommodationDetail with all fields`() {
       val id = UUID.randomUUID()
+      val crn = UUID.randomUUID().toString()
       val createdAt = Instant.parse("2024-01-15T10:00:00Z")
       val startDate = LocalDate.of(2024, 2, 1)
       val endDate = LocalDate.of(2024, 6, 30)
@@ -62,9 +63,11 @@ class ProposedAccommodationTransformerTest {
         createdAt = createdAt,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, createdBy)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, crn, createdBy)
 
       assertThat(result.id).isEqualTo(id)
+      assertThat(result.caseId).isEqualTo(entity.caseId)
+      assertThat(result.crn).isEqualTo(crn)
       assertThat(result.name).isEqualTo("Test Name")
       assertThat(result.arrangementType).isEqualTo(AccommodationArrangementType.PRIVATE)
       assertThat(result.arrangementSubType).isEqualTo(AccommodationArrangementSubType.FRIENDS_OR_FAMILY)
@@ -81,6 +84,7 @@ class ProposedAccommodationTransformerTest {
 
     @Test
     fun `should handle nullable fields correctly`() {
+      val crn = UUID.randomUUID().toString()
       val entity = buildProposedAccommodationEntity(
         name = null,
         arrangementSubType = null,
@@ -102,9 +106,10 @@ class ProposedAccommodationTransformerTest {
         uprn = null,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, createdBy)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, crn, createdBy)
 
       assertThat(result.name).isNull()
+      assertThat(result.crn).isEqualTo(crn)
       assertThat(result.arrangementSubType).isNull()
       assertThat(result.arrangementSubTypeDescription).isNull()
       assertThat(result.verificationStatus).isNull()

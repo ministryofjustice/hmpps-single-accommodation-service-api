@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
+import java.util.UUID
 
 class ProposedAccommodationAggregateTest {
   private val accommodationDetails = buildAccommodationDetail(
@@ -138,7 +139,7 @@ class ProposedAccommodationAggregateTest {
     accommodationArrangementSubType: AccommodationArrangementSubType? = accommodationDetails.arrangementSubType,
     accommodationArrangementSubTypeDescription: String? = accommodationDetails.arrangementSubTypeDescription,
   ): ProposedAccommodationAggregate {
-    val aggregate = ProposedAccommodationAggregate.hydrateNew(crn = "ABC1234")
+    val aggregate = ProposedAccommodationAggregate.hydrateNew(caseId = UUID.randomUUID())
     aggregate.updateProposedAccommodation(
       newName = accommodationDetails.name,
       newArrangementType = accommodationDetails.arrangementType,

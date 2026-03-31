@@ -20,7 +20,7 @@ fun buildProposedAccommodationSnapshot(
   offenderReleaseType: OffenderReleaseType? = OffenderReleaseType.REMAND,
 ) = ProposedAccommodationSnapshot(
   id = UUID.randomUUID(),
-  crn = "X123456",
+  caseId = UUID.randomUUID(),
   name = "Test Accommodation",
   arrangementType = arrangementType,
   arrangementSubType = arrangementSubType,
