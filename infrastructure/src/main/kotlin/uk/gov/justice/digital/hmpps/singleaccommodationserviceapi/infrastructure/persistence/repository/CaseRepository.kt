@@ -33,6 +33,20 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
   )
   fun findByIdentifiers(prisonNumbers: List<String>?, crns: List<String>?): CaseEntity?
 
+  @Query(
+    """
+SELECT identifier
+FROM unnest((:crns)::text[]) AS identifier
+WHERE identifier NOT IN (
+  SELECT identifier 
+  FROM sas_case_identifier 
+  WHERE identifier_type = 'CRN'
+);
+  """,
+    nativeQuery = true,
+  )
+  fun findMissingCrns(crns: Array<String>): List<String>
+
   fun findByCrn(crn: String) = findByIdentifier(crn, IdentifierType.CRN)
   fun findByPrisonNumber(prisonNumber: String) = findByIdentifier(prisonNumber, IdentifierType.PRISON_NUMBER)
 }

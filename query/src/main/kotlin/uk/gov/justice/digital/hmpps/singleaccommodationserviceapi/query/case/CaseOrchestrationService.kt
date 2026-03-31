@@ -4,12 +4,15 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.ProbationIntegrationDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.ProbationIntegrationOasysCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.ProbationIntegrationSasDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
 
@@ -17,10 +20,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class CaseOrchestrationService(
   val aggregatorService: AggregatorService,
   val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
+  val probationIntegrationSasDeliusCachingService: ProbationIntegrationSasDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
 ) {
+  fun getCaseList(username: String): CaseList {
+    val bulkCall = mapOf(
+      GET_CASE_LIST to { probationIntegrationSasDeliusCachingService.getCaseList(username) },
+    )
+
+    val results = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = bulkCall,
+    )
+    return results.standardCallsNoIterationResults
+      ?.get(GET_CASE_LIST) as? CaseList
+      ?: CaseList(emptyList())
+  }
 
   fun getCases(crns: List<String>): List<CaseOrchestrationDto> {
     val bulkCall = mapOf(

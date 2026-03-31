@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
@@ -10,8 +13,19 @@ import java.util.UUID
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
   tierScore: TierScore? = TierScore.A1,
+  cas1ApplicationId: UUID? = null,
+  cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
+  cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
+  cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
   customise: (CaseEntity.() -> Unit)? = null,
-) = CaseEntity(id = id, tierScore = tierScore).also { case ->
+) = CaseEntity(
+  id = id,
+  tierScore = tierScore,
+  cas1ApplicationId = cas1ApplicationId,
+  cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
+  cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
+  cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+).also { case ->
 
   if (customise != null) {
     case.customise()

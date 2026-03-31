@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -71,13 +72,20 @@ class CaseTransformerTest {
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",
+      tierScore = TierScore.C1,
       tier = TierScore.C1,
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
-      assignedTo = AssignedToDto(1L, name = "Team 1"),
+      assignedTo = AssignedToDto(
+        1L,
+        name = "Team 1",
+        username = "Team 1",
+      ),
       photoUrl = null,
       currentAccommodation = null,
       nextAccommodation = null,
+      status = Status.RISK_OF_NO_FIXED_ABODE,
+      actions = emptyList(),
     )
 
     @JvmStatic
