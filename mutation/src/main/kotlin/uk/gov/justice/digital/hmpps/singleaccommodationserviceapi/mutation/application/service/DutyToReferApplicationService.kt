@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import java.time.Instant
 import java.util.UUID
@@ -55,21 +56,24 @@ class DutyToReferApplicationService(
 
   @Transactional
   fun updateDutyToRefer(crn: String, id: UUID, command: DtrCommand): DutyToReferDto {
-    val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
-    val dtr = dutyToReferRepository.findByIdAndCaseId(id, case.id).orThrowNotFound("id" to id, "crn" to crn)
-    val aggregate = DutyToReferMapper.toAggregate(dtr)
-    aggregate.updateDutyToRefer(
-      localAuthorityAreaId = command.localAuthorityAreaId,
-      submissionDate = command.submissionDate,
-      referenceNumber = command.referenceNumber,
-      status = command.status,
-    )
-    DutyToReferMapper.applyToEntity(aggregate.snapshot(), dtr)
-    val updatedRecord = dutyToReferRepository.save(dtr)
+    val dtr = dutyToReferRepository.findByIdAndCrn(id, crn)
+      .orThrowNotFound("id" to id, "crn" to crn)
+    val createdByUser = userService.findUserByUserId(dtr.createdByUserId!!)
+      .orThrowNotFound("createdByUserId" to dtr.createdByUserId!!)
+    val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(command.localAuthorityAreaId)
+      .orThrowNotFound("localAuthorityAreaId" to command.localAuthorityAreaId)
+
+    val aggregate = DutyToReferMapper.toAggregate(dtr).also {
+      it.updateDutyToRefer(
+        localAuthorityAreaId = command.localAuthorityAreaId,
+        submissionDate = command.submissionDate,
+        referenceNumber = command.referenceNumber,
+        status = command.status,
+      )
+    }
+    val updatedRecord = dutyToReferRepository.save(merge(aggregate.snapshot(), dtr))
     pullEventAndPersistToOutbox(aggregate)
 
-    val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!).orThrowNotFound("createdByUserId" to updatedRecord.createdByUserId!!)
-    val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(updatedRecord.localAuthorityAreaId)!!
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,

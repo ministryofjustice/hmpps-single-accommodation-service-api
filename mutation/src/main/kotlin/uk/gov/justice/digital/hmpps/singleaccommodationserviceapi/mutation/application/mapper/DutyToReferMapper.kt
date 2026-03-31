@@ -21,11 +21,12 @@ object DutyToReferMapper {
     status = EntityDtrStatus.valueOf(snapshot.status.name),
   )
 
-  fun applyToEntity(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity) {
+  fun merge(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity): DutyToReferEntity {
     entity.localAuthorityAreaId = snapshot.localAuthorityAreaId
     entity.referenceNumber = snapshot.referenceNumber
     entity.submissionDate = snapshot.submissionDate
     entity.status = EntityDtrStatus.valueOf(snapshot.status.name)
+    return entity
   }
 
   fun toAggregate(entity: DutyToReferEntity): DutyToReferAggregate = DutyToReferAggregate.hydrateExisting(

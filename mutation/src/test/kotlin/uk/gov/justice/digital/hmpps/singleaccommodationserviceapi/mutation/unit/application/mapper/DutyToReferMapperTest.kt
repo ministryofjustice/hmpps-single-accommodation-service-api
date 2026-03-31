@@ -65,7 +65,7 @@ class DutyToReferMapperTest {
   }
 
   @Test
-  fun `applyToEntity should copy all fields from snapshot to entity`() {
+  fun merge() {
     val entityId = UUID.randomUUID()
     val caseId = UUID.randomUUID()
     val snapshot = buildDutyToReferSnapshot()
@@ -73,7 +73,7 @@ class DutyToReferMapperTest {
       id = entityId,
       caseId = caseId,
     )
-    DutyToReferMapper.applyToEntity(snapshot, entity)
+    DutyToReferMapper.merge(snapshot, entity)
 
     assertThat(entity.id).isEqualTo(entityId)
     assertThat(entity.caseId).isEqualTo(caseId)
