@@ -17,7 +17,7 @@ class CaseMapperTest {
 
   @Test
   fun `toAggregate maps all fields correctly`() {
-    val caseEntity = buildCaseEntity(tier = TierScore.A1)
+    val caseEntity = buildCaseEntity(tierScore = TierScore.A1)
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
 
@@ -36,25 +36,25 @@ class CaseMapperTest {
           )
       },
       {
-        assertThat(snapshot.tier).isNotNull.isEqualTo(caseEntity.tierScore)
+        assertThat(snapshot.tierScore).isNotNull.isEqualTo(caseEntity.tierScore)
       },
     )
   }
 
   @Test
   fun `toAggregate maps nullable tier enum fields as null`() {
-    val caseEntity = buildCaseEntity(tier = null)
+    val caseEntity = buildCaseEntity(tierScore = null)
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
 
-    assertThat(snapshot.tier).isNull()
+    assertThat(snapshot.tierScore).isNull()
   }
 
   @Test
   fun `merge updates the entity correctly`() {
     val id = UUID.randomUUID()
     val identifier = UUID.randomUUID().toString()
-    val caseEntity = buildCaseEntity(id = id, tier = null) { withCrn(identifier) }
+    val caseEntity = buildCaseEntity(id = id, tierScore = null) { withCrn(identifier) }
     val caseAggregate = CaseAggregate.createNew(
       id,
       mutableSetOf(
@@ -99,7 +99,7 @@ class CaseMapperTest {
     val identifier2 = "CRN2"
     val identifier3 = "PRI1"
     val identifier4 = "PRI2"
-    val caseEntity = buildCaseEntity(id = id, tier = null) {
+    val caseEntity = buildCaseEntity(id = id, tierScore = null) {
       withCrn(identifier1)
       withPrisonNumber(identifier3)
     }

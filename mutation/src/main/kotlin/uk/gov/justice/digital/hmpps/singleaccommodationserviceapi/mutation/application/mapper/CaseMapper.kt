@@ -27,7 +27,7 @@ object CaseMapper {
     snapshot: CaseAggregate.CaseSnapshot,
     identifiers: Map<String, IdentifierType>? = null,
   ): CaseEntity {
-    entity.tierScore = snapshot.tier
+    entity.tierScore = snapshot.tierScore
     identifiers?.let { entity.addMissingIdentifiers(it) }
 
     return entity

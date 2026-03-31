@@ -111,7 +111,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes only maxEventsPerBatch events per invocation`() {
       val crns = listOf("X123451", "X123452", "X123453", "X123454", "X123455")
-      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
+      val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
 
       crns.forEach {
@@ -154,7 +154,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes events in eventOccurredAt ascending order`() {
       val crns = listOf("X123451", "X123452", "X123453")
-      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
+      val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
 
       crns.forEach {
@@ -217,7 +217,7 @@ class InboxEventDispatcherIT {
     @Test
     fun `processes concurrent events for same CRN without creating duplicate case rows`() {
       val sharedCrn = "X123456"
-      val caseEntity = buildCaseEntity(tier = null) { withCrn(sharedCrn) }
+      val caseEntity = buildCaseEntity(tierScore = null) { withCrn(sharedCrn) }
       caseRepository.save(caseEntity)
 
       TierStubs.getTierOKResponse(
@@ -257,13 +257,14 @@ class InboxEventDispatcherIT {
   @Nested
   inner class InboxEventDispatcherSemaphoreIT : InboxEventDispatcherITBase() {
 
-    @Autowired lateinit var concurrencyCounter: ConcurrencyCounter
+    @Autowired
+    lateinit var concurrencyCounter: ConcurrencyCounter
 
     @Test
     fun `processes at most 4 events concurrently due to semaphore limit`() {
       val crns = (1..5).map { "X12345$it" }
 
-      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
+      val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
       crns.forEach {
         TierStubs.getTierOKResponse(
@@ -300,7 +301,7 @@ class InboxEventDispatcherIT {
     fun `processes multiple events concurrently using coroutines`() {
       val delayMs = 200
       val crns = listOf("X123451", "X123452", "X123453", "X123454")
-      val caseEntities = crns.map { buildCaseEntity(tier = null) { withCrn(it) } }
+      val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
       caseRepository.saveAll(caseEntities)
 
       crns.forEach {

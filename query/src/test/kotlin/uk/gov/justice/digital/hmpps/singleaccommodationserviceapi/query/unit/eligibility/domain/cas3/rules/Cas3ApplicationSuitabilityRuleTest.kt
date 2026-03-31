@@ -18,7 +18,7 @@ import java.time.LocalDate
 class Cas3ApplicationSuitabilityRuleTest {
   private val crn = "ABC234"
   private val male = SexCode.M
-  private val tier = TierScore.A1
+  private val tierScore = TierScore.A1
   private val description = "FAIL if candidate does not have a suitable application"
 
   @ParameterizedTest(name = "{0}")
@@ -26,7 +26,7 @@ class Cas3ApplicationSuitabilityRuleTest {
   fun `application is suitable (not PLACED) so rule passes`(applicationStatus: Cas3ApplicationStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
@@ -49,7 +49,7 @@ class Cas3ApplicationSuitabilityRuleTest {
   fun `application is suitable (PLACED) so rule passes`(placementStatus: Cas3PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
@@ -73,7 +73,7 @@ class Cas3ApplicationSuitabilityRuleTest {
   fun `application does not have a suitable status so rule fails`(applicationStatus: Cas3ApplicationStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
@@ -95,7 +95,7 @@ class Cas3ApplicationSuitabilityRuleTest {
   fun `application is not present so rule fails`() {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = null,

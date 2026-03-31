@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 fun buildDomainData(
   crn: String = "CR12345N",
-  tier: TierScore = TierScore.A1,
+  tierScore: TierScore = TierScore.A1,
   sex: SexCode = SexCode.M,
   releaseDate: LocalDate? = LocalDate.now()
     .plusYears(1),
@@ -21,7 +21,7 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
 ) = DomainData(
   crn = crn,
-  tierScore = tier,
+  tierScore = tierScore,
   sex = sex,
   releaseDate = releaseDate,
   currentAccommodationArrangementType = currentAccommodationArrangementType,

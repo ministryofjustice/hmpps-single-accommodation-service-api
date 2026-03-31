@@ -18,7 +18,7 @@ import java.time.LocalDate
 class NoConflictingCas1BookingRuleTest {
   private val crn = "ABC234"
   private val male = SexCode.M
-  private val tier = TierScore.A1
+  private val tierScore = TierScore.A1
   private val description = "FAIL if CAS1 booking exists for upcoming release"
 
   @ParameterizedTest(name = "{0}")
@@ -26,7 +26,7 @@ class NoConflictingCas1BookingRuleTest {
   fun `CAS1 booking exists so rule fails`(placementStatus: Cas1PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
@@ -50,7 +50,7 @@ class NoConflictingCas1BookingRuleTest {
   fun `CAS1 application is PLACEMENT_ALLOCATED but placement is not active so rule passes`(placementStatus: Cas1PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
@@ -74,7 +74,7 @@ class NoConflictingCas1BookingRuleTest {
   fun `CAS1 application is not PLACEMENT_ALLOCATED so rule passes`(applicationStatus: Cas1ApplicationStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
@@ -96,7 +96,7 @@ class NoConflictingCas1BookingRuleTest {
   fun `CAS1 application is not present so rule passes`() {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = null,
