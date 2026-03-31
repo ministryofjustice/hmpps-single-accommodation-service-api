@@ -22,7 +22,7 @@ import java.util.UUID
 class Cas3ActionTransformerTest {
   private val crn = "ABC234"
   private val clock = MutableClock()
-  private val tier = TierScore.A1
+  private val tierScore = TierScore.A1
 
   @Test
   fun `Build action when release date is 3 days in future and no application`() {
@@ -108,7 +108,7 @@ class Cas3ActionTransformerTest {
 
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = cas3Application,
@@ -130,7 +130,7 @@ class Cas3ActionTransformerTest {
 
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = cas3Application,
@@ -145,7 +145,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when application is REQUESTED_FURTHER_INFORMATION`() {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
@@ -171,7 +171,7 @@ class Cas3ActionTransformerTest {
 
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusDays(10),
       cas3Application = cas3Application,
@@ -186,7 +186,7 @@ class Cas3ActionTransformerTest {
   fun `Error when application status is PLACED but placement status is null`() {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(
@@ -206,7 +206,7 @@ class Cas3ActionTransformerTest {
   fun `Error when application status is PLACED but placement status is completed`(status: Cas3PlacementStatus) {
     val data = DomainData(
       crn = crn,
-      tierScore = tier,
+      tierScore = tierScore,
       sex = SexCode.M,
       releaseDate = LocalDate.now().plusMonths(1),
       cas3Application = Cas3Application(

@@ -29,7 +29,7 @@ class CaseAggregateTest {
     assertThat(hydrated.snapshot()).satisfies(
       {
         assertThat(it.id).isEqualTo(id)
-        assertThat(it.tier).isEqualTo(tierScore)
+        assertThat(it.tierScore).isEqualTo(tierScore)
         assertThat(it.caseIdentifiers).isEqualTo(caseIdentifiers)
       },
     )
@@ -42,7 +42,7 @@ class CaseAggregateTest {
       CaseSnapshot(
         id = id,
         caseIdentifiers = caseIdentifiers,
-        tier = null,
+        tierScore = null,
       ),
     )
   }
@@ -55,10 +55,10 @@ class CaseAggregateTest {
     )
 
     val beforeUpdate = aggregate.snapshot()
-    assertThat(beforeUpdate.tier).isNull()
+    assertThat(beforeUpdate.tierScore).isNull()
 
     aggregate.updateTier(TierScore.A1)
     val afterUpdate = aggregate.snapshot()
-    assertThat(afterUpdate.tier).isEqualTo(TierScore.A1)
+    assertThat(afterUpdate.tierScore).isEqualTo(TierScore.A1)
   }
 }

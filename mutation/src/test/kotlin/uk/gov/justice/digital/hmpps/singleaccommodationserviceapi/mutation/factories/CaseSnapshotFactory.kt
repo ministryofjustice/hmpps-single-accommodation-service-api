@@ -9,9 +9,9 @@ import java.util.UUID
 fun buildCaseSnapshot(
   identifier: String = "X123456",
   identifierType: IdentifierType = IdentifierType.CRN,
-  tier: TierScore? = null,
+  tierScore: TierScore? = null,
 ) = CaseSnapshot(
   id = UUID.randomUUID(),
   caseIdentifiers = setOf(CaseAggregate.CaseIdentifier(UUID.randomUUID(), identifier, identifierType)),
-  tier = tier,
+  tierScore = tierScore,
 )

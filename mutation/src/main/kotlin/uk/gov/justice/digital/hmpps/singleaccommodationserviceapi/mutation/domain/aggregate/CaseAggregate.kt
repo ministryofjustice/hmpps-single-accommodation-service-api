@@ -6,7 +6,7 @@ import java.util.UUID
 
 class CaseAggregate private constructor(
   private val id: UUID,
-  private var tier: TierScore? = null,
+  private var tierScore: TierScore? = null,
   private val caseIdentifiers: MutableSet<CaseIdentifier> = mutableSetOf(),
 ) {
   companion object {
@@ -16,7 +16,7 @@ class CaseAggregate private constructor(
       caseIdentifiers: MutableSet<CaseIdentifier>,
     ) = CaseAggregate(
       id = id,
-      tier = tierScore,
+      tierScore = tierScore,
       caseIdentifiers = caseIdentifiers,
     )
 
@@ -29,13 +29,13 @@ class CaseAggregate private constructor(
   fun updateTier(
     tierScore: TierScore,
   ) {
-    this.tier = tierScore
+    this.tierScore = tierScore
   }
 
   data class CaseSnapshot(
     val id: UUID,
     val caseIdentifiers: Set<CaseIdentifier>,
-    val tier: TierScore?,
+    val tierScore: TierScore?,
   )
 
   data class CaseIdentifier(
@@ -44,5 +44,5 @@ class CaseAggregate private constructor(
     val identifierType: IdentifierType,
   )
 
-  fun snapshot() = CaseSnapshot(id, caseIdentifiers, tier)
+  fun snapshot() = CaseSnapshot(id, caseIdentifiers, tierScore)
 }
