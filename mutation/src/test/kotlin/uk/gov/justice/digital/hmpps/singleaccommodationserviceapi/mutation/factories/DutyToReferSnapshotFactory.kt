@@ -7,14 +7,14 @@ import java.util.UUID
 
 fun buildDutyToReferSnapshot(
   id: UUID = UUID.randomUUID(),
-  crn: String = "X123456",
+  caseId: UUID = UUID.randomUUID(),
   localAuthorityAreaId: UUID = UUID.randomUUID(),
   referenceNumber: String? = "DTR-REF-001",
   submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
   status: DtrStatus = DtrStatus.SUBMITTED,
 ) = DutyToReferSnapshot(
   id = id,
-  crn = crn,
+  caseId = caseId,
   localAuthorityAreaId = localAuthorityAreaId,
   referenceNumber = referenceNumber,
   submissionDate = submissionDate,

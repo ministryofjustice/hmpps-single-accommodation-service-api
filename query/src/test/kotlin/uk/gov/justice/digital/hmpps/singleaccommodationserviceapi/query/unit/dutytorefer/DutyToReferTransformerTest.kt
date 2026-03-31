@@ -20,9 +20,12 @@ class DutyToReferTransformerTest {
 
     @Test
     fun `should return NOT_STARTED status with null submission`() {
-      val dto = DutyToReferTransformer.toNotStartedDto("X12345")
+      val caseId = UUID.randomUUID()
+      val crn = UUID.randomUUID().toString()
+      val dto = DutyToReferTransformer.toNotStartedDto(caseId = caseId, crn = crn)
 
-      assertThat(dto.crn).isEqualTo("X12345")
+      assertThat(dto.crn).isEqualTo(crn)
+      assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.status).isEqualTo(DtrStatus.NOT_STARTED)
       assertThat(dto.submission).isNull()
     }
@@ -34,14 +37,17 @@ class DutyToReferTransformerTest {
 
     @Test
     fun `should map all fields correctly`() {
+      val caseId = UUID.randomUUID()
+      val crn = UUID.randomUUID().toString()
       val entity = buildDutyToReferEntity(
-        crn = "X12345",
+        caseId = caseId,
         status = EntityDtrStatus.SUBMITTED,
       )
 
-      val dto = DutyToReferTransformer.toDutyToReferDto(entity, createdByName, "Test Local Authority")
+      val dto = DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByName, "Test Local Authority")
 
-      assertThat(dto.crn).isEqualTo("X12345")
+      assertThat(dto.caseId).isEqualTo(caseId)
+      assertThat(dto.crn).isEqualTo(crn)
       assertThat(dto.status).isEqualTo(DtrStatus.SUBMITTED)
       assertThat(dto.submission).isNotNull()
     }

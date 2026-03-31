@@ -22,6 +22,7 @@ fun createDtrRequestBody(
 
 fun expectedDtrResponseBody(
   id: UUID,
+  caseId: UUID,
   crn: String,
   localAuthorityAreaId: UUID,
   localAuthorityAreaName: String? = null,
@@ -32,6 +33,7 @@ fun expectedDtrResponseBody(
   createdAt: String,
 ): String = """
 {
+  "caseId": "$caseId",
   "crn": "$crn",
   "status": "$status",
   "submission": {
@@ -48,8 +50,9 @@ fun expectedDtrResponseBody(
 }
 """.trimIndent()
 
-fun expectedNotStartedDtrResponseBody(crn: String): String = """
+fun expectedNotStartedDtrResponseBody(caseId: UUID, crn: String): String = """
 {
+  "caseId": "$caseId",
   "crn": "$crn",
   "status": "NOT_STARTED",
   "submission": null

@@ -14,23 +14,24 @@ object DutyToReferMapper {
 
   fun toEntity(snapshot: DutyToReferSnapshot) = DutyToReferEntity(
     id = snapshot.id,
-    crn = snapshot.crn,
+    caseId = snapshot.caseId,
     localAuthorityAreaId = snapshot.localAuthorityAreaId,
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
     status = EntityDtrStatus.valueOf(snapshot.status.name),
   )
 
-  fun applyToEntity(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity) {
+  fun merge(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity): DutyToReferEntity {
     entity.localAuthorityAreaId = snapshot.localAuthorityAreaId
     entity.referenceNumber = snapshot.referenceNumber
     entity.submissionDate = snapshot.submissionDate
     entity.status = EntityDtrStatus.valueOf(snapshot.status.name)
+    return entity
   }
 
   fun toAggregate(entity: DutyToReferEntity): DutyToReferAggregate = DutyToReferAggregate.hydrateExisting(
     id = entity.id,
-    crn = entity.crn,
+    caseId = entity.caseId,
     localAuthorityAreaId = entity.localAuthorityAreaId,
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
@@ -39,11 +40,13 @@ object DutyToReferMapper {
 
   fun toDto(
     snapshot: DutyToReferSnapshot,
+    crn: String,
     createdBy: String,
     createdAt: Instant,
     localAuthorityAreaName: String,
   ) = DutyToReferDto(
-    crn = snapshot.crn,
+    caseId = snapshot.caseId,
+    crn = crn,
     status = DtrStatus.valueOf(snapshot.status.name),
     submission = DtrSubmissionDto(
       id = snapshot.id,

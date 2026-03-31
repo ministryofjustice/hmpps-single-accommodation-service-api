@@ -2,13 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
+@TestData
 fun buildDutyToReferEntity(
   id: UUID = UUID.randomUUID(),
-  crn: String = "X12345",
+  caseId: UUID = UUID.randomUUID(),
   localAuthorityAreaId: UUID = UUID.randomUUID(),
   referenceNumber: String? = "DTR-REF-001",
   submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
@@ -19,7 +21,7 @@ fun buildDutyToReferEntity(
   lastUpdatedAt: Instant = Instant.now(),
 ) = DutyToReferEntity(
   id = id,
-  crn = crn,
+  caseId = caseId,
   localAuthorityAreaId = localAuthorityAreaId,
   referenceNumber = referenceNumber,
   submissionDate = submissionDate,

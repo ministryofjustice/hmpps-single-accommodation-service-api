@@ -29,4 +29,9 @@ class CaseEntity(
   )
   var caseIdentifiers: MutableSet<CaseIdentifierEntity> = mutableSetOf(),
 
-)
+) {
+  fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }
+    .sortedByDescending { it.createdAt }
+    .first()
+    .identifier
+}
