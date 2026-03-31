@@ -19,6 +19,19 @@ class CaseMutationOrchestrationService(
   val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
 
+  fun getCase(crn: String): CaseMutationOrchestrationDto {
+    val calls = mapOf(
+      ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
+      ApiCallKeys.GET_CAS_1_APPLICATION to { approvedPremisesCachingService.getSuitableCas1Application(crn) },
+    )
+    val results = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = calls,
+    )
+    val tier = results.standardCallsNoIterationResults!![ApiCallKeys.GET_TIER] as? Tier
+    val cas1Application = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CAS_1_APPLICATION] as? Cas1Application
+    return CaseMutationOrchestrationDto(crn, cpr = null, tier, cas1Application)
+  }
+
   fun getCases(crns: List<String>): List<CaseMutationOrchestrationDto> {
     val callsPerIdentifier = mapOf(
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String -> corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },

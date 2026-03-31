@@ -8,6 +8,10 @@ enum class IncomingHmppsDomainEventType(
     "tier.calculation.complete",
     "Tier calculation complete from Tier service",
   ),
+  CASE_ALLOCATED(
+    "person.community.manager.allocated",
+    "Case Allocated to Probation Practitioner",
+  ),
   ;
 
   companion object {

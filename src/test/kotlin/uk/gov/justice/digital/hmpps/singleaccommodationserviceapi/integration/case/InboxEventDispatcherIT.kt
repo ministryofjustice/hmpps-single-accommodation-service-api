@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -79,9 +79,8 @@ class InboxEventDispatcherIT {
       val baseUrl = applicationContext.environment.getProperty("service.tier.base-url")
       val detailUrl = "$baseUrl/crn/$crn/tier"
       val payload =
-        TierDomainEvent(
+        SnsDomainEvent(
           eventType = "tier.calculation.complete",
-          externalId = UUID.randomUUID(),
           version = 1,
           description = "Tier calculation complete",
           detailUrl = detailUrl,
@@ -132,7 +131,7 @@ class InboxEventDispatcherIT {
 
       val processed =
         inboxEventRepository.findAllByProcessedStatus(
-          ProcessedStatus.SUCCESS,
+          ProcessedStatus.PROCESSED,
           PageRequest.of(0, 20, Sort.by("eventOccurredAt").ascending()),
         )
       val pending =
@@ -180,7 +179,7 @@ class InboxEventDispatcherIT {
       val firstProcessed =
         inboxEventRepository
           .findAllByProcessedStatus(
-            ProcessedStatus.SUCCESS,
+            ProcessedStatus.PROCESSED,
             PageRequest.of(0, 10, Sort.by("processedAt").ascending()),
           )
           .single()
@@ -189,7 +188,7 @@ class InboxEventDispatcherIT {
       val secondProcessed =
         inboxEventRepository
           .findAllByProcessedStatus(
-            ProcessedStatus.SUCCESS,
+            ProcessedStatus.PROCESSED,
             PageRequest.of(0, 10, Sort.by("processedAt").ascending()),
           )
           .last()
@@ -198,7 +197,7 @@ class InboxEventDispatcherIT {
       val thirdProcessed =
         inboxEventRepository
           .findAllByProcessedStatus(
-            ProcessedStatus.SUCCESS,
+            ProcessedStatus.PROCESSED,
             PageRequest.of(0, 10, Sort.by("processedAt").ascending()),
           )
           .last()
@@ -235,7 +234,7 @@ class InboxEventDispatcherIT {
 
       inboxEventDispatcher.process()
 
-      assertThat(inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.SUCCESS, PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()))).hasSize(2)
+      assertThat(inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PROCESSED, PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()))).hasSize(2)
       assertThat(caseRepository.findAll()).hasSize(1)
       assertThat(
         caseRepository.findByIdentifier(
@@ -257,8 +256,7 @@ class InboxEventDispatcherIT {
   @Nested
   inner class InboxEventDispatcherSemaphoreIT : InboxEventDispatcherITBase() {
 
-    @Autowired
-    lateinit var concurrencyCounter: ConcurrencyCounter
+    @Autowired lateinit var concurrencyCounter: ConcurrencyCounter
 
     @Test
     fun `processes at most 4 events concurrently due to semaphore limit`() {
@@ -284,7 +282,7 @@ class InboxEventDispatcherIT {
 
       val processed =
         inboxEventRepository.findAllByProcessedStatus(
-          ProcessedStatus.SUCCESS,
+          ProcessedStatus.PROCESSED,
           PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
         )
       assertThat(processed).hasSize(5)
@@ -325,7 +323,7 @@ class InboxEventDispatcherIT {
 
       val processed =
         inboxEventRepository.findAllByProcessedStatus(
-          ProcessedStatus.SUCCESS,
+          ProcessedStatus.PROCESSED,
           PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
         )
       assertThat(processed).hasSize(4)

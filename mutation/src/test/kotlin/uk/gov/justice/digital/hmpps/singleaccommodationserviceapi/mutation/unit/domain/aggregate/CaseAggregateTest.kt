@@ -6,23 +6,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseSnapshot
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildCaseMutationOrchestrationDto
 import java.util.UUID
 
 class CaseAggregateTest {
-
   private val id = UUID.randomUUID()
-  private val crn = UUID.randomUUID().toString()
-  private val caseIdentifiers = mutableSetOf(
-    CaseAggregate.CaseIdentifier(UUID.randomUUID(), crn, IdentifierType.CRN),
-  )
+  private val cas1ApplicationId = UUID.randomUUID()
 
   @Test
   fun `hydrate loads aggregate correctly`() {
@@ -35,7 +24,6 @@ class CaseAggregateTest {
     val hydrated = CaseAggregate.hydrate(
       id = id,
       tierScore = tierScore,
-      caseIdentifiers = caseIdentifiers,
       cas1ApplicationId = cas1ApplicationId,
       cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
       cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
@@ -46,7 +34,6 @@ class CaseAggregateTest {
       {
         assertThat(it.id).isEqualTo(id)
         assertThat(it.tierScore).isEqualTo(tierScore)
-        assertThat(it.caseIdentifiers).isEqualTo(caseIdentifiers)
         assertThat(it.cas1ApplicationId).isEqualTo(cas1ApplicationId)
         assertThat(it.cas1ApplicationApplicationStatus).isEqualTo(cas1ApplicationApplicationStatus)
         assertThat(it.cas1ApplicationRequestForPlacementStatus).isEqualTo(cas1ApplicationRequestForPlacementStatus)
@@ -57,26 +44,18 @@ class CaseAggregateTest {
 
   @Test
   fun `createNew prepares aggregate`() {
-    val newAggregate = CaseAggregate.createNew(id = id, caseIdentifiers = caseIdentifiers)
-    assertThat(newAggregate.snapshot()).isEqualTo(
-      CaseSnapshot(
-        id = id,
-        caseIdentifiers = caseIdentifiers,
-        tierScore = null,
-        cas1ApplicationId = null,
-        cas1ApplicationApplicationStatus = null,
-        cas1ApplicationRequestForPlacementStatus = null,
-        cas1ApplicationPlacementStatus = null,
-      ),
-    )
+    val newAggregate = CaseAggregate.hydrateNew()
+    assertThat(newAggregate.snapshot().id).isNotNull()
+    assertThat(newAggregate.snapshot().tierScore).isNull()
+    assertThat(newAggregate.snapshot().cas1ApplicationId).isNull()
+    assertThat(newAggregate.snapshot().cas1ApplicationApplicationStatus).isNull()
+    assertThat(newAggregate.snapshot().cas1ApplicationRequestForPlacementStatus).isNull()
+    assertThat(newAggregate.snapshot().cas1ApplicationPlacementStatus).isNull()
   }
 
   @Test
   fun `updateTier() should update TierScore`() {
-    val aggregate = CaseAggregate.createNew(
-      id = id,
-      caseIdentifiers = caseIdentifiers,
-    )
+    val aggregate = CaseAggregate.hydrateNew()
 
     val beforeUpdate = aggregate.snapshot()
     assertThat(beforeUpdate.tierScore).isNull()
@@ -87,34 +66,28 @@ class CaseAggregateTest {
   }
 
   @Test
-  fun `should upsertCase`() {
-    val id = UUID.randomUUID()
-    val crn = "ABC1234"
-    val tierScore = TierScore.A1
-    val aggregate = CaseAggregate.createNew(
-      id = id,
-      caseIdentifiers = caseIdentifiers,
-    )
-    val cas1ApplicationId = buildCas1Application()
-    val case = buildCaseMutationOrchestrationDto(
-      crn = crn,
-      cpr = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
-      tier = buildTier(tierScore),
-      cas1Application = cas1ApplicationId,
-    )
+  fun `upsertCase() should set all fields onto the aggregate`() {
+    val aggregate = CaseAggregate.hydrateNew()
+
+    val beforeUpdate = aggregate.snapshot()
+    assertThat(beforeUpdate.tierScore).isNull()
+    assertThat(beforeUpdate.cas1ApplicationId).isNull()
+    assertThat(beforeUpdate.cas1ApplicationApplicationStatus).isNull()
+    assertThat(beforeUpdate.cas1ApplicationRequestForPlacementStatus).isNull()
+    assertThat(beforeUpdate.cas1ApplicationPlacementStatus).isNull()
 
     aggregate.upsertCase(
-      tierScore = case.tier?.tierScore,
-      cas1ApplicationId = case.cas1Application?.id,
-      cas1ApplicationApplicationStatus = case.cas1Application?.applicationStatus,
-      cas1ApplicationRequestForPlacementStatus = case.cas1Application?.requestForPlacementStatus,
-      cas1ApplicationPlacementStatus = case.cas1Application?.placementStatus,
+      tierScore = TierScore.A1,
+      cas1ApplicationId = cas1ApplicationId,
+      cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+      cas1ApplicationPlacementStatus = Cas1PlacementStatus.ARRIVED,
     )
-    val aggregateSnapshot = aggregate.snapshot()
-    assertThat(aggregateSnapshot.tierScore).isEqualTo(tierScore)
-    assertThat(aggregateSnapshot.cas1ApplicationId).isEqualTo(cas1ApplicationId.id)
-    assertThat(aggregateSnapshot.cas1ApplicationApplicationStatus).isEqualTo(cas1ApplicationId.applicationStatus)
-    assertThat(aggregateSnapshot.cas1ApplicationRequestForPlacementStatus).isEqualTo(cas1ApplicationId.requestForPlacementStatus)
-    assertThat(aggregateSnapshot.cas1ApplicationPlacementStatus).isEqualTo(cas1ApplicationId.placementStatus)
+    val afterUpdate = aggregate.snapshot()
+    assertThat(afterUpdate.tierScore).isEqualTo(TierScore.A1)
+    assertThat(afterUpdate.cas1ApplicationId).isEqualTo(cas1ApplicationId)
+    assertThat(afterUpdate.cas1ApplicationApplicationStatus).isEqualTo(Cas1ApplicationStatus.PLACEMENT_ALLOCATED)
+    assertThat(afterUpdate.cas1ApplicationRequestForPlacementStatus).isEqualTo(Cas1RequestForPlacementStatus.PLACEMENT_BOOKED)
+    assertThat(afterUpdate.cas1ApplicationPlacementStatus).isEqualTo(Cas1PlacementStatus.ARRIVED)
   }
 }

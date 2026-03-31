@@ -15,23 +15,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
 import java.util.UUID
 
 class CaseMapperTest {
-
-  @Test
-  fun `createNew creates a new empty caseEntity`() {
-    val entity = CaseMapper.creatNew()
-
-    assertThat(entity.caseIdentifiers).isEmpty()
-    assertThat(entity.id).isNotNull()
-    assertThat(entity.tierScore).isNull()
-    assertThat(entity.cas1ApplicationId).isNull()
-    assertThat(entity.cas1ApplicationApplicationStatus).isNull()
-    assertThat(entity.cas1ApplicationRequestForPlacementStatus).isNull()
-    assertThat(entity.cas1ApplicationPlacementStatus).isNull()
-  }
 
   @Test
   fun `toAggregate maps all fields correctly`() {
@@ -47,25 +33,11 @@ class CaseMapperTest {
 
     assertAll(
       { assertThat(snapshot.id).isEqualTo(caseEntity.id) },
-      {
-        assertThat(snapshot.caseIdentifiers)
-          .isEqualTo(
-            caseEntity.caseIdentifiers.map {
-              CaseIdentifier(
-                it.id,
-                it.identifier,
-                it.identifierType,
-              )
-            }.toSet(),
-          )
-      },
-      {
-        assertThat(snapshot.tierScore).isNotNull.isEqualTo(caseEntity.tierScore)
-        assertThat(snapshot.cas1ApplicationId).isEqualTo(caseEntity.cas1ApplicationId)
-        assertThat(snapshot.cas1ApplicationApplicationStatus).isEqualTo(caseEntity.cas1ApplicationApplicationStatus)
-        assertThat(snapshot.cas1ApplicationRequestForPlacementStatus).isEqualTo(caseEntity.cas1ApplicationRequestForPlacementStatus)
-        assertThat(snapshot.cas1ApplicationPlacementStatus).isEqualTo(caseEntity.cas1ApplicationPlacementStatus)
-      },
+      { assertThat(snapshot.tierScore).isNotNull.isEqualTo(caseEntity.tierScore) },
+      { assertThat(snapshot.cas1ApplicationId).isNotNull.isEqualTo(caseEntity.cas1ApplicationId) },
+      { assertThat(snapshot.cas1ApplicationApplicationStatus).isNotNull.isEqualTo(caseEntity.cas1ApplicationApplicationStatus) },
+      { assertThat(snapshot.cas1ApplicationRequestForPlacementStatus).isNotNull.isEqualTo(caseEntity.cas1ApplicationRequestForPlacementStatus) },
+      { assertThat(snapshot.cas1ApplicationPlacementStatus).isNotNull.isEqualTo(caseEntity.cas1ApplicationPlacementStatus) },
     )
   }
 
@@ -91,27 +63,22 @@ class CaseMapperTest {
   @Test
   fun `merge updates the entity correctly`() {
     val id = UUID.randomUUID()
-    val appId = UUID.randomUUID()
     val identifier = UUID.randomUUID().toString()
     val caseEntity = buildCaseEntity(
       id = id,
       tierScore = null,
-      cas1ApplicationId = null,
-      cas1ApplicationApplicationStatus = null,
-      cas1ApplicationRequestForPlacementStatus = null,
-      cas1ApplicationPlacementStatus = null,
-    ) {
-      withCrn(identifier)
-    }
-    val caseAggregate = CaseAggregate.createNew(
+      cas1ApplicationId = UUID.randomUUID(),
+      cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+      cas1ApplicationPlacementStatus = Cas1PlacementStatus.ARRIVED,
+    ) { withCrn(identifier) }
+    val caseAggregate = CaseAggregate.hydrate(
       id,
-      mutableSetOf(
-        CaseIdentifier(
-          UUID.randomUUID(),
-          identifier,
-          IdentifierType.CRN,
-        ),
-      ),
+      tierScore = null,
+      cas1ApplicationId = caseEntity.cas1ApplicationId,
+      cas1ApplicationApplicationStatus = caseEntity.cas1ApplicationApplicationStatus,
+      cas1ApplicationRequestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
+      cas1ApplicationPlacementStatus = caseEntity.cas1ApplicationPlacementStatus,
     )
 
     val identifiersToMerge = mapOf(
@@ -119,12 +86,13 @@ class CaseMapperTest {
       identifier to IdentifierType.CRN,
     )
 
-    caseAggregate.updateTier(TierScore.A3S)
-    caseAggregate.updateCas1ApplicationData(
-      appId,
-      cas1ApplicationApplicationStatus = Cas1ApplicationStatus.STARTED,
-      cas1ApplicationRequestForPlacementStatus = null,
-      cas1ApplicationPlacementStatus = null,
+    val newCas1ApplicationId = UUID.randomUUID()
+    caseAggregate.upsertCase(
+      tierScore = TierScore.A3S,
+      cas1ApplicationId = newCas1ApplicationId,
+      cas1ApplicationApplicationStatus = Cas1ApplicationStatus.WITHDRAWN,
+      cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
+      cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
     )
 
     val mergedEntity = CaseMapper.merge(
@@ -142,8 +110,10 @@ class CaseMapperTest {
         ).isEqualTo(identifiersToMerge)
       },
       { assertThat(mergedEntity.tierScore).isEqualTo(TierScore.A3S) },
-      { assertThat(mergedEntity.cas1ApplicationId).isEqualTo(appId) },
-      { assertThat(mergedEntity.cas1ApplicationApplicationStatus).isEqualTo(Cas1ApplicationStatus.STARTED) },
+      { assertThat(mergedEntity.cas1ApplicationId).isNotNull.isEqualTo(newCas1ApplicationId) },
+      { assertThat(mergedEntity.cas1ApplicationApplicationStatus).isNotNull.isEqualTo(Cas1ApplicationStatus.WITHDRAWN) },
+      { assertThat(mergedEntity.cas1ApplicationRequestForPlacementStatus).isNotNull.isEqualTo(Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN) },
+      { assertThat(mergedEntity.cas1ApplicationPlacementStatus).isNotNull.isEqualTo(Cas1PlacementStatus.CANCELLED) },
     )
   }
 
@@ -161,21 +131,7 @@ class CaseMapperTest {
     }
 
     // add the same identifiers onto the aggregate
-    val caseAggregate = CaseAggregate.createNew(
-      id,
-      mutableSetOf(
-        CaseIdentifier(
-          UUID.randomUUID(),
-          identifier1,
-          IdentifierType.CRN,
-        ),
-        CaseIdentifier(
-          UUID.randomUUID(),
-          identifier3,
-          IdentifierType.PRISON_NUMBER,
-        ),
-      ),
-    )
+    val caseAggregate = CaseAggregate.hydrateNew()
 
     // crete a set of identifiers containing existing and new
     val identifiersToMerge = mapOf(
@@ -250,5 +206,48 @@ class CaseMapperTest {
     val snapshot = caseAggregate.snapshot()
 
     assertThat(snapshot.cas1ApplicationPlacementStatus).isEqualTo(Cas1PlacementStatus.valueOf(caseEntity.cas1ApplicationPlacementStatus!!.name))
+  }
+
+  @Test
+  fun `toEntity maps all fields correctly`() {
+    val caseAggregate = CaseAggregate.hydrateNew()
+    val newCas1ApplicationId = UUID.randomUUID()
+    caseAggregate.upsertCase(
+      tierScore = TierScore.A3S,
+      cas1ApplicationId = newCas1ApplicationId,
+      cas1ApplicationApplicationStatus = Cas1ApplicationStatus.WITHDRAWN,
+      cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
+      cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
+    )
+
+    val identifier = UUID.randomUUID().toString()
+    val identifiersToMerge = mapOf(
+      "NEW" to IdentifierType.PRISON_NUMBER,
+      identifier to IdentifierType.CRN,
+    )
+
+    val mergedEntity = CaseMapper.create(
+      snapshot = caseAggregate.snapshot(),
+      identifiers = identifiersToMerge,
+    )
+
+    assertAll(
+      { assertThat(mergedEntity.caseIdentifiers).hasSize(2) },
+      {
+        assertThat(
+          mergedEntity.caseIdentifiers
+            .associate { it.identifier to it.identifierType },
+        ).isEqualTo(identifiersToMerge)
+      },
+      { assertThat(mergedEntity.tierScore).isEqualTo(TierScore.A3S) },
+      { assertThat(mergedEntity.cas1ApplicationId).isNotNull.isEqualTo(newCas1ApplicationId) },
+      { assertThat(mergedEntity.cas1ApplicationApplicationStatus).isNotNull.isEqualTo(Cas1ApplicationStatus.WITHDRAWN) },
+      {
+        assertThat(mergedEntity.cas1ApplicationRequestForPlacementStatus).isNotNull.isEqualTo(
+          Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
+        )
+      },
+      { assertThat(mergedEntity.cas1ApplicationPlacementStatus).isNotNull.isEqualTo(Cas1PlacementStatus.CANCELLED) },
+    )
   }
 }
