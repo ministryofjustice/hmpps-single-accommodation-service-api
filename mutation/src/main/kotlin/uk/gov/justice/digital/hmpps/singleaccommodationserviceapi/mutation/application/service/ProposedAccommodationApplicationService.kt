@@ -78,7 +78,7 @@ class ProposedAccommodationApplicationService(
     pullEventAndPersistToOutbox(aggregate)
 
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
-      .orThrowNotFound("createdByUserId" to updatedRecord.createdByUserId!!)
+      .orThrowNotFound("id" to updatedRecord.createdByUserId!!)
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,

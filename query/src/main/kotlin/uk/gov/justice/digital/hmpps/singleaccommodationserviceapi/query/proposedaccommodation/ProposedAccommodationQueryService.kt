@@ -21,7 +21,7 @@ class ProposedAccommodationQueryService(
 ) {
   fun getProposedAccommodations(crn: String): List<AccommodationDetail> = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).map {
     val createdByUser = userRepository.findByIdOrNull(it.createdByUserId!!)
-      .orThrowNotFound("createdByUserId" to it.createdByUserId!!)
+      .orThrowNotFound("id" to it.createdByUserId!!)
     ProposedAccommodationTransformer.toAccommodationDetail(it, crn, createdByUser.name)
   }
 
