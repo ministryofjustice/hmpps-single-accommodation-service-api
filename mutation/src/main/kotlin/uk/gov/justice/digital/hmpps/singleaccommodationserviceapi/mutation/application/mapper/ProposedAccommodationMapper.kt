@@ -46,7 +46,7 @@ object ProposedAccommodationMapper {
     uprn = snapshot.address.uprn,
   )
 
-  fun applyToEntity(snapshot: ProposedAccommodationSnapshot, entity: ProposedAccommodationEntity) {
+  fun merge(snapshot: ProposedAccommodationSnapshot, entity: ProposedAccommodationEntity): ProposedAccommodationEntity {
     entity.name = snapshot.name
     entity.arrangementType = EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name)
     entity.arrangementSubType =
@@ -69,6 +69,7 @@ object ProposedAccommodationMapper {
     entity.county = snapshot.address.county
     entity.country = snapshot.address.country
     entity.uprn = snapshot.address.uprn
+    return entity
   }
 
   fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(

@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import java.time.Instant
 import java.util.UUID
@@ -68,8 +69,8 @@ class ProposedAccommodationApplicationService(
       newStartDate = accommodationDetailCommand.startDate,
       newEndDate = accommodationDetailCommand.endDate,
     )
-    ProposedAccommodationMapper.applyToEntity(aggregate.snapshot(), entity)
-    val updatedRecord = proposedAccommodationRepository.save(entity)
+
+    val updatedRecord = proposedAccommodationRepository.save(merge(aggregate.snapshot(), entity))
     pullEventAndPersistToOutbox(aggregate)
 
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
