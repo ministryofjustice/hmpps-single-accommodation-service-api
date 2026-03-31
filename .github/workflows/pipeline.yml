@@ -104,6 +104,8 @@ jobs:
   sas_generate_types:
     needs: deploy_dev
     name: Run the generate types job for the SAS UI
+    permissions:
+      contents: read
     uses: ./.github/workflows/generate-sas-ui-types.yml
     secrets: inherit
   deploy_preprod:
