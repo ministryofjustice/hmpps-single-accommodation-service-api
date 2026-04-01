@@ -1,15 +1,18 @@
 # Decision Tree Model
 
-A declarative, clean architecture for evaluating eligibility rules using an explicit decision tree pattern. With an attempt to separate 
+A declarative, clean architecture for evaluating eligibility rules using an explicit decision tree pattern. With an
+attempt to separate
+
 - orchestration
 - execution
-- and analysis concerns 
+- and analysis concerns
 
 The goal being to make rule evaluation, testable, and extensible
 
 ## Overview
 
 The decision was made to favour an explicit tree structure over a recursive model because:
+
 - **Developers can focus on building logical nodes and outcomes**
 - **Each node executes a ruleset and explicity branches based on results**
 - **Context updates are separated from tree traversal, seperating node outcome from context update**
@@ -26,12 +29,14 @@ A decision tree is composed of two types of nodes:
 ### Evaluation Context
 
 `EvalContext` carries state through tree traversal:
+
 - `data`: The domain data (prisoner info, applications, etc.)
 - `current`: The current best-known `ServiceResult` (status, actions, application ID) etc
 
 ### Context Updaters
 
 `ContextUpdater` implementations handle the analysis/mapping logic:
+
 - Transform `RuleSetResult` into updated `ServiceResult`
 - Extract business logic from tree traversal
 
@@ -120,13 +125,13 @@ val eligibility = treeBuilder
 val suitability = treeBuilder
     .ruleSet("Cas1Suitability", suitabilityRuleSet, contextUpdater)
     .onPass(confirmed)
-    .onFail(eligibility) 
+    .onFail(eligibility)
     .build()
 
 val tree = treeBuilder
     .ruleSet("Cas1Completion", completionRuleSet, contextUpdater)
     .onPass(confirmed)
-    .onFail(suitability) 
+    .onFail(suitability)
     .build()
 ```
 
@@ -137,7 +142,7 @@ val customOutcome = treeBuilder.outcome(
     ServiceResult(
         serviceStatus = ServiceStatus.REJECTED,
         suitableApplicationId = null,
-        actions = listOf(RuleAction("Something", false))
+        actions = listOf("Something")
     )
 )
 
@@ -153,5 +158,6 @@ val tree = treeBuilder
 ### PASS vs FAIL Behavior
 
 Context is only updated when a ruleset fails. This ensures:
+
 - PASS results return immediately with the current "best known" state
 - FAIL results update state before continuing to next ruleset

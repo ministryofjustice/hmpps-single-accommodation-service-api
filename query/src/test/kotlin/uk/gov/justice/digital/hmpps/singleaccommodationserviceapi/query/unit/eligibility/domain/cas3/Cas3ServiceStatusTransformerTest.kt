@@ -12,26 +12,23 @@ class Cas3ServiceStatusTransformerTest {
   @ParameterizedTest
   @CsvSource(
     value = [
-      "SUBMITTED,false,SUBMITTED",
-      "IN_PROGRESS,false,SUBMITTED",
-      "PENDING,false,SUBMITTED",
-      "REQUESTED_FURTHER_INFORMATION,true,SUBMITTED",
-      "AWAITING_PLACEMENT,true,CONFIRMED",
-      "PLACED,true,CONFIRMED",
-      "INAPPLICABLE,true,UPCOMING",
-      "INAPPLICABLE,false,NOT_STARTED",
-      "REJECTED,true,REJECTED",
-      "WITHDRAWN,true,WITHDRAWN",
-      "NULL,true,UPCOMING",
-      "NULL,false,NOT_STARTED",
+      "SUBMITTED,SUBMITTED",
+      "IN_PROGRESS,SUBMITTED",
+      "PENDING,SUBMITTED",
+      "REQUESTED_FURTHER_INFORMATION,SUBMITTED",
+      "AWAITING_PLACEMENT,CONFIRMED",
+      "PLACED,CONFIRMED",
+      "INAPPLICABLE,NOT_STARTED",
+      "REJECTED,REJECTED",
+      "WITHDRAWN,WITHDRAWN",
+      "NULL,NOT_STARTED",
     ],
     nullValues = ["NULL"],
   )
   fun `transform to serviceStatus`(
     applicationStatus: Cas3ApplicationStatus?,
-    isUpcoming: Boolean,
     serviceStatus: ServiceStatus,
   ) {
-    assertThat(Cas3ServiceStatusTransformer.toServiceStatus(applicationStatus, isUpcoming)).isEqualTo(serviceStatus)
+    assertThat(Cas3ServiceStatusTransformer.toServiceStatus(applicationStatus)).isEqualTo(serviceStatus)
   }
 }

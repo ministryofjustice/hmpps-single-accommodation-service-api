@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -29,7 +28,7 @@ class Cas1ServiceResultTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION)
+    val expectedResult = ActionKeys.START_APPROVED_PREMISE_APPLICATION
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.NOT_STARTED,
@@ -51,7 +50,7 @@ class Cas1ServiceResultTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days")
+    val expectedResult = "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days"
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
@@ -73,7 +72,7 @@ class Cas1ServiceResultTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION)
+    val expectedResult = ActionKeys.START_APPROVED_PREMISE_APPLICATION
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.NOT_STARTED,
@@ -95,7 +94,7 @@ class Cas1ServiceResultTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day")
+    val expectedResult = "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
@@ -117,7 +116,7 @@ class Cas1ServiceResultTransformerTest {
       releaseDate = releaseDate,
     )
     val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days")
+    val expectedResult = "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,

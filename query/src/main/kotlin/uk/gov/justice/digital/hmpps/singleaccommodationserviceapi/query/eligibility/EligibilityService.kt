@@ -136,7 +136,7 @@ class EligibilityService(
       "Service Result: serviceStatus={}, suitableApplicationId={}, action={}, link={}",
       result.serviceStatus,
       result.suitableApplicationId,
-      result.action?.text,
+      result.action,
       result.link,
     )
   }

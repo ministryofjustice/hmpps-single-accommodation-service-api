@@ -44,7 +44,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.action).isNotNull()
-      assertThat(result.currentResult.action?.text).isEqualTo(START_CAS3_REFERRAL)
+      assertThat(result.currentResult.action).isEqualTo(START_CAS3_REFERRAL)
     }
 
     @Test
@@ -148,7 +148,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
-      assertThat(result.currentResult.action?.text).isEqualTo(CREATE_PLACEMENT)
+      assertThat(result.currentResult.action).isEqualTo(CREATE_PLACEMENT)
     }
 
     @Test
@@ -209,7 +209,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action?.text).isEqualTo(CREATE_PLACEMENT)
+      assertThat(result.currentResult.action).isEqualTo(CREATE_PLACEMENT)
     }
 
     @Test
@@ -230,7 +230,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action?.text).isEqualTo(PROVIDE_INFORMATION)
+      assertThat(result.currentResult.action).isEqualTo(PROVIDE_INFORMATION)
     }
   }
 }

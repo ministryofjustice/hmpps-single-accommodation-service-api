@@ -6,7 +6,6 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
@@ -50,7 +49,7 @@ class EligibilityTransformerTest {
     private val notStarted = ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
       suitableApplicationId = null,
-      action = RuleAction(START_APPROVED_PREMISE_APPLICATION),
+      action = START_APPROVED_PREMISE_APPLICATION,
     )
     private val notEligible = ServiceResult(
       serviceStatus = ServiceStatus.NOT_ELIGIBLE,
@@ -59,7 +58,7 @@ class EligibilityTransformerTest {
     private val upcoming = ServiceResult(
       serviceStatus = ServiceStatus.UPCOMING,
       suitableApplicationId = null,
-      action = RuleAction("$START_APPROVED_PREMISE_APPLICATION in 2 days", true),
+      action = "$START_APPROVED_PREMISE_APPLICATION in 2 days",
     )
     private val confirmed = ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
@@ -68,22 +67,22 @@ class EligibilityTransformerTest {
     private val assessing = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = RuleAction(WAIT_FOR_ASSESSMENT_RESULT, true),
+      action = WAIT_FOR_ASSESSMENT_RESULT,
     )
     private val submitted = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = RuleAction(CREATE_PLACEMENT),
+      action = CREATE_PLACEMENT,
     )
     private val withdrawn = ServiceResult(
       serviceStatus = ServiceStatus.WITHDRAWN,
       suitableApplicationId = null,
-      action = RuleAction(START_APPROVED_PREMISE_APPLICATION),
+      action = START_APPROVED_PREMISE_APPLICATION,
     )
     private val rejected = ServiceResult(
       serviceStatus = ServiceStatus.APPLICATION_REJECTED,
       suitableApplicationId = null,
-      action = RuleAction(START_APPROVED_PREMISE_APPLICATION),
+      action = START_APPROVED_PREMISE_APPLICATION,
     )
 
     @JvmStatic
@@ -106,7 +105,7 @@ class EligibilityTransformerTest {
         CRN,
         upcoming,
         notEligible,
-        CaseStatus.ACTION_UPCOMING,
+        CaseStatus.ACTION_NEEDED,
         listOf("$START_APPROVED_PREMISE_APPLICATION in 2 days"),
       ),
       Arguments.of(
@@ -120,7 +119,7 @@ class EligibilityTransformerTest {
         CRN,
         assessing,
         notEligible,
-        CaseStatus.ACTION_UPCOMING,
+        CaseStatus.ACTION_NEEDED,
         listOf(WAIT_FOR_ASSESSMENT_RESULT),
       ),
       Arguments.of(

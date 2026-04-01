@@ -42,7 +42,7 @@ class Cas1ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.action).isNotNull()
-      assertThat(result.currentResult.action?.text).isEqualTo(CONTINUE_APPROVED_PREMISE_APPLICATION)
+      assertThat(result.currentResult.action).isEqualTo(CONTINUE_APPROVED_PREMISE_APPLICATION)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isNotNull()
       assertThat(result.currentResult.link).isEqualTo(CONTINUE_APPLICATION)

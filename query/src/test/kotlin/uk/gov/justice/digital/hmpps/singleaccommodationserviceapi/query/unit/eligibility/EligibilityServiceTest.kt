@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -201,10 +200,7 @@ class EligibilityServiceTest {
       val result = eligibilityService.calculateEligibilityForCas1(data)
 
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
-      val expectedActions = expectedCas1ActionsString?.let {
-        RuleAction(it, false)
-      }
-      assertThat(result.action).isEqualTo(expectedActions)
+      assertThat(result.action).isEqualTo(expectedCas1ActionsString)
       assertThat(result.link).isEqualTo(expectedCas1Link)
     }
   }

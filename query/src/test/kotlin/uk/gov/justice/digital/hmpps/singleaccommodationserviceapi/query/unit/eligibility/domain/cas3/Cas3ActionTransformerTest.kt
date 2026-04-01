@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
@@ -35,7 +34,7 @@ class Cas3ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = buildCas3Action(data, clock)
-    val expectedResult = RuleAction(START_CAS3_REFERRAL)
+    val expectedResult = START_CAS3_REFERRAL
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -50,7 +49,7 @@ class Cas3ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = buildCas3Action(data, clock)
-    val expectedResult = RuleAction(START_CAS3_REFERRAL)
+    val expectedResult = START_CAS3_REFERRAL
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -65,7 +64,7 @@ class Cas3ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = buildCas3Action(data, clock)
-    val expectedResult = RuleAction("$START_CAS3_REFERRAL in 1 day", true)
+    val expectedResult = "$START_CAS3_REFERRAL in 1 day"
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -80,7 +79,7 @@ class Cas3ActionTransformerTest {
       releaseDate = releaseDate,
     )
     val result = buildCas3Action(data, clock)
-    val expectedResult = RuleAction("$START_CAS3_REFERRAL in 32 days", true)
+    val expectedResult = "$START_CAS3_REFERRAL in 32 days"
     Assertions.assertThat(result).isEqualTo(expectedResult)
   }
 
@@ -116,7 +115,7 @@ class Cas3ActionTransformerTest {
 
     val result = buildCas3Action(data, clock)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(CREATE_PLACEMENT))
+    Assertions.assertThat(result).isEqualTo(CREATE_PLACEMENT)
   }
 
   @ParameterizedTest(name = "{0}")
@@ -138,7 +137,7 @@ class Cas3ActionTransformerTest {
 
     val result = buildCas3Action(data, clock)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(CREATE_PLACEMENT))
+    Assertions.assertThat(result).isEqualTo(CREATE_PLACEMENT)
   }
 
   @Test
@@ -157,7 +156,7 @@ class Cas3ActionTransformerTest {
 
     val result = buildCas3Action(data, clock)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(PROVIDE_INFORMATION))
+    Assertions.assertThat(result).isEqualTo(PROVIDE_INFORMATION)
   }
 
   @ParameterizedTest(name = "{0}")
@@ -179,7 +178,7 @@ class Cas3ActionTransformerTest {
 
     val result = buildCas3Action(data, clock)
 
-    Assertions.assertThat(result).isEqualTo(RuleAction(START_CAS3_REFERRAL))
+    Assertions.assertThat(result).isEqualTo(START_CAS3_REFERRAL)
   }
 
   @Test

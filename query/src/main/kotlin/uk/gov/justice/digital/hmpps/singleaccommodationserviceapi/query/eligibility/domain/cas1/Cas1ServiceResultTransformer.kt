@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -83,7 +82,7 @@ object Cas1ServiceResultTransformer {
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_CANCELLED,
           suitableApplicationId = suitableApplicationId,
-          action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+          action = ActionKeys.CREATE_PLACEMENT,
           link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
       } else {
@@ -105,14 +104,14 @@ object Cas1ServiceResultTransformer {
         Cas1PlacementStatus.DEPARTED -> ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
           suitableApplicationId = suitableApplicationId,
-          action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+          action = ActionKeys.CREATE_PLACEMENT,
           link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
         Cas1PlacementStatus.NOT_ARRIVED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_ARRIVED,
           suitableApplicationId = suitableApplicationId,
-          action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+          action = ActionKeys.CREATE_PLACEMENT,
           link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
@@ -130,14 +129,14 @@ object Cas1ServiceResultTransformer {
       Cas1RequestForPlacementStatus.AWAITING_MATCH -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
         suitableApplicationId = suitableApplicationId,
-        action = RuleAction(ActionKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT),
+        action = ActionKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
         link = LinkKeys.VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
         suitableApplicationId = suitableApplicationId,
-        action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+        action = ActionKeys.CREATE_PLACEMENT,
         link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
@@ -148,14 +147,14 @@ object Cas1ServiceResultTransformer {
       Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
         suitableApplicationId = suitableApplicationId,
-        action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+        action = ActionKeys.CREATE_PLACEMENT,
         link = LinkKeys.CREATE_PLACEMENT_REQUEST,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_REJECTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_REJECTED,
         suitableApplicationId = suitableApplicationId,
-        action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+        action = ActionKeys.CREATE_PLACEMENT,
         link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
@@ -164,14 +163,14 @@ object Cas1ServiceResultTransformer {
       -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
         suitableApplicationId = suitableApplicationId,
-        action = RuleAction(ActionKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT),
+        action = ActionKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
         link = LinkKeys.VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
         suitableApplicationId = suitableApplicationId,
-        action = RuleAction(ActionKeys.CREATE_PLACEMENT),
+        action = ActionKeys.CREATE_PLACEMENT,
         link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
@@ -188,28 +187,28 @@ object Cas1ServiceResultTransformer {
     -> ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = suitableApplicationId,
-      action = RuleAction(ActionKeys.WAIT_FOR_ASSESSMENT_RESULT),
+      action = ActionKeys.WAIT_FOR_ASSESSMENT_RESULT,
       link = LinkKeys.VIEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
       suitableApplicationId = suitableApplicationId,
-      action = RuleAction(ActionKeys.PROVIDE_INFORMATION),
+      action = ActionKeys.PROVIDE_INFORMATION,
       link = LinkKeys.VIEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.STARTED -> ServiceResult(
       serviceStatus = ServiceStatus.NOT_SUBMITTED,
       suitableApplicationId = suitableApplicationId,
-      action = RuleAction(ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION),
+      action = ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION,
       link = LinkKeys.CONTINUE_APPLICATION,
     )
 
     Cas1ApplicationStatus.REJECTED -> ServiceResult(
       serviceStatus = ServiceStatus.APPLICATION_REJECTED,
       suitableApplicationId = suitableApplicationId,
-      action = RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION),
+      action = ActionKeys.START_APPROVED_PREMISE_APPLICATION,
       link = LinkKeys.START_NEW_APPLICATION,
     )
 
@@ -220,24 +219,24 @@ object Cas1ServiceResultTransformer {
     -> ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
       suitableApplicationId = suitableApplicationId,
-      action = RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION),
+      action = ActionKeys.START_APPROVED_PREMISE_APPLICATION,
       link = LinkKeys.START_APPLICATION,
     )
 
     else -> notEligible
   }
 
-  private fun buildStartApprovedPremiseReferralAction(releaseDate: LocalDate, today: LocalDate): RuleAction {
+  private fun buildStartApprovedPremiseReferralAction(releaseDate: LocalDate, today: LocalDate): String {
     val dateToStartReferral = releaseDate.minusYears(1)
     val daysUntilReferralMustStart = DAYS.between(today, dateToStartReferral).toInt()
 
     return when {
       daysUntilReferralMustStart > 1
-      -> RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in $daysUntilReferralMustStart days")
+      -> "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in $daysUntilReferralMustStart days"
 
-      daysUntilReferralMustStart < 1 -> RuleAction(ActionKeys.START_APPROVED_PREMISE_APPLICATION)
+      daysUntilReferralMustStart < 1 -> ActionKeys.START_APPROVED_PREMISE_APPLICATION
 
-      else -> RuleAction("${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day")
+      else -> "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
     }
   }
 }

@@ -17,13 +17,8 @@ data class EligibilityDto(
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val suitableApplicationId: UUID? = null,
-  val action: RuleAction? = null,
+  val action: String? = null,
   val link: String? = null,
-)
-
-data class RuleAction(
-  val text: String,
-  val isUpcoming: Boolean = false,
 )
 
 enum class CaseStatus(val caseStatusOrder: Int) {
