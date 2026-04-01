@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.ProbationIntegrationSasDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResultDto
 
 @Service
 class CaseOrchestrationService(
@@ -28,7 +28,7 @@ class CaseOrchestrationService(
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
 ) {
-  fun getCaseList(username: String): CaseList {
+  fun getCaseList(username: String): OrchestrationResultDto<CaseList> {
     val bulkCall = mapOf(
       GET_CASE_LIST to { probationIntegrationSasDeliusCachingService.getCaseList(username) },
     )
@@ -36,12 +36,20 @@ class CaseOrchestrationService(
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = bulkCall,
     )
-    return results.standardCallsNoIterationResults
-      ?.get(GET_CASE_LIST) as? CaseList
+
+    val stdResults = results.standardCallsNoIterationResults!!
+    val caseList = stdResults.getResult<CaseList>(GET_CASE_LIST)
       ?: CaseList(emptyList())
+
+    val failures = stdResults.getFailures()
+
+    return OrchestrationResultDto(
+      data = caseList,
+      upstreamFailures = failures,
+    )
   }
 
-  fun getCases(crns: List<String>): List<OrchestrationResult<CaseOrchestrationDto>> {
+  fun getCases(crns: List<String>): List<OrchestrationResultDto<CaseOrchestrationDto>> {
     val bulkCall = mapOf(
       ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },
     )
@@ -77,7 +85,7 @@ class CaseOrchestrationService(
 
       val failures = calls.getFailures()
 
-      OrchestrationResult(
+      OrchestrationResultDto(
         data = CaseOrchestrationDto(
           crn = crn,
           cpr = cpr,
@@ -90,7 +98,7 @@ class CaseOrchestrationService(
     }
   }
 
-  fun getCase(crn: String): OrchestrationResult<CaseOrchestrationDto> {
+  fun getCase(crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
     val calls = mapOf(
       ApiCallKeys.GET_CASE_SUMMARY to { probationIntegrationDeliusCachingService.getCaseSummary(crn) },
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
@@ -109,7 +117,7 @@ class CaseOrchestrationService(
 
     val failures = stdResults.getFailures()
 
-    return OrchestrationResult(
+    return OrchestrationResultDto(
       data = CaseOrchestrationDto(
         crn = crn,
         cpr = cpr,

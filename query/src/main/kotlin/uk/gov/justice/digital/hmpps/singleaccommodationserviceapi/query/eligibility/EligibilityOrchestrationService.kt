@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.OrchestrationResultDto
 
 @Service
 class EligibilityOrchestrationService(
@@ -29,7 +29,7 @@ class EligibilityOrchestrationService(
   val prisonerSearchCachingService: PrisonerSearchCachingService,
 ) {
 
-  fun getData(crn: String): OrchestrationResult<EligibilityOrchestrationDto> {
+  fun getData(crn: String): OrchestrationResultDto<EligibilityOrchestrationDto> {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
       GET_TIER to { tierCachingService.getTier(crn) },
@@ -46,7 +46,7 @@ class EligibilityOrchestrationService(
     val cas1Application = stdResults.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas3Application = stdResults.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
 
-    return OrchestrationResult(
+    return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(
         crn,
         cpr,
@@ -58,7 +58,7 @@ class EligibilityOrchestrationService(
     )
   }
 
-  fun getPrisonerData(prisonerNumbers: List<String>): OrchestrationResult<List<Prisoner>> {
+  fun getPrisonerData(prisonerNumbers: List<String>): OrchestrationResultDto<List<Prisoner>> {
     val calls = prisonerNumbers.associate {
       "$GET_PRISONER$it" to { prisonerSearchCachingService.getPrisoner(it) }
     }
@@ -69,7 +69,7 @@ class EligibilityOrchestrationService(
 
     val stdResults = results.standardCallsNoIterationResults!!
 
-    return OrchestrationResult(
+    return OrchestrationResultDto(
       data = prisonerNumbers.mapNotNull {
         stdResults.getResult<Prisoner>("$GET_PRISONER$it")
       },

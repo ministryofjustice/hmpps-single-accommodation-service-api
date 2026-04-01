@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PartialSuccessResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
@@ -21,14 +22,14 @@ class CaseController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/case-list")
-  fun getCases(): ResponseEntity<List<CaseDto>> {
-    val personDtos = caseQueryService.getCaseList()
-    caseApplicationService.upsertCases(personDtos.map { it.crn })
+  fun getCases(): ResponseEntity<PartialSuccessResponseDto<List<CaseDto>>> {
+    val result = caseQueryService.getCaseList()
+    caseApplicationService.upsertCases(result.data.map { it.crn })
 
     // TODO remove once we get data from sas_case table in the following PR
-    val cases = personDtos.map { toCaseDto(it) }
+    val cases = result.data.map { toCaseDto(it) }
 
-    return ResponseEntity.ok(cases)
+    return ResponseEntity.ok(PartialSuccessResponseDto(data = cases, upstreamFailures = result.upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
@@ -39,19 +40,16 @@ class CaseController(
     @RequestParam(required = false) assignedTo: Long?,
     @RequestParam(required = false) riskLevel: RiskLevel?,
     @RequestParam(required = false) crns: List<String> = emptyList(),
-  ): ResponseEntity<List<CaseDto>> {
+  ): ResponseEntity<PartialSuccessResponseDto<List<CaseDto>>> {
     // TODO this allows for testing with multiple CRNs and will be removed in future.
     return if (crns.isNotEmpty()) {
       ResponseEntity.ok(caseQueryService.getCases(crns, riskLevel))
     } else {
-      ResponseEntity.ok(emptyList())
+      ResponseEntity.ok(PartialSuccessResponseDto(data = emptyList()))
     }
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}")
-  fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
-    val case = caseQueryService.getCase(crn)
-    return ResponseEntity.ok(case)
-  }
+  fun getCase(@PathVariable crn: String): ResponseEntity<PartialSuccessResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCase(crn))
 }
