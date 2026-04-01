@@ -8,10 +8,7 @@ fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID)
   "cas1": {
     "serviceStatus": "SUBMITTED",
     "suitableApplicationId": "$cas1SuitableApplicationId",
-    "action": {
-      "text":"Wait for approved premise (CAS1) assessment result",
-      "isUpcoming":false
-    },
+    "action": "Wait for approved premise (CAS1) assessment result",
     "link":"View application"
   },
   "cas2Hdc": {

@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 
 object Cas3ServiceStatusTransformer {
-  fun toServiceStatus(cas3ApplicationStatus: Cas3ApplicationStatus?, isUpcoming: Boolean) = when (cas3ApplicationStatus) {
+  fun toServiceStatus(cas3ApplicationStatus: Cas3ApplicationStatus?) = when (cas3ApplicationStatus) {
     Cas3ApplicationStatus.PLACED,
     Cas3ApplicationStatus.AWAITING_PLACEMENT,
     -> ServiceStatus.CONFIRMED
@@ -17,11 +17,7 @@ object Cas3ServiceStatusTransformer {
 
     null,
     Cas3ApplicationStatus.INAPPLICABLE,
-    ->
-      when (isUpcoming) {
-        true -> ServiceStatus.UPCOMING
-        false -> ServiceStatus.NOT_STARTED
-      }
+    -> ServiceStatus.NOT_STARTED
 
     Cas3ApplicationStatus.REJECTED,
     -> ServiceStatus.REJECTED

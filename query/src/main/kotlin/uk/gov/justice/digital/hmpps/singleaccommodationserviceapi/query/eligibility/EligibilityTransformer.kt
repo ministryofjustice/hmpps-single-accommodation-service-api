@@ -16,20 +16,19 @@ object EligibilityTransformer {
     cas3 = cas3,
     caseActions =
     listOf(
-      cas1.action?.text,
-      cas3.action?.text,
+      cas1.action,
+      cas3.action,
     ).mapNotNull { it },
     caseStatus = listOf(
       getCaseStatus(cas1),
       getCaseStatusOrDefault(cas3),
-    ).maxWith(compareBy<CaseStatus> { it.caseStatusOrder }),
+    ).maxWith(compareBy { it.caseStatusOrder }),
   )
 
   private fun getCaseStatusOrDefault(serviceResult: ServiceResult?) = serviceResult?.let { getCaseStatus(serviceResult) } ?: CaseStatus.NO_ACTION_REQUIRED
 
   private fun getCaseStatus(serviceResult: ServiceResult) = when {
     serviceResult.action == null -> CaseStatus.NO_ACTION_REQUIRED
-    serviceResult.action!!.isUpcoming == false -> CaseStatus.ACTION_NEEDED
-    else -> CaseStatus.ACTION_UPCOMING
+    else -> CaseStatus.ACTION_NEEDED
   }
 }

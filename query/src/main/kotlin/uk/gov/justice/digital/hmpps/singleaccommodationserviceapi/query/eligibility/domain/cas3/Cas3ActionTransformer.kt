@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RuleAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
@@ -28,15 +27,15 @@ fun buildCas3Action(data: DomainData, clock: Clock) = when (data.cas3Application
     if (!acceptableCas3Statuses.contains(data.cas3Application.placementStatus)) {
       error("Invalid placement status: ${data.cas3Application.placementStatus}")
     }
-    RuleAction(CREATE_PLACEMENT)
+    CREATE_PLACEMENT
   }
 
   Cas3ApplicationStatus.AWAITING_PLACEMENT,
   Cas3ApplicationStatus.PENDING,
-  -> RuleAction(CREATE_PLACEMENT)
+  -> CREATE_PLACEMENT
 
   Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-  -> RuleAction(PROVIDE_INFORMATION)
+  -> PROVIDE_INFORMATION
 
   Cas3ApplicationStatus.IN_PROGRESS,
   Cas3ApplicationStatus.SUBMITTED,
@@ -47,11 +46,11 @@ fun buildCas3Action(data: DomainData, clock: Clock) = when (data.cas3Application
   -> buildStartCas3ReferralAction(data, clock)
 }
 
-private fun buildStartCas3ReferralAction(data: DomainData, clock: Clock): RuleAction {
+private fun buildStartCas3ReferralAction(data: DomainData, clock: Clock): String {
   val releaseDate = data.releaseDate
     ?: error("Release date for crn: ${data.crn} is null")
 
-  if (isWithinSubmissionWindow(releaseDate, clock)) return RuleAction(START_CAS3_REFERRAL)
+  if (isWithinSubmissionWindow(releaseDate, clock)) return START_CAS3_REFERRAL
   return buildReferralStartDateAction(releaseDate, clock)
 }
 
@@ -68,11 +67,11 @@ private fun isWithinSubmissionWindow(releaseDate: LocalDate, clock: Clock): Bool
   return calendarDaysUntilRelease <= MAX_DAYS_BEFORE_RELEASE && now.isBefore(submissionDeadline)
 }
 
-private fun buildReferralStartDateAction(releaseDate: LocalDate, clock: Clock): RuleAction {
+private fun buildReferralStartDateAction(releaseDate: LocalDate, clock: Clock): String {
   val daysUntilWindowOpens = DAYS.between(LocalDate.now(clock), releaseDate).toInt() - MAX_DAYS_BEFORE_RELEASE
 
   return when {
-    daysUntilWindowOpens > 1 -> RuleAction("$START_CAS3_REFERRAL in $daysUntilWindowOpens days", true)
-    else -> RuleAction("$START_CAS3_REFERRAL in 1 day", true)
+    daysUntilWindowOpens > 1 -> "$START_CAS3_REFERRAL in $daysUntilWindowOpens days"
+    else -> "$START_CAS3_REFERRAL in 1 day"
   }
 }
