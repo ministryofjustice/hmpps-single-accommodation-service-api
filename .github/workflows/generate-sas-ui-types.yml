@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859
         id: generate-token
         with:
           app-id: ${{ secrets.APP_ID }}
@@ -19,7 +19,7 @@ jobs:
             hmpps-single-accommodation-service-ui
       - name: Trigger SAS UI Type Generation Workflow
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |

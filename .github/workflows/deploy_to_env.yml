@@ -18,18 +18,19 @@ on:
         default: ''
         type: string
 
-permissions:
-  contents: read
-
 jobs:
   helm_lint:
     name: helm lint
+    permissions:
+      contents: read
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/test_helm_lint.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
   deploy_env:
     name: Deploy to environment
+    permissions:
+      contents: read
     needs:
       - helm_lint
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
