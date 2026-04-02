@@ -19,7 +19,7 @@ jobs:
             hmpps-single-accommodation-service-ui
       - name: Trigger SAS UI Type Generation Workflow
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@450193c5abd4cdb17ba9f3ffcfe8f635c4bb6c2a
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
