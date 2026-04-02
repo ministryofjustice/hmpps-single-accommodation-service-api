@@ -87,7 +87,7 @@ class ResourceSecurityIT : IntegrationTestBase() {
       return
     }
 
-    requireNotNull(functionAnnotation) { "@PreAuthorised annotation missing: $controllerName:$url" }
+    requireNotNull(functionAnnotation) { "@PreAuthorize annotation missing: $controllerName:$url" }
 
     val functionRoles = extractRoles(functionAnnotation.value)
     val controllerMappings = controllerMap[controllerName] ?: error("Controller mapping not found for: $controllerName")
