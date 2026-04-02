@@ -28,6 +28,14 @@ class DutyToReferQueryService(
     return DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.name, localAuthorityArea!!.name)
   }
 
+  fun getDutyToRefer(crn: String, id: UUID): DutyToReferDto {
+    val entity = dutyToReferRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+    val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
+    val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
+
+    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.name, localAuthorityArea!!.name)
+  }
+
   fun getDutyToRefer(id: UUID): DutyToReferDto {
     val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val caseEntity = caseRepository.findByIdOrNull(dtrEntity.caseId).orThrowNotFound("id" to id)

@@ -173,6 +173,81 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should get duty to refer by crn and id`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val entity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 15),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedDtrResponseBody(
+            id = entity.id,
+            caseId = case.id,
+            crn = crn,
+            localAuthorityAreaId = localAuthorityArea.id,
+            localAuthorityAreaName = localAuthorityArea.name,
+            submissionDate = "2026-01-15",
+            referenceNumber = "DTR-REF-001",
+            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return 404 when duty to refer not found by crn and id`() {
+    val nonExistentId = UUID.randomUUID()
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, nonExistentId)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should return 403 when using token without PP or POM role for GET by crn and id`() {
+    val nonExistentId = UUID.randomUUID()
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, nonExistentId)
+      .withClientCredentialsJwt(
+        roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
+      )
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `should return 404 when crn does not match for GET by crn and id`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val entity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}", "OTHERCRN", entity.id)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
   fun `should create duty to refer and publish domain event`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
