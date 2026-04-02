@@ -13,15 +13,15 @@ import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
-  val tierScore: TierScore,
+  val tierScore: TierScore?,
   val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodationArrangementType: AccommodationArrangementType? = null,
   val hasNextAccommodation: Boolean = false,
   val cas1Application: Cas1Application? = null,
   val cas3Application: Cas3Application? = null,
-  val dtrStatus: String? = "OK",
-  val crsStatus: String? = "OK",
+  val dtrStatus: String? = "submitted",
+  val crsStatus: String? = "submitted",
 ) {
   constructor(
     crn: String,
@@ -34,8 +34,8 @@ data class DomainData(
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
     // TODO: remove once we have a better way to determine DTR and CRS status
-    dtrStatus: String? = "OK",
-    crsStatus: String? = "OK",
+    dtrStatus: String? = "submitted",
+    crsStatus: String? = "submitted",
   ) : this(
     crn = crn,
     tierScore = tier.tierScore,

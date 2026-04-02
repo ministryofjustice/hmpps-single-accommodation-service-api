@@ -14,13 +14,8 @@ class Cas3ServiceStatusTransformerTest {
     value = [
       "SUBMITTED,SUBMITTED",
       "IN_PROGRESS,SUBMITTED",
-      "PENDING,SUBMITTED",
       "REQUESTED_FURTHER_INFORMATION,SUBMITTED",
-      "AWAITING_PLACEMENT,CONFIRMED",
-      "PLACED,CONFIRMED",
-      "INAPPLICABLE,NOT_STARTED",
       "REJECTED,REJECTED",
-      "WITHDRAWN,WITHDRAWN",
       "NULL,NOT_STARTED",
     ],
     nullValues = ["NULL"],

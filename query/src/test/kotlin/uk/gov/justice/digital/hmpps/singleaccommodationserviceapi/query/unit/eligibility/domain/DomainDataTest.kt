@@ -37,14 +37,15 @@ class DomainDataTest {
       cas3Application = Cas3Application(
         UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        placementStatus = null,
+        bookingStatus = null,
+        assessmentStatus = null,
       ),
     )
     val cpr = CorePersonRecord(
       sex = buildSex(expected.sex),
     )
     val tier = Tier(
-      tierScore = expected.tierScore,
+      tierScore = expected.tierScore!!,
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,

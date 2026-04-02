@@ -11,14 +11,16 @@ import java.time.LocalDate
 
 fun buildDomainData(
   crn: String = "CR12345N",
-  tierScore: TierScore = TierScore.A1,
-  sex: SexCode = SexCode.M,
+  tierScore: TierScore? = TierScore.A1,
+  sex: SexCode? = SexCode.M,
   releaseDate: LocalDate? = LocalDate.now()
     .plusYears(1),
   currentAccommodationArrangementType: AccommodationArrangementType? = AccommodationArrangementType.NO_FIXED_ABODE,
   hasNextAccommodation: Boolean = false,
   cas1Application: Cas1Application? = buildCas1Application(),
   cas3Application: Cas3Application? = null,
+  dtrStatus: String? = "submitted",
+  crsStatus: String? = "submitted",
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -28,6 +30,6 @@ fun buildDomainData(
   hasNextAccommodation = hasNextAccommodation,
   cas1Application = cas1Application,
   cas3Application = cas3Application,
-  dtrStatus = "OK",
-  crsStatus = "OK",
+  dtrStatus = dtrStatus,
+  crsStatus = crsStatus,
 )

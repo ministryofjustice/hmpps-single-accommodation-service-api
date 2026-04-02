@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -21,9 +22,8 @@ class NoConflictingCas1BookingRuleTest {
   private val tierScore = TierScore.A1
   private val description = "FAIL if CAS1 booking exists for upcoming release"
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas1PlacementStatus::class, names = ["UPCOMING", "ARRIVED"])
-  fun `CAS1 booking exists so rule fails`(placementStatus: Cas1PlacementStatus) {
+  @Test
+  fun `CAS1 booking exists so rule fails`() {
     val data = DomainData(
       crn = crn,
       tierScore = tierScore,
@@ -31,7 +31,8 @@ class NoConflictingCas1BookingRuleTest {
       releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        placementStatus = placementStatus,
+        placementStatus = Cas1PlacementStatus.UPCOMING,
+        requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       ),
     )
 

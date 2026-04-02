@@ -9,10 +9,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
@@ -21,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
@@ -42,10 +47,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationCompletionRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ReleaseDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CrsStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
@@ -92,7 +95,6 @@ class EligibilityServiceTest {
       NoConflictingCas1BookingRule(),
     ),
   )
-  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule()))
   var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule()))
   var cas3ContextUpdater = Cas3ContextUpdater(clock)
 
@@ -107,7 +109,6 @@ class EligibilityServiceTest {
     cas1ContextUpdater = cas1ContextUpdater,
     validationContextUpdater = validationContextUpdater,
     cas3EligibilityRuleSet = cas3EligibilityRuleSet,
-    cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
     cas3CompletionRuleSet = cas3CompletionRuleSet,
     cas3ContextUpdater = cas3ContextUpdater,
     engine = rulesEngine,
@@ -202,6 +203,68 @@ class EligibilityServiceTest {
       assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
       assertThat(result.action).isEqualTo(expectedCas1ActionsString)
       assertThat(result.link).isEqualTo(expectedCas1Link)
+    }
+  }
+
+  @Nested
+  inner class Cas3EligibilityScenarios {
+
+    /**
+     * Date formatter for CSV test data
+     *
+     * Uses dd/MM/yyyy format (not ISO yyyy-MM-dd) because:
+     * - Excel automatically reformats ISO dates (2025-12-01) to locale format (01/12/2025)
+     * - This causes test failures when the CSV is saved: "Text '01/12/2025' could not be parsed"
+     * - Using formatter prevents accidentally breaking tests when modifying test cases in CSV
+     *
+     */
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    private fun String.toLocalDate(): LocalDate = LocalDate.parse(this, dateFormatter)
+
+    @ParameterizedTest(name = "{0}")
+    @CsvFileSource(resources = ["/cas3-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
+    @TestData
+    fun `should calculate eligibility for cas3 for all scenarios`(
+      testCaseId: String,
+      description: String?,
+      referenceDate: String,
+      currentAccommodationArrangementType: AccommodationArrangementType?,
+      hasNextAccommodation: String,
+      releaseDate: String?,
+      cas3Status: Cas3ApplicationStatus?,
+      cas3AssessmentStatus: Cas3AssessmentStatus?,
+      cas3BookingStatus: Cas3PlacementStatus?,
+      crsStatus: String?,
+      dtrStatus: String?,
+      expectedCas3Status: ServiceStatus?,
+      expectedCas3ActionsString: String?,
+      expectedCas3Link: String?,
+    ) {
+      clock.setNow(referenceDate.toLocalDate())
+
+      val cas3Application = cas3Status?.let {
+        buildCas3Application(applicationStatus = it, placementStatus = cas3BookingStatus, assessmentStatus = cas3AssessmentStatus)
+      }
+
+      val data = buildDomainData(
+        crn = crn,
+        tierScore = null,
+        sex = null,
+        releaseDate = releaseDate?.toLocalDate(),
+        currentAccommodationArrangementType = currentAccommodationArrangementType,
+        hasNextAccommodation = hasNextAccommodation.toBoolean(),
+        cas1Application = null,
+        cas3Application = cas3Application,
+        dtrStatus = dtrStatus,
+        crsStatus = crsStatus,
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas3(data)
+
+      assertThat(result.serviceStatus).isEqualTo(expectedCas3Status)
+      assertThat(result.action).isEqualTo(expectedCas3ActionsString)
+      assertThat(result.link).isEqualTo(expectedCas3Link)
     }
   }
 }

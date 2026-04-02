@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -15,33 +13,13 @@ import java.time.temporal.ChronoUnit.DAYS
 private const val MAX_DAYS_BEFORE_RELEASE = 28
 private const val MIN_WORKING_HOURS_BEFORE_RELEASE = 12
 
-private val acceptableCas3Statuses = listOf(
-  Cas3PlacementStatus.DEPARTED,
-  Cas3PlacementStatus.NOT_ARRIVED,
-  Cas3PlacementStatus.CANCELLED,
-  Cas3PlacementStatus.CLOSED,
-)
-
 fun buildCas3Action(data: DomainData, clock: Clock) = when (data.cas3Application?.applicationStatus) {
-  Cas3ApplicationStatus.PLACED -> {
-    if (!acceptableCas3Statuses.contains(data.cas3Application.placementStatus)) {
-      error("Invalid placement status: ${data.cas3Application.placementStatus}")
-    }
-    CREATE_PLACEMENT
-  }
-
-  Cas3ApplicationStatus.AWAITING_PLACEMENT,
-  Cas3ApplicationStatus.PENDING,
-  -> CREATE_PLACEMENT
-
   Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
   -> PROVIDE_INFORMATION
 
   Cas3ApplicationStatus.IN_PROGRESS,
   Cas3ApplicationStatus.SUBMITTED,
   Cas3ApplicationStatus.REJECTED,
-  Cas3ApplicationStatus.INAPPLICABLE,
-  Cas3ApplicationStatus.WITHDRAWN,
   null,
   -> buildStartCas3ReferralAction(data, clock)
 }

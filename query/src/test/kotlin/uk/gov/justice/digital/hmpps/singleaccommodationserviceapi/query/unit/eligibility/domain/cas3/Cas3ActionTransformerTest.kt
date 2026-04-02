@@ -6,10 +6,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -96,50 +94,6 @@ class Cas3ActionTransformerTest {
       .hasMessage("Release date for crn: ABC234 is null")
   }
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED", "CLOSED"])
-  fun `Build action when application is PLACED but placement not completed`(status: Cas3PlacementStatus) {
-    val cas3Application = Cas3Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas3ApplicationStatus.PLACED,
-      placementStatus = status,
-    )
-
-    val data = DomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(1),
-      cas3Application = cas3Application,
-    )
-
-    val result = buildCas3Action(data, clock)
-
-    Assertions.assertThat(result).isEqualTo(CREATE_PLACEMENT)
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, names = ["AWAITING_PLACEMENT", "PENDING"])
-  fun `Build action when application needs to create a placement`(status: Cas3ApplicationStatus) {
-    val cas3Application = Cas3Application(
-      id = UUID.randomUUID(),
-      applicationStatus = status,
-      placementStatus = null,
-    )
-
-    val data = DomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(1),
-      cas3Application = cas3Application,
-    )
-
-    val result = buildCas3Action(data, clock)
-
-    Assertions.assertThat(result).isEqualTo(CREATE_PLACEMENT)
-  }
-
   @Test
   fun `Build action when application is REQUESTED_FURTHER_INFORMATION`() {
     val data = DomainData(
@@ -150,7 +104,8 @@ class Cas3ActionTransformerTest {
       cas3Application = Cas3Application(
         id = UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-        placementStatus = null,
+        bookingStatus = null,
+        assessmentStatus = null,
       ),
     )
 
@@ -160,12 +115,13 @@ class Cas3ActionTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, names = ["IN_PROGRESS", "SUBMITTED", "REJECTED", "INAPPLICABLE", "WITHDRAWN"])
+  @EnumSource(value = Cas3ApplicationStatus::class, names = ["IN_PROGRESS", "SUBMITTED", "REJECTED"])
   fun `Build action when application is not suitable`(status: Cas3ApplicationStatus) {
     val cas3Application = Cas3Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      placementStatus = null,
+      bookingStatus = null,
+      assessmentStatus = null,
     )
 
     val data = DomainData(
@@ -179,44 +135,5 @@ class Cas3ActionTransformerTest {
     val result = buildCas3Action(data, clock)
 
     Assertions.assertThat(result).isEqualTo(START_CAS3_REFERRAL)
-  }
-
-  @Test
-  fun `Error when application status is PLACED but placement status is null`() {
-    val data = DomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(1),
-      cas3Application = Cas3Application(
-        id = UUID.randomUUID(),
-        applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = null,
-      ),
-    )
-
-    Assertions.assertThatThrownBy { buildCas3Action(data, clock) }
-      .isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Invalid placement status: null")
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3PlacementStatus::class, names = ["PROVISIONAL", "CONFIRMED", "ARRIVED"])
-  fun `Error when application status is PLACED but placement status is completed`(status: Cas3PlacementStatus) {
-    val data = DomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(1),
-      cas3Application = Cas3Application(
-        id = UUID.randomUUID(),
-        applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = status,
-      ),
-    )
-
-    Assertions.assertThatThrownBy { buildCas3Action(data, clock) }
-      .isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Invalid placement status: $status")
   }
 }
