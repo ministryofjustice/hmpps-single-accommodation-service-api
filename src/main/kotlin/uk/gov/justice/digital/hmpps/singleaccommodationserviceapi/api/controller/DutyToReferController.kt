@@ -29,6 +29,13 @@ class DutyToReferController(
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @GetMapping("/cases/{crn}/dtr/{id}")
+  fun getByCrnAndId(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<DutyToReferDto> {
+    val dutyToRefer = dutyToReferQueryService.getDutyToRefer(crn, id)
+    return ResponseEntity.ok(dutyToRefer)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @PostMapping("/cases/{crn}/dtr")
   fun create(
     @PathVariable crn: String,

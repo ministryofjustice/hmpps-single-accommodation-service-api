@@ -97,6 +97,54 @@ class DutyToReferQueryServiceTest {
   }
 
   @Nested
+  inner class GetDutyToReferByCrnAndId {
+
+    private val id = UUID.randomUUID()
+
+    @Test
+    fun `should return dtr when found by id and crn`() {
+      val createdByUserId = UUID.randomUUID()
+      val localAuthorityAreaId = UUID.randomUUID()
+      val dtrEntity = buildDutyToReferEntity(
+        id = id,
+        caseId = caseId,
+        localAuthorityAreaId = localAuthorityAreaId,
+        createdByUserId = createdByUserId,
+      )
+      val userEntity = buildUserEntity()
+      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
+        id = localAuthorityAreaId,
+        name = "Test Local Authority",
+      )
+
+      every { dutyToReferRepository.findByIdAndCrn(id, crn) } returns dtrEntity
+      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
+      every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
+
+      val result = service.getDutyToRefer(crn, id)
+
+      assertThat(result.crn).isEqualTo(crn)
+      assertThat(result.caseId).isEqualTo(caseId)
+      assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
+      assertThat(result.submission).isNotNull()
+      val submission = result.submission!!
+      assertThat(submission.id).isEqualTo(id)
+      assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+    }
+
+    @Test
+    fun `should throw NotFoundException when not found`() {
+      every { dutyToReferRepository.findByIdAndCrn(id, crn) } returns null
+
+      assertThatThrownBy { service.getDutyToRefer(crn, id) }
+        .isInstanceOf(NotFoundException::class.java)
+        .hasMessage("DutyToReferEntity not found for [id=$id, crn=$crn]")
+    }
+  }
+
+  @Nested
   inner class GetDutyToReferById {
 
     private val id = UUID.randomUUID()
