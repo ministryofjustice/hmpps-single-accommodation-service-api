@@ -31,7 +31,7 @@ class ProposedAccommodationMapperTest {
     val entity = ProposedAccommodationMapper.toEntity(snapshot)
 
     assertThat(entity.id).isEqualTo(snapshot.id)
-    assertThat(entity.crn).isEqualTo(snapshot.crn)
+    assertThat(entity.caseId).isEqualTo(snapshot.caseId)
     assertThat(entity.name).isEqualTo(snapshot.name)
     assertThat(entity.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name))
     assertThat(entity.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(snapshot.arrangementSubType!!.name))
@@ -136,16 +136,16 @@ class ProposedAccommodationMapperTest {
   @Test
   fun `applyToEntity should copy all fields from snapshot to entity`() {
     val entityId = UUID.randomUUID()
-    val entityCrn = "X123456"
+    val caseID = UUID.randomUUID()
     val snapshot = buildProposedAccommodationSnapshot()
     val entity = buildProposedAccommodationEntity(
       id = entityId,
-      crn = entityCrn,
+      caseId = caseID,
     )
     val merged = ProposedAccommodationMapper.merge(snapshot, entity)
 
     assertThat(merged.id).isEqualTo(entityId)
-    assertThat(merged.crn).isEqualTo(entityCrn)
+    assertThat(merged.caseId).isEqualTo(caseID)
     assertThat(merged.name).isEqualTo(snapshot.name)
     assertThat(merged.arrangementType).isEqualTo(EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name))
     assertThat(merged.arrangementSubType).isEqualTo(EntityAccommodationArrangementSubType.valueOf(snapshot.arrangementSubType!!.name))
@@ -197,7 +197,7 @@ class ProposedAccommodationMapperTest {
     val snapshot = aggregate.snapshot()
 
     assertThat(snapshot.id).isEqualTo(entity.id)
-    assertThat(snapshot.crn).isEqualTo(entity.crn)
+    assertThat(snapshot.caseId).isEqualTo(entity.caseId)
     assertThat(snapshot.name).isEqualTo(entity.name)
     assertThat(snapshot.arrangementType).isEqualTo(AccommodationArrangementType.PRIVATE)
     assertThat(snapshot.arrangementSubType).isEqualTo(AccommodationArrangementSubType.FRIENDS_OR_FAMILY)
@@ -237,10 +237,13 @@ class ProposedAccommodationMapperTest {
   @Test
   fun `toDto maps all fields correctly`() {
     val snapshot = buildProposedAccommodationSnapshot()
+    val crn = UUID.randomUUID().toString()
     val createdBy = "Joe Bloggs"
     val createdAt = Instant.now()
-    val dto = ProposedAccommodationMapper.toDto(snapshot, createdBy, createdAt)
+    val dto = ProposedAccommodationMapper.toDto(snapshot, crn, createdBy, createdAt)
     assertThat(dto.id).isEqualTo(snapshot.id)
+    assertThat(dto.caseId).isEqualTo(snapshot.caseId)
+    assertThat(dto.crn).isEqualTo(crn)
     assertThat(dto.name).isEqualTo(snapshot.name)
     assertThat(dto.arrangementType).isEqualTo(snapshot.arrangementType)
     assertThat(dto.arrangementSubType).isEqualTo(snapshot.arrangementSubType)

@@ -59,9 +59,9 @@ class DutyToReferApplicationService(
     val dtr = dutyToReferRepository.findByIdAndCrn(id, crn)
       .orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userService.findUserByUserId(dtr.createdByUserId!!)
-      .orThrowNotFound("createdByUserId" to dtr.createdByUserId!!)
+      .orThrowNotFound("id" to dtr.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(command.localAuthorityAreaId)
-      .orThrowNotFound("localAuthorityAreaId" to command.localAuthorityAreaId)
+      .orThrowNotFound("id" to command.localAuthorityAreaId)
 
     val aggregate = DutyToReferMapper.toAggregate(dtr).also {
       it.updateDutyToRefer(

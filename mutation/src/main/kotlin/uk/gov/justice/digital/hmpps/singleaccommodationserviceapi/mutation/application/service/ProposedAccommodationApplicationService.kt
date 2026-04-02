@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
@@ -23,11 +24,13 @@ class ProposedAccommodationApplicationService(
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
+  private val caseRepository: CaseRepository,
 ) {
   @Transactional
   fun createProposedAccommodation(crn: String, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
     val user = userService.authorizeAndRetrieveUser()
-    val aggregate = ProposedAccommodationAggregate.hydrateNew(crn)
+    val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    val aggregate = ProposedAccommodationAggregate.hydrateNew(case.id)
     aggregate.updateProposedAccommodation(
       newName = accommodationDetailCommand.name,
       newArrangementType = accommodationDetailCommand.arrangementType,
@@ -47,6 +50,7 @@ class ProposedAccommodationApplicationService(
     pullEventAndPersistToOutbox(aggregate)
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
+      crn = crn,
       createdBy = user.name,
       createdAt = persistedRecord.createdAt!!,
     )
@@ -74,9 +78,10 @@ class ProposedAccommodationApplicationService(
     pullEventAndPersistToOutbox(aggregate)
 
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
-      .orThrowNotFound("createdByUserId" to updatedRecord.createdByUserId!!)
+      .orThrowNotFound("id" to updatedRecord.createdByUserId!!)
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
+      crn = crn,
       createdBy = createdByUser.name,
       createdAt = updatedRecord.createdAt!!,
     )

@@ -13,6 +13,7 @@ data class AccommodationDto(
 
 data class AccommodationDetail(
   val id: UUID,
+  val caseId: UUID,
   val crn: String,
   val name: String?,
   val arrangementType: AccommodationArrangementType,

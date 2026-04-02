@@ -13,7 +13,7 @@ import java.util.UUID
 open class ProposedAccommodationEntity(
   @Id
   val id: UUID,
-  val crn: String,
+  val caseId: UUID,
   var name: String?,
   @Enumerated(EnumType.STRING)
   var arrangementType: AccommodationArrangementType,

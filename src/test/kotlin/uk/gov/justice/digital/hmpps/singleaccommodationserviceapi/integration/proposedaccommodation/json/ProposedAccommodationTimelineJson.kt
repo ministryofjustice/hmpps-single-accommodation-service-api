@@ -4,6 +4,7 @@ import java.util.UUID
 
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
+  caseId: UUID,
   createCommitTime: String,
   update1CommitTime: String,
   update2CommitTime: String,
@@ -53,8 +54,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"$proposedAccommodationId"
          },
          {
-            "field":"crn",
-            "value":"FAKECRN1"
+            "field":"caseId",
+            "value":"$caseId"
          },
          {
             "field":"name",
