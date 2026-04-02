@@ -26,6 +26,17 @@ class ResourceSecurityIT : IntegrationTestBase() {
     setOf("HmppsQueueResource", "BasicErrorController", "OpenApiWebMvcResource")
 
   @Test
+  fun `@PreAuthorise smoke test()`() {
+    restTestClient
+      .get()
+      .uri("/cases")
+      .withClientCredentialsJwt(emptyList())
+      .exchange()
+      .expectStatus()
+      .isForbidden
+  }
+
+  @Test
   fun `Ensure all endpoints protected with PreAuthorize`() {
     // need to exclude any that are forbidden in helm configuration
     val exclusions = File("helm_deploy").walk().filter { it.name.equals("values.yaml") }.flatMap { file ->
