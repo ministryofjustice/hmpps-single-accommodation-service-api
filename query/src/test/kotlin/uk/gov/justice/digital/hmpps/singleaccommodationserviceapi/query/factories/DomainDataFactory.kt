@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 fun buildDomainData(
   crn: String = "CR12345N",
-  tierScore: TierScore = TierScore.A1,
+  tierScore: TierScore? = TierScore.A1,
   sex: SexCode? = SexCode.M,
   releaseDate: LocalDate? = LocalDate.now()
     .plusYears(1),

@@ -2,35 +2,27 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
 
 class Cas3ApplicationSuitabilityRuleTest {
   private val crn = "ABC234"
-  private val male = SexCode.M
-  private val tierScore = TierScore.A1
-  private val description = "FAIL if candidate does not have a suitable application"
+  private val description = "FAIL if CAS3 application is not present"
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, names = ["IN_PROGRESS", "AWAITING_PLACEMENT", "REQUESTED_FURTHER_INFORMATION", "PENDING"])
-  fun `application is suitable (not PLACED) so rule passes`(applicationStatus: Cas3ApplicationStatus) {
+  @Test
+  fun `application is present so rule passes`() {
     val data = buildDomainData(
       crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
-        applicationStatus = applicationStatus,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        bookingStatus = Cas3BookingStatus.CONFIRMED,
       ),
     )
 
@@ -40,64 +32,14 @@ class Cas3ApplicationSuitabilityRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.PASS,
-      ),
-    )
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(Cas3BookingStatus::class)
-  fun `application is suitable (PLACED) so rule passes`(bookingStatus: Cas3BookingStatus) {
-    val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.PLACED,
-        bookingStatus = bookingStatus,
-      ),
-    )
-
-    val result = Cas3ApplicationSuitabilityRule().evaluate(data)
-
-    assertThat(result).isEqualTo(
-      RuleResult(
-        description = description,
-        ruleStatus = RuleStatus.PASS,
-      ),
-    )
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, names = ["SUBMITTED", "REJECTED", "INAPPLICABLE", "WITHDRAWN"])
-  fun `application does not have a suitable status so rule fails`(applicationStatus: Cas3ApplicationStatus) {
-    val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = buildCas3Application(
-        applicationStatus = applicationStatus,
-      ),
-    )
-
-    val result = Cas3ApplicationSuitabilityRule().evaluate(data)
-
-    assertThat(result).isEqualTo(
-      RuleResult(
-        description = description,
-        ruleStatus = RuleStatus.FAIL,
       ),
     )
   }
 
   @Test
-  fun `application is not present so rule fails`() {
+  fun `application is missing so rule fails`() {
     val data = buildDomainData(
       crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = null,
     )
 

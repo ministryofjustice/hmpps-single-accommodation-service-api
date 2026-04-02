@@ -39,6 +39,7 @@ class DomainDataTest {
         UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         bookingStatus = null,
+        assessmentStatus = null,
       ),
       currentAccommodationArrangementType = null,
     )

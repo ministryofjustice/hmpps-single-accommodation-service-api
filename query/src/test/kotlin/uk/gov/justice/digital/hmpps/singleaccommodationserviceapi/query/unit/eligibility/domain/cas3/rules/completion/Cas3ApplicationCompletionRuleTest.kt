@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -21,17 +22,17 @@ class Cas3ApplicationCompletionRuleTest {
   private val tierScore = TierScore.A1
   private val description = "FAIL if CAS3 application is not complete"
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, names = ["PROVISIONAL", "CONFIRMED", "ARRIVED"])
-  fun `application is completed so rule passes`(bookingStatus: Cas3BookingStatus) {
+  @Test
+  fun `application is completed so rule passes`() {
     val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.PLACED,
-        bookingStatus = bookingStatus,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        bookingStatus = Cas3BookingStatus.CONFIRMED,
       ),
     )
 
@@ -46,60 +47,18 @@ class Cas3ApplicationCompletionRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, names = ["DEPARTED", "NOT_ARRIVED", "CANCELLED", "CLOSED"])
-  fun `application is PLACED but booking not completed so rule fails`(bookingStatus: Cas3BookingStatus) {
+  @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["CONFIRMED"])
+  fun `application is not completed so rule fails`(bookingStatus: Cas3BookingStatus) {
     val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.PLACED,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
         bookingStatus = bookingStatus,
       ),
-    )
-
-    val result = Cas3ApplicationCompletionRule().evaluate(data)
-
-    assertThat(result).isEqualTo(
-      RuleResult(
-        description = description,
-        ruleStatus = RuleStatus.FAIL,
-      ),
-    )
-  }
-
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["PLACED"])
-  fun `application is not PLACED so rule fails`(applicationStatus: Cas3ApplicationStatus) {
-    val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = buildCas3Application(
-        applicationStatus = applicationStatus,
-      ),
-    )
-
-    val result = Cas3ApplicationCompletionRule().evaluate(data)
-
-    assertThat(result).isEqualTo(
-      RuleResult(
-        description = description,
-        ruleStatus = RuleStatus.FAIL,
-      ),
-    )
-  }
-
-  @Test
-  fun `application is not present so rule fails`() {
-    val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
-      cas3Application = null,
     )
 
     val result = Cas3ApplicationCompletionRule().evaluate(data)

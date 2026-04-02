@@ -7,14 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.suitability.Cas3ApplicationExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.suitability.Cas3SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.rules.Cas3RecentReleaseDateRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3SuitabilityRuleSet::class,
     Cas3ApplicationSuitabilityRule::class,
+    Cas3ApplicationExpiredRule::class,
+    Cas3RecentReleaseDateRule::class,
     ClockConfig::class,
   ],
 )
@@ -25,6 +29,8 @@ class Cas3SuitabilityRuleSetTest {
 
   private val expectedCas3SuitabilityRuleNames = listOf(
     Cas3ApplicationSuitabilityRule::class.simpleName,
+    Cas3ApplicationExpiredRule::class.simpleName,
+    Cas3RecentReleaseDateRule::class.simpleName,
   )
 
   @Test
@@ -32,7 +38,7 @@ class Cas3SuitabilityRuleSetTest {
     val ruleSetRules = cas3SuitabilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(1)
+      .hasSize(3)
       .containsExactlyInAnyOrderElementsOf(expectedCas3SuitabilityRuleNames)
   }
 }
