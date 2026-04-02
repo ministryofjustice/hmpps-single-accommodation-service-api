@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
 
 @RestController
-@PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
 class AccommodationReferralController(
   private val accommodationReferralService: AccommodationReferralService,
 ) {
@@ -21,6 +20,7 @@ class AccommodationReferralController(
     security = [SecurityRequirement(name = "role-probation")],
   )
   @GetMapping("/cases/{crn}/applications")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   fun getApplicationHistory(@PathVariable crn: String): ResponseEntity<List<AccommodationReferralDto>> {
     val referralHistory = accommodationReferralService.getReferralHistory(crn)
     return ResponseEntity.ok(referralHistory)

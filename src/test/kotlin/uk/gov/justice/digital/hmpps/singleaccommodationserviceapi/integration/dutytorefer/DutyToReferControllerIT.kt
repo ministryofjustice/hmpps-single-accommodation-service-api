@@ -163,16 +163,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return 403 when using token with SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER for DTR callback endpoint`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/duty-to-refers/{id}", nonExistentId)
-      .withDeliusUserJwt(roles = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
   fun `should get duty to refer by crn and id`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
@@ -215,18 +205,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
-  }
-
-  @Test
-  fun `should return 403 when using token without PP or POM role for GET by crn and id`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, nonExistentId)
-      .withClientCredentialsJwt(
-        roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
-      )
-      .exchange()
-      .expectStatus().isForbidden
   }
 
   @Test

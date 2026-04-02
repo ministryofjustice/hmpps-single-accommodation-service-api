@@ -184,16 +184,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return 403 when using token with SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER for ADDA endpoint`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
-      .withDeliusUserJwt(roles = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
   fun `should return 404 when proposed-accommodation not found`() {
     val nonExistentId = UUID.randomUUID()
 

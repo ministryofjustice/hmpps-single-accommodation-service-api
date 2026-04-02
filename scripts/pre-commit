@@ -9,7 +9,7 @@ echo "Running 'ktlintCheck'"
 echo "ktlintCheck complete."
 
 # Run prek hooks
-# Allow overriding PREK via environment; otherwise resolve it dynamically.
+# Resolve PREK
 if [ -n "$PREK" ] && [ -x "$PREK" ]; then
     :
 elif command -v prek >/dev/null 2>&1; then
@@ -19,6 +19,7 @@ elif [ -x "/opt/homebrew/bin/prek" ]; then
 else
     echo "Error: could not find executable 'prek'. Set PREK or ensure 'prek' is in PATH." >&2
     exit 1
+fi
 
 # Determine the directory containing this script for use as the hook directory.
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
