@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PartialSuccessResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 
-object PartialSuccessTransformer {
-  fun <T> toPartialSuccessDto(
+object ApiResponseTransformer {
+  fun <T> toApiResponseDto(
     data: T,
     upstreamFailures: List<UpstreamFailure> = emptyList(),
-  ) = PartialSuccessResponseDto(
+  ) = ApiResponseDto(
     data = data,
     upstreamFailures = upstreamFailures.map { UpstreamFailureTransformer.toUpstreamFailureDto(it) },
   )
