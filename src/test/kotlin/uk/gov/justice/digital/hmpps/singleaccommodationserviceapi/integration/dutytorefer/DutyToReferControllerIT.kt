@@ -424,6 +424,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(outboxRecord.aggregateType).isEqualTo("DutyToRefer")
     assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.name)
     assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(dutyToReferId))
-    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.SUCCESS)
+    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
   }
 }

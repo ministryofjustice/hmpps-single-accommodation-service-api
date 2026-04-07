@@ -9,7 +9,7 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import java.time.Instant
 import java.util.UUID
 
@@ -17,7 +17,7 @@ import java.util.UUID
 @Component
 class HmppsDomainEventListener(
   private val jsonMapper: JsonMapper,
-  private val inboxEventRepository: InboxEventRepository,
+  private val inboxEventService: InboxEventService,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -26,7 +26,7 @@ class HmppsDomainEventListener(
     try {
       val (message) = jsonMapper.readValue(msg, SQSMessage::class.java)
       val event = jsonMapper.readValue(message, HmppsDomainEvent::class.java)
-      inboxEventRepository.save(
+      inboxEventService.saveInboxEvent(
         InboxEventEntity(
           id = UUID.randomUUID(),
           eventType = event.eventType,
