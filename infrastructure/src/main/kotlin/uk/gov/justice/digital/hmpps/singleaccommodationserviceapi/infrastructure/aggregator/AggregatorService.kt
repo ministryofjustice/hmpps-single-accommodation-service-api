@@ -109,7 +109,7 @@ class AggregatorService {
               try {
                 AggregatorCallOutcome.Success(supplier(identifier))
               } catch (e: Exception) {
-                classifyAndWrap("$key[$identifier]", e)
+                classifyAndWrap(key, e, identifier = identifier)
               }
             }
           }
@@ -118,39 +118,46 @@ class AggregatorService {
     }.mapValues { (_, deferred) -> deferred.await() }
   }
 
-  private fun classifyAndWrap(key: String, exception: Exception): AggregatorCallOutcome.Failure = when (exception) {
-    is RestClientResponseException -> {
-      log.error("Upstream HTTP error for call '{}': {} {}", key, exception.statusCode, exception.message)
-      AggregatorCallOutcome.Failure(
-        FailureType.UPSTREAM_HTTP_ERROR,
-        ErrorDetail(
-          httpStatus = HttpStatus.resolve(exception.statusCode.value()),
-          message = exception.message ?: "Upstream HTTP error",
-        ),
-      )
-    }
-    is ResourceAccessException -> {
-      val isTimeout = exception.cause is HttpTimeoutException
-      if (isTimeout) {
-        log.error("Timeout for call '{}': {}", key, exception.message)
+  private fun classifyAndWrap(key: String, exception: Exception, identifier: String? = null): AggregatorCallOutcome.Failure {
+    val logPrefix = if (identifier != null) "'$key' [identifier=$identifier]" else "'$key'"
+    return when (exception) {
+      is RestClientResponseException -> {
+        log.error("Upstream HTTP error for call {}: {} {}", logPrefix, exception.statusCode, exception.message)
         AggregatorCallOutcome.Failure(
-          FailureType.TIMEOUT,
-          ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
+          FailureType.UPSTREAM_HTTP_ERROR,
+          ErrorDetail(
+            httpStatus = HttpStatus.resolve(exception.statusCode.value()),
+            message = exception.message ?: "Upstream HTTP error",
+          ),
+          identifier = identifier,
         )
-      } else {
-        log.error("Unknown error for call '{}': {}", key, exception.message, exception)
+      }
+      is ResourceAccessException -> {
+        val isTimeout = exception.cause is HttpTimeoutException
+        if (isTimeout) {
+          log.error("Timeout for call {}: {}", logPrefix, exception.message)
+          AggregatorCallOutcome.Failure(
+            FailureType.TIMEOUT,
+            ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
+            identifier = identifier,
+          )
+        } else {
+          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+          AggregatorCallOutcome.Failure(
+            FailureType.UNKNOWN_ERROR,
+            ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
+            identifier = identifier,
+          )
+        }
+      }
+      else -> {
+        log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
         AggregatorCallOutcome.Failure(
           FailureType.UNKNOWN_ERROR,
           ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
+          identifier = identifier,
         )
       }
-    }
-    else -> {
-      log.error("Unknown error for call '{}': {}", key, exception.message, exception)
-      AggregatorCallOutcome.Failure(
-        FailureType.UNKNOWN_ERROR,
-        ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
-      )
     }
   }
 }

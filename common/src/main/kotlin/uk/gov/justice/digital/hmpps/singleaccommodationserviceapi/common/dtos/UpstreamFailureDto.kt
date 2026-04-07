@@ -7,6 +7,7 @@ data class UpstreamFailureDto(
   val failureType: UpstreamFailureType,
   val httpResponseStatus: HttpStatus?,
   val message: String,
+  val identifier: String? = null,
 )
 
 enum class UpstreamFailureType {

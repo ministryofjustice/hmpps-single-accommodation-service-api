@@ -6,6 +6,7 @@ data class UpstreamFailure(
   val callKey: String,
   val type: FailureType,
   val errorDetail: ErrorDetail,
+  val identifier: String? = null,
 )
 
 enum class FailureType {
@@ -24,6 +25,7 @@ sealed class AggregatorCallOutcome<out T> {
   data class Failure(
     val type: FailureType,
     val errorDetail: ErrorDetail,
+    val identifier: String? = null,
   ) : AggregatorCallOutcome<Nothing>()
 }
 
@@ -40,5 +42,6 @@ fun Map<String, Any>.getFailures(): List<UpstreamFailure> = this.mapNotNull { (k
     callKey = key,
     type = failure.type,
     errorDetail = failure.errorDetail,
+    identifier = failure.identifier,
   )
 }

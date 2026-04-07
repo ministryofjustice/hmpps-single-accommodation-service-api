@@ -10,5 +10,6 @@ object UpstreamFailureTransformer {
     failureType = UpstreamFailureType.valueOf(failure.type.name),
     httpResponseStatus = failure.errorDetail.httpStatus,
     message = failure.errorDetail.message,
+    identifier = failure.identifier,
   )
 }
