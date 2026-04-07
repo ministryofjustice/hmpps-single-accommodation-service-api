@@ -10,9 +10,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationNoteIsEmptyException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationNoteIsGreaterThanMaxLengthException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import java.time.LocalDate
 import java.util.UUID
+
+private const val NOTE_MAX_LENGTH = 4000
 
 class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
@@ -28,6 +32,7 @@ class ProposedAccommodationAggregate private constructor(
   private var address: AccommodationAddressDetails? = null,
   private var startDate: LocalDate? = null,
   private var endDate: LocalDate? = null,
+  private var notes: MutableList<ProposedAccommodationNote> = mutableListOf(),
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
@@ -51,6 +56,7 @@ class ProposedAccommodationAggregate private constructor(
       address: AccommodationAddressDetails,
       startDate: LocalDate?,
       endDate: LocalDate?,
+      notes: List<ProposedAccommodationNote>,
     ) = ProposedAccommodationAggregate(
       id = id,
       caseId = caseId,
@@ -65,6 +71,7 @@ class ProposedAccommodationAggregate private constructor(
       address = address,
       startDate = startDate,
       endDate = endDate,
+      notes = notes.toMutableList(),
     )
   }
 
@@ -97,6 +104,23 @@ class ProposedAccommodationAggregate private constructor(
 
     if (nextAccommodationStatus == NextAccommodationStatus.YES) {
       domainEvents += AccommodationUpdatedDomainEvent(id)
+    }
+  }
+
+  fun addNote(note: String) {
+    validateNote(note)
+    notes += ProposedAccommodationNote(
+      id = UUID.randomUUID(),
+      note,
+    )
+  }
+
+  private fun validateNote(note: String) {
+    if (note.isBlank()) {
+      throw AccommodationNoteIsEmptyException()
+    }
+    if (note.length > NOTE_MAX_LENGTH) {
+      throw AccommodationNoteIsGreaterThanMaxLengthException()
     }
   }
 
@@ -135,6 +159,7 @@ class ProposedAccommodationAggregate private constructor(
     address!!,
     startDate,
     endDate,
+    notes = notes.toList(),
   )
 
   data class ProposedAccommodationSnapshot(
@@ -151,5 +176,11 @@ class ProposedAccommodationAggregate private constructor(
     val address: AccommodationAddressDetails,
     val startDate: LocalDate?,
     val endDate: LocalDate?,
+    val notes: List<ProposedAccommodationNote>,
+  )
+
+  data class ProposedAccommodationNote(
+    val id: UUID,
+    val note: String,
   )
 }

@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
 import java.time.Instant
@@ -69,7 +70,22 @@ object ProposedAccommodationMapper {
     entity.county = snapshot.address.county
     entity.country = snapshot.address.country
     entity.uprn = snapshot.address.uprn
+    entity.addMissingNotes(snapshot.notes)
     return entity
+  }
+
+  fun ProposedAccommodationEntity.addMissingNotes(snapshotNotes: List<ProposedAccommodationAggregate.ProposedAccommodationNote>) {
+    val existingIds = this.notes.map { it.id }.toSet()
+    val missingNotes = snapshotNotes
+      .filter { it.id !in existingIds }
+      .map {
+        ProposedAccommodationNoteEntity(
+          id = it.id,
+          note = it.note,
+          proposedAccommodation = this,
+        )
+      }
+    this.notes.addAll(missingNotes)
   }
 
   fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
@@ -97,6 +113,12 @@ object ProposedAccommodationMapper {
     ),
     startDate = entity.startDate,
     endDate = entity.endDate,
+    notes = entity.notes.map {
+      ProposedAccommodationAggregate.ProposedAccommodationNote(
+        id = it.id,
+        note = it.note,
+      )
+    },
   )
 
   fun toDto(

@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
@@ -69,3 +70,14 @@ fun buildProposedAccommodationEntity(
   this.lastUpdatedByUserId = lastUpdatedByUserId
   this.lastUpdatedAt = lastUpdatedAt
 }
+
+@TestData
+fun buildProposedAccommodationNoteEntity(
+  id: UUID = UUID.randomUUID(),
+  note: String = "Test note",
+  proposedAccommodationEntity: ProposedAccommodationEntity,
+) = ProposedAccommodationNoteEntity(
+  id,
+  note,
+  proposedAccommodationEntity,
+)

@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -85,6 +86,15 @@ class ProposedAccommodationApplicationService(
       createdBy = createdByUser.name,
       createdAt = updatedRecord.createdAt!!,
     )
+  }
+
+  @Transactional
+  fun createProposedAccommodationNote(crn: String, id: UUID, noteCommand: NoteCommand) {
+    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+    val aggregate = ProposedAccommodationMapper.toAggregate(entity)
+    aggregate.addNote(note = noteCommand.note)
+    val merged = merge(aggregate.snapshot(), entity)
+    proposedAccommodationRepository.save(merged)
   }
 
   private fun pullEventAndPersistToOutbox(aggregate: ProposedAccommodationAggregate) = aggregate.pullDomainEvents().forEach { event ->
