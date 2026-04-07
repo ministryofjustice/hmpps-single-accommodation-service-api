@@ -25,8 +25,8 @@ class CaseApplicationService(
   fun upsertCases(crns: List<String>) {
     val missingCrns = caseRepository.findMissingCrns(crns = crns.toTypedArray())
     if (missingCrns.isNotEmpty()) {
-      val freshCases = caseOrchestrationService.getCases(missingCrns)
-      freshCases.forEach { case ->
+      val casesToAdd = caseOrchestrationService.getCases(missingCrns)
+      casesToAdd.forEach { case ->
         val identifiers = case.cpr?.identifiers
         if (identifiers != null) {
           val caseEntity = findByAndUpdatePersonIdentifiers(identifiers)
@@ -42,7 +42,7 @@ class CaseApplicationService(
   fun upsertCase(crn: String) {
     val caseEntity = findByIdentifier(crn, IdentifierType.CRN)
     if (caseEntity != null) {
-      updatePreExistingCase(crn, caseEntity)
+      updateCase(crn, caseEntity)
     } else {
       val identifiers = getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!
       val caseEntity = findByAndUpdatePersonIdentifiers(identifiers = identifiers)
@@ -55,13 +55,13 @@ class CaseApplicationService(
       "Either caseEntity or identifiers must be provided"
     }
     if (caseEntity != null) {
-      updatePreExistingCase(crn, caseEntity)
+      updateCase(crn, caseEntity)
     } else {
       createNewCase(crn, identifiers!!)
     }
   }
 
-  private fun updatePreExistingCase(crn: String, caseEntity: CaseEntity) {
+  private fun updateCase(crn: String, caseEntity: CaseEntity) {
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
     caseAggregate.upsertCase(
