@@ -58,8 +58,8 @@ fun buildManager(team: Team = buildTeam()) = Manager(
   team = team,
 )
 
-fun buildTeam() = Team(
-  code = "TODO(code)",
+fun buildTeam(code: String = "12345") = Team(
+  code,
   name = "Team 1",
   ldu = Ldu(
     code = "TODO(code)",

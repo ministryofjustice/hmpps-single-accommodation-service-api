@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
-import java.util.UUID
 
 object TierStubs {
 
@@ -21,7 +20,7 @@ object TierStubs {
     )
   }
 
-  fun getTierFailResponse(crn: String, externalId: UUID? = null) {
+  fun getTierFailResponse(crn: String) {
     sasWiremock.stubFor(
       WireMock.get(WireMock.urlPathEqualTo("/crn/$crn/tier"))
         .willReturn(notFound()),

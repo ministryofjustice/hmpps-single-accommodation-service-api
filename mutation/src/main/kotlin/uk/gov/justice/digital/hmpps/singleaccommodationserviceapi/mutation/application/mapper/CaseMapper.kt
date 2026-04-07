@@ -4,32 +4,30 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate.CaseIdentifier
-import java.util.UUID
 
 object CaseMapper {
-
-  fun creatNew() = CaseEntity(
-    id = UUID.randomUUID(),
-  )
 
   fun toAggregate(entity: CaseEntity): CaseAggregate = CaseAggregate.hydrate(
     id = entity.id,
     tierScore = entity.tierScore,
-    caseIdentifiers = entity.caseIdentifiers.toCaseIdentifiers(),
     cas1ApplicationId = entity.cas1ApplicationId,
     cas1ApplicationApplicationStatus = entity.cas1ApplicationApplicationStatus,
     cas1ApplicationRequestForPlacementStatus = entity.cas1ApplicationRequestForPlacementStatus,
     cas1ApplicationPlacementStatus = entity.cas1ApplicationPlacementStatus,
   )
 
-  fun MutableSet<CaseIdentifierEntity>.toCaseIdentifiers() = this.map {
-    CaseIdentifier(
-      it.id,
-      it.identifier,
-      it.identifierType,
+  fun create(snapshot: CaseAggregate.CaseSnapshot, identifiers: Map<String, IdentifierType>): CaseEntity {
+    val entity = CaseEntity(
+      id = snapshot.id,
+      tierScore = snapshot.tierScore,
+      cas1ApplicationId = snapshot.cas1ApplicationId,
+      cas1ApplicationApplicationStatus = snapshot.cas1ApplicationApplicationStatus,
+      cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus,
+      cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus,
     )
-  }.toMutableSet()
+    entity.addMissingIdentifiers(identifiers)
+    return entity
+  }
 
   fun merge(
     entity: CaseEntity,
@@ -47,10 +45,10 @@ object CaseMapper {
     return entity
   }
 
-  fun CaseEntity.addMissingIdentifiers(snapshotIdentifiers: Map<String, IdentifierType>) {
+  fun CaseEntity.addMissingIdentifiers(identifiers: Map<String, IdentifierType>) {
     val existingIdentifiers = this.caseIdentifiers.associate { it.identifier to it.identifierType }
 
-    snapshotIdentifiers.forEach { (identifier, type) ->
+    identifiers.forEach { (identifier, type) ->
       if (existingIdentifiers[identifier] != type) {
         caseIdentifiers.add(
           CaseIdentifierEntity(

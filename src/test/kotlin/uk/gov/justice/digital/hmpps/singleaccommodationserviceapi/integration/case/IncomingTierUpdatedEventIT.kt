@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.TierDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -87,7 +87,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     assertThat(case.tierScore).isEqualTo(TierScore.A3)
@@ -106,7 +106,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     publishTierEvent()
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     assertThat(case.tierScore).isEqualTo(TierScore.A3)
@@ -127,7 +127,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.SUCCESS) }
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
     assertThat(caseRepository.findAll()).hasSize(0)
   }
 
@@ -135,7 +135,6 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   fun `should FAIL to process incoming HMPPS TIER_CALCULATION_COMPLETE domain event as callback URL fails with 404`() {
     TierStubs.getTierFailResponse(
       crn,
-      externalId = externalId,
     )
 
     publishTierEvent()
@@ -206,7 +205,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     val inboxEvents = inboxEventRepository.findAll()
     assertThat(inboxEvents).hasSize(1)
     val inboxEvent = inboxEvents.first()
-    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, TierDomainEvent::class.java)
+    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
     assertThat(tierDomainEvent.personReference.findCrn()).isEqualTo(crn)
 
     assertThat(inboxEvent.eventType).isEqualTo(eventType)

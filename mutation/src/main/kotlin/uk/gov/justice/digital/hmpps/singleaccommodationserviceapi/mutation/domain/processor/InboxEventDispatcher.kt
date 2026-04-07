@@ -67,8 +67,9 @@ class InboxEventDispatcher(
 
     log.info("Processing inbox batch [count={}, eventIds={}]", inboxEvents.size, inboxEvents.map { it.id })
 
-    val successCount = AtomicInteger(0)
-    val failureCount = AtomicInteger(0)
+    val processedCount = AtomicInteger(0)
+    val notProcessedCount = AtomicInteger(0)
+    val failedCount = AtomicInteger(0)
     val skippedCount = AtomicInteger(0)
 
     val (partitions, noHandlerEvents) = partitionByKey(inboxEvents)
@@ -82,17 +83,18 @@ class InboxEventDispatcher(
       partitions.map { (_, events) ->
         async(Dispatchers.IO) {
           concurrencyLimit.withPermit {
-            events.forEach { dispatchEvent(it, successCount, failureCount, skippedCount) }
+            events.forEach { dispatchEvent(it, processedCount, notProcessedCount, failedCount, skippedCount) }
           }
         }
       }.awaitAll()
     }
 
     log.info(
-      "Inbox batch complete [total={}, success={}, failed={}, skipped={}]",
+      "Inbox batch complete [total={}, processed={}, notProcessed={}, failed={}, skipped={}]",
       inboxEvents.size,
-      successCount.get(),
-      failureCount.get(),
+      processedCount.get(),
+      notProcessedCount.get(),
+      failedCount.get(),
       skippedCount.get(),
     )
   }
@@ -121,8 +123,9 @@ class InboxEventDispatcher(
 
   private fun dispatchEvent(
     inboxEvent: InboxEventEntity,
-    successCount: AtomicInteger,
-    failureCount: AtomicInteger,
+    processedCount: AtomicInteger,
+    notProcessedCount: AtomicInteger,
+    failedCount: AtomicInteger,
     skippedCount: AtomicInteger,
   ) {
     val handler =
@@ -136,14 +139,15 @@ class InboxEventDispatcher(
     try {
       handler.handle(inboxEvent)
       when (inboxEvent.processedStatus) {
-        ProcessedStatus.SUCCESS -> successCount.incrementAndGet()
-        ProcessedStatus.FAILED -> failureCount.incrementAndGet()
+        ProcessedStatus.PROCESSED -> processedCount.incrementAndGet()
+        ProcessedStatus.NOT_PROCESSED -> notProcessedCount.incrementAndGet()
+        ProcessedStatus.FAILED -> failedCount.incrementAndGet()
         else -> skippedCount.incrementAndGet()
       }
     } catch (e: Exception) {
       log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
       log.debug("Dispatch failure details", e)
-      failureCount.incrementAndGet()
+      failedCount.incrementAndGet()
     }
   }
 
