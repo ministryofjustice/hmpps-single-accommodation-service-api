@@ -7,7 +7,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.client.RestClientResponseException
+import java.net.http.HttpTimeoutException
 import java.time.LocalDateTime
 
 data class CallsPerIdentifier(
@@ -79,11 +83,14 @@ class AggregatorService {
     functionCalls: Map<String, suspend () -> Any>,
     semaphore: Semaphore,
   ): Map<String, Any> = coroutineScope {
-    functionCalls.mapValues { (_, call) ->
+    functionCalls.mapValues { (key, call) ->
       async(Dispatchers.IO) {
         semaphore.withPermit {
-          runCatching { call() }
-            .getOrElse { "Failed with message: ${it.message}" }
+          try {
+            AggregatorCallOutcome.Success(call())
+          } catch (e: Exception) {
+            classifyAndWrap(key, e)
+          }
         }
       }
     }.mapValues { (_, deferred) -> deferred.await() }
@@ -96,15 +103,61 @@ class AggregatorService {
   ): Map<String, Map<String, Any>> = coroutineScope {
     identifiers.associateWith { identifier ->
       async(Dispatchers.IO) {
-        functionCalls.mapValues { (_, supplier) ->
+        functionCalls.mapValues { (key, supplier) ->
           async(Dispatchers.IO) {
             semaphore.withPermit {
-              runCatching { supplier(identifier) }
-                .getOrElse { "Failed with message: ${it.message}" }
+              try {
+                AggregatorCallOutcome.Success(supplier(identifier))
+              } catch (e: Exception) {
+                classifyAndWrap(key, e, identifier = identifier)
+              }
             }
           }
         }.mapValues { (_, deferred) -> deferred.await() }
       }
     }.mapValues { (_, deferred) -> deferred.await() }
+  }
+
+  private fun classifyAndWrap(key: String, exception: Exception, identifier: String? = null): AggregatorCallOutcome.Failure {
+    val logPrefix = if (identifier != null) "'$key' [identifier=$identifier]" else "'$key'"
+    return when (exception) {
+      is RestClientResponseException -> {
+        log.error("Upstream HTTP error for call {}: {} {}", logPrefix, exception.statusCode, exception.message)
+        AggregatorCallOutcome.Failure(
+          FailureType.UPSTREAM_HTTP_ERROR,
+          ErrorDetail(
+            httpStatus = HttpStatus.resolve(exception.statusCode.value()),
+            message = exception.message ?: "Upstream HTTP error",
+          ),
+          identifier = identifier,
+        )
+      }
+      is ResourceAccessException -> {
+        val isTimeout = exception.cause is HttpTimeoutException
+        if (isTimeout) {
+          log.error("Timeout for call {}: {}", logPrefix, exception.message)
+          AggregatorCallOutcome.Failure(
+            FailureType.TIMEOUT,
+            ErrorDetail(httpStatus = null, message = exception.message ?: "Request timed out"),
+            identifier = identifier,
+          )
+        } else {
+          log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+          AggregatorCallOutcome.Failure(
+            FailureType.UNKNOWN_ERROR,
+            ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
+            identifier = identifier,
+          )
+        }
+      }
+      else -> {
+        log.error("Unknown error for call {}: {}", logPrefix, exception.message, exception)
+        AggregatorCallOutcome.Failure(
+          FailureType.UNKNOWN_ERROR,
+          ErrorDetail(httpStatus = null, message = exception.message ?: "Unknown error"),
+          identifier = identifier,
+        )
+      }
+    }
   }
 }

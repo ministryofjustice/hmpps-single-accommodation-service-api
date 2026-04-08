@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
@@ -27,8 +28,8 @@ class CaseMutationOrchestrationService(
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
-    val tier = results.standardCallsNoIterationResults!![ApiCallKeys.GET_TIER] as? Tier
-    val cas1Application = results.standardCallsNoIterationResults!![ApiCallKeys.GET_CAS_1_APPLICATION] as? Cas1Application
+    val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(ApiCallKeys.GET_TIER)
+    val cas1Application = results.standardCallsNoIterationResults!!.getResult<Cas1Application>(ApiCallKeys.GET_CAS_1_APPLICATION)
     return CaseMutationOrchestrationDto(crn, cpr = null, tier, cas1Application)
   }
 
@@ -46,9 +47,9 @@ class CaseMutationOrchestrationService(
       ),
     )
     return results.callsPerIdentifierResults!!.map { (crn, calls) ->
-      val tier = calls[ApiCallKeys.GET_TIER] as? Tier
-      val cas1Application = calls[ApiCallKeys.GET_CAS_1_APPLICATION] as? Cas1Application
-      val cpr = calls[ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN] as? CorePersonRecord
+      val tier = calls.getResult<Tier>(ApiCallKeys.GET_TIER)
+      val cas1Application = calls.getResult<Cas1Application>(ApiCallKeys.GET_CAS_1_APPLICATION)
+      val cpr = calls.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
 
       CaseMutationOrchestrationDto(
         crn,

@@ -12,10 +12,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 
 fun buildCaseOrchestrationDto(
   crn: String,
-  cpr: CorePersonRecord = buildCorePersonRecord(),
-  roshDetails: RoshDetails = buildRoshDetails(),
-  tier: Tier = buildTier(),
-  cases: List<CaseSummary> = listOf(buildCaseSummary()),
+  cpr: CorePersonRecord? = buildCorePersonRecord(),
+  roshDetails: RoshDetails? = buildRoshDetails(),
+  tier: Tier? = buildTier(),
+  cases: List<CaseSummary>? = listOf(buildCaseSummary()),
 ) = CaseOrchestrationDto(
   crn,
   cpr,

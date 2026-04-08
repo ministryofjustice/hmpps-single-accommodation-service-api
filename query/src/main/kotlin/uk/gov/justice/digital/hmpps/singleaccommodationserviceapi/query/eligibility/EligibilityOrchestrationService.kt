@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
@@ -37,12 +38,12 @@ class EligibilityOrchestrationService(
       standardCallsNoIteration = calls,
     )
 
-    val cpr = results.standardCallsNoIterationResults!![GET_CORE_PERSON_RECORD_BY_CRN] as? CorePersonRecord
+    val cpr = results.standardCallsNoIterationResults!!.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
       ?: error("$GET_CORE_PERSON_RECORD_BY_CRN failed for $crn")
-    val tier = results.standardCallsNoIterationResults!![GET_TIER] as? Tier
+    val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(GET_TIER)
       ?: error("$GET_TIER failed for $crn")
-    val cas1Application = results.standardCallsNoIterationResults!![GET_CAS_1_APPLICATION] as? Cas1Application
-    val cas3Application = results.standardCallsNoIterationResults!![GET_CAS_3_APPLICATION] as? Cas3Application
+    val cas1Application = results.standardCallsNoIterationResults!!.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas3Application = results.standardCallsNoIterationResults!!.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
 
     return EligibilityOrchestrationDto(
       crn,
@@ -63,7 +64,7 @@ class EligibilityOrchestrationService(
     )
 
     return prisonerNumbers.mapNotNull {
-      results.standardCallsNoIterationResults!!["$GET_PRISONER$it"] as? Prisoner
+      results.standardCallsNoIterationResults!!.getResult<Prisoner>("$GET_PRISONER$it")
     }
   }
 }
