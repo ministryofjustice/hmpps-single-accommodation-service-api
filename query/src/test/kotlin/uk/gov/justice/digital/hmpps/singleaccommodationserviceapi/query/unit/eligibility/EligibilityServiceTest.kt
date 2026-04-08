@@ -7,6 +7,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
@@ -37,6 +39,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.Cas1ReleaseDateValidationRule
@@ -49,6 +52,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ReleaseDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CrsStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CurrentAddressTypeRule
@@ -66,6 +70,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(value = [MockKExtension::class])
 class EligibilityServiceTest {
 
@@ -96,6 +101,8 @@ class EligibilityServiceTest {
     ),
   )
   var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule()))
+  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule()))
+
   var cas3ContextUpdater = Cas3ContextUpdater(clock)
 
   var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
@@ -113,6 +120,7 @@ class EligibilityServiceTest {
     cas3ContextUpdater = cas3ContextUpdater,
     engine = rulesEngine,
     cas3ValidationRuleSet = cas3ValidationRuleSet,
+    cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
   )
 
   @Nested
@@ -243,6 +251,8 @@ class EligibilityServiceTest {
     ) {
       clock.setNow(referenceDate.toLocalDate())
 
+      println(cas3AssessmentStatus)
+
       val cas3Application = cas3Status?.let {
         buildCas3Application(applicationStatus = it, placementStatus = cas3BookingStatus, assessmentStatus = cas3AssessmentStatus)
       }
@@ -260,11 +270,17 @@ class EligibilityServiceTest {
         crsStatus = crsStatus,
       )
 
+      println(data)
+
+//      if (testCaseId == "81") {
       val result = eligibilityService.calculateEligibilityForCas3(data)
 
       assertThat(result.serviceStatus).isEqualTo(expectedCas3Status)
       assertThat(result.action).isEqualTo(expectedCas3ActionsString)
       assertThat(result.link).isEqualTo(expectedCas3Link)
+//      } else {
+//        assertThat(1).isEqualTo(1)
+//      }
     }
   }
 }

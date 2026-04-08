@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
@@ -37,6 +38,7 @@ class EligibilityService(
   private val cas3ContextUpdater: Cas3ContextUpdater,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
+  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -45,7 +47,7 @@ class EligibilityService(
     log.info("Calculating eligibility for CRN: $crn")
     val data = getDomainData(crn)
 
-    log.debug(
+    log.info(
       "External data received: crn={}, releaseDate={}, tierScore={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationArrangementType={}, hasNextAccommodation={}",
       data.crn,
       data.releaseDate,
@@ -161,11 +163,18 @@ class EligibilityService(
         .onFail(notEligible)
         .build()
 
+    val suitability =
+      treeBuilder
+        .ruleSet("Cas3Suitability", cas3SuitabilityRuleSet, cas3ContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility)
+        .build()
+
     val completion =
       treeBuilder
         .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3ContextUpdater)
         .onPass(confirmed)
-        .onFail(eligibility)
+        .onFail(suitability)
         .build()
 
     val tree =
@@ -182,6 +191,7 @@ class EligibilityService(
         ServiceResult(
           serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
           suitableApplicationId = data.cas3Application?.id,
+          link = "View referral",
         ),
       )
 
