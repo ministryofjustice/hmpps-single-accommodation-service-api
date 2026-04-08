@@ -1,43 +1,52 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
 @Service
 class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
 ) {
-  fun getCaseList(): List<PersonDto> {
+  fun getCaseList(): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
-
-    // new pi endpoint
     val caseList = caseOrchestrationService.getCaseList(user.username)
-
-    return caseList.cases.map { toPersonDto(it) }
+    return toApiResponseDto(
+      data = caseList.data.cases.map { toPersonDto(it) },
+      upstreamFailures = caseList.upstreamFailures,
+    )
   }
 
-  fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {
+  fun getCases(crns: List<String>, riskLevel: RiskLevel?): ApiResponseDto<List<CaseDto>> {
     val list = caseOrchestrationService.getCases(crns)
-    return list.map {
+    val cases = list.map {
       toCaseDto(
-        crn = it.crn,
-        cpr = it.cpr,
-        roshDetails = it.roshDetails,
-        tier = it.tier,
-        caseSummaries = it.cases,
+        crn = it.data.crn,
+        cpr = it.data.cpr,
+        roshDetails = it.data.roshDetails,
+        tier = it.data.tier,
+        caseSummaries = it.data.cases,
       )
     }
       .filter { riskLevel == null || it.riskLevel == riskLevel }
       .sortedBy { it.name }
+    return toApiResponseDto(
+      data = cases,
+      upstreamFailures = list.flatMap { it.upstreamFailures },
+    )
   }
 
-  fun getCase(crn: String): CaseDto {
+  fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val case = caseOrchestrationService.getCase(crn)
-    return toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
+    return toApiResponseDto(
+      data = toCaseDto(crn, case.data.cpr, case.data.roshDetails, case.data.tier, case.data.cases),
+      upstreamFailures = case.upstreamFailures,
+    )
   }
 }
