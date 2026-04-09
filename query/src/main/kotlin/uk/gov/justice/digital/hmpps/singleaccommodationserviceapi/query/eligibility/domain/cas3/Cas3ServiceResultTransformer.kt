@@ -13,7 +13,6 @@ import java.time.temporal.ChronoUnit.DAYS
 
 object Cas3ServiceResultTransformer {
   fun toCas3ServiceResult(data: DomainData, clock: Clock): ServiceResult {
-    println("Cas3ServiceResultTransformer.toCas3ServiceResult")
     val applicationStatus = data.cas3Application?.applicationStatus
     val assessmentStatus = data.cas3Application?.assessmentStatus
     val bookingStatus = data.cas3Application?.bookingStatus
@@ -43,11 +42,97 @@ object Cas3ServiceResultTransformer {
       )
     }
 
-    println("Cas3ServiceResultTransformer.toCas3ServiceResult: applicationStatus=$applicationStatus, assessmentStatus=$assessmentStatus, bookingStatus=$bookingStatus")
+    val result = when (bookingStatus) {
+      Cas3PlacementStatus.ARRIVED,
+      Cas3PlacementStatus.CLOSED,
+      Cas3PlacementStatus.DEPARTED,
+      -> notEligible
 
-    return when (applicationStatus) {
+      Cas3PlacementStatus.PROVISIONAL -> ServiceResult(
+        serviceStatus = ServiceStatus.BEDSPACE_OFFERED,
+        suitableApplicationId = suitableApplicationId,
+        link = "View referral",
+      )
+
+      Cas3PlacementStatus.CONFIRMED -> ServiceResult(
+        serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
+        suitableApplicationId = suitableApplicationId,
+        link = "View referral",
+      )
+
+      Cas3PlacementStatus.NOT_MINUS_ARRIVED -> ServiceResult(
+        serviceStatus = ServiceStatus.NOT_ARRIVED,
+        suitableApplicationId = suitableApplicationId,
+        link = "View referral",
+      )
+
+      Cas3PlacementStatus.CANCELLED -> ServiceResult(
+        serviceStatus = ServiceStatus.BOOKING_CANCELLED,
+        suitableApplicationId = suitableApplicationId,
+        link = "View referral",
+      )
+
+      null -> when (assessmentStatus) {
+        Cas3AssessmentStatus.UNALLOCATED,
+        Cas3AssessmentStatus.IN_REVIEW,
+        Cas3AssessmentStatus.READY_TO_PLACE,
+        -> ServiceResult(
+          serviceStatus = ServiceStatus.SUBMITTED,
+          suitableApplicationId = suitableApplicationId,
+          action = "Wait for CAS3 assessment result",
+          link = "View referral",
+        )
+
+        Cas3AssessmentStatus.CLOSED -> ServiceResult(
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          suitableApplicationId = suitableApplicationId,
+          action = "Start CAS3 referral",
+          link = "Start new referral",
+        )
+
+        Cas3AssessmentStatus.REJECTED -> ServiceResult(
+          serviceStatus = ServiceStatus.REJECTED,
+          suitableApplicationId = suitableApplicationId,
+          action = "Start CAS3 referral",
+          link = "Start new referral",
+        )
+
+        null -> when (applicationStatus) {
+          Cas3ApplicationStatus.IN_PROGRESS -> ServiceResult(
+            serviceStatus = ServiceStatus.NOT_SUBMITTED,
+            suitableApplicationId = suitableApplicationId,
+            link = "View referral",
+          )
+
+          Cas3ApplicationStatus.SUBMITTED,
+          Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+          -> ServiceResult(
+            serviceStatus = ServiceStatus.SUBMITTED,
+            suitableApplicationId = suitableApplicationId,
+            action = "Wait for CAS3 assessment result",
+            link = "View referral",
+          )
+
+          Cas3ApplicationStatus.REJECTED -> ServiceResult(
+            serviceStatus = ServiceStatus.REJECTED,
+            suitableApplicationId = suitableApplicationId,
+            link = "Start new referral",
+          )
+
+          null -> ServiceResult(
+            serviceStatus = ServiceStatus.NOT_STARTED,
+            suitableApplicationId = suitableApplicationId,
+            action = "Start CAS3 referral",
+            link = "Start referral",
+          )
+        }
+      }
+    }
+
+    val otherResult = when (applicationStatus) {
       Cas3ApplicationStatus.IN_PROGRESS -> when (assessmentStatus) {
-        Cas3AssessmentStatus.READY_TO_PLACE -> when (bookingStatus) {
+        Cas3AssessmentStatus.READY_TO_PLACE,
+        -> when (bookingStatus) {
           Cas3PlacementStatus.ARRIVED -> notEligible
           Cas3PlacementStatus.PROVISIONAL -> ServiceResult(
             serviceStatus = ServiceStatus.BEDSPACE_OFFERED,
@@ -1116,6 +1201,7 @@ object Cas3ServiceResultTransformer {
         }
       }
     }
+    return result
   }
 
   private fun buildStartCas3ReferralReferralAction(releaseDate: LocalDate, today: LocalDate): String {

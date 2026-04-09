@@ -52,6 +52,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationRecentCompleteRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationRecentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ReleaseDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.CrsStatusRule
@@ -100,8 +102,8 @@ class EligibilityServiceTest {
       NoConflictingCas1BookingRule(),
     ),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule()))
-  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule()))
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3ApplicationRecentCompleteRule(clock)))
+  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3ApplicationRecentRule(clock)))
 
   var cas3ContextUpdater = Cas3ContextUpdater(clock)
 
@@ -251,8 +253,6 @@ class EligibilityServiceTest {
     ) {
       clock.setNow(referenceDate.toLocalDate())
 
-      println(cas3AssessmentStatus)
-
       val cas3Application = cas3Status?.let {
         buildCas3Application(applicationStatus = it, placementStatus = cas3BookingStatus, assessmentStatus = cas3AssessmentStatus)
       }
@@ -270,17 +270,11 @@ class EligibilityServiceTest {
         crsStatus = crsStatus,
       )
 
-      println(data)
-
-//      if (testCaseId == "81") {
       val result = eligibilityService.calculateEligibilityForCas3(data)
 
       assertThat(result.serviceStatus).isEqualTo(expectedCas3Status)
       assertThat(result.action).isEqualTo(expectedCas3ActionsString)
       assertThat(result.link).isEqualTo(expectedCas3Link)
-//      } else {
-//        assertThat(1).isEqualTo(1)
-//      }
     }
   }
 }

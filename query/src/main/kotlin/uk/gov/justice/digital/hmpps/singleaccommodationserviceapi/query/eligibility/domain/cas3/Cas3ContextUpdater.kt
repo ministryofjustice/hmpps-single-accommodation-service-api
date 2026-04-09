@@ -10,7 +10,6 @@ import java.time.Clock
 class Cas3ContextUpdater(val clock: Clock) : ContextUpdater {
   override fun update(context: EvaluationContext): EvaluationContext {
     val updatedServiceResult = toCas3ServiceResult(context.data, clock)
-    println(updatedServiceResult)
     return context.copy(currentResult = updatedServiceResult)
   }
 }
