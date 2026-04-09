@@ -119,6 +119,7 @@ object Cas3ServiceResultTransformer {
           Cas3ApplicationStatus.REJECTED -> ServiceResult(
             serviceStatus = ServiceStatus.REJECTED,
             suitableApplicationId = suitableApplicationId,
+            action = "Start CAS3 referral",
             link = "Start new referral",
           )
 

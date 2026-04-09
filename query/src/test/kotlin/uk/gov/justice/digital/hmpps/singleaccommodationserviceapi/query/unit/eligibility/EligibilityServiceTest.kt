@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationRecentCompleteRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationRecentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.Cas3ApplicationSuitabilityRule
@@ -103,7 +104,7 @@ class EligibilityServiceTest {
     ),
   )
   var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3ApplicationRecentCompleteRule(clock)))
-  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3ApplicationRecentRule(clock)))
+  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3ApplicationRecentRule(clock), Cas3ApplicationExpiredRule()))
 
   var cas3ContextUpdater = Cas3ContextUpdater(clock)
 
@@ -270,15 +271,11 @@ class EligibilityServiceTest {
         crsStatus = crsStatus,
       )
 
-      if (testCaseId == "1537") {
-        val result = eligibilityService.calculateEligibilityForCas3(data)
+      val result = eligibilityService.calculateEligibilityForCas3(data)
 
-        assertThat(result.serviceStatus).isEqualTo(expectedCas3Status)
-      } else {
-        assertThat(1).isEqualTo(1)
-      }
-//      assertThat(result.action).isEqualTo(expectedCas3ActionsString)
-//      assertThat(result.link).isEqualTo(expectedCas3Link)
+      assertThat(result.serviceStatus).isEqualTo(expectedCas3Status)
+      assertThat(result.action).isEqualTo(expectedCas3ActionsString)
+      assertThat(result.link).isEqualTo(expectedCas3Link)
     }
   }
 }
