@@ -2,43 +2,18 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore as TierScoreInfra
 
 object CaseTransformer {
-
-  // TODO: remove once we are getting data from sas_case
-  fun toCaseDto(
-    person: PersonDto,
-  ) = CaseDto(
-    name = person.name,
-    dateOfBirth = person.dateOfBirth,
-    crn = person.crn,
-    prisonNumber = person.nomsNumber,
-    riskLevel = person.roshLevelCode?.let { RiskLevel.valueOf(it) },
-    pncReference = person.pncNumber,
-    assignedTo = person.staff.let {
-      AssignedToDto(
-        id = null,
-        name = toFullName(it.name),
-        username = it.username,
-      )
-    },
-    photoUrl = null,
-    currentAccommodation = null,
-    nextAccommodation = null,
-    tierScore = TierScore.A1,
-    tier = TierScore.A1,
-    status = Status.RISK_OF_NO_FIXED_ABODE,
-    actions = emptyList(),
-  )
-
   fun toCaseDto(
     crn: String,
     cpr: CorePersonRecord?,
@@ -55,14 +30,42 @@ object CaseTransformer {
     riskLevel = roshDetails?.let { RiskLevelTransformer.determineOverallRiskLevel(roshDetails.rosh) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
     assignedTo = caseSummaries?.firstOrNull()?.manager?.team?.name?.let {
-      AssignedToDto(1L, name = it, username = it)
+      AssignedToDto(1L, name = it, username = null, staffCode = null)
     },
     photoUrl = null,
     currentAccommodation = null,
     nextAccommodation = null,
-    status = Status.RISK_OF_NO_FIXED_ABODE,
+    status = null,
     actions = emptyList(),
   )
+
+  fun toCaseDto(
+    person: PersonDto,
+    caseEntity: CaseEntity?,
+    eligibility: EligibilityDto,
+  ) = CaseDto(
+    name = toFullName(person.name),
+    dateOfBirth = person.dateOfBirth,
+    crn = person.crn,
+    prisonNumber = person.nomsNumber,
+    tier = caseEntity?.tierScore?.let { toTierScore(it) },
+    // TODO check that we are transforming the risk level correctly
+    riskLevel = person.roshLevel?.let { RiskLevel.findByCode(it.code) },
+    pncReference = person.pncNumber,
+    assignedTo = AssignedToDto(id = 1L, name = toFullName(person.staff.name), username = person.staff.username, staffCode = person.staff.code),
+    photoUrl = null,
+    currentAccommodation = null,
+    nextAccommodation = null,
+    tierScore = caseEntity?.tierScore?.let { toTierScore(it) },
+    status = null,
+    actions = eligibility.caseActions,
+  )
+
+  fun toFullName(name: Name) = listOfNotNull(
+    name.forename,
+    name.middleName?.takeIf { it.isNotBlank() },
+    name.surname,
+  ).joinToString(" ")
 
   fun toFullName(cpr: CorePersonRecord) = listOfNotNull(
     cpr.firstName,

@@ -37,7 +37,6 @@ fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID)
   },
   "caseActions": [
     "Wait for approved premise (CAS1) assessment result"
-  ],
-  "caseStatus": "ACTION_NEEDED"
+  ]
 }
 """.trimIndent()

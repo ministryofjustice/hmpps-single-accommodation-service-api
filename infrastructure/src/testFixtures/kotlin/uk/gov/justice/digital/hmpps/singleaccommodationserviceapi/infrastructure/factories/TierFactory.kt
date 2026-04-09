@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.LocalDateTime
 import java.util.UUID
 
-fun buildTier(tierScore: TierScore = TierScore.C1) = Tier(
+fun buildTier(tierScore: TierScore = TierScore.A1) = Tier(
   tierScore = tierScore,
   calculationId = UUID.randomUUID(),
   calculationDate = LocalDateTime.now(),

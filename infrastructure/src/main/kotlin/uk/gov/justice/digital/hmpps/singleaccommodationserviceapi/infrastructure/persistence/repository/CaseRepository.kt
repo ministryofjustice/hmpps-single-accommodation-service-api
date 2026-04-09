@@ -33,6 +33,17 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
   )
   fun findByIdentifiers(prisonNumbers: List<String>?, crns: List<String>?): CaseEntity?
 
+  @EntityGraph(attributePaths = ["caseIdentifiers"])
+  @Query(
+    """
+    select distinct c
+    from CaseEntity c
+    join c.caseIdentifiers ci
+    where ci.identifierType = 'CRN' and ci.identifier in :crns
+  """,
+  )
+  fun findByCrns(crns: List<String>): List<CaseEntity>
+
   @Query(
     """
 SELECT identifier

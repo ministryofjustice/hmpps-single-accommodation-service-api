@@ -22,16 +22,22 @@ data class CaseDto(
 
 data class AssignedToDto(
   @Deprecated("no longer be surfacing this with the new `case-list` endpoint - to be removed soon")
-  val id: Long?, // actual name
-  val name: String, // actual name
+  val id: Long?,
+  val name: String,
   val username: String? = null,
+  val staffCode: String? = null,
 )
 
-enum class RiskLevel(val priority: Int) {
-  LOW(1),
-  MEDIUM(2),
-  HIGH(3),
-  VERY_HIGH(4),
+enum class RiskLevel(val code: String) {
+  LOW("RLRH"),
+  MEDIUM("RMRH"),
+  HIGH("RHRH"),
+  VERY_HIGH("RVHR"),
+  ;
+
+  companion object {
+    fun findByCode(code: String) = RiskLevel.entries.firstOrNull { it.code == code }
+  }
 }
 
 enum class TierScore {

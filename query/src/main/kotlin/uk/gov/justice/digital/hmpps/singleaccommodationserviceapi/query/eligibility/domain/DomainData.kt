@@ -9,11 +9,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
-  val tierScore: TierScore,
+  val tierScore: TierScore?,
   val sex: SexCode?,
   val releaseDate: LocalDate?,
   val currentAccommodationArrangementType: AccommodationArrangementType? = null,
@@ -47,5 +49,27 @@ data class DomainData(
     cas3Application = cas3Application,
     dtrStatus = dtrStatus,
     crsStatus = crsStatus,
+  )
+
+  constructor(
+    personDto: PersonDto,
+    caseEntity: CaseEntity?,
+  ) : this(
+    crn = personDto.crn,
+    tierScore = caseEntity?.tierScore,
+    // TODO check that we are transforming the gender correctly
+    sex = SexCode.findByGender(personDto.gender),
+    releaseDate = personDto.expectedReleaseDate,
+    cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {
+      Cas1Application(
+        id = caseEntity.cas1ApplicationId!!,
+        applicationStatus = caseEntity.cas1ApplicationApplicationStatus!!,
+        requestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
+        placementStatus = caseEntity.cas1ApplicationPlacementStatus,
+      )
+    } else {
+      null
+    },
+    cas3Application = null,
   )
 }

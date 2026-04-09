@@ -10,37 +10,39 @@ fun expectedGetCasesResponse(): String = """
   "crn" : "FAKECRN1",
   "prisonNumber" : "PRI1",
   "photoUrl" : null,
-  "tierScore" : "C1",
-  "tier" : "C1",
+  "tierScore" : "A1",
+  "tier" : "A1",
   "riskLevel" : "VERY_HIGH",
   "pncReference" : "Some PNC Reference",
   "assignedTo" : {
     "id" : 1,
     "name" : "Team 1",
-    "username" : "Team 1"
+    "username" : null,
+    "staffCode" : null
   },
   "currentAccommodation" : null,
   "nextAccommodation" : null,
-  "status":"RISK_OF_NO_FIXED_ABODE",
+  "status":null,
   "actions":[]
 }, {
   "name" : "Zack Middle Smith",
   "dateOfBirth" : "2000-12-03",
   "crn" : "FAKECRN2",
-  "prisonNumber" : "PRI1",
+  "prisonNumber" : "PRI2",
   "photoUrl" : null,
-    "tierScore" : "C1",
-  "tier" : "C1",
+    "tierScore" : "A1",
+  "tier" : "A1",
   "riskLevel" : "MEDIUM",
   "pncReference" : "Some PNC Reference",
   "assignedTo" : {
     "id" : 1,
     "name" : "Team 1",
-    "username" : "Team 1"
+    "username" : null,
+    "staffCode" : null
   },
   "currentAccommodation" : null,
   "nextAccommodation" : null,
-  "status":"RISK_OF_NO_FIXED_ABODE",
+  "status":null,
   "actions":[]
 } ]
 """.trimIndent()
@@ -50,20 +52,21 @@ fun expectedGetCasesWithFilterResponse(): String = """
   "name" : "Zack Middle Smith",
   "dateOfBirth" : "2000-12-03",
   "crn" : "FAKECRN2",
-  "prisonNumber" : "PRI1",
+  "prisonNumber" : "PRI2",
   "photoUrl" : null,
-    "tierScore" : "C1",
-  "tier" : "C1",
+    "tierScore" : "A1",
+  "tier" : "A1",
   "riskLevel" : "MEDIUM",
   "pncReference" : "Some PNC Reference",
   "assignedTo" : {
     "id" : 1,
     "name" : "Team 1",
-    "username" : "Team 1"
+    "username" : null,
+    "staffCode" : null
   },
   "currentAccommodation" : null,
   "nextAccommodation" : null,
-  "status":"RISK_OF_NO_FIXED_ABODE",
+  "status":null,
   "actions":[]
 } ]
 """.trimIndent()
