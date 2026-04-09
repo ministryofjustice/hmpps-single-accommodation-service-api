@@ -1,19 +1,26 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import java.time.Clock
+import java.time.LocalDate
 
 @Component
-class Cas3ApplicationCompletionRule : Cas3CompletionRule {
-  override val description = "FAIL if CAS3 application is not complete"
+class Cas3ApplicationRecentRule(val clock: Clock) : Cas3SuitabilityRule {
+  override val description = "FAIL if CAS3 application is not within 1 year of release"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isCompletePlacement = data.cas3Application?.bookingStatus == Cas3PlacementStatus.CONFIRMED
+    val releaseDate = data.releaseDate ?: return RuleResult(
+      description = description,
+      ruleStatus = RuleStatus.FAIL,
+    )
 
-    val ruleStatus = if (isCompletePlacement) RuleStatus.PASS else RuleStatus.FAIL
+    val today = LocalDate.now(clock)
+    val isWithinOneYear = !releaseDate.isAfter(today.plusYears(1))
+
+    val ruleStatus = if (isWithinOneYear) RuleStatus.PASS else RuleStatus.FAIL
 
     return RuleResult(
       description = description,

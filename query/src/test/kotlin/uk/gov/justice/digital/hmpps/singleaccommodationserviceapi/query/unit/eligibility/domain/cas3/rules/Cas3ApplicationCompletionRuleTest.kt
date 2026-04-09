@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -30,7 +31,8 @@ class Cas3ApplicationCompletionRuleTest {
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.PLACED,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
         placementStatus = placementStatus,
       ),
     )
@@ -46,16 +48,17 @@ class Cas3ApplicationCompletionRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3PlacementStatus::class, names = ["DEPARTED", "NOT_ARRIVED", "CANCELLED", "CLOSED"])
-  fun `application is PLACED but placement not completed so rule fails`(placementStatus: Cas3PlacementStatus) {
+  @EnumSource(value = Cas3AssessmentStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["READY_TO_PLACE"])
+  fun `application has wrong assessment status so rule fails`(assessmentStatus: Cas3AssessmentStatus) {
     val data = DomainData(
       crn = crn,
       tierScore = tierScore,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = placementStatus,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        assessmentStatus = assessmentStatus,
+        placementStatus = Cas3PlacementStatus.CONFIRMED,
       ),
     )
 
@@ -70,8 +73,8 @@ class Cas3ApplicationCompletionRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["PLACED"])
-  fun `application is not PLACED so rule fails`(applicationStatus: Cas3ApplicationStatus) {
+  @EnumSource(value = Cas3ApplicationStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["SUBMITTED"])
+  fun `application has wrong application status so rule fails`(applicationStatus: Cas3ApplicationStatus) {
     val data = DomainData(
       crn = crn,
       tierScore = tierScore,
@@ -79,6 +82,8 @@ class Cas3ApplicationCompletionRuleTest {
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
         applicationStatus = applicationStatus,
+        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        placementStatus = Cas3PlacementStatus.CONFIRMED,
       ),
     )
 

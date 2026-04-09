@@ -15,10 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.validation.ValidationContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -34,11 +34,11 @@ class EligibilityService(
   private val cas1ContextUpdater: Cas1ContextUpdater,
   private val validationContextUpdater: ValidationContextUpdater,
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
-  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
   private val cas3ContextUpdater: Cas3ContextUpdater,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
+  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -47,7 +47,7 @@ class EligibilityService(
     log.info("Calculating eligibility for CRN: $crn")
     val data = getDomainData(crn)
 
-    log.debug(
+    log.info(
       "External data received: crn={}, releaseDate={}, tierScore={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationArrangementType={}, hasNextAccommodation={}",
       data.crn,
       data.releaseDate,
@@ -149,7 +149,7 @@ class EligibilityService(
         "CAS3 Data received: id={}, applicationStatus={}, placementStatus={}",
         data.cas3Application.id,
         data.cas3Application.applicationStatus,
-        data.cas3Application.placementStatus,
+        data.cas3Application.bookingStatus,
       )
     } ?: log.info("CAS3 Data received: No CAS3 application")
 
@@ -189,8 +189,9 @@ class EligibilityService(
         data = data,
         currentResult =
         ServiceResult(
-          serviceStatus = ServiceStatus.CONFIRMED,
+          serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
           suitableApplicationId = data.cas3Application?.id,
+          link = "View referral",
         ),
       )
 

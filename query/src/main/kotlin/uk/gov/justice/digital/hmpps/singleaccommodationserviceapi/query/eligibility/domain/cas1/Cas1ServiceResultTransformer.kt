@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit.DAYS
 import java.util.UUID
 
 object Cas1ServiceResultTransformer {
-  fun toServiceResult(data: DomainData, clock: Clock): ServiceResult {
+  fun toCas1ServiceResult(data: DomainData, clock: Clock): ServiceResult {
     val applicationStatus = data.cas1Application?.applicationStatus
     val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
     val placementStatus = data.cas1Application?.placementStatus
