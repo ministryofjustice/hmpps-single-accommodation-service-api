@@ -2,7 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 const val ARRANGEMENT_SUBTYPE_DESCRIPTION_UNEXPECTED_ERROR_KEY = "arrangementSubTypeDescriptionUnexpected"
 const val VERIFICATION_NOT_PASSED_ERROR_KEY = "verificationNotPassed"
+const val NOTE_IS_EMPTY_KEY = "noteEmpty"
+const val NOTE_GREATER_THAN_MAX_LENGTH_KEY = "noteGreaterThanMaxLength"
 
 class AccommodationArrangementSubTypeDescriptionUnexpectedException : DomainException(ARRANGEMENT_SUBTYPE_DESCRIPTION_UNEXPECTED_ERROR_KEY)
-
 class AccommodationVerificationNotPassedException : DomainException(VERIFICATION_NOT_PASSED_ERROR_KEY)
+class AccommodationNoteIsEmptyException : DomainException(NOTE_IS_EMPTY_KEY)
+class AccommodationNoteIsGreaterThanMaxLengthException : DomainException(NOTE_GREATER_THAN_MAX_LENGTH_KEY)
