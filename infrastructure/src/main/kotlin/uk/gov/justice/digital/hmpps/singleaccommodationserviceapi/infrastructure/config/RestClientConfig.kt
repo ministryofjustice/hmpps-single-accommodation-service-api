@@ -10,6 +10,7 @@ import org.springframework.web.client.support.RestClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.HmppsAuthInterceptor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationDataDomainClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.osplaces.OsPlacesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
@@ -74,6 +75,24 @@ class RestClientConfig(
     baseUrl,
     AccommodationDataDomainClient::class,
   )
+
+  @Bean
+  fun osPlacesClient(
+    @Value($$"${os.places.base-url}") baseUrl: String,
+    @Value($$"${os.places.api-key}") apiKey: String,
+  ): OsPlacesClient {
+    val client = restClientBuilder
+      .requestFactory(withTimeouts(Duration.ofSeconds(2), Duration.ofSeconds(5)))
+      .baseUrl(baseUrl)
+      .defaultHeader("key", apiKey)
+      .build()
+
+    val proxyFactory = HttpServiceProxyFactory
+      .builderFor(RestClientAdapter.create(client))
+      .build()
+
+    return proxyFactory.createClient(OsPlacesClient::class.java)
+  }
 
   private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
     val client = restClientBuilder
