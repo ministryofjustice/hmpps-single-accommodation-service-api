@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys.CONTINUE_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -23,7 +23,7 @@ class Cas1ContextUpdaterTest {
   @Nested
   inner class UpdateTests {
     @Test
-    fun `update builds service result using toServiceResult`() {
+    fun `update builds service result using toCas1ServiceResult`() {
       val releaseDate = LocalDate.parse("2026-12-31")
       clock.setNow(releaseDate.minusDays(3))
       val applicationId = UUID.randomUUID()
@@ -45,7 +45,7 @@ class Cas1ContextUpdaterTest {
       assertThat(result.currentResult.action).isEqualTo(CONTINUE_APPROVED_PREMISE_APPLICATION)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isNotNull()
-      assertThat(result.currentResult.link).isEqualTo(CONTINUE_APPLICATION)
+      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.CONTINUE_APPLICATION)
       assertThat(result.currentResult.suitableApplicationId).isEqualTo(applicationId)
     }
   }

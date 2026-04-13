@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
-object ActionKeys {
+object EligibilityKeys {
   const val CREATE_PLACEMENT = "Create approved premise (CAS1) placement request"
   const val WAIT_FOR_PLACEMENT_REQUEST_RESULT = "Wait for approved premise (CAS1) placement request result"
   const val WAIT_FOR_ASSESSMENT_RESULT = "Wait for approved premise (CAS1) assessment result"
@@ -8,4 +8,10 @@ object ActionKeys {
   const val START_APPROVED_PREMISE_APPLICATION = "Start approved premise (CAS1) application"
   const val CONTINUE_APPROVED_PREMISE_APPLICATION = "Continue approved premise (CAS1) application"
   const val START_CAS3_REFERRAL = "Start CAS3 referral"
+  const val CREATE_NEW_PLACEMENT_REQUEST = "Create new placement request"
+  const val VIEW_APPLICATION = "View application"
+  const val CREATE_PLACEMENT_REQUEST = "Create placement request"
+  const val START_APPLICATION = "Start application"
+  const val CONTINUE_APPLICATION = "Continue application"
+  const val START_NEW_APPLICATION = "Start new application"
 }

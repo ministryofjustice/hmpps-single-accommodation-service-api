@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -45,8 +45,8 @@ class Cas3ApplicationSuitabilityRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(Cas3PlacementStatus::class)
-  fun `application is suitable (PLACED) so rule passes`(placementStatus: Cas3PlacementStatus) {
+  @EnumSource(Cas3BookingStatus::class)
+  fun `application is suitable (PLACED) so rule passes`(bookingStatus: Cas3BookingStatus) {
     val data = DomainData(
       crn = crn,
       tierScore = tierScore,
@@ -54,7 +54,7 @@ class Cas3ApplicationSuitabilityRuleTest {
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = placementStatus,
+        bookingStatus = bookingStatus,
       ),
     )
 

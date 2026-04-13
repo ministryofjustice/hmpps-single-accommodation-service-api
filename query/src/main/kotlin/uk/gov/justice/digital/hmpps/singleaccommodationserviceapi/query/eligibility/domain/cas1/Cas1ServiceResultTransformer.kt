@@ -5,8 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import java.time.Clock
 import java.time.LocalDate
@@ -14,7 +13,7 @@ import java.time.temporal.ChronoUnit.DAYS
 import java.util.UUID
 
 object Cas1ServiceResultTransformer {
-  fun toServiceResult(data: DomainData, clock: Clock): ServiceResult {
+  fun toCas1ServiceResult(data: DomainData, clock: Clock): ServiceResult {
     val applicationStatus = data.cas1Application?.applicationStatus
     val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
     val placementStatus = data.cas1Application?.placementStatus
@@ -82,8 +81,8 @@ object Cas1ServiceResultTransformer {
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_CANCELLED,
           suitableApplicationId = suitableApplicationId,
-          action = ActionKeys.CREATE_PLACEMENT,
-          link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
+          action = EligibilityKeys.CREATE_PLACEMENT,
+          link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
       } else {
         notEligible
@@ -97,22 +96,22 @@ object Cas1ServiceResultTransformer {
           serviceStatus = ServiceStatus.ARRIVED,
           suitableApplicationId = suitableApplicationId,
           action = null,
-          link = LinkKeys.VIEW_APPLICATION,
+          link = EligibilityKeys.VIEW_APPLICATION,
         )
 
         Cas1PlacementStatus.UPCOMING -> notEligible
         Cas1PlacementStatus.DEPARTED -> ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
           suitableApplicationId = suitableApplicationId,
-          action = ActionKeys.CREATE_PLACEMENT,
-          link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
+          action = EligibilityKeys.CREATE_PLACEMENT,
+          link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
         Cas1PlacementStatus.NOT_ARRIVED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_ARRIVED,
           suitableApplicationId = suitableApplicationId,
-          action = ActionKeys.CREATE_PLACEMENT,
-          link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
+          action = EligibilityKeys.CREATE_PLACEMENT,
+          link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
         else -> notEligible
@@ -129,15 +128,15 @@ object Cas1ServiceResultTransformer {
       Cas1RequestForPlacementStatus.AWAITING_MATCH -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
         suitableApplicationId = suitableApplicationId,
-        action = ActionKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
-        link = LinkKeys.VIEW_APPLICATION,
+        action = EligibilityKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
+        link = EligibilityKeys.VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
         suitableApplicationId = suitableApplicationId,
-        action = ActionKeys.CREATE_PLACEMENT,
-        link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
+        action = EligibilityKeys.CREATE_PLACEMENT,
+        link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
       else -> notEligible
@@ -147,15 +146,15 @@ object Cas1ServiceResultTransformer {
       Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
         suitableApplicationId = suitableApplicationId,
-        action = ActionKeys.CREATE_PLACEMENT,
-        link = LinkKeys.CREATE_PLACEMENT_REQUEST,
+        action = EligibilityKeys.CREATE_PLACEMENT,
+        link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_REJECTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_REJECTED,
         suitableApplicationId = suitableApplicationId,
-        action = ActionKeys.CREATE_PLACEMENT,
-        link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
+        action = EligibilityKeys.CREATE_PLACEMENT,
+        link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
       Cas1RequestForPlacementStatus.AWAITING_MATCH,
@@ -163,15 +162,15 @@ object Cas1ServiceResultTransformer {
       -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
         suitableApplicationId = suitableApplicationId,
-        action = ActionKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
-        link = LinkKeys.VIEW_APPLICATION,
+        action = EligibilityKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
+        link = EligibilityKeys.VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
         suitableApplicationId = suitableApplicationId,
-        action = ActionKeys.CREATE_PLACEMENT,
-        link = LinkKeys.CREATE_NEW_PLACEMENT_REQUEST,
+        action = EligibilityKeys.CREATE_PLACEMENT,
+        link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
       else -> notEligible
@@ -187,29 +186,29 @@ object Cas1ServiceResultTransformer {
     -> ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = suitableApplicationId,
-      action = ActionKeys.WAIT_FOR_ASSESSMENT_RESULT,
-      link = LinkKeys.VIEW_APPLICATION,
+      action = EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT,
+      link = EligibilityKeys.VIEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
       suitableApplicationId = suitableApplicationId,
-      action = ActionKeys.PROVIDE_INFORMATION,
-      link = LinkKeys.VIEW_APPLICATION,
+      action = EligibilityKeys.PROVIDE_INFORMATION,
+      link = EligibilityKeys.VIEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.STARTED -> ServiceResult(
       serviceStatus = ServiceStatus.NOT_SUBMITTED,
       suitableApplicationId = suitableApplicationId,
-      action = ActionKeys.CONTINUE_APPROVED_PREMISE_APPLICATION,
-      link = LinkKeys.CONTINUE_APPLICATION,
+      action = EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION,
+      link = EligibilityKeys.CONTINUE_APPLICATION,
     )
 
     Cas1ApplicationStatus.REJECTED -> ServiceResult(
       serviceStatus = ServiceStatus.APPLICATION_REJECTED,
       suitableApplicationId = suitableApplicationId,
-      action = ActionKeys.START_APPROVED_PREMISE_APPLICATION,
-      link = LinkKeys.START_NEW_APPLICATION,
+      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
+      link = EligibilityKeys.START_NEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.WITHDRAWN,
@@ -219,8 +218,8 @@ object Cas1ServiceResultTransformer {
     -> ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
       suitableApplicationId = suitableApplicationId,
-      action = ActionKeys.START_APPROVED_PREMISE_APPLICATION,
-      link = LinkKeys.START_APPLICATION,
+      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
+      link = EligibilityKeys.START_APPLICATION,
     )
 
     else -> notEligible
@@ -232,11 +231,11 @@ object Cas1ServiceResultTransformer {
 
     return when {
       daysUntilReferralMustStart > 1
-      -> "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in $daysUntilReferralMustStart days"
+      -> "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in $daysUntilReferralMustStart days"
 
-      daysUntilReferralMustStart < 1 -> ActionKeys.START_APPROVED_PREMISE_APPLICATION
+      daysUntilReferralMustStart < 1 -> EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
 
-      else -> "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
+      else -> "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
     }
   }
 }

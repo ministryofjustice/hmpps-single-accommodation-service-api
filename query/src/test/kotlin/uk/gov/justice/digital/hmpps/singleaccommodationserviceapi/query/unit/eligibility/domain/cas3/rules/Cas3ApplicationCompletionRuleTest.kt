@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -22,8 +22,8 @@ class Cas3ApplicationCompletionRuleTest {
   private val description = "FAIL if CAS3 application is not complete"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3PlacementStatus::class, names = ["PROVISIONAL", "CONFIRMED", "ARRIVED"])
-  fun `application is completed so rule passes`(placementStatus: Cas3PlacementStatus) {
+  @EnumSource(value = Cas3BookingStatus::class, names = ["PROVISIONAL", "CONFIRMED", "ARRIVED"])
+  fun `application is completed so rule passes`(bookingStatus: Cas3BookingStatus) {
     val data = DomainData(
       crn = crn,
       tierScore = tierScore,
@@ -31,7 +31,7 @@ class Cas3ApplicationCompletionRuleTest {
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = placementStatus,
+        bookingStatus = bookingStatus,
       ),
     )
 
@@ -46,8 +46,8 @@ class Cas3ApplicationCompletionRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3PlacementStatus::class, names = ["DEPARTED", "NOT_ARRIVED", "CANCELLED", "CLOSED"])
-  fun `application is PLACED but placement not completed so rule fails`(placementStatus: Cas3PlacementStatus) {
+  @EnumSource(value = Cas3BookingStatus::class, names = ["DEPARTED", "NOT_ARRIVED", "CANCELLED", "CLOSED"])
+  fun `application is PLACED but booking not completed so rule fails`(bookingStatus: Cas3BookingStatus) {
     val data = DomainData(
       crn = crn,
       tierScore = tierScore,
@@ -55,7 +55,7 @@ class Cas3ApplicationCompletionRuleTest {
       releaseDate = LocalDate.now().plusMonths(5),
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.PLACED,
-        placementStatus = placementStatus,
+        bookingStatus = bookingStatus,
       ),
     )
 

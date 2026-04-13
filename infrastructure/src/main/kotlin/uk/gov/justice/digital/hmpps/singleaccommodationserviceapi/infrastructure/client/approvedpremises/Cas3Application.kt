@@ -5,7 +5,7 @@ import java.util.UUID
 data class Cas3Application(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
-  val placementStatus: Cas3PlacementStatus?,
+  val bookingStatus: Cas3BookingStatus?,
 )
 
 enum class Cas3ApplicationStatus {
@@ -20,7 +20,7 @@ enum class Cas3ApplicationStatus {
   WITHDRAWN,
 }
 
-enum class Cas3PlacementStatus {
+enum class Cas3BookingStatus {
   PROVISIONAL,
   CONFIRMED,
   ARRIVED,
