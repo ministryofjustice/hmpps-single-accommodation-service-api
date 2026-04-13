@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import org.javers.core.metamodel.annotation.DiffIgnore
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,6 +45,7 @@ open class ProposedAccommodationEntity(
   var country: String?,
   var uprn: String?,
 
+  @DiffIgnore
   @OneToMany(
     mappedBy = "proposedAccommodation",
     fetch = FetchType.LAZY,

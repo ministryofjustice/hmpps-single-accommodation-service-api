@@ -75,9 +75,14 @@ fun buildProposedAccommodationEntity(
 fun buildProposedAccommodationNoteEntity(
   id: UUID = UUID.randomUUID(),
   note: String = "Test note",
+  createdByUserId: UUID? = UUID.randomUUID(),
+  createdAt: Instant = Instant.now(),
   proposedAccommodationEntity: ProposedAccommodationEntity,
 ) = ProposedAccommodationNoteEntity(
   id,
   note,
   proposedAccommodationEntity,
-)
+).apply {
+  this.createdByUserId = createdByUserId
+  this.createdAt = createdAt
+}

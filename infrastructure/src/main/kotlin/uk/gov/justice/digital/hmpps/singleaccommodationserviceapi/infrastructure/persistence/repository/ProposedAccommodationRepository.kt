@@ -37,4 +37,15 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     """,
   )
   fun findAllWithNotesByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
+
+  @Query(
+    """
+    select pa from ProposedAccommodationEntity pa
+    join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId
+    left join fetch pa.notes 
+    where pa.id = :id
+    and ci.identifier = :crn and ci.identifierType = 'CRN'
+    """,
+  )
+  fun findByIdAndCrnWithNotes(id: UUID, crn: String): ProposedAccommodationEntity?
 }

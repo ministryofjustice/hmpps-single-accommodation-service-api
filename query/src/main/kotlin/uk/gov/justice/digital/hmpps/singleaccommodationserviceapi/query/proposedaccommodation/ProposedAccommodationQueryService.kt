@@ -4,6 +4,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -11,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import java.util.UUID
+import kotlin.collections.get
 
 @Service
 class ProposedAccommodationQueryService(
@@ -39,7 +42,32 @@ class ProposedAccommodationQueryService(
   }
 
   fun getProposedAccommodationTimeline(id: UUID, crn: String): List<AuditRecordDto> {
-    val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    return auditService.fullAuditHistory(id = entity.id, ProposedAccommodationEntity::class.java)
+    val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrnWithNotes(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+    val proposedAccommodationAuditHistory = auditService.fullAuditHistory(id = proposedAccommodationEntity.id, ProposedAccommodationEntity::class.java)
+    if (proposedAccommodationEntity.notes.isNotEmpty()) {
+      val proposedAccommodationNotesAuditHistory = getProposedAccommodationNotesAuditHistory(proposedAccommodationEntity)
+      return (proposedAccommodationAuditHistory + proposedAccommodationNotesAuditHistory)
+        .sortedByDescending { it.commitDate }
+    }
+    return proposedAccommodationAuditHistory
+  }
+
+  private fun getProposedAccommodationNotesAuditHistory(proposedAccommodationEntity: ProposedAccommodationEntity): List<AuditRecordDto> {
+    val createdByUserIds = proposedAccommodationEntity.notes.mapNotNull { it.createdByUserId }.toSet()
+    val createdByUsers = userRepository.findAllById(createdByUserIds).associateBy { it.id }
+    return proposedAccommodationEntity.notes.map {
+      val createdByUser = createdByUsers[it.createdByUserId]
+      AuditRecordDto(
+        type = AuditRecordType.NOTE,
+        author = createdByUser!!.name,
+        commitDate = it.createdAt!!,
+        changes = listOf(
+          CreateFieldChangeDto(
+            field = "note",
+            value = it.note,
+          ),
+        ),
+      )
+    }
   }
 }
