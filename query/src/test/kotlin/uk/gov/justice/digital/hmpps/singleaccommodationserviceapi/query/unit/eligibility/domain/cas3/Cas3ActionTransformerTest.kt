@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.buildCas3Action
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 import java.util.UUID
@@ -25,7 +25,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when release date is 3 days in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusDays(3))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -40,7 +40,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when release date is 28 days in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusDays(28))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -55,7 +55,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when release date is 29 days in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusDays(29))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -70,7 +70,7 @@ class Cas3ActionTransformerTest {
   fun `Build action when release date is 60 days in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusDays(60))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -83,7 +83,7 @@ class Cas3ActionTransformerTest {
 
   @Test
   fun `Build action when release date null and error and no application`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -103,7 +103,7 @@ class Cas3ActionTransformerTest {
       bookingStatus = status,
     )
 
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,
@@ -125,7 +125,7 @@ class Cas3ActionTransformerTest {
       bookingStatus = null,
     )
 
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,
@@ -140,7 +140,7 @@ class Cas3ActionTransformerTest {
 
   @Test
   fun `Build action when application is REQUESTED_FURTHER_INFORMATION`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,
@@ -166,7 +166,7 @@ class Cas3ActionTransformerTest {
       bookingStatus = null,
     )
 
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,
@@ -181,7 +181,7 @@ class Cas3ActionTransformerTest {
 
   @Test
   fun `Error when application status is PLACED but booking status is null`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,
@@ -201,7 +201,7 @@ class Cas3ActionTransformerTest {
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas3BookingStatus::class, names = ["PROVISIONAL", "CONFIRMED", "ARRIVED"])
   fun `Error when application status is PLACED but booking status is completed`(status: Cas3BookingStatus) {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,

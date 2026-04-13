@@ -9,16 +9,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.ApplicationCompletionRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.NonMaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.STierEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.completion.Cas1ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.completion.Cas1CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.MaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.NonMaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
 @ExtendWith(SpringExtension::class)
@@ -27,7 +27,7 @@ import java.time.LocalDate
     Cas1EligibilityRuleSet::class,
     Cas1CompletionRuleSet::class,
     STierEligibilityRule::class,
-    ApplicationCompletionRule::class,
+    Cas1ApplicationCompletionRule::class,
     MaleRiskEligibilityRule::class,
     NonMaleRiskEligibilityRule::class,
     ClockConfig::class,
@@ -42,7 +42,7 @@ class RulesEngineTest {
 
   @Test
   fun `rules engine passes cas1Eligibility rules`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -56,7 +56,7 @@ class RulesEngineTest {
 
   @Test
   fun `rules engine fails some cas1Eligibility rules`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.C1S,
       sex = SexCode.F,

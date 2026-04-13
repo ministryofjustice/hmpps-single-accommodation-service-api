@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -23,7 +24,7 @@ class DomainDataTest {
   fun `Create DomainDate from EligibilityOrchestration data`() {
     val crn = "ABC1234"
     val releaseDate = LocalDate.parse("2020-12-04")
-    val expected = DomainData(
+    val expected = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
@@ -39,6 +40,7 @@ class DomainDataTest {
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         bookingStatus = null,
       ),
+      currentAccommodationArrangementType = null,
     )
     val cpr = CorePersonRecord(
       sex = buildSex(expected.sex),
