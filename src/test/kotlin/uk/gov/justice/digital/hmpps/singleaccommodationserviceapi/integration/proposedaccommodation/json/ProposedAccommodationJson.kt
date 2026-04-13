@@ -140,6 +140,14 @@ fun proposedAddressesRequestBody(
   }
 """.trimIndent()
 
+fun proposedAccommodationNoteRequestBody(
+  note: String,
+): String = """
+  {
+    "note" : "$note"
+  }
+""".trimIndent()
+
 fun expectedProposedAddressesResponseBody(
   id: UUID,
   caseId: UUID,

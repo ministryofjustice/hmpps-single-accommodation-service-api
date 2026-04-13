@@ -26,4 +26,15 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
   """,
   )
   fun findAllByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
+
+  @Query(
+    """
+    select pa from ProposedAccommodationEntity pa
+    join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId 
+    join fetch pa.notes 
+    where ci.identifier = :crn and ci.identifierType = 'CRN'
+    order by pa.createdAt desc 
+    """,
+  )
+  fun findAllWithNotesByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
 }

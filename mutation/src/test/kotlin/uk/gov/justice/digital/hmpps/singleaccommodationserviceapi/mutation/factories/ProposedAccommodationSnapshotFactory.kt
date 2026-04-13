@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
 import java.time.LocalDate
 import java.util.UUID
@@ -18,6 +19,7 @@ fun buildProposedAccommodationSnapshot(
   verificationStatus: VerificationStatus = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
   offenderReleaseType: OffenderReleaseType? = OffenderReleaseType.REMAND,
+  notes: List<ProposedAccommodationNote> = mutableListOf(buildNote()),
 ) = ProposedAccommodationSnapshot(
   id = UUID.randomUUID(),
   caseId = UUID.randomUUID(),
@@ -32,4 +34,7 @@ fun buildProposedAccommodationSnapshot(
   startDate = LocalDate.now(),
   endDate = LocalDate.now().plusDays(7),
   address = buildAccommodationAddressDetails(),
+  notes = notes,
 )
+
+fun buildNote(id: UUID = UUID.randomUUID(), note: String = "Test Note") = ProposedAccommodationNote(id, note)

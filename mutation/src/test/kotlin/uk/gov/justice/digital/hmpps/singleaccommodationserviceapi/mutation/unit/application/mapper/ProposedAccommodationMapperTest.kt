@@ -11,7 +11,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildProposedAccommodationSnapshot
 import java.time.Instant
 import java.time.LocalDate
@@ -137,10 +139,23 @@ class ProposedAccommodationMapperTest {
   fun `applyToEntity should copy all fields from snapshot to entity`() {
     val entityId = UUID.randomUUID()
     val caseID = UUID.randomUUID()
-    val snapshot = buildProposedAccommodationSnapshot()
     val entity = buildProposedAccommodationEntity(
       id = entityId,
       caseId = caseID,
+    )
+    val preExistingNoteEntity = buildProposedAccommodationNoteEntity(
+      id = UUID.randomUUID(),
+      note = "1111",
+      proposedAccommodationEntity = entity,
+    )
+    entity.apply {
+      notes.add(preExistingNoteEntity)
+    }
+    val newNote1 = buildNote(id = UUID.randomUUID(), note = "2222")
+    val newNote2 = buildNote(id = UUID.randomUUID(), note = "3333")
+    val preExistingNote = buildNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
+    val snapshot = buildProposedAccommodationSnapshot(
+      notes = mutableListOf(newNote1, newNote2, preExistingNote),
     )
     val merged = ProposedAccommodationMapper.merge(snapshot, entity)
 
@@ -166,6 +181,10 @@ class ProposedAccommodationMapperTest {
     assertThat(merged.county).isEqualTo(snapshot.address.county)
     assertThat(merged.country).isEqualTo(snapshot.address.country)
     assertThat(merged.uprn).isEqualTo(snapshot.address.uprn)
+    assertThat(merged.notes).hasSize(3)
+    assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
+    assertThat(merged.notes[1].note).isEqualTo(newNote1.note)
+    assertThat(merged.notes[2].note).isEqualTo(newNote2.note)
   }
 
   @Test
@@ -193,6 +212,21 @@ class ProposedAccommodationMapperTest {
       endDate = LocalDate.of(2026, 4, 25),
     )
 
+    val noteEntity = buildProposedAccommodationNoteEntity(
+      id = UUID.randomUUID(),
+      note = "1111",
+      proposedAccommodationEntity = entity,
+    )
+    val noteEntity2 = buildProposedAccommodationNoteEntity(
+      id = UUID.randomUUID(),
+      note = "2222",
+      proposedAccommodationEntity = entity,
+    )
+    entity.apply {
+      notes.add(noteEntity)
+      notes.add(noteEntity2)
+    }
+
     val aggregate = ProposedAccommodationMapper.toAggregate(entity)
     val snapshot = aggregate.snapshot()
 
@@ -218,6 +252,10 @@ class ProposedAccommodationMapperTest {
     assertThat(snapshot.address.uprn).isEqualTo(entity.uprn)
     assertThat(snapshot.startDate).isEqualTo(entity.startDate)
     assertThat(snapshot.endDate).isEqualTo(entity.endDate)
+    assertThat(snapshot.notes.first().id).isEqualTo(noteEntity.id)
+    assertThat(snapshot.notes.first().note).isEqualTo(noteEntity.note)
+    assertThat(snapshot.notes[1].id).isEqualTo(noteEntity2.id)
+    assertThat(snapshot.notes[1].note).isEqualTo(noteEntity2.note)
   }
 
   @Test

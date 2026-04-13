@@ -8,10 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import java.util.UUID
@@ -45,12 +47,25 @@ class ProposedAccommodationController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @PostMapping("/cases/{crn}/proposed-accommodations")
+  @ResponseStatus(HttpStatus.CREATED)
   fun create(
     @PathVariable crn: String,
     @RequestBody request: AccommodationDetailCommand,
   ): ResponseEntity<AccommodationDetail> {
     val createdProposedAccommodation = proposedAccommodationApplicationService.createProposedAccommodation(crn, request)
     return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PostMapping("/cases/{crn}/proposed-accommodations/{id}/notes")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createNote(
+    @PathVariable crn: String,
+    @PathVariable id: UUID,
+    @RequestBody request: NoteCommand,
+  ): ResponseEntity<Void> {
+    proposedAccommodationApplicationService.createProposedAccommodationNote(crn, id, request)
+    return ResponseEntity(HttpStatus.CREATED)
   }
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN')")

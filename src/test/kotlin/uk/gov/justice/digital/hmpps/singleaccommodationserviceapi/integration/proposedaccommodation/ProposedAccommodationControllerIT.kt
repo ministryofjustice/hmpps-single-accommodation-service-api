@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
@@ -37,6 +38,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedSasAddressUpdatedDomainEventJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
@@ -336,7 +338,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 404 when CRN does not match proposed-accommodation`() {
-    val existingEntity = proposedAccommodationRepository.save(
+    proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
@@ -432,6 +434,137 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           ),
         )
       }
+  }
+
+  @Test
+  fun `should create a note for proposed-accommodation`() {
+    val existingEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        name = "Old Name",
+        caseId = caseEntity.id,
+        arrangementSubType = AccommodationArrangementSubType.OTHER,
+        arrangementSubTypeDescription = "Old description",
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        offenderReleaseType = OffenderReleaseType.REMAND,
+      ),
+    )
+    val note1Value = "Test note 1"
+    val note2Value = "Test note 2"
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(
+          note = note1Value,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    var proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
+    assertThat(proposedAccommodationPersistedResult.notes.first().note).isEqualTo(note1Value)
+
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(
+          note = note2Value,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
+    val sortedNotes: List<ProposedAccommodationNoteEntity> = proposedAccommodationPersistedResult.notes.sortedByDescending { it.createdAt }
+    assertThat(sortedNotes.first().note).isEqualTo(note2Value)
+    assertThat(sortedNotes[1].note).isEqualTo(note1Value)
+  }
+
+  @Test
+  fun `should not create a note for proposed-accommodation when accommodation not found`() {
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${UUID.randomUUID()}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(
+          note = "Test note",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should not create a note when crn not found`() {
+    val existingEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        name = "Old Name",
+        caseId = caseEntity.id,
+        arrangementSubType = AccommodationArrangementSubType.OTHER,
+        arrangementSubTypeDescription = "Old description",
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        offenderReleaseType = OffenderReleaseType.REMAND,
+      ),
+    )
+    restTestClient.post().uri("/cases/${UUID.randomUUID()}/proposed-accommodations/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(
+          note = "Test note",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should fail with Bad Request for empty note`() {
+    val existingEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        name = "Old Name",
+        caseId = caseEntity.id,
+        arrangementSubType = AccommodationArrangementSubType.OTHER,
+        arrangementSubTypeDescription = "Old description",
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        offenderReleaseType = OffenderReleaseType.REMAND,
+      ),
+    )
+    val note = ""
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(note),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should fail with Bad Request for note exceeding 4000 characters`() {
+    val existingEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        name = "Old Name",
+        caseId = caseEntity.id,
+        arrangementSubType = AccommodationArrangementSubType.OTHER,
+        arrangementSubTypeDescription = "Old description",
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        offenderReleaseType = OffenderReleaseType.REMAND,
+      ),
+    )
+    val note = "a".repeat(4001)
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(note),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
   }
 
   private fun getCommitTimesAsc(createdProposedAccommodationId: UUID): List<Instant> {

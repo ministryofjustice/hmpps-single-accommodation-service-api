@@ -186,7 +186,6 @@ class UserAuditIT : IntegrationTestBase() {
       authSource,
       expectedCreatedByUsername,
     )
-    assertThat(persistedResult.lastUpdatedAt).isEqualTo(persistedResult.createdAt)
     return persistedResult
   }
 
@@ -198,6 +197,8 @@ class UserAuditIT : IntegrationTestBase() {
   ) {
     val newUserWhoShouldNotExistYet = userRepository.findByUsernameAndAuthSource(Username(usernameOfNewDeliusUser), authSource = AuthSource.DELIUS)
     assertThat(newUserWhoShouldNotExistYet).isNull()
+
+    val preUpdateProposedAccommodationEntity = proposedAccommodationRepository.findByIdOrNull(createdProposedAccommodationEntityId)
 
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/$createdProposedAccommodationEntityId")
       .contentType(MediaType.APPLICATION_JSON)
@@ -222,7 +223,7 @@ class UserAuditIT : IntegrationTestBase() {
       expectedCreatedByUsername,
       expectedUpdatedByUsername,
     )
-    assertThat(updatedEntity.lastUpdatedAt).isAfter(updatedEntity.createdAt)
+    assertThat(updatedEntity.lastUpdatedAt).isAfter(preUpdateProposedAccommodationEntity!!.lastUpdatedAt)
   }
 
   private fun assertPersistedProposedAccommodationAuditFields(

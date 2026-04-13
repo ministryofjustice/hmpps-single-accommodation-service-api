@@ -143,6 +143,10 @@ private val proposedAccommodationControllerMap: Map<String, Set<String>> =
       "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
       "POM",
     ),
+    "POST /cases/{crn}/proposed-accommodations/{id}/notes" to setOf(
+      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
+      "POM",
+    ),
   )
 
 private val accommodationControllerMap: Map<String, Set<String>> =
