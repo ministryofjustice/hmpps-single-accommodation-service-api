@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
@@ -28,18 +29,17 @@ class AccommodationReferralOrchestrationService(
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
     )
-
     val cas1 =
-      results.standardCallsNoIterationResults?.get(GET_CAS1_REFERRAL) as? List<ReferralHistory<Cas1AssessmentStatus>>
+      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<Cas1AssessmentStatus>>>(GET_CAS1_REFERRAL)
         ?: emptyList()
     val cas2 =
-      results.standardCallsNoIterationResults?.get(GET_CAS2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2_REFERRAL)
         ?: emptyList()
     val cas2v2 =
-      results.standardCallsNoIterationResults?.get(GET_CAS2V2_REFERRAL) as? List<ReferralHistory<Cas2Status>>
+      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2V2_REFERRAL)
         ?: emptyList()
     val cas3 =
-      results.standardCallsNoIterationResults?.get(GET_CAS3_REFERRAL) as? List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
+      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
     return AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3)

@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -30,6 +31,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.UpstreamFailureTransformer.toFailureIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel as RiskLevelInfra
 
 @ExtendWith(MockKExtension::class)
@@ -293,6 +296,95 @@ class CaseQueryServiceTest {
           caseSummaries = caseOrchestrationDto.cases,
         ),
       )
+    }
+  }
+
+  @Nested
+  inner class GetCasesV2 {
+
+    @Test
+    fun `should return cases with no upstream failures when all calls succeed`() {
+      val crnList = listOf(crnOne, crnTwo)
+      val orchestrationDtoList = listOf(
+        buildCaseOrchestrationDto(crn = crnOne),
+        buildCaseOrchestrationDto(crn = crnTwo),
+      )
+
+      every { caseOrchestrationService.getCasesV2(crnList) } returns OrchestrationResultDto(
+        data = orchestrationDtoList,
+      )
+
+      val result = caseQueryService.getCasesV2(crnList)
+      assertThat(result.data).hasSize(2)
+      assertThat(result.upstreamFailures).isEmpty()
+    }
+
+    @Test
+    fun `should return cases with upstream failures on partial success`() {
+      val crnList = listOf(crnOne, crnTwo)
+      val failures = listOf(
+        buildUpstreamFailure(callKey = "getTierByCrn", identifier = crnOne),
+      )
+      val orchestrationDtoList = listOf(
+        buildCaseOrchestrationDto(crn = crnOne, tier = null),
+        buildCaseOrchestrationDto(crn = crnTwo),
+      )
+
+      every { caseOrchestrationService.getCasesV2(crnList) } returns OrchestrationResultDto(
+        data = orchestrationDtoList,
+        upstreamFailures = failures,
+      )
+
+      val result = caseQueryService.getCasesV2(crnList)
+      assertThat(result.data).hasSize(2)
+      assertThat(result.upstreamFailures).hasSize(1)
+      assertThat(result.upstreamFailures.first().endpoint).isEqualTo("getTierByCrn")
+      assertThat(result.upstreamFailures.first().identifier)
+        .isEqualTo(toFailureIdentifier(crnOne))
+    }
+  }
+
+  @Nested
+  inner class GetCaseV2 {
+
+    @Test
+    fun `should return case with no upstream failures when all calls succeed`() {
+      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne)
+
+      every { caseOrchestrationService.getCaseV2(crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+      )
+
+      val result = caseQueryService.getCaseV2(crnOne)
+      assertThat(result.data).isEqualTo(
+        CaseTransformer.toCaseDto(
+          crn = crnOne,
+          cpr = caseOrchestrationDto.cpr,
+          roshDetails = caseOrchestrationDto.roshDetails,
+          tier = caseOrchestrationDto.tier,
+          caseSummaries = caseOrchestrationDto.cases,
+        ),
+      )
+      assertThat(result.upstreamFailures).isEmpty()
+    }
+
+    @Test
+    fun `should return case with upstream failures on partial success`() {
+      val failures = listOf(
+        buildUpstreamFailure(callKey = "getRoshDetail"),
+        buildUpstreamFailure(callKey = "getTierByCrn"),
+      )
+      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, roshDetails = null, tier = null)
+
+      every { caseOrchestrationService.getCaseV2(crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+        upstreamFailures = failures,
+      )
+
+      val result = caseQueryService.getCaseV2(crnOne)
+      assertThat(result.data.riskLevel).isNull()
+      assertThat(result.data.tier).isNull()
+      assertThat(result.upstreamFailures).hasSize(2)
     }
   }
 }
