@@ -13,15 +13,15 @@ fun buildCase(
   nomsNumber: String? = "YY09876Y",
   pncNumber: String? = "Some PNC Reference",
   name: Name = buildName(),
-  dateOfBirth: LocalDate = LocalDate.now().minusYears(25),
-  gender: String = "M",
+  dateOfBirth: LocalDate = LocalDate.of(2000, 12, 3),
+  gender: String = "Male",
   userExcluded: Boolean = false,
   userRestricted: Boolean = false,
   exclusionMessage: String? = null,
   restrictionMessage: String? = null,
   expectedReleaseDate: LocalDate? = LocalDate.now().plusMonths(1),
   staff: Officer = buildOfficer(),
-  roshLevel: CodeDescription = buildCodeDescription(),
+  roshLevel: CodeDescription = buildRoshCodeDescription(),
   team: CodeDescription = buildCodeDescription(),
 ) = Case(
   crn = crn,
@@ -41,8 +41,8 @@ fun buildCase(
 )
 
 fun buildName(
-  forename: String = "Fore",
-  surname: String = "Sur",
+  forename: String = "First",
+  surname: String = "Last",
   middleName: String = "Middle",
 ) = Name(
   forename = forename,
@@ -53,7 +53,7 @@ fun buildName(
 fun buildOfficer(
   name: Name = buildName(),
   username: String = "user1",
-  code: String = "1234ABC",
+  code: String = "ABCD1234",
 ) = Officer(
   name = name,
   username = username,
@@ -63,6 +63,14 @@ fun buildOfficer(
 fun buildCodeDescription(
   code: String = "ABC123",
   description: String = "A description",
+) = CodeDescription(
+  code = code,
+  description = description,
+)
+
+fun buildRoshCodeDescription(
+  code: String = "RVHR",
+  description: String = "Very high risk",
 ) = CodeDescription(
   code = code,
   description = description,

@@ -133,7 +133,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should FAIL to process incoming HMPPS TIER_CALCULATION_COMPLETE domain event as callback URL fails with 404`() {
-    TierStubs.getTierFailResponse(
+    TierStubs.getTierServerErrorResponse(
       crn,
     )
 

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
@@ -16,6 +17,13 @@ object ApprovedPremisesStubs {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun getSuitableApplicationNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
+        .willReturn(notFound()),
     )
   }
 

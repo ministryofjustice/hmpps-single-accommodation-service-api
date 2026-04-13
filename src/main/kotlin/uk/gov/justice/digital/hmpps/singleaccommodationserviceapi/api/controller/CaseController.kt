@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 
 @RestController
 class CaseController(
@@ -23,12 +22,10 @@ class CaseController(
   @GetMapping("/case-list")
   fun getCases(): ResponseEntity<List<CaseDto>> {
     val personDtos = caseQueryService.getCaseList()
+
     caseApplicationService.upsertCases(personDtos.map { it.crn })
 
-    // TODO remove once we get data from sas_case table in the following PR
-    val cases = personDtos.map { toCaseDto(it) }
-
-    return ResponseEntity.ok(cases)
+    return ResponseEntity.ok(caseQueryService.getCases(personDtos))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")

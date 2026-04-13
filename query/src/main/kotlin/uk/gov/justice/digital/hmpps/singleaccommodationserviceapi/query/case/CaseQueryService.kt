@@ -3,14 +3,19 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 
 @Service
 class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
+  private val caseRepository: CaseRepository,
+  private val eligibilityService: EligibilityService,
 ) {
   fun getCaseList(): List<PersonDto> {
     val user = userService.authorizeAndRetrieveUser()
@@ -19,6 +24,23 @@ class CaseQueryService(
     val caseList = caseOrchestrationService.getCaseList(user.username)
 
     return caseList.cases.map { toPersonDto(it) }
+  }
+
+  fun getCases(personDtos: List<PersonDto>): List<CaseDto> {
+    val crns = personDtos.map { it.crn }
+    val caseEntities = caseRepository.findByCrns(crns)
+
+    return personDtos.map { personDto ->
+      val caseEntity = caseEntities.find { entity ->
+        entity.caseIdentifiers.any { it.identifier == personDto.crn && it.identifierType == IdentifierType.CRN }
+      }
+      val eligibilityDto = eligibilityService.getEligibility(personDto, caseEntity)
+      toCaseDto(
+        personDto,
+        caseEntity,
+        eligibilityDto,
+      )
+    }
   }
 
   fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {
