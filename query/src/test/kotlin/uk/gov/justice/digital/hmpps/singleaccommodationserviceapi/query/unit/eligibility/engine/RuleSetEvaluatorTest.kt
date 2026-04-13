@@ -10,15 +10,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.MaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.NonMaleRiskEligibilityRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.STierEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.MaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.NonMaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.rules.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.CircuitBreakRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
 @ExtendWith(SpringExtension::class)
@@ -68,7 +68,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `default rule set evaluator everything passes (male)`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.A1,
         sex = SexCode.M,
@@ -88,7 +88,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `default rule set evaluator nearly everything fails (female)`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.C2S,
         sex = SexCode.F,
@@ -107,7 +107,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `default rule set evaluator first fails, second passes`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.A1S,
         sex = SexCode.M,
@@ -126,7 +126,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `default rule set evaluator first passes, second fails`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.C1,
         sex = SexCode.F,
@@ -149,7 +149,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `circuit breaker rule set evaluator everything passes`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.A1,
         sex = SexCode.M,
@@ -165,7 +165,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `circuit breaker rule set nearly evaluator everything fails`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.A1S,
         sex = SexCode.F,
@@ -182,7 +182,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `circuit breaker rule set evaluator first fails, second passes`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.A1S,
         sex = SexCode.M,
@@ -199,7 +199,7 @@ class RuleSetEvaluatorTest {
 
     @Test
     fun `circuit breaker rule set evaluator first passes, second fails`() {
-      val data = DomainData(
+      val data = buildDomainData(
         crn = crn,
         tierScore = TierScore.C1,
         sex = SexCode.F,

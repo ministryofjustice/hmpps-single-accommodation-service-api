@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ServiceResultTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
@@ -20,11 +20,12 @@ class Cas1ServiceResultTransformerTest {
   fun `Build action when release date is 3 days in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusDays(3))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
+      cas1Application = null,
     )
     val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
@@ -42,11 +43,12 @@ class Cas1ServiceResultTransformerTest {
   fun `Build action when release date is 13 months in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusMonths(13))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
+      cas1Application = null,
     )
     val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days"
@@ -64,11 +66,12 @@ class Cas1ServiceResultTransformerTest {
   fun `Build action when release date is 1 year in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusYears(1))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
+      cas1Application = null,
     )
     val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
@@ -86,11 +89,12 @@ class Cas1ServiceResultTransformerTest {
   fun `Build action when release date is 1 year and 1 day in future and no application`() {
     val releaseDate = LocalDate.parse("2026-12-31")
     clock.setNow(releaseDate.minusYears(1).minusDays(1))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
+      cas1Application = null,
     )
     val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
@@ -108,11 +112,12 @@ class Cas1ServiceResultTransformerTest {
   fun `Build action when release date is 1 year and 2 days in future and no application`() {
     val releaseDate = LocalDate.parse("2026-07-01")
     clock.setNow(releaseDate.minusYears(1).minusDays(2))
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = releaseDate,
+      cas1Application = null,
     )
     val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"
@@ -128,11 +133,12 @@ class Cas1ServiceResultTransformerTest {
 
   @Test
   fun `Build action when release date null and no application so return NOT_ELIGIBLE`() {
-    val data = DomainData(
+    val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
       releaseDate = null,
+      cas1Application = null,
     )
     val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     Assertions.assertThat(result).isEqualTo(
