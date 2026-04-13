@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys.VIEW_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -121,7 +120,7 @@ class EligibilityService(
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
           suitableApplicationId = data.cas1Application?.id,
-          link = VIEW_APPLICATION,
+          link = EligibilityKeys.VIEW_APPLICATION,
         ),
       )
 
@@ -146,10 +145,10 @@ class EligibilityService(
 
     data.cas3Application?.let {
       log.info(
-        "CAS3 Data received: id={}, applicationStatus={}, placementStatus={}",
+        "CAS3 Data received: id={}, applicationStatus={}, bookingStatus={}",
         data.cas3Application.id,
         data.cas3Application.applicationStatus,
-        data.cas3Application.placementStatus,
+        data.cas3Application.bookingStatus,
       )
     } ?: log.info("CAS3 Data received: No CAS3 application")
 

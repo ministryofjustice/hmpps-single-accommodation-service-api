@@ -8,9 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_APPROVED_PREMISE_APPLICATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.WAIT_FOR_ASSESSMENT_RESULT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer
 import java.util.stream.Stream
 
@@ -49,7 +47,7 @@ class EligibilityTransformerTest {
     private val notStarted = ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
       suitableApplicationId = null,
-      action = START_APPROVED_PREMISE_APPLICATION,
+      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
     )
     private val notEligible = ServiceResult(
       serviceStatus = ServiceStatus.NOT_ELIGIBLE,
@@ -58,7 +56,7 @@ class EligibilityTransformerTest {
     private val upcoming = ServiceResult(
       serviceStatus = ServiceStatus.UPCOMING,
       suitableApplicationId = null,
-      action = "$START_APPROVED_PREMISE_APPLICATION in 2 days",
+      action = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days",
     )
     private val confirmed = ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
@@ -67,22 +65,22 @@ class EligibilityTransformerTest {
     private val assessing = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = WAIT_FOR_ASSESSMENT_RESULT,
+      action = EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT,
     )
     private val submitted = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       suitableApplicationId = null,
-      action = CREATE_PLACEMENT,
+      action = EligibilityKeys.CREATE_PLACEMENT,
     )
     private val withdrawn = ServiceResult(
       serviceStatus = ServiceStatus.WITHDRAWN,
       suitableApplicationId = null,
-      action = START_APPROVED_PREMISE_APPLICATION,
+      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
     )
     private val rejected = ServiceResult(
       serviceStatus = ServiceStatus.APPLICATION_REJECTED,
       suitableApplicationId = null,
-      action = START_APPROVED_PREMISE_APPLICATION,
+      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
     )
 
     @JvmStatic
@@ -99,14 +97,14 @@ class EligibilityTransformerTest {
         notStarted,
         notEligible,
         CaseStatus.ACTION_NEEDED,
-        listOf(START_APPROVED_PREMISE_APPLICATION),
+        listOf(EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
       ),
       Arguments.of(
         CRN,
         upcoming,
         notEligible,
         CaseStatus.ACTION_NEEDED,
-        listOf("$START_APPROVED_PREMISE_APPLICATION in 2 days"),
+        listOf("${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"),
       ),
       Arguments.of(
         CRN,
@@ -120,21 +118,21 @@ class EligibilityTransformerTest {
         assessing,
         notEligible,
         CaseStatus.ACTION_NEEDED,
-        listOf(WAIT_FOR_ASSESSMENT_RESULT),
+        listOf(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT),
       ),
       Arguments.of(
         CRN,
         submitted,
         notEligible,
         CaseStatus.ACTION_NEEDED,
-        listOf(CREATE_PLACEMENT),
+        listOf(EligibilityKeys.CREATE_PLACEMENT),
       ),
       Arguments.of(
         CRN,
         withdrawn,
         notEligible,
         CaseStatus.ACTION_NEEDED,
-        listOf(START_APPROVED_PREMISE_APPLICATION),
+        listOf(EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
       ),
       Arguments.of(
         CRN,
@@ -142,8 +140,8 @@ class EligibilityTransformerTest {
         upcoming,
         CaseStatus.ACTION_NEEDED,
         listOf(
-          START_APPROVED_PREMISE_APPLICATION,
-          "$START_APPROVED_PREMISE_APPLICATION in 2 days",
+          EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
+          "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days",
         ),
       ),
     )

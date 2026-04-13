@@ -37,7 +37,7 @@ class DomainDataTest {
       cas3Application = Cas3Application(
         UUID.randomUUID(),
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        placementStatus = null,
+        bookingStatus = null,
       ),
     )
     val cpr = CorePersonRecord(

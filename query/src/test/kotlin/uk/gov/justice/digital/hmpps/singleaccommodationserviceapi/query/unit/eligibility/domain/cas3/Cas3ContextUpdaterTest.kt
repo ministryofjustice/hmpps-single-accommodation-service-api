@@ -6,11 +6,9 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_CAS3_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -44,7 +42,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.action).isNotNull()
-      assertThat(result.currentResult.action).isEqualTo(START_CAS3_REFERRAL)
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.START_CAS3_REFERRAL)
     }
 
     @Test
@@ -130,14 +128,14 @@ class Cas3ContextUpdaterTest {
     }
 
     @Test
-    fun `update handles PLACED status with completed placement correctly`() {
+    fun `update handles PLACED status with completed booking correctly`() {
       val releaseDate = LocalDate.now().plusDays(20)
       clock.setNow(releaseDate.minusDays(10))
       val data = buildDomainData(
         releaseDate = releaseDate,
         cas3Application = buildCas3Application(
           applicationStatus = Cas3ApplicationStatus.PLACED,
-          placementStatus = Cas3PlacementStatus.DEPARTED,
+          bookingStatus = Cas3BookingStatus.DEPARTED,
         ),
       )
       val context = EvaluationContext(
@@ -148,7 +146,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
-      assertThat(result.currentResult.action).isEqualTo(CREATE_PLACEMENT)
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CREATE_PLACEMENT)
     }
 
     @Test
@@ -209,7 +207,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action).isEqualTo(CREATE_PLACEMENT)
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CREATE_PLACEMENT)
     }
 
     @Test
@@ -230,7 +228,7 @@ class Cas3ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action).isEqualTo(PROVIDE_INFORMATION)
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.PROVIDE_INFORMATION)
     }
   }
 }

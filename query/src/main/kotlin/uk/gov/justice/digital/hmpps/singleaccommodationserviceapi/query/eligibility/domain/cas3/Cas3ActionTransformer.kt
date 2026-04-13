@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.CREATE_PLACEMENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.PROVIDE_INFORMATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys.START_CAS3_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.util.minusWorkingHours
 import java.time.Clock
@@ -16,26 +14,26 @@ private const val MAX_DAYS_BEFORE_RELEASE = 28
 private const val MIN_WORKING_HOURS_BEFORE_RELEASE = 12
 
 private val acceptableCas3Statuses = listOf(
-  Cas3PlacementStatus.DEPARTED,
-  Cas3PlacementStatus.NOT_ARRIVED,
-  Cas3PlacementStatus.CANCELLED,
-  Cas3PlacementStatus.CLOSED,
+  Cas3BookingStatus.DEPARTED,
+  Cas3BookingStatus.NOT_ARRIVED,
+  Cas3BookingStatus.CANCELLED,
+  Cas3BookingStatus.CLOSED,
 )
 
 fun buildCas3Action(data: DomainData, clock: Clock) = when (data.cas3Application?.applicationStatus) {
   Cas3ApplicationStatus.PLACED -> {
-    if (!acceptableCas3Statuses.contains(data.cas3Application.placementStatus)) {
-      error("Invalid placement status: ${data.cas3Application.placementStatus}")
+    if (!acceptableCas3Statuses.contains(data.cas3Application.bookingStatus)) {
+      error("Invalid booking status: ${data.cas3Application.bookingStatus}")
     }
-    CREATE_PLACEMENT
+    EligibilityKeys.CREATE_PLACEMENT
   }
 
   Cas3ApplicationStatus.AWAITING_PLACEMENT,
   Cas3ApplicationStatus.PENDING,
-  -> CREATE_PLACEMENT
+  -> EligibilityKeys.CREATE_PLACEMENT
 
   Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-  -> PROVIDE_INFORMATION
+  -> EligibilityKeys.PROVIDE_INFORMATION
 
   Cas3ApplicationStatus.IN_PROGRESS,
   Cas3ApplicationStatus.SUBMITTED,
@@ -50,7 +48,7 @@ private fun buildStartCas3ReferralAction(data: DomainData, clock: Clock): String
   val releaseDate = data.releaseDate
     ?: error("Release date for crn: ${data.crn} is null")
 
-  if (isWithinSubmissionWindow(releaseDate, clock)) return START_CAS3_REFERRAL
+  if (isWithinSubmissionWindow(releaseDate, clock)) return EligibilityKeys.START_CAS3_REFERRAL
   return buildReferralStartDateAction(releaseDate, clock)
 }
 
@@ -71,7 +69,7 @@ private fun buildReferralStartDateAction(releaseDate: LocalDate, clock: Clock): 
   val daysUntilWindowOpens = DAYS.between(LocalDate.now(clock), releaseDate).toInt() - MAX_DAYS_BEFORE_RELEASE
 
   return when {
-    daysUntilWindowOpens > 1 -> "$START_CAS3_REFERRAL in $daysUntilWindowOpens days"
-    else -> "$START_CAS3_REFERRAL in 1 day"
+    daysUntilWindowOpens > 1 -> "${EligibilityKeys.START_CAS3_REFERRAL} in $daysUntilWindowOpens days"
+    else -> "${EligibilityKeys.START_CAS3_REFERRAL} in 1 day"
   }
 }

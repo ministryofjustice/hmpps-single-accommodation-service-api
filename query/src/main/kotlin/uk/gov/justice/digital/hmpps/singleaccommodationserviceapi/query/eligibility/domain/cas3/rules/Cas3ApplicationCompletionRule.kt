@@ -2,15 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
-private val completedPlacementStatuses = listOf(
-  Cas3PlacementStatus.PROVISIONAL,
-  Cas3PlacementStatus.CONFIRMED,
-  Cas3PlacementStatus.ARRIVED,
+private val completedBookingStatuses = listOf(
+  Cas3BookingStatus.PROVISIONAL,
+  Cas3BookingStatus.CONFIRMED,
+  Cas3BookingStatus.ARRIVED,
 )
 
 @Component
@@ -19,9 +19,9 @@ class Cas3ApplicationCompletionRule : Cas3CompletionRule {
 
   override fun evaluate(data: DomainData): RuleResult {
     val isCompleteApplication = data.cas3Application?.applicationStatus == Cas3ApplicationStatus.PLACED
-    val isCompletePlacement = data.cas3Application?.placementStatus in completedPlacementStatuses
+    val isCompleteBooking = data.cas3Application?.bookingStatus in completedBookingStatuses
 
-    val ruleStatus = if (isCompleteApplication && isCompletePlacement) RuleStatus.PASS else RuleStatus.FAIL
+    val ruleStatus = if (isCompleteApplication && isCompleteBooking) RuleStatus.PASS else RuleStatus.FAIL
 
     return RuleResult(
       description = description,

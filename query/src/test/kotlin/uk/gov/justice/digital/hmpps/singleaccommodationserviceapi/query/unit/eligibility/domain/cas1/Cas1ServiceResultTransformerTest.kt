@@ -6,8 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.ActionKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.LinkKeys.START_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ServiceResultTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
@@ -27,14 +26,14 @@ class Cas1ServiceResultTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = ActionKeys.START_APPROVED_PREMISE_APPLICATION
+    val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
+    val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.NOT_STARTED,
         suitableApplicationId = null,
         action = expectedResult,
-        link = START_APPLICATION,
+        link = EligibilityKeys.START_APPLICATION,
       ),
     )
   }
@@ -49,8 +48,8 @@ class Cas1ServiceResultTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days"
+    val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
+    val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days"
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
@@ -71,14 +70,14 @@ class Cas1ServiceResultTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = ActionKeys.START_APPROVED_PREMISE_APPLICATION
+    val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
+    val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.NOT_STARTED,
         suitableApplicationId = null,
         action = expectedResult,
-        link = START_APPLICATION,
+        link = EligibilityKeys.START_APPLICATION,
       ),
     )
   }
@@ -93,8 +92,8 @@ class Cas1ServiceResultTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
+    val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
+    val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
@@ -115,8 +114,8 @@ class Cas1ServiceResultTransformerTest {
       sex = SexCode.M,
       releaseDate = releaseDate,
     )
-    val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
-    val expectedResult = "${ActionKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"
+    val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
+    val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
@@ -135,7 +134,7 @@ class Cas1ServiceResultTransformerTest {
       sex = SexCode.M,
       releaseDate = null,
     )
-    val result = Cas1ServiceResultTransformer.toServiceResult(data, clock)
+    val result = Cas1ServiceResultTransformer.toCas1ServiceResult(data, clock)
     Assertions.assertThat(result).isEqualTo(
       ServiceResult(
         serviceStatus = ServiceStatus.NOT_ELIGIBLE,
