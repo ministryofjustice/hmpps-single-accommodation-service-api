@@ -31,4 +31,11 @@ object CorePersonRecordStubs {
         .willReturn(serverError()),
     )
   }
+
+  fun getCorePersonRecordTimeoutResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/person/probation/$crn"))
+        .willReturn(okJson("{}").withFixedDelay(6000)),
+    )
+  }
 }

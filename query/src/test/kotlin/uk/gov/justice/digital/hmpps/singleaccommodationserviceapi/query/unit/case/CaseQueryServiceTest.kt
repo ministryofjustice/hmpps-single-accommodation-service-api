@@ -11,8 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -29,9 +29,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.RiskLevelTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.UpstreamFailureTransformer.toFailureIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel as RiskLevelInfra
 
 @ExtendWith(MockKExtension::class)
@@ -313,7 +314,7 @@ class CaseQueryServiceTest {
         data = orchestrationDtoList,
       )
 
-      val result = caseQueryService.getCasesV2(crnList, null)
+      val result = caseQueryService.getCasesV2(crnList)
       assertThat(result.data).hasSize(2)
       assertThat(result.upstreamFailures).isEmpty()
     }
@@ -334,36 +335,12 @@ class CaseQueryServiceTest {
         upstreamFailures = failures,
       )
 
-      val result = caseQueryService.getCasesV2(crnList, null)
+      val result = caseQueryService.getCasesV2(crnList)
       assertThat(result.data).hasSize(2)
       assertThat(result.upstreamFailures).hasSize(1)
       assertThat(result.upstreamFailures.first().endpoint).isEqualTo("getTierByCrn")
-      assertThat(result.upstreamFailures.first().identifier).isEqualTo(crnOne)
-    }
-
-    @Test
-    fun `should filter by risk level and still include upstream failures`() {
-      val crnList = listOf(crnOne, crnTwo)
-      val failures = listOf(
-        buildUpstreamFailure(callKey = "getRoshDetail", identifier = crnTwo),
-      )
-      val orchestrationDtoList = listOf(
-        buildCaseOrchestrationDto(
-          crn = crnOne,
-          roshDetails = buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevelInfra.VERY_HIGH)),
-        ),
-        buildCaseOrchestrationDto(crn = crnTwo, roshDetails = null),
-      )
-
-      every { caseOrchestrationService.getCasesV2(crnList) } returns OrchestrationResultDto(
-        data = orchestrationDtoList,
-        upstreamFailures = failures,
-      )
-
-      val result = caseQueryService.getCasesV2(crnList, RiskLevel.VERY_HIGH)
-      assertThat(result.data).hasSize(1)
-      assertThat(result.data.first().crn).isEqualTo(crnOne)
-      assertThat(result.upstreamFailures).hasSize(1)
+      assertThat(result.upstreamFailures.first().identifier)
+        .isEqualTo(toFailureIdentifier(crnOne))
     }
   }
 

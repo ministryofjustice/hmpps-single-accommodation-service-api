@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureIdentifier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
@@ -10,6 +12,11 @@ object UpstreamFailureTransformer {
     failureType = UpstreamFailureType.valueOf(failure.type.name),
     httpResponseStatus = failure.errorDetail.httpStatus,
     message = failure.errorDetail.message,
-    identifier = failure.identifier,
+    identifier = failure.identifier?.let { toFailureIdentifier(it) },
+  )
+
+  fun toFailureIdentifier(identifier: String) = FailureIdentifier(
+    type = IdentifierType.CRN,
+    value = identifier,
   )
 }

@@ -59,10 +59,9 @@ class CaseController(
     @RequestParam(required = false) searchTerm: String?,
     @RequestParam(required = false) status: Status?,
     @RequestParam(required = false) assignedTo: Long?,
-    @RequestParam(required = false) riskLevel: RiskLevel?,
     @RequestParam(required = false) crns: List<String> = emptyList(),
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = if (crns.isNotEmpty()) {
-    ResponseEntity.ok(caseQueryService.getCasesV2(crns, riskLevel))
+    ResponseEntity.ok(caseQueryService.getCasesV2(crns))
   } else {
     ResponseEntity.ok(ApiResponseDto(data = emptyList()))
   }

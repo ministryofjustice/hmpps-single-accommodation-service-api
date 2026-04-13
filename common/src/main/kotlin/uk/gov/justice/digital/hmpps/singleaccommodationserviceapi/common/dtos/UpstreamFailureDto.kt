@@ -7,8 +7,18 @@ data class UpstreamFailureDto(
   val failureType: UpstreamFailureType,
   val httpResponseStatus: HttpStatus?,
   val message: String,
-  val identifier: String? = null,
+  val identifier: FailureIdentifier? = null,
 )
+
+data class FailureIdentifier(
+  val type: IdentifierType,
+  val value: String,
+)
+
+enum class IdentifierType {
+  CRN,
+  PRISON_NUMBER,
+}
 
 enum class UpstreamFailureType {
   UPSTREAM_HTTP_ERROR,

@@ -65,7 +65,7 @@ class CaseQueryService(
     return toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
   }
 
-  fun getCasesV2(crns: List<String>, riskLevel: RiskLevel?): ApiResponseDto<List<CaseDto>> {
+  fun getCasesV2(crns: List<String>): ApiResponseDto<List<CaseDto>> {
     val orchestrationResult = caseOrchestrationService.getCasesV2(crns)
     val cases = orchestrationResult.data.map {
       toCaseDto(
@@ -76,7 +76,6 @@ class CaseQueryService(
         caseSummaries = it.cases,
       )
     }
-      .filter { riskLevel == null || it.riskLevel == riskLevel }
       .sortedBy { it.name }
 
     return toApiResponseDto(

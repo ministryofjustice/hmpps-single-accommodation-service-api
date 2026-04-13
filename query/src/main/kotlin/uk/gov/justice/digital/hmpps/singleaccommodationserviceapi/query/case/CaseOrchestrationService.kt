@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
@@ -43,33 +44,13 @@ class CaseOrchestrationService(
   }
 
   fun getCases(crns: List<String>): List<CaseOrchestrationDto> {
-    val bulkCall = mapOf(
-      ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },
-    )
-
-    val callsPerIdentifier = mapOf(
-      ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String ->
-        corePersonRecordCachingService.getCorePersonRecordByCrn(
-          crn,
-        )
-      },
-      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
-      ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
-    )
-    val results = aggregatorService.orchestrateAsyncCalls(
-      standardCallsNoIteration = bulkCall,
-      callsPerIdentifier = CallsPerIdentifier(
-        identifiersToIterate = crns,
-        calls = callsPerIdentifier,
-      ),
-    )
-    val caseSummaries = results.standardCallsNoIterationResults
+    val aggregatorResult = orchestrateGetCasesCalls(crns)
+    val caseSummaries = aggregatorResult.standardCallsNoIterationResults
       ?.getResult<CaseSummaries>(ApiCallKeys.GET_CASE_SUMMARIES)
       ?: CaseSummaries(emptyList())
 
-    return results.callsPerIdentifierResults!!.map { (crn, calls) ->
+    return aggregatorResult.callsPerIdentifierResults!!.map { (crn, calls) ->
       val cases = caseSummaries.cases.filter { it.crn == crn }
-
       val cpr = calls.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
       val roshDetails = calls.getResult<RoshDetails>(ApiCallKeys.GET_ROSH_DETAIL)
       val tier = calls.getResult<Tier>(ApiCallKeys.GET_TIER)
@@ -114,32 +95,13 @@ class CaseOrchestrationService(
   }
 
   fun getCasesV2(crns: List<String>): OrchestrationResultDto<List<CaseOrchestrationDto>> {
-    val bulkCall = mapOf(
-      ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },
-    )
-
-    val callsPerIdentifier = mapOf(
-      ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String ->
-        corePersonRecordCachingService.getCorePersonRecordByCrn(crn)
-      },
-      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
-      ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
-    )
-
-    val results = aggregatorService.orchestrateAsyncCalls(
-      standardCallsNoIteration = bulkCall,
-      callsPerIdentifier = CallsPerIdentifier(
-        identifiersToIterate = crns,
-        calls = callsPerIdentifier,
-      ),
-    )
-
-    val caseSummaries = results.standardCallsNoIterationResults!!.getResult<CaseSummaries>(ApiCallKeys.GET_CASE_SUMMARIES)
+    val aggregatorResult = orchestrateGetCasesCalls(crns)
+    val caseSummaries = aggregatorResult.standardCallsNoIterationResults!!.getResult<CaseSummaries>(ApiCallKeys.GET_CASE_SUMMARIES)
       ?: CaseSummaries(emptyList())
-    val bulkFailures = results.standardCallsNoIterationResults!!.getFailures()
+    val bulkFailures = aggregatorResult.standardCallsNoIterationResults!!.getFailures()
 
     val allPerIdentifierFailures = mutableListOf<UpstreamFailure>()
-    val data = results.callsPerIdentifierResults!!.map { (crn, calls) ->
+    val data = aggregatorResult.callsPerIdentifierResults!!.map { (crn, calls) ->
       val cases = caseSummaries.cases.filter { it.crn == crn }
       val cpr = calls.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
       val roshDetails = calls.getResult<RoshDetails>(ApiCallKeys.GET_ROSH_DETAIL)
@@ -180,6 +142,26 @@ class CaseOrchestrationService(
         cases = caseSummaries?.cases,
       ),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
+    )
+  }
+
+  private fun orchestrateGetCasesCalls(crns: List<String>): AggregatorResult {
+    val bulkCall = mapOf(
+      ApiCallKeys.GET_CASE_SUMMARIES to { probationIntegrationDeliusCachingService.getCaseSummaries(crns) },
+    )
+    val callsPerIdentifier = mapOf(
+      ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String ->
+        corePersonRecordCachingService.getCorePersonRecordByCrn(crn)
+      },
+      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
+      ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
+    )
+    return aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = bulkCall,
+      callsPerIdentifier = CallsPerIdentifier(
+        identifiersToIterate = crns,
+        calls = callsPerIdentifier,
+      ),
     )
   }
 }
