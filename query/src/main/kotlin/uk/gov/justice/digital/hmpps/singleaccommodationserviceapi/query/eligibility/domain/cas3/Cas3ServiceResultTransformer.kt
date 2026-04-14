@@ -6,26 +6,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isWithinOneYear
-import java.time.Clock
-import java.time.LocalDate
 
 object Cas3ServiceResultTransformer {
-  fun toCas3ServiceResult(data: DomainData, clock: Clock): ServiceResult {
-    val today = LocalDate.now(clock)
-    return when {
-      data.currentAccommodation?.endDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-      isWithinOneYear(data.currentAccommodation.endDate, today) -> toCas3ServiceResult(data)
-      else -> ServiceResult(
-        serviceStatus = ServiceStatus.UPCOMING,
-        action = buildUpcomingAction(data.currentAccommodation.endDate, today, EligibilityKeys.START_REFERRAL),
-      )
-    }
-  }
-
-  private fun toCas3ServiceResult(data: DomainData): ServiceResult {
+  fun toCas3ServiceResult(data: DomainData): ServiceResult {
     val applicationStatus = data.cas3Application?.applicationStatus
     val assessmentStatus = data.cas3Application?.assessmentStatus
     val bookingStatus = data.cas3Application?.bookingStatus

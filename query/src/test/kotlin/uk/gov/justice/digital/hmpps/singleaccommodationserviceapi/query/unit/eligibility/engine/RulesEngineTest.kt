@@ -47,7 +47,7 @@ class RulesEngineTest {
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
-      currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
     )
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
@@ -61,7 +61,7 @@ class RulesEngineTest {
       crn = crn,
       tierScore = TierScore.C1S,
       sex = SexCode.F,
-      currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
     )
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)

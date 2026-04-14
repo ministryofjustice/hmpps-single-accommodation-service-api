@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
@@ -17,6 +18,7 @@ class CaseQueryService(
   private val userService: UserService,
   private val caseRepository: CaseRepository,
   private val eligibilityService: EligibilityService,
+  private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
   fun getCaseList(): List<PersonDto> {
     val user = userService.authorizeAndRetrieveUser()
@@ -35,7 +37,9 @@ class CaseQueryService(
       val caseEntity = caseEntities.find { entity ->
         entity.caseIdentifiers.any { it.identifier == personDto.crn && it.identifierType == IdentifierType.CRN }
       }
-      val eligibilityDto = eligibilityService.getEligibility(personDto, caseEntity)
+      val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(it, personDto.crn) }
+
+      val eligibilityDto = eligibilityService.getEligibility(personDto, caseEntity, dutyToRefer)
       toCaseDto(
         personDto,
         caseEntity,

@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas1SexValidationRuleTest {
-
   @Test
   fun `candidate passes if sex is present`() {
     val data = buildDomainData(

@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import java.util.UUID
 
 /**
  * Generic builder for constructing decision trees. Allows declaratively to chain rulesets and outcomes.
@@ -26,11 +28,15 @@ class DecisionTreeBuilder(
   fun confirmed() = OutcomeNode { context -> context.currentResult }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible() = outcome(
+  fun notEligible() = outcome(ServiceResult(ServiceStatus.NOT_ELIGIBLE))
+
+  fun accepted() = outcome(ServiceResult(ServiceStatus.ACCEPTED))
+
+  fun bookingConfirmed(id: UUID?) = outcome(
     ServiceResult(
-      serviceStatus =
-      ServiceStatus.NOT_ELIGIBLE,
-      suitableApplicationId = null,
+      serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
+      suitableApplicationId = id,
+      link = EligibilityKeys.VIEW_REFERRAL,
     ),
   )
 }

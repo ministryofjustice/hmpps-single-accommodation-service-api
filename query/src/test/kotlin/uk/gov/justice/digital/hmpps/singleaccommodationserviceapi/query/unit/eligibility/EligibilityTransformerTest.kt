@@ -21,18 +21,22 @@ class EligibilityTransformerTest {
     crn: String,
     cas1: ServiceResult,
     cas3: ServiceResult,
+    dtr: ServiceResult,
     caseActions: List<String>,
   ) {
     val actualEligibility = EligibilityTransformer.toEligibilityDto(
       crn = crn,
       cas1 = cas1,
       cas3 = cas3,
+      dtr = dtr,
+      dutyToRefer = null,
     )
 
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
       cas1 = cas1,
       cas3 = cas3,
+      dtr = dtr,
       caseActions = caseActions,
     )
 
@@ -86,17 +90,20 @@ class EligibilityTransformerTest {
         CRN,
         notEligible,
         notEligible,
-        listOf<String>(),
+        notEligible,
+        emptyList<String>(),
       ),
       Arguments.of(
         CRN,
         notStarted,
+        notEligible,
         notEligible,
         listOf(EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
       ),
       Arguments.of(
         CRN,
         upcoming,
+        notEligible,
         notEligible,
         listOf("${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"),
       ),
@@ -104,11 +111,13 @@ class EligibilityTransformerTest {
         CRN,
         confirmed,
         notEligible,
-        listOf<String>(),
+        notEligible,
+        emptyList<String>(),
       ),
       Arguments.of(
         CRN,
         assessing,
+        notEligible,
         notEligible,
         listOf(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT),
       ),
@@ -116,11 +125,13 @@ class EligibilityTransformerTest {
         CRN,
         submitted,
         notEligible,
+        notEligible,
         listOf(EligibilityKeys.CREATE_PLACEMENT),
       ),
       Arguments.of(
         CRN,
         withdrawn,
+        notEligible,
         notEligible,
         listOf(EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
       ),
@@ -128,6 +139,7 @@ class EligibilityTransformerTest {
         CRN,
         rejected,
         upcoming,
+        notEligible,
         listOf(
           EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
           "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days",

@@ -10,24 +10,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationExpiredRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class Cas3ApplicationExpiredRuleTest {
-  private val description = "FAIL if CAS3 application is arrived, departed or closed"
+class Cas3AssessmentSuitabilityRuleTest {
+  private val description = "FAIL if CAS3 assessment is rejected or closed"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, names = ["ARRIVED", "CLOSED", "DEPARTED"])
-  fun `application has expired booking status so rule fails`(bookingStatus: Cas3BookingStatus) {
+  @EnumSource(value = Cas3AssessmentStatus::class, names = ["REJECTED", "CLOSED"])
+  fun `application has unsuitable assessment status so rule fails`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-        bookingStatus = bookingStatus,
+        assessmentStatus = assessmentStatus,
+        bookingStatus = null,
       ),
     )
 
-    val result = Cas3ApplicationExpiredRule().evaluate(data)
+    val result = Cas3AssessmentSuitabilityRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -38,17 +37,16 @@ class Cas3ApplicationExpiredRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["ARRIVED", "CLOSED", "DEPARTED"])
-  fun `application has non-expired booking status so rule passes`(bookingStatus: Cas3BookingStatus) {
+  @EnumSource(value = Cas3AssessmentStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["REJECTED", "CLOSED"])
+  fun `application does not have unsuitable assessment status so rule passes`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-        bookingStatus = bookingStatus,
+        assessmentStatus = assessmentStatus,
+        bookingStatus = null,
       ),
     )
 
-    val result = Cas3ApplicationExpiredRule().evaluate(data)
+    val result = Cas3AssessmentSuitabilityRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -58,17 +56,18 @@ class Cas3ApplicationExpiredRuleTest {
     )
   }
 
-  @Test
-  fun `application has no booking status so rule passes`() {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = Cas3AssessmentStatus::class, names = ["REJECTED", "CLOSED"])
+  fun `application has booking status so rule passes`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-        bookingStatus = null,
+        assessmentStatus = assessmentStatus,
+        bookingStatus = Cas3BookingStatus.ARRIVED,
       ),
     )
 
-    val result = Cas3ApplicationExpiredRule().evaluate(data)
+    val result = Cas3AssessmentSuitabilityRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -84,7 +83,7 @@ class Cas3ApplicationExpiredRuleTest {
       cas3Application = null,
     )
 
-    val result = Cas3ApplicationExpiredRule().evaluate(data)
+    val result = Cas3AssessmentSuitabilityRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -96,6 +95,6 @@ class Cas3ApplicationExpiredRuleTest {
 
   @Test
   fun `rule has correct description`() {
-    assertThat(Cas3ApplicationExpiredRule().description).isEqualTo(description)
+    assertThat(Cas3AssessmentSuitabilityRule().description).isEqualTo(description)
   }
 }
