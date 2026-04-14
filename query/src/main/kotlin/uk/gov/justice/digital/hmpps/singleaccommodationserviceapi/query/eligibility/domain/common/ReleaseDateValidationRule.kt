@@ -9,8 +9,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class ReleaseDateValidationRule :
-  Cas3ValidationRule,
-  Cas1ValidationRule {
+  Cas1ValidationRule,
+  Cas3ValidationRule {
   override val description = "FAIL if candidate has no release date"
 
   override fun evaluate(data: DomainData) = RuleResult(

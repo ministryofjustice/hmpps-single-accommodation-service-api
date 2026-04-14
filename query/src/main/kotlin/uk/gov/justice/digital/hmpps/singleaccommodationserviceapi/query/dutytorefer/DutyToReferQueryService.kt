@@ -4,6 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
@@ -19,6 +20,15 @@ class DutyToReferQueryService(
 ) {
   fun getDutyToRefer(crn: String): DutyToReferDto {
     val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    return getDutyToRefer(caseEntity, crn)
+  }
+
+  fun getPotentialDutyToRefer(crn: String): DutyToReferDto? {
+    val caseEntity = caseRepository.findByCrn(crn) ?: return null
+    return getDutyToRefer(caseEntity, crn)
+  }
+
+  fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto {
     val dtrEntity = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
       ?: return DutyToReferTransformer.toNotStartedDto(caseEntity.id, crn)
 

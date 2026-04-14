@@ -21,7 +21,7 @@ class CrsStatusRuleTest {
       tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      crsStatus = "submitted",
+      crsStatus = "SUBMITTED",
     )
 
     val result = CrsStatusRule().evaluate(data)

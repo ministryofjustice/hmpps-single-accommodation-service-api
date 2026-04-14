@@ -1,0 +1,53 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.dtr.completion
+
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+
+class DtrApplicationCompleteRuleTest {
+
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = DtrStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["ACCEPTED"])
+  fun `candidate fails when DTR status is not ACCEPTED`(dtrStaus: DtrStatus) {
+    val data = buildDomainData(
+      dtrStatus = dtrStaus,
+    )
+
+    val result = DtrApplicationCompleteRule().evaluate(data)
+
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+  }
+
+  @Test
+  fun `candidate passes when DTR status is ACCEPTED`() {
+    val data = buildDomainData(
+      dtrStatus = DtrStatus.ACCEPTED,
+    )
+
+    val result = DtrApplicationCompleteRule().evaluate(data)
+
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+  }
+
+  @Test
+  fun `candidate fails when DTR status is missing`() {
+    val data = buildDomainData(
+      dtrStatus = null,
+    )
+
+    val result = DtrApplicationCompleteRule().evaluate(data)
+
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+  }
+
+  @Test
+  fun `rule has correct description`() {
+    Assertions.assertThat(DtrApplicationCompleteRule().description)
+      .isEqualTo("FAIL if DTR not accepted")
+  }
+}

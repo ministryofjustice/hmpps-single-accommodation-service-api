@@ -1,52 +1,52 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.eligibility
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.DtrStatusRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
-class DtrStatusRuleTest {
+class NextAccommodationRuleTest {
 
   private val crn = "ABC234"
   private val male = SexCode.M
 
   @Test
-  fun `candidate passes when DTR status is submitted`() {
+  fun `candidate passes when next accommodation is null`() {
     val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      dtrStatus = "submitted",
+      hasNextAccommodation = false,
     )
 
-    val result = DtrStatusRule().evaluate(data)
+    val result = NextAccommodationRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
-  fun `candidate fails when DTR status is not submitted`() {
+  fun `candidate fails when next accommodation exists`() {
     val data = buildDomainData(
       crn = crn,
       tierScore = TierScore.A1,
       sex = male,
       releaseDate = LocalDate.now().plusMonths(1),
-      dtrStatus = null,
+      hasNextAccommodation = true,
     )
 
-    val result = DtrStatusRule().evaluate(data)
+    val result = NextAccommodationRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(DtrStatusRule().description)
-      .isEqualTo("FAIL if DTR status is not submitted")
+    Assertions.assertThat(NextAccommodationRule().description)
+      .isEqualTo("FAIL if candidate has next accommodation")
   }
 }

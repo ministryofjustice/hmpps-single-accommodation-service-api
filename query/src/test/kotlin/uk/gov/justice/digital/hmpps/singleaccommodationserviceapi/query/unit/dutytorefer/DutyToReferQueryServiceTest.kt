@@ -65,6 +65,7 @@ class DutyToReferQueryServiceTest {
 
     @Test
     fun `should return DTR with submission and localAuthorityAreaName when DTR exists`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
       val createdByUserId = UUID.randomUUID()
       val localAuthorityAreaId = UUID.randomUUID()
       val dtrEntity = buildDutyToReferEntity(
@@ -77,15 +78,73 @@ class DutyToReferQueryServiceTest {
         id = localAuthorityAreaId,
         name = "Test Local Authority",
       )
-
-      every { dutyToReferRepository.findByIdOrNull(caseId) } returns dtrEntity
-      every { caseRepository.findByIdOrNull(caseId) } returns buildCaseEntity { withCrn(crn) }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
       every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
 
-      val result = service.getDutyToRefer(caseId)
+      val result = service.getDutyToRefer(crn)
 
       assertThat(result.crn).isEqualTo(crn)
+      assertThat(result.caseId).isEqualTo(caseId)
+      assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
+      assertThat(result.submission).isNotNull()
+      val submission = result.submission!!
+      assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+    }
+  }
+
+  @Nested
+  inner class GetPotentialDutyToRefer {
+
+    @Test
+    fun `should return null when crn not in case table`() {
+      every { caseRepository.findByCrn(crn) } returns null
+
+      val result = service.getPotentialDutyToRefer(crn)
+
+      assertThat(result).isNull()
+    }
+
+    @Test
+    fun `should return NOT_STARTED with null submission when no DTR exists`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
+
+      val result = service.getPotentialDutyToRefer(crn)
+
+      assertThat(result!!.caseId).isEqualTo(caseId)
+      assertThat(result.crn).isEqualTo(crn)
+      assertThat(result.status).isEqualTo(DtrStatus.NOT_STARTED)
+      assertThat(result.submission).isNull()
+    }
+
+    @Test
+    fun `should return DTR with submission and localAuthorityAreaName when DTR exists`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      val createdByUserId = UUID.randomUUID()
+      val localAuthorityAreaId = UUID.randomUUID()
+      val dtrEntity = buildDutyToReferEntity(
+        caseId = caseId,
+        localAuthorityAreaId = localAuthorityAreaId,
+        createdByUserId = createdByUserId,
+      )
+      val userEntity = buildUserEntity()
+      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
+        id = localAuthorityAreaId,
+        name = "Test Local Authority",
+      )
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
+      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
+      every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
+
+      val result = service.getPotentialDutyToRefer(crn)
+
+      assertThat(result!!.crn).isEqualTo(crn)
       assertThat(result.caseId).isEqualTo(caseId)
       assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
       assertThat(result.submission).isNotNull()

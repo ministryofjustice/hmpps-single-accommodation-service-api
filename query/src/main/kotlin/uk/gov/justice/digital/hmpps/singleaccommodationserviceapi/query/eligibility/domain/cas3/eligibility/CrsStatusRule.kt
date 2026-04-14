@@ -11,7 +11,7 @@ class CrsStatusRule : Cas3EligibilityRule {
 
   override fun evaluate(data: DomainData): RuleResult {
     // TODO: Replace with actual CRS status check when available
-    val isEligible = data.crsStatus == "submitted"
+    val isEligible = data.crsStatus == "SUBMITTED"
 
     return RuleResult(
       description = description,
