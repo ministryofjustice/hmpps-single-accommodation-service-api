@@ -37,6 +37,7 @@ enum class TierScore {
   D3,
   D2,
   D1,
+  D0,
   A3S,
   A2S,
   A1S,
