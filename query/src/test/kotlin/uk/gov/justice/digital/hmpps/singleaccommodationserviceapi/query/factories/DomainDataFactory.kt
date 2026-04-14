@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -17,8 +18,8 @@ fun buildDomainData(
   hasNextAccommodation: Boolean = false,
   cas1Application: Cas1Application? = buildCas1Application(),
   cas3Application: Cas3Application? = null,
-  dtrStatus: String? = "submitted",
-  crsStatus: String? = "submitted",
+  crsStatus: String? = "SUBMITTED",
+  dutyToRefer: DutyToReferDto? = null,
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -27,14 +28,16 @@ fun buildDomainData(
   hasNextAccommodation = hasNextAccommodation,
   cas1Application = cas1Application,
   cas3Application = cas3Application,
-  dtrStatus = dtrStatus,
   crsStatus = crsStatus,
+  dutyToRefer = dutyToRefer,
 )
 
 fun buildCurrentAccommodation(
   endDate: LocalDate? = LocalDate.now().plusDays(1),
-  isPrisonCas1Cas2orCas2v2: Boolean = true,
+  isPrisonCas1Cas2OrCas2v2: Boolean = true,
+  isPrivate: Boolean = false,
 ) = CurrentAccommodation(
   endDate = endDate,
-  isPrisonCas1Cas2OrCas2v2 = isPrisonCas1Cas2orCas2v2,
+  isPrisonCas1Cas2OrCas2v2 = isPrisonCas1Cas2OrCas2v2,
+  isPrivate = isPrivate,
 )

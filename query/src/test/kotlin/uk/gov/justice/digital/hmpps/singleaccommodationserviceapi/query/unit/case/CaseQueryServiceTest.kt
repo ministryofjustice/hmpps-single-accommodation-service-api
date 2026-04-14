@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
@@ -31,6 +33,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 class CaseQueryServiceTest {
   @MockK
   lateinit var caseOrchestrationService: CaseOrchestrationService
+
+  @MockK
+  lateinit var dutyToReferQueryService: DutyToReferQueryService
 
   @MockK
   lateinit var userService: UserService
@@ -122,6 +127,10 @@ class CaseQueryServiceTest {
         caseEntity1,
         caseEntity2,
       )
+
+      val dutyToReferDto1 = buildDutyToReferDto(crn = crnOne)
+      val dutyToReferDto2 = buildDutyToReferDto(crn = crnTwo)
+
       val eligibilityDto1 = buildEligibilityDto(
         crn = crnOne,
       )
@@ -132,9 +141,11 @@ class CaseQueryServiceTest {
       val caseDto1 = buildCaseDto(crn = crnOne)
       val caseDto2 = buildCaseDto(crn = crnTwo)
 
+      every { dutyToReferQueryService.getDutyToRefer(caseEntity1, crnOne) } returns dutyToReferDto1
+      every { dutyToReferQueryService.getDutyToRefer(caseEntity2, crnTwo) } returns dutyToReferDto2
       every { caseRepository.findByCrns(crnList) } returns caseEntities
-      every { eligibilityService.getEligibility(personDto1, caseEntity1) } returns eligibilityDto1
-      every { eligibilityService.getEligibility(personDto2, caseEntity2) } returns eligibilityDto2
+      every { eligibilityService.getEligibility(personDto1, caseEntity1, dutyToReferDto1) } returns eligibilityDto1
+      every { eligibilityService.getEligibility(personDto2, caseEntity2, dutyToReferDto2) } returns eligibilityDto2
 
       val result = caseQueryService.getCases(personDtos = personDtos)
       assertThat(result).hasSize(2)

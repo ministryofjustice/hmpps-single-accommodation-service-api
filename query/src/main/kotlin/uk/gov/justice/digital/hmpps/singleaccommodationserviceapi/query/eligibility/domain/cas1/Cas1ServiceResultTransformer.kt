@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isWithinOneYear
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -19,7 +19,7 @@ object Cas1ServiceResultTransformer {
     val today = LocalDate.now(clock)
     return when {
       data.currentAccommodation?.endDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-      isWithinOneYear(data.currentAccommodation.endDate, today) -> toCas1ServiceResult(data)
+      isLessThanOneYearInTheFuture(data.currentAccommodation.endDate, today) -> toCas1ServiceResult(data)
       else -> ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
         action = buildUpcomingAction(data.currentAccommodation.endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),

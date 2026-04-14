@@ -12,7 +12,7 @@ class CurrentAccommodationTypeRuleTest {
   @Test
   fun `candidate passes when current accommodation is eligible type`() {
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(isPrisonCas1Cas2orCas2v2 = true),
+      currentAccommodation = buildCurrentAccommodation(isPrisonCas1Cas2OrCas2v2 = true),
     )
 
     val result = CurrentAccommodationTypeRule().evaluate(data)
@@ -23,7 +23,7 @@ class CurrentAccommodationTypeRuleTest {
   @Test
   fun `candidate fails when current accommodation is ineligible type`() {
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(isPrisonCas1Cas2orCas2v2 = false),
+      currentAccommodation = buildCurrentAccommodation(isPrisonCas1Cas2OrCas2v2 = false),
     )
 
     val result = CurrentAccommodationTypeRule().evaluate(data)

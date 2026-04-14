@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Up
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.withExtraInformation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
@@ -30,6 +31,10 @@ class DutyToReferQueryService(
 ) {
   fun getDutyToRefer(crn: String): DutyToReferDto {
     val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    return getDutyToRefer(caseEntity, crn)
+  }
+
+  fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto {
     val dtrEntity = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
       ?: return DutyToReferTransformer.toNotStartedDto(caseEntity.id, crn)
 

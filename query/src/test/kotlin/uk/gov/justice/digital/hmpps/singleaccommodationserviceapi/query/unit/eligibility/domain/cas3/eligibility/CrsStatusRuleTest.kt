@@ -10,7 +10,7 @@ class CrsStatusRuleTest {
   @Test
   fun `candidate passes when CRS status is submitted`() {
     val data = buildDomainData(
-      crsStatus = "submitted",
+      crsStatus = "SUBMITTED",
     )
 
     val result = CrsStatusRule().evaluate(data)

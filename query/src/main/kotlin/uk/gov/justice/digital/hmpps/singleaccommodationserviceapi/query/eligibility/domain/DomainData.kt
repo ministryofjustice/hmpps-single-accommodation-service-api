@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -19,8 +20,8 @@ data class DomainData(
   val hasNextAccommodation: Boolean,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
-  val dtrStatus: String? = "submitted",
-  val crsStatus: String? = "submitted",
+  val crsStatus: String? = "SUBMITTED",
+  val dutyToRefer: DutyToReferDto?,
 ) {
   constructor(
     crn: String,
@@ -29,9 +30,8 @@ data class DomainData(
     currentAccommodationSummary: AccommodationSummaryDto?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
-    // TODO: remove once we have a better way to determine DTR and CRS status
-    dtrStatus: String? = "submitted",
-    crsStatus: String? = "submitted",
+    dutyToRefer: DutyToReferDto?,
+    crsStatus: String? = "SUBMITTED",
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
@@ -45,13 +45,14 @@ data class DomainData(
     hasNextAccommodation = false,
     cas1Application = cas1Application,
     cas3Application = cas3Application,
-    dtrStatus = dtrStatus,
     crsStatus = crsStatus,
+    dutyToRefer = dutyToRefer,
   )
 
   constructor(
     personDto: PersonDto,
     caseEntity: CaseEntity?,
+    dutyToRefer: DutyToReferDto?,
   ) : this(
     crn = personDto.crn,
     tierScore = caseEntity?.tierScore,
@@ -69,10 +70,12 @@ data class DomainData(
       null
     },
     cas3Application = null,
+    dutyToRefer = dutyToRefer,
   )
 }
 
 data class CurrentAccommodation(
   val endDate: LocalDate? = null,
   val isPrisonCas1Cas2OrCas2v2: Boolean = true,
+  val isPrivate: Boolean = false,
 )
