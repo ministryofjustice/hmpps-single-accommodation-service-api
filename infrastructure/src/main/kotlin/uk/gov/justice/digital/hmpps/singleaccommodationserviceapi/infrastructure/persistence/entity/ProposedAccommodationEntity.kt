@@ -75,11 +75,6 @@ enum class AccommodationArrangementSubType {
   OTHER,
 }
 
-enum class AccommodationSettledType {
-  SETTLED,
-  TRANSIENT,
-}
-
 enum class VerificationStatus {
   NOT_CHECKED_YET,
   FAILED,

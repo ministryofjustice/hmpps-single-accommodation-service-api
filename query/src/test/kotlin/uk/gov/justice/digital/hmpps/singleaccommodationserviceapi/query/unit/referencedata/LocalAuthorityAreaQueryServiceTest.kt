@@ -23,14 +23,14 @@ class LocalAuthorityAreaQueryServiceTest {
 
   @Test
   fun `should return all local authority areas ordered by name`() {
-    val entity1 = buildLocalAuthorityAreaEntity(identifier = "E09000001", name = "City of London")
-    val entity2 = buildLocalAuthorityAreaEntity(identifier = "E09000012", name = "London Borough of Hackney")
+    val entity1 = buildLocalAuthorityAreaEntity(code = "E09000001", name = "City of London")
+    val entity2 = buildLocalAuthorityAreaEntity(code = "E09000012", name = "London Borough of Hackney")
     every { localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName() } returns listOf(entity1, entity2)
 
     val result = service.getLocalAuthorityAreas()
 
-    assertThat(result).hasSize(2)
-    assertThat(result[0]).isEqualTo(ReferenceDataDto(id = entity1.id, name = "City of London"))
-    assertThat(result[1]).isEqualTo(ReferenceDataDto(id = entity2.id, name = "London Borough of Hackney"))
+    assertThat(result.data).hasSize(2)
+    assertThat(result.data[0]).isEqualTo(ReferenceDataDto(id = entity1.id, name = "City of London", code = "E09000001"))
+    assertThat(result.data[1]).isEqualTo(ReferenceDataDto(id = entity2.id, name = "London Borough of Hackney", code = "E09000012"))
   }
 }
