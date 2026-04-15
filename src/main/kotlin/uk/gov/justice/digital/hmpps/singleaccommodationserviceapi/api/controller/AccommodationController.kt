@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 
 @RestController
 class AccommodationController {
@@ -15,8 +16,8 @@ class AccommodationController {
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/accommodations")
-  fun getAccommodations(@PathVariable crn: String): ResponseEntity<AccommodationDto> {
+  fun getAccommodations(@PathVariable crn: String): ResponseEntity<ApiResponseDto<AccommodationDto?>> {
     log.warn("/cases/{crn}/accommodations has not been implemented.")
-    return ResponseEntity.ok(null)
+    return ResponseEntity.ok(ApiResponseDto(data = null))
   }
 }

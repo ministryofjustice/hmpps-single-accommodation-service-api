@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReferenceDataDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.referencedata.LocalAuthorityAreaQueryService
 
@@ -21,7 +22,7 @@ class ReferenceDataController(
   @GetMapping("/reference-data")
   fun getReferenceData(
     @RequestParam(required = true) type: ReferenceDataType,
-  ): ResponseEntity<List<ReferenceDataDto>> = when (type) {
-    ReferenceDataType.LOCAL_AUTHORITY_AREAS -> ResponseEntity.ok(localAuthorityAreaQueryService.getLocalAuthorityAreas())
+  ): ResponseEntity<ApiResponseDto<List<ReferenceDataDto>>> = when (type) {
+    ReferenceDataType.LOCAL_AUTHORITY_AREAS -> ResponseEntity.ok(ApiResponseDto(data = localAuthorityAreaQueryService.getLocalAuthorityAreas()))
   }
 }

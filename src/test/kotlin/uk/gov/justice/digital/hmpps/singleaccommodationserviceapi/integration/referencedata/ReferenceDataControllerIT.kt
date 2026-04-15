@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referencedata
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReferenceDataDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 
 class ReferenceDataControllerIT : IntegrationTestBase() {
@@ -19,12 +19,14 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectStatus().isOk
-      .expectBody(Array<ReferenceDataDto>::class.java)
-      .value { results ->
-        assertThat(results).isNotEmpty
-        assertThat(results).hasSize(408)
-        assertThat(results!!.first().name).isEqualTo("Aberdeen City")
-        assertThat(results.last().name).isEqualTo("York")
+      .expectBody(String::class.java)
+      .value { body ->
+        val response = ObjectMapper().readTree(body)
+        val results = response.get("data")
+        assertThat(results).isNotNull
+        assertThat(results.size()).isEqualTo(408)
+        assertThat(results.first().get("name").asText()).isEqualTo("Aberdeen City")
+        assertThat(results.last().get("name").asText()).isEqualTo("York")
       }
   }
 }

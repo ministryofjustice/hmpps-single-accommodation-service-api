@@ -21,12 +21,11 @@ class CaseController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/case-list")
-  fun getCases(): ResponseEntity<List<CaseDto>> {
+  fun getCases(): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val personDtos = caseQueryService.getCaseList()
-
     caseApplicationService.upsertCases(personDtos.map { it.crn })
-
-    return ResponseEntity.ok(caseQueryService.getCases(personDtos))
+    val result = caseQueryService.getCases(personDtos)
+    return ResponseEntity.ok(ApiResponseDto(data = result))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
@@ -37,20 +36,20 @@ class CaseController(
     @RequestParam(required = false) assignedTo: Long?,
     @RequestParam(required = false) riskLevel: RiskLevel?,
     @RequestParam(required = false) crns: List<String> = emptyList(),
-  ): ResponseEntity<List<CaseDto>> {
+  ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     // TODO this allows for testing with multiple CRNs and will be removed in future.
     return if (crns.isNotEmpty()) {
-      ResponseEntity.ok(caseQueryService.getCases(crns, riskLevel))
+      ResponseEntity.ok(ApiResponseDto(data = caseQueryService.getCases(crns, riskLevel)))
     } else {
-      ResponseEntity.ok(emptyList())
+      ResponseEntity.ok(ApiResponseDto(data = emptyList()))
     }
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}")
-  fun getCase(@PathVariable crn: String): ResponseEntity<CaseDto> {
+  fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> {
     val case = caseQueryService.getCase(crn)
-    return ResponseEntity.ok(case)
+    return ResponseEntity.ok(ApiResponseDto(data = case))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
