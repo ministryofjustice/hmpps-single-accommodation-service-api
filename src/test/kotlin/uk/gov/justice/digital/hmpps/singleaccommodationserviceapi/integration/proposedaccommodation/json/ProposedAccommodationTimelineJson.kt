@@ -26,9 +26,24 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":"NO"
          },
          {
+            "field":"startDate",
+            "value":"2026-01-20",
+            "oldValue":null
+         },
+         {
+            "field":"endDate",
+            "value":"2026-08-01",
+            "oldValue":null
+         },
+         {
             "field":"postcode",
             "value":"correct postcode",
             "oldValue":"test postcode"
+         },
+         {
+            "field":"subBuildingName",
+            "value":null,
+            "oldValue":"another sub building name"
          }
       ]
    },
@@ -41,6 +56,21 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"verificationStatus",
             "value":"FAILED",
             "oldValue":"PASSED"
+         },
+         {
+            "field":"startDate",
+            "value":null,
+            "oldValue":"2026-01-05"
+         },
+         {
+            "field":"endDate",
+            "value":null,
+            "oldValue":"2026-04-25"
+         },
+         {
+            "field":"subBuildingName",
+            "value":"another sub building name",
+            "oldValue":null
          }
       ]
    },
@@ -103,7 +133,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
          },
          {
             "field":"subBuildingName",
-            "value":"test sub building name"
+            "value":null
          },
          {
             "field":"buildingName",

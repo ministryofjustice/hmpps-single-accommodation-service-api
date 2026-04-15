@@ -368,6 +368,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          startDate = "2026-01-05",
+          endDate = "2026-04-25",
+          subBuildingName = null,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -397,6 +400,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          startDate = null,
+          endDate = null,
+          subBuildingName = "another sub building name",
           verificationStatus = VerificationStatus.FAILED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -408,6 +414,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          startDate = "2026-01-20",
+          endDate = "2026-08-01",
+          subBuildingName = null,
           postcode = "correct postcode",
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,

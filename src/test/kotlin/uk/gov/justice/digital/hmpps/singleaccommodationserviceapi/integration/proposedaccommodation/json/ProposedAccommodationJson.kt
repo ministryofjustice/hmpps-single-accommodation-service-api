@@ -112,8 +112,11 @@ fun expectedGetProposedAccommodationByIdResponse(
 fun proposedAddressesRequestBody(
   verificationStatus: String,
   nextAccommodationStatus: String,
+  subBuildingName: String? = "test sub building name",
   postcode: String = "test postcode",
-): String = """
+  startDate: String? = "2026-01-05",
+  endDate: String? = "2026-04-25",
+) = """
   {
     "name" : "Mother's caravan",
     "arrangementType" : "PRIVATE",
@@ -125,7 +128,7 @@ fun proposedAddressesRequestBody(
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
       "postcode" : "$postcode",
-      "subBuildingName" : "test sub building name",
+      "subBuildingName" : "$subBuildingName",
       "buildingName" : "test building name",
       "buildingNumber" : "4",
       "thoroughfareName" : "test thoroughfareName",
@@ -135,10 +138,18 @@ fun proposedAddressesRequestBody(
       "country" : "test country",
       "uprn" : "UP123454"
     },
-    "startDate" : "2026-01-05",
-    "endDate" : "2026-04-25"
+    "startDate" : ${convertDate(startDate)},
+    "endDate" : ${convertDate(endDate)}
   }
 """.trimIndent()
+
+fun convertDate(date: String? = "2026-01-05") = if (date == null) {
+  "null"
+} else {
+  """
+    "$date"
+  """.trimIndent()
+}
 
 fun proposedAccommodationNoteRequestBody(
   note: String,
