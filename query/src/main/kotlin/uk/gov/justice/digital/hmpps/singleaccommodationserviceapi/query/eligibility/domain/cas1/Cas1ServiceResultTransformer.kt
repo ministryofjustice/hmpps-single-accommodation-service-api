@@ -6,19 +6,32 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isWithinOneYear
 import java.time.Clock
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit.DAYS
 import java.util.UUID
 
 object Cas1ServiceResultTransformer {
+
   fun toCas1ServiceResult(data: DomainData, clock: Clock): ServiceResult {
+    val today = LocalDate.now(clock)
+    return when {
+      data.releaseDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      isWithinOneYear(data.releaseDate, today) -> toCas1ServiceResult(data)
+      else -> ServiceResult(
+        serviceStatus = ServiceStatus.UPCOMING,
+        action = buildUpcomingAction(data.releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
+      )
+    }
+  }
+
+  private fun toCas1ServiceResult(data: DomainData): ServiceResult {
     val applicationStatus = data.cas1Application?.applicationStatus
     val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
     val placementStatus = data.cas1Application?.placementStatus
     val suitableApplicationId = data.cas1Application?.id
-    val releaseDate = data.releaseDate
 
     val notEligible = ServiceResult(
       serviceStatus = ServiceStatus.NOT_ELIGIBLE,
@@ -26,22 +39,6 @@ object Cas1ServiceResultTransformer {
       action = null,
       link = null,
     )
-
-    if (releaseDate == null) {
-      return notEligible
-    }
-
-    val today = LocalDate.now(clock)
-    val isWithinOneYear = !releaseDate.isAfter(today.plusYears(1))
-
-    if (!isWithinOneYear) {
-      return ServiceResult(
-        serviceStatus = ServiceStatus.UPCOMING,
-        suitableApplicationId = suitableApplicationId,
-        action = if (applicationStatus == Cas1ApplicationStatus.STARTED) null else buildStartApprovedPremiseReferralAction(releaseDate, today),
-        link = null,
-      )
-    }
 
     val isBeforeRequestForPlacement = requestForPlacementStatus == null && placementStatus == null
 
@@ -223,19 +220,5 @@ object Cas1ServiceResultTransformer {
     )
 
     else -> notEligible
-  }
-
-  private fun buildStartApprovedPremiseReferralAction(releaseDate: LocalDate, today: LocalDate): String {
-    val dateToStartReferral = releaseDate.minusYears(1)
-    val daysUntilReferralMustStart = DAYS.between(today, dateToStartReferral).toInt()
-
-    return when {
-      daysUntilReferralMustStart > 1
-      -> "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in $daysUntilReferralMustStart days"
-
-      daysUntilReferralMustStart < 1 -> EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
-
-      else -> "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
-    }
   }
 }

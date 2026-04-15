@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -23,52 +22,9 @@ class Cas3ContextUpdaterTest {
   @Nested
   inner class UpdateTests {
     @Test
-    fun `update builds action using buildActionForCas3`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val applicationId = UUID.randomUUID()
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          id = applicationId,
-          applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.CONFIRMED),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.action).isNotNull()
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.START_CAS3_REFERRAL)
-    }
-
-    @Test
-    fun `update calculates service status using toServiceStatus with application status`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.AWAITING_PLACEMENT,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
-    }
-
-    @Test
-    fun `update sets suitableApplicationId from cas3Application id`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
+    fun `update builds service result using toCas3ServiceResult`() {
+      val releaseDate = LocalDate.parse("2026-12-31")
+      clock.setNow(releaseDate.minusDays(3))
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         releaseDate = releaseDate,
@@ -84,151 +40,11 @@ class Cas3ContextUpdaterTest {
 
       val result = updater.update(context)
 
+      assertThat(result.currentResult.action).isNull()
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
+      assertThat(result.currentResult.link).isNotNull()
+      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
       assertThat(result.currentResult.suitableApplicationId).isEqualTo(applicationId)
-    }
-
-    @Test
-    fun `update sets suitableApplicationId to null when cas3Application is null`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = null,
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.suitableApplicationId).isNull()
-    }
-
-    @Test
-    fun `update returns updated context with new ServiceResult`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.AWAITING_PLACEMENT,
-        ),
-      )
-      val originalContext = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(originalContext)
-
-      assertThat(result.data).isEqualTo(originalContext.data)
-      assertThat(result.currentResult).isNotEqualTo(originalContext.currentResult)
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
-    }
-
-    @Test
-    fun `update handles PLACED status with completed booking correctly`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.PLACED,
-          bookingStatus = Cas3BookingStatus.DEPARTED,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CONFIRMED)
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CREATE_PLACEMENT)
-    }
-
-    @Test
-    fun `update handles REJECTED status correctly`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.REJECTED,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.REJECTED)
-    }
-
-    @Test
-    fun `update handles WITHDRAWN status correctly`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.WITHDRAWN,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.WITHDRAWN)
-    }
-
-    @Test
-    fun `update handles PENDING status correctly`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.PENDING,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CREATE_PLACEMENT)
-    }
-
-    @Test
-    fun `update handles REQUESTED_FURTHER_INFORMATION status correctly`() {
-      val releaseDate = LocalDate.now().plusDays(20)
-      clock.setNow(releaseDate.minusDays(10))
-      val data = buildDomainData(
-        releaseDate = releaseDate,
-        cas3Application = buildCas3Application(
-          applicationStatus = Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-        ),
-      )
-      val context = EvaluationContext(
-        data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-      )
-
-      val result = updater.update(context)
-
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.PROVIDE_INFORMATION)
     }
   }
 }

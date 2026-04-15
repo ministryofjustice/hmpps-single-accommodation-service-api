@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import java.util.UUID
 
@@ -24,9 +25,11 @@ fun buildCas1Application(
 fun buildCas3Application(
   id: UUID = UUID.randomUUID(),
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+  assessmentStatus: Cas3AssessmentStatus? = null,
   bookingStatus: Cas3BookingStatus? = null,
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
   bookingStatus = bookingStatus,
+  assessmentStatus = assessmentStatus,
 )

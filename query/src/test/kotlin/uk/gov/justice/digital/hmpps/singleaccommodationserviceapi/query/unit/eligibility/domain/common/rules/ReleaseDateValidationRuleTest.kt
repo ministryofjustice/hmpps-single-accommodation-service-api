@@ -1,15 +1,15 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.rules.validation
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common.rules
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.rules.validation.Cas3ReleaseDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.rules.ReleaseDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
-class Cas3ReleaseDateValidationRuleTest {
+class ReleaseDateValidationRuleTest {
   private val crn = "ABC234"
 
   @Test
@@ -21,7 +21,7 @@ class Cas3ReleaseDateValidationRuleTest {
       releaseDate = LocalDate.now().plusYears(1),
     )
 
-    val result = Cas3ReleaseDateValidationRule().evaluate(data)
+    val result = ReleaseDateValidationRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -35,14 +35,14 @@ class Cas3ReleaseDateValidationRuleTest {
       releaseDate = null,
     )
 
-    val result = Cas3ReleaseDateValidationRule().evaluate(data)
+    val result = ReleaseDateValidationRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    val result = Cas3ReleaseDateValidationRule().description
+    val result = ReleaseDateValidationRule().description
     assertThat(result).isEqualTo("FAIL if candidate has no release date")
   }
 }

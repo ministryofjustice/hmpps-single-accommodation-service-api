@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -42,7 +41,7 @@ class Cas1ContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.action).isNotNull()
-      assertThat(result.currentResult.action).isEqualTo(CONTINUE_APPROVED_PREMISE_APPLICATION)
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isNotNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.CONTINUE_APPLICATION)
