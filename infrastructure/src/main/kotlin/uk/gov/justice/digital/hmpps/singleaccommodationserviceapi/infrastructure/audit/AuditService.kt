@@ -62,12 +62,12 @@ class AuditService(
         when (eventType) {
           AuditRecordType.CREATE -> CreateFieldChangeDto(
             field = it.propertyName,
-            value = it.right,
+            value = convertJaversValue(javersValue = it.right),
           )
           else -> UpdateFieldChangeDto(
             field = it.propertyName,
-            value = it.right,
-            oldValue = it.left,
+            value = convertJaversValue(javersValue = it.right),
+            oldValue = convertJaversValue(javersValue = it.left),
           )
         }
       }
@@ -79,5 +79,11 @@ class AuditService(
       commitDate = commitMeta.commitDateInstant,
       changes = fieldChanges,
     )
+  }
+
+  private fun convertJaversValue(javersValue: Any?) = when (javersValue) {
+    null -> null
+    "null" -> null
+    else -> javersValue.toString()
   }
 }

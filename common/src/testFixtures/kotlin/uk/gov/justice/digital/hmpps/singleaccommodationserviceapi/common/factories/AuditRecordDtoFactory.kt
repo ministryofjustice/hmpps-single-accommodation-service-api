@@ -21,7 +21,7 @@ fun buildAuditRecordDto(
 
 fun buildFieldChange(
   field: String = "nextAccommodationStatus",
-  value: Any? = "YES",
+  value: String? = "YES",
 ) = CreateFieldChangeDto(
   field = field,
   value = value,
