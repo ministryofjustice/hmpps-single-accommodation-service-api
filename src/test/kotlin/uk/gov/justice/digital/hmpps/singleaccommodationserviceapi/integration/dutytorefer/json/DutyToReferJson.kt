@@ -50,12 +50,27 @@ fun expectedDtrResponseBody(
 }
 """.trimIndent()
 
+fun expectedGetDtrResponseBody(
+  id: UUID,
+  caseId: UUID,
+  crn: String,
+  localAuthorityAreaId: UUID,
+  localAuthorityAreaName: String? = null,
+  submissionDate: String = "2026-01-15",
+  referenceNumber: String? = "DTR-REF-001",
+  status: String = "SUBMITTED",
+  createdBy: String,
+  createdAt: String,
+): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt)}}"""
+
 fun expectedNotStartedDtrResponseBody(caseId: UUID, crn: String): String = """
 {
-  "caseId": "$caseId",
-  "crn": "$crn",
-  "status": "NOT_STARTED",
-  "submission": null
+  "data": {
+    "caseId": "$caseId",
+    "crn": "$crn",
+    "status": "NOT_STARTED",
+    "submission": null
+  }
 }
 """.trimIndent()
 

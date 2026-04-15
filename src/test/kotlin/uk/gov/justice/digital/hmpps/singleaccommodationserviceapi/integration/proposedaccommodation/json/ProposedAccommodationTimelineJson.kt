@@ -7,7 +7,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
   caseId: UUID,
   createCommitTime: String,
 ): String = """
-[
+{
+  "data": [
    {
       "type":"CREATE",
       "author":"DeliusUser",
@@ -103,7 +104,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
          }
       ]
    }
-]
+  ]
+}
 """.trimIndent()
 
 fun expectedGetProposedAccommodationTimelineResponse(
@@ -114,7 +116,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
   update1CommitTime: String,
   update2CommitTime: String,
 ): String = """
-[
+{
+  "data": [
    {
       "type":"UPDATE",
       "author":"DeliusUser",
@@ -285,5 +288,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
          }
       ]
    }
-]
+  ]
+}
 """.trimIndent()

@@ -3,7 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.r
 import java.util.UUID
 
 fun expectedGetReferralHistory(id1: UUID, id2: UUID, id3: UUID, id4: UUID): String = """
-[
+{
+  "data": [
    {
       "id":"$id3",
       "type":"CAS2v2",
@@ -28,5 +29,6 @@ fun expectedGetReferralHistory(id1: UUID, id2: UUID, id3: UUID, id4: UUID): Stri
       "status":"PENDING",
       "date":"2025-01-01T00:00:00Z"
    }
-]
+  ]
+}
 """.trimIndent()

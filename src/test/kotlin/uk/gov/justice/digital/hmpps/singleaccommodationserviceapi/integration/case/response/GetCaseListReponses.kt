@@ -4,7 +4,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 @TestData
 fun expectedGetCaseListResponse(): String = """
-[
+{
+   "data":[
    {
       "name":"First Middle Last",
       "dateOfBirth":"2000-12-03",
@@ -465,5 +466,6 @@ fun expectedGetCaseListResponse(): String = """
          
       ]
    }
-]
+   ]
+}
 """.trimIndent()

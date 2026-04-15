@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 
@@ -15,5 +16,5 @@ class EligibilityController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}/eligibility")
-  fun getEligibility(@PathVariable crn: String): ResponseEntity<EligibilityDto> = ResponseEntity.ok(eligibilityService.getEligibility(crn))
+  fun getEligibility(@PathVariable crn: String): ResponseEntity<ApiResponseDto<EligibilityDto>> = ResponseEntity.ok(ApiResponseDto(data = eligibilityService.getEligibility(crn)))
 }
