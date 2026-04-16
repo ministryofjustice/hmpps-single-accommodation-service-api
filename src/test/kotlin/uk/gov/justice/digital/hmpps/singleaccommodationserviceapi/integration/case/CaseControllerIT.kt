@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -46,6 +47,9 @@ class CaseControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var caseRepository: CaseRepository
 
+  @Autowired
+  private lateinit var dutyToReferRepository: DutyToReferRepository
+
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
 
@@ -61,6 +65,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @AfterEach
   fun teardown() {
+    dutyToReferRepository.deleteAll()
     caseRepository.deleteAll()
   }
 

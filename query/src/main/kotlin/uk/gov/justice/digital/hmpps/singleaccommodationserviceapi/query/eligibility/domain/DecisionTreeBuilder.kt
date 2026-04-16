@@ -26,11 +26,8 @@ class DecisionTreeBuilder(
   fun confirmed() = OutcomeNode { context -> context.currentResult }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible() = outcome(
-    ServiceResult(
-      serviceStatus =
-      ServiceStatus.NOT_ELIGIBLE,
-      suitableApplicationId = null,
-    ),
-  )
+  fun notEligible() = outcome(ServiceResult(ServiceStatus.NOT_ELIGIBLE))
+
+  /** Creates a terminal outcome node for NOT_ELIGIBLE status */
+  fun accepted() = outcome(ServiceResult(ServiceStatus.ACCEPTED))
 }

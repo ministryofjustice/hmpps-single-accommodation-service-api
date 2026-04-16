@@ -10,7 +10,9 @@ data class EligibilityDto(
   val cas2PrisonBail: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   val cas2CourtBail: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   val cas3: ServiceResult,
+  val dtr: ServiceResult,
   val caseActions: List<String>,
+  val dutyToReferData: DutyToReferDto?,
 )
 
 data class ServiceResult(
@@ -42,4 +44,6 @@ enum class ServiceStatus {
   BEDSPACE_OFFERED,
   BOOKING_CONFIRMED,
   BOOKING_CANCELLED,
+  ACCEPTED,
+  NOT_ACCEPTED,
 }
