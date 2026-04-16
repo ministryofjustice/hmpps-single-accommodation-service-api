@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -45,6 +46,7 @@ class EligibilityService(
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
   private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
   private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
+  private val caseRepository: CaseRepository,
   private val commonContextUpdater: CommonContextUpdater,
   private val dtrCompletionRuleSet: DtrCompletionRuleSet,
   private val dtrCompletionContextUpdater: DtrCompletionContextUpdater,
@@ -293,7 +295,9 @@ class EligibilityService(
   }
 
   fun getDomainData(crn: String): DomainData {
-    val dutyToRefer = dutyToReferQueryService.getPotentialDutyToRefer(crn)
+    val caseEntity = caseRepository.findByCrn(crn)
+
+    val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
 

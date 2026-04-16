@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -20,7 +20,7 @@ class DtrPresentRuleTest {
 
     val result = DtrPresentRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -31,12 +31,12 @@ class DtrPresentRuleTest {
 
     val result = DtrPresentRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(DtrPresentRule().description)
+    assertThat(DtrPresentRule().description)
       .isEqualTo("FAIL if DTR status is not present")
   }
 }

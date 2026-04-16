@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.dtr.upcoming
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
@@ -20,7 +20,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -33,7 +33,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -46,7 +46,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -59,7 +59,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
@@ -72,12 +72,12 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(DtrRecentCurrentAccommodationEndDateRule(clock).description)
+    assertThat(DtrRecentCurrentAccommodationEndDateRule(clock).description)
       .isEqualTo("FAIL if not within 56 days of release from current accommodation")
   }
 }

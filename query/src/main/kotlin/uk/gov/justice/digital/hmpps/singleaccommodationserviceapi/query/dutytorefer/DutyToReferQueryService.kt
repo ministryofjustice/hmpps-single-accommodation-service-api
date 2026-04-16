@@ -23,11 +23,6 @@ class DutyToReferQueryService(
     return getDutyToRefer(caseEntity, crn)
   }
 
-  fun getPotentialDutyToRefer(crn: String): DutyToReferDto? {
-    val caseEntity = caseRepository.findByCrn(crn) ?: return null
-    return getDutyToRefer(caseEntity, crn)
-  }
-
   fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto {
     val dtrEntity = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
       ?: return DutyToReferTransformer.toNotStartedDto(caseEntity.id, crn)

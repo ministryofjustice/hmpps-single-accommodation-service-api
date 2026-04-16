@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.dtr.completion
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -20,7 +20,7 @@ class DtrApplicationCompleteRuleTest {
 
     val result = DtrApplicationCompleteRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
@@ -31,7 +31,7 @@ class DtrApplicationCompleteRuleTest {
 
     val result = DtrApplicationCompleteRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -42,12 +42,12 @@ class DtrApplicationCompleteRuleTest {
 
     val result = DtrApplicationCompleteRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(DtrApplicationCompleteRule().description)
+    assertThat(DtrApplicationCompleteRule().description)
       .isEqualTo("FAIL if DTR not accepted")
   }
 }

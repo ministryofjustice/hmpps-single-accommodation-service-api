@@ -94,7 +94,6 @@ class EligibilityServiceTest {
 
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
   private val dutyToReferQueryService = mockk<DutyToReferQueryService>()
-
   private val caseRepository = mockk<CaseRepository>()
 
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
@@ -151,6 +150,7 @@ class EligibilityServiceTest {
     dtrUpcomingContextUpdater = dtrUpcomingContextUpdater,
     dtrUpcomingRuleSet = dtrUpcomingRuleSet,
     dtrCompletionContextUpdater = dtrCompletionContextUpdater,
+    caseRepository = caseRepository,
   )
 
   @Nested
@@ -167,7 +167,7 @@ class EligibilityServiceTest {
       val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null)
       val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, null)
 
-      every { dutyToReferQueryService.getPotentialDutyToRefer(crn) } returns dutyToRefer
+      every { dutyToReferQueryService.getDutyToRefer(crn) } returns dutyToRefer
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
       every { caseRepository.findByCrn(crn) } returns null
@@ -188,6 +188,8 @@ class ConcurrentEligibilityServiceTest {
 
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
   private val dutyToReferQueryService = mockk<DutyToReferQueryService>()
+  private val caseRepository = mockk<CaseRepository>()
+
   var dtrSuitabilityContextUpdater = DtrSuitabilityContextUpdater()
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     listOf(MaleRiskEligibilityRule(), NonMaleRiskEligibilityRule(), STierEligibilityRule()),
@@ -242,6 +244,7 @@ class ConcurrentEligibilityServiceTest {
     dtrUpcomingContextUpdater = dtrUpcomingContextUpdater,
     dtrUpcomingRuleSet = dtrUpcomingRuleSet,
     dtrCompletionContextUpdater = dtrCompletionContextUpdater,
+    caseRepository = caseRepository,
   )
 
   @Execution(ExecutionMode.CONCURRENT)

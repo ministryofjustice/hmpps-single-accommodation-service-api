@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.dtr.upcoming
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -22,7 +22,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @ParameterizedTest(name = "{0}")
@@ -34,7 +34,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -45,7 +45,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -57,7 +57,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -69,7 +69,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -81,7 +81,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -93,7 +93,7 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -105,12 +105,12 @@ class DtrRecentReleaseDateRuleTest {
 
     val result = DtrRecentReleaseDateRule(clock).evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(DtrRecentReleaseDateRule(clock).description)
+    assertThat(DtrRecentReleaseDateRule(clock).description)
       .isEqualTo("FAIL if not within 56 days of release date from prison when current accommodation is prison")
   }
 }

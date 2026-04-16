@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -26,7 +26,7 @@ class NextAccommodationRuleTest {
 
     val result = NextAccommodationRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -41,12 +41,12 @@ class NextAccommodationRuleTest {
 
     val result = NextAccommodationRule().evaluate(data)
 
-    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(NextAccommodationRule().description)
+    assertThat(NextAccommodationRule().description)
       .isEqualTo("FAIL if candidate has next accommodation")
   }
 }
