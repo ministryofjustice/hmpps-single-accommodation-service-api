@@ -362,7 +362,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return proposed accommodation timeline when it is created and then updated a couple of times`() {
+  fun `should return proposed accommodation timeline when single proposed accommodation created`() {
     val createdProposedAccommodation = restTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
@@ -383,6 +383,59 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val createdProposedAccommodationId = ObjectMapper()
       .readTree(createdProposedAccommodation)
       .get("id").asText()
+
+    val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdProposedAccommodationId))
+    assertThat(commitTimesAsc).hasSize(1)
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetProposedAccommodationTimelineResponse(
+            proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
+            caseId = caseEntity.id,
+            createCommitTime = commitTimesAsc.first()
+              .truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return proposed accommodation timeline when it is created, then a note is created, and then the proposed accommodation is updated a couple of times`() {
+    val createdProposedAccommodation = restTestClient.post()
+      .uri("/cases/{crn}/proposed-accommodations", crn)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          startDate = "2026-01-05",
+          endDate = "2026-04-25",
+          subBuildingName = null,
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val createdProposedAccommodationId = ObjectMapper()
+      .readTree(createdProposedAccommodation)
+      .get("id").asText()
+
+    restTestClient.post()
+      .uri("/cases/{crn}/proposed-accommodations/{id}/notes", crn, createdProposedAccommodationId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationNoteRequestBody(
+          note = "Test note",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
 
     NomisUserRolesStubs.stubMe(
       jwt = jwtAuthHelper.createJwtAccessToken(
@@ -427,6 +480,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdProposedAccommodationId))
     assertThat(commitTimesAsc).hasSize(3)
+    val createNoteCommitTime = proposedAccommodationRepository.findAllWithNotesByCrnOrderByCreatedAtDesc(crn).first()
+      .notes.first().createdAt
 
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
@@ -437,9 +492,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           expectedGetProposedAccommodationTimelineResponse(
             proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
             caseId = caseEntity.id,
-            createCommitTime = commitTimesAsc.first().toString(),
-            update1CommitTime = commitTimesAsc[1].toString(),
-            update2CommitTime = commitTimesAsc[2].toString(),
+            createCommitTime = commitTimesAsc.first()
+              .truncatedTo(ChronoUnit.SECONDS).toString(),
+            createNoteCommitTime = createNoteCommitTime!!
+              .truncatedTo(ChronoUnit.SECONDS).toString(),
+            update1CommitTime = commitTimesAsc[1]
+              .truncatedTo(ChronoUnit.SECONDS).toString(),
+            update2CommitTime = commitTimesAsc[2]
+              .truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
       }
