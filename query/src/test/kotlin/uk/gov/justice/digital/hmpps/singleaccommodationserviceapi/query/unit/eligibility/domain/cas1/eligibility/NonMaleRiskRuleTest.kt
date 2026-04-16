@@ -1,0 +1,121 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import java.time.LocalDate
+import java.util.stream.Stream
+
+class NonMaleRiskRuleTest {
+
+  private val crn = "ABC234"
+
+  @ParameterizedTest
+  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToPass")
+  fun `candidate passes`(sex: SexCode, tierScore: TierScore) {
+    val data = buildDomainData(
+      crn = crn,
+      tierScore = tierScore,
+      sex = sex,
+      releaseDate = LocalDate.now().plusYears(1),
+    )
+
+    val result = NonMaleRiskEligibilityRule().evaluate(data)
+
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+  }
+
+  @ParameterizedTest
+  @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToFail")
+  fun `candidate fails`(sex: SexCode, tierScore: TierScore) {
+    val data = buildDomainData(
+      crn = crn,
+      tierScore = tierScore,
+      sex = sex,
+      releaseDate = LocalDate.now().plusYears(1),
+    )
+
+    val result = NonMaleRiskEligibilityRule().evaluate(data)
+
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+  }
+
+  @Test
+  fun `rule has correct description`() {
+    val result = NonMaleRiskEligibilityRule().description
+    assertThat(result).isEqualTo("FAIL if candidate is not Male and is not Tier A3 - C3")
+  }
+
+  private companion object {
+
+    private val highRiskTiers = listOf(
+      TierScore.A3,
+      TierScore.A2,
+      TierScore.A1,
+      TierScore.A3S,
+      TierScore.A2S,
+      TierScore.A1S,
+      TierScore.B3,
+      TierScore.B2,
+      TierScore.B1,
+      TierScore.B3S,
+      TierScore.B2S,
+      TierScore.B1S,
+      TierScore.C3,
+      TierScore.C3S,
+    )
+
+    private val lowRiskTiers = listOf(
+      TierScore.C2,
+      TierScore.C1,
+      TierScore.C2S,
+      TierScore.C1S,
+      TierScore.D3,
+      TierScore.D2,
+      TierScore.D1,
+      TierScore.D3S,
+      TierScore.D2S,
+      TierScore.D1S,
+    )
+
+    private val allTiers = highRiskTiers + lowRiskTiers
+
+    @JvmStatic
+    fun provideSexAndTierToPass(): Stream<Arguments> {
+      val femaleArguments = highRiskTiers.map {
+        Arguments.of(SexCode.F, it)
+      }
+      val notRecordedArguments = highRiskTiers.map {
+        Arguments.of(SexCode.N, it)
+      }
+      val notSpecifiedArguments = highRiskTiers.map {
+        Arguments.of(SexCode.NS, it)
+      }
+      val maleArguments = allTiers.map {
+        Arguments.of(SexCode.M, it)
+      }
+      return (femaleArguments + notRecordedArguments + notSpecifiedArguments + maleArguments).stream()
+    }
+
+    @JvmStatic
+    fun provideSexAndTierToFail(): Stream<Arguments> {
+      val femaleArguments = lowRiskTiers.map {
+        Arguments.of(SexCode.F, it)
+      }
+      val notRecordedArguments = lowRiskTiers.map {
+        Arguments.of(SexCode.N, it)
+      }
+      val notSpecifiedArguments = lowRiskTiers.map {
+        Arguments.of(SexCode.NS, it)
+      }
+      return (femaleArguments + notRecordedArguments + notSpecifiedArguments).stream()
+    }
+  }
+}
