@@ -67,22 +67,6 @@ data class Nationality(
   val notes: String? = null,
 )
 
-data class Address(
-  val noFixedAbode: Boolean? = null,
-  val startDate: LocalDate? = null,
-  val endDate: LocalDate? = null,
-  val postcode: String? = null,
-  val subBuildingName: String? = null,
-  val buildingName: String? = null,
-  val buildingNumber: String? = null,
-  val thoroughfareName: String? = null,
-  val dependentLocality: String? = null,
-  val postTown: String? = null,
-  val county: String? = null,
-  val country: String? = null,
-  val uprn: String? = null,
-)
-
 data class Identifiers(
   val crns: List<String> = emptyList(),
   val prisonNumbers: List<String> = emptyList(),

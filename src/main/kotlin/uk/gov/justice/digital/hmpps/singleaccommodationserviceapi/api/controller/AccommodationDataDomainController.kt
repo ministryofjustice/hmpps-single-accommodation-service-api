@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 @RestController
 class AccommodationDataDomainController(private val accommodationDataDomainService: AccommodationDataDomainService) {
   @Operation(summary = "Calls the /health endpoint of the accommodation data domain api")
-  @PreAuthorize(value = "hasAnyRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'ROLE_ACCOMMODATION_DATA_DOMAIN__SINGLE_ACCOMMODATION_SERVICE')")
+  @PreAuthorize(value = "hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'ACCOMMODATION_DATA_DOMAIN__SINGLE_ACCOMMODATION_SERVICE')")
   @GetMapping("/accommodation-data-domain/health")
   fun getAccommodationDataDomainHealth(): ResponseEntity<String> = ResponseEntity.ok(accommodationDataDomainService.getHealth())
 }

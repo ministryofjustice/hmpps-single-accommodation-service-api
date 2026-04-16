@@ -160,6 +160,12 @@ private val accommodationReferralControllerMap: Map<String, Set<String>> =
     "GET /cases/{crn}/applications" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
   )
 
+private val accommodationHistoryControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "GET /cases/{crn}/accommodation-history" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /v2/cases/{crn}/accommodation-history" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+  )
+
 private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
@@ -189,6 +195,7 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "ProposedAccommodationController" to proposedAccommodationControllerMap,
     "AccommodationController" to accommodationControllerMap,
     "AccommodationReferralController" to accommodationReferralControllerMap,
+    "AccommodationHistoryController" to accommodationHistoryControllerMap,
     "CaseController" to caseControllerMap,
     "AccommodationDataDomainController" to accommodationDataDomainControllerMap,
     "ReferenceDataController" to referenceDataControllerMap,
