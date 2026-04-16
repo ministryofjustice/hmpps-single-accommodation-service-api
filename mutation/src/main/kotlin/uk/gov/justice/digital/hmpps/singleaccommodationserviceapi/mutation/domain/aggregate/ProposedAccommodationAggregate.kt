@@ -10,9 +10,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationNoteIsEmptyException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationNoteIsGreaterThanMaxLengthException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -117,10 +117,10 @@ class ProposedAccommodationAggregate private constructor(
 
   private fun validateNote(note: String) {
     if (note.isBlank()) {
-      throw AccommodationNoteIsEmptyException()
+      throw NoteIsEmptyException()
     }
     if (note.length > NOTE_MAX_LENGTH) {
-      throw AccommodationNoteIsGreaterThanMaxLengthException()
+      throw NoteIsGreaterThanMaxLengthException()
     }
   }
 

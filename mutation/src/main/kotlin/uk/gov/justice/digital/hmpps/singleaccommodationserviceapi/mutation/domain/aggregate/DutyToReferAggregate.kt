@@ -5,8 +5,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
 import java.util.UUID
+
+private const val NOTE_MAX_LENGTH = 4000
 
 class DutyToReferAggregate private constructor(
   private val id: UUID,
@@ -15,6 +19,7 @@ class DutyToReferAggregate private constructor(
   private var referenceNumber: String? = null,
   private var submissionDate: LocalDate? = null,
   private var status: DtrStatus? = null,
+  private var notes: MutableList<DutyToReferNote> = mutableListOf(),
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
@@ -31,6 +36,7 @@ class DutyToReferAggregate private constructor(
       referenceNumber: String?,
       submissionDate: LocalDate,
       status: DtrStatus,
+      notes: List<DutyToReferNote>,
     ) = DutyToReferAggregate(
       id = id,
       caseId = caseId,
@@ -38,6 +44,7 @@ class DutyToReferAggregate private constructor(
       referenceNumber = referenceNumber,
       submissionDate = submissionDate,
       status = status,
+      notes = notes.toMutableList(),
     )
   }
 
@@ -61,6 +68,23 @@ class DutyToReferAggregate private constructor(
     }
   }
 
+  fun addNote(note: String) {
+    validateNote(note)
+    notes += DutyToReferNote(
+      id = UUID.randomUUID(),
+      note,
+    )
+  }
+
+  private fun validateNote(note: String) {
+    if (note.isBlank()) {
+      throw NoteIsEmptyException()
+    }
+    if (note.length > NOTE_MAX_LENGTH) {
+      throw NoteIsGreaterThanMaxLengthException()
+    }
+  }
+
   private fun validateStatusTransition(newStatus: DtrStatus) {
     when (this.status) {
       null -> if (newStatus != DtrStatus.SUBMITTED) throw DutyToReferInvalidStatusException()
@@ -78,6 +102,7 @@ class DutyToReferAggregate private constructor(
     referenceNumber = referenceNumber,
     submissionDate = submissionDate!!,
     status = status!!,
+    notes = notes.toList(),
   )
 
   data class DutyToReferSnapshot(
@@ -87,5 +112,11 @@ class DutyToReferAggregate private constructor(
     val referenceNumber: String?,
     val submissionDate: LocalDate,
     val status: DtrStatus,
+    val notes: List<DutyToReferNote>,
+  )
+
+  data class DutyToReferNote(
+    val id: UUID,
+    val note: String,
   )
 }

@@ -13,9 +13,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationNoteIsEmptyException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationNoteIsGreaterThanMaxLengthException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.util.UUID
 
 class ProposedAccommodationAggregateTest {
@@ -174,16 +174,16 @@ class ProposedAccommodationAggregateTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
-  fun `addNote should throw AccommodationNoteIsEmptyException domain exception when note is blank`(note: String) {
-    assertThrows<AccommodationNoteIsEmptyException> {
+  fun `addNote should throw NoteIsEmptyException domain exception when note is blank`(note: String) {
+    assertThrows<NoteIsEmptyException> {
       val aggregate = hydrateAggregate()
       aggregate.addNote(note)
     }
   }
 
   @Test
-  fun `addNote should throw AccommodationNoteIsGreaterThanMaxLengthException domain exception when note is greater than 4000 chars`() {
-    assertThrows<AccommodationNoteIsGreaterThanMaxLengthException> {
+  fun `addNote should throw NoteIsGreaterThanMaxLengthException domain exception when note is greater than 4000 chars`() {
+    assertThrows<NoteIsGreaterThanMaxLengthException> {
       val aggregate = hydrateAggregate()
       aggregate.addNote(note = "a".repeat(4001))
     }

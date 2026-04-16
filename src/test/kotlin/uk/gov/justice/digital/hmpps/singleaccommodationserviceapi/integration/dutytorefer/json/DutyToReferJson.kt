@@ -59,6 +59,12 @@ fun expectedNotStartedDtrResponseBody(caseId: UUID, crn: String): String = """
 }
 """.trimIndent()
 
+fun dtrNoteRequestBody(note: String): String = """
+  {
+    "note" : "$note"
+  }
+""".trimIndent()
+
 fun expectedDutyToReferUpdatedDomainEventJson(dutyToReferId: UUID) = """
 {
   "aggregateId": "$dutyToReferId",

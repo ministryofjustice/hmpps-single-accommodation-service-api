@@ -119,6 +119,7 @@ private val dutyToReferControllerMap: Map<String, Set<String>> =
     "GET /cases/{crn}/dtr" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "PUT /cases/{crn}/dtr/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "POST /cases/{crn}/dtr" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "POST /cases/{crn}/dtr/{id}/notes" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
   )
 
 private val eligibilityControllerMap: Map<String, Set<String>> =

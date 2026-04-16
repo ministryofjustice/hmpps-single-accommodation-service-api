@@ -6,11 +6,14 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -128,6 +131,56 @@ class DutyToReferAggregateTest {
 
     val secondPull = aggregate.pullDomainEvents()
     assertThat(secondPull).isEmpty()
+  }
+
+  @Test
+  fun `should addNote successfully`() {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+    val note = "note"
+    aggregate.addNote(note)
+
+    val aggregateSnapshot = aggregate.snapshot()
+
+    assertThat(aggregateSnapshot.notes.first().id).isNotNull
+    assertThat(aggregateSnapshot.notes.first().note).isEqualTo(note)
+    assertThat(aggregateSnapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+    assertThat(aggregateSnapshot.submissionDate).isEqualTo(submissionDate)
+    assertThat(aggregateSnapshot.status).isEqualTo(DtrStatus.SUBMITTED)
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `addNote should throw NoteIsEmptyException domain exception when note is blank`(note: String) {
+    assertThrows<NoteIsEmptyException> {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      aggregate.addNote(note)
+    }
+  }
+
+  @Test
+  fun `addNote should throw NoteIsGreaterThanMaxLengthException domain exception when note is greater than 4000 chars`() {
+    assertThrows<NoteIsGreaterThanMaxLengthException> {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      aggregate.addNote(note = "a".repeat(4001))
+    }
+  }
+
+  @Test
+  fun `addNote should not throw exception when the note length is within the min-length and max-length boundaries`() {
+    shouldSuccessfullyAddNote(note = "a")
+    shouldSuccessfullyAddNote(note = "a".repeat(10))
+    shouldSuccessfullyAddNote(note = "a".repeat(100))
+    shouldSuccessfullyAddNote(note = "a".repeat(1000))
+    shouldSuccessfullyAddNote(note = "a".repeat(2000))
+    shouldSuccessfullyAddNote(note = "a".repeat(3000))
+    shouldSuccessfullyAddNote(note = "a".repeat(4000))
+  }
+
+  private fun shouldSuccessfullyAddNote(note: String) {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+    aggregate.addNote(note)
+    assertThat(aggregate.snapshot().notes.first().note).isEqualTo(note)
   }
 
   private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
