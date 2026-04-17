@@ -22,9 +22,7 @@ class CaseApplicationService(
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
 
-  fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray()).also {
-    log.info("Found {} unpersisted crns: {}", it.size, it)
-  }
+  fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
 
   fun getCasesFromOrchestrator(crns: List<String>) = caseOrchestrationService.getCases(crns)
 
@@ -34,13 +32,17 @@ class CaseApplicationService(
 
     val casesToPersist = mutableSetOf<CaseEntity>()
 
-    // todo this can change to filter successful results when we switch to v2
+    // TODO this can change to filter successful results when we switch to v2
     caseDtos.filter { it.cpr != null }.forEach { caseDto ->
       val identifiersFromCPR = caseDto.cpr?.identifiers?.let { ids ->
         ids.crns.map { it to IdentifierType.CRN } + ids.prisonNumbers.map { it to IdentifierType.PRISON_NUMBER }
       }
 
-      check(!identifiersFromCPR.isNullOrEmpty()) { "No identifiers returned from CPR for CRN: ${caseDto.crn}" }
+      if (identifiersFromCPR.isNullOrEmpty()) {
+        // TODO adding this to maintain previous functionality. We can update when comment above is addressed.
+        log.warn("No identifiers returned from CPR for CRN: {}. Skipping case upsert for this record.", caseDto.crn)
+        return@forEach
+      }
 
       val caseToUpdate = identifiersFromCPR.firstNotNullOfOrNull { caseByIdentifier[it.first to it.second] }
 
@@ -58,17 +60,27 @@ class CaseApplicationService(
   }
 
   private fun mapPersistedIdentifiersToCase(caseDtos: List<CaseMutationOrchestrationDto>): Map<Pair<String, IdentifierType>, CaseEntity> {
-    val allCrns = caseDtos.flatMap { it.cpr?.identifiers?.crns ?: emptySet() }
-    val allPrisonNumbers = caseDtos.flatMap { it.cpr?.identifiers?.prisonNumbers ?: emptySet() }
-    check(allCrns.isNotEmpty() || allPrisonNumbers.isNotEmpty()) { "No case identifiers found" }
-    return caseRepository.findAllByIdentifiers(
+    val allCrns = caseDtos
+      .flatMap { it.cpr?.identifiers?.crns ?: emptyList() }
+      .takeIf { it.isNotEmpty() }
+
+    val allPrisonNumbers = caseDtos
+      .flatMap { it.cpr?.identifiers?.prisonNumbers ?: emptyList() }
+      .takeIf { it.isNotEmpty() }
+
+    if (allCrns.isNullOrEmpty() && allPrisonNumbers.isNullOrEmpty()) return emptyMap()
+
+    val entities = caseRepository.findAllByIdentifiers(
       crns = allCrns,
       prisonNumbers = allPrisonNumbers,
-    ).flatMap { entity ->
-      entity.caseIdentifiers.map { identifier ->
-        (identifier.identifier to identifier.identifierType) to entity
-      }
-    }.toMap()
+    )
+
+    return entities.asSequence()
+      .flatMap { entity ->
+        entity.caseIdentifiers.asSequence().map { identifier ->
+          (identifier.identifier to identifier.identifierType) to entity
+        }
+      }.toMap()
   }
 
   @Transactional
