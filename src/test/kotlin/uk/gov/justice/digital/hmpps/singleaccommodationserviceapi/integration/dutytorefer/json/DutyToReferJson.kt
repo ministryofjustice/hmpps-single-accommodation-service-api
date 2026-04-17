@@ -33,6 +33,7 @@ fun expectedDtrResponseBody(
   createdAt: String,
 ): String = """
 {
+  "data": {
   "caseId": "$caseId",
   "crn": "$crn",
   "status": "$status",
@@ -47,15 +48,20 @@ fun expectedDtrResponseBody(
     "createdBy": "$createdBy",
     "createdAt": "$createdAt"
   }
+  },
+  "upstreamFailures": []
 }
 """.trimIndent()
 
 fun expectedNotStartedDtrResponseBody(caseId: UUID, crn: String): String = """
 {
-  "caseId": "$caseId",
-  "crn": "$crn",
-  "status": "NOT_STARTED",
-  "submission": null
+  "data": {
+    "caseId": "$caseId",
+    "crn": "$crn",
+    "status": "NOT_STARTED",
+    "submission": null
+  },
+  "upstreamFailures": []
 }
 """.trimIndent()
 

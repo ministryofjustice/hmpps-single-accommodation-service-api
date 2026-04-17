@@ -4,6 +4,7 @@ import java.util.UUID
 
 fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID): String = """
 {
+  "data": {
   "crn": "$crn",
   "cas1": {
     "serviceStatus": "SUBMITTED",
@@ -38,5 +39,7 @@ fun expectedGetEligibilityResponse(crn: String, cas1SuitableApplicationId: UUID)
   "caseActions": [
     "Wait for approved premise (CAS1) assessment result"
   ]
+  },
+  "upstreamFailures": []
 }
 """.trimIndent()

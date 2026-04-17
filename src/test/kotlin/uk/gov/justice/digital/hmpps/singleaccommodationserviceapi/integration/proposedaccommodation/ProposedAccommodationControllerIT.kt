@@ -202,7 +202,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson("[]")
+        assertThatJson(it!!).matchesExpectedJson("""{"data":[],"upstreamFailures":[]}""")
       }
   }
 
@@ -382,7 +382,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val createdProposedAccommodationId = ObjectMapper()
       .readTree(createdProposedAccommodation)
-      .get("id").asText()
+      .get("data").get("id").asText()
 
     val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdProposedAccommodationId))
     assertThat(commitTimesAsc).hasSize(1)
@@ -424,7 +424,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val createdProposedAccommodationId = ObjectMapper()
       .readTree(createdProposedAccommodation)
-      .get("id").asText()
+      .get("data").get("id").asText()
 
     restTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations/{id}/notes", crn, createdProposedAccommodationId)
