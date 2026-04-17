@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
-import org.junit.jupiter.api.AfterEach
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +24,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
@@ -51,6 +53,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
+    caseRepository.deleteAll()
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
 
@@ -59,18 +62,87 @@ class CaseControllerIT : IntegrationTestBase() {
     stubInitialRoshAndTier()
   }
 
-  @AfterEach
-  fun teardown() {
-    caseRepository.deleteAll()
+  @Test
+  fun `matches a case by all identifiers from CorePersonRecord and adds missing ones`() {
+    // case 1 identifiers
+    val knownCrnForCase1 = UUID.randomUUID().toString()
+    val unknownCrnForCase1 = UUID.randomUUID().toString()
+    val unknownPrisonNumberForCase1 = UUID.randomUUID().toString()
+
+    // case 2 identifiers
+    val knownPrisonNumberForCase2 = UUID.randomUUID().toString()
+    val unknownCrnForCase2 = UUID.randomUUID().toString()
+
+    val case1 = buildCaseEntity { withCrn(knownCrnForCase1) }
+    val case2 = buildCaseEntity {
+      withCrn(unknownCrnForCase2)
+      withPrisonNumber(knownPrisonNumberForCase2)
+    }
+    val cases = listOf(case1, case2)
+
+    caseRepository.saveAllAndFlush(cases)
+
+    // currently crn is not nullable in dtos, so doing this way to avoid refactoring but add coverage
+    caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!
+      .also { entity ->
+        entity.caseIdentifiers.removeIf {
+          it.identifierType == IdentifierType.CRN
+        }.also { caseRepository.saveAndFlush(entity) }
+      }
+
+    // case list return should not match any persisted CRNs
+    val caseList = CaseList(
+      listOf(
+        buildCase(crn = unknownCrnForCase1, nomsNumber = null),
+        buildCase(crn = unknownCrnForCase2, nomsNumber = knownPrisonNumberForCase2),
+      ),
+    )
+
+    ProbationIntegrationSasDeliusStubs.stubGetCaseListByUsername(
+      deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      response = caseList,
+    )
+
+    // returns the unknown CRN from the caselist, and the persisted CRN for the case
+    stubCorePersonRecord(
+      crn = unknownCrnForCase1,
+      prisonNumber = unknownPrisonNumberForCase1,
+      additionalCrns = listOf(knownCrnForCase1),
+    )
+
+    // returns the CRN from the case list, and the persisted Prison Number for the case
+    stubCorePersonRecord(
+      crn = unknownCrnForCase2,
+      prisonNumber = knownPrisonNumberForCase2,
+    )
+
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.length()").isEqualTo(2)
+
+    assertThat(caseRepository.findByCrn(unknownCrnForCase1)!!.caseIdentifiers)
+      .extracting<String> { it.identifier }
+      .containsExactlyInAnyOrder(
+        knownCrnForCase1,
+        unknownCrnForCase1,
+        unknownPrisonNumberForCase1,
+      )
+
+    assertThat(caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!.caseIdentifiers)
+      .extracting<String> { it.identifier }
+      .containsExactlyInAnyOrder(
+        knownPrisonNumberForCase2,
+        unknownCrnForCase2,
+      )
   }
 
   @Test
-  fun `should get case list`() {
+  fun `should get successful response from case-list`() {
     stubCaseList()
     seedCaseEntities()
     stubAdditionalCorePersonRecords()
-    stubAdditionalTierResponses()
-    stubSuitableApplications()
 
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
@@ -157,7 +229,7 @@ class CaseControllerIT : IntegrationTestBase() {
     )
     stubCorePersonRecord(
       crn = crns[1],
-      noms = nomsNumbers[1],
+      prisonNumber = nomsNumbers[1],
       firstName = "Zack",
       lastName = "Smith",
     )
@@ -267,7 +339,13 @@ class CaseControllerIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crns[15])
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crns[16])
 
-    (17..19).forEach { stubCorePersonRecord(crns[it], nomsNumbers[it]) }
+    (17..19).forEach {
+      stubCorePersonRecord(
+        crn = crns[it],
+        prisonNumber = nomsNumbers[it],
+        additionalCrns = listOf("ADDITIONAL$it"),
+      )
+    }
   }
 
   private fun stubAdditionalTierResponses() {
@@ -312,12 +390,16 @@ class CaseControllerIT : IntegrationTestBase() {
 
   private fun stubCorePersonRecord(
     crn: String,
-    noms: String,
+    prisonNumber: String,
     firstName: String? = null,
     lastName: String? = null,
+    additionalCrns: List<String> = emptyList(),
+    additionalPrisonNumbers: List<String> = emptyList(),
   ) {
+    val crns = (listOf(crn) + additionalCrns).distinct()
+    val prisonNumbers = (listOf(prisonNumber) + additionalPrisonNumbers).distinct()
     val record = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf(noms)),
+      identifiers = buildIdentifiers(crns = crns, prisonNumbers = prisonNumbers),
       firstName = firstName,
       lastName = lastName,
     )

@@ -11,8 +11,8 @@ fun expectedGetCaseListResponse(): String = """
     "crn": "FAKECRN1",
     "prisonNumber": "PRI1",
     "photoUrl": null,
-    "tierScore": "A1",
-    "tier": "A1",
+    "tierScore": null,
+    "tier": null,
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
@@ -24,9 +24,7 @@ fun expectedGetCaseListResponse(): String = """
     "currentAccommodation": null,
     "nextAccommodation": null,
     "status": null,
-    "actions": [
-      "Start approved premise (CAS1) application"
-    ]
+    "actions": []
   },
   {
     "name": "Zack Middle Smith",
@@ -34,8 +32,8 @@ fun expectedGetCaseListResponse(): String = """
     "crn": "FAKECRN2",
     "prisonNumber": "PRI2",
     "photoUrl": null,
-    "tierScore": "A1",
-    "tier": "A1",
+    "tierScore": null,
+    "tier": null,
     "riskLevel": "MEDIUM",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
@@ -47,9 +45,7 @@ fun expectedGetCaseListResponse(): String = """
     "currentAccommodation": null,
     "nextAccommodation": null,
     "status": null,
-    "actions": [
-      "Start approved premise (CAS1) application"
-    ]
+    "actions": []
   },
   {
     "name": "First Middle Last",
@@ -57,8 +53,8 @@ fun expectedGetCaseListResponse(): String = """
     "crn": "FAKECRN3",
     "prisonNumber": "PRI3",
     "photoUrl": null,
-    "tierScore": "A1",
-    "tier": "A1",
+    "tierScore": null,
+    "tier": null,
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
@@ -112,9 +108,7 @@ fun expectedGetCaseListResponse(): String = """
     "currentAccommodation": null,
     "nextAccommodation": null,
     "status": null,
-    "actions": [
-      "Wait for approved premise (CAS1) placement request result"
-    ]
+    "actions": []
   },
   {
     "name": "First Middle Last",
@@ -185,7 +179,6 @@ fun expectedGetCaseListResponse(): String = """
       "Wait for approved premise (CAS1) assessment result"
     ]
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -209,7 +202,6 @@ fun expectedGetCaseListResponse(): String = """
       "Wait for approved premise (CAS1) assessment result"
     ]
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -231,7 +223,6 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -255,7 +246,6 @@ fun expectedGetCaseListResponse(): String = """
       "Provide further information on approved premise (CAS1) application"
     ]
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -279,7 +269,6 @@ fun expectedGetCaseListResponse(): String = """
       "Start approved premise (CAS1) application"
     ]
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -303,7 +292,6 @@ fun expectedGetCaseListResponse(): String = """
       "Continue approved premise (CAS1) application"
     ]
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -325,7 +313,6 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -347,7 +334,6 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -369,7 +355,6 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -391,7 +376,6 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -413,7 +397,6 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
@@ -435,15 +418,14 @@ fun expectedGetCaseListResponse(): String = """
     "status": null,
     "actions": []
   },
-
   {
     "name": "First Middle Last",
     "dateOfBirth": "2000-12-03",
     "crn": "FAKECRN20",
     "prisonNumber": "PRI20",
     "photoUrl": null,
-    "tierScore": "A1",
-    "tier": "A1",
+    "tierScore": null,
+    "tier": null,
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
@@ -455,9 +437,7 @@ fun expectedGetCaseListResponse(): String = """
     "currentAccommodation": null,
     "nextAccommodation": null,
     "status": null,
-    "actions": [
-      "Start approved premise (CAS1) application"
-    ]
+    "actions": []
   }
 ]
 """.trimIndent()

@@ -39,6 +39,18 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
     select distinct c
     from CaseEntity c
     join c.caseIdentifiers ci
+    where ((:crns is not null and ci.identifierType = 'CRN' and ci.identifier in :crns)
+       or (:prisonNumbers is not null and ci.identifierType = 'PRISON_NUMBER' and ci.identifier in :prisonNumbers))
+  """,
+  )
+  fun findAllByIdentifiers(prisonNumbers: List<String>?, crns: List<String>?): List<CaseEntity>
+
+  @EntityGraph(attributePaths = ["caseIdentifiers"])
+  @Query(
+    """
+    select distinct c
+    from CaseEntity c
+    join c.caseIdentifiers ci
     where ci.identifierType = 'CRN' and ci.identifier in :crns
   """,
   )
@@ -56,7 +68,7 @@ WHERE identifier NOT IN (
   """,
     nativeQuery = true,
   )
-  fun findMissingCrns(crns: Array<String>): List<String>
+  fun findUnpersistedCrns(crns: Array<String>): List<String>
 
   fun findByCrn(crn: String) = findByIdentifier(crn, IdentifierType.CRN)
   fun findByPrisonNumber(prisonNumber: String) = findByIdentifier(prisonNumber, IdentifierType.PRISON_NUMBER)

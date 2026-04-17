@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper.addMissingIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
 @Service
@@ -21,21 +22,65 @@ class CaseApplicationService(
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
 
+  fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
+
+  fun getCasesFromOrchestrator(crns: List<String>) = caseOrchestrationService.getCases(crns)
+
   @Transactional
-  fun upsertCases(crns: List<String>) {
-    val missingCrns = caseRepository.findMissingCrns(crns = crns.toTypedArray())
-    if (missingCrns.isNotEmpty()) {
-      val casesToAdd = caseOrchestrationService.getCases(missingCrns)
-      casesToAdd.forEach { case ->
-        val identifiers = case.cpr?.identifiers
-        if (identifiers != null) {
-          val caseEntity = findByAndUpdatePersonIdentifiers(identifiers)
-          upsertCase(crn = case.crn, caseEntity, identifiers)
-        } else {
-          log.error("No CPR identifiers found for case ${case.crn} not inserting a new case to avoid duplicates")
-        }
+  fun upsertCases(caseDtos: List<CaseMutationOrchestrationDto>) {
+    val caseByIdentifier = mapPersistedIdentifiersToCase(caseDtos)
+
+    val casesToPersist = mutableSetOf<CaseEntity>()
+
+    // TODO this can change to filter successful results when we switch to v2
+    caseDtos.filter { it.cpr != null }.forEach { caseDto ->
+      val identifiersFromCPR = caseDto.cpr?.identifiers?.let { ids ->
+        ids.crns.map { it to IdentifierType.CRN } + ids.prisonNumbers.map { it to IdentifierType.PRISON_NUMBER }
+      }
+
+      if (identifiersFromCPR.isNullOrEmpty()) {
+        // TODO adding this to maintain previous functionality. We can update when comment above is addressed.
+        log.warn("No identifiers returned from CPR for CRN: {}. Skipping case upsert for this record.", caseDto.crn)
+        return@forEach
+      }
+
+      val caseToUpdate = identifiersFromCPR.firstNotNullOfOrNull { caseByIdentifier[it.first to it.second] }
+
+      if (caseToUpdate != null) {
+        log.debug("Updating identifiers for case: {}", caseToUpdate.id)
+        caseToUpdate.addMissingIdentifiers(identifiersFromCPR.toMap())
+        casesToPersist += caseToUpdate
+      } else {
+        log.debug("Creating new case with identifiers: {}", identifiersFromCPR)
+        casesToPersist += CaseMapper.create(CaseAggregate.hydrateNew().snapshot(), identifiersFromCPR.toMap())
       }
     }
+    caseRepository.saveAll(casesToPersist)
+    log.info("Successfully upserted {} cases", casesToPersist.size)
+  }
+
+  private fun mapPersistedIdentifiersToCase(caseDtos: List<CaseMutationOrchestrationDto>): Map<Pair<String, IdentifierType>, CaseEntity> {
+    val allCrns = caseDtos
+      .flatMap { it.cpr?.identifiers?.crns ?: emptyList() }
+      .takeIf { it.isNotEmpty() }
+
+    val allPrisonNumbers = caseDtos
+      .flatMap { it.cpr?.identifiers?.prisonNumbers ?: emptyList() }
+      .takeIf { it.isNotEmpty() }
+
+    if (allCrns.isNullOrEmpty() && allPrisonNumbers.isNullOrEmpty()) return emptyMap()
+
+    val entities = caseRepository.findAllByIdentifiers(
+      crns = allCrns,
+      prisonNumbers = allPrisonNumbers,
+    )
+
+    return entities.asSequence()
+      .flatMap { entity ->
+        entity.caseIdentifiers.asSequence().map { identifier ->
+          (identifier.identifier to identifier.identifierType) to entity
+        }
+      }.toMap()
   }
 
   @Transactional

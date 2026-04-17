@@ -40,8 +40,10 @@ class CaseEntity(
   var cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
 
 ) {
-  fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }
-    .sortedByDescending { it.createdAt }
-    .first()
+
+  // TODO we need a better and more reliable way to work out the latest crn.
+  //  This won't work (depending or order of crns we get from cpr, order we add them to our db etc
+
+  fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }
     .identifier
 }
