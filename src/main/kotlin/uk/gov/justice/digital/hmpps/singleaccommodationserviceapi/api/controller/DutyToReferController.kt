@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.DutyToReferApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import java.util.UUID
@@ -37,12 +39,25 @@ class DutyToReferController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @PostMapping("/cases/{crn}/dtr")
+  @ResponseStatus(HttpStatus.CREATED)
   fun create(
     @PathVariable crn: String,
     @RequestBody command: DtrCommand,
   ): ResponseEntity<DutyToReferDto> {
     val createdDutyToRefer = dutyToReferApplicationService.createDutyToRefer(crn, command)
     return ResponseEntity(createdDutyToRefer, HttpStatus.CREATED)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PostMapping("/cases/{crn}/dtr/{id}/notes")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createNote(
+    @PathVariable crn: String,
+    @PathVariable id: UUID,
+    @RequestBody request: NoteCommand,
+  ): ResponseEntity<Void> {
+    dutyToReferApplicationService.createDutyToReferNote(crn, id, request)
+    return ResponseEntity(HttpStatus.CREATED)
   }
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN')")

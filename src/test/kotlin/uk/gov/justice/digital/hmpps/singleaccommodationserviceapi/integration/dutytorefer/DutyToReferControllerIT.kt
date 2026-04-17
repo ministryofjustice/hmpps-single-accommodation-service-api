@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.dtrNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedNotStartedDtrResponseBody
@@ -389,6 +391,125 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
 
     assertThat(outboxEventRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `should create a note for dtr`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+    val note1Value = "Test note 1"
+    val note2Value = "Test note 2"
+    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        dtrNoteRequestBody(
+          note = note1Value,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    var dtrPersistedResult = dutyToReferRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
+    assertThat(dtrPersistedResult.notes.first().note).isEqualTo(note1Value)
+
+    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        dtrNoteRequestBody(
+          note = note2Value,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    dtrPersistedResult = dutyToReferRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
+    val sortedNotes: List<DutyToReferNoteEntity> = dtrPersistedResult.notes.sortedByDescending { it.createdAt }
+    assertThat(sortedNotes.first().note).isEqualTo(note2Value)
+    assertThat(sortedNotes[1].note).isEqualTo(note1Value)
+  }
+
+  @Test
+  fun `should not create a note for dtr when dtr not found`() {
+    restTestClient.post().uri("/cases/$crn/dtr/${UUID.randomUUID()}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        dtrNoteRequestBody(
+          note = "Test note",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should not create a note when crn not found`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+    restTestClient.post().uri("/cases/${UUID.randomUUID()}/dtr/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        dtrNoteRequestBody(
+          note = "Test note",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should fail with Bad Request for empty note`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+    val note = ""
+    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        dtrNoteRequestBody(note),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should fail with Bad Request for note exceeding 4000 characters`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+    val note = "a".repeat(4001)
+    restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        dtrNoteRequestBody(note),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
   }
 
   private fun assertPersistedDutyToRefer(

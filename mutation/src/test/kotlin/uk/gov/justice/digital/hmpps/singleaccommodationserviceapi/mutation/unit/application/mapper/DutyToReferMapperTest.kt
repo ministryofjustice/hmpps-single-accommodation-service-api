@@ -6,7 +6,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildDutyToReferNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildDutyToReferSnapshot
 import java.time.Instant
 import java.time.LocalDate
@@ -68,19 +70,36 @@ class DutyToReferMapperTest {
   fun merge() {
     val entityId = UUID.randomUUID()
     val caseId = UUID.randomUUID()
-    val snapshot = buildDutyToReferSnapshot()
     val entity = buildDutyToReferEntity(
       id = entityId,
       caseId = caseId,
     )
-    DutyToReferMapper.merge(snapshot, entity)
+    val preExistingNoteEntity = buildDutyToReferNoteEntity(
+      id = UUID.randomUUID(),
+      note = "1111",
+      dutyToReferEntity = entity,
+    )
+    entity.apply {
+      notes.add(preExistingNoteEntity)
+    }
+    val newNote1 = buildDutyToReferNote(id = UUID.randomUUID(), note = "2222")
+    val newNote2 = buildDutyToReferNote(id = UUID.randomUUID(), note = "3333")
+    val preExistingNote = buildDutyToReferNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
+    val snapshot = buildDutyToReferSnapshot(
+      notes = mutableListOf(newNote1, newNote2, preExistingNote),
+    )
+    val merged = DutyToReferMapper.merge(snapshot, entity)
 
-    assertThat(entity.id).isEqualTo(entityId)
-    assertThat(entity.caseId).isEqualTo(caseId)
-    assertThat(entity.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
-    assertThat(entity.referenceNumber).isEqualTo(snapshot.referenceNumber)
-    assertThat(entity.submissionDate).isEqualTo(snapshot.submissionDate)
-    assertThat(entity.status).isEqualTo(EntityDtrStatus.valueOf(snapshot.status.name))
+    assertThat(merged.id).isEqualTo(entityId)
+    assertThat(merged.caseId).isEqualTo(caseId)
+    assertThat(merged.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
+    assertThat(merged.referenceNumber).isEqualTo(snapshot.referenceNumber)
+    assertThat(merged.submissionDate).isEqualTo(snapshot.submissionDate)
+    assertThat(merged.status).isEqualTo(EntityDtrStatus.valueOf(snapshot.status.name))
+    assertThat(merged.notes).hasSize(3)
+    assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
+    assertThat(merged.notes[1].note).isEqualTo(newNote1.note)
+    assertThat(merged.notes[2].note).isEqualTo(newNote2.note)
   }
 
   @Test
@@ -92,6 +111,21 @@ class DutyToReferMapperTest {
       status = EntityDtrStatus.SUBMITTED,
     )
 
+    val noteEntity = buildDutyToReferNoteEntity(
+      id = UUID.randomUUID(),
+      note = "1111",
+      dutyToReferEntity = entity,
+    )
+    val noteEntity2 = buildDutyToReferNoteEntity(
+      id = UUID.randomUUID(),
+      note = "2222",
+      dutyToReferEntity = entity,
+    )
+    entity.apply {
+      notes.add(noteEntity)
+      notes.add(noteEntity2)
+    }
+
     val aggregate = DutyToReferMapper.toAggregate(entity)
     val snapshot = aggregate.snapshot()
 
@@ -101,6 +135,10 @@ class DutyToReferMapperTest {
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
     assertThat(snapshot.submissionDate).isEqualTo(entity.submissionDate)
     assertThat(snapshot.status).isEqualTo(DtrStatus.SUBMITTED)
+    assertThat(snapshot.notes.first().id).isEqualTo(noteEntity.id)
+    assertThat(snapshot.notes.first().note).isEqualTo(noteEntity.note)
+    assertThat(snapshot.notes[1].id).isEqualTo(noteEntity2.id)
+    assertThat(snapshot.notes[1].note).isEqualTo(noteEntity2.note)
   }
 
   @ParameterizedTest

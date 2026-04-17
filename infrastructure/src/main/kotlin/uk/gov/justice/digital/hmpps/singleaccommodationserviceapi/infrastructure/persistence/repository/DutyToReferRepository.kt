@@ -18,4 +18,14 @@ interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
   )
   fun findByIdAndCrn(id: UUID, crn: String): DutyToReferEntity?
   fun findFirstByCaseIdOrderByCreatedAtDesc(caseId: UUID): DutyToReferEntity?
+
+  @Query(
+    """
+    select dtr from DutyToReferEntity dtr
+    left join fetch dtr.notes
+    join CaseIdentifierEntity ci on ci.caseEntity.id = dtr.caseId
+    where dtr.id = :id and ci.identifier = :crn and ci.identifierType = 'CRN'
+  """,
+  )
+  fun findByIdAndCrnWithNotes(id: UUID, crn: String): DutyToReferEntity?
 }

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
 import java.time.LocalDate
@@ -31,4 +32,20 @@ fun buildDutyToReferEntity(
   this.createdAt = createdAt
   this.lastUpdatedByUserId = lastUpdatedByUserId
   this.lastUpdatedAt = lastUpdatedAt
+}
+
+@TestData
+fun buildDutyToReferNoteEntity(
+  id: UUID = UUID.randomUUID(),
+  note: String = "Test note",
+  createdByUserId: UUID? = UUID.randomUUID(),
+  createdAt: Instant = Instant.now(),
+  dutyToReferEntity: DutyToReferEntity,
+) = DutyToReferNoteEntity(
+  id,
+  note,
+  dutyToReferEntity,
+).apply {
+  this.createdByUserId = createdByUserId
+  this.createdAt = createdAt
 }

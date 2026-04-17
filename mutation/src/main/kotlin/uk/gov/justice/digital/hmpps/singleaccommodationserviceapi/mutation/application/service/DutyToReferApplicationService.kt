@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -81,6 +82,15 @@ class DutyToReferApplicationService(
       createdAt = updatedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
     )
+  }
+
+  @Transactional
+  fun createDutyToReferNote(crn: String, id: UUID, noteCommand: NoteCommand) {
+    val entity = dutyToReferRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    aggregate.addNote(note = noteCommand.note)
+    val merged = merge(aggregate.snapshot(), entity)
+    dutyToReferRepository.save(merged)
   }
 
   private fun pullEventAndPersistToOutbox(aggregate: DutyToReferAggregate) = aggregate.pullDomainEvents().forEach { event ->
