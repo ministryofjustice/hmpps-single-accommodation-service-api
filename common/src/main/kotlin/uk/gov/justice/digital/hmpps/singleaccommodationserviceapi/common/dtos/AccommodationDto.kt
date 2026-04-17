@@ -7,8 +7,8 @@ import java.util.UUID
 
 data class AccommodationDto(
   val crn: String,
-  val current: AccommodationDetail?,
-  val next: AccommodationDetail?,
+  val current: AccommodationSummaryDto?,
+  val next: AccommodationSummaryDto?,
 )
 
 data class AccommodationDetail(
