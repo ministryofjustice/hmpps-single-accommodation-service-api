@@ -43,7 +43,7 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
        or (:prisonNumbers is not null and ci.identifierType = 'PRISON_NUMBER' and ci.identifier in :prisonNumbers))
   """,
   )
-  fun findAllByIdentifiers(prisonNumbers: List<String>, crns: List<String>): List<CaseEntity>
+  fun findAllByIdentifiers(prisonNumbers: List<String>?, crns: List<String>?): List<CaseEntity>
 
   @EntityGraph(attributePaths = ["caseIdentifiers"])
   @Query(
