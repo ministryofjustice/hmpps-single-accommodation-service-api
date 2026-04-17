@@ -54,7 +54,7 @@ class CaseApplicationService(
       }
     }
     caseRepository.saveAll(casesToPersist)
-    log.info("Successfully upserted {} cases", caseDtos.size)
+    log.info("Successfully upserted {} cases", casesToPersist.size)
   }
 
   private fun mapPersistedIdentifiersToCase(caseDtos: List<CaseMutationOrchestrationDto>): Map<Pair<String, IdentifierType>, CaseEntity> {
