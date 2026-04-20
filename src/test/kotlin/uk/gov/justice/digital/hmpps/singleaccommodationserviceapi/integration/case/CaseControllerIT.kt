@@ -87,7 +87,8 @@ class CaseControllerIT : IntegrationTestBase() {
       .also { entity ->
         entity.caseIdentifiers.removeIf {
           it.identifierType == IdentifierType.CRN
-        }.also { caseRepository.saveAndFlush(entity) }
+        }
+        caseRepository.saveAndFlush(entity)
       }
 
     // case list return should not match any persisted CRNs
