@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodationhistory
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -11,10 +11,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodationhistory.json.expectedGetAccommodationHistoryResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodationhistory.json.expectedGetAccommodationHistoryV2Response
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodationhistory.json.expectedGetAccommodationHistoryV2WithUpstreamFailureResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodationhistory.json.expectedGetAccommodationHistoryWithUpstreamFailureResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryV2Response
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryV2WithUpstreamFailureResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryWithUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import java.time.LocalDate

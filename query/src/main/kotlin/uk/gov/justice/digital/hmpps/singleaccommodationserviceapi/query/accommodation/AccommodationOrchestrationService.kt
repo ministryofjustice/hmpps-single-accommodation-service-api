@@ -16,7 +16,7 @@ class AccommodationOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
-  fun getAccommodationHistory(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
+  fun getCorePersonRecordByCrn(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
     )
@@ -33,7 +33,7 @@ class AccommodationOrchestrationService(
     )
   }
 
-  fun getAccommodationHistoryV2(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
+  fun getCorePersonRecordAddressesByCrn(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordAddressesByCrn(crn) },
     )

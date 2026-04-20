@@ -39,7 +39,7 @@ class AccommodationQueryServiceTest {
 
   @Test
   fun `getAccommodationHistory should orchestrate calls and map addresses`() {
-    every { accommodationOrchestrationService.getAccommodationHistory(crn) } returns OrchestrationResultDto(
+    every { accommodationOrchestrationService.getCorePersonRecordByCrn(crn) } returns OrchestrationResultDto(
       data = buildAccommodationOrchestrationDto(
         cpr = buildCorePersonRecord(
           identifiers = buildIdentifiers(crns = listOf(crn)),
@@ -79,7 +79,7 @@ class AccommodationQueryServiceTest {
 
   @Test
   fun `getAccommodationHistory should return empty list when cpr addresses call fails`() {
-    every { accommodationOrchestrationService.getAccommodationHistory(crn) } returns OrchestrationResultDto(
+    every { accommodationOrchestrationService.getCorePersonRecordByCrn(crn) } returns OrchestrationResultDto(
       data = buildAccommodationOrchestrationDto(
         cpr = null,
         cprAddresses = null,
@@ -101,7 +101,7 @@ class AccommodationQueryServiceTest {
 
   @Test
   fun `getAccommodationHistoryV2 should orchestrate calls and map addresses`() {
-    every { accommodationOrchestrationService.getAccommodationHistoryV2(crn) } returns OrchestrationResultDto(
+    every { accommodationOrchestrationService.getCorePersonRecordAddressesByCrn(crn) } returns OrchestrationResultDto(
       data = buildAccommodationOrchestrationDto(
         cpr = null,
         cprAddresses = buildCorePersonRecordAddresses(
@@ -148,7 +148,7 @@ class AccommodationQueryServiceTest {
 
   @Test
   fun `getAccommodationHistoryV2 should return empty list when cpr addresses call fails`() {
-    every { accommodationOrchestrationService.getAccommodationHistoryV2(crn) } returns OrchestrationResultDto(
+    every { accommodationOrchestrationService.getCorePersonRecordAddressesByCrn(crn) } returns OrchestrationResultDto(
       data = buildAccommodationOrchestrationDto(
         cpr = null,
         cprAddresses = null,
@@ -165,6 +165,71 @@ class AccommodationQueryServiceTest {
 
     // then
     assertThat(result.data.size).isEqualTo(0)
+    assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN)
+  }
+
+  @Test
+  fun `getCurrentAccommodation should orchestrate calls and get the current accommodation`() {
+    every { accommodationOrchestrationService.getCorePersonRecordAddressesByCrn(crn) } returns OrchestrationResultDto(
+      data = buildAccommodationOrchestrationDto(
+        cpr = null,
+        cprAddresses = buildCorePersonRecordAddresses(
+          addresses = listOf(
+            buildAddress(
+              cprAddressId = null,
+              noFixedAbode = false,
+              postcode = "SW1A 1AA",
+              thoroughfareName = "Some Street",
+              postTown = "London",
+              addressStatus = AddressStatus.M,
+              addressUsage = buildAddressUsage(
+                addressUsageCode = AddressUsageCode.A01A,
+                addressUsageDescription = "Householder (Owner - freehold or leasehold)",
+              ),
+            ),
+            buildAddress(
+              cprAddressId = null,
+              noFixedAbode = false,
+              postcode = "GL53 8GH",
+              thoroughfareName = "",
+              postTown = "Cheltenham",
+              addressStatus = AddressStatus.P,
+              addressUsage = buildAddressUsage(
+                addressUsageCode = AddressUsageCode.A07A,
+                addressUsageDescription = "Friends/Family (transient)",
+              ),
+            ),
+          ),
+        ),
+      ),
+      upstreamFailures = emptyList(),
+    )
+
+    val result = accommodationQueryService.getCurrentAccommodation(crn)
+
+    assertThat(result.data!!.address.postcode).isEqualTo("SW1A 1AA")
+    assertThat(result.data!!.status!!.code).isEqualTo(AccommodationStatusCode.M)
+  }
+
+  @Test
+  fun `getCurrentAccommodation should return null data and upstream failure when cpr addresses call fails`() {
+    every { accommodationOrchestrationService.getCorePersonRecordAddressesByCrn(crn) } returns OrchestrationResultDto(
+      data = buildAccommodationOrchestrationDto(
+        cpr = null,
+        cprAddresses = null,
+      ),
+      upstreamFailures = listOf(
+        buildUpstreamFailure(
+          callKey = ApiCallKeys.GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN,
+        ),
+      ),
+    )
+
+    // when
+    val result = accommodationQueryService.getCurrentAccommodation(crn)
+
+    // then
+    assertThat(result.data).isNull()
     assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN)
   }
 }
