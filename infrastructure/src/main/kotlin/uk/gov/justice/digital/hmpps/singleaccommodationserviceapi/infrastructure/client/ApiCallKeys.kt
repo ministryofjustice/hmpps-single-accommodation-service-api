@@ -15,6 +15,7 @@ object ApiCallKeys {
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
   const val GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER = "getCorePersonRecordByPrisonNumber"
+  const val GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN = "getCorePersonRecordAddressesByCrn"
 
   // tier service
   const val GET_TIER = "getTierByCrn"
