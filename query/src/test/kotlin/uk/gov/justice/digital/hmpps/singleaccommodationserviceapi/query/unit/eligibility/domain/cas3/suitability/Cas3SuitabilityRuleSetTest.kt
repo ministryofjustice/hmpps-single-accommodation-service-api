@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.C
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentReleaseDateRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentCurrentAccommodationEndDateRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     Cas3SuitabilityRuleSet::class,
     Cas3ApplicationSuitabilityRule::class,
     Cas3ApplicationExpiredRule::class,
-    Cas3RecentReleaseDateRule::class,
+    Cas3RecentCurrentAccommodationEndDateRule::class,
     ClockConfig::class,
   ],
 )
@@ -30,7 +30,7 @@ class Cas3SuitabilityRuleSetTest {
   private val expectedCas3SuitabilityRuleNames = listOf(
     Cas3ApplicationSuitabilityRule::class.simpleName,
     Cas3ApplicationExpiredRule::class.simpleName,
-    Cas3RecentReleaseDateRule::class.simpleName,
+    Cas3RecentCurrentAccommodationEndDateRule::class.simpleName,
   )
 
   @Test

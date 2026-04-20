@@ -15,38 +15,38 @@ class EligibilityUtilsTest {
   @Nested
   inner class IsWithinOneYear {
     @Test
-    fun `Returns true when release date and today are within 1 year`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+    fun `Returns true when end date and today are within 1 year`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusDays(3))
       val today = LocalDate.now(clock)
-      val result = isWithinOneYear(releaseDate, today)
+      val result = isWithinOneYear(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when release date is earlier than today`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.plusDays(3))
+    fun `Returns true when end date is earlier than today`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.plusDays(3))
       val today = LocalDate.now(clock)
-      val result = isWithinOneYear(releaseDate, today)
+      val result = isWithinOneYear(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when release date is exactly one year from today`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusYears(1))
+    fun `Returns true when end date is exactly one year from today`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusYears(1))
       val today = LocalDate.now(clock)
-      val result = isWithinOneYear(releaseDate, today)
+      val result = isWithinOneYear(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns false when release date is more than one year from today`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(400))
+    fun `Returns false when end date is more than one year from today`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusDays(400))
       val today = LocalDate.now(clock)
-      val result = isWithinOneYear(releaseDate, today)
+      val result = isWithinOneYear(endDate, today)
       assertThat(result).isFalse()
     }
   }
@@ -54,51 +54,51 @@ class EligibilityUtilsTest {
   @Nested
   inner class BuildUpcomingAction {
     @Test
-    fun `Build action when release date is 3 days in future`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+    fun `Build action when end date is 3 days in future`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusDays(3))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
       val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
-    fun `Build action when release date is 13 months in future`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusMonths(13))
+    fun `Build action when end date is 13 months in future`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusMonths(13))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
       val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days (31 December 2025)"
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
-    fun `Build action when release date is 1 year in future`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusYears(1))
+    fun `Build action when end date is 1 year in future`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusYears(1))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
       val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
-    fun `Build action when release date is 1 year and 1 day in future`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusYears(1).minusDays(1))
+    fun `Build action when end date is 1 year and 1 day in future`() {
+      val endDate = LocalDate.parse("2026-12-31")
+      clock.setNow(endDate.minusYears(1).minusDays(1))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
       val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day (31 December 2025)"
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
-    fun `Build action when release date is 1 year and 2 days in future`() {
-      val releaseDate = LocalDate.parse("2026-07-01")
-      clock.setNow(releaseDate.minusYears(1).minusDays(2))
+    fun `Build action when end date is 1 year and 2 days in future`() {
+      val endDate = LocalDate.parse("2026-07-01")
+      clock.setNow(endDate.minusYears(1).minusDays(2))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
       val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days (1 July 2025)"
       assertThat(result).isEqualTo(expectedResult)
     }

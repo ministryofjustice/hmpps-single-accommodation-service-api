@@ -5,10 +5,6 @@ import java.util.UUID
 data class EligibilityDto(
   val crn: String,
   val cas1: ServiceResult,
-  // TODO: Remove these defaults once CAS2 is fully rolled out
-  val cas2Hdc: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-  val cas2PrisonBail: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-  val cas2CourtBail: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   val cas3: ServiceResult,
   val caseActions: List<String>,
 )

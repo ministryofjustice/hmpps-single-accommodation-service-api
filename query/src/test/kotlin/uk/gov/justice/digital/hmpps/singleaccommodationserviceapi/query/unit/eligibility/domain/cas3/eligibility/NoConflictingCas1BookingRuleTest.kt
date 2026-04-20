@@ -7,28 +7,18 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NoConflictingCas1BookingRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
 
 class NoConflictingCas1BookingRuleTest {
-  private val crn = "ABC234"
-  private val male = SexCode.M
-  private val tierScore = TierScore.A1
-  private val description = "FAIL if CAS1 booking exists for upcoming release"
+  private val description = "FAIL if CAS1 booking exists for upcoming current accommodation end date"
 
   @Test
   fun `CAS1 booking exists so rule fails`() {
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         placementStatus = Cas1PlacementStatus.UPCOMING,
@@ -50,10 +40,6 @@ class NoConflictingCas1BookingRuleTest {
   @EnumSource(value = Cas1PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED"])
   fun `CAS1 application is PLACEMENT_ALLOCATED but placement is not active so rule passes`(placementStatus: Cas1PlacementStatus) {
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
         applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         placementStatus = placementStatus,
@@ -74,10 +60,6 @@ class NoConflictingCas1BookingRuleTest {
   @EnumSource(value = Cas1ApplicationStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["PLACEMENT_ALLOCATED"])
   fun `CAS1 application is not PLACEMENT_ALLOCATED so rule passes`(applicationStatus: Cas1ApplicationStatus) {
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = buildCas1Application(
         applicationStatus = applicationStatus,
       ),
@@ -96,10 +78,6 @@ class NoConflictingCas1BookingRuleTest {
   @Test
   fun `CAS1 application is not present so rule passes`() {
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = male,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = null,
     )
 

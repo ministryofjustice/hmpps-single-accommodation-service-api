@@ -4,21 +4,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
 import java.util.UUID
 
 class Cas1ApplicationSuitabilityRuleTest {
-  private val crn = "ABC234"
-  private val tierScore = TierScore.A1
   private val description = "FAIL if candidate does not have a suitable application"
 
   @ParameterizedTest(name = "{0}")
@@ -34,7 +29,7 @@ class Cas1ApplicationSuitabilityRuleTest {
     ],
   )
   fun `application is suitable (but not PLACEMENT_ALLOCATED) so rule passes`(status: Cas1ApplicationStatus) {
-    val cas1Application = Cas1Application(
+    val cas1Application = buildCas1Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -42,10 +37,6 @@ class Cas1ApplicationSuitabilityRuleTest {
     )
 
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
     )
 
@@ -62,7 +53,7 @@ class Cas1ApplicationSuitabilityRuleTest {
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas1PlacementStatus::class)
   fun `application is suitable (PLACEMENT_ALLOCATED) so rule passes`(status: Cas1PlacementStatus) {
-    val cas1Application = Cas1Application(
+    val cas1Application = buildCas1Application(
       id = UUID.randomUUID(),
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       placementStatus = status,
@@ -70,10 +61,6 @@ class Cas1ApplicationSuitabilityRuleTest {
     )
 
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
     )
 
@@ -99,7 +86,7 @@ class Cas1ApplicationSuitabilityRuleTest {
     ],
   )
   fun `application does not have a suitable status so rule fails`(status: Cas1ApplicationStatus) {
-    val cas1Application = Cas1Application(
+    val cas1Application = buildCas1Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
       placementStatus = null,
@@ -107,10 +94,6 @@ class Cas1ApplicationSuitabilityRuleTest {
     )
 
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = cas1Application,
     )
 
@@ -127,10 +110,6 @@ class Cas1ApplicationSuitabilityRuleTest {
   @Test
   fun `application is not present so rule fails`() {
     val data = buildDomainData(
-      crn = crn,
-      tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(5),
       cas1Application = null,
     )
 

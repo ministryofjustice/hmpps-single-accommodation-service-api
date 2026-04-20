@@ -11,29 +11,31 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvFileSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Sex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
@@ -50,7 +52,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CrsStatusRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAddressTypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.DtrStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NoConflictingCas1BookingRule
@@ -58,9 +60,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentReleaseDateRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -78,14 +80,15 @@ class EligibilityServiceTest {
   private val crn = "ABC1234"
   private val male = buildSex(SexCode.M)
 
+  private val accommodationQueryService = mockk<AccommodationQueryService>()
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
   private val caseRepository = mockk<CaseRepository>()
 
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     listOf(MaleRiskEligibilityRule(), NonMaleRiskEligibilityRule(), STierEligibilityRule()),
   )
-  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(ReleaseDateValidationRule()))
-  var cas1ValidationRuleSet = Cas1ValidationRuleSet(listOf(ReleaseDateValidationRule(), Cas1SexValidationRule()))
+  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule()))
+  var cas1ValidationRuleSet = Cas1ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule(), Cas1SexValidationRule()))
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(listOf(Cas1ApplicationSuitabilityRule()))
   var cas1ContextUpdater = Cas1ContextUpdater(clock)
   var commonContextUpdater = CommonContextUpdater()
@@ -93,16 +96,16 @@ class EligibilityServiceTest {
 
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     listOf(
-      CurrentAddressTypeRule(),
+      CurrentAccommodationTypeRule(),
       NextAccommodationRule(),
       DtrStatusRule(),
       CrsStatusRule(),
       NoConflictingCas1BookingRule(),
     ),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3RecentReleaseDateRule(clock)))
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3RecentCurrentAccommodationEndDateRule(clock)))
   var cas3SuitabilityRuleSet =
-    Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3RecentReleaseDateRule(clock), Cas3ApplicationExpiredRule()))
+    Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3RecentCurrentAccommodationEndDateRule(clock), Cas3ApplicationExpiredRule()))
 
   var cas3ContextUpdater = Cas3ContextUpdater(clock)
 
@@ -122,48 +125,53 @@ class EligibilityServiceTest {
     engine = rulesEngine,
     cas3ValidationRuleSet = cas3ValidationRuleSet,
     cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
+    accommodationQueryService = accommodationQueryService,
   )
 
   @Nested
   inner class DomainDataFunctions {
 
     @Test
-    fun `buildDomainData maps all fields correctly`() {
-      val cpr = CorePersonRecord(sex = Sex(SexCode.M, "Male"), identifiers = null)
-      val tier = Tier(TierScore.A1, UUID.randomUUID(), LocalDateTime.now(), null)
-      val releaseDate = LocalDate.now().plusYears(1)
-      val prisoner = listOf(
-        Prisoner(releaseDate = LocalDate.now().plusMonths(5)),
-        Prisoner(releaseDate = releaseDate),
-        Prisoner(releaseDate = LocalDate.now().plusMonths(4)),
-        Prisoner(releaseDate = null),
+    fun `getDomainData returns correct DomainData`() {
+      val endDate = LocalDate.now().plusDays(1)
+      val expectedTier = TierScore.A1
+      val cas1Application = buildCas1Application()
+      val cas3Application = buildCas3Application()
+      val cpr = buildCorePersonRecord(sex = male)
+      val cprAddresses = buildCorePersonRecordAddresses(
+        addresses = listOf(
+          buildAddress(
+            addressStatus = AddressStatus.M,
+            endDate = endDate,
+          ),
+        ),
+      )
+      val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
+      val orchestrationDto = EligibilityOrchestrationDto(
+        crn = crn,
+        cpr = cpr,
+        cprAddresses = cprAddresses,
+        tier = tier,
+        cas1Application = cas1Application,
+        cas3Application = cas3Application,
       )
 
-      val result = DomainData(crn, cpr, tier, prisoner, null, null, null, null)
-      assertThat(result.tierScore).isEqualTo(tier.tierScore)
-      assertThat(result.sex).isEqualTo(cpr.sex?.code)
-      assertThat(result.releaseDate).isEqualTo(releaseDate)
-    }
+      val accommodationSummaryDto = buildAccommodationSummaryDto(endDate = endDate)
 
-    @Test
-    fun `getDomainData returns correct DomainData`() {
-      val expectedTier = TierScore.A1
-      val expectedReleaseDate = LocalDate.now().plusYears(1)
-
-      val prisonerNumber = "PN1"
-      val cpr = CorePersonRecord(sex = male, identifiers = Identifiers(prisonNumbers = listOf(prisonerNumber)))
-      val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
-      val prisoner = Prisoner(releaseDate = expectedReleaseDate)
-      val orchestrationDto = EligibilityOrchestrationDto(crn, cpr, tier, null, null)
-
+      every { accommodationQueryService.getCurrentAccommodation(crn, cprAddresses.addresses) } returns accommodationSummaryDto
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
-      every { eligibilityOrchestrationService.getPrisonerData(listOf(prisonerNumber)) } returns listOf(prisoner)
       every { caseRepository.findByCrn(crn) } returns null
 
       val result = eligibilityService.getDomainData(crn)
       assertThat(result.tierScore).isEqualTo(expectedTier)
       assertThat(result.sex).isEqualTo(SexCode.M)
-      assertThat(result.releaseDate).isEqualTo(expectedReleaseDate)
+      assertThat(result.cas1Application).isEqualTo(cas1Application)
+      assertThat(result.cas3Application).isEqualTo(cas3Application)
+      assertThat(result.currentAccommodation?.endDate).isEqualTo(LocalDate.now().plusDays(1))
+      assertThat(result.currentAccommodation?.isPrisonCas1Cas2OrCas2v2).isTrue()
+      assertThat(result.hasNextAccommodation).isFalse()
+      assertThat(result.dtrStatus).isEqualTo("submitted")
+      assertThat(result.crsStatus).isEqualTo("submitted")
     }
   }
 }
@@ -175,12 +183,13 @@ class ConcurrentEligibilityServiceTest {
   private val crn = "ABC1234"
 
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
+  private val accommodationQueryService = mockk<AccommodationQueryService>()
 
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     listOf(MaleRiskEligibilityRule(), NonMaleRiskEligibilityRule(), STierEligibilityRule()),
   )
-  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(ReleaseDateValidationRule()))
-  var cas1ValidationRuleSet = Cas1ValidationRuleSet(listOf(ReleaseDateValidationRule(), Cas1SexValidationRule()))
+  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule()))
+  var cas1ValidationRuleSet = Cas1ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule(), Cas1SexValidationRule()))
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(listOf(Cas1ApplicationSuitabilityRule()))
   var cas1ContextUpdater = Cas1ContextUpdater(clock)
   var commonContextUpdater = CommonContextUpdater()
@@ -188,15 +197,15 @@ class ConcurrentEligibilityServiceTest {
 
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     listOf(
-      CurrentAddressTypeRule(),
+      CurrentAccommodationTypeRule(),
       NextAccommodationRule(),
       DtrStatusRule(),
       CrsStatusRule(),
       NoConflictingCas1BookingRule(),
     ),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3RecentReleaseDateRule(clock)))
-  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3RecentReleaseDateRule(clock), Cas3ApplicationExpiredRule()))
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3RecentCurrentAccommodationEndDateRule(clock)))
+  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3RecentCurrentAccommodationEndDateRule(clock), Cas3ApplicationExpiredRule()))
 
   var cas3ContextUpdater = Cas3ContextUpdater(clock)
 
@@ -216,6 +225,7 @@ class ConcurrentEligibilityServiceTest {
     engine = rulesEngine,
     cas3ValidationRuleSet = cas3ValidationRuleSet,
     cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
+    accommodationQueryService = accommodationQueryService,
   )
 
   @Execution(ExecutionMode.CONCURRENT)
@@ -244,7 +254,7 @@ class ConcurrentEligibilityServiceTest {
       referenceDate: String,
       sex: SexCode,
       tierScore: TierScore,
-      releaseDate: String?,
+      currentAccommodationEndDate: String?,
       cas1Status: Cas1ApplicationStatus?,
       cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
       cas1PlacementStatus: Cas1PlacementStatus?,
@@ -257,7 +267,15 @@ class ConcurrentEligibilityServiceTest {
       val cas1Application = cas1Status?.let {
         buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus, requestForPlacementStatus = cas1RequestForPlacementStatus)
       }
-      val data = buildDomainData(crn, tierScore, sex, releaseDate?.toLocalDate(), cas1Application = cas1Application)
+
+      val currentAccommodation = currentAccommodationEndDate?.let {
+        CurrentAccommodation(
+          endDate = it.toLocalDate(),
+          isPrisonCas1Cas2OrCas2v2 = false,
+        )
+      }
+
+      val data = buildDomainData(crn, tierScore, sex, currentAccommodation, cas1Application = cas1Application)
 
       val result = eligibilityService.calculateEligibilityForCas1(data)
 
@@ -291,9 +309,9 @@ class ConcurrentEligibilityServiceTest {
       testCaseId: String,
       description: String?,
       referenceDate: String,
-      currentAccommodationArrangementType: AccommodationArrangementType?,
+      currentAccommodationType: AccommodationArrangementType?,
       hasNextAccommodation: String,
-      releaseDate: String?,
+      currentAccommodationEndDate: String?,
       cas3Status: Cas3ApplicationStatus?,
       cas3AssessmentStatus: Cas3AssessmentStatus?,
       cas3BookingStatus: Cas3BookingStatus?,
@@ -309,12 +327,31 @@ class ConcurrentEligibilityServiceTest {
         buildCas3Application(applicationStatus = it, bookingStatus = cas3BookingStatus, assessmentStatus = cas3AssessmentStatus)
       }
 
+      val currentAccommodation = currentAccommodationType?.let {
+        CurrentAccommodation(
+          endDate = currentAccommodationEndDate?.toLocalDate(),
+          isPrisonCas1Cas2OrCas2v2 = when (currentAccommodationType) {
+            AccommodationArrangementType.PRISON,
+            AccommodationArrangementType.CAS1,
+            AccommodationArrangementType.CAS2,
+            AccommodationArrangementType.CAS2V2,
+            -> true
+
+            else -> false
+          },
+        )
+      } ?: currentAccommodationEndDate?.let {
+        CurrentAccommodation(
+          endDate = it.toLocalDate(),
+          isPrisonCas1Cas2OrCas2v2 = false,
+        )
+      }
+
       val data = buildDomainData(
         crn = crn,
         tierScore = null,
         sex = null,
-        releaseDate = releaseDate?.toLocalDate(),
-        currentAccommodationArrangementType = currentAccommodationArrangementType,
+        currentAccommodation = currentAccommodation,
         hasNextAccommodation = hasNextAccommodation.toBoolean(),
         cas1Application = null,
         cas3Application = cas3Application,

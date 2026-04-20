@@ -18,11 +18,11 @@ object Cas1ServiceResultTransformer {
   fun toCas1ServiceResult(data: DomainData, clock: Clock): ServiceResult {
     val today = LocalDate.now(clock)
     return when {
-      data.releaseDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-      isWithinOneYear(data.releaseDate, today) -> toCas1ServiceResult(data)
+      data.currentAccommodation?.endDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      isWithinOneYear(data.currentAccommodation.endDate, today) -> toCas1ServiceResult(data)
       else -> ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
-        action = buildUpcomingAction(data.releaseDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
+        action = buildUpcomingAction(data.currentAccommodation.endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
       )
     }
   }

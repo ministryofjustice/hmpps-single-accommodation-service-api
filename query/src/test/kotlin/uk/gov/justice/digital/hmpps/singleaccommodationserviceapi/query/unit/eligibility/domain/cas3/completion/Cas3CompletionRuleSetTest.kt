@@ -9,14 +9,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentReleaseDateRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentCurrentAccommodationEndDateRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3CompletionRuleSet::class,
     Cas3ApplicationCompletionRule::class,
-    Cas3RecentReleaseDateRule::class,
+    Cas3RecentCurrentAccommodationEndDateRule::class,
     ClockConfig::class,
   ],
 )
@@ -27,7 +27,7 @@ class Cas3CompletionRuleSetTest {
 
   private val expectedCas3CompletionRuleNames = listOf(
     Cas3ApplicationCompletionRule::class.simpleName,
-    Cas3RecentReleaseDateRule::class.simpleName,
+    Cas3RecentCurrentAccommodationEndDateRule::class.simpleName,
   )
 
   @Test

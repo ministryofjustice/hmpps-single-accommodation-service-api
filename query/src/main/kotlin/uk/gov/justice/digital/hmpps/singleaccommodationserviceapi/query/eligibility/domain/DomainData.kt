@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -17,11 +15,10 @@ data class DomainData(
   val crn: String,
   val tierScore: TierScore?,
   val sex: SexCode?,
-  val releaseDate: LocalDate?,
-  val currentAccommodationArrangementType: AccommodationArrangementType? = null,
-  val hasNextAccommodation: Boolean = false,
-  val cas1Application: Cas1Application? = null,
-  val cas3Application: Cas3Application? = null,
+  val currentAccommodation: CurrentAccommodation?,
+  val hasNextAccommodation: Boolean,
+  val cas1Application: Cas1Application?,
+  val cas3Application: Cas3Application?,
   val dtrStatus: String? = "submitted",
   val crsStatus: String? = "submitted",
 ) {
@@ -29,10 +26,7 @@ data class DomainData(
     crn: String,
     cpr: CorePersonRecord,
     tier: Tier,
-    prisonerData: List<Prisoner>?,
-    // TODO: remove once we have a better way to determine currentAccommodationArrangementType and hasNextAccommodation
-    currentAccommodation: AccommodationDetail? = null,
-    nextAccommodation: AccommodationDetail? = null,
+    currentAccommodationSummary: AccommodationSummaryDto?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
     // TODO: remove once we have a better way to determine DTR and CRS status
@@ -42,9 +36,13 @@ data class DomainData(
     crn = crn,
     tierScore = tier.tierScore,
     sex = cpr.sex?.code,
-    releaseDate = prisonerData?.let { prisonerData.mapNotNull { it.releaseDate }.maxByOrNull { it } },
-    currentAccommodationArrangementType = currentAccommodation?.arrangementType,
-    hasNextAccommodation = nextAccommodation != null,
+    currentAccommodation = currentAccommodationSummary?.let {
+      CurrentAccommodation(
+        endDate = it.endDate,
+        isPrisonCas1Cas2OrCas2v2 = true,
+      )
+    },
+    hasNextAccommodation = false,
     cas1Application = cas1Application,
     cas3Application = cas3Application,
     dtrStatus = dtrStatus,
@@ -57,9 +55,9 @@ data class DomainData(
   ) : this(
     crn = personDto.crn,
     tierScore = caseEntity?.tierScore,
-    // TODO check that we are transforming the gender correctly
     sex = SexCode.findByGender(personDto.gender),
-    releaseDate = personDto.expectedReleaseDate,
+    currentAccommodation = null,
+    hasNextAccommodation = false,
     cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {
       Cas1Application(
         id = caseEntity.cas1ApplicationId!!,
@@ -73,3 +71,8 @@ data class DomainData(
     cas3Application = null,
   )
 }
+
+data class CurrentAccommodation(
+  val endDate: LocalDate? = null,
+  val isPrisonCas1Cas2OrCas2v2: Boolean = true,
+)

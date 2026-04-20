@@ -282,7 +282,7 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   private fun stubSuitableApplications() {
-    ApprovedPremisesStubs.getSuitableApplicationOKResponse(
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
       crns[2],
       buildCas1Application(
         applicationStatus = Cas1ApplicationStatus.AWAITING_PLACEMENT,
@@ -290,7 +290,7 @@ class CaseControllerIT : IntegrationTestBase() {
       ),
     )
 
-    ApprovedPremisesStubs.getSuitableApplicationOKResponse(
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
       crns[4],
       buildCas1Application(
         applicationStatus = Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
@@ -298,16 +298,16 @@ class CaseControllerIT : IntegrationTestBase() {
       ),
     )
 
-    ApprovedPremisesStubs.getSuitableApplicationOKResponse(
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
       crns[0],
       buildCas1Application(applicationStatus = Cas1ApplicationStatus.EXPIRED),
     )
 
     listOf(15, 16, 17, 18).forEach {
-      ApprovedPremisesStubs.getSuitableApplicationNotFoundResponse(crns[it])
+      ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crns[it])
     }
 
-    ApprovedPremisesStubs.getSuitableApplicationServerErrorResponse(crns[19])
+    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crns[19])
   }
 
   private fun stubCorePersonRecord(

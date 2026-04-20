@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 
-fun buildUpcomingAction(releaseDate: LocalDate, today: LocalDate, initialText: String): String {
-  val dateToStartReferral = releaseDate.minusYears(1)
+fun buildUpcomingAction(endDate: LocalDate, today: LocalDate, initialText: String): String {
+  val dateToStartReferral = endDate.minusYears(1)
   val daysUntilReferralMustStart = DAYS.between(today, dateToStartReferral).toInt()
   val formattedMonth = dateToStartReferral.month.name.lowercase()
     .replaceFirstChar { it.uppercase() }
@@ -21,8 +21,8 @@ fun buildUpcomingAction(releaseDate: LocalDate, today: LocalDate, initialText: S
   }
 }
 
-fun isWithinOneYear(releaseDate: LocalDate?, today: LocalDate): Boolean {
-  if (releaseDate == null) return false
+fun isWithinOneYear(endDate: LocalDate?, today: LocalDate): Boolean {
+  if (endDate == null) return false
   val oneYearFromNow = today.plusYears(1)
-  return releaseDate <= oneYearFromNow
+  return endDate <= oneYearFromNow
 }

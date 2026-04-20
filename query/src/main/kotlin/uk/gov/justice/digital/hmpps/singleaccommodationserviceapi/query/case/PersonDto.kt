@@ -14,5 +14,4 @@ class PersonDto(
   val staff: Officer,
   val gender: String,
   val roshLevel: CodeDescription?,
-  val expectedReleaseDate: LocalDate?,
 )

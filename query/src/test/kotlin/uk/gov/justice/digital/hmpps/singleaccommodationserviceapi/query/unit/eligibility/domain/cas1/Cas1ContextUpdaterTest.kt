@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -23,11 +24,11 @@ class Cas1ContextUpdaterTest {
   inner class UpdateTests {
     @Test
     fun `update builds service result using toCas1ServiceResult`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
+      clock.setNow(currentAccommodationEndDate.minusDays(3))
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
-        releaseDate = releaseDate,
+        currentAccommodation = CurrentAccommodation(currentAccommodationEndDate, true),
         cas1Application = buildCas1Application(
           id = applicationId,
           applicationStatus = Cas1ApplicationStatus.STARTED,

@@ -9,13 +9,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1SexValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas1ValidationRuleSet::class,
-    ReleaseDateValidationRule::class,
+    CurrentAccommodationEndDateValidationRule::class,
     Cas1SexValidationRule::class,
     ClockConfig::class,
   ],
@@ -26,7 +26,7 @@ class Cas1ValidationRuleSetTest {
   lateinit var cas1ValidationRuleSet: Cas1ValidationRuleSet
 
   private val expectedCas1ValidationRuleNames = listOf(
-    ReleaseDateValidationRule::class.simpleName,
+    CurrentAccommodationEndDateValidationRule::class.simpleName,
     Cas1SexValidationRule::class.simpleName,
   )
 

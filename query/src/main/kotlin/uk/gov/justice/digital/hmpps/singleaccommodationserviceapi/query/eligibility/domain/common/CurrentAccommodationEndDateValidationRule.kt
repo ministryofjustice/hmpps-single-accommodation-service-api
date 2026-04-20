@@ -8,13 +8,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRule
 
 @Component
-class ReleaseDateValidationRule :
+class CurrentAccommodationEndDateValidationRule :
   Cas3ValidationRule,
   Cas1ValidationRule {
-  override val description = "FAIL if candidate has no release date"
+  override val description = "FAIL if candidate has no current accommodation end date"
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = data.releaseDate?.let { RuleStatus.PASS } ?: RuleStatus.FAIL,
+    ruleStatus = data.currentAccommodation?.endDate?.let { RuleStatus.PASS } ?: RuleStatus.FAIL,
   )
 }

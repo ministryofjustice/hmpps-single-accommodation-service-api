@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
@@ -46,7 +47,7 @@ class RulesEngineTest {
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
-      releaseDate = LocalDate.now().plusMonths(7),
+      currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
     )
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
@@ -60,7 +61,7 @@ class RulesEngineTest {
       crn = crn,
       tierScore = TierScore.C1S,
       sex = SexCode.F,
-      releaseDate = LocalDate.now().plusMonths(7),
+      currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
     )
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)

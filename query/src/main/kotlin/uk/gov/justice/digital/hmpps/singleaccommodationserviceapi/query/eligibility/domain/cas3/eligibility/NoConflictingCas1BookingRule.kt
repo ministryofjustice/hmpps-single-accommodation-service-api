@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class NoConflictingCas1BookingRule : Cas3EligibilityRule {
-  override val description = "FAIL if CAS1 booking exists for upcoming release"
+  override val description = "FAIL if CAS1 booking exists for upcoming current accommodation end date"
 
   override fun evaluate(data: DomainData): RuleResult {
     val hasConflictingCas1Booking = data.cas1Application?.applicationStatus == Cas1ApplicationStatus.PLACEMENT_ALLOCATED &&

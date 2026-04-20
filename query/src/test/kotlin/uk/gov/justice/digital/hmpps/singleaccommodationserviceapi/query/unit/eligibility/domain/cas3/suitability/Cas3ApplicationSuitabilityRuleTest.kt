@@ -12,13 +12,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3ApplicationSuitabilityRuleTest {
-  private val crn = "ABC234"
   private val description = "FAIL if CAS3 application is not present"
 
   @Test
   fun `application is present so rule passes`() {
     val data = buildDomainData(
-      crn = crn,
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
@@ -39,7 +37,6 @@ class Cas3ApplicationSuitabilityRuleTest {
   @Test
   fun `application is missing so rule fails`() {
     val data = buildDomainData(
-      crn = crn,
       cas3Application = null,
     )
 

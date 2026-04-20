@@ -14,14 +14,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3ApplicationExpiredRuleTest {
-  private val crn = "ABC234"
   private val description = "FAIL if CAS3 application is arrived, departed or closed"
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(value = Cas3BookingStatus::class, names = ["ARRIVED", "CLOSED", "DEPARTED"])
   fun `application has expired booking status so rule fails`(bookingStatus: Cas3BookingStatus) {
     val data = buildDomainData(
-      crn = crn,
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
@@ -43,7 +41,6 @@ class Cas3ApplicationExpiredRuleTest {
   @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["ARRIVED", "CLOSED", "DEPARTED"])
   fun `application has non-expired booking status so rule passes`(bookingStatus: Cas3BookingStatus) {
     val data = buildDomainData(
-      crn = crn,
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
@@ -64,7 +61,6 @@ class Cas3ApplicationExpiredRuleTest {
   @Test
   fun `application has no booking status so rule passes`() {
     val data = buildDomainData(
-      crn = crn,
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
@@ -85,7 +81,6 @@ class Cas3ApplicationExpiredRuleTest {
   @Test
   fun `application is missing so rule passes`() {
     val data = buildDomainData(
-      crn = crn,
       cas3Application = null,
     )
 

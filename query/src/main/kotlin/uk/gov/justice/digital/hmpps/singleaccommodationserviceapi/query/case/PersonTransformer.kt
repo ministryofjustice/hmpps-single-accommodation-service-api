@@ -14,6 +14,5 @@ object PersonTransformer {
     staff = case.staff,
     gender = case.gender,
     roshLevel = case.roshLevel,
-    expectedReleaseDate = case.expectedReleaseDate,
   )
 }
