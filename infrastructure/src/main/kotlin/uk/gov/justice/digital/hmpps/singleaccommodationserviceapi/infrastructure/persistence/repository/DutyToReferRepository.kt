@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository
 
+import org.javers.spring.annotation.JaversSpringDataAuditable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import java.util.UUID
 
+@JaversSpringDataAuditable
 interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
 
   fun findByCaseId(caseId: UUID): DutyToReferEntity?

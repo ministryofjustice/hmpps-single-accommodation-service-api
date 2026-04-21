@@ -102,7 +102,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"uprn",
             "value":"UP123454"
          }
-      ]
+      ],
+      "extraInformation":{}
    }
   ]
 }
@@ -153,7 +154,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":null,
             "oldValue":"another sub building name"
          }
-      ]
+      ],
+      "extraInformation":{}
    },
    {
       "type":"UPDATE",
@@ -180,7 +182,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"another sub building name",
             "oldValue":null
          }
-      ]
+      ],
+      "extraInformation":{}
    },
    {
       "type":"NOTE",
@@ -191,7 +194,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"note",
             "value":"Test note"
          }
-      ]
+      ],
+      "extraInformation":{}
    },
    {
       "type":"CREATE",
@@ -286,7 +290,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"uprn",
             "value":"UP123454"
          }
-      ]
+      ],
+      "extraInformation":{}
    }
   ]
 }
