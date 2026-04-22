@@ -1,4 +1,4 @@
-Test case ID,Testcase description,Reference date,Sex,Tier,Release date,CAS1 application status,CAS1 request for placement status,CAS1 placement status,CAS1 status,CAS1 action,CAS1 link
+Test case ID,Testcase description,Reference date,Sex,Tier,current accommodation end date,CAS1 application status,CAS1 request for placement status,CAS1 placement status,CAS1 status,CAS1 action,CAS1 link
 TC75,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,ARRIVED,NOT_ELIGIBLE,None,None
 TC210,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,ARRIVED,NOT_ELIGIBLE,None,None
 TC345,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,AWAITING_MATCH,ARRIVED,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
@@ -193,7 +193,7 @@ TC330,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED
 TC343,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,AWAITING_MATCH,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC73,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
 TC208,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
-TC423,Application without release date created and assessed as suitable. Placement request created. Placement Assessment - Approved,01/01/2025,M,A1,02/01/2025,AWAITING_PLACEMENT,AWAITING_MATCH,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
+TC423,Application without current accommodation end date created and assessed as suitable. Placement request created. Placement Assessment - Approved,01/01/2025,M,A1,02/01/2025,AWAITING_PLACEMENT,AWAITING_MATCH,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
 TC115,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,AWAITING_MATCH,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
 TC250,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,AWAITING_MATCH,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
 TC385,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,AWAITING_MATCH,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
@@ -219,17 +219,17 @@ TC5,ineligible,01/01/2025,M,D1,01/02/2025,None,None,None,NOT_ELIGIBLE,None,None
 TC6,ineligible,01/01/2025,F,D1,01/02/2025,None,None,None,NOT_ELIGIBLE,None,None
 TC7,ineligible,01/01/2025,N,D1,01/02/2025,None,None,None,NOT_ELIGIBLE,None,None
 TC8,ineligible,01/01/2025,NS,D1,01/02/2025,None,None,None,NOT_ELIGIBLE,None,None
-TC10,eligible but no release date,01/01/2025,M,A1,None,None,None,None,NOT_ELIGIBLE,None,None
+TC10,eligible but no current accommodation end date,01/01/2025,M,A1,None,None,None,None,NOT_ELIGIBLE,None,None
 TC11,ineligible,01/01/2025,M,A1S,01/02/2025,None,None,None,NOT_ELIGIBLE,None,None
-TC15,eligible with release date exactly one year and one day into the future,01/01/2025,M,A1,02/01/2026,None,None,None,UPCOMING,Start approved premise (CAS1) application in 1 day (2 January 2025),None
+TC15,eligible with current accommodation end date exactly one year and one day into the future,01/01/2025,M,A1,02/01/2026,None,None,None,UPCOMING,Start approved premise (CAS1) application in 1 day (2 January 2025),None
 TC9,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,None,None,None,UPCOMING,Start approved premise (CAS1) application in 31 days (1 February 2025),None
 TC1,eligible,01/01/2025,M,A1,01/02/2025,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
 TC2,eligible,01/01/2025,F,A1,01/02/2025,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
 TC3,eligible,01/01/2025,N,A1,01/02/2025,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
 TC4,eligible,01/01/2025,NS,A1,01/02/2025,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
-TC12,eligible but release date in the past,01/01/2025,M,A1,01/12/2024,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
-TC13,eligible but release date is today,01/01/2025,M,A1,01/01/2025,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
-TC14,eligible with release date exactly one year into the future,01/01/2025,M,A1,01/01/2026,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC12,eligible but current accommodation end date in the past,01/01/2025,M,A1,01/12/2024,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC13,eligible but current accommodation end date is today,01/01/2025,M,A1,01/01/2025,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
+TC14,eligible with current accommodation end date exactly one year into the future,01/01/2025,M,A1,01/01/2026,None,None,None,NOT_STARTED,Start approved premise (CAS1) application,Start application
 TC145,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,None,None,NOT_ELIGIBLE,None,None
 TC280,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,None,None,NOT_ELIGIBLE,None,None
 TC415,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,None,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
@@ -265,7 +265,7 @@ TC214,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACE
 TC349,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,REQUEST_REJECTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC121,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,None,PLACEMENT_REQUEST_REJECTED,Create approved premise (CAS1) placement request,Create new placement request
 TC256,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,None,PLACEMENT_REQUEST_REJECTED,Create approved premise (CAS1) placement request,Create new placement request
-TC424,Application without release date created and assessed as suitable. Placement request created. Placement Assessment - Rejected,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,None,PLACEMENT_REQUEST_REJECTED,Create approved premise (CAS1) placement request,Create new placement request
+TC424,Application without current accommodation end date created and assessed as suitable. Placement request created. Placement Assessment - Rejected,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,None,PLACEMENT_REQUEST_REJECTED,Create approved premise (CAS1) placement request,Create new placement request
 TC391,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC37,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_REJECTED,None,NOT_ELIGIBLE,None,None
 TC172,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_REJECTED,None,NOT_ELIGIBLE,None,None
@@ -276,7 +276,7 @@ TC355,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,
 TC397,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC127,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
 TC262,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
-TC425,Application without release date created and assessed as suitable. Placement request created & submitted,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
+TC425,Application without current accommodation end date created and assessed as suitable. Placement request created & submitted,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,None,PLACEMENT_REQUEST_SUBMITTED,Wait for approved premise (CAS1) placement request result,View application
 TC43,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,None,NOT_ELIGIBLE,None,None
 TC178,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,None,NOT_ELIGIBLE,None,None
 TC313,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
@@ -285,14 +285,14 @@ TC226,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACE
 TC361,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,REQUEST_UNSUBMITTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC133,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,None,PLACEMENT_REQUEST_NOT_STARTED,Create approved premise (CAS1) placement request,Create placement request
 TC268,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,None,PLACEMENT_REQUEST_NOT_STARTED,Create approved premise (CAS1) placement request,Create placement request
-TC426,Application without release date created and assessed as suitable. No placement request created,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,None,PLACEMENT_REQUEST_NOT_STARTED,Create approved premise (CAS1) placement request,Create placement request
+TC426,Application without current accommodation end date created and assessed as suitable. No placement request created,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,None,PLACEMENT_REQUEST_NOT_STARTED,Create approved premise (CAS1) placement request,Create placement request
 TC403,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC49,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,None,NOT_ELIGIBLE,None,None
 TC184,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,None,NOT_ELIGIBLE,None,None
 TC319,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC97,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,None,PLACEMENT_REQUEST_WITHDRAWN,Create approved premise (CAS1) placement request,Create new placement request
 TC232,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,None,PLACEMENT_REQUEST_WITHDRAWN,Create approved premise (CAS1) placement request,Create new placement request
-TC421,Application without release date created and assessed as suitable. Placement request created. Placement Assessment - Rejected,01/01/2025,M,A1,02/01/2025,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,None,PLACEMENT_REQUEST_WITHDRAWN,Create approved premise (CAS1) placement request,Create new placement request
+TC421,Application without current accommodation end date created and assessed as suitable. Placement request created. Placement Assessment - Rejected,01/01/2025,M,A1,02/01/2025,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,None,PLACEMENT_REQUEST_WITHDRAWN,Create approved premise (CAS1) placement request,Create new placement request
 TC367,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,None,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None
 TC139,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_WITHDRAWN,None,PLACEMENT_REQUEST_WITHDRAWN,Create approved premise (CAS1) placement request,Create new placement request
 TC274,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_WITHDRAWN,None,PLACEMENT_REQUEST_WITHDRAWN,Create approved premise (CAS1) placement request,Create new placement request
@@ -391,7 +391,7 @@ TC380,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_R
 TC26,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,None,View application
 TC161,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,None,View application
 TC296,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,None,View application
-TC422,Application without release date created and assessed as suitable. Placement request created. Placement Assessment - Approved & Placement Booked,01/01/2025,M,A1,02/01/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,None,View application
+TC422,Application without current accommodation end date created and assessed as suitable. Placement request created. Placement Assessment - Approved & Placement Booked,01/01/2025,M,A1,02/01/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,None,View application
 TC80,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,REQUEST_REJECTED,UPCOMING,NOT_ELIGIBLE,None,None
 TC215,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,REQUEST_REJECTED,UPCOMING,NOT_ELIGIBLE,None,None
 TC350,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,REQUEST_REJECTED,UPCOMING,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),None

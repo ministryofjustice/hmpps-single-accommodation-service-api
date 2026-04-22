@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import java.time.LocalDate
 
@@ -13,9 +13,7 @@ fun buildDomainData(
   crn: String = "CR12345N",
   tierScore: TierScore? = TierScore.A1,
   sex: SexCode? = SexCode.M,
-  releaseDate: LocalDate? = LocalDate.now()
-    .plusYears(1),
-  currentAccommodationArrangementType: AccommodationArrangementType? = AccommodationArrangementType.NO_FIXED_ABODE,
+  currentAccommodation: CurrentAccommodation? = buildCurrentAccommodation(),
   hasNextAccommodation: Boolean = false,
   cas1Application: Cas1Application? = buildCas1Application(),
   cas3Application: Cas3Application? = null,
@@ -25,11 +23,18 @@ fun buildDomainData(
   crn = crn,
   tierScore = tierScore,
   sex = sex,
-  releaseDate = releaseDate,
-  currentAccommodationArrangementType = currentAccommodationArrangementType,
+  currentAccommodation = currentAccommodation,
   hasNextAccommodation = hasNextAccommodation,
   cas1Application = cas1Application,
   cas3Application = cas3Application,
   dtrStatus = dtrStatus,
   crsStatus = crsStatus,
+)
+
+fun buildCurrentAccommodation(
+  endDate: LocalDate? = LocalDate.now().plusDays(1),
+  isPrisonCas1Cas2orCas2v2: Boolean = true,
+) = CurrentAccommodation(
+  endDate = endDate,
+  isPrisonCas1Cas2OrCas2v2 = isPrisonCas1Cas2orCas2v2,
 )

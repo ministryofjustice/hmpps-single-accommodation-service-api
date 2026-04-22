@@ -12,9 +12,6 @@ fun buildEligibilityDto(
 ) = EligibilityDto(
   crn,
   cas1,
-  cas2Hdc = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-  cas2PrisonBail = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
-  cas2CourtBail = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   cas3,
   caseActions,
 )

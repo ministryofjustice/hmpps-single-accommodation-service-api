@@ -108,7 +108,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
       placementStatus = Cas1PlacementStatus.ARRIVED,
       requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
     )
-    ApprovedPremisesStubs.getSuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
 
     // when
     publishCaseAllocatedEvent()
@@ -153,7 +153,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
     )
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierServerErrorResponse(crn)
-    ApprovedPremisesStubs.getSuitableApplicationServerErrorResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn = crn)
 
     // when
     publishCaseAllocatedEvent()
@@ -180,7 +180,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
       placementStatus = Cas1PlacementStatus.ARRIVED,
       requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
     )
-    ApprovedPremisesStubs.getSuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
 
     // when
     publishCaseAllocatedEvent()

@@ -11,21 +11,21 @@ import java.time.Clock
 import java.time.LocalDate
 
 @Component
-class Cas3RecentReleaseDateRule(val clock: Clock) :
+class Cas3RecentCurrentAccommodationEndDateRule(val clock: Clock) :
   Cas3SuitabilityRule,
   Cas3CompletionRule {
-  override val description = "FAIL if CAS3 application is not within 1 year of release"
+  override val description = "FAIL if CAS3 application is not within 1 year of current accommodation end date"
 
-  override fun evaluate(data: DomainData): RuleResult {
-    val today = LocalDate.now(clock)
-    val isWithinOneYear = isWithinOneYear(
-      releaseDate = data.releaseDate,
-      today = today,
-    )
-
-    return RuleResult(
-      description = description,
-      ruleStatus = if (isWithinOneYear) RuleStatus.PASS else RuleStatus.FAIL,
-    )
-  }
+  override fun evaluate(data: DomainData) = RuleResult(
+    description = description,
+    ruleStatus = if (isWithinOneYear(
+        data.currentAccommodation?.endDate,
+        LocalDate.now(clock),
+      )
+    ) {
+      RuleStatus.PASS
+    } else {
+      RuleStatus.FAIL
+    },
+  )
 }

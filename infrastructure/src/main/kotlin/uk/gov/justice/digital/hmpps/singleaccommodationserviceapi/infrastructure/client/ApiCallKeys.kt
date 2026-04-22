@@ -25,9 +25,6 @@ object ApiCallKeys {
   const val GET_CAS_1_APPLICATION = "getCas1Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
 
-  // prisoner-search service
-  const val GET_PRISONER = "getPrisoner"
-
   // approved-premises service - referrals
   const val GET_CAS1_REFERRAL = "getCas1ReferralByCrn"
   const val GET_CAS2_REFERRAL = "getCas2ReferralByCrn"

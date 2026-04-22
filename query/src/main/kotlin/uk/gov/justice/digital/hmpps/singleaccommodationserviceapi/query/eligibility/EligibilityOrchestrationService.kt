@@ -5,16 +5,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
 
@@ -24,12 +23,12 @@ class EligibilityOrchestrationService(
   val approvedPremisesCachingService: ApprovedPremisesCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val tierCachingService: TierCachingService,
-  val prisonerSearchCachingService: PrisonerSearchCachingService,
 ) {
 
   fun getData(crn: String): EligibilityOrchestrationDto {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
+      GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordAddressesByCrn(crn) },
       GET_TIER to { tierCachingService.getTier(crn) },
       GET_CAS_1_APPLICATION to { approvedPremisesCachingService.getSuitableCas1Application(crn) },
       GET_CAS_3_APPLICATION to { approvedPremisesCachingService.getSuitableCas3Application(crn) },
@@ -40,6 +39,7 @@ class EligibilityOrchestrationService(
 
     val cpr = results.standardCallsNoIterationResults!!.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
       ?: error("$GET_CORE_PERSON_RECORD_BY_CRN failed for $crn")
+    val cprAddresses = results.standardCallsNoIterationResults!!.getResult<CorePersonRecordAddresses>(GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN)
     val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(GET_TIER)
       ?: error("$GET_TIER failed for $crn")
     val cas1Application = results.standardCallsNoIterationResults!!.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
@@ -48,23 +48,10 @@ class EligibilityOrchestrationService(
     return EligibilityOrchestrationDto(
       crn,
       cpr,
+      cprAddresses,
       tier,
       cas1Application,
       cas3Application,
     )
-  }
-
-  fun getPrisonerData(prisonerNumbers: List<String>): List<Prisoner> {
-    val calls = prisonerNumbers.associate {
-      "$GET_PRISONER$it" to { prisonerSearchCachingService.getPrisoner(it) }
-    }
-
-    val results = aggregatorService.orchestrateAsyncCalls(
-      standardCallsNoIteration = calls,
-    )
-
-    return prisonerNumbers.mapNotNull {
-      results.standardCallsNoIterationResults!!.getResult<Prisoner>("$GET_PRISONER$it")
-    }
   }
 }

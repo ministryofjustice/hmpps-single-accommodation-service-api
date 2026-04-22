@@ -1,4 +1,4 @@
-Test case ID,Testcase description,Reference date,Current Accommodation Arrangement Type,Has Next Accommodation,Release date,CAS3 application status,CAS3 assessment status,CAS3 placement status,CRS Status,DTR Status,CAS3 status,CAS3 action,CAS3 link
+Test case ID,Testcase description,Reference date,Current Accommodation Status Code,Has Next Accommodation,current accommodation end date,CAS3 application status,CAS3 assessment status,CAS3 placement status,CRS Status,DTR Status,CAS3 status,CAS3 action,CAS3 link
 1,,01/01/2025,None,TRUE,None,None,None,None,submitted,submitted,NOT_ELIGIBLE,None,None
 2,,01/01/2025,PRISON,TRUE,None,None,None,None,submitted,submitted,NOT_ELIGIBLE,None,None
 3,,01/01/2025,CAS1,TRUE,None,None,None,None,submitted,submitted,NOT_ELIGIBLE,None,None

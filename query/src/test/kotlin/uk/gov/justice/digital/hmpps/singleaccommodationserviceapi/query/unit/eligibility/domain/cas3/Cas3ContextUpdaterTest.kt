@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
@@ -23,11 +24,11 @@ class Cas3ContextUpdaterTest {
   inner class UpdateTests {
     @Test
     fun `update builds service result using toCas3ServiceResult`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
-      clock.setNow(releaseDate.minusDays(3))
+      val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
+      clock.setNow(currentAccommodationEndDate.minusDays(3))
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
-        releaseDate = releaseDate,
+        currentAccommodation = buildCurrentAccommodation(endDate = currentAccommodationEndDate),
         cas3Application = buildCas3Application(
           id = applicationId,
           applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,

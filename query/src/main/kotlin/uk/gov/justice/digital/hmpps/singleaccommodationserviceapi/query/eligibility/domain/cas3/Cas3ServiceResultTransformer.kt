@@ -16,11 +16,11 @@ object Cas3ServiceResultTransformer {
   fun toCas3ServiceResult(data: DomainData, clock: Clock): ServiceResult {
     val today = LocalDate.now(clock)
     return when {
-      data.releaseDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-      isWithinOneYear(data.releaseDate, today) -> toCas3ServiceResult(data)
+      data.currentAccommodation?.endDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      isWithinOneYear(data.currentAccommodation.endDate, today) -> toCas3ServiceResult(data)
       else -> ServiceResult(
         serviceStatus = ServiceStatus.UPCOMING,
-        action = buildUpcomingAction(data.releaseDate, today, EligibilityKeys.START_REFERRAL),
+        action = buildUpcomingAction(data.currentAccommodation.endDate, today, EligibilityKeys.START_REFERRAL),
       )
     }
   }

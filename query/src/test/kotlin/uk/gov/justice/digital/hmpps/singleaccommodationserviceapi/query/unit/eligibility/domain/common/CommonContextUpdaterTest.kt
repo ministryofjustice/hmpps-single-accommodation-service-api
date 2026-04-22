@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 import java.util.UUID
@@ -20,10 +21,10 @@ class CommonContextUpdaterTest {
   inner class UpdateTests {
     @Test
     fun `update returns context unchanged`() {
-      val releaseDate = LocalDate.parse("2026-12-31")
+      val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
-        releaseDate = releaseDate,
+        currentAccommodation = buildCurrentAccommodation(currentAccommodationEndDate),
         cas1Application = buildCas1Application(
           id = applicationId,
           applicationStatus = Cas1ApplicationStatus.STARTED,

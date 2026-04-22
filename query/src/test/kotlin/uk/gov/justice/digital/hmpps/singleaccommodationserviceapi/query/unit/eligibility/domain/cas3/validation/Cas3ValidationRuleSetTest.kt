@@ -8,13 +8,13 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.ReleaseDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3ValidationRuleSet::class,
-    ReleaseDateValidationRule::class,
+    CurrentAccommodationEndDateValidationRule::class,
     ClockConfig::class,
   ],
 )
@@ -24,7 +24,7 @@ class Cas3ValidationRuleSetTest {
   lateinit var cas3ValidationRuleSet: Cas3ValidationRuleSet
 
   private val expectedCas3ValidationRuleNames = listOf(
-    ReleaseDateValidationRule::class.simpleName,
+    CurrentAccommodationEndDateValidationRule::class.simpleName,
   )
 
   @Test

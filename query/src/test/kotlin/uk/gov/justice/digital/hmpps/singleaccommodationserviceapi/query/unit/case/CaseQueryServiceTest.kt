@@ -99,7 +99,6 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.staff).isEqualTo(case1.staff)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
       assertThat(firstPerson.roshLevel).isEqualTo(case1.roshLevel)
-      assertThat(firstPerson.expectedReleaseDate).isEqualTo(case1.expectedReleaseDate)
 
       val lastPerson = result.last()
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
@@ -110,7 +109,6 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.staff).isEqualTo(case2.staff)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.roshLevel).isEqualTo(case2.roshLevel)
-      assertThat(lastPerson.expectedReleaseDate).isEqualTo(case2.expectedReleaseDate)
     }
   }
 

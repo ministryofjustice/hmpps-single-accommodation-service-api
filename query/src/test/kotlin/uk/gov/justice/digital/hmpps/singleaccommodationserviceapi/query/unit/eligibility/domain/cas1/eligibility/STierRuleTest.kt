@@ -4,12 +4,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
 
 class STierRuleTest {
   private val crn = "ABC234"
@@ -36,8 +34,6 @@ class STierRuleTest {
     val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = STierEligibilityRule().evaluate(data)
@@ -67,8 +63,6 @@ class STierRuleTest {
     val data = buildDomainData(
       crn = crn,
       tierScore = tierScore,
-      sex = SexCode.M,
-      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = STierEligibilityRule().evaluate(data)

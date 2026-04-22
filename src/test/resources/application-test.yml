@@ -12,7 +12,6 @@ service:
   - approved-premises-api
   - core-person-record
   - tier
-  - prisoner-search
   - accommodation-data-domain
   - nomis-user-roles
 

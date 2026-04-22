@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -26,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Service
 class EligibilityService(
+  private val accommodationQueryService: AccommodationQueryService,
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
@@ -61,14 +63,14 @@ class EligibilityService(
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "External data received: crn={}, releaseDate={}, tierScore={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationArrangementType={}, hasNextAccommodation={}",
+      "Eligibility input data: crn={}, currentAccommodation.?endDate={}, tierScore={}, sex={}, crsStatus={}, dtrStatus={}, currentAccommodationIsPrisonCas1Cas2orCas2v2={}, hasNextAccommodation={}",
       data.crn,
-      data.releaseDate,
+      data.currentAccommodation?.endDate,
       data.tierScore,
       data.sex,
       data.crsStatus,
       data.dtrStatus,
-      data.currentAccommodationArrangementType,
+      data.currentAccommodation?.isPrisonCas1Cas2OrCas2v2,
       data.hasNextAccommodation,
     )
 
@@ -216,18 +218,20 @@ class EligibilityService(
 
   fun getDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
-
-    val prisonerNumbers = eligibilityOrchestrationDto.cpr.identifiers?.prisonNumbers
-
-    val prisonerData = prisonerNumbers?.let { eligibilityOrchestrationService.getPrisonerData(prisonerNumbers) }
+    val currentAccommodation = eligibilityOrchestrationDto.cprAddresses?.addresses?.let {
+      accommodationQueryService.getCurrentAccommodation(
+        crn,
+        addresses = it,
+      )
+    }
 
     return DomainData(
       crn = crn,
       cpr = eligibilityOrchestrationDto.cpr,
       tier = eligibilityOrchestrationDto.tier,
-      prisonerData = prisonerData,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
+      currentAccommodationSummary = currentAccommodation,
     )
   }
 }

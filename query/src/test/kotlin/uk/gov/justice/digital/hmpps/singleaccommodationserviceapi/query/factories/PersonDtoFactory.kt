@@ -18,7 +18,6 @@ fun buildPersonDto(
   staff: Officer = buildOfficer(),
   gender: String = "Male",
   roshLevel: CodeDescription = buildRoshCodeDescription(),
-  expectedReleaseDate: LocalDate = LocalDate.now().plusMonths(4),
 ) = PersonDto(
   crn,
   name,
@@ -28,5 +27,4 @@ fun buildPersonDto(
   staff,
   gender,
   roshLevel,
-  expectedReleaseDate,
 )

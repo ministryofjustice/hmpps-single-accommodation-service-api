@@ -9,7 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CrsStatusRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAddressTypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.DtrStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NoConflictingCas1BookingRule
@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @ContextConfiguration(
   classes = [
     Cas3EligibilityRuleSet::class,
-    CurrentAddressTypeRule::class,
+    CurrentAccommodationTypeRule::class,
     NextAccommodationRule::class,
     CrsStatusRule::class,
     DtrStatusRule::class,
@@ -32,7 +32,7 @@ class Cas3EligibilityRuleSetTest {
   lateinit var cas3EligibilityRuleSet: Cas3EligibilityRuleSet
 
   private val expectedCas3EligibilityRuleNames = listOf(
-    CurrentAddressTypeRule::class.simpleName,
+    CurrentAccommodationTypeRule::class.simpleName,
     NextAccommodationRule::class.simpleName,
     CrsStatusRule::class.simpleName,
     DtrStatusRule::class.simpleName,

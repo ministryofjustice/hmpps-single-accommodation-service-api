@@ -13,24 +13,31 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelp
 
 object ApprovedPremisesStubs {
 
-  fun getSuitableApplicationOKResponse(crn: String, response: Any) {
+  fun getCas1SuitableApplicationOKResponse(crn: String, response: Any) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
 
-  fun getSuitableApplicationNotFoundResponse(crn: String) {
+  fun getCas1SuitableApplicationNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
         .willReturn(notFound()),
     )
   }
 
-  fun getSuitableApplicationServerErrorResponse(crn: String) {
+  fun getCas1SuitableApplicationServerErrorResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
         .willReturn(serverError()),
+    )
+  }
+
+  fun getCas3SuitableApplicationOKResponse(crn: String, response: Any) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
 

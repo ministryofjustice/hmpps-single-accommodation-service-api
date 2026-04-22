@@ -10,21 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
 import java.util.stream.Stream
 
 class NonMaleRiskRuleTest {
-
-  private val crn = "ABC234"
-
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToPass")
   fun `candidate passes`(sex: SexCode, tierScore: TierScore) {
     val data = buildDomainData(
-      crn = crn,
       tierScore = tierScore,
       sex = sex,
-      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = NonMaleRiskEligibilityRule().evaluate(data)
@@ -36,10 +30,8 @@ class NonMaleRiskRuleTest {
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.NonMaleRiskRuleTest#provideSexAndTierToFail")
   fun `candidate fails`(sex: SexCode, tierScore: TierScore) {
     val data = buildDomainData(
-      crn = crn,
       tierScore = tierScore,
       sex = sex,
-      releaseDate = LocalDate.now().plusYears(1),
     )
 
     val result = NonMaleRiskEligibilityRule().evaluate(data)
