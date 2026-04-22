@@ -4,12 +4,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 
@@ -34,43 +31,6 @@ class CaseController(
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
-  @GetMapping("/cases")
-  fun getCases(
-    @RequestParam(required = false) searchTerm: String?,
-    @RequestParam(required = false) status: Status?,
-    @RequestParam(required = false) assignedTo: Long?,
-    @RequestParam(required = false) riskLevel: RiskLevel?,
-    @RequestParam(required = false) crns: List<String> = emptyList(),
-  ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    // TODO this allows for testing with multiple CRNs and will be removed in future.
-    return if (crns.isNotEmpty()) {
-      ResponseEntity.ok(ApiResponseDto(data = caseQueryService.getCases(crns, riskLevel)))
-    } else {
-      ResponseEntity.ok(ApiResponseDto(data = emptyList()))
-    }
-  }
-
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}")
-  fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> {
-    val case = caseQueryService.getCase(crn)
-    return ResponseEntity.ok(ApiResponseDto(data = case))
-  }
-
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
-  @GetMapping("/v2/cases")
-  fun getCasesV2(
-    @RequestParam(required = false) searchTerm: String?,
-    @RequestParam(required = false) status: Status?,
-    @RequestParam(required = false) assignedTo: Long?,
-    @RequestParam(required = false) crns: List<String> = emptyList(),
-  ): ResponseEntity<ApiResponseDto<List<CaseDto>>> = if (crns.isNotEmpty()) {
-    ResponseEntity.ok(caseQueryService.getCasesV2(crns))
-  } else {
-    ResponseEntity.ok(ApiResponseDto(data = emptyList()))
-  }
-
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
-  @GetMapping("/v2/cases/{crn}")
-  fun getCaseV2(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCaseV2(crn))
+  fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCase(crn))
 }
