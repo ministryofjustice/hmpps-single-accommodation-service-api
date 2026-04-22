@@ -27,7 +27,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
@@ -184,10 +183,10 @@ class EligibilityServiceTest {
           Cas1Scenario(
             testCaseId = row["testCaseId"]!!,
             description = row["description"]!!,
-            referenceDate = row["referenceDate"]!!,
+            referenceDate = row["referenceDate"]!!.toLocalDate(),
             sex = SexCode.valueOf(row["sex"]!!),
             tierScore = TierScore.valueOf(row["tierScore"]!!),
-            releaseDate = row["releaseDate"],
+            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
             cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
               Cas1RequestForPlacementStatus.valueOf(
@@ -224,7 +223,7 @@ class EligibilityServiceTest {
 
       runScenarios(scenarios) { s ->
 
-        clock.setNow(s.referenceDate.toLocalDate())
+        clock.setNow(s.referenceDate)
 
         val cas1Application = s.cas1ApplicationStatus?.let {
           buildCas1Application(
@@ -236,7 +235,7 @@ class EligibilityServiceTest {
 
         val currentAccommodation = s.currentAccommodationEndDate?.let {
           CurrentAccommodation(
-            endDate = it.toLocalDate(),
+            endDate = it,
             isPrisonCas1Cas2OrCas2v2 = false,
           )
         }
@@ -245,7 +244,7 @@ class EligibilityServiceTest {
           crn = crn,
           tierScore = s.tierScore,
           sex = s.sex,
-          releaseDate = s.releaseDate?.toLocalDate(),
+          currentAccommodation = currentAccommodation,
           cas1Application = cas1Application,
         )
 
@@ -272,14 +271,14 @@ class EligibilityServiceTest {
           Cas3Scenario(
             testCaseId = row["testCaseId"]!!,
             description = row["description"],
-            referenceDate = row["referenceDate"]!!,
-            currentAccommodationArrangementType = row["currentAccommodationArrangementType"]?.let {
+            referenceDate = row["referenceDate"]!!.toLocalDate(),
+            currentAccommodationStatusCode = row["currentAccommodationStatusCode"]?.let {
               AccommodationArrangementType.valueOf(
                 it,
               )
             },
             hasNextAccommodation = row["hasNextAccommodation"]!!,
-            releaseDate = row["releaseDate"],
+            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             cas3ApplicationStatus = row["cas3ApplicationStatus"]?.let { Cas3ApplicationStatus.valueOf(it) },
             cas3AssessmentStatus = row["cas3AssessmentStatus"]?.let { Cas3AssessmentStatus.valueOf(it) },
             cas3BookingStatus = row["cas3BookingStatus"]?.let { Cas3BookingStatus.valueOf(it) },
@@ -314,7 +313,7 @@ class EligibilityServiceTest {
 
       runScenarios(scenarios) { s ->
 
-        clock.setNow(s.referenceDate.toLocalDate())
+        clock.setNow(s.referenceDate)
 
         val cas3Application = s.cas3ApplicationStatus?.let {
           buildCas3Application(
@@ -324,18 +323,33 @@ class EligibilityServiceTest {
           )
         }
 
-          val data = buildDomainData(
-            crn = crn,
-            tierScore = null,
-            sex = null,
-            releaseDate = s.releaseDate?.toLocalDate(),
-            currentAccommodationArrangementType = s.currentAccommodationArrangementType,
-            hasNextAccommodation = s.hasNextAccommodation.toBoolean(),
-            cas1Application = null,
-            cas3Application = cas3Application,
-            dtrStatus = s.dtrStatus,
-            crsStatus = s.crsStatus,
+        val currentAccommodation = s.currentAccommodationStatusCode?.let {
+          CurrentAccommodation(
+            endDate = s.currentAccommodationEndDate,
+            isPrisonCas1Cas2OrCas2v2 = it in listOf(
+              AccommodationArrangementType.PRISON,
+              AccommodationArrangementType.CAS1,
+              AccommodationArrangementType.CAS2,
+              AccommodationArrangementType.CAS2V2,
+            ),
           )
+        } ?: s.currentAccommodationEndDate?.let {
+          CurrentAccommodation(
+            endDate = it,
+            isPrisonCas1Cas2OrCas2v2 = false,
+          )
+        }
+        val data = buildDomainData(
+          crn = crn,
+          tierScore = null,
+          sex = null,
+          currentAccommodation = currentAccommodation,
+          hasNextAccommodation = s.hasNextAccommodation.toBoolean(),
+          cas1Application = null,
+          cas3Application = cas3Application,
+          dtrStatus = s.dtrStatus,
+          crsStatus = s.crsStatus,
+        )
 
         val result = eligibilityService.calculateEligibilityForCas3(data)
 
@@ -353,10 +367,10 @@ class EligibilityServiceTest {
 data class Cas1Scenario(
   val testCaseId: String,
   val description: String,
-  val referenceDate: String,
+  val referenceDate: LocalDate,
   val sex: SexCode,
   val tierScore: TierScore,
-  val releaseDate: String?,
+  val currentAccommodationEndDate: LocalDate?,
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
   val cas1PlacementStatus: Cas1PlacementStatus?,
@@ -365,22 +379,22 @@ data class Cas1Scenario(
   val expectedCas1Link: String?,
 )
 
-  data class Cas3Scenario(
-    val testCaseId: String,
-    val description: String?,
-    val referenceDate: String,
-    val currentAccommodationArrangementType: AccommodationArrangementType?,
-    val hasNextAccommodation: String,
-    val releaseDate: String?,
-    val cas3Status: Cas3ApplicationStatus?,
-    val cas3AssessmentStatus: Cas3AssessmentStatus?,
-    val cas3BookingStatus: Cas3BookingStatus?,
-    val crsStatus: String?,
-    val dtrStatus: String?,
-    val expectedCas3Status: ServiceStatus?,
-    val expectedCas3ActionsString: String?,
-    val expectedCas3Link: String?,
-  )
+data class Cas3Scenario(
+  val testCaseId: String,
+  val description: String?,
+  val referenceDate: LocalDate,
+  val currentAccommodationStatusCode: AccommodationArrangementType?,
+  val hasNextAccommodation: String,
+  val currentAccommodationEndDate: LocalDate?,
+  val cas3ApplicationStatus: Cas3ApplicationStatus?,
+  val cas3AssessmentStatus: Cas3AssessmentStatus?,
+  val cas3BookingStatus: Cas3BookingStatus?,
+  val crsStatus: String?,
+  val dtrStatus: String?,
+  val expectedCas3Status: ServiceStatus?,
+  val expectedCas3Actions: String?,
+  val expectedCas3Link: String?,
+)
 
 private fun <T> runScenarios(
   scenarios: List<T>,
