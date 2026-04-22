@@ -202,7 +202,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson("[]")
+        assertThatJson(it!!).matchesExpectedJson("""{"data":[]}""")
       }
   }
 

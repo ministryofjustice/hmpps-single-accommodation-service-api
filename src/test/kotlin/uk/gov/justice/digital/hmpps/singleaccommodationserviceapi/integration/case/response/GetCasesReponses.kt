@@ -4,7 +4,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 @TestData
 fun expectedGetCasesResponse(): String = """
-[ {
+{
+  "data": [ {
   "name" : "First Middle Last",
   "dateOfBirth" : "2000-12-03",
   "crn" : "FAKECRN1",
@@ -45,6 +46,7 @@ fun expectedGetCasesResponse(): String = """
   "status":null,
   "actions":[]
 } ]
+}
 """.trimIndent()
 
 @TestData
@@ -122,7 +124,8 @@ fun expectedGetCaseV2Response(): String = """
 """.trimIndent()
 
 fun expectedGetCasesWithFilterResponse(): String = """
- [ {
+{
+  "data": [ {
   "name" : "Zack Middle Smith",
   "dateOfBirth" : "2000-12-03",
   "crn" : "FAKECRN2",
@@ -143,4 +146,5 @@ fun expectedGetCasesWithFilterResponse(): String = """
   "status":null,
   "actions":[]
 } ]
+}
 """.trimIndent()

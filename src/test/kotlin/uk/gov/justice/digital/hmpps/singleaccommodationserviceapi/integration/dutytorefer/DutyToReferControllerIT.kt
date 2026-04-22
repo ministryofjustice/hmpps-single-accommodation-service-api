@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.dtrNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedNotStartedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
@@ -104,7 +105,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
-          expectedDtrResponseBody(
+          expectedGetDtrResponseBody(
             id = existingEntity.id,
             caseId = case.id,
             crn = crn,
@@ -141,7 +142,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
-          expectedDtrResponseBody(
+          expectedGetDtrResponseBody(
             id = entity.id,
             caseId = case.id,
             crn = crn,
@@ -184,7 +185,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(
-          expectedDtrResponseBody(
+          expectedGetDtrResponseBody(
             id = entity.id,
             caseId = case.id,
             crn = crn,

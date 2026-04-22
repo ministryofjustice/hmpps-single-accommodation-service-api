@@ -10,7 +10,8 @@ fun expectedGetProposedAccommodationsResponse(
   crn: String,
   caseId: UUID,
 ): String = """
-[
+{
+  "data": [
   {
     "id" : "$firstId",
     "caseId" : "$caseId",
@@ -69,7 +70,8 @@ fun expectedGetProposedAccommodationsResponse(
     "createdBy":"Test Data Setup User",
     "createdAt" : "$secondCreatedAt"
   }
-]
+  ]
+}
 """.trimIndent()
 
 fun expectedGetProposedAccommodationByIdResponse(
@@ -79,6 +81,7 @@ fun expectedGetProposedAccommodationByIdResponse(
   createdAt: String,
 ): String = """
 {
+  "data": {
   "id" : "$id",
   "caseId" : "$caseId",
   "crn": "$crn",
@@ -106,6 +109,7 @@ fun expectedGetProposedAccommodationByIdResponse(
   "endDate" : null,
   "createdBy":"Test Data Setup User",
   "createdAt" : "$createdAt"
+  }
 }
 """.trimIndent()
 

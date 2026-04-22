@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
 
 @RestController
@@ -21,8 +22,8 @@ class AccommodationReferralController(
   )
   @GetMapping("/cases/{crn}/applications")
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
-  fun getApplicationHistory(@PathVariable crn: String): ResponseEntity<List<AccommodationReferralDto>> {
+  fun getApplicationHistory(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<AccommodationReferralDto>>> {
     val referralHistory = accommodationReferralService.getReferralHistory(crn)
-    return ResponseEntity.ok(referralHistory)
+    return ResponseEntity.ok(ApiResponseDto(data = referralHistory))
   }
 }

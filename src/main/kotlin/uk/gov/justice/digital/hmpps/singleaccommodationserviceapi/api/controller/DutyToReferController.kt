@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
@@ -25,16 +26,16 @@ class DutyToReferController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}/dtr")
-  fun getDutyToRefer(@PathVariable crn: String): ResponseEntity<DutyToReferDto> {
+  fun getDutyToRefer(@PathVariable crn: String): ResponseEntity<ApiResponseDto<DutyToReferDto>> {
     val dutyToRefer = dutyToReferQueryService.getDutyToRefer(crn)
-    return ResponseEntity.ok(dutyToRefer)
+    return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}/dtr/{id}")
-  fun getByCrnAndId(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<DutyToReferDto> {
+  fun getByCrnAndId(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<DutyToReferDto>> {
     val dutyToRefer = dutyToReferQueryService.getDutyToRefer(crn, id)
-    return ResponseEntity.ok(dutyToRefer)
+    return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
@@ -62,9 +63,9 @@ class DutyToReferController(
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN')")
   @GetMapping("/duty-to-refers/{id}")
-  fun getById(@PathVariable id: UUID): ResponseEntity<DutyToReferDto> {
+  fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponseDto<DutyToReferDto>> {
     val dutyToRefer = dutyToReferQueryService.getDutyToRefer(id)
-    return ResponseEntity.ok(dutyToRefer)
+    return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
