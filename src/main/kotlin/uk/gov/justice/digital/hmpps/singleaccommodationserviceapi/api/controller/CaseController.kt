@@ -23,7 +23,12 @@ class CaseController(
   @GetMapping("/case-list")
   fun getCases(): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val personDtos = caseQueryService.getCaseList()
-    caseApplicationService.upsertCases(personDtos.map { it.crn })
+    val crnsOnCaselist = personDtos.map { it.crn }
+    val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
+    if (unpersistedCrns.isNotEmpty()) {
+      val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
+      caseApplicationService.upsertCases(casesToAdd)
+    }
     val result = caseQueryService.getCases(personDtos)
     return ResponseEntity.ok(ApiResponseDto(data = result))
   }

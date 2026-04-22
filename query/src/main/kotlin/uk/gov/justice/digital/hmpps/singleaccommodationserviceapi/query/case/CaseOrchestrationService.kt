@@ -153,8 +153,6 @@ class CaseOrchestrationService(
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String ->
         corePersonRecordCachingService.getCorePersonRecordByCrn(crn)
       },
-      ApiCallKeys.GET_ROSH_DETAIL to { crn: String -> probationIntegrationOasysCachingService.getRoshDetails(crn) },
-      ApiCallKeys.GET_TIER to { crn: String -> tierCachingService.getTier(crn) },
     )
     return aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = bulkCall,
