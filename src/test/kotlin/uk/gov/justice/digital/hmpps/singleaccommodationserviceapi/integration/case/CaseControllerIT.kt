@@ -121,7 +121,7 @@ class CaseControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
-      .jsonPath("$.length()").isEqualTo(2)
+      .jsonPath("$.data.length()").isEqualTo(2)
 
     assertThat(caseRepository.findByCrn(unknownCrnForCase1)!!.caseIdentifiers)
       .extracting<String> { it.identifier }
