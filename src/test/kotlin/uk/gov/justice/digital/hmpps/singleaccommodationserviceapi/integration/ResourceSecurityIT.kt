@@ -29,7 +29,7 @@ class ResourceSecurityIT : IntegrationTestBase() {
   fun `@PreAuthorise smoke test()`() {
     restTestClient
       .get()
-      .uri("/cases")
+      .uri("/cases/FAKECRN1")
       .withClientCredentialsJwt(emptyList())
       .exchange()
       .expectStatus()
@@ -169,11 +169,8 @@ private val accommodationHistoryControllerMap: Map<String, Set<String>> =
 
 private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /cases" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "GET /case-list" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "GET /cases/{crn}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "GET /v2/cases" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "GET /v2/cases/{crn}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
   )
 
 private val accommodationDataDomainControllerMap: Map<String, Set<String>> =

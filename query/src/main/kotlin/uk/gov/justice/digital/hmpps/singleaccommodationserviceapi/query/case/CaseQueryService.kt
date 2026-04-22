@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
@@ -45,47 +44,8 @@ class CaseQueryService(
     }
   }
 
-  fun getCases(crns: List<String>, riskLevel: RiskLevel?): List<CaseDto> {
-    val list = caseOrchestrationService.getCases(crns)
-    return list.map {
-      toCaseDto(
-        crn = it.crn,
-        cpr = it.cpr,
-        roshDetails = it.roshDetails,
-        tier = it.tier,
-        caseSummaries = it.cases,
-      )
-    }
-      .filter { riskLevel == null || it.riskLevel == riskLevel }
-      .sortedBy { it.name }
-  }
-
-  fun getCase(crn: String): CaseDto {
-    val case = caseOrchestrationService.getCase(crn)
-    return toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases)
-  }
-
-  fun getCasesV2(crns: List<String>): ApiResponseDto<List<CaseDto>> {
-    val orchestrationResult = caseOrchestrationService.getCasesV2(crns)
-    val cases = orchestrationResult.data.map {
-      toCaseDto(
-        crn = it.crn,
-        cpr = it.cpr,
-        roshDetails = it.roshDetails,
-        tier = it.tier,
-        caseSummaries = it.cases,
-      )
-    }
-      .sortedBy { it.name }
-
-    return toApiResponseDto(
-      data = cases,
-      upstreamFailures = orchestrationResult.upstreamFailures,
-    )
-  }
-
-  fun getCaseV2(crn: String): ApiResponseDto<CaseDto> {
-    val orchestrationResult = caseOrchestrationService.getCaseV2(crn)
+  fun getCase(crn: String): ApiResponseDto<CaseDto> {
+    val orchestrationResult = caseOrchestrationService.getCase(crn)
     val case = orchestrationResult.data
     return toApiResponseDto(
       data = toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases),

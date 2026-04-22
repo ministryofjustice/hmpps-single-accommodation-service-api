@@ -30,10 +30,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseV2Response
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesV2Response
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCasesWithFilterResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -155,59 +152,13 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should get cases`() {
-    restTestClient.get().uri { builder ->
-      builder.path("/cases")
-        .queryParam("crns", crns[0], crns[1])
-        .build()
-    }
+  fun `should get case`() {
+    restTestClient.get().uri("/cases/${crns[0]}")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCasesResponse())
-      }
-  }
-
-  @Test
-  fun `should get cases with correct filters`() {
-    restTestClient.get().uri { builder ->
-      builder.path("/cases")
-        .queryParam("crns", crns[0], crns[1])
-        .queryParam("riskLevel", RiskLevel.MEDIUM.name)
-        .build()
-    }
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCasesWithFilterResponse())
-      }
-  }
-
-  @Test
-  fun `should get cases V2`() {
-    restTestClient.get().uri { builder ->
-      builder.path("/v2/cases")
-        .queryParam("crns", crns[0], crns[1])
-        .build()
-    }
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCasesV2Response())
-      }
-  }
-
-  @Test
-  fun `should get case V2`() {
-    restTestClient.get().uri("/v2/cases/${crns[0]}")
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseV2Response())
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponse())
       }
   }
 
