@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Address
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationSummaryTransformer.toAccommodationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
@@ -12,8 +13,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.A
 class AccommodationQueryService(
   private val accommodationOrchestrationService: AccommodationOrchestrationService,
 ) {
+  fun getCurrentAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
+    val orchestrationResult = accommodationOrchestrationService.getCorePersonRecordAddressesByCrn(crn)
+    val currentAccommodation = orchestrationResult.data.cprAddresses?.addresses?.let {
+      getCurrentAccommodation(crn, addresses = it)
+    }
+    return toApiResponseDto(
+      data = currentAccommodation,
+      upstreamFailures = orchestrationResult.upstreamFailures,
+    )
+  }
+
+  fun getCurrentAccommodation(crn: String, addresses: List<Address>): AccommodationSummaryDto? = addresses
+    .firstOrNull { it.addressStatus == AddressStatus.M }
+    ?.let { toAccommodationSummary(crn, address = it) }
+
   fun getAccommodationHistory(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationHistory(crn)
+    val orchestrationResult = accommodationOrchestrationService.getCorePersonRecordByCrn(crn)
     val corePersonRecord = orchestrationResult.data
     return generateAccommodationHistoryResponse(
       crn,
@@ -23,7 +39,7 @@ class AccommodationQueryService(
   }
 
   fun getAccommodationHistoryV2(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationHistoryV2(crn)
+    val orchestrationResult = accommodationOrchestrationService.getCorePersonRecordAddressesByCrn(crn)
     val corePersonRecordAddresses = orchestrationResult.data
     return generateAccommodationHistoryResponse(
       crn,

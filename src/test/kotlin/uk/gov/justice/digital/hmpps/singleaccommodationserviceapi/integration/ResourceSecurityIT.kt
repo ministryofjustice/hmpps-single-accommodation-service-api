@@ -152,7 +152,8 @@ private val proposedAccommodationControllerMap: Map<String, Set<String>> =
 
 private val accommodationControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /cases/{crn}/accommodations" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
+    "GET /cases/{crn}/accommodations/current" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
+    "GET /cases/{crn}/accommodations/next" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
   )
 
 private val accommodationReferralControllerMap: Map<String, Set<String>> =
