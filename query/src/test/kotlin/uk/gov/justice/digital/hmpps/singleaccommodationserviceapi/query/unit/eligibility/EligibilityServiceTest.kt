@@ -4,13 +4,11 @@ import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.AssertionsForClassTypes.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvFileSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -29,7 +27,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
@@ -66,8 +63,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.TestData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -174,64 +171,39 @@ class EligibilityServiceTest {
       assertThat(result.crsStatus).isEqualTo("submitted")
     }
   }
-}
 
-@ExtendWith(value = [MockKExtension::class])
-class ConcurrentEligibilityServiceTest {
-
-  private val clock = MutableClock()
-  private val crn = "ABC1234"
-
-  private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
-  private val accommodationQueryService = mockk<AccommodationQueryService>()
-
-  var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
-    listOf(MaleRiskEligibilityRule(), NonMaleRiskEligibilityRule(), STierEligibilityRule()),
-  )
-  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule()))
-  var cas1ValidationRuleSet = Cas1ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule(), Cas1SexValidationRule()))
-  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(listOf(Cas1ApplicationSuitabilityRule()))
-  var cas1ContextUpdater = Cas1ContextUpdater(clock)
-  var commonContextUpdater = CommonContextUpdater()
-  var cas1CompletionRuleSet = Cas1CompletionRuleSet(listOf(Cas1ApplicationCompletionRule()))
-
-  var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
-    listOf(
-      CurrentAccommodationTypeRule(),
-      NextAccommodationRule(),
-      DtrStatusRule(),
-      CrsStatusRule(),
-      NoConflictingCas1BookingRule(),
-    ),
-  )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule(), Cas3RecentCurrentAccommodationEndDateRule(clock)))
-  var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(listOf(Cas3ApplicationSuitabilityRule(), Cas3RecentCurrentAccommodationEndDateRule(clock), Cas3ApplicationExpiredRule()))
-
-  var cas3ContextUpdater = Cas3ContextUpdater(clock)
-
-  var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
-
-  private val eligibilityService = EligibilityService(
-    eligibilityOrchestrationService = eligibilityOrchestrationService,
-    cas1EligibilityRuleSet = cas1EligibilityRuleSet,
-    cas1SuitabilityRuleSet = cas1SuitabilityRuleSet,
-    cas1CompletionRuleSet = cas1CompletionRuleSet,
-    cas1ValidationRuleSet = cas1ValidationRuleSet,
-    cas1ContextUpdater = cas1ContextUpdater,
-    commonContextUpdater = commonContextUpdater,
-    cas3EligibilityRuleSet = cas3EligibilityRuleSet,
-    cas3CompletionRuleSet = cas3CompletionRuleSet,
-    cas3ContextUpdater = cas3ContextUpdater,
-    engine = rulesEngine,
-    cas3ValidationRuleSet = cas3ValidationRuleSet,
-    cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
-    accommodationQueryService = accommodationQueryService,
-  )
-
-  @Execution(ExecutionMode.CONCURRENT)
   @Nested
   inner class Cas1EligibilityScenarios {
 
+    fun loadCas1Scenarios(): List<Cas1Scenario> {
+      val rows = CsvReader().read("/cas1-eligibility-scenarios.csv")
+
+      return rows.mapIndexed { idx, row ->
+        try {
+          Cas1Scenario(
+            testCaseId = row["testCaseId"]!!,
+            description = row["description"]!!,
+            referenceDate = row["referenceDate"]!!.toLocalDate(),
+            sex = SexCode.valueOf(row["sex"]!!),
+            tierScore = TierScore.valueOf(row["tierScore"]!!),
+            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+            cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
+            cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
+              Cas1RequestForPlacementStatus.valueOf(
+                it,
+              )
+            },
+            cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
+            expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatus.valueOf(it) },
+            expectedCas1Actions = row["expectedCas1Actions"],
+            expectedCas1Link = row["expectedCas1Link"],
+          )
+        } catch (e: Exception) {
+          throw IllegalStateException("CAS1 CSV row $idx failed: $row", e)
+        }
+      }
+    }
+
     /**
      * Date formatter for CSV test data
      *
@@ -245,49 +217,82 @@ class ConcurrentEligibilityServiceTest {
 
     private fun String.toLocalDate(): LocalDate = LocalDate.parse(this, dateFormatter)
 
-    @ParameterizedTest(name = "{0}")
-    @CsvFileSource(resources = ["/cas1-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
-    @TestData
-    fun `should calculate eligibility for cas1 for all scenarios`(
-      testCaseId: String,
-      description: String,
-      referenceDate: String,
-      sex: SexCode,
-      tierScore: TierScore,
-      currentAccommodationEndDate: String?,
-      cas1Status: Cas1ApplicationStatus?,
-      cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
-      cas1PlacementStatus: Cas1PlacementStatus?,
-      expectedCas1Status: ServiceStatus?,
-      expectedCas1ActionsString: String?,
-      expectedCas1Link: String?,
-    ) {
-      clock.setNow(referenceDate.toLocalDate())
+    @Test
+    fun `should calculate eligibility for cas1 for all scenarios`() {
+      val scenarios = loadCas1Scenarios()
 
-      val cas1Application = cas1Status?.let {
-        buildCas1Application(applicationStatus = it, placementStatus = cas1PlacementStatus, requestForPlacementStatus = cas1RequestForPlacementStatus)
-      }
+      runScenarios(scenarios) { s ->
 
-      val currentAccommodation = currentAccommodationEndDate?.let {
-        CurrentAccommodation(
-          endDate = it.toLocalDate(),
-          isPrisonCas1Cas2OrCas2v2 = false,
+        clock.setNow(s.referenceDate)
+
+        val cas1Application = s.cas1ApplicationStatus?.let {
+          buildCas1Application(
+            applicationStatus = it,
+            placementStatus = s.cas1PlacementStatus,
+            requestForPlacementStatus = s.cas1RequestForPlacementStatus,
+          )
+        }
+
+        val currentAccommodation = s.currentAccommodationEndDate?.let {
+          CurrentAccommodation(
+            endDate = it,
+            isPrisonCas1Cas2OrCas2v2 = false,
+          )
+        }
+
+        val data = buildDomainData(
+          crn = crn,
+          tierScore = s.tierScore,
+          sex = s.sex,
+          currentAccommodation = currentAccommodation,
+          cas1Application = cas1Application,
         )
+
+        val result = eligibilityService.calculateEligibilityForCas1(data)
+
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}")
+          .isEqualTo(s.expectedCas1Status)
+
+        assertThat(result.action).isEqualTo(s.expectedCas1Actions)
+        assertThat(result.link).isEqualTo(s.expectedCas1Link)
       }
-
-      val data = buildDomainData(crn, tierScore, sex, currentAccommodation, cas1Application = cas1Application)
-
-      val result = eligibilityService.calculateEligibilityForCas1(data)
-
-      assertThat(result.serviceStatus).isEqualTo(expectedCas1Status)
-      assertThat(result.action).isEqualTo(expectedCas1ActionsString)
-      assertThat(result.link).isEqualTo(expectedCas1Link)
     }
   }
 
-  @Execution(ExecutionMode.CONCURRENT)
   @Nested
   inner class Cas3EligibilityScenarios {
+
+    fun loadCas3Scenarios(): List<Cas3Scenario> {
+      val rows = CsvReader().read("/cas3-eligibility-scenarios.csv")
+
+      return rows.mapIndexed { idx, row ->
+        try {
+          Cas3Scenario(
+            testCaseId = row["testCaseId"]!!,
+            description = row["description"],
+            referenceDate = row["referenceDate"]!!.toLocalDate(),
+            currentAccommodationStatusCode = row["currentAccommodationStatusCode"]?.let {
+              AccommodationArrangementType.valueOf(
+                it,
+              )
+            },
+            hasNextAccommodation = row["hasNextAccommodation"]!!,
+            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+            cas3ApplicationStatus = row["cas3ApplicationStatus"]?.let { Cas3ApplicationStatus.valueOf(it) },
+            cas3AssessmentStatus = row["cas3AssessmentStatus"]?.let { Cas3AssessmentStatus.valueOf(it) },
+            cas3BookingStatus = row["cas3BookingStatus"]?.let { Cas3BookingStatus.valueOf(it) },
+            crsStatus = row["crsStatus"],
+            dtrStatus = row["dtrStatus"],
+            expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatus.valueOf(it) },
+            expectedCas3Actions = row["expectedCas3Actions"],
+            expectedCas3Link = row["expectedCas3Link"],
+          )
+        } catch (e: Exception) {
+          throw IllegalStateException("Row $idx failed: $row", e)
+        }
+      }
+    }
 
     /**
      * Date formatter for CSV test data
@@ -302,68 +307,126 @@ class ConcurrentEligibilityServiceTest {
 
     private fun String.toLocalDate(): LocalDate = LocalDate.parse(this, dateFormatter)
 
-    @ParameterizedTest(name = "{0}")
-    @CsvFileSource(resources = ["/cas3-eligibility-scenarios.csv"], numLinesToSkip = 1, nullValues = ["None"])
-    @TestData
-    fun `should calculate eligibility for cas3 for all scenarios`(
-      testCaseId: String,
-      description: String?,
-      referenceDate: String,
-      currentAccommodationType: AccommodationArrangementType?,
-      hasNextAccommodation: String,
-      currentAccommodationEndDate: String?,
-      cas3Status: Cas3ApplicationStatus?,
-      cas3AssessmentStatus: Cas3AssessmentStatus?,
-      cas3BookingStatus: Cas3BookingStatus?,
-      crsStatus: String?,
-      dtrStatus: String?,
-      expectedCas3Status: ServiceStatus?,
-      expectedCas3ActionsString: String?,
-      expectedCas3Link: String?,
-    ) {
-      clock.setNow(referenceDate.toLocalDate())
+    @Test
+    fun `should calculate eligibility for cas3 for all scenarios`() {
+      val scenarios = loadCas3Scenarios()
 
-      val cas3Application = cas3Status?.let {
-        buildCas3Application(applicationStatus = it, bookingStatus = cas3BookingStatus, assessmentStatus = cas3AssessmentStatus)
-      }
+      runScenarios(scenarios) { s ->
 
-      val currentAccommodation = currentAccommodationType?.let {
-        CurrentAccommodation(
-          endDate = currentAccommodationEndDate?.toLocalDate(),
-          isPrisonCas1Cas2OrCas2v2 = when (currentAccommodationType) {
-            AccommodationArrangementType.PRISON,
-            AccommodationArrangementType.CAS1,
-            AccommodationArrangementType.CAS2,
-            AccommodationArrangementType.CAS2V2,
-            -> true
+        clock.setNow(s.referenceDate)
 
-            else -> false
-          },
+        val cas3Application = s.cas3ApplicationStatus?.let {
+          buildCas3Application(
+            applicationStatus = it,
+            bookingStatus = s.cas3BookingStatus,
+            assessmentStatus = s.cas3AssessmentStatus,
+          )
+        }
+
+        val currentAccommodation = s.currentAccommodationStatusCode?.let {
+          CurrentAccommodation(
+            endDate = s.currentAccommodationEndDate,
+            isPrisonCas1Cas2OrCas2v2 = it in listOf(
+              AccommodationArrangementType.PRISON,
+              AccommodationArrangementType.CAS1,
+              AccommodationArrangementType.CAS2,
+              AccommodationArrangementType.CAS2V2,
+            ),
+          )
+        } ?: s.currentAccommodationEndDate?.let {
+          CurrentAccommodation(
+            endDate = it,
+            isPrisonCas1Cas2OrCas2v2 = false,
+          )
+        }
+        val data = buildDomainData(
+          crn = crn,
+          tierScore = null,
+          sex = null,
+          currentAccommodation = currentAccommodation,
+          hasNextAccommodation = s.hasNextAccommodation.toBoolean(),
+          cas1Application = null,
+          cas3Application = cas3Application,
+          dtrStatus = s.dtrStatus,
+          crsStatus = s.crsStatus,
         )
-      } ?: currentAccommodationEndDate?.let {
-        CurrentAccommodation(
-          endDate = it.toLocalDate(),
-          isPrisonCas1Cas2OrCas2v2 = false,
-        )
+
+        val result = eligibilityService.calculateEligibilityForCas3(data)
+
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}")
+          .isEqualTo(s.expectedCas3Status)
+
+        assertThat(result.action).isEqualTo(s.expectedCas3Actions)
+        assertThat(result.link).isEqualTo(s.expectedCas3Link)
       }
-
-      val data = buildDomainData(
-        crn = crn,
-        tierScore = null,
-        sex = null,
-        currentAccommodation = currentAccommodation,
-        hasNextAccommodation = hasNextAccommodation.toBoolean(),
-        cas1Application = null,
-        cas3Application = cas3Application,
-        dtrStatus = dtrStatus,
-        crsStatus = crsStatus,
-      )
-
-      val result = eligibilityService.calculateEligibilityForCas3(data)
-
-      assertThat(result.serviceStatus).isEqualTo(expectedCas3Status)
-      assertThat(result.action).isEqualTo(expectedCas3ActionsString)
-      assertThat(result.link).isEqualTo(expectedCas3Link)
     }
+  }
+}
+
+data class Cas1Scenario(
+  val testCaseId: String,
+  val description: String,
+  val referenceDate: LocalDate,
+  val sex: SexCode,
+  val tierScore: TierScore,
+  val currentAccommodationEndDate: LocalDate?,
+  val cas1ApplicationStatus: Cas1ApplicationStatus?,
+  val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
+  val cas1PlacementStatus: Cas1PlacementStatus?,
+  val expectedCas1Status: ServiceStatus?,
+  val expectedCas1Actions: String?,
+  val expectedCas1Link: String?,
+)
+
+data class Cas3Scenario(
+  val testCaseId: String,
+  val description: String?,
+  val referenceDate: LocalDate,
+  val currentAccommodationStatusCode: AccommodationArrangementType?,
+  val hasNextAccommodation: String,
+  val currentAccommodationEndDate: LocalDate?,
+  val cas3ApplicationStatus: Cas3ApplicationStatus?,
+  val cas3AssessmentStatus: Cas3AssessmentStatus?,
+  val cas3BookingStatus: Cas3BookingStatus?,
+  val crsStatus: String?,
+  val dtrStatus: String?,
+  val expectedCas3Status: ServiceStatus?,
+  val expectedCas3Actions: String?,
+  val expectedCas3Link: String?,
+)
+
+private fun <T> runScenarios(
+  scenarios: List<T>,
+  run: (T) -> Unit,
+) {
+  val failures = mutableListOf<String>()
+
+  scenarios.forEach { scenario ->
+    try {
+      run(scenario)
+    } catch (ex: AssertionError) {
+      failures += """
+        Scenario failed:
+        scenario: $scenario
+        error: ${ex.message}
+      """.trimIndent()
+    } catch (ex: Exception) {
+      failures += """
+        Scenario errored:
+        scenario: $scenario
+        error: ${ex::class.simpleName}: ${ex.message}
+      """.trimIndent()
+    }
+  }
+
+  if (failures.isNotEmpty()) {
+    fail(
+      """
+      Scenario failures: ${failures.size}
+
+      ${failures.joinToString("\n\n")}
+      """.trimIndent(),
+    )
   }
 }
