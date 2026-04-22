@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "Running git pre-commit hooks"
-echo "Running 'ktlintCheck'"
+echo "Running git pre-push hooks"
+echo "Running 'gradle ktlintCheck detekt'"
 
 ./gradlew ktlintCheck detekt
 
@@ -24,4 +24,4 @@ fi
 # Determine the directory containing this script for use as the hook directory.
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
-"$PREK" hook-impl --hook-dir "$HERE" --script-version 4 --hook-type=pre-commit -- "$@"
+"$PREK" hook-impl --hook-dir "$HERE" --script-version 4 --hook-type=pre-push -- "$@"
