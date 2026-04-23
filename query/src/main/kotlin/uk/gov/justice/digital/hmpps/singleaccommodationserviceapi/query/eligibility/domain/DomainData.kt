@@ -24,8 +24,8 @@ data class DomainData(
 ) {
   constructor(
     crn: String,
-    cpr: CorePersonRecord,
-    tier: Tier,
+    cpr: CorePersonRecord?,
+    tier: Tier?,
     currentAccommodationSummary: AccommodationSummaryDto?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
@@ -34,8 +34,8 @@ data class DomainData(
     crsStatus: String? = "submitted",
   ) : this(
     crn = crn,
-    tierScore = tier.tierScore,
-    sex = cpr.sex?.code,
+    tierScore = tier?.tierScore,
+    sex = cpr?.sex?.code,
     currentAccommodation = currentAccommodationSummary?.let {
       CurrentAccommodation(
         endDate = it.endDate,
