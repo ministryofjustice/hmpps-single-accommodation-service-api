@@ -43,32 +43,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Service
 class EligibilityService(
   private val accommodationQueryService: AccommodationQueryService,
-  private val caseRepository: CaseRepository,
-  private val dutyToReferQueryService: DutyToReferQueryService,
-  private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  @Qualifier("defaultRulesEngine")
-  private val engine: RulesEngine,
-
-  // COMMON
-  private val commonContextUpdater: CommonContextUpdater,
-
-  // CAS1
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
   private val cas1ContextUpdater: Cas1ContextUpdater,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
   private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
-
-  // CAS3
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
   private val cas3ContextUpdater: Cas3ContextUpdater,
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
-  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
   private val cas3UpcomingRuleSet: Cas3UpcomingRuleSet,
   private val cas3UpcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
-
-  // DTR
+  private val caseRepository: CaseRepository,
+  private val commonContextUpdater: CommonContextUpdater,
   private val dtrCompletionRuleSet: DtrCompletionRuleSet,
   private val dtrCompletionContextUpdater: DtrCompletionContextUpdater,
   private val dtrSuitabilityContextUpdater: DtrSuitabilityContextUpdater,
@@ -76,8 +63,11 @@ class EligibilityService(
   private val dtrSuitabilityRuleSet: DtrSuitabilityRuleSet,
   private val dtrUpcomingRuleSet: DtrUpcomingRuleSet,
   private val dtrUpcomingContextUpdater: DtrUpcomingContextUpdater,
-
-  // CRS
+  private val dutyToReferQueryService: DutyToReferQueryService,
+  private val eligibilityOrchestrationService: EligibilityOrchestrationService,
+  @Qualifier("defaultRulesEngine")
+  private val engine: RulesEngine,
+  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
   private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
   private val crsCompletionRuleSet: CrsCompletionRuleSet,
   private val crsContextUpdater: CrsContextUpdater,
@@ -206,8 +196,8 @@ class EligibilityService(
     data.commissionedRehabilitativeServices?.let {
       log.info(
         "CRS Data received: status={}, submissionDate={}",
-        it.status,
-        it.submissionDate,
+        data.commissionedRehabilitativeServices.status,
+        data.commissionedRehabilitativeServices.submissionDate,
       )
     } ?: log.info("CRS Data received: No CRS application")
 
