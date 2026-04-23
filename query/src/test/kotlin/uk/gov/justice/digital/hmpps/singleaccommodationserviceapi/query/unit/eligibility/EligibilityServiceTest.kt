@@ -61,6 +61,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.Cas3RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.suitability.CrsSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.validation.CrsValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -109,21 +114,32 @@ class EligibilityServiceTest {
 
   var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
 
+  var crsCompletionRuleSet = CrsCompletionRuleSet(listOf())
+  var crsEligibilityRuleSet = CrsEligibilityRuleSet(listOf())
+  var crsValidationRuleSet = CrsValidationRuleSet(listOf())
+  var crsSuitabilityRuleSet = CrsSuitabilityRuleSet(listOf())
+  var crsContextUpdater = CrsContextUpdater(clock)
+
   private val eligibilityService = EligibilityService(
+    accommodationQueryService = accommodationQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
     cas1EligibilityRuleSet = cas1EligibilityRuleSet,
     cas1SuitabilityRuleSet = cas1SuitabilityRuleSet,
     cas1CompletionRuleSet = cas1CompletionRuleSet,
     cas1ValidationRuleSet = cas1ValidationRuleSet,
+    cas3ValidationRuleSet = cas3ValidationRuleSet,
     cas1ContextUpdater = cas1ContextUpdater,
     commonContextUpdater = commonContextUpdater,
     cas3EligibilityRuleSet = cas3EligibilityRuleSet,
     cas3CompletionRuleSet = cas3CompletionRuleSet,
     cas3ContextUpdater = cas3ContextUpdater,
     engine = rulesEngine,
-    cas3ValidationRuleSet = cas3ValidationRuleSet,
     cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
-    accommodationQueryService = accommodationQueryService,
+    crsEligibilityRuleSet = crsEligibilityRuleSet,
+    crsSuitabilityRuleSet = crsSuitabilityRuleSet,
+    crsCompletionRuleSet = crsCompletionRuleSet,
+    crsValidationRuleSet = crsValidationRuleSet,
+    crsContextUpdater = crsContextUpdater,
   )
 
   @Nested
@@ -153,6 +169,7 @@ class EligibilityServiceTest {
           tier = tier,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
+          commissionedRehabilitativeServices = null,
         ),
       )
 

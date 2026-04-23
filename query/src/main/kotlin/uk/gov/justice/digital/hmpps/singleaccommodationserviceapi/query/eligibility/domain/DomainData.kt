@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -21,6 +22,7 @@ data class DomainData(
   val cas3Application: Cas3Application?,
   val dtrStatus: String? = "submitted",
   val crsStatus: String? = "submitted",
+  val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
 ) {
   constructor(
     crn: String,
@@ -31,7 +33,7 @@ data class DomainData(
     cas3Application: Cas3Application?,
     // TODO: remove once we have a better way to determine DTR and CRS status
     dtrStatus: String? = "submitted",
-    crsStatus: String? = "submitted",
+    commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
@@ -46,7 +48,7 @@ data class DomainData(
     cas1Application = cas1Application,
     cas3Application = cas3Application,
     dtrStatus = dtrStatus,
-    crsStatus = crsStatus,
+    commissionedRehabilitativeServices = commissionedRehabilitativeServices,
   )
 
   constructor(
@@ -69,6 +71,7 @@ data class DomainData(
       null
     },
     cas3Application = null,
+    commissionedRehabilitativeServices = null,
   )
 }
 

@@ -23,6 +23,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.suitability.CrsSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.validation.CrsValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 @Service
@@ -42,6 +47,11 @@ class EligibilityService(
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
   private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
+  private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
+  private val crsSuitabilityRuleSet: CrsSuitabilityRuleSet,
+  private val crsCompletionRuleSet: CrsCompletionRuleSet,
+  private val crsValidationRuleSet: CrsValidationRuleSet,
+  private val crsContextUpdater: CrsContextUpdater,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -76,11 +86,13 @@ class EligibilityService(
 
     val cas1 = calculateEligibilityForCas1(data)
     val cas3 = calculateEligibilityForCas3(data)
+    val crs = calculateEligibilityForCrs(data)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
       cas1 = cas1,
       cas3 = cas3,
+      crs = crs,
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
@@ -154,6 +166,64 @@ class EligibilityService(
       result.action,
       result.link,
     )
+  }
+
+  fun calculateEligibilityForCrs(data: DomainData): ServiceResult {
+    log.info("Calculating Crs eligibility for CRN: ${data.crn}")
+
+    data.commissionedRehabilitativeServices?.let {
+      log.info(
+        "CRS Data received: status={}, submissionDate={}",
+        data.commissionedRehabilitativeServices.status,
+        data.commissionedRehabilitativeServices.submissionDate,
+      )
+    } ?: log.info("CRS Data received: No CRS application")
+
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val eligibility =
+      treeBuilder
+        .ruleSet("CrsEligibility", crsEligibilityRuleSet, crsContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val suitability =
+      treeBuilder
+        .ruleSet("CrsSuitability", crsSuitabilityRuleSet, crsContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility)
+        .build()
+
+    val completion =
+      treeBuilder
+        .ruleSet("CrsCompletion", crsCompletionRuleSet, crsContextUpdater)
+        .onPass(confirmed)
+        .onFail(suitability)
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("CrsValidation", crsValidationRuleSet, commonContextUpdater)
+        .onPass(completion)
+        .onFail(notEligible)
+        .build()
+
+    val initialContext =
+      EvaluationContext(
+        data = data,
+        currentResult =
+        ServiceResult(
+          serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
+          link = EligibilityKeys.VIEW_REFERRAL,
+        ),
+      )
+
+    return tree.eval(initialContext).also {
+      log.info("Finished CRS calculating eligibility for CRN: ${data.crn}")
+      logServiceResult(it)
+    }
   }
 
   fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
@@ -236,6 +306,7 @@ class EligibilityService(
       cas1Application = eligibilityOrchestrationDto.data.cas1Application,
       cas3Application = eligibilityOrchestrationDto.data.cas3Application,
       currentAccommodationSummary = currentAccommodation,
+      commissionedRehabilitativeServices = eligibilityOrchestrationDto.data.commissionedRehabilitativeServices,
     )
   }
 }

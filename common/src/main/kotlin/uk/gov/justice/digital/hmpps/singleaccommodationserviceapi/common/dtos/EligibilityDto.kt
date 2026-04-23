@@ -6,6 +6,7 @@ data class EligibilityDto(
   val crn: String,
   val cas1: ServiceResult,
   val cas3: ServiceResult,
+  val crs: ServiceResult,
   val caseActions: List<String>,
 )
 

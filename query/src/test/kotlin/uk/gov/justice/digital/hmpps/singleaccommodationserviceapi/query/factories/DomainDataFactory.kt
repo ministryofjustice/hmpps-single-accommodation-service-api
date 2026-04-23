@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -19,6 +20,7 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
   dtrStatus: String? = "submitted",
   crsStatus: String? = "submitted",
+  commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -29,6 +31,7 @@ fun buildDomainData(
   cas3Application = cas3Application,
   dtrStatus = dtrStatus,
   crsStatus = crsStatus,
+  commissionedRehabilitativeServices = commissionedRehabilitativeServices,
 )
 
 fun buildCurrentAccommodation(
