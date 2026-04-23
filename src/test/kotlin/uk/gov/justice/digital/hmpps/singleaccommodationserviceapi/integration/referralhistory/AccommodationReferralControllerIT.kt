@@ -3,10 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.r
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
@@ -26,25 +29,33 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
   fun `fetchAllReferralsAggregated aggregates results and sorts them by date descending`() {
     val crn = "X12345"
 
-    val cas1Response = buildReferralHistory(
-      casService = CasService.CAS1,
-      createdAt = Instant.parse("2025-03-01T00:00:00Z"),
-      status = Cas1AssessmentStatus.IN_PROGRESS,
+    val cas1Response: List<Cas1ReferralHistory> = listOf(
+      buildReferralHistory(
+        casService = CasService.CAS1,
+        createdAt = Instant.parse("2025-03-01T00:00:00Z"),
+        status = Cas1AssessmentStatus.IN_PROGRESS,
+      ),
     )
-    val cas2Response = buildReferralHistory(
-      casService = CasService.CAS2,
-      createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-      status = Cas2Status.AWAITING_DECISION,
+    val cas2Response: List<Cas2ReferralHistory> = listOf(
+      buildReferralHistory(
+        casService = CasService.CAS2,
+        createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+        status = Cas2Status.AWAITING_DECISION,
+      ),
     )
-    val cas2v2Response = buildReferralHistory(
-      casService = CasService.CAS2v2,
-      createdAt = Instant.parse("2025-04-01T00:00:00Z"),
-      status = Cas2Status.PLACE_OFFERED,
+    val cas2v2Response: List<Cas2ReferralHistory> = listOf(
+      buildReferralHistory(
+        casService = CasService.CAS2v2,
+        createdAt = Instant.parse("2025-04-01T00:00:00Z"),
+        status = Cas2Status.PLACE_OFFERED,
+      ),
     )
-    val cas3Response = buildReferralHistory(
-      casService = CasService.CAS3,
-      createdAt = Instant.parse("2025-02-01T00:00:00Z"),
-      status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
+    val cas3Response: List<Cas3ReferralHistory> = listOf(
+      buildReferralHistory(
+        casService = CasService.CAS3,
+        createdAt = Instant.parse("2025-02-01T00:00:00Z"),
+        status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
+      ),
     )
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)

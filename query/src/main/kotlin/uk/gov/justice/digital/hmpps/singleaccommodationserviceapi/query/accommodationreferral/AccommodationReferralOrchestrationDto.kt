@@ -1,13 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 
 data class AccommodationReferralOrchestrationDto(
-  val cas1Referrals: List<ReferralHistory<Cas1AssessmentStatus>>,
-  val cas2Referrals: List<ReferralHistory<Cas2Status>>,
-  val cas2v2Referrals: List<ReferralHistory<Cas2Status>>,
-  val cas3Referrals: List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>,
+  val cas1Referrals: List<Cas1ReferralHistory>,
+  val cas2Referrals: List<Cas2ReferralHistory>,
+  val cas2v2Referrals: List<Cas2ReferralHistory>,
+  val cas3Referrals: List<Cas3ReferralHistory>,
 )

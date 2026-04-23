@@ -15,16 +15,16 @@ interface ApprovedPremisesClient {
   fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application
 
   @GetExchange(value = "/cas1/external/referrals/{crn}")
-  fun getCas1Referral(@PathVariable crn: String): List<ReferralHistory<Cas1AssessmentStatus>>
+  fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
 
   @GetExchange(value = "/cas2/external/referrals/{crn}")
-  fun getCas2Referral(@PathVariable crn: String): List<ReferralHistory<Cas2Status>>
+  fun getCas2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
 
   @GetExchange(value = "/cas2v2/external/referrals/{crn}")
-  fun getCas2v2Referral(@PathVariable crn: String): List<ReferralHistory<Cas2Status>>
+  fun getCas2v2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
 
   @GetExchange(value = "/cas3/external/referrals/{crn}")
-  fun getCas3Referral(@PathVariable crn: String): List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>
+  fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
 }
 
 @Service

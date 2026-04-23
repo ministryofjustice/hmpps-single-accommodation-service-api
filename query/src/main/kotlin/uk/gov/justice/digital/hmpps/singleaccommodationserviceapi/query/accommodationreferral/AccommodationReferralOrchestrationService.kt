@@ -10,10 +10,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 
 @Service
 class AccommodationReferralOrchestrationService(
@@ -32,16 +31,16 @@ class AccommodationReferralOrchestrationService(
       standardCallsNoIteration = calls,
     )
     val cas1 =
-      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<Cas1AssessmentStatus>>>(GET_CAS1_REFERRAL)
+      results.standardCallsNoIterationResults!!.getResult<List<Cas1ReferralHistory>>(GET_CAS1_REFERRAL)
         ?: emptyList()
     val cas2 =
-      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2_REFERRAL)
+      results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2_REFERRAL)
         ?: emptyList()
     val cas2v2 =
-      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<Cas2Status>>>(GET_CAS2V2_REFERRAL)
+      results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2V2_REFERRAL)
         ?: emptyList()
     val cas3 =
-      results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
+      results.standardCallsNoIterationResults!!.getResult<List<Cas3ReferralHistory>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
     return OrchestrationResultDto(
