@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -28,7 +28,7 @@ class ProposedAccommodationApplicationService(
   private val caseRepository: CaseRepository,
 ) {
   @Transactional
-  fun createProposedAccommodation(crn: String, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
+  fun createProposedAccommodation(crn: String, accommodationDetailCommand: AccommodationDetailCommand): ProposedAccommodationDto {
     val user = userService.authorizeAndRetrieveUser()
     val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
     val aggregate = ProposedAccommodationAggregate.hydrateNew(case.id)
@@ -58,7 +58,7 @@ class ProposedAccommodationApplicationService(
   }
 
   @Transactional
-  fun updateProposedAccommodation(crn: String, id: UUID, accommodationDetailCommand: AccommodationDetailCommand): AccommodationDetail {
+  fun updateProposedAccommodation(crn: String, id: UUID, accommodationDetailCommand: AccommodationDetailCommand): ProposedAccommodationDto {
     val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val aggregate = ProposedAccommodationMapper.toAggregate(entity)
     aggregate.updateProposedAccommodation(

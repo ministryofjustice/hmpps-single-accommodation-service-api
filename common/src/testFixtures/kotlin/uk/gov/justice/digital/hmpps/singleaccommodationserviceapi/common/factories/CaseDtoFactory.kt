@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
@@ -18,8 +18,8 @@ fun buildCaseDto(
   riskLevel: RiskLevel? = RiskLevel.VERY_HIGH,
   pncReference: String? = "Some PNC Reference",
   assignedTo: AssignedToDto? = buildAssignedToDto(),
-  currentAccommodation: AccommodationDetail? = null,
-  nextAccommodation: AccommodationDetail? = null,
+  currentAccommodation: ProposedAccommodationDto? = null,
+  nextAccommodation: ProposedAccommodationDto? = null,
   status: Status? = null,
   actions: List<String> = emptyList(),
 ) = CaseDto(

@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.propose
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -22,19 +22,19 @@ class ProposedAccommodationQueryService(
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val caseRepository: CaseRepository,
 ) {
-  fun getProposedAccommodations(crn: String): List<AccommodationDetail> = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).map {
+  fun getProposedAccommodations(crn: String): List<ProposedAccommodationDto> = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).map {
     val createdByUser = userRepository.findByIdOrNull(it.createdByUserId!!)
       .orThrowNotFound("id" to it.createdByUserId!!)
     ProposedAccommodationTransformer.toAccommodationDetail(it, crn, createdByUser.name)
   }
 
-  fun getProposedAccommodation(crn: String, id: UUID): AccommodationDetail {
+  fun getProposedAccommodation(crn: String, id: UUID): ProposedAccommodationDto {
     val entity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     return ProposedAccommodationTransformer.toAccommodationDetail(entity, crn, createdByUser!!.name)
   }
 
-  fun getProposedAccommodation(id: UUID): AccommodationDetail {
+  fun getProposedAccommodation(id: UUID): ProposedAccommodationDto {
     val entity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val case = caseRepository.findByIdOrNull(entity.caseId).orThrowNotFound("id" to entity.id)
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)

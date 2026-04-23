@@ -5,13 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-data class AccommodationDto(
-  val crn: String,
-  val current: AccommodationSummaryDto?,
-  val next: AccommodationSummaryDto?,
-)
-
-data class AccommodationDetail(
+data class ProposedAccommodationDto(
   val id: UUID,
   val caseId: UUID,
   val crn: String,
