@@ -21,6 +21,12 @@ fun buildUpcomingAction(endDate: LocalDate, today: LocalDate, initialText: Strin
   }
 }
 
+fun isWithin56Days(endDate: LocalDate?, today: LocalDate): Boolean {
+  if (endDate == null) return true
+  val fiftySixDaysFromNow = today.plusDays(56)
+  return endDate <= fiftySixDaysFromNow
+}
+
 fun isWithinOneYear(endDate: LocalDate?, today: LocalDate): Boolean {
   if (endDate == null) return false
   val oneYearFromNow = today.plusYears(1)

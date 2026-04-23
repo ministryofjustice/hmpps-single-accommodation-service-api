@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -50,13 +49,17 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    caseRepository.deleteAll()
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCaseSummaries()
     stubInitialCorePersonRecords()
     stubInitialRoshAndTier()
+  }
+
+  @AfterEach
+  fun teardown() {
+    caseRepository.deleteAll()
   }
 
   @Test
@@ -298,46 +301,6 @@ class CaseControllerIT : IntegrationTestBase() {
         additionalCrns = listOf("ADDITIONAL$it"),
       )
     }
-  }
-
-  private fun stubAdditionalTierResponses() {
-    val tier = buildTier()
-
-    TierStubs.getTierOKResponse(crns[2], tier)
-    TierStubs.getTierServerErrorResponse(crns[17])
-    TierStubs.getTierServerErrorResponse(crns[18])
-    TierStubs.getTierOKResponse(crns[15], tier)
-    TierStubs.getTierOKResponse(crns[16], tier)
-    TierStubs.getTierOKResponse(crns[19], tier)
-  }
-
-  private fun stubSuitableApplications() {
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-      crns[2],
-      buildCas1Application(
-        applicationStatus = Cas1ApplicationStatus.AWAITING_PLACEMENT,
-        requestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
-      ),
-    )
-
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-      crns[4],
-      buildCas1Application(
-        applicationStatus = Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
-        requestForPlacementStatus = Cas1RequestForPlacementStatus.AWAITING_MATCH,
-      ),
-    )
-
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-      crns[0],
-      buildCas1Application(applicationStatus = Cas1ApplicationStatus.EXPIRED),
-    )
-
-    listOf(15, 16, 17, 18).forEach {
-      ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crns[it])
-    }
-
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crns[19])
   }
 
   private fun stubCorePersonRecord(

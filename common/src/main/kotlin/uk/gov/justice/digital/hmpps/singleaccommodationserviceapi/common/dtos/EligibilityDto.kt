@@ -6,7 +6,9 @@ data class EligibilityDto(
   val crn: String,
   val cas1: ServiceResult,
   val cas3: ServiceResult,
+  val dtr: ServiceResult,
   val caseActions: List<String>,
+  val dutyToRefer: DutyToReferDto?,
 )
 
 data class ServiceResult(
@@ -38,4 +40,6 @@ enum class ServiceStatus {
   BEDSPACE_OFFERED,
   BOOKING_CONFIRMED,
   BOOKING_CANCELLED,
+  ACCEPTED,
+  NOT_ACCEPTED,
 }
