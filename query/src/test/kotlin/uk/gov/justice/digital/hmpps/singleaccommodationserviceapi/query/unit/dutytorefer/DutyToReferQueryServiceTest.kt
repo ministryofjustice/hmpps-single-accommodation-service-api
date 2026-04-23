@@ -299,6 +299,67 @@ class DutyToReferQueryServiceTest {
     }
 
     @Test
+    fun `should show correct local authority for in between updates when LA does not change and when LA is then updated later`() {
+      val initialLaId = UUID.randomUUID()
+      val updatedLaId = UUID.randomUUID()
+      val dtrEntity = buildDutyToReferEntity(caseId = caseId, localAuthorityAreaId = updatedLaId)
+      val initialLa = buildLocalAuthorityAreaEntity(id = initialLaId, name = "Cherwell")
+      val updatedLa = buildLocalAuthorityAreaEntity(id = updatedLaId, name = "Oxford")
+
+      val originalReferenceNumber = UUID.randomUUID().toString()
+      val createRecord = buildAuditRecordDto(
+        type = AuditRecordType.CREATE,
+        commitDate = Instant.parse("2026-01-10T10:00:00Z"),
+        changes = listOf(
+          CreateFieldChangeDto(field = "referenceNumber", value = originalReferenceNumber),
+          CreateFieldChangeDto(field = "localAuthorityAreaId", value = initialLaId.toString()),
+          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+        ),
+      )
+      val updatedReferenceNumber = UUID.randomUUID().toString()
+      val updateRecord = buildAuditRecordDto(
+        type = AuditRecordType.UPDATE,
+        commitDate = Instant.parse("2026-01-11T13:00:00Z"),
+        changes = listOf(
+          UpdateFieldChangeDto(
+            field = "referenceNumber",
+            value = updatedReferenceNumber,
+            oldValue = originalReferenceNumber,
+          ),
+        ),
+      )
+      val laChangeRecord = buildAuditRecordDto(
+        type = AuditRecordType.UPDATE,
+        commitDate = Instant.parse("2026-01-12T08:00:00Z"),
+        changes = listOf(
+          UpdateFieldChangeDto(
+            field = "localAuthorityAreaId",
+            value = updatedLaId.toString(),
+            oldValue = initialLaId.toString(),
+          ),
+        ),
+      )
+
+      every { dutyToReferRepository.findByIdAndCrnWithNotes(dtrEntity.id, crn) } returns dtrEntity
+      every {
+        auditService.fullAuditHistory(dtrEntity.id, DutyToReferEntity::class.java)
+      } returns listOf(createRecord, updateRecord, laChangeRecord)
+      every {
+        localAuthorityAreaRepository.findAllById(setOf(initialLaId, updatedLaId))
+      } returns listOf(initialLa, updatedLa)
+
+      val result = service.getDutyToReferTimeline(dtrEntity.id, crn)
+
+      assertThat(result.data).hasSize(3)
+      assertThat(result.data[0].commitDate).isEqualTo(laChangeRecord.commitDate)
+      assertThat(result.data[0].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Oxford")
+      assertThat(result.data[1].commitDate).isEqualTo(updateRecord.commitDate)
+      assertThat(result.data[1].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+      assertThat(result.data[2].commitDate).isEqualTo(createRecord.commitDate)
+      assertThat(result.data[2].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+    }
+
+    @Test
     fun `should merge multiple notes from different authors with audit history sorted descending`() {
       val localAuthorityAreaId = UUID.randomUUID()
       val user1Id = UUID.randomUUID()
