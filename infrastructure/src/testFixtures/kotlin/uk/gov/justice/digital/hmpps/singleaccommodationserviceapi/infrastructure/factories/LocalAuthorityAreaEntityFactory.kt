@@ -5,12 +5,12 @@ import java.util.UUID
 
 fun buildLocalAuthorityAreaEntity(
   id: UUID = UUID.randomUUID(),
-  identifier: String = "E09000001",
+  code: String = "E09000001",
   name: String = "City of London",
   active: Boolean = true,
 ) = LocalAuthorityAreaEntity(
   id = id,
-  identifier = identifier,
+  code = code,
   name = name,
   active = active,
 )

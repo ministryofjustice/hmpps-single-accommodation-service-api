@@ -18,7 +18,7 @@ class ReferenceDataTransformerTest {
 
       val entity = buildLocalAuthorityAreaEntity(
         id = id,
-        identifier = "E09000001",
+        code = "E09000001",
         name = "City of London",
       )
 
@@ -26,6 +26,7 @@ class ReferenceDataTransformerTest {
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.name).isEqualTo("City of London")
+      assertThat(result.code).isEqualTo("E09000001")
     }
   }
 }

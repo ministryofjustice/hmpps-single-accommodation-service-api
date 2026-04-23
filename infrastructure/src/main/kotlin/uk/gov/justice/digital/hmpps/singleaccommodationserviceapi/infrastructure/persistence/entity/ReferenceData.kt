@@ -4,5 +4,6 @@ import java.util.UUID
 
 interface ReferenceData {
   val id: UUID
-  val name: String?
+  val name: String
+  val code: String
 }

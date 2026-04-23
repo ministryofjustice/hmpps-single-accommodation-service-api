@@ -8,5 +8,6 @@ object ReferenceDataTransformer {
   fun toReferenceDataDto(entity: ReferenceData) = ReferenceDataDto(
     id = entity.id,
     name = entity.name,
+    code = entity.code,
   )
 }
