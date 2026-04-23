@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -144,13 +145,15 @@ class EligibilityServiceTest {
         ),
       )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
-      val orchestrationDto = EligibilityOrchestrationDto(
-        crn = crn,
-        cpr = cpr,
-        cprAddresses = cprAddresses,
-        tier = tier,
-        cas1Application = cas1Application,
-        cas3Application = cas3Application,
+      val orchestrationDto = OrchestrationResultDto(
+        data = EligibilityOrchestrationDto(
+          crn = crn,
+          cpr = cpr,
+          cprAddresses = cprAddresses,
+          tier = tier,
+          cas1Application = cas1Application,
+          cas3Application = cas3Application,
+        ),
       )
 
       val accommodationSummaryDto = buildAccommodationSummaryDto(endDate = endDate)

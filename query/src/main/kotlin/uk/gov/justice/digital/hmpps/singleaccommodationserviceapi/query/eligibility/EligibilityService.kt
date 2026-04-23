@@ -218,19 +218,23 @@ class EligibilityService(
 
   fun getDomainData(crn: String): DomainData {
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
-    val currentAccommodation = eligibilityOrchestrationDto.cprAddresses?.addresses?.let {
+    val currentAccommodation = eligibilityOrchestrationDto.data.cprAddresses?.addresses?.let {
       accommodationQueryService.getCurrentAccommodation(
         crn,
         addresses = it,
       )
     }
 
+    if (eligibilityOrchestrationDto.upstreamFailures.isNotEmpty()) {
+      log.error("Eligibility upstream failures for CRN {}: {}", crn, eligibilityOrchestrationDto.upstreamFailures)
+    }
+
     return DomainData(
       crn = crn,
-      cpr = eligibilityOrchestrationDto.cpr,
-      tier = eligibilityOrchestrationDto.tier,
-      cas1Application = eligibilityOrchestrationDto.cas1Application,
-      cas3Application = eligibilityOrchestrationDto.cas3Application,
+      cpr = eligibilityOrchestrationDto.data.cpr,
+      tier = eligibilityOrchestrationDto.data.tier,
+      cas1Application = eligibilityOrchestrationDto.data.cas1Application,
+      cas3Application = eligibilityOrchestrationDto.data.cas3Application,
       currentAccommodationSummary = currentAccommodation,
     )
   }
