@@ -5,9 +5,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
@@ -44,7 +43,7 @@ object ApprovedPremisesStubs {
   fun getReferralOKResponse(
     casService: CasService,
     crn: String,
-    response: List<ReferralHistory<CasStatus>>,
+    response: List<CasReferralHistory>,
   ) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/${casService.name.lowercase()}/external/referrals/$crn"))
