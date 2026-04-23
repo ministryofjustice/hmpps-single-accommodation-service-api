@@ -15,13 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
@@ -31,6 +28,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
@@ -54,13 +54,10 @@ class EligibilityService(
 
   // CAS1
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
-  private val cas1CompletionContextUpdater: Cas1CompletionContextUpdater,
+  private val cas1ContextUpdater: Cas1ContextUpdater,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
-  private val cas1UpcomingRuleSet: Cas1UpcomingRuleSet,
-  private val cas1UpcomingContextUpdater: Cas1UpcomingContextUpdater,
   private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
-  private val cas1SuitabilityContextUpdater: Cas1SuitabilityContextUpdater,
 
   // CAS3
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
@@ -79,6 +76,11 @@ class EligibilityService(
   private val dtrSuitabilityRuleSet: DtrSuitabilityRuleSet,
   private val dtrUpcomingRuleSet: DtrUpcomingRuleSet,
   private val dtrUpcomingContextUpdater: DtrUpcomingContextUpdater,
+
+  // CRS
+  private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
+  private val crsCompletionRuleSet: CrsCompletionRuleSet,
+  private val crsContextUpdater: CrsContextUpdater,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -114,6 +116,7 @@ class EligibilityService(
     val cas1 = calculateEligibilityForCas1(data)
     val cas3 = calculateEligibilityForCas3(data)
     val dtr = calculateEligibilityForDtr(data)
+    val crs = calculateEligibilityForCrs(data)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
@@ -121,6 +124,7 @@ class EligibilityService(
       cas3 = cas3,
       dtr = dtr,
       dutyToRefer = data.dutyToRefer,
+      crs = crs,
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
@@ -140,40 +144,32 @@ class EligibilityService(
     // Build tree declaratively:
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
-    val placementBooked = treeBuilder.placementBooked(data.cas1Application?.id)
 
     val eligibility =
       treeBuilder
-        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, commonContextUpdater)
+        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, cas1ContextUpdater)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
 
-    val completion =
-      treeBuilder
-        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1CompletionContextUpdater)
-        .onPass(placementBooked)
-        .onFail(confirmed)
-        .build()
-
     val suitability =
       treeBuilder
-        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1SuitabilityContextUpdater)
-        .onPass(completion)
-        .onFail(eligibility)
+        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility) // node above
         .build()
 
-    val upcoming =
+    val completion =
       treeBuilder
-        .ruleSet("Cas1Upcoming", cas1UpcomingRuleSet, cas1UpcomingContextUpdater)
-        .onPass(suitability)
-        .onFail(eligibility)
+        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1ContextUpdater)
+        .onPass(confirmed)
+        .onFail(suitability) // node above
         .build()
 
     val tree =
       treeBuilder
         .ruleSet("Cas1Validation", cas1ValidationRuleSet, commonContextUpdater)
-        .onPass(upcoming)
+        .onPass(completion)
         .onFail(notEligible)
         .build()
 
@@ -202,6 +198,50 @@ class EligibilityService(
       result.action,
       result.link,
     )
+  }
+
+  fun calculateEligibilityForCrs(data: DomainData): ServiceResult {
+    log.info("Calculating Crs eligibility for CRN: ${data.crn}")
+
+    data.commissionedRehabilitativeServices?.let {
+      log.info(
+        "CRS Data received: status={}, submissionDate={}",
+        it.status,
+        it.submissionDate,
+      )
+    } ?: log.info("CRS Data received: No CRS application")
+
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val eligibility =
+      treeBuilder
+        .ruleSet("CrsEligibility", crsEligibilityRuleSet, commonContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("CrsCompletion", crsCompletionRuleSet, crsContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility)
+        .build()
+
+    val initialContext =
+      EvaluationContext(
+        data = data,
+        currentResult =
+        ServiceResult(
+          serviceStatus = ServiceStatus.SUBMITTED,
+          link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+        ),
+      )
+
+    return tree.eval(initialContext).also {
+      log.info("Finished CRS calculating eligibility for CRN: ${data.crn}")
+      logServiceResult(it)
+    }
   }
 
   fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
@@ -354,6 +394,7 @@ class EligibilityService(
       cas1Application = eligibilityOrchestrationDto.data.cas1Application,
       cas3Application = eligibilityOrchestrationDto.data.cas3Application,
       currentAccommodationSummary = currentAccommodation,
+      commissionedRehabilitativeServices = eligibilityOrchestrationDto.data.commissionedRehabilitativeServices,
       dutyToRefer = dutyToRefer,
     )
   }

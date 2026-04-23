@@ -11,6 +11,7 @@ service:
   - probation-integration-oasys
   - approved-premises-api
   - core-person-record
+  - commissioned-rehabilitative-services
   - tier
   - accommodation-data-domain
   - nomis-user-roles

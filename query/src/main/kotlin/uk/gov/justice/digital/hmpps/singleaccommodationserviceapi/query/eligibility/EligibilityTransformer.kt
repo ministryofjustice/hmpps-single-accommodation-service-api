@@ -11,14 +11,17 @@ object EligibilityTransformer {
     cas3: ServiceResult,
     dtr: ServiceResult,
     dutyToRefer: DutyToReferDto?,
+    crs: ServiceResult,
   ) = EligibilityDto(
     crn = crn,
     cas1 = cas1,
     cas3 = cas3,
+    crs = crs,
     dtr = dtr,
     caseActions =
     listOf(
       dtr.action,
+      crs.action,
       cas1.action,
       cas3.action,
     ).mapNotNull { it },

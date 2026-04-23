@@ -17,6 +17,7 @@ generic-service:
     SERVICE_PROBATION-INTEGRATION-OASYS_BASE-URL: https://approved-premises-and-oasys-preprod.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-preprod.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-preprod.hmpps.service.justice.gov.uk
+    SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES_BASE-URL: unknown
     SERVICE_TIER_BASE-URL: https://hmpps-tier-preprod.hmpps.service.justice.gov.uk
     SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api-preprod.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api-preprod.prison.service.justice.gov.uk

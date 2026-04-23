@@ -3,9 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import java.time.LocalDate
@@ -20,6 +22,7 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
   crsStatus: String? = "SUBMITTED",
   dutyToRefer: DutyToReferDto? = null,
+  commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = buildCommissionedRehabilitativeServices(),
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -30,6 +33,7 @@ fun buildDomainData(
   cas3Application = cas3Application,
   crsStatus = crsStatus,
   dutyToRefer = dutyToRefer,
+  commissionedRehabilitativeServices = commissionedRehabilitativeServices,
 )
 
 fun buildCurrentAccommodation(

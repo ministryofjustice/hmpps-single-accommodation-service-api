@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -32,11 +33,13 @@ class DomainDataTest {
 
     val dutyToRefer = buildDutyToReferDto()
 
-    val currenAccommodation = buildCurrentAccommodation(
+    val currentAccommodation = buildCurrentAccommodation(
       endDate,
       isPrisonCas1Cas2OrCas2v2 = true,
       isPrivate = false,
     )
+
+    val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
 
     val expected = buildDomainData(
       crn = crn,
@@ -54,9 +57,10 @@ class DomainDataTest {
         bookingStatus = null,
         assessmentStatus = null,
       ),
-      currentAccommodation = currenAccommodation,
+      currentAccommodation = currentAccommodation,
       hasNextAccommodation = false,
       dutyToRefer = dutyToRefer,
+      commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     )
     val cpr = buildCorePersonRecord()
 
@@ -78,6 +82,7 @@ class DomainDataTest {
       cas1Application = expected.cas1Application,
       cas3Application = expected.cas3Application,
       currentAccommodationSummary = currentAccommodationSummary,
+      commissionedRehabilitativeServices = expected.commissionedRehabilitativeServices,
       dutyToRefer = dutyToRefer,
     )
 
@@ -115,6 +120,7 @@ class DomainDataTest {
       currentAccommodation = null,
       hasNextAccommodation = false,
       dutyToRefer = dutyToRefer,
+      commissionedRehabilitativeServices = null,
     )
     val result = DomainData(
       personDto = personDto,

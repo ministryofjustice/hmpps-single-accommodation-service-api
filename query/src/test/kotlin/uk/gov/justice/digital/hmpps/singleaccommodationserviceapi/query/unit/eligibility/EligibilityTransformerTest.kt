@@ -22,6 +22,7 @@ class EligibilityTransformerTest {
     cas1: ServiceResult,
     cas3: ServiceResult,
     dtr: ServiceResult,
+    crs: ServiceResult,
     caseActions: List<String>,
   ) {
     val actualEligibility = EligibilityTransformer.toEligibilityDto(
@@ -30,6 +31,7 @@ class EligibilityTransformerTest {
       cas3 = cas3,
       dtr = dtr,
       dutyToRefer = null,
+      crs = crs,
     )
 
     val expectedEligibility = buildEligibilityDto(
@@ -91,6 +93,7 @@ class EligibilityTransformerTest {
         notEligible,
         notEligible,
         notEligible,
+        notEligible,
         emptyList<String>(),
       ),
       Arguments.of(
@@ -110,6 +113,7 @@ class EligibilityTransformerTest {
       Arguments.of(
         CRN,
         confirmed,
+        notEligible,
         notEligible,
         notEligible,
         emptyList<String>(),

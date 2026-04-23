@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -22,6 +23,7 @@ data class DomainData(
   val cas3Application: Cas3Application?,
   val crsStatus: String? = "SUBMITTED",
   val dutyToRefer: DutyToReferDto?,
+  val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
 ) {
   constructor(
     crn: String,
@@ -32,6 +34,7 @@ data class DomainData(
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
     crsStatus: String? = "SUBMITTED",
+    commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
@@ -47,6 +50,7 @@ data class DomainData(
     cas3Application = cas3Application,
     crsStatus = crsStatus,
     dutyToRefer = dutyToRefer,
+    commissionedRehabilitativeServices = commissionedRehabilitativeServices,
   )
 
   constructor(
@@ -71,6 +75,7 @@ data class DomainData(
     },
     cas3Application = null,
     dutyToRefer = dutyToRefer,
+    commissionedRehabilitativeServices = null,
   )
 }
 
