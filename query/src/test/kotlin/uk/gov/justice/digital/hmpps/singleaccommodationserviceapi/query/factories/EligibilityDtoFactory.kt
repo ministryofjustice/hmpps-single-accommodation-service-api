@@ -8,10 +8,12 @@ fun buildEligibilityDto(
   crn: String,
   cas1: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   cas3: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+  crs: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   caseActions: List<String> = emptyList(),
 ) = EligibilityDto(
   crn,
   cas1,
   cas3,
+  crs,
   caseActions,
 )

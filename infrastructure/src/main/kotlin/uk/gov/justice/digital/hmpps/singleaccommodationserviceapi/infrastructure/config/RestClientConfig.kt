@@ -11,6 +11,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.HmppsAuthInterceptor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationDataDomainClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.ProbationIntegrationOasysClient
@@ -54,6 +55,12 @@ class RestClientConfig(
   open fun corePersonRecordClient(@Value($$"${service.core-person-record.base-url}") baseUrl: String) = createClient(
     baseUrl,
     CorePersonRecordClient::class,
+  )
+
+  @Bean
+  open fun commissionedRehabilitativeServicesClient(@Value($$"${service.commissioned-rehabilitative-services-client.base-url}") baseUrl: String) = createClient(
+    baseUrl,
+    CommissionedRehabilitativeServicesClient::class,
   )
 
   @Bean

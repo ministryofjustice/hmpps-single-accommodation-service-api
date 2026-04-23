@@ -15,6 +15,8 @@ service:
     base-url: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
   core-person-record:
     base-url: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
+  commissioned-rehabilitative-services:
+    base-url: unknown
   tier:
     base-url: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
   accommodation-data-domain:

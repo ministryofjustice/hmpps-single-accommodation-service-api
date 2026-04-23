@@ -83,6 +83,7 @@ class DomainDataTest {
       cas1Application = expected.cas1Application,
       cas3Application = expected.cas3Application,
       currentAccommodationSummary = currentAccommodationSummary,
+      commissionedRehabilitativeServices = null,
     )
 
     assertThat(result).isEqualTo(expected)

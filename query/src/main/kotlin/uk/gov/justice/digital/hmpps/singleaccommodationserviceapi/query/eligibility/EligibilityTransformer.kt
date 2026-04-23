@@ -9,10 +9,12 @@ object EligibilityTransformer {
     crn: String,
     cas1: ServiceResult,
     cas3: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+    crs: ServiceResult,
   ) = EligibilityDto(
     crn = crn,
     cas1 = cas1,
     cas3 = cas3,
+    crs = crs,
     caseActions =
     listOf(
       cas1.action,
