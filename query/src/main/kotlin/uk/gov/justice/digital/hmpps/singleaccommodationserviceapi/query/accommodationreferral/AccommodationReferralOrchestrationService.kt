@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
@@ -18,7 +20,7 @@ class AccommodationReferralOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
-  fun fetchAllReferralsAggregated(crn: String): AccommodationReferralOrchestrationDto {
+  fun fetchAllReferralsAggregated(crn: String): OrchestrationResultDto<AccommodationReferralOrchestrationDto> {
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },
       GET_CAS2_REFERRAL to { approvedPremisesCachingService.getCas2Referral(crn) },
@@ -42,6 +44,9 @@ class AccommodationReferralOrchestrationService(
       results.standardCallsNoIterationResults!!.getResult<List<ReferralHistory<TemporaryAccommodationAssessmentStatus>>>(GET_CAS3_REFERRAL)
         ?: emptyList()
 
-    return AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3)
+    return OrchestrationResultDto(
+      data = AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3),
+      upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
+    )
   }
 }
