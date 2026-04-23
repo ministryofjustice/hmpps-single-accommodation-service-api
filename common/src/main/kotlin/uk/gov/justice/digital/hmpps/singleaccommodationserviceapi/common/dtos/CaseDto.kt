@@ -12,8 +12,8 @@ data class CaseDto(
   val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedToDto?,
-  val currentAccommodation: AccommodationDetail?,
-  val nextAccommodation: AccommodationDetail?,
+  val currentAccommodation: AccommodationSummaryDto?,
+  val nextAccommodation: AccommodationSummaryDto?,
   val status: Status? = null,
   val actions: List<String> = emptyList(),
 )

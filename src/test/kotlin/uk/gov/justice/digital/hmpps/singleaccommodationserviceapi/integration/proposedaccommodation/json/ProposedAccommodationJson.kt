@@ -8,20 +8,17 @@ fun expectedGetProposedAccommodationsResponse(
   secondId: UUID,
   secondCreatedAt: String,
   crn: String,
-  caseId: UUID,
 ): String = """
 {
   "data": [
   {
     "id" : "$firstId",
-    "caseId" : "$caseId",
     "crn":"$crn",
     "name" : "Test Accommodation",
-    "arrangementType" : "PRIVATE",
-    "arrangementSubType" : "FRIENDS_OR_FAMILY",
-    "arrangementSubTypeDescription" : null,
-    "settledType" : "SETTLED",
-    "offenderReleaseType" : null,
+    "accommodationType": {
+      "code": "A07B",
+      "description": "Living in the home of a friend, family member or partner: settled"
+    },
     "verificationStatus" : "NOT_CHECKED_YET",
     "nextAccommodationStatus" : "TO_BE_DECIDED",
     "address" : {
@@ -43,14 +40,12 @@ fun expectedGetProposedAccommodationsResponse(
   },
   {
     "id" : "$secondId",
-    "caseId" : "$caseId", 
     "crn":"$crn",
     "name" : "Test Accommodation",
-    "arrangementType" : "PRIVATE",
-    "arrangementSubType" : "FRIENDS_OR_FAMILY",
-    "arrangementSubTypeDescription" : null,
-    "settledType" : "SETTLED",
-    "offenderReleaseType" : null,
+    "accommodationType": {
+      "code": "A07B",
+      "description": "Living in the home of a friend, family member or partner: settled"
+    },
     "verificationStatus" : "NOT_CHECKED_YET",
     "nextAccommodationStatus" : "TO_BE_DECIDED",
     "address" : {
@@ -76,21 +71,18 @@ fun expectedGetProposedAccommodationsResponse(
 
 fun expectedGetProposedAccommodationByIdResponse(
   id: UUID,
-  caseId: UUID,
   crn: String,
   createdAt: String,
 ): String = """
 {
   "data": {
   "id" : "$id",
-  "caseId" : "$caseId",
   "crn": "$crn",
   "name" : "Test Accommodation",
-  "arrangementType" : "PRIVATE",
-  "arrangementSubType" : "FRIENDS_OR_FAMILY",
-  "arrangementSubTypeDescription" : null,
-  "settledType" : "SETTLED",
-  "offenderReleaseType" : null,
+  "accommodationType": {
+    "code": "A07B",
+    "description": "Living in the home of a friend, family member or partner: settled"
+  },
   "verificationStatus" : "NOT_CHECKED_YET",
   "nextAccommodationStatus" : "TO_BE_DECIDED",
   "address" : {
@@ -114,6 +106,7 @@ fun expectedGetProposedAccommodationByIdResponse(
 """.trimIndent()
 
 fun proposedAddressesRequestBody(
+  accommodationTypeCode: String,
   verificationStatus: String,
   nextAccommodationStatus: String,
   subBuildingName: String? = "test sub building name",
@@ -123,11 +116,7 @@ fun proposedAddressesRequestBody(
 ) = """
   {
     "name" : "Mother's caravan",
-    "arrangementType" : "PRIVATE",
-    "arrangementSubType" : "OTHER",
-    "arrangementSubTypeDescription" : "Caravan site",
-    "settledType" : "SETTLED",
-    "offenderReleaseType" : "REMAND",
+    "accommodationTypeCode" : "$accommodationTypeCode",
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
@@ -165,8 +154,9 @@ fun proposedAccommodationNoteRequestBody(
 
 fun expectedProposedAddressesResponseBody(
   id: UUID,
-  caseId: UUID,
   crn: String,
+  accommodationTypeCode: String,
+  accommodationTypeDescription: String,
   verificationStatus: String,
   nextAccommodationStatus: String,
   createdBy: String,
@@ -174,14 +164,12 @@ fun expectedProposedAddressesResponseBody(
 ): String = """
 {
   "id" : "$id",
-  "caseId" : "$caseId",
   "crn":"$crn",
   "name" : "Mother's caravan",
-  "arrangementType" : "PRIVATE",
-  "arrangementSubType" : "OTHER",
-  "arrangementSubTypeDescription" : "Caravan site",
-  "settledType" : "SETTLED",
-  "offenderReleaseType" : "REMAND",
+  "accommodationType" : {
+    "code": "$accommodationTypeCode",
+    "description": "$accommodationTypeDescription"
+  },
   "verificationStatus" : "$verificationStatus",
   "nextAccommodationStatus" : "$nextAccommodationStatus",
   "address" : {
