@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
@@ -51,14 +52,14 @@ class AccommodationReferralServiceTest {
         cas3Referrals = emptyList(),
       )
 
-      every { orchestrationService.fetchAllReferralsAggregated(crn) } returns orchestrationDto
+      every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result).hasSize(3)
-      assertThat(result[0].date).isEqualTo(newerDate)
-      assertThat(result[1].date).isEqualTo(middleDate)
-      assertThat(result[2].date).isEqualTo(olderDate)
+      assertThat(result.data).hasSize(3)
+      assertThat(result.data[0].date).isEqualTo(newerDate)
+      assertThat(result.data[1].date).isEqualTo(middleDate)
+      assertThat(result.data[2].date).isEqualTo(olderDate)
     }
 
     @Test
@@ -70,23 +71,23 @@ class AccommodationReferralServiceTest {
         cas3Referrals = emptyList(),
       )
 
-      every { orchestrationService.fetchAllReferralsAggregated(crn) } returns orchestrationDto
+      every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result).isEmpty()
+      assertThat(result.data).isEmpty()
     }
 
     @Test
     fun `should transform all referral types correctly`() {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto()
 
-      every { orchestrationService.fetchAllReferralsAggregated(crn) } returns orchestrationDto
+      every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result).hasSize(4)
-      assertThat(result).containsExactlyInAnyOrderElementsOf(
+      assertThat(result.data).hasSize(4)
+      assertThat(result.data).containsExactlyInAnyOrderElementsOf(
         AccommodationReferralTransformer.transformReferrals(orchestrationDto),
       )
     }

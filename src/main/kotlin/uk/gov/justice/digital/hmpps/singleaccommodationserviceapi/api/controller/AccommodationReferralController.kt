@@ -24,6 +24,6 @@ class AccommodationReferralController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   fun getApplicationHistory(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<AccommodationReferralDto>>> {
     val referralHistory = accommodationReferralService.getReferralHistory(crn)
-    return ResponseEntity.ok(ApiResponseDto(data = referralHistory))
+    return ResponseEntity.ok(referralHistory)
   }
 }
