@@ -14,7 +14,6 @@ fun buildCaseDto(
   dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
   prisonNumber: String? = "PRI1",
   tierScore: TierScore? = TierScore.A1,
-  tier: TierScore? = TierScore.A1,
   riskLevel: RiskLevel? = RiskLevel.VERY_HIGH,
   pncReference: String? = "Some PNC Reference",
   assignedTo: AssignedToDto? = buildAssignedToDto(),
@@ -39,7 +38,6 @@ fun buildCaseDto(
 )
 
 fun buildAssignedToDto(
-  id: Long? = 1L,
   name: String = "First Middle Last",
   username: String? = "user1",
   staffCode: String? = "ABCD1234",
