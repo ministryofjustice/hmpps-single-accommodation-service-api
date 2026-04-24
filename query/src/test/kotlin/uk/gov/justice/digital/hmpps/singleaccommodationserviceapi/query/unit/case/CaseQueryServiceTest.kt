@@ -188,7 +188,6 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data.riskLevel).isNull()
-      assertThat(result.data.tier).isNull()
       assertThat(result.upstreamFailures).hasSize(2)
     }
   }

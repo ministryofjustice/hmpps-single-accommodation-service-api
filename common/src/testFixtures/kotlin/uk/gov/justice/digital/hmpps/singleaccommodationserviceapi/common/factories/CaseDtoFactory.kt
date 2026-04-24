@@ -29,7 +29,6 @@ fun buildCaseDto(
   prisonNumber,
   photoUrl = null,
   tierScore,
-  tier,
   riskLevel,
   pncReference,
   assignedTo,
@@ -45,7 +44,6 @@ fun buildAssignedToDto(
   username: String? = "user1",
   staffCode: String? = "ABCD1234",
 ) = AssignedToDto(
-  id,
   name,
   username,
   staffCode,

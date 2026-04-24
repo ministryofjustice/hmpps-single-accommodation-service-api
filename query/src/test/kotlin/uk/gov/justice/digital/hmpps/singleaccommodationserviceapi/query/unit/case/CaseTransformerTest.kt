@@ -94,11 +94,9 @@ class CaseTransformerTest {
       crn = CRN,
       prisonNumber = "PRI1",
       tierScore = TierScore.A1,
-      tier = TierScore.A1,
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(
-        1L,
         name = "Team 1",
         username = null,
         staffCode = null,

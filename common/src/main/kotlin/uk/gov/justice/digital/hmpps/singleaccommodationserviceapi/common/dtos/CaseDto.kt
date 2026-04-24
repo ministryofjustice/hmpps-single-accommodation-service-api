@@ -9,8 +9,6 @@ data class CaseDto(
   val prisonNumber: String?,
   val photoUrl: String?,
   val tierScore: TierScore?,
-  @Deprecated("no longer be surfacing this with the new `case-list` endpoint - to be removed soon")
-  val tier: TierScore?,
   val riskLevel: RiskLevel?,
   val pncReference: String?,
   val assignedTo: AssignedToDto?,
@@ -21,8 +19,6 @@ data class CaseDto(
 )
 
 data class AssignedToDto(
-  @Deprecated("no longer be surfacing this with the new `case-list` endpoint - to be removed soon")
-  val id: Long?,
   val name: String,
   val username: String? = null,
   val staffCode: String? = null,

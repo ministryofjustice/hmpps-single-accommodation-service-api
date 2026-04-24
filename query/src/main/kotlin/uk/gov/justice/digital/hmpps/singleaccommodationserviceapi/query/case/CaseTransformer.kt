@@ -26,11 +26,10 @@ object CaseTransformer {
     crn = crn,
     prisonNumber = cpr?.identifiers?.prisonNumbers?.firstOrNull(),
     tierScore = tier?.let { toTierScore(tier.tierScore) },
-    tier = tier?.let { toTierScore(tier.tierScore) },
     riskLevel = roshDetails?.let { RiskLevelTransformer.determineOverallRiskLevel(roshDetails.rosh) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
     assignedTo = caseSummaries?.firstOrNull()?.manager?.team?.name?.let {
-      AssignedToDto(1L, name = it, username = null, staffCode = null)
+      AssignedToDto(name = it, username = null, staffCode = null)
     },
     photoUrl = null,
     currentAccommodation = null,
@@ -48,11 +47,14 @@ object CaseTransformer {
     dateOfBirth = person.dateOfBirth,
     crn = person.crn,
     prisonNumber = person.nomsNumber,
-    tier = caseEntity?.tierScore?.let { toTierScore(it) },
     // TODO check that we are transforming the risk level correctly
     riskLevel = person.roshLevel?.let { RiskLevel.findByCode(it.code) },
     pncReference = person.pncNumber,
-    assignedTo = AssignedToDto(id = 1L, name = toFullName(person.staff.name), username = person.staff.username, staffCode = person.staff.code),
+    assignedTo = AssignedToDto(
+      name = toFullName(person.staff.name),
+      username = person.staff.username,
+      staffCode = person.staff.code,
+    ),
     photoUrl = null,
     currentAccommodation = null,
     nextAccommodation = null,
