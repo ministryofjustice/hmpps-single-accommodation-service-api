@@ -3,8 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -148,6 +153,40 @@ class CaseControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
+      }
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value = [
+      "VERY_HIGH,19",
+      "MEDIUM,1",
+      "LOW,0",
+      "'',20", // empty string
+    ],
+  )
+  fun `should filter cases based on risk level successful response from case-list`(
+    riskLevel: String,
+    expectedCount: Int,
+  ) {
+    stubCaseList()
+    seedCaseEntities()
+    stubAdditionalCorePersonRecords()
+
+    val response = restTestClient.get().uri {
+      it.path("/case-list")
+        .queryParam("riskLevel", riskLevel).build()
+    }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    response.expectBody()
+      .jsonPath("$.data.length()").isEqualTo(expectedCount)
+
+    response.expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
+      .value { dto ->
+        assertThat(dto!!.data.map { it.riskLevel?.name }).hasSize(expectedCount)
+          .allMatch { riskLevel.isEmpty() || it == riskLevel }
       }
   }
 
