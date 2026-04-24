@@ -115,6 +115,7 @@ class ResourceSecurityIT : IntegrationTestBase() {
 private val dutyToReferControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/dtr/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /cases/{crn}/dtr/{id}/timeline" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "GET /duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
     "GET /cases/{crn}/dtr" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
     "PUT /cases/{crn}/dtr/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),

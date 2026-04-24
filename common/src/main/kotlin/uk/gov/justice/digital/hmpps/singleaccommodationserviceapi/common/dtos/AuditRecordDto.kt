@@ -3,6 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.Instant
 
+fun AuditRecordDto.withExtraInformation(vararg entries: Pair<String, String?>): AuditRecordDto {
+  val nonNull = entries.mapNotNull { (k, v) -> v?.let { k to it } }
+  return if (nonNull.isEmpty()) this else copy(extraInformation = extraInformation + nonNull)
+}
+
 data class AuditRecordDto(
   val type: AuditRecordType,
   val author: String,
@@ -13,6 +18,7 @@ data class AuditRecordDto(
   )
   val commitDate: Instant,
   val changes: List<FieldChange>,
+  val extraInformation: Map<String, String> = emptyMap(),
 )
 
 enum class AuditRecordType {

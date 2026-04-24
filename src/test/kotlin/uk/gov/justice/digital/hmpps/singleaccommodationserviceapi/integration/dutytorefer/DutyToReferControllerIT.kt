@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
+import org.javers.core.Javers
+import org.javers.repository.jql.QueryBuilder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -10,7 +13,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.ass
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
@@ -22,13 +27,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.createDtrRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.dtrNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedDutyToReferUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDtrResponseBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedNotStartedDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
@@ -51,6 +59,9 @@ class DutyToReferControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseRepository: CaseRepository
+
+  @Autowired
+  private lateinit var javers: Javers
 
   private lateinit var crn: String
   private lateinit var case: CaseEntity
@@ -511,6 +522,173 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return DTR timeline when a DTR is created`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val createdDtr = restTestClient.post().uri("/cases/{crn}/dtr", crn)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-001",
+          status = "SUBMITTED",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val createdDtrId = ObjectMapper().readTree(createdDtr).get("submission").get("id").asText()
+    val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdDtrId))
+    assertThat(commitTimesAsc).hasSize(1)
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetDutyToReferTimelineResponse(
+            dutyToReferId = UUID.fromString(createdDtrId),
+            caseId = case.id,
+            localAuthorityAreaId = localAuthorityArea.id,
+            localAuthorityAreaName = localAuthorityArea.name,
+            createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return DTR timeline when it is created, a note is added, and it is updated twice`() {
+    val initialLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val updatedLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
+
+    val createdDtr = restTestClient.post().uri("/cases/{crn}/dtr", crn)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = initialLocalAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-001",
+          status = "SUBMITTED",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val createdDtrId = ObjectMapper().readTree(createdDtr).get("submission").get("id").asText()
+
+    restTestClient.post().uri("/cases/{crn}/dtr/{id}/notes", crn, createdDtrId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(dtrNoteRequestBody(note = "Test note"))
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    NomisUserRolesStubs.stubMe(
+      jwt = jwtAuthHelper.createJwtAccessToken(
+        USERNAME_OF_LOGGED_IN_NOMIS_USER,
+        roles = listOf("ROLE_POM", "ROLE_PRISON"),
+        authSource = AuthSource.NOMIS.source,
+      ),
+      response = buildNomisUserDetail(
+        USERNAME_OF_LOGGED_IN_NOMIS_USER,
+        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = initialLocalAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-002",
+          status = EntityDtrStatus.NOT_ACCEPTED.name,
+        ),
+      )
+      .withNomisUserJwt()
+      .exchangeSuccessfully()
+
+    restTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = updatedLocalAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-002",
+          status = EntityDtrStatus.ACCEPTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdDtrId))
+    assertThat(commitTimesAsc).hasSize(3)
+    val createNoteCommitTime = dutyToReferRepository.findByIdAndCrnWithNotes(UUID.fromString(createdDtrId), crn)!!
+      .notes.first().createdAt
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetDutyToReferTimelineResponse(
+            dutyToReferId = UUID.fromString(createdDtrId),
+            caseId = case.id,
+            initialLocalAuthorityAreaId = initialLocalAuthorityArea.id,
+            initialLocalAuthorityAreaName = initialLocalAuthorityArea.name,
+            updatedLocalAuthorityAreaId = updatedLocalAuthorityArea.id,
+            updatedLocalAuthorityAreaName = updatedLocalAuthorityArea.name,
+            createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+            createNoteCommitTime = createNoteCommitTime!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            update1CommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
+            update2CommitTime = commitTimesAsc[2].truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return 404 for timeline when DTR not found`() {
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, UUID.randomUUID())
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should return 404 for timeline when crn does not match`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val entity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", "OTHERCRN", entity.id)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  private fun getCommitTimesAsc(dutyToReferId: UUID): List<Instant> {
+    val changes = javers.findChanges(
+      QueryBuilder.byInstanceId(dutyToReferId, DutyToReferEntity::class.java).build(),
+    )
+    return changes.groupBy { it.commitMetadata.get().id }.entries
+      .map { (_, commitChanges) -> commitChanges.first().commitMetadata.get().commitDateInstant }
+      .sorted()
   }
 
   private fun assertPersistedDutyToRefer(
