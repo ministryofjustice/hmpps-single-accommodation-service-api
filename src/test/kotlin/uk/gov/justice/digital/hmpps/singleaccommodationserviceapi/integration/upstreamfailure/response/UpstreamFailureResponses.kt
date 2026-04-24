@@ -8,10 +8,9 @@ private fun caseJson(
   crn: String = "FAKECRN1",
   prisonNumber: String? = "PRI1",
   tierScore: String? = "A1",
-  tier: String? = "A1",
   riskLevel: String? = "VERY_HIGH",
   pncReference: String? = "Some PNC Reference",
-  assignedTo: String = """{ "id": 1, "name": "Team 1", "username": null, "staffCode": null }""",
+  assignedTo: String = """{ "name": "Team 1", "username": null, "staffCode": null }""",
 ) = """
 {
   "name": ${if (name != null) "\"$name\"" else "null"},
@@ -20,7 +19,6 @@ private fun caseJson(
   "prisonNumber": ${if (prisonNumber != null) "\"$prisonNumber\"" else "null"},
   "photoUrl": null,
   "tierScore": ${if (tierScore != null) "\"$tierScore\"" else "null"},
-  "tier": ${if (tier != null) "\"$tier\"" else "null"},
   "riskLevel": ${if (riskLevel != null) "\"$riskLevel\"" else "null"},
   "pncReference": ${if (pncReference != null) "\"$pncReference\"" else "null"},
   "assignedTo": $assignedTo,
@@ -113,10 +111,19 @@ fun expectedSingleCrnRoshServerError() = """{ "data": ${caseJson(riskLevel = nul
 fun expectedSingleCrnRoshTimeout() = """{ "data": ${caseJson(riskLevel = null)}, "upstreamFailures": [${roshTimeoutFailure("FAKECRN1")}] }"""
 
 @TestData
-fun expectedSingleCrnTierServerError() = """{ "data": ${caseJson(tierScore = null, tier = null)}, "upstreamFailures": [${tierServerErrorFailure()}] }"""
+fun expectedSingleCrnTierServerError() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierServerErrorFailure()}] }"""
 
 @TestData
-fun expectedSingleCrnTierTimeout() = """{ "data": ${caseJson(tierScore = null, tier = null)}, "upstreamFailures": [${tierTimeoutFailure("FAKECRN1")}] }"""
+fun expectedSingleCrnTierTimeout() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierTimeoutFailure("FAKECRN1")}] }"""
 
 @TestData
-fun expectedSingleCrnAllUpstreamFailures() = """{ "data": ${caseJson(name = null, dateOfBirth = null, prisonNumber = null, pncReference = null, tierScore = null, tier = null, riskLevel = null)}, "upstreamFailures": [${cprServerErrorFailure()}, ${roshServerErrorFailure()}, ${tierServerErrorFailure()}] }"""
+fun expectedSingleCrnAllUpstreamFailures() = """{ "data": ${
+  caseJson(
+    name = null,
+    dateOfBirth = null,
+    prisonNumber = null,
+    pncReference = null,
+    tierScore = null,
+    riskLevel = null,
+  )
+}, "upstreamFailures": [${cprServerErrorFailure()}, ${roshServerErrorFailure()}, ${tierServerErrorFailure()}] }"""

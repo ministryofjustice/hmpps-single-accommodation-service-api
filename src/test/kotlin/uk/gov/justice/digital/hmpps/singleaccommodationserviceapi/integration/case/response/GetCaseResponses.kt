@@ -12,11 +12,9 @@ fun expectedGetCaseResponse(): String = """
     "prisonNumber" : "PRI1",
     "photoUrl" : null,
     "tierScore" : "A1",
-    "tier" : "A1",
     "riskLevel" : "VERY_HIGH",
     "pncReference" : "Some PNC Reference",
     "assignedTo" : {
-      "id" : 1,
       "name" : "Team 1",
       "username" : null,
       "staffCode" : null
