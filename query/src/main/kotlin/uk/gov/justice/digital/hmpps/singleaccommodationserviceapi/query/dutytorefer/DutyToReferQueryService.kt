@@ -86,7 +86,7 @@ class DutyToReferQueryService(
 
     val laIdPerRecord = sorted.map { record ->
       val atCommit = effectiveLaId
-      val laIdChange = record.changes.firstOrNull { it.field == "localAuthorityAreaId" } as? UpdateFieldChangeDto
+      val laIdChange = record.changes.filterIsInstance<UpdateFieldChangeDto>().firstOrNull { it.field == "localAuthorityAreaId" }
       if (laIdChange != null) {
         effectiveLaId = laIdChange.oldValue?.let(UUID::fromString)
       }
