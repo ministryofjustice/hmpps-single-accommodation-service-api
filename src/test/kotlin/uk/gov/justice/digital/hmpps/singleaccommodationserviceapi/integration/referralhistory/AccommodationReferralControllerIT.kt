@@ -31,28 +31,24 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
 
     val cas1Response: List<Cas1ReferralHistory> = listOf(
       buildReferralHistory(
-        casService = CasService.CAS1,
         createdAt = Instant.parse("2025-03-01T00:00:00Z"),
         status = Cas1AssessmentStatus.IN_PROGRESS,
       ),
     )
     val cas2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
-        casService = CasService.CAS2,
         createdAt = Instant.parse("2025-01-01T00:00:00Z"),
         status = Cas2Status.AWAITING_DECISION,
       ),
     )
     val cas2v2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
-        casService = CasService.CAS2v2,
         createdAt = Instant.parse("2025-04-01T00:00:00Z"),
         status = Cas2Status.PLACE_OFFERED,
       ),
     )
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
-        casService = CasService.CAS3,
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
         status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
       ),

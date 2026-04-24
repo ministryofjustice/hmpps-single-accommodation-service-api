@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
@@ -41,14 +40,12 @@ class AccommodationReferralServiceTest {
 
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = listOf(
-          buildReferralHistory(CasService.CAS1, Cas1AssessmentStatus.COMPLETED, createdAt = olderDate),
+          buildReferralHistory(Cas1AssessmentStatus.COMPLETED, createdAt = olderDate),
         ),
         cas2Referrals = listOf(
-          buildReferralHistory(CasService.CAS2, Cas2Status.PLACE_OFFERED, createdAt = newerDate),
+          buildReferralHistory(Cas2Status.PLACE_OFFERED, createdAt = newerDate),
         ),
-        cas2v2Referrals = listOf(
-          buildReferralHistory(CasService.CAS2v2, Cas2Status.AWAITING_DECISION, createdAt = middleDate),
-        ),
+        cas2v2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate)),
         cas3Referrals = emptyList(),
       )
 
