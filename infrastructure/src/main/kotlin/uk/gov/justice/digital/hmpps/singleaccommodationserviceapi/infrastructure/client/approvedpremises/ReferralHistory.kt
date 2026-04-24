@@ -7,7 +7,6 @@ import java.util.UUID
 sealed interface CasReferralHistory
 
 data class Cas1ReferralHistory(
-  val casService: CasService,
   val id: UUID,
   val applicationId: UUID,
   val status: Cas1AssessmentStatus,
@@ -31,7 +30,6 @@ data class Cas1ReferralHistory(
 }
 
 data class Cas2ReferralHistory(
-  val casService: CasService,
   val id: UUID,
   val applicationId: UUID,
   val status: Cas2Status,
@@ -58,7 +56,6 @@ data class Cas2ReferralHistory(
 }
 
 data class Cas3ReferralHistory(
-  val casService: CasService,
   val id: UUID,
   val applicationId: UUID,
   val status: TemporaryAccommodationAssessmentStatus,
