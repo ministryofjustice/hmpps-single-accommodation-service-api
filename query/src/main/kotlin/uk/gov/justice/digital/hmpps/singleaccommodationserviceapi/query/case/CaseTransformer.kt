@@ -3,12 +3,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationdelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationoasys.RoshDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore as TierScoreInfra
@@ -43,15 +41,15 @@ object CaseTransformer {
     caseEntity: CaseEntity?,
     eligibility: EligibilityDto,
   ) = CaseDto(
-    name = toFullName(person.name),
+    name = person.name,
     dateOfBirth = person.dateOfBirth,
     crn = person.crn,
     prisonNumber = person.nomsNumber,
     // TODO check that we are transforming the risk level correctly
-    riskLevel = person.roshLevel?.let { RiskLevel.findByCode(it.code) },
+    riskLevel = person.roshLevel,
     pncReference = person.pncNumber,
     assignedTo = AssignedToDto(
-      name = toFullName(person.staff.name),
+      name = person.staff.name.fullName,
       username = person.staff.username,
       staffCode = person.staff.code,
     ),
@@ -62,12 +60,6 @@ object CaseTransformer {
     status = null,
     actions = eligibility.caseActions,
   )
-
-  fun toFullName(name: Name) = listOfNotNull(
-    name.forename,
-    name.middleName?.takeIf { it.isNotBlank() },
-    name.surname,
-  ).joinToString(" ")
 
   fun toFullName(cpr: CorePersonRecord) = listOfNotNull(
     cpr.firstName,

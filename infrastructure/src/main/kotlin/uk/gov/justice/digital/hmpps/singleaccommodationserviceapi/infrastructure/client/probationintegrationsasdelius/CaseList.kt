@@ -13,9 +13,9 @@ data class Case(
   val pncNumber: String?,
   val dateOfBirth: LocalDate,
   val staff: Officer,
-  val team: CodeDescription,
+  val team: Team,
   val gender: String,
-  val roshLevel: CodeDescription?,
+  val roshLevel: RoshLevel?,
   val userExcluded: Boolean,
   val userRestricted: Boolean,
   val exclusionMessage: String?,
@@ -26,7 +26,14 @@ data class Name(
   val forename: String,
   val middleName: String?,
   val surname: String,
-)
+) {
+  val fullName: String
+    get() = listOfNotNull(
+      forename,
+      middleName?.takeIf { it.isNotBlank() },
+      surname,
+    ).joinToString(" ")
+}
 
 data class Officer(
   val name: Name,
@@ -34,7 +41,12 @@ data class Officer(
   val code: String,
 )
 
-data class CodeDescription(
+data class RoshLevel(
+  val code: String,
+  val description: String,
+)
+
+data class Team(
   val code: String,
   val description: String,
 )
