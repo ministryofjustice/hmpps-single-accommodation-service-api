@@ -36,7 +36,7 @@ class ProposedAccommodationQueryService(
 
   fun getProposedAccommodation(id: UUID): AccommodationDetail {
     val entity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
-    val case = caseRepository.findByIdOrNull(entity.caseId).orThrowNotFound("id" to entity.id)
+    val case = caseRepository.findWithIdentifiersById(entity.caseId).orThrowNotFound("id" to entity.id)
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     return ProposedAccommodationTransformer.toAccommodationDetail(entity, case.latestCrn(), createdByUser!!.name)
   }

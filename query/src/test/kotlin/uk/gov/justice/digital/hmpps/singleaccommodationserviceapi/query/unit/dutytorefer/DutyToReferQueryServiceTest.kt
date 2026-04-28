@@ -224,7 +224,7 @@ class DutyToReferQueryServiceTest {
         name = "Test Local Authority",
       )
       every { dutyToReferRepository.findById(id) } returns Optional.of(dtrEntity)
-      every { caseRepository.findByIdOrNull(caseId) } returns buildCaseEntity { withCrn(crn) }
+      every { caseRepository.findWithIdentifiersById(caseId) } returns buildCaseEntity { withCrn(crn) }
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
       every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
 
