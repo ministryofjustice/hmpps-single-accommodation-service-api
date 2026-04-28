@@ -32,10 +32,10 @@ class RuleSetNode(
   }
 
   override fun eval(context: EvaluationContext): ServiceResult {
-    log.debug("Executing RuleSet: $ruleSetName")
+    log.info("Executing RuleSet: $ruleSetName")
 
     val ruleSetStatus = engine.execute(ruleSet, context.data).also {
-      log.debug("RuleSet Result: {}", it)
+      log.info("RuleSet Result: {}", it)
     }
 
     // Branch based on result: PASS returns current context unchanged, FAIL updates context

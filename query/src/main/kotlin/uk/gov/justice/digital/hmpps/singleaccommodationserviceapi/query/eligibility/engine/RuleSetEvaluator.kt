@@ -16,10 +16,10 @@ class DefaultRuleSetEvaluator : RuleSetEvaluator {
 
   override fun evaluate(ruleset: RuleSet, data: DomainData): List<RuleResult> = ruleset.getRules()
     .map { rule ->
-      log.debug("Evaluating rule: {}", rule.description)
+      log.info("Evaluating rule: {}", rule.description)
 
       rule.evaluate(data).also {
-        log.debug("Rule result: {}", it.ruleStatus)
+        log.info("Rule result: {}", it.ruleStatus)
       }
     }
 }
