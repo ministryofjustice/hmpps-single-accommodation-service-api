@@ -22,7 +22,7 @@ fun buildUpcomingAction(endDate: LocalDate, today: LocalDate, initialText: Strin
 }
 
 fun isLessThan56DaysInTheFuture(endDate: LocalDate?, today: LocalDate): Boolean {
-  if (endDate == null) return true
+  if (endDate == null) return false
   val fiftySixDaysFromNow = today.plusDays(56)
   return endDate <= fiftySixDaysFromNow
 }
@@ -33,7 +33,7 @@ fun isLessThanOneYearInTheFuture(endDate: LocalDate?, today: LocalDate): Boolean
   return endDate <= oneYearFromNow
 }
 
-fun isWithin12weeksInThePast(endDate: LocalDate?, today: LocalDate): Boolean {
+fun isMoreThan12weeksInThePast(endDate: LocalDate?, today: LocalDate): Boolean {
   if (endDate == null) return false
   val twelveWeeksInThePast = today.minusWeeks(12)
 

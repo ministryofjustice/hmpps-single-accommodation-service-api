@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThan56DaysInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isWithin12weeksInThePast
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isMoreThan12weeksInThePast
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
@@ -100,11 +100,11 @@ class EligibilityUtilsTest {
   }
 
   @Nested
-  inner class IsWithin12weeksInThePast {
+  inner class IsMoreThan12weeksInThePast {
     @Test
     fun `Returns false when end date is missing`() {
       val today = LocalDate.now(clock)
-      val result = isWithin12weeksInThePast(null, today)
+      val result = isMoreThan12weeksInThePast(null, today)
       assertThat(result).isFalse()
     }
 
@@ -113,7 +113,7 @@ class EligibilityUtilsTest {
       val endDate = LocalDate.parse("2026-12-31")
       clock.setNow(endDate.plusDays(83))
       val today = LocalDate.now(clock)
-      val result = isWithin12weeksInThePast(endDate, today)
+      val result = isMoreThan12weeksInThePast(endDate, today)
       assertThat(result).isTrue()
     }
 
@@ -122,7 +122,7 @@ class EligibilityUtilsTest {
       val endDate = LocalDate.parse("2026-12-31")
       clock.setNow(endDate.plusWeeks(12))
       val today = LocalDate.now(clock)
-      val result = isWithin12weeksInThePast(endDate, today)
+      val result = isMoreThan12weeksInThePast(endDate, today)
       assertThat(result).isTrue()
     }
 
@@ -131,7 +131,7 @@ class EligibilityUtilsTest {
       val endDate = LocalDate.parse("2026-12-31")
       clock.setNow(endDate.plusDays(85))
       val today = LocalDate.now(clock)
-      val result = isWithin12weeksInThePast(endDate, today)
+      val result = isMoreThan12weeksInThePast(endDate, today)
       assertThat(result).isFalse()
     }
   }
