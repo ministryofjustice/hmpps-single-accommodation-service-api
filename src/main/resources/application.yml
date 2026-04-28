@@ -1,7 +1,6 @@
 info.app:
   name: HMPPS Single Accommodation Service Api
   version: 1.0
-
 spring:
   autoconfigure:
     exclude:
@@ -12,6 +11,8 @@ spring:
     name: hmpps-single-accommodation-service-api
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
+  jpa:
+    open-in-view: false
   security:
     oauth2:
       resourceserver:

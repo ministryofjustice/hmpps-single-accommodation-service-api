@@ -56,6 +56,9 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
   )
   fun findByCrns(crns: List<String>): List<CaseEntity>
 
+  @EntityGraph(attributePaths = ["caseIdentifiers"])
+  fun findWithIdentifiersById(id: UUID): CaseEntity?
+
   @Query(
     """
 SELECT identifier

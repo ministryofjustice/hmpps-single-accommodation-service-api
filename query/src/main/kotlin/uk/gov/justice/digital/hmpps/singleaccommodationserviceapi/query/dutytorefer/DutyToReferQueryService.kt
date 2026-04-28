@@ -54,7 +54,7 @@ class DutyToReferQueryService(
 
   fun getDutyToRefer(id: UUID): DutyToReferDto {
     val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
-    val caseEntity = caseRepository.findByIdOrNull(dtrEntity.caseId).orThrowNotFound("id" to id)
+    val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
     val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
 

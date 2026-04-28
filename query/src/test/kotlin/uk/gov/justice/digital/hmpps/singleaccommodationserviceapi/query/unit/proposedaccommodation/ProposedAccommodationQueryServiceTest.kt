@@ -157,7 +157,7 @@ class ProposedAccommodationQueryServiceTest {
       val userEntity = buildUserEntity()
       every { proposedAccommodationRepository.findByIdOrNull(id) } returns proposedAccommodationEntity
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
-      every { caseRepository.findByIdOrNull(caseId) } returns buildCaseEntity()
+      every { caseRepository.findWithIdentifiersById(caseId) } returns buildCaseEntity()
 
       val result = service.getProposedAccommodation(id)
 
