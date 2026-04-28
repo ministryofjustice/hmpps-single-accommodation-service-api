@@ -18,7 +18,9 @@ class DefaultRuleSetEvaluator : RuleSetEvaluator {
     .map { rule ->
       log.debug("Evaluating rule: {}", rule.description)
 
-      rule.evaluate(data).also { log.debug("Rule result: {}", it.ruleStatus) }
+      rule.evaluate(data).also {
+        log.debug("Rule result: {}", it.ruleStatus)
+      }
     }
 }
 

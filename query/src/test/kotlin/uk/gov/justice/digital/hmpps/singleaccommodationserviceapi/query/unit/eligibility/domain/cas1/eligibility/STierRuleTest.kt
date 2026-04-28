@@ -10,8 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class STierRuleTest {
-  private val crn = "ABC234"
-
   @ParameterizedTest(name = "{0}")
   @EnumSource(
     value = TierScore::class,
@@ -32,7 +30,6 @@ class STierRuleTest {
   )
   fun `candidate passes`(tierScore: TierScore) {
     val data = buildDomainData(
-      crn = crn,
       tierScore = tierScore,
     )
 
@@ -61,7 +58,6 @@ class STierRuleTest {
   )
   fun `candidate fails`(tierScore: TierScore) {
     val data = buildDomainData(
-      crn = crn,
       tierScore = tierScore,
     )
 

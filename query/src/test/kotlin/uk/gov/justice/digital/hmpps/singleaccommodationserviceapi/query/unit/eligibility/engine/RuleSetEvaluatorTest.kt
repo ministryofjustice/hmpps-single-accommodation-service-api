@@ -73,7 +73,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.A1,
         sex = SexCode.M,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
       )
 
       val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -112,7 +112,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.A1S,
         sex = SexCode.M,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
@@ -131,7 +131,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.C1,
         sex = SexCode.F,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(3)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(3)),
       )
       val result = defaultRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
@@ -154,7 +154,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.A1,
         sex = SexCode.M,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
       )
 
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
@@ -170,7 +170,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.A1S,
         sex = SexCode.F,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
@@ -187,7 +187,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.A1S,
         sex = SexCode.M,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 
@@ -204,7 +204,7 @@ class RuleSetEvaluatorTest {
         crn = crn,
         tierScore = TierScore.C1,
         sex = SexCode.F,
-        currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusMonths(7)),
+        currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
       )
       val result = circuitBreakRuleSetEvaluator.evaluate(cas1EligibilityRuleSet, data)
 

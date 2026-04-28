@@ -18,4 +18,8 @@ object EligibilityKeys {
   const val CONTINUE_APPLICATION = "Continue application"
   const val START_NEW_APPLICATION = "Start new application"
   const val WAIT_FOR_CAS3_ASSESSMENT_RESULT = "Wait for CAS3 assessment result"
+  const val ADD_DTR_OUTCOME = "Add DTR outcome"
+  const val ADD_OUTCOME = "Add outcome"
+  const val ADD_DTR_REFERRAL_DETAILS = "Add DTR referral details"
+  const val ADD_REFERRAL_DETAILS = "Add referral details"
 }
