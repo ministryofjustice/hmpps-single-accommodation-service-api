@@ -11,12 +11,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
 class CrsContextUpdaterTest {
-  private val clock = MutableClock()
-  private val updater = CrsContextUpdater(clock)
+  private val updater = CrsContextUpdater()
 
   @Nested
   inner class UpdateTests {
@@ -25,7 +23,7 @@ class CrsContextUpdaterTest {
       val data = buildDomainData(
         commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
           status = CrsStatus.COMPLETED,
-          submissionDate = LocalDate.now(clock),
+          submissionDate = LocalDate.now(),
         ),
       )
       val context = EvaluationContext(

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isMoreThan12weeksInThePast
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInThePast
 import java.time.Clock
 import java.time.LocalDate
 
@@ -18,7 +18,7 @@ class CrsExpiredRule(val clock: Clock) : CrsCompletionRule {
     return RuleResult(
       description = description,
       ruleStatus = if (
-        isMoreThan12weeksInThePast(data.commissionedRehabilitativeServices?.submissionDate, today)
+        isLessThanXWeeksInThePast(data.commissionedRehabilitativeServices?.submissionDate, today, 12L)
       ) {
         RuleStatus.PASS
       } else {

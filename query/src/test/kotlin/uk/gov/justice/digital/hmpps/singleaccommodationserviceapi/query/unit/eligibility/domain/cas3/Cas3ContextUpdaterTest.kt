@@ -12,10 +12,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 import java.util.UUID
 
 class Cas3ContextUpdaterTest {
+  private val clock = MutableClock()
   private val updater = Cas3ContextUpdater()
 
   @Nested
@@ -23,6 +25,7 @@ class Cas3ContextUpdaterTest {
     @Test
     fun `update builds service result using toCas3ServiceResult`() {
       val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
+      clock.setNow(currentAccommodationEndDate.minusDays(3))
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         currentAccommodation = buildCurrentAccommodation(endDate = currentAccommodationEndDate),

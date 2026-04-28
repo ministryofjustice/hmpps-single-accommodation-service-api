@@ -48,6 +48,9 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   private lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
+  lateinit var dutyToReferRepository: DutyToReferRepository
+
+  @Autowired
   lateinit var caseRepository: CaseRepository
 
   @Autowired
@@ -86,6 +89,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
     dutyToReferRepository.deleteAll()
     inboxEventRepository.deleteAll()
     outboxEventRepository.deleteAll()
+    dutyToReferRepository.deleteAll()
     caseRepository.deleteAll()
   }
 

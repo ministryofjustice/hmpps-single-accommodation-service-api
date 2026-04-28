@@ -32,23 +32,24 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CurrentAccommodation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationSuitabilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1SexValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
@@ -63,7 +64,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3BookingSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
@@ -71,6 +71,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsExpiredRule
@@ -114,7 +115,7 @@ class EligibilityServiceTest {
   private val caseRepository = mockk<CaseRepository>()
 
   // CAS1
-  var cas1ContextUpdater = Cas1ContextUpdater(clock)
+  var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
   var cas1ValidationRuleSet = Cas1ValidationRuleSet(
     listOf(
       CurrentAccommodationEndDateValidationRule(),
@@ -130,12 +131,15 @@ class EligibilityServiceTest {
       STierEligibilityRule(),
     ),
   )
+  val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater(clock)
+  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(listOf(RecentCurrentAccommodationEndDateRule(clock)))
+  val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
   // CAS3
-  var cas3ContextUpdater = Cas3ContextUpdater(clock)
+  var cas3ContextUpdater = Cas3ContextUpdater()
   var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule()))
   val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater(clock)
-  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(listOf(Cas3RecentCurrentAccommodationEndDateRule(clock)))
+  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(listOf(RecentCurrentAccommodationEndDateRule(clock)))
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
     listOf(
       Cas3ApplicationSuitabilityRule(),
@@ -176,7 +180,7 @@ class EligibilityServiceTest {
   )
 
   // CRS
-  var crsContextUpdater = CrsContextUpdater(clock)
+  var crsContextUpdater = CrsContextUpdater()
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     listOf(
       CrsSubmittedRule(),
@@ -202,7 +206,7 @@ class EligibilityServiceTest {
     cas1CompletionRuleSet = cas1CompletionRuleSet,
     cas1ValidationRuleSet = cas1ValidationRuleSet,
     cas3ValidationRuleSet = cas3ValidationRuleSet,
-    cas1ContextUpdater = cas1ContextUpdater,
+    cas1CompletionContextUpdater = cas1CompletionContextUpdater,
     commonContextUpdater = commonContextUpdater,
     cas3EligibilityRuleSet = cas3EligibilityRuleSet,
     cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
@@ -223,6 +227,9 @@ class EligibilityServiceTest {
     caseRepository = caseRepository,
     cas3UpcomingRuleSet = cas3UpcomingRuleSet,
     cas3UpcomingContextUpdater = cas3UpcomingContextUpdater,
+    cas1UpcomingRuleSet = cas1UpcomingRuleSet,
+    cas1UpcomingContextUpdater = cas1UpcomingContextUpdater,
+    cas1SuitabilityContextUpdater = cas1SuitabilityContextUpdater,
   )
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -241,7 +248,7 @@ class EligibilityServiceTest {
       val cas1Application = buildCas1Application()
       val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
       val cas3Application = buildCas3Application()
-      val cpr = buildCorePersonRecord(sex = buildSex(SexCode.M))
+      val cpr = buildCorePersonRecord()
       val cprAddresses = buildCorePersonRecordAddresses(
         addresses = listOf(
           buildAddress(
@@ -334,7 +341,7 @@ class EligibilityServiceTest {
         }
 
         val currentAccommodation = s.currentAccommodationEndDate?.let {
-          CurrentAccommodation(
+          buildCurrentAccommodation(
             endDate = it,
             isPrisonCas1Cas2OrCas2v2 = false,
           )
@@ -351,7 +358,7 @@ class EligibilityServiceTest {
         val result = eligibilityService.calculateEligibilityForCas1(data)
 
         assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
           .isEqualTo(s.expectedCas1Status)
 
         assertThat(result.action).isEqualTo(s.expectedCas1Action)
@@ -421,7 +428,10 @@ class EligibilityServiceTest {
 
         val result = eligibilityService.calculateEligibilityForDtr(data)
 
-        assertThat(result.serviceStatus).isEqualTo(s.expectedDtrStatus)
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedDtrStatus}")
+          .isEqualTo(s.expectedDtrStatus)
+
         assertThat(result.action).isEqualTo(s.expectedDtrAction)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
       }
@@ -508,7 +518,7 @@ class EligibilityServiceTest {
         val result = eligibilityService.calculateEligibilityForCas3(data)
 
         assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas3Status}")
+          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
         assertThat(result.action).isEqualTo(s.expectedCas3Action)
@@ -557,7 +567,7 @@ class EligibilityServiceTest {
         clock.setNow(s.referenceDate)
 
         val currentAccommodation = s.currentAccommodationEndDate?.let {
-          CurrentAccommodation(
+          buildCurrentAccommodation(
             endDate = it,
           )
         }

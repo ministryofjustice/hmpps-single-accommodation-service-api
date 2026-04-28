@@ -6,10 +6,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import java.time.Clock
 
 @Component
-class CrsContextUpdater(val clock: Clock) : ContextUpdater {
+class CrsContextUpdater : ContextUpdater {
   override fun update(context: EvaluationContext): EvaluationContext {
     val updatedServiceResult = ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,

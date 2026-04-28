@@ -13,14 +13,14 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
   private val clock = MutableClock()
 
   @Test
-  fun `candidate fails when currentAccommodationEndDate is missing`() {
+  fun `candidate passes when currentAccommodationEndDate is missing`() {
     val data = buildDomainData(
       currentAccommodation = buildCurrentAccommodation(endDate = null),
     )
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
