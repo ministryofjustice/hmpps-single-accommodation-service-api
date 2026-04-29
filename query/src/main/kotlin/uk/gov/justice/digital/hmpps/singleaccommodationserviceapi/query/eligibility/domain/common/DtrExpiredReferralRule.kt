@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInThePast
 import java.time.Clock
 import java.time.LocalDate
 
@@ -18,12 +19,11 @@ class DtrExpiredReferralRule(val clock: Clock) :
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
     ruleStatus = if (
-      data.dutyToRefer?.submission?.submissionDate == null ||
-      data.dutyToRefer.submission!!.submissionDate < LocalDate.now(clock).minusWeeks(26)
+      isLessThanXWeeksInThePast(data.dutyToRefer?.submission?.submissionDate, LocalDate.now(clock), 26)
     ) {
-      RuleStatus.FAIL
-    } else {
       RuleStatus.PASS
+    } else {
+      RuleStatus.FAIL
     },
   )
 }

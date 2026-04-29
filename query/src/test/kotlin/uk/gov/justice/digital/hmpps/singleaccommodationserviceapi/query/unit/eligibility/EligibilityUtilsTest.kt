@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThan56DaysInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInThePast
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
@@ -16,37 +17,32 @@ class EligibilityUtilsTest {
   @Nested
   inner class IsLessThanOneYearInTheFuture {
     @Test
-    fun `Returns true when end date and today are within one year`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusDays(3))
+    fun `Returns false when end date is missing`() {
       val today = LocalDate.now(clock)
+      val result = isLessThanOneYearInTheFuture(null, today)
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `Returns true when end date is within 1 year in the future`() {
+      val today = LocalDate.now(clock)
+      val endDate = today.plusYears(1).minusDays(1)
       val result = isLessThanOneYearInTheFuture(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when end date is earlier than today`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.plusDays(3))
+    fun `Returns true when end date is exactly 1 year in the future`() {
       val today = LocalDate.now(clock)
+      val endDate = today.plusYears(1)
       val result = isLessThanOneYearInTheFuture(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when end date is exactly one year from today`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusYears(1))
+    fun `Returns false when end date is more than 1 year in the future`() {
       val today = LocalDate.now(clock)
-      val result = isLessThanOneYearInTheFuture(endDate, today)
-      assertThat(result).isTrue()
-    }
-
-    @Test
-    fun `Returns false when end date is more than one year from today`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusDays(400))
-      val today = LocalDate.now(clock)
+      val endDate = today.plusYears(1).plusDays(1)
       val result = isLessThanOneYearInTheFuture(endDate, today)
       assertThat(result).isFalse()
     }
@@ -55,38 +51,69 @@ class EligibilityUtilsTest {
   @Nested
   inner class IsLessThan56DaysInTheFuture {
     @Test
-    fun `Returns true when end date and today are within 56 days`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusDays(55))
+    fun `Returns false when end date is missing`() {
       val today = LocalDate.now(clock)
+      val result = isLessThan56DaysInTheFuture(null, today)
+      assertThat(result).isTrue()
+    }
+
+    @Test
+    fun `Returns true when end date is within 56 days in the future`() {
+      val today = LocalDate.now(clock)
+      val endDate = today.plusDays(56).minusDays(1)
       val result = isLessThan56DaysInTheFuture(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when end date is earlier than today`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.plusDays(1))
+    fun `Returns true when end date is exactly 56 days in the future`() {
       val today = LocalDate.now(clock)
+      val endDate = today.plusDays(56)
       val result = isLessThan56DaysInTheFuture(endDate, today)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when end date is exactly 56 days from today`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusDays(56))
+    fun `Returns false when end date is more than 56 days in the future`() {
       val today = LocalDate.now(clock)
+      val endDate = today.plusDays(56).plusDays(1)
       val result = isLessThan56DaysInTheFuture(endDate, today)
+      assertThat(result).isFalse()
+    }
+  }
+
+  @Nested
+  inner class IsLessThan12weeksInThePast {
+    val numOfWeeks = 12L
+
+    @Test
+    fun `Returns false when end date is missing`() {
+      val today = LocalDate.now(clock)
+      val result = isLessThanXWeeksInThePast(null, today, numOfWeeks)
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `Returns true when end date is within X weeks in the past`() {
+      val today = LocalDate.now(clock)
+      val endDate = today.minusWeeks(numOfWeeks).plusDays(1)
+      val result = isLessThanXWeeksInThePast(endDate, today, numOfWeeks)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns false when end date is more than 56 days from today`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusDays(57))
+    fun `Returns true when end date is exactly X weeks in the past`() {
       val today = LocalDate.now(clock)
-      val result = isLessThan56DaysInTheFuture(endDate, today)
+      val endDate = today.minusWeeks(numOfWeeks)
+      val result = isLessThanXWeeksInThePast(endDate, today, numOfWeeks)
+      assertThat(result).isTrue()
+    }
+
+    @Test
+    fun `Returns false when end date is more than X weeks in the past`() {
+      val today = LocalDate.now(clock)
+      val endDate = today.minusWeeks(numOfWeeks).minusDays(1)
+      val result = isLessThanXWeeksInThePast(endDate, today, numOfWeeks)
       assertThat(result).isFalse()
     }
   }
