@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
@@ -43,6 +44,8 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 class CaseAllocationHandlerIT : IntegrationTestBase() {
+  @Autowired
+  private lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
   lateinit var caseRepository: CaseRepository
@@ -80,6 +83,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   }
 
   private fun deleteAllFromRepositories() {
+    dutyToReferRepository.deleteAll()
     inboxEventRepository.deleteAll()
     outboxEventRepository.deleteAll()
     caseRepository.deleteAll()

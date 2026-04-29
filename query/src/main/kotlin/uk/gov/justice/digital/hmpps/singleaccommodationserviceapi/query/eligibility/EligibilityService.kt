@@ -15,10 +15,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
@@ -40,11 +43,26 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Service
 class EligibilityService(
   private val accommodationQueryService: AccommodationQueryService,
+  private val caseRepository: CaseRepository,
+  private val dutyToReferQueryService: DutyToReferQueryService,
+  private val eligibilityOrchestrationService: EligibilityOrchestrationService,
+  @Qualifier("defaultRulesEngine")
+  private val engine: RulesEngine,
+
+  // COMMON
+  private val commonContextUpdater: CommonContextUpdater,
+
+  // CAS1
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
-  private val cas1ContextUpdater: Cas1ContextUpdater,
+  private val cas1CompletionContextUpdater: Cas1CompletionContextUpdater,
   private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
   private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
+  private val cas1UpcomingRuleSet: Cas1UpcomingRuleSet,
+  private val cas1UpcomingContextUpdater: Cas1UpcomingContextUpdater,
   private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
+  private val cas1SuitabilityContextUpdater: Cas1SuitabilityContextUpdater,
+
+  // CAS3
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
   private val cas3ContextUpdater: Cas3ContextUpdater,
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
@@ -52,8 +70,8 @@ class EligibilityService(
   private val cas3UpcomingRuleSet: Cas3UpcomingRuleSet,
   private val cas3UpcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
-  private val caseRepository: CaseRepository,
-  private val commonContextUpdater: CommonContextUpdater,
+
+  // DTR
   private val dtrCompletionRuleSet: DtrCompletionRuleSet,
   private val dtrCompletionContextUpdater: DtrCompletionContextUpdater,
   private val dtrSuitabilityContextUpdater: DtrSuitabilityContextUpdater,
@@ -61,10 +79,6 @@ class EligibilityService(
   private val dtrSuitabilityRuleSet: DtrSuitabilityRuleSet,
   private val dtrUpcomingRuleSet: DtrUpcomingRuleSet,
   private val dtrUpcomingContextUpdater: DtrUpcomingContextUpdater,
-  private val dutyToReferQueryService: DutyToReferQueryService,
-  private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  @Qualifier("defaultRulesEngine")
-  private val engine: RulesEngine,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -126,32 +140,40 @@ class EligibilityService(
     // Build tree declaratively:
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
+    val placementBooked = treeBuilder.placementBooked(data.cas1Application?.id)
 
     val eligibility =
       treeBuilder
-        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, cas1ContextUpdater)
+        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, commonContextUpdater)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
 
-    val suitability =
-      treeBuilder
-        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1ContextUpdater)
-        .onPass(confirmed)
-        .onFail(eligibility) // node above
-        .build()
-
     val completion =
       treeBuilder
-        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1ContextUpdater)
-        .onPass(confirmed)
-        .onFail(suitability) // node above
+        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1CompletionContextUpdater)
+        .onPass(placementBooked)
+        .onFail(confirmed)
+        .build()
+
+    val suitability =
+      treeBuilder
+        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1SuitabilityContextUpdater)
+        .onPass(completion)
+        .onFail(eligibility)
+        .build()
+
+    val upcoming =
+      treeBuilder
+        .ruleSet("Cas1Upcoming", cas1UpcomingRuleSet, cas1UpcomingContextUpdater)
+        .onPass(suitability)
+        .onFail(eligibility)
         .build()
 
     val tree =
       treeBuilder
         .ruleSet("Cas1Validation", cas1ValidationRuleSet, commonContextUpdater)
-        .onPass(completion)
+        .onPass(upcoming)
         .onFail(notEligible)
         .build()
 

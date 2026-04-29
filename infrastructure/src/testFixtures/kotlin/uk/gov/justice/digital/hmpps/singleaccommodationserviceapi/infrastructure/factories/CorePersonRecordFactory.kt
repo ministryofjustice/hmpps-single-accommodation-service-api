@@ -85,7 +85,7 @@ fun buildAddressUsage(addressUsageCode: AddressUsageCode, addressUsageDescriptio
 )
 
 fun buildSex(
-  code: SexCode? = SexCode.F,
+  code: SexCode? = SexCode.M,
 ) = Sex(
   code = code,
   description = when (code) {

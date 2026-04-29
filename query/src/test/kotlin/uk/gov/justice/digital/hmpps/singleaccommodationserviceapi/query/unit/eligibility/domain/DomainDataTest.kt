@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildSex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
@@ -59,9 +58,7 @@ class DomainDataTest {
       hasNextAccommodation = false,
       dutyToRefer = dutyToRefer,
     )
-    val cpr = buildCorePersonRecord(
-      sex = buildSex(SexCode.M),
-    )
+    val cpr = buildCorePersonRecord()
 
     val currentAccommodationSummary = buildAccommodationSummaryDto(
       endDate = endDate,

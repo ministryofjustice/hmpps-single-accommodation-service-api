@@ -39,4 +39,12 @@ class DecisionTreeBuilder(
       link = EligibilityKeys.VIEW_REFERRAL,
     ),
   )
+
+  fun placementBooked(id: UUID?) = outcome(
+    ServiceResult(
+      serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
+      suitableApplicationId = id,
+      link = EligibilityKeys.VIEW_APPLICATION,
+    ),
+  )
 }

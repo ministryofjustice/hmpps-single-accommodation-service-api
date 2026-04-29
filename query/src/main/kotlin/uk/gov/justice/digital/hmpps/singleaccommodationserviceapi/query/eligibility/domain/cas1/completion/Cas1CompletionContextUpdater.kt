@@ -1,67 +1,48 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
 
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
-import java.time.Clock
-import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import java.util.UUID
 
-object Cas1ServiceResultTransformer {
+@Component
+class Cas1CompletionContextUpdater : ContextUpdater {
 
-  fun toCas1ServiceResult(data: DomainData, clock: Clock): ServiceResult {
-    val today = LocalDate.now(clock)
-    return when {
-      data.currentAccommodation?.endDate == null -> ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-      isLessThanOneYearInTheFuture(data.currentAccommodation.endDate, today) -> toCas1ServiceResult(data)
-      else -> ServiceResult(
-        serviceStatus = ServiceStatus.UPCOMING,
-        action = buildUpcomingAction(data.currentAccommodation.endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
-      )
-    }
+  override fun update(context: EvaluationContext): EvaluationContext {
+    val updatedServiceResult = toServiceResult(context.data)
+
+    return context.copy(currentResult = updatedServiceResult)
   }
 
-  private fun toCas1ServiceResult(data: DomainData): ServiceResult {
+  private fun toServiceResult(data: DomainData): ServiceResult {
     val applicationStatus = data.cas1Application?.applicationStatus
     val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
     val placementStatus = data.cas1Application?.placementStatus
     val suitableApplicationId = data.cas1Application?.id
 
-    val notEligible = ServiceResult(
-      serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-      suitableApplicationId = suitableApplicationId,
-      action = null,
-      link = null,
-    )
-
-    val isBeforeRequestForPlacement = requestForPlacementStatus == null && placementStatus == null
-
-    return if (isBeforeRequestForPlacement) {
+    return if (requestForPlacementStatus == null && placementStatus == null) {
       toServiceResultPriorToPlacementRequest(
         applicationStatus = applicationStatus,
         suitableApplicationId = suitableApplicationId,
-        notEligible = notEligible,
       )
     } else {
-      val isBeforePlacement = placementStatus == null
-      if (isBeforePlacement) {
+      if (placementStatus == null) {
         toServiceResultBeforePlacement(
           applicationStatus = applicationStatus,
           suitableApplicationId = suitableApplicationId,
-          notEligible = notEligible,
           requestForPlacementStatus = requestForPlacementStatus,
         )
       } else {
         toServiceResultAfterPlacement(
           applicationStatus = applicationStatus,
           suitableApplicationId = suitableApplicationId,
-          notEligible = notEligible,
           requestForPlacementStatus = requestForPlacementStatus,
           placementStatus = placementStatus,
         )
@@ -69,7 +50,7 @@ object Cas1ServiceResultTransformer {
     }
   }
 
-  private fun toServiceResultAfterPlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, placementStatus: Cas1PlacementStatus?, suitableApplicationId: UUID?, notEligible: ServiceResult) = when (applicationStatus) {
+  private fun toServiceResultAfterPlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, placementStatus: Cas1PlacementStatus?, suitableApplicationId: UUID?) = when (applicationStatus) {
     Cas1ApplicationStatus.AWAITING_PLACEMENT ->
       if (
         requestForPlacementStatus == Cas1RequestForPlacementStatus.AWAITING_MATCH &&
@@ -82,7 +63,7 @@ object Cas1ServiceResultTransformer {
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
       } else {
-        notEligible
+        ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
       }
 
     Cas1ApplicationStatus.PLACEMENT_ALLOCATED -> if (
@@ -96,7 +77,6 @@ object Cas1ServiceResultTransformer {
           link = EligibilityKeys.VIEW_APPLICATION,
         )
 
-        Cas1PlacementStatus.UPCOMING -> notEligible
         Cas1PlacementStatus.DEPARTED -> ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
           suitableApplicationId = suitableApplicationId,
@@ -111,16 +91,16 @@ object Cas1ServiceResultTransformer {
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
-        else -> notEligible
+        else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
       }
     } else {
-      notEligible
+      ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
     }
 
-    else -> notEligible
+    else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
   }
 
-  private fun toServiceResultBeforePlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, suitableApplicationId: UUID?, notEligible: ServiceResult) = when (applicationStatus) {
+  private fun toServiceResultBeforePlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, suitableApplicationId: UUID?) = when (applicationStatus) {
     Cas1ApplicationStatus.AWAITING_PLACEMENT -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.AWAITING_MATCH -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
@@ -136,7 +116,7 @@ object Cas1ServiceResultTransformer {
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
-      else -> notEligible
+      else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
     }
 
     Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> when (requestForPlacementStatus) {
@@ -170,13 +150,13 @@ object Cas1ServiceResultTransformer {
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
-      else -> notEligible
+      else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
     }
 
-    else -> notEligible
+    else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
   }
 
-  private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?, suitableApplicationId: UUID?, notEligible: ServiceResult) = when (applicationStatus) {
+  private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?, suitableApplicationId: UUID?) = when (applicationStatus) {
     Cas1ApplicationStatus.AWAITING_ASSESSMENT,
     Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
     Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
@@ -194,31 +174,6 @@ object Cas1ServiceResultTransformer {
       link = EligibilityKeys.VIEW_APPLICATION,
     )
 
-    Cas1ApplicationStatus.STARTED -> ServiceResult(
-      serviceStatus = ServiceStatus.NOT_SUBMITTED,
-      suitableApplicationId = suitableApplicationId,
-      action = EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION,
-      link = EligibilityKeys.CONTINUE_APPLICATION,
-    )
-
-    Cas1ApplicationStatus.REJECTED -> ServiceResult(
-      serviceStatus = ServiceStatus.APPLICATION_REJECTED,
-      suitableApplicationId = suitableApplicationId,
-      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
-      link = EligibilityKeys.START_NEW_APPLICATION,
-    )
-
-    Cas1ApplicationStatus.WITHDRAWN,
-    Cas1ApplicationStatus.INAPPLICABLE,
-    Cas1ApplicationStatus.EXPIRED,
-    null,
-    -> ServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
-      suitableApplicationId = suitableApplicationId,
-      action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
-      link = EligibilityKeys.START_APPLICATION,
-    )
-
-    else -> notEligible
+    else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
   }
 }
