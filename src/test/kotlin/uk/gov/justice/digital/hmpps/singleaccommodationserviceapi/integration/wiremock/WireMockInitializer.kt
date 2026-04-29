@@ -19,11 +19,17 @@ class WireMockInitializer :
   companion object {
     lateinit var sasWiremock: WireMockServer
       private set
+
+    private fun ensureStarted() {
+      if (!::sasWiremock.isInitialized) {
+        sasWiremock = WireMockServer(options().dynamicPort())
+        sasWiremock.start()
+      }
+    }
   }
 
   override fun initialize(context: ConfigurableApplicationContext) {
-    sasWiremock = WireMockServer(options().dynamicPort())
-    sasWiremock.start()
+    ensureStarted()
 
     /*
      * get a list of the services from application-test.yml and add them to the environment properties using the
