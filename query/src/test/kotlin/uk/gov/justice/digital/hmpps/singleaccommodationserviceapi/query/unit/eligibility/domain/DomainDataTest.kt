@@ -4,13 +4,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -41,26 +41,17 @@ class DomainDataTest {
       isPrivate = false,
     )
 
-    val expected = buildDomainData(
-      crn = crn,
-      tierScore = TierScore.A1,
-      sex = SexCode.M,
-      cas1Application = Cas1Application(
-        UUID.randomUUID(),
-        Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        null,
-        null,
-      ),
-      cas3Application = Cas3Application(
-        UUID.randomUUID(),
-        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        bookingStatus = null,
-        assessmentStatus = null,
-      ),
-      currentAccommodation = currentAccommodation,
-      hasNextAccommodation = false,
-      dutyToRefer = dutyToRefer,
-      commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+    val cas1Application = buildCas1Application(
+      UUID.randomUUID(),
+      Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      null,
+      null,
+    )
+    val cas3Application = buildCas3Application(
+      UUID.randomUUID(),
+      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+      bookingStatus = null,
+      assessmentStatus = null,
     )
     val cpr = buildCorePersonRecord()
 
@@ -69,18 +60,30 @@ class DomainDataTest {
     )
 
     val tier = Tier(
-      tierScore = expected.tierScore!!,
+      tierScore = TierScore.A1,
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,
     )
 
+    val expected = buildDomainData(
+      crn = crn,
+      tierScore = tier.tierScore,
+      sex = cpr.sex?.code,
+      currentAccommodation = currentAccommodation,
+      hasNextAccommodation = false,
+      cas1Application = cas1Application,
+      cas3Application = cas3Application,
+      dutyToRefer = dutyToRefer,
+      commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+    )
+
     val result = DomainData(
-      crn = expected.crn,
+      crn = crn,
       cpr = cpr,
       tier = tier,
-      cas1Application = expected.cas1Application,
-      cas3Application = expected.cas3Application,
+      cas1Application = cas1Application,
+      cas3Application = cas3Application,
       currentAccommodationSummary = currentAccommodationSummary,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -94,28 +97,18 @@ class DomainDataTest {
     val dutyToRefer = buildDutyToReferDto()
     val crn = "ABC1234"
     val tierScore = TierScore.A1
-    val cas1Application = Cas1Application(
-      UUID.randomUUID(),
-      Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      null,
-      null,
-    )
     val personDto = buildPersonDto(
       crn = crn,
       gender = "Male",
     )
     val caseEntity = buildCaseEntity(
       tierScore = tierScore,
-      cas1ApplicationId = cas1Application.id,
-      cas1ApplicationApplicationStatus = cas1Application.applicationStatus,
-      cas1ApplicationPlacementStatus = cas1Application.placementStatus,
-      cas1ApplicationRequestForPlacementStatus = cas1Application.requestForPlacementStatus,
     ) { withCrn(crn) }
     val expected = buildDomainData(
       crn = crn,
       tierScore = tierScore,
       sex = SexCode.M,
-      cas1Application = cas1Application,
+      cas1Application = null,
       cas3Application = null,
       currentAccommodation = null,
       hasNextAccommodation = false,

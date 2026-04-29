@@ -4,19 +4,38 @@ import java.util.UUID
 
 data class EligibilityDto(
   val crn: String,
-  val cas1: ServiceResult,
-  val cas3: ServiceResult,
-  val dtr: ServiceResult,
-  val crs: ServiceResult,
+  val cas1: Cas1ServiceResult,
+  val cas3: Cas3ServiceResult,
+  val dtr: DtrServiceResult,
+  val crs: CrsServiceResult,
   val caseActions: List<String>,
-  val dutyToRefer: DutyToReferDto?,
 )
 
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
-  val suitableApplicationId: UUID? = null,
   val action: String? = null,
   val link: String? = null,
+)
+
+data class DtrServiceResult(
+  val serviceResult: ServiceResult,
+  val caseId: UUID?,
+  val submission: DtrSubmissionDto?,
+)
+
+data class Cas1ServiceResult(
+  val serviceResult: ServiceResult,
+  val cas1Application: Cas1ApplicationDto?,
+)
+
+data class Cas3ServiceResult(
+  val serviceResult: ServiceResult,
+  val cas3Application: Cas3ApplicationDto?,
+)
+
+data class CrsServiceResult(
+  val serviceResult: ServiceResult,
+  val commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto?,
 )
 
 enum class ServiceStatus {

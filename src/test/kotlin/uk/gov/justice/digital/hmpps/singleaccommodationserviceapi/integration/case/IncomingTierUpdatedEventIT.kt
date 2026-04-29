@@ -35,12 +35,11 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 class IncomingTierUpdatedEventIT : IntegrationTestBase() {
+  @Autowired
+  lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
   lateinit var caseRepository: CaseRepository
-
-  @Autowired
-  lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
   lateinit var inboxEventRepository: InboxEventRepository

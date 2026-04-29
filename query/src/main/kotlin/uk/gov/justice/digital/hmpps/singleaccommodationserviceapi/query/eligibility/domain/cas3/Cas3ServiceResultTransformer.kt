@@ -13,39 +13,33 @@ object Cas3ServiceResultTransformer {
     val applicationStatus = data.cas3Application?.applicationStatus
     val assessmentStatus = data.cas3Application?.assessmentStatus
     val bookingStatus = data.cas3Application?.bookingStatus
-    val suitableApplicationId = data.cas3Application?.id
     return when (bookingStatus) {
       Cas3BookingStatus.ARRIVED,
       Cas3BookingStatus.CLOSED,
       Cas3BookingStatus.DEPARTED,
       -> ServiceResult(
         serviceStatus = ServiceStatus.NOT_STARTED,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.START_CAS3_REFERRAL,
         link = EligibilityKeys.START_NEW_REFERRAL,
       )
 
       Cas3BookingStatus.PROVISIONAL -> ServiceResult(
         serviceStatus = ServiceStatus.BEDSPACE_OFFERED,
-        suitableApplicationId = suitableApplicationId,
         link = EligibilityKeys.VIEW_REFERRAL,
       )
 
       Cas3BookingStatus.CONFIRMED -> ServiceResult(
         serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-        suitableApplicationId = suitableApplicationId,
         link = EligibilityKeys.VIEW_REFERRAL,
       )
 
       Cas3BookingStatus.NOT_MINUS_ARRIVED -> ServiceResult(
         serviceStatus = ServiceStatus.NOT_ARRIVED,
-        suitableApplicationId = suitableApplicationId,
         link = EligibilityKeys.VIEW_REFERRAL,
       )
 
       Cas3BookingStatus.CANCELLED -> ServiceResult(
         serviceStatus = ServiceStatus.BOOKING_CANCELLED,
-        suitableApplicationId = suitableApplicationId,
         link = EligibilityKeys.VIEW_REFERRAL,
       )
 
@@ -55,21 +49,18 @@ object Cas3ServiceResultTransformer {
         Cas3AssessmentStatus.READY_TO_PLACE,
         -> ServiceResult(
           serviceStatus = ServiceStatus.SUBMITTED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT,
           link = EligibilityKeys.VIEW_REFERRAL,
         )
 
         Cas3AssessmentStatus.CLOSED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_STARTED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.START_CAS3_REFERRAL,
           link = EligibilityKeys.START_NEW_REFERRAL,
         )
 
         Cas3AssessmentStatus.REJECTED -> ServiceResult(
           serviceStatus = ServiceStatus.REJECTED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.START_CAS3_REFERRAL,
           link = EligibilityKeys.START_NEW_REFERRAL,
         )
@@ -77,7 +68,6 @@ object Cas3ServiceResultTransformer {
         null -> when (applicationStatus) {
           Cas3ApplicationStatus.IN_PROGRESS -> ServiceResult(
             serviceStatus = ServiceStatus.NOT_SUBMITTED,
-            suitableApplicationId = suitableApplicationId,
             link = EligibilityKeys.VIEW_REFERRAL,
           )
 
@@ -85,21 +75,18 @@ object Cas3ServiceResultTransformer {
           Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
           -> ServiceResult(
             serviceStatus = ServiceStatus.SUBMITTED,
-            suitableApplicationId = suitableApplicationId,
             action = EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT,
             link = EligibilityKeys.VIEW_REFERRAL,
           )
 
           Cas3ApplicationStatus.REJECTED -> ServiceResult(
             serviceStatus = ServiceStatus.REJECTED,
-            suitableApplicationId = suitableApplicationId,
             action = EligibilityKeys.START_CAS3_REFERRAL,
             link = EligibilityKeys.START_NEW_REFERRAL,
           )
 
           null -> ServiceResult(
             serviceStatus = ServiceStatus.NOT_STARTED,
-            suitableApplicationId = suitableApplicationId,
             action = EligibilityKeys.START_CAS3_REFERRAL,
             link = EligibilityKeys.START_REFERRAL,
           )

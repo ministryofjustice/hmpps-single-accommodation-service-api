@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import java.util.UUID
 
 @Component
 class Cas1CompletionContextUpdater : ContextUpdater {
@@ -25,24 +24,20 @@ class Cas1CompletionContextUpdater : ContextUpdater {
     val applicationStatus = data.cas1Application?.applicationStatus
     val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
     val placementStatus = data.cas1Application?.placementStatus
-    val suitableApplicationId = data.cas1Application?.id
 
     return if (requestForPlacementStatus == null && placementStatus == null) {
       toServiceResultPriorToPlacementRequest(
         applicationStatus = applicationStatus,
-        suitableApplicationId = suitableApplicationId,
       )
     } else {
       if (placementStatus == null) {
         toServiceResultBeforePlacement(
           applicationStatus = applicationStatus,
-          suitableApplicationId = suitableApplicationId,
           requestForPlacementStatus = requestForPlacementStatus,
         )
       } else {
         toServiceResultAfterPlacement(
           applicationStatus = applicationStatus,
-          suitableApplicationId = suitableApplicationId,
           requestForPlacementStatus = requestForPlacementStatus,
           placementStatus = placementStatus,
         )
@@ -50,7 +45,7 @@ class Cas1CompletionContextUpdater : ContextUpdater {
     }
   }
 
-  private fun toServiceResultAfterPlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, placementStatus: Cas1PlacementStatus?, suitableApplicationId: UUID?) = when (applicationStatus) {
+  private fun toServiceResultAfterPlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, placementStatus: Cas1PlacementStatus?) = when (applicationStatus) {
     Cas1ApplicationStatus.AWAITING_PLACEMENT ->
       if (
         requestForPlacementStatus == Cas1RequestForPlacementStatus.AWAITING_MATCH &&
@@ -58,7 +53,6 @@ class Cas1CompletionContextUpdater : ContextUpdater {
       ) {
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_CANCELLED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.CREATE_PLACEMENT,
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
@@ -72,21 +66,18 @@ class Cas1CompletionContextUpdater : ContextUpdater {
       when (placementStatus) {
         Cas1PlacementStatus.ARRIVED -> ServiceResult(
           serviceStatus = ServiceStatus.ARRIVED,
-          suitableApplicationId = suitableApplicationId,
           action = null,
           link = EligibilityKeys.VIEW_APPLICATION,
         )
 
         Cas1PlacementStatus.DEPARTED -> ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.CREATE_PLACEMENT,
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
         Cas1PlacementStatus.NOT_ARRIVED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_ARRIVED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.CREATE_PLACEMENT,
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
@@ -100,18 +91,16 @@ class Cas1CompletionContextUpdater : ContextUpdater {
     else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
   }
 
-  private fun toServiceResultBeforePlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?, suitableApplicationId: UUID?) = when (applicationStatus) {
+  private fun toServiceResultBeforePlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?) = when (applicationStatus) {
     Cas1ApplicationStatus.AWAITING_PLACEMENT -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.AWAITING_MATCH -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
         link = EligibilityKeys.VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.CREATE_PLACEMENT,
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
@@ -122,14 +111,12 @@ class Cas1CompletionContextUpdater : ContextUpdater {
     Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.CREATE_PLACEMENT,
         link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_REJECTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.CREATE_PLACEMENT,
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
@@ -138,14 +125,12 @@ class Cas1CompletionContextUpdater : ContextUpdater {
       Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
       -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
         link = EligibilityKeys.VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        suitableApplicationId = suitableApplicationId,
         action = EligibilityKeys.CREATE_PLACEMENT,
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
@@ -156,20 +141,18 @@ class Cas1CompletionContextUpdater : ContextUpdater {
     else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
   }
 
-  private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?, suitableApplicationId: UUID?) = when (applicationStatus) {
+  private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?) = when (applicationStatus) {
     Cas1ApplicationStatus.AWAITING_ASSESSMENT,
     Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
     Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
     -> ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
-      suitableApplicationId = suitableApplicationId,
       action = EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
-      suitableApplicationId = suitableApplicationId,
       action = EligibilityKeys.PROVIDE_INFORMATION,
       link = EligibilityKeys.VIEW_APPLICATION,
     )

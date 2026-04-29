@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -11,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import java.time.LocalDate
 import java.util.UUID
 
@@ -32,7 +32,7 @@ class CommonContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
 
       val result = updater.update(context)

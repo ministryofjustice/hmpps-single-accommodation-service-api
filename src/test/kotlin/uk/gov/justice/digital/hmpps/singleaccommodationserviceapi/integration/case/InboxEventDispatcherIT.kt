@@ -42,7 +42,6 @@ class InboxEventDispatcherIT {
    * - maxEventsPerBatch limits batch size
    */
   abstract inner class InboxEventDispatcherITBase : IntegrationTestBase() {
-
     @Autowired
     lateinit var dutyToReferRepository: DutyToReferRepository
 
