@@ -224,6 +224,29 @@ class CaseControllerIT : IntegrationTestBase() {
       }
   }
 
+  @Test
+  fun `should return an error when probation integration case-list upstream call fails or times out`() {
+    ProbationIntegrationSasDeliusStubs.stubGetCaseListByUsernameServerError(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().is5xxServerError
+  }
+
+  @Test
+  fun `should return an error when CPR upstream call fails or times out for any unpersisted CRN`() {
+    stubCaseList()
+    seedCaseEntities()
+    stubAdditionalCorePersonRecords()
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crns[15])
+
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().is5xxServerError
+  }
+
   private fun stubInitialCaseSummaries() {
     val summaries = CaseSummaries(
       listOf(
@@ -350,10 +373,7 @@ class CaseControllerIT : IntegrationTestBase() {
   private fun stubAdditionalCorePersonRecords() {
     (2..4).forEach { stubCorePersonRecord(crns[it], nomsNumbers[it]) }
 
-    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crns[15])
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crns[16])
-
-    (17..19).forEach {
+    (15..19).forEach {
       stubCorePersonRecord(
         crn = crns[it],
         prisonNumber = nomsNumbers[it],

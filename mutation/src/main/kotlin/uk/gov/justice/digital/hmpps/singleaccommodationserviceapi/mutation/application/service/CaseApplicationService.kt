@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
@@ -24,7 +25,12 @@ class CaseApplicationService(
 
   fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
 
-  fun getCasesFromOrchestrator(crns: List<String>) = caseOrchestrationService.getCases(crns)
+  fun getCasesFromOrchestrator(crns: List<String>): ApiResponseDto<List<CaseMutationOrchestrationDto>> {
+    val cases = caseOrchestrationService.getCases(crns)
+    return ApiResponseDto(
+      data = cases.data,
+    )
+  }
 
   @Transactional
   fun upsertCases(caseDtos: List<CaseMutationOrchestrationDto>) {
@@ -110,11 +116,11 @@ class CaseApplicationService(
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
     caseAggregate.upsertCase(
-      tierScore = caseOrchestrationDto.tier?.tierScore,
-      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
-      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
-      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
-      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
+      tierScore = caseOrchestrationDto.data.tier?.tierScore,
+      cas1ApplicationId = caseOrchestrationDto.data.cas1Application?.id,
+      cas1ApplicationApplicationStatus = caseOrchestrationDto.data.cas1Application?.applicationStatus,
+      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.data.cas1Application?.requestForPlacementStatus,
+      cas1ApplicationPlacementStatus = caseOrchestrationDto.data.cas1Application?.placementStatus,
     )
     caseRepository.save(
       CaseMapper.merge(
@@ -128,11 +134,11 @@ class CaseApplicationService(
     val caseAggregate = CaseAggregate.hydrateNew()
     val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
     caseAggregate.upsertCase(
-      tierScore = caseOrchestrationDto.tier?.tierScore,
-      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
-      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
-      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
-      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
+      tierScore = caseOrchestrationDto.data.tier?.tierScore,
+      cas1ApplicationId = caseOrchestrationDto.data.cas1Application?.id,
+      cas1ApplicationApplicationStatus = caseOrchestrationDto.data.cas1Application?.applicationStatus,
+      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.data.cas1Application?.requestForPlacementStatus,
+      cas1ApplicationPlacementStatus = caseOrchestrationDto.data.cas1Application?.placementStatus,
     )
     caseRepository.save(
       CaseMapper.create(

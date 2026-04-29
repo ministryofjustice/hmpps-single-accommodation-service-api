@@ -36,6 +36,17 @@ inline fun <reified T> Map<String, Any>.getResult(key: String): T? {
   }
 }
 
+inline fun <reified T> Map<String, Any>.getRequiredResult(key: String): T {
+  val outcome = this[key] as? AggregatorCallOutcome<*>
+    ?: error("No result for required call '$key'")
+  return when (outcome) {
+    is AggregatorCallOutcome.Success -> outcome.data as T
+    is AggregatorCallOutcome.Failure -> error(
+      "Required upstream call '$key' failed: ${outcome.errorDetail.message}",
+    )
+  }
+}
+
 fun Map<String, Any>.getFailures(): List<UpstreamFailure> = this.mapNotNull { (key, value) ->
   val failure = value as? AggregatorCallOutcome.Failure ?: return@mapNotNull null
   UpstreamFailure(

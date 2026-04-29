@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getRequiredResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
@@ -27,7 +28,7 @@ class CaseOrchestrationService(
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
 ) {
-  fun getCaseList(username: String): CaseList {
+  fun getCaseList(username: String): OrchestrationResultDto<CaseList> {
     val bulkCall = mapOf(
       GET_CASE_LIST to { probationIntegrationSasDeliusCachingService.getCaseList(username) },
     )
@@ -35,9 +36,11 @@ class CaseOrchestrationService(
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = bulkCall,
     )
-    return results.standardCallsNoIterationResults
-      ?.getResult<CaseList>(GET_CASE_LIST)
-      ?: CaseList(emptyList())
+    val caseList = results.standardCallsNoIterationResults?.getRequiredResult<CaseList>(GET_CASE_LIST)
+
+    return OrchestrationResultDto(
+      data = caseList ?: CaseList(emptyList()),
+    )
   }
 
   fun getCase(crn: String): OrchestrationResultDto<CaseOrchestrationDto> {

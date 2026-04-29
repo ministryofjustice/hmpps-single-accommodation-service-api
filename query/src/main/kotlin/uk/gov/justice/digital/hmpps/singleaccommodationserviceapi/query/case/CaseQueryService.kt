@@ -26,7 +26,7 @@ class CaseQueryService(
     // new pi endpoint
     val caseList = caseOrchestrationService.getCaseList(user.username)
 
-    return caseList.cases.map { toPersonDto(it) }
+    return caseList.data.cases.map { toPersonDto(it) }
   }
 
   fun getCases(personDtos: List<PersonDto>): List<CaseDto> {

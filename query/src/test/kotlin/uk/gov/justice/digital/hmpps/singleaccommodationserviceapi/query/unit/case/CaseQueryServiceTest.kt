@@ -64,7 +64,14 @@ class CaseQueryServiceTest {
       val roshLevel = buildRoshLevel(code = "RMRH", description = "Medium Risk")
       val case2 = buildCase(crn = crnTwo, name = buildName("Bob"), nomsNumber = "12234", roshLevel = roshLevel)
 
-      val caseList = CaseList(cases = listOf(case1, case2))
+      val caseList = OrchestrationResultDto(
+        data = CaseList(
+          cases = listOf(
+            case1,
+            case2,
+          ),
+        ),
+      )
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 

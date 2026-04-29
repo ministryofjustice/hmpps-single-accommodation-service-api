@@ -37,7 +37,7 @@ class CaseController(
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
     if (unpersistedCrns.isNotEmpty()) {
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
-      caseApplicationService.upsertCases(casesToAdd)
+      caseApplicationService.upsertCases(casesToAdd.data)
     }
     val result = caseQueryService.getCases(personDtos)
 

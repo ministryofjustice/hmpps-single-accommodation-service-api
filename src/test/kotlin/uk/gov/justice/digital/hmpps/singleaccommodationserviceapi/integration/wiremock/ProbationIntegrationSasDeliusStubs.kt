@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
+import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
@@ -16,6 +17,13 @@ object ProbationIntegrationSasDeliusStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/case-list/$deliusUsername"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun stubGetCaseListByUsernameServerError(deliusUsername: String) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/case-list/$deliusUsername"))
+        .willReturn(serverError()),
     )
   }
 }
