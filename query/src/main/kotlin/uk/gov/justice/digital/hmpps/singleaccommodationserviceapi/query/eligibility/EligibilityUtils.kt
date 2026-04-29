@@ -32,3 +32,10 @@ fun isLessThanOneYearInTheFuture(endDate: LocalDate?, today: LocalDate): Boolean
   val oneYearFromNow = today.plusYears(1)
   return endDate <= oneYearFromNow
 }
+
+fun isLessThanXWeeksInThePast(endDate: LocalDate?, today: LocalDate, numOfWeeks: Long): Boolean {
+  if (endDate == null) return false
+  val xWeeksInThePast = today.minusWeeks(numOfWeeks)
+
+  return endDate >= xWeeksInThePast
+}

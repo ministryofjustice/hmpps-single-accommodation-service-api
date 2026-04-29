@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.upcoming
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.upcoming
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -7,32 +7,32 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     RecentCurrentAccommodationEndDateRule::class,
-    Cas3UpcomingRuleSet::class,
+    Cas1UpcomingRuleSet::class,
     ClockConfig::class,
   ],
 )
-class Cas3UpcomingRuleSetTest {
+class Cas1UpcomingRuleSetTest {
 
   @Autowired
-  lateinit var cas3UpcomingRuleSet: Cas3UpcomingRuleSet
+  lateinit var cas1UpcomingRuleSet: Cas1UpcomingRuleSet
 
-  private val expectedCas3UpcomingRuleNames = listOf(
+  private val expectedCas1UpcomingRuleNames = listOf(
     RecentCurrentAccommodationEndDateRule::class.simpleName,
   )
 
   @Test
-  fun `all Cas3UpcomingRule components are included in Cas3UpcomingRuleSet`() {
-    val ruleSetRules = cas3UpcomingRuleSet.getRules().map { it.javaClass.simpleName }
+  fun `all Cas1UpcomingRule components are included in Cas1UpcomingRuleSet`() {
+    val ruleSetRules = cas1UpcomingRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
       .hasSize(1)
-      .containsExactlyInAnyOrderElementsOf(expectedCas3UpcomingRuleNames)
+      .containsExactlyInAnyOrderElementsOf(expectedCas1UpcomingRuleNames)
   }
 }

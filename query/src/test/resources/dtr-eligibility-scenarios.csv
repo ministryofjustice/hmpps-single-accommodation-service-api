@@ -1,4 +1,4 @@
-testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommodation,isPrivateCurrentAccommodation,dtrStatus,dtrSubmissionDate,expectedDtrStatus,expectedDtrActions,expectedDtrLink
+testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommodation,isPrivateCurrentAccommodation,dtrStatus,dtrSubmissionDate,expectedDtrStatus,expectedDtrAction,expectedDtrLink
 1,,01/01/2025,,TRUE,TRUE,,,NOT_ELIGIBLE,,
 2,,01/01/2025,01/12/2024,TRUE,TRUE,,,NOT_ELIGIBLE,,
 3,,01/01/2025,01/01/2025,TRUE,TRUE,,,NOT_ELIGIBLE,,

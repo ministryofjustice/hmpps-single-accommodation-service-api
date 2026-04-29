@@ -1,4 +1,4 @@
-testCaseId,description,referenceDate,hasNextAccommodation,hasCas1UpcomingBooking,isPrisonCas1Cas2OrCas2v2CurrentAccommodation,currentAccommodationEndDate,dtrSubmissionDate,cas3ApplicationStatus,cas3AssessmentStatus,cas3BookingStatus,expectedCas3Status,expectedCas3Actions,expectedCas3Link
+testCaseId,description,referenceDate,hasNextAccommodation,hasCas1UpcomingBooking,isPrisonCas1Cas2OrCas2v2CurrentAccommodation,currentAccommodationEndDate,dtrSubmissionDate,cas3ApplicationStatus,cas3AssessmentStatus,cas3BookingStatus,expectedCas3Status,expectedCas3Action,expectedCas3Link
 1,,01/01/2025,FALSE,FALSE,FALSE,,,,,,NOT_ELIGIBLE,,
 2,,01/01/2025,TRUE,FALSE,FALSE,,,,,,NOT_ELIGIBLE,,
 3,,01/01/2025,FALSE,TRUE,FALSE,,,,,,NOT_ELIGIBLE,,

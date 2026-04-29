@@ -1,4 +1,4 @@
-testCaseId,description,referenceDate,sex,tierScore,currentAccommodationEndDate,cas1ApplicationStatus,cas1RequestForPlacementStatus,cas1PlacementStatus,expectedCas1Status,expectedCas1Actions,expectedCas1Link
+testCaseId,description,referenceDate,sex,tierScore,currentAccommodationEndDate,cas1ApplicationStatus,cas1RequestForPlacementStatus,cas1PlacementStatus,expectedCas1Status,expectedCas1Action,expectedCas1Link
 TC75,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,ARRIVED,NOT_ELIGIBLE,,
 TC210,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,ARRIVED,NOT_ELIGIBLE,,
 TC345,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,AWAITING_MATCH,ARRIVED,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),
@@ -390,7 +390,7 @@ TC245,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEM
 TC380,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,PLACEMENT_BOOKED,UPCOMING,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),
 TC26,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,,View application
 TC161,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,,View application
-TC296,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,,View application
+TC296,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,UPCOMING,Start approved premise (CAS1) application in 59 days (1 March 2025),
 TC422,Application without current accommodation end date created and assessed as suitable. Placement request created. Placement Assessment - Approved & Placement Booked,01/01/2025,M,A1,02/01/2025,PLACEMENT_ALLOCATED,PLACEMENT_BOOKED,UPCOMING,PLACEMENT_BOOKED,,View application
 TC80,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,REQUEST_REJECTED,UPCOMING,NOT_ELIGIBLE,,
 TC215,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,REQUEST_REJECTED,UPCOMING,NOT_ELIGIBLE,,

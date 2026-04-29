@@ -1,15 +1,15 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.upcoming
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3RecentCurrentAccommodationEndDateRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
-class Cas3RecentCurrentAccommodationEndDateRuleTest {
+class RecentCurrentAccommodationEndDateRuleTest {
   private val clock = MutableClock()
 
   @Test
@@ -18,7 +18,7 @@ class Cas3RecentCurrentAccommodationEndDateRuleTest {
       currentAccommodation = buildCurrentAccommodation(endDate = null),
     )
 
-    val result = Cas3RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
+    val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
@@ -31,7 +31,7 @@ class Cas3RecentCurrentAccommodationEndDateRuleTest {
       currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).minusDays(1)),
     )
 
-    val result = Cas3RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
+    val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -44,7 +44,7 @@ class Cas3RecentCurrentAccommodationEndDateRuleTest {
       currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).plusYears(1)),
     )
 
-    val result = Cas3RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
+    val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -57,7 +57,7 @@ class Cas3RecentCurrentAccommodationEndDateRuleTest {
       currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).plusDays(367)),
     )
 
-    val result = Cas3RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
+    val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
@@ -70,14 +70,14 @@ class Cas3RecentCurrentAccommodationEndDateRuleTest {
       currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).plusDays(364)),
     )
 
-    val result = Cas3RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
+    val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(Cas3RecentCurrentAccommodationEndDateRule(clock).description)
+    assertThat(RecentCurrentAccommodationEndDateRule(clock).description)
       .isEqualTo("FAIL if not within 1 year of release from current accommodation")
   }
 }

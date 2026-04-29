@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -42,6 +43,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import java.util.UUID
 
 class CaseControllerIT : IntegrationTestBase() {
+  @Autowired
+  private lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
   private lateinit var caseRepository: CaseRepository
@@ -51,6 +54,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
+    dutyToReferRepository.deleteAll()
     caseRepository.deleteAll()
 
     createTestDataSetupUserAndDeliusUser()

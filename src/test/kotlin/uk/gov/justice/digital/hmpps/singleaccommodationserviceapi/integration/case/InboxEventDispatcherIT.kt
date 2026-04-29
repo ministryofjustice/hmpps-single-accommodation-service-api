@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -41,6 +42,9 @@ class InboxEventDispatcherIT {
    * - maxEventsPerBatch limits batch size
    */
   abstract inner class InboxEventDispatcherITBase : IntegrationTestBase() {
+
+    @Autowired
+    lateinit var dutyToReferRepository: DutyToReferRepository
 
     @Autowired
     lateinit var inboxEventRepository: InboxEventRepository
@@ -68,6 +72,7 @@ class InboxEventDispatcherIT {
     }
 
     private fun purgeDbTables() {
+      dutyToReferRepository.deleteAll()
       inboxEventRepository.deleteAll()
       caseRepository.deleteAll()
     }
@@ -256,7 +261,8 @@ class InboxEventDispatcherIT {
   @Nested
   inner class InboxEventDispatcherSemaphoreIT : InboxEventDispatcherITBase() {
 
-    @Autowired lateinit var concurrencyCounter: ConcurrencyCounter
+    @Autowired
+    lateinit var concurrencyCounter: ConcurrencyCounter
 
     @Test
     fun `processes at most 4 events concurrently due to semaphore limit`() {
