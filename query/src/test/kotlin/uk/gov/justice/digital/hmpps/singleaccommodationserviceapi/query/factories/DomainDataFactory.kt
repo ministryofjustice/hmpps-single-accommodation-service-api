@@ -6,6 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CommissionedRehabilitativeServices
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import java.time.LocalDate
@@ -20,6 +22,7 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
   crsStatus: String? = "SUBMITTED",
   dutyToRefer: DutyToReferDto? = null,
+  commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = buildCommissionedRehabilitativeServices(),
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -30,6 +33,7 @@ fun buildDomainData(
   cas3Application = cas3Application,
   crsStatus = crsStatus,
   dutyToRefer = dutyToRefer,
+  commissionedRehabilitativeServices = commissionedRehabilitativeServices,
 )
 
 fun buildCurrentAccommodation(
@@ -40,4 +44,12 @@ fun buildCurrentAccommodation(
   endDate = endDate,
   isPrisonCas1Cas2OrCas2v2 = isPrisonCas1Cas2OrCas2v2,
   isPrivate = isPrivate,
+)
+
+fun buildCommissionedRehabilitativeServices(
+  submissionDate: LocalDate = LocalDate.now(),
+  status: CrsStatus = CrsStatus.COMPLETED,
+) = CommissionedRehabilitativeServices(
+  status = status,
+  submissionDate = submissionDate,
 )

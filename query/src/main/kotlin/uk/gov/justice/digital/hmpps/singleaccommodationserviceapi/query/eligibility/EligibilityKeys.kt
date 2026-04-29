@@ -22,4 +22,6 @@ object EligibilityKeys {
   const val ADD_OUTCOME = "Add outcome"
   const val ADD_DTR_REFERRAL_DETAILS = "Add DTR referral details"
   const val ADD_REFERRAL_DETAILS = "Add referral details"
+  const val VIEW_REFER_AND_MONITOR = "View refer and monitor"
+  const val COMPLETE_CRS_REFERRAL = "Complete CRS Referral"
 }

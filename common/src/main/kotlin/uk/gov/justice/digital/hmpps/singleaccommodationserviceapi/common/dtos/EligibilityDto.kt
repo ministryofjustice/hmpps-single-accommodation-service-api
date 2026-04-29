@@ -7,6 +7,7 @@ data class EligibilityDto(
   val cas1: ServiceResult,
   val cas3: ServiceResult,
   val dtr: ServiceResult,
+  val crs: ServiceResult,
   val caseActions: List<String>,
   val dutyToRefer: DutyToReferDto?,
 )
