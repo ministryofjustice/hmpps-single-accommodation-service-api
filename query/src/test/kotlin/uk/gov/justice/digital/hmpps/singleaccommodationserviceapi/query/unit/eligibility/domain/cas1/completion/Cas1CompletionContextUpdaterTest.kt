@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.completion
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -41,12 +41,12 @@ class Cas1CompletionContextUpdaterTest {
 
       val result = updater.update(context)
 
-      Assertions.assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      Assertions.assertThat(result.currentResult.action).isNotNull()
-      Assertions.assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT)
-      Assertions.assertThat(result.currentResult.link).isNotNull()
-      Assertions.assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
-      Assertions.assertThat(result.currentResult.suitableApplicationId).isEqualTo(applicationId)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
+      assertThat(result.currentResult.action).isNotNull()
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT)
+      assertThat(result.currentResult.link).isNotNull()
+      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
+      assertThat(result.currentResult.suitableApplicationId).isEqualTo(applicationId)
     }
   }
 }
