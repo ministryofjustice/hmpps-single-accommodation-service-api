@@ -20,15 +20,27 @@ class CaseController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/case-list")
-  fun getCases(@RequestParam riskLevel: RiskLevel?): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val personDtos = caseQueryService.getCaseList()
+  fun getCases(
+    @RequestParam riskLevel: RiskLevel?,
+    @RequestParam searchTerm: String?,
+  ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
+    val personDtos = caseQueryService.getCaseList().filter {
+      searchTerm == null ||
+        it.crn.equals(searchTerm, ignoreCase = true) ||
+        it.nomsNumber.equals(searchTerm, ignoreCase = true) ||
+        it.name.contains(searchTerm, ignoreCase = true)
+    }.filter { dto ->
+      riskLevel == null || dto.roshLevel == riskLevel
+    }
+
     val crnsOnCaselist = personDtos.map { it.crn }
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
     if (unpersistedCrns.isNotEmpty()) {
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
       caseApplicationService.upsertCases(casesToAdd)
     }
-    val result = caseQueryService.getCases(personDtos).filter { riskLevel == null || it.riskLevel == riskLevel }
+    val result = caseQueryService.getCases(personDtos)
+
     return ResponseEntity.ok(ApiResponseDto(data = result))
   }
 

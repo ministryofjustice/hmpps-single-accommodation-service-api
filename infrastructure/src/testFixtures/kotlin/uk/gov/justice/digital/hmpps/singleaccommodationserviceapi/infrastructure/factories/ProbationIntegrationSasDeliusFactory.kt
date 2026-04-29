@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Case
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.CodeDescription
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Officer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.RoshLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationintegrationsasdelius.Team
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.LocalDate
 
@@ -20,8 +21,8 @@ fun buildCase(
   exclusionMessage: String? = null,
   restrictionMessage: String? = null,
   staff: Officer = buildOfficer(),
-  roshLevel: CodeDescription = buildRoshCodeDescription(),
-  team: CodeDescription = buildCodeDescription(),
+  roshLevel: RoshLevel = buildRoshLevel(),
+  team: Team = buildCaseTeam(),
 ) = Case(
   crn = crn,
   name = name,
@@ -58,18 +59,18 @@ fun buildOfficer(
   code = code,
 )
 
-fun buildCodeDescription(
+fun buildCaseTeam(
   code: String = "ABC123",
   description: String = "A description",
-) = CodeDescription(
+) = Team(
   code = code,
   description = description,
 )
 
-fun buildRoshCodeDescription(
+fun buildRoshLevel(
   code: String = "RVHR",
   description: String = "Very high risk",
-) = CodeDescription(
+) = RoshLevel(
   code = code,
   description = description,
 )

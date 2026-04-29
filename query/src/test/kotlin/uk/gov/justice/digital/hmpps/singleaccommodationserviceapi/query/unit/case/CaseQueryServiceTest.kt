@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -58,27 +60,11 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should get case list`() {
-      val case1 = buildCase(
-        crn = crnOne,
-        name = buildName(
-          "Dave",
-        ),
-        nomsNumber = "13234",
-      )
-      val case2 = buildCase(
-        crn = crnTwo,
-        name = buildName(
-          "Bob",
-        ),
-        nomsNumber = "12234",
-      )
+      val case1 = buildCase(crn = crnOne, name = buildName("Dave"), nomsNumber = "13234")
+      val roshLevel = buildRoshLevel(code = "RMRH", description = "Medium Risk")
+      val case2 = buildCase(crn = crnTwo, name = buildName("Bob"), nomsNumber = "12234", roshLevel = roshLevel)
 
-      val caseList = CaseList(
-        cases = listOf(
-          case1,
-          case2,
-        ),
-      )
+      val caseList = CaseList(cases = listOf(case1, case2))
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
@@ -89,23 +75,23 @@ class CaseQueryServiceTest {
 
       val firstPerson = result.first()
       assertThat(firstPerson.crn).isEqualTo(crnOne)
-      assertThat(firstPerson.name).isEqualTo(case1.name)
+      assertThat(firstPerson.name).isEqualTo(case1.name.fullName)
       assertThat(firstPerson.nomsNumber).isEqualTo(case1.nomsNumber)
       assertThat(firstPerson.pncNumber).isEqualTo(case1.pncNumber)
       assertThat(firstPerson.dateOfBirth).isEqualTo(case1.dateOfBirth)
       assertThat(firstPerson.staff).isEqualTo(case1.staff)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
-      assertThat(firstPerson.roshLevel).isEqualTo(case1.roshLevel)
+      assertThat(firstPerson.roshLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
       val lastPerson = result.last()
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
-      assertThat(lastPerson.name).isEqualTo(case2.name)
+      assertThat(lastPerson.name).isEqualTo(case2.name.fullName)
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
       assertThat(lastPerson.staff).isEqualTo(case2.staff)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
-      assertThat(lastPerson.roshLevel).isEqualTo(case2.roshLevel)
+      assertThat(lastPerson.roshLevel).isEqualTo(RiskLevel.MEDIUM)
     }
   }
 

@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
@@ -24,8 +22,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshCodeDescription
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
@@ -155,38 +153,64 @@ class CaseControllerIT : IntegrationTestBase() {
       }
   }
 
-  @ParameterizedTest
-  @CsvSource(
-    value = [
-      "VERY_HIGH,19",
-      "MEDIUM,1",
-      "LOW,0",
-      "'',20", // empty string
-    ],
-  )
-  fun `should filter cases based on risk level successful response from case-list`(
-    riskLevel: String,
-    expectedCount: Int,
-  ) {
+  @Test
+  fun `should filter cases based on risk level`() {
     stubCaseList()
     seedCaseEntities()
     stubAdditionalCorePersonRecords()
 
-    val response = restTestClient.get().uri {
-      it.path("/case-list")
-        .queryParam("riskLevel", riskLevel).build()
-    }
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
+    val riskLevels = listOf(
+      "VERY_HIGH" to 19,
+      "MEDIUM" to 1,
+      "LOW" to 0,
+      "" to 20,
+    )
 
-    response.expectBody()
-      .jsonPath("$.data.length()").isEqualTo(expectedCount)
-
-    response.expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
-      .value { dto ->
-        assertThat(dto!!.data.map { it.riskLevel?.name }).hasSize(expectedCount)
-          .allMatch { riskLevel.isEmpty() || it == riskLevel }
+    riskLevels.forEach { riskLevel ->
+      val response = restTestClient.get().uri {
+        it.path("/case-list")
+          .queryParam("riskLevel", riskLevel.first).build()
       }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      response.expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
+        .value { responseDto ->
+          assertThat(responseDto!!.data.map { it.riskLevel?.name })
+            .hasSize(riskLevel.second)
+            .allMatch { riskLevel.first.isEmpty() || it == riskLevel.first }
+        }
+    }
+  }
+
+  @Test
+  fun `should filter cases based on search term`() {
+    stubCaseList()
+    seedCaseEntities()
+    stubAdditionalCorePersonRecords()
+
+    val searchParams = listOf(
+      "AAAAA" to 0,
+      "" to 20,
+      "FAKECRN1" to 1,
+      "FIR" to 19,
+      "first" to 19,
+      "FiRsT M" to 19,
+      "FiRsT M Last" to 0,
+      "Zack" to 1,
+    )
+
+    searchParams.forEach { param ->
+      println("$param  ****")
+      restTestClient.get().uri {
+        it.path("/case-list")
+          .queryParam("searchTerm", param.first).build()
+      }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.length()").isEqualTo(param.second)
+    }
   }
 
   @Test
@@ -254,9 +278,9 @@ class CaseControllerIT : IntegrationTestBase() {
           },
           name = if (i == 1) buildName("Zack", "Smith") else buildName(),
           roshLevel = if (i == 1) {
-            buildRoshCodeDescription("RMRH", "Medium")
+            buildRoshLevel("RMRH", "Medium")
           } else {
-            buildRoshCodeDescription()
+            buildRoshLevel()
           },
         )
       },
