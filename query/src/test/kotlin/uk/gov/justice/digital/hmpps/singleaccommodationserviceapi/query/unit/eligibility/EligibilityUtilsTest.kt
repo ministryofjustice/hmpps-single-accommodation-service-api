@@ -51,7 +51,7 @@ class EligibilityUtilsTest {
   @Nested
   inner class IsLessThan56DaysInTheFuture {
     @Test
-    fun `Returns false when end date is missing`() {
+    fun `Returns true when end date is missing`() {
       val today = LocalDate.now(clock)
       val result = isLessThan56DaysInTheFuture(null, today)
       assertThat(result).isTrue()
