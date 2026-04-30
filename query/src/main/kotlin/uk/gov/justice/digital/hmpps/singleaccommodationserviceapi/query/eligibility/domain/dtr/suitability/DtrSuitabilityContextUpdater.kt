@@ -8,13 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
-class DtrSuitabilityContextUpdater : ContextUpdater {
-  override fun update(context: EvaluationContext): EvaluationContext {
-    val updatedServiceResult = ServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
-      action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
-      link = EligibilityKeys.ADD_REFERRAL_DETAILS,
-    )
-    return context.copy(currentResult = updatedServiceResult)
-  }
+class DtrSuitabilityContextUpdater : ContextUpdater() {
+
+  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
+    serviceStatus = ServiceStatus.NOT_STARTED,
+    action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+    link = EligibilityKeys.ADD_REFERRAL_DETAILS,
+  )
 }

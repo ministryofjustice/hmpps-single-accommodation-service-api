@@ -8,22 +8,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
-class Cas1CompletionContextUpdater : ContextUpdater {
+class Cas1CompletionContextUpdater : ContextUpdater() {
 
-  override fun update(context: EvaluationContext): EvaluationContext {
-    val updatedServiceResult = toServiceResult(context.data)
-
-    return context.copy(currentResult = updatedServiceResult)
-  }
-
-  private fun toServiceResult(data: DomainData): ServiceResult {
-    val applicationStatus = data.cas1Application?.applicationStatus
-    val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
-    val placementStatus = data.cas1Application?.placementStatus
+  override fun toServiceResult(context: EvaluationContext): ServiceResult {
+    val applicationStatus = context.data.cas1Application?.applicationStatus
+    val requestForPlacementStatus = context.data.cas1Application?.requestForPlacementStatus
+    val placementStatus = context.data.cas1Application?.placementStatus
 
     return if (requestForPlacementStatus == null && placementStatus == null) {
       toServiceResultPriorToPlacementRequest(

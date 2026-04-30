@@ -33,10 +33,8 @@ class CrsContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isNotNull()
       assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.COMPLETE_CRS_REFERRAL)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
-      assertThat(result.currentResult.link).isNotNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFER_AND_MONITOR)
     }
   }

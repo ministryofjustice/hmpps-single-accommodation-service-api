@@ -5,6 +5,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
-class CommonContextUpdater : ContextUpdater {
-  override fun update(context: EvaluationContext) = context
+class CommonContextUpdater : ContextUpdater() {
+  override fun toServiceResult(context: EvaluationContext) = context.currentResult
 }

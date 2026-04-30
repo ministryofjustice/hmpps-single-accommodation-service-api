@@ -23,9 +23,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
@@ -67,9 +68,10 @@ class EligibilityService(
 
   // CAS3
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
-  private val cas3ContextUpdater: Cas3ContextUpdater,
+  private val cas3CompletionContextUpdater: Cas3CompletionContextUpdater,
   private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
   private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
+  private val cas3SuitabilityContextUpdater: Cas3SuitabilityContextUpdater,
   private val cas3UpcomingRuleSet: Cas3UpcomingRuleSet,
   private val cas3UpcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
@@ -281,14 +283,14 @@ class EligibilityService(
 
     val completion =
       treeBuilder
-        .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3ContextUpdater)
+        .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3CompletionContextUpdater)
         .onPass(bookingConfirmed)
         .onFail(confirmed)
         .build()
 
     val suitability =
       treeBuilder
-        .ruleSet("Cas3Suitability", cas3SuitabilityRuleSet, cas3ContextUpdater)
+        .ruleSet("Cas3Suitability", cas3SuitabilityRuleSet, cas3SuitabilityContextUpdater)
         .onPass(completion)
         .onFail(eligibility)
         .build()

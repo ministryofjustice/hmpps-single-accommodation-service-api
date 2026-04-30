@@ -14,7 +14,6 @@ import java.time.LocalDate
 
 class Cas3UpcomingContextUpdaterTest {
   private val clock = MutableClock()
-
   private val updater = Cas3UpcomingContextUpdater(clock)
 
   @Nested

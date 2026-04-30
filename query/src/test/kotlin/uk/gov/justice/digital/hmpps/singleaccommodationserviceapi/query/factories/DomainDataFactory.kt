@@ -20,7 +20,6 @@ fun buildDomainData(
   hasNextAccommodation: Boolean = false,
   cas1Application: Cas1Application? = buildCas1Application(),
   cas3Application: Cas3Application? = null,
-  crsStatus: String? = "SUBMITTED",
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = buildCommissionedRehabilitativeServices(),
 ) = DomainData(
@@ -31,7 +30,6 @@ fun buildDomainData(
   hasNextAccommodation = hasNextAccommodation,
   cas1Application = cas1Application,
   cas3Application = cas3Application,
-  crsStatus = crsStatus,
   dutyToRefer = dutyToRefer,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
 )
