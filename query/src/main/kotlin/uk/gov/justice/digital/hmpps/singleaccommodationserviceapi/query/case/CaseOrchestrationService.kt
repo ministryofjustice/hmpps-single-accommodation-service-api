@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 @Service
 class CaseOrchestrationService(
   val aggregatorService: AggregatorService,
-  val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
   val sasAndDeliusCachingService: SasAndDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
