@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 object ProbationIntegrationDeliusStubs {
 
+  @Deprecated("This endpoint will be removed for getCase in SasAndDelius")
   fun postCaseSummariesOKResponse(response: CaseSummaries) {
     sasWiremock.stubFor(
       post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
