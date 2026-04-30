@@ -5,11 +5,11 @@ spring:
     password: sas_psw
 
 service:
-  probation-integration-sas-delius:
+  sas-and-delius:
     base-url: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
-  probation-integration-delius:
+  approved-premises-and-delius:
     base-url: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
-  probation-integration-oasys:
+  approved-premises-and-oasys:
     base-url: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
   approved-premises-api:
     base-url: https://approved-premises-api-dev.hmpps.service.justice.gov.uk

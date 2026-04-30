@@ -27,19 +27,19 @@ class RestClientConfig(
 
 ) {
   @Bean
-  open fun probationIntegrationSasDeliusClient(@Value($$"${service.probation-integration-sas-delius.base-url}") baseUrl: String) = createClient(
+  open fun probationIntegrationSasDeliusClient(@Value($$"${service.sas-and-delius.base-url}") baseUrl: String) = createClient(
     baseUrl,
     ProbationIntegrationSasDeliusClient::class,
   )
 
   @Bean
-  open fun probationIntegrationDeliusClient(@Value($$"${service.probation-integration-delius.base-url}") baseUrl: String) = createClient(
+  open fun probationIntegrationDeliusClient(@Value($$"${service.approved-premises-and-delius.base-url}") baseUrl: String) = createClient(
     baseUrl,
     ProbationIntegrationDeliusClient::class,
   )
 
   @Bean
-  open fun probationIntegrationOasysClient(@Value($$"${service.probation-integration-oasys.base-url}") baseUrl: String) = createClient(
+  open fun probationIntegrationOasysClient(@Value($$"${service.approved-premises-and-oasys.base-url}") baseUrl: String) = createClient(
     baseUrl,
     ProbationIntegrationOasysClient::class,
   )
