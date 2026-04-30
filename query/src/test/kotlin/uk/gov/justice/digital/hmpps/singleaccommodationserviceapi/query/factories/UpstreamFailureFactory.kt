@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 
 fun buildUpstreamFailure(
-  callKey: String = ApiCallKeys.GET_CASE_SUMMARY,
+  callKey: String = ApiCallKeys.GET_CASE,
   type: FailureType = FailureType.UPSTREAM_HTTP_ERROR,
   errorDetail: ErrorDetail = ErrorDetail(httpStatus = HttpStatus.INTERNAL_SERVER_ERROR, message = "Upstream error"),
   identifier: String? = null,

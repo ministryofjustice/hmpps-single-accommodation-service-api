@@ -20,10 +20,6 @@ interface ProbationIntegrationDeliusClient {
 open class ProbationIntegrationDeliusCachingService(
   val probationIntegrationDeliusClient: ProbationIntegrationDeliusClient,
 ) {
-  @Cacheable(ApiCallKeys.GET_CASE_SUMMARY, key = "#crn", sync = true)
-  open fun getCaseSummary(crn: String) = probationIntegrationDeliusClient.postCaseSummaries(listOf(crn))
-
-  open fun getCaseSummaries(crns: List<String>) = probationIntegrationDeliusClient.postCaseSummaries(crns)
 
   @Cacheable(ApiCallKeys.GET_STAFF_DETAIL, key = "#username", sync = true)
   open fun getStaffDetail(username: String) = probationIntegrationDeliusClient.getStaffDetail(username)

@@ -39,7 +39,7 @@ class CaseTransformerTest {
         cpr = caseOrchestrationDto.cpr,
         roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,
-        caseSummaries = caseOrchestrationDto.cases,
+        case = caseOrchestrationDto.case,
       ),
     ).isEqualTo(expectedCaseDto)
   }
@@ -111,9 +111,6 @@ class CaseTransformerTest {
     @JvmStatic
     fun caseTransformationCases(): Stream<Arguments> {
       val caseWithAllData = buildCaseOrchestrationDto(CRN)
-      val caseWithoutCaseSummary = caseWithAllData.copy(
-        cases = emptyList(),
-      )
       val caseWithCprWithNoIdentifiers = caseWithAllData.copy(
         cpr = buildCorePersonRecord(identifiers = null),
       )
@@ -126,9 +123,6 @@ class CaseTransformerTest {
         ),
       )
 
-      val expectedCaseWithoutAssignedToData = caseDtoWhenAllDataSupplied.copy(
-        assignedTo = null,
-      )
       val expectedCaseWithoutPrisonNumberData = caseDtoWhenAllDataSupplied.copy(
         prisonNumber = null,
         pncReference = null,
@@ -136,7 +130,6 @@ class CaseTransformerTest {
 
       return Stream.of(
         Arguments.of(caseWithAllData, caseDtoWhenAllDataSupplied),
-        Arguments.of(caseWithoutCaseSummary, expectedCaseWithoutAssignedToData),
         Arguments.of(caseWithCprWithNoIdentifiers, expectedCaseWithoutPrisonNumberData),
         Arguments.of(caseWithCprWithEmptyPrisonNumberAndPncsIdentifiers, expectedCaseWithoutPrisonNumberData),
       )
