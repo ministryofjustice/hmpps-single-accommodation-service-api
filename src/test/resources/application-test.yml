@@ -6,9 +6,9 @@ management.endpoint:
   info.cache.time-to-live: 0
 
 service:
-  - probation-integration-sas-delius
-  - probation-integration-delius
-  - probation-integration-oasys
+  - sas-and-delius
+  - approved-premises-and-delius
+  - approved-premises-and-oasys
   - approved-premises-api
   - core-person-record
   - tier
