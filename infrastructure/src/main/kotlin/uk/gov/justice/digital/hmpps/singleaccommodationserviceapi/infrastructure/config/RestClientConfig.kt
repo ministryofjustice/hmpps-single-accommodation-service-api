@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationIntegrationDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ProbationIntegrationOasysClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.ProbationIntegrationSasDeliusClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import java.net.http.HttpClient
 import java.time.Duration
@@ -29,7 +29,7 @@ class RestClientConfig(
   @Bean
   open fun probationIntegrationSasDeliusClient(@Value($$"${service.sas-and-delius.base-url}") baseUrl: String) = createClient(
     baseUrl,
-    ProbationIntegrationSasDeliusClient::class,
+    SasAndDeliusClient::class,
   )
 
   @Bean

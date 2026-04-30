@@ -49,10 +49,11 @@ class CaseQueryService(
   }
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
-    val orchestrationResult = caseOrchestrationService.getCase(crn)
+    val user = userService.authorizeAndRetrieveUser()
+    val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     val case = orchestrationResult.data
     return toApiResponseDto(
-      data = toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.cases),
+      data = toCaseDto(crn, case.cpr, case.roshDetails, case.tier, case.case),
       upstreamFailures = orchestrationResult.upstreamFailures,
     )
   }

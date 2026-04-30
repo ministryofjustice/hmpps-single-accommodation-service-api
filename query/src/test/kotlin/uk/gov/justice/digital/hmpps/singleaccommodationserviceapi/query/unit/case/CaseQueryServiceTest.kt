@@ -153,7 +153,7 @@ class CaseQueryServiceTest {
     fun `should return case with no upstream failures when all calls succeed`() {
       val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne)
 
-      every { caseOrchestrationService.getCase(crnOne) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
         data = caseOrchestrationDto,
       )
 
@@ -164,7 +164,7 @@ class CaseQueryServiceTest {
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
-          caseSummaries = caseOrchestrationDto.cases,
+          case = caseOrchestrationDto.case,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()
@@ -178,7 +178,7 @@ class CaseQueryServiceTest {
       )
       val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, roshDetails = null, tier = null)
 
-      every { caseOrchestrationService.getCase(crnOne) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
         data = caseOrchestrationDto,
         upstreamFailures = failures,
       )
