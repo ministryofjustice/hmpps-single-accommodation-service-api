@@ -97,9 +97,9 @@ class CaseTransformerTest {
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(
-        name = "Team 1",
-        username = null,
-        staffCode = null,
+        name = "First Middle Last",
+        username = "user1",
+        staffCode = "ABCD1234",
       ),
       photoUrl = null,
       currentAccommodation = null,
