@@ -36,8 +36,15 @@ fun expectedGetEligibilityResponse(
          "action":"Add DTR outcome",
          "link":"Add outcome"
       },
+      "crs":{
+         "serviceStatus":"NOT_STARTED",
+         "suitableApplicationId":null,
+         "action":"Complete CRS Referral",
+         "link":"View refer and monitor"
+      },
       "caseActions":[
          "Add DTR outcome",
+         "Complete CRS Referral",
          "Wait for approved premise (CAS1) assessment result"
       ],
       "dutyToRefer":{

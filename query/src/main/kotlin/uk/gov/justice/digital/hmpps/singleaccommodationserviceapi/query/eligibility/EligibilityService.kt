@@ -31,6 +31,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
@@ -79,6 +82,11 @@ class EligibilityService(
   private val dtrSuitabilityRuleSet: DtrSuitabilityRuleSet,
   private val dtrUpcomingRuleSet: DtrUpcomingRuleSet,
   private val dtrUpcomingContextUpdater: DtrUpcomingContextUpdater,
+
+  // CRS
+  private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
+  private val crsCompletionRuleSet: CrsCompletionRuleSet,
+  private val crsContextUpdater: CrsContextUpdater,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -101,18 +109,19 @@ class EligibilityService(
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "Eligibility input data: crn={}, currentAccommodation.?endDate={}, tierScore={}, sex={}, crsStatus={}, currentAccommodationIsPrisonCas1Cas2orCas2v2={}, hasNextAccommodation={}",
+      "Eligibility input data: crn={}, currentAccommodation.?endDate={}, tierScore={}, sex={}, currentAccommodationIsPrisonCas1Cas2orCas2v2={}, currentAccommodationIsPrivate={}, hasNextAccommodation={}",
       data.crn,
       data.currentAccommodation?.endDate,
       data.tierScore,
       data.sex,
-      data.crsStatus,
       data.currentAccommodation?.isPrisonCas1Cas2OrCas2v2,
+      data.currentAccommodation?.isPrivate,
       data.hasNextAccommodation,
     )
 
     val cas1 = calculateEligibilityForCas1(data)
     val cas3 = calculateEligibilityForCas3(data)
+    val crs = calculateEligibilityForCrs(data)
     val dtr = calculateEligibilityForDtr(data)
 
     return EligibilityTransformer.toEligibilityDto(
@@ -120,6 +129,7 @@ class EligibilityService(
       cas1 = cas1,
       cas3 = cas3,
       dtr = dtr,
+      crs = crs,
       dutyToRefer = data.dutyToRefer,
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
@@ -202,6 +212,50 @@ class EligibilityService(
       result.action,
       result.link,
     )
+  }
+
+  fun calculateEligibilityForCrs(data: DomainData): ServiceResult {
+    log.info("Calculating Crs eligibility for CRN: ${data.crn}")
+
+    data.commissionedRehabilitativeServices?.let {
+      log.debug(
+        "CRS Data received: status={}, submissionDate={}",
+        it.status,
+        it.submissionDate,
+      )
+    } ?: log.debug("CRS Data received: No CRS application")
+
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val eligibility =
+      treeBuilder
+        .ruleSet("CrsEligibility", crsEligibilityRuleSet, commonContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("CrsCompletion", crsCompletionRuleSet, crsContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility)
+        .build()
+
+    val initialContext =
+      EvaluationContext(
+        data = data,
+        currentResult =
+        ServiceResult(
+          serviceStatus = ServiceStatus.SUBMITTED,
+          link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+        ),
+      )
+
+    return tree.eval(initialContext).also {
+      log.info("Finished CRS calculating eligibility for CRN: ${data.crn}")
+      logServiceResult(it)
+    }
   }
 
   fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
@@ -355,6 +409,8 @@ class EligibilityService(
       cas3Application = eligibilityOrchestrationDto.data.cas3Application,
       currentAccommodationSummary = currentAccommodation,
       dutyToRefer = dutyToRefer,
+      // TODO connect to crs endpoint when it becomes available
+      commissionedRehabilitativeServices = null,
     )
   }
 }

@@ -22,6 +22,7 @@ class EligibilityTransformerTest {
     cas1: ServiceResult,
     cas3: ServiceResult,
     dtr: ServiceResult,
+    crs: ServiceResult,
     caseActions: List<String>,
   ) {
     val actualEligibility = EligibilityTransformer.toEligibilityDto(
@@ -29,6 +30,7 @@ class EligibilityTransformerTest {
       cas1 = cas1,
       cas3 = cas3,
       dtr = dtr,
+      crs = crs,
       dutyToRefer = null,
     )
 
@@ -37,6 +39,7 @@ class EligibilityTransformerTest {
       cas1 = cas1,
       cas3 = cas3,
       dtr = dtr,
+      crs = crs,
       caseActions = caseActions,
     )
 
@@ -91,6 +94,7 @@ class EligibilityTransformerTest {
         notEligible,
         notEligible,
         notEligible,
+        notEligible,
         emptyList<String>(),
       ),
       Arguments.of(
@@ -98,11 +102,13 @@ class EligibilityTransformerTest {
         notStarted,
         notEligible,
         notEligible,
+        notEligible,
         listOf(EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
       ),
       Arguments.of(
         CRN,
         upcoming,
+        notEligible,
         notEligible,
         notEligible,
         listOf("${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days"),
@@ -112,11 +118,13 @@ class EligibilityTransformerTest {
         confirmed,
         notEligible,
         notEligible,
+        notEligible,
         emptyList<String>(),
       ),
       Arguments.of(
         CRN,
         assessing,
+        notEligible,
         notEligible,
         notEligible,
         listOf(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT),
@@ -126,11 +134,13 @@ class EligibilityTransformerTest {
         submitted,
         notEligible,
         notEligible,
+        notEligible,
         listOf(EligibilityKeys.CREATE_PLACEMENT),
       ),
       Arguments.of(
         CRN,
         withdrawn,
+        notEligible,
         notEligible,
         notEligible,
         listOf(EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
@@ -139,6 +149,7 @@ class EligibilityTransformerTest {
         CRN,
         rejected,
         upcoming,
+        notEligible,
         notEligible,
         listOf(
           EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,

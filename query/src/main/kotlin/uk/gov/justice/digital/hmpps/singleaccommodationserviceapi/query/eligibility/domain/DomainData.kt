@@ -22,6 +22,7 @@ data class DomainData(
   val cas3Application: Cas3Application?,
   val crsStatus: String? = "SUBMITTED",
   val dutyToRefer: DutyToReferDto?,
+  val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
 ) {
   constructor(
     crn: String,
@@ -32,6 +33,7 @@ data class DomainData(
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
     crsStatus: String? = "SUBMITTED",
+    commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
@@ -47,6 +49,7 @@ data class DomainData(
     cas3Application = cas3Application,
     crsStatus = crsStatus,
     dutyToRefer = dutyToRefer,
+    commissionedRehabilitativeServices = commissionedRehabilitativeServices,
   )
 
   constructor(
@@ -71,6 +74,7 @@ data class DomainData(
     },
     cas3Application = null,
     dutyToRefer = dutyToRefer,
+    commissionedRehabilitativeServices = null,
   )
 }
 
@@ -79,3 +83,20 @@ data class CurrentAccommodation(
   val isPrisonCas1Cas2OrCas2v2: Boolean = true,
   val isPrivate: Boolean = false,
 )
+
+data class CommissionedRehabilitativeServices(
+  val status: CrsStatus,
+  val submissionDate: LocalDate,
+)
+
+enum class CrsStatus {
+  NSI_REFERRAL,
+  IN_PROGRESS,
+  NSI_COMMENCED,
+  APPOINTMENT,
+  ACTION_PLAN_SUBMITTED,
+  ACTION_PLAN_APPROVED,
+  END_OF_SERVICE_REPORT,
+  COMPLETED,
+  NSI_TERMINATED,
+}

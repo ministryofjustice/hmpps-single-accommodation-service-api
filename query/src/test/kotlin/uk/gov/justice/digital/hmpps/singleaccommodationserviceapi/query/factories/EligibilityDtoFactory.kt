@@ -11,12 +11,14 @@ fun buildEligibilityDto(
   cas3: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   caseActions: List<String> = emptyList(),
   dtr: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+  crs: ServiceResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
   dutyToRefer: DutyToReferDto? = null,
 ) = EligibilityDto(
   crn,
   cas1,
   cas3,
   dtr,
+  crs,
   caseActions,
   dutyToRefer,
 )
