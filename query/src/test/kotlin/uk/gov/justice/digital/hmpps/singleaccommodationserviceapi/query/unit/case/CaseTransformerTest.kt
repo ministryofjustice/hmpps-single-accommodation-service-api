@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FullCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
@@ -31,7 +31,7 @@ class CaseTransformerTest {
   )
   fun `should transform from case orchestration dto to case dto`(
     caseOrchestrationDto: CaseOrchestrationDto,
-    expectedCaseDto: CaseDto,
+    expectedFullCaseDto: FullCaseDto,
   ) {
     assertThat(
       CaseTransformer.toCaseDto(
@@ -41,7 +41,7 @@ class CaseTransformerTest {
         tier = caseOrchestrationDto.tier,
         case = caseOrchestrationDto.case,
       ),
-    ).isEqualTo(expectedCaseDto)
+    ).isEqualTo(expectedFullCaseDto)
   }
 
   @Test
@@ -88,7 +88,7 @@ class CaseTransformerTest {
   private companion object {
     private const val CRN = "X12345"
 
-    private val caseDtoWhenAllDataSupplied = CaseDto(
+    private val fullCaseDtoWhenAllDataSupplied = FullCaseDto(
       name = "First Middle Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
@@ -123,13 +123,13 @@ class CaseTransformerTest {
         ),
       )
 
-      val expectedCaseWithoutPrisonNumberData = caseDtoWhenAllDataSupplied.copy(
+      val expectedCaseWithoutPrisonNumberData = fullCaseDtoWhenAllDataSupplied.copy(
         prisonNumber = null,
         pncReference = null,
       )
 
       return Stream.of(
-        Arguments.of(caseWithAllData, caseDtoWhenAllDataSupplied),
+        Arguments.of(caseWithAllData, fullCaseDtoWhenAllDataSupplied),
         Arguments.of(caseWithCprWithNoIdentifiers, expectedCaseWithoutPrisonNumberData),
         Arguments.of(caseWithCprWithEmptyPrisonNumberAndPncsIdentifiers, expectedCaseWithoutPrisonNumberData),
       )

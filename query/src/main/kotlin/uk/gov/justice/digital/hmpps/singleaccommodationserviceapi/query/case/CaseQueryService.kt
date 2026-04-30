@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FullCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
@@ -29,7 +29,7 @@ class CaseQueryService(
     return caseList.cases.map { toPersonDto(it) }
   }
 
-  fun getCases(personDtos: List<PersonDto>): List<CaseDto> {
+  fun getCases(personDtos: List<PersonDto>): List<FullCaseDto> {
     val crns = personDtos.map { it.crn }
     val caseEntities = caseRepository.findByCrns(crns)
 
@@ -48,7 +48,7 @@ class CaseQueryService(
     }
   }
 
-  fun getCase(crn: String): ApiResponseDto<CaseDto> {
+  fun getCase(crn: String): ApiResponseDto<FullCaseDto> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
     val case = orchestrationResult.data

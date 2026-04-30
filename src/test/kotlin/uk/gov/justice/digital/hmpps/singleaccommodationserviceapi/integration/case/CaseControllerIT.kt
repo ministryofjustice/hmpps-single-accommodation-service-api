@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FullCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -174,7 +174,7 @@ class CaseControllerIT : IntegrationTestBase() {
         .withDeliusUserJwt()
         .exchangeSuccessfully()
 
-      response.expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
+      response.expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<FullCaseDto>>>() {})
         .value { responseDto ->
           assertThat(responseDto!!.data.map { it.riskLevel?.name })
             .hasSize(riskLevel.second)

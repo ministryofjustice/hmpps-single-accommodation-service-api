@@ -2,10 +2,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.LocalDate
 
-data class CaseDto(
+sealed interface CaseDto {
+  val crn: String
+}
+
+data class FullCaseDto(
   val name: String?,
   val dateOfBirth: LocalDate?,
-  val crn: String?,
+  override val crn: String,
   val prisonNumber: String?,
   val photoUrl: String?,
   val tierScore: TierScore?,
@@ -16,7 +20,25 @@ data class CaseDto(
   val nextAccommodation: AccommodationDetail?,
   val status: Status? = null,
   val actions: List<String> = emptyList(),
-)
+) : CaseDto
+
+data class RestrictedCaseDtoDto(
+  val name: String?,
+  val dateOfBirth: LocalDate?,
+  override val crn: String,
+  val prisonNumber: String?,
+  val photoUrl: String?,
+  val tierScore: TierScore?,
+  val riskLevel: RiskLevel?,
+  val pncReference: String?,
+  val assignedTo: AssignedToDto?,
+  val currentAccommodation: AccommodationDetail?,
+  val nextAccommodation: AccommodationDetail?,
+  val status: Status? = null,
+  val actions: List<String> = emptyList(),
+) : CaseDto
+
+data class ExcludedCaseDtoDto(override val crn: String) : CaseDto
 
 data class AssignedToDto(
   val name: String,

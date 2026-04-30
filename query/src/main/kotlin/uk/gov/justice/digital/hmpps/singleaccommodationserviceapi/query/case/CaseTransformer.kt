@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FullCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -18,7 +18,7 @@ object CaseTransformer {
     roshDetails: RoshDetails?,
     tier: Tier?,
     case: Case,
-  ) = CaseDto(
+  ) = FullCaseDto(
     name = cpr?.let { toFullName(it) },
     dateOfBirth = cpr?.dateOfBirth,
     crn = crn,
@@ -42,7 +42,7 @@ object CaseTransformer {
     person: PersonDto,
     caseEntity: CaseEntity?,
     eligibility: EligibilityDto,
-  ) = CaseDto(
+  ) = FullCaseDto(
     name = person.name,
     dateOfBirth = person.dateOfBirth,
     crn = person.crn,
