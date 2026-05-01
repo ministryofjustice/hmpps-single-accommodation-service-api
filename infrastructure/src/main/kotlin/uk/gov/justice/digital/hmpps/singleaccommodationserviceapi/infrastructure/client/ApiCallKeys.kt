@@ -2,8 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 object ApiCallKeys {
   // probation-integration AP and Delius service
-  const val GET_CASE_SUMMARIES = "getCaseSummaries"
-  const val GET_CASE_SUMMARY = "getCaseSummaryByCrn"
+  const val GET_CASE = "getCaseByCrn"
   const val GET_STAFF_DETAIL = "getStaffDetailByUsername"
 
   // probation-integration SAS and Delius service

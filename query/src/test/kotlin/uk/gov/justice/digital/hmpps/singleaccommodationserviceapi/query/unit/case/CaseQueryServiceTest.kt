@@ -151,9 +151,10 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should return case with no upstream failures when all calls succeed`() {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne)
 
-      every { caseOrchestrationService.getCase(crnOne) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
         data = caseOrchestrationDto,
       )
 
@@ -164,7 +165,7 @@ class CaseQueryServiceTest {
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
-          caseSummaries = caseOrchestrationDto.cases,
+          case = caseOrchestrationDto.case,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()
@@ -172,13 +173,14 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should return case with upstream failures on partial success`() {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       val failures = listOf(
         buildUpstreamFailure(callKey = "getRoshDetail"),
         buildUpstreamFailure(callKey = "getTierByCrn"),
       )
       val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, roshDetails = null, tier = null)
 
-      every { caseOrchestrationService.getCase(crnOne) } returns OrchestrationResultDto(
+      every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
         data = caseOrchestrationDto,
         upstreamFailures = failures,
       )

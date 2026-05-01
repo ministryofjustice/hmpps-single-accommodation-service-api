@@ -6,23 +6,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 fun expectedGetCaseResponse(): String = """
 {
   "data": {
-    "name" : "First Middle Last",
-    "dateOfBirth" : "2000-12-03",
-    "crn" : "FAKECRN1",
-    "prisonNumber" : "PRI1",
-    "photoUrl" : null,
-    "tierScore" : "A1",
-    "riskLevel" : "VERY_HIGH",
-    "pncReference" : "Some PNC Reference",
-    "assignedTo" : {
-      "name" : "Team 1",
-      "username" : null,
-      "staffCode" : null
+    "name": "First Middle Last",
+    "dateOfBirth": "2000-12-03",
+    "crn": "FAKECRN1",
+    "prisonNumber": "PRI1",
+    "photoUrl": null,
+    "tierScore": "A1",
+    "riskLevel": "VERY_HIGH",
+    "pncReference": "Some PNC Reference",
+    "assignedTo": {
+      "name": "First Middle Last",
+      "username": "user1",
+      "staffCode": "ABCD1234"
     },
-    "currentAccommodation" : null,
-    "nextAccommodation" : null,
-    "status":null,
-    "actions":[]
+    "currentAccommodation": null,
+    "nextAccommodation": null,
+    "status": null,
+    "actions": []
   }
 }
 """.trimIndent()

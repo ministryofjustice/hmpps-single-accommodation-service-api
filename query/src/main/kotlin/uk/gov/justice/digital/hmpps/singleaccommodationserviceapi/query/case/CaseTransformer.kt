@@ -4,9 +4,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.As
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore as TierScoreInfra
@@ -17,7 +17,7 @@ object CaseTransformer {
     cpr: CorePersonRecord?,
     roshDetails: RoshDetails?,
     tier: Tier?,
-    caseSummaries: List<CaseSummary>?,
+    case: Case?,
   ) = CaseDto(
     name = cpr?.let { toFullName(it) },
     dateOfBirth = cpr?.dateOfBirth,
@@ -26,8 +26,12 @@ object CaseTransformer {
     tierScore = tier?.let { toTierScore(tier.tierScore) },
     riskLevel = roshDetails?.let { RiskLevelTransformer.determineOverallRiskLevel(roshDetails.rosh) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
-    assignedTo = caseSummaries?.firstOrNull()?.manager?.team?.name?.let {
-      AssignedToDto(name = it, username = null, staffCode = null)
+    assignedTo = case?.staff?.let {
+      AssignedToDto(
+        name = it.name.fullName,
+        username = it.username,
+        staffCode = it.code,
+      )
     },
     photoUrl = null,
     currentAccommodation = null,

@@ -11,13 +11,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
@@ -36,9 +34,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationSasDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import java.util.UUID
 
@@ -60,7 +57,6 @@ class CaseControllerIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
 
-    stubInitialCaseSummaries()
     stubInitialCorePersonRecords()
     stubInitialRoshAndTier()
   }
@@ -102,7 +98,7 @@ class CaseControllerIT : IntegrationTestBase() {
       ),
     )
 
-    ProbationIntegrationSasDeliusStubs.stubGetCaseListByUsername(
+    SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       response = caseList,
     )
@@ -219,6 +215,8 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get case`() {
+    val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
     restTestClient.get().uri("/cases/${crns[0]}")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -226,16 +224,6 @@ class CaseControllerIT : IntegrationTestBase() {
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponse())
       }
-  }
-
-  private fun stubInitialCaseSummaries() {
-    val summaries = CaseSummaries(
-      listOf(
-        buildCaseSummary(crn = crns[0], nomsId = nomsNumbers[0]),
-        buildCaseSummary(crn = crns[1], nomsId = nomsNumbers[1]),
-      ),
-    )
-    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = summaries)
   }
 
   private fun stubInitialCorePersonRecords() {
@@ -290,7 +278,7 @@ class CaseControllerIT : IntegrationTestBase() {
       },
     )
 
-    ProbationIntegrationSasDeliusStubs.stubGetCaseListByUsername(
+    SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       response = caseList,
     )
