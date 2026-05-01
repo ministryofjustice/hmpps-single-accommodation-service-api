@@ -10,5 +10,5 @@ data class CaseOrchestrationDto(
   val cpr: CorePersonRecord?,
   val roshDetails: RoshDetails?,
   val tier: Tier?,
-  val case: Case,
+  val case: Case?,
 )

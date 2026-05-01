@@ -17,7 +17,7 @@ object CaseTransformer {
     cpr: CorePersonRecord?,
     roshDetails: RoshDetails?,
     tier: Tier?,
-    case: Case,
+    case: Case?,
   ) = CaseDto(
     name = cpr?.let { toFullName(it) },
     dateOfBirth = cpr?.dateOfBirth,
@@ -26,11 +26,13 @@ object CaseTransformer {
     tierScore = tier?.let { toTierScore(tier.tierScore) },
     riskLevel = roshDetails?.let { RiskLevelTransformer.determineOverallRiskLevel(roshDetails.rosh) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
-    assignedTo = AssignedToDto(
-      name = case.staff.name.fullName,
-      username = case.staff.username,
-      staffCode = case.staff.code,
-    ),
+    assignedTo = case?.staff?.let {
+      AssignedToDto(
+        name = it.name.fullName,
+        username = it.username,
+        staffCode = it.code,
+      )
+    },
     photoUrl = null,
     currentAccommodation = null,
     nextAccommodation = null,
