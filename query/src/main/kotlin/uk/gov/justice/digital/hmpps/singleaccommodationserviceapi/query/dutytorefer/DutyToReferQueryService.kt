@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.withExtraInformation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -17,9 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferAuditKeys.LOCAL_AUTHORITY_AREA_NAME
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.util.UUID
+
+private const val LOCAL_AUTHORITY_AREA_NAME = "localAuthorityAreaName"
 
 @Service
 class DutyToReferQueryService(
@@ -103,8 +103,13 @@ class DutyToReferQueryService(
       .associate { it.id to it.name }
 
     return laIdPerRecord.map { (record, laId) ->
-      record.withExtraInformation(LOCAL_AUTHORITY_AREA_NAME to laId?.let(laNameById::get))
+      createDutyToReferTimelineRecordWithLAName(record, laId?.let(laNameById::get))
     }
+  }
+
+  private fun createDutyToReferTimelineRecordWithLAName(record: AuditRecordDto, localAuthorityAreaName: String?): AuditRecordDto {
+    if (localAuthorityAreaName == null) return record
+    return record.copy(extraInformation = record.extraInformation + (LOCAL_AUTHORITY_AREA_NAME to localAuthorityAreaName))
   }
 
   private fun getDutyToReferNotesTimeline(dtrEntity: DutyToReferEntity): List<AuditRecordDto> {

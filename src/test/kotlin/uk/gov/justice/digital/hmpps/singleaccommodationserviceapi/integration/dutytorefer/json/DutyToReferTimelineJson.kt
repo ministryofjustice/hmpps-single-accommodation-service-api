@@ -112,8 +112,7 @@ fun expectedGetDutyToReferTimelineResponse(
                "field":"note",
                "value":"Test note"
             }
-         ],
-         "extraInformation":{}
+         ]
       },
       {
          "type":"CREATE",

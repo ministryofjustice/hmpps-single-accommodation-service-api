@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferAuditKeys.LOCAL_AUTHORITY_AREA_NAME
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import java.time.Instant
 import java.util.Optional
@@ -296,9 +295,9 @@ class DutyToReferQueryServiceTest {
 
       assertThat(result.data).hasSize(2)
       assertThat(result.data[0].commitDate).isEqualTo(updateRecord.commitDate)
-      assertThat(result.data[0].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
       assertThat(result.data[1].commitDate).isEqualTo(createRecord.commitDate)
-      assertThat(result.data[1].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
     }
 
     @Test
@@ -335,9 +334,9 @@ class DutyToReferQueryServiceTest {
 
       assertThat(result.data).hasSize(2)
       assertThat(result.data[0].commitDate).isEqualTo(laChangeRecord.commitDate)
-      assertThat(result.data[0].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Oxford")
+      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isEqualTo("Oxford")
       assertThat(result.data[1].commitDate).isEqualTo(createRecord.commitDate)
-      assertThat(result.data[1].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
     }
 
     @Test
@@ -458,39 +457,39 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data).hasSize(9)
 
       // 9. Final state: Cambridge → Stroud
-      assertThat(result.data[0].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(fourthLa.name)
+      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isEqualTo(fourthLa.name)
       assertThat(result.data[0].commitDate).isEqualTo(fourthLaUpdate.commitDate)
 
       // 8. Reference update (LA still Cambridge)
-      assertThat(result.data[1].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(thirdLa.name)
+      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo(thirdLa.name)
       assertThat(result.data[1].commitDate).isEqualTo(fourthRefUpdate.commitDate)
 
       // 7. Reference update (LA still Cambridge)
-      assertThat(result.data[2].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(thirdLa.name)
+      assertThat(result.data[2].extraInformation["localAuthorityAreaName"]).isEqualTo(thirdLa.name)
       assertThat(result.data[2].commitDate).isEqualTo(thirdRefUpdate.commitDate)
 
       // 6. LA change: Gloucester → Cambridge
-      assertThat(result.data[3].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(thirdLa.name)
+      assertThat(result.data[3].extraInformation["localAuthorityAreaName"]).isEqualTo(thirdLa.name)
       assertThat(result.data[3].commitDate).isEqualTo(thirdLaUpdate.commitDate)
 
       // 5. LA change: Oxford → Gloucester
-      assertThat(result.data[4].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(secondLa.name)
+      assertThat(result.data[4].extraInformation["localAuthorityAreaName"]).isEqualTo(secondLa.name)
       assertThat(result.data[4].commitDate).isEqualTo(secondLaUpdate.commitDate)
 
       // 4. Reference update (LA still Oxford)
-      assertThat(result.data[5].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(firstLa.name)
+      assertThat(result.data[5].extraInformation["localAuthorityAreaName"]).isEqualTo(firstLa.name)
       assertThat(result.data[5].commitDate).isEqualTo(secondRefUpdate.commitDate)
 
       // 3. LA change: Cherwell → Oxford
-      assertThat(result.data[6].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(firstLa.name)
+      assertThat(result.data[6].extraInformation["localAuthorityAreaName"]).isEqualTo(firstLa.name)
       assertThat(result.data[6].commitDate).isEqualTo(firstLaUpdate.commitDate)
 
       // 2. Reference update (LA still Cherwell)
-      assertThat(result.data[7].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(initialLa.name)
+      assertThat(result.data[7].extraInformation["localAuthorityAreaName"]).isEqualTo(initialLa.name)
       assertThat(result.data[7].commitDate).isEqualTo(firstRefUpdate.commitDate)
 
       // 1. Create event LA set to Cherwell
-      assertThat(result.data[8].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo(initialLa.name)
+      assertThat(result.data[8].extraInformation["localAuthorityAreaName"]).isEqualTo(initialLa.name)
       assertThat(result.data[8].commitDate).isEqualTo(createRecord.commitDate)
     }
 
@@ -549,17 +548,17 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[0].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[0].commitDate).isEqualTo(note2CreatedAt)
       assertThat(result.data[0].author).isEqualTo("Second user")
-      assertThat(result.data[0].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isNull()
+      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isNull()
       assertThat(result.data[1].type).isEqualTo(AuditRecordType.UPDATE)
       assertThat(result.data[1].commitDate).isEqualTo(updateRecord.commitDate)
-      assertThat(result.data[1].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
       assertThat(result.data[2].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[2].commitDate).isEqualTo(note1CreatedAt)
       assertThat(result.data[2].author).isEqualTo("First user")
-      assertThat(result.data[2].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isNull()
+      assertThat(result.data[2].extraInformation["localAuthorityAreaName"]).isNull()
       assertThat(result.data[3].type).isEqualTo(AuditRecordType.CREATE)
       assertThat(result.data[3].commitDate).isEqualTo(createRecord.commitDate)
-      assertThat(result.data[3].extraInformation[LOCAL_AUTHORITY_AREA_NAME]).isEqualTo("Cherwell")
+      assertThat(result.data[3].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
     }
 
     @Test
