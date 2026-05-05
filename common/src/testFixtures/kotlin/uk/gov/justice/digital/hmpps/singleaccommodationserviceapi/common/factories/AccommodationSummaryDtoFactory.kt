@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import java.time.LocalDate
 
@@ -25,7 +23,7 @@ fun buildAccommodationSummaryDto(
 )
 
 fun buildAccommodationTypeDto(
-  code: AccommodationTypeCode = AccommodationTypeCode.A02,
+  code: String = "A02",
   description: String = "Approved Premises",
 ) = AccommodationTypeDto(
   code = code,
@@ -33,7 +31,7 @@ fun buildAccommodationTypeDto(
 )
 
 fun buildAccommodationStatusDto(
-  code: AccommodationStatusCode = AccommodationStatusCode.M,
+  code: String = "M",
   description: String = "Main",
 ) = AccommodationStatusDto(
   code = code,

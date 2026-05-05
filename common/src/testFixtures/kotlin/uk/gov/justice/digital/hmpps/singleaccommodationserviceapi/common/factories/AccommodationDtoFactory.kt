@@ -1,27 +1,19 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-fun buildAccommodationDetail(
+fun buildProposedAccommodationDto(
   id: UUID = UUID.randomUUID(),
   name: String? = null,
-  caseId: UUID = UUID.randomUUID(),
   crn: String = "X12345",
-  arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
-  arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
-  arrangementSubTypeDescription: String? = null,
-  settledType: AccommodationSettledType = AccommodationSettledType.TRANSIENT,
-  offenderReleaseType: OffenderReleaseType? = null,
+  accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(),
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.YES,
   address: AccommodationAddressDetails = buildAccommodationAddressDetails(),
@@ -29,16 +21,11 @@ fun buildAccommodationDetail(
   endDate: LocalDate? = null,
   createdBy: String = "Joe Bloggs",
   createdAt: Instant = Instant.now(),
-) = AccommodationDetail(
+) = ProposedAccommodationDto(
   id = id,
-  caseId = caseId,
   crn = crn,
   name = name,
-  arrangementType = arrangementType,
-  arrangementSubType = arrangementSubType,
-  arrangementSubTypeDescription = arrangementSubTypeDescription,
-  settledType = settledType,
-  offenderReleaseType = offenderReleaseType,
+  accommodationType = accommodationType,
   verificationStatus = verificationStatus,
   nextAccommodationStatus = nextAccommodationStatus,
   address = address,
