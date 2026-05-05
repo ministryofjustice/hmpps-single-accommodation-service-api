@@ -4,7 +4,6 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
@@ -13,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNodeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
 class RuleSetNodeBuilderTest {
   private val ruleSetName = "TestRuleSet"
@@ -23,7 +23,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `onPass sets the onPass node and returns builder`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+      buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -35,7 +35,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `onFail sets the onFail node and returns builder`() {
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -47,10 +47,10 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `builder can chain onPass and onFail`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+      buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -62,10 +62,10 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `build creates RuleSetNode with correct properties`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+      buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -81,7 +81,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `build throws exception when onPass is not set`() {
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -94,7 +94,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `build throws exception when onFail is not set`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
-      ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+      buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)

@@ -38,7 +38,6 @@ class CrsContextUpdaterTest {
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
       assertThat(result.currentResult.link).isNotNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFER_AND_MONITOR)
-      assertThat(result.currentResult.suitableApplicationId).isNull()
     }
   }
 }

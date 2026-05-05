@@ -45,7 +45,7 @@ import java.util.UUID
 
 class CaseAllocationHandlerIT : IntegrationTestBase() {
   @Autowired
-  private lateinit var dutyToReferRepository: DutyToReferRepository
+  lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
   lateinit var caseRepository: CaseRepository

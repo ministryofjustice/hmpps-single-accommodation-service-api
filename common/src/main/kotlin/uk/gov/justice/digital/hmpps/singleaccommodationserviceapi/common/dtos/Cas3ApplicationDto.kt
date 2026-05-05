@@ -1,9 +1,9 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import java.util.UUID
 
-data class Cas3Application(
+data class Cas3ApplicationDto(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
   val assessmentStatus: Cas3AssessmentStatus?,

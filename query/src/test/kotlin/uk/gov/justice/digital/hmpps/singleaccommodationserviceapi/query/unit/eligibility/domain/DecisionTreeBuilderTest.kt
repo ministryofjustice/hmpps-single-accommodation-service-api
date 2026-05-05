@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -13,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNodeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
 class DecisionTreeBuilderTest {
   private val engine: RulesEngine = mockk()
@@ -32,9 +31,8 @@ class DecisionTreeBuilderTest {
   @Test
   fun `outcome creates OutcomeNode with fixed ServiceResult`() {
     val expectedResult =
-      ServiceResult(
+      buildServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-        suitableApplicationId = UUID.randomUUID(),
       )
     val builder = DecisionTreeBuilder(engine)
 
@@ -45,7 +43,7 @@ class DecisionTreeBuilderTest {
     val evaluationContext =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
     val actualResult = result.eval(evaluationContext)
     assertThat(actualResult).isEqualTo(expectedResult)
@@ -55,9 +53,8 @@ class DecisionTreeBuilderTest {
   fun `confirmed creates OutcomeNode returning current context ServiceResult`() {
     val builder = DecisionTreeBuilder(engine)
     val currentResult =
-      ServiceResult(
+      buildServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-        suitableApplicationId = UUID.randomUUID(),
       )
     val evaluationContext =
       EvaluationContext(
@@ -75,8 +72,8 @@ class DecisionTreeBuilderTest {
   @Test
   fun `confirmed returns different ServiceResult when context changes`() {
     val builder = DecisionTreeBuilder(engine)
-    val initialResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
-    val updatedResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+    val initialResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+    val updatedResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val initialContext =
       EvaluationContext(
         data = buildDomainData(),
@@ -104,11 +101,10 @@ class DecisionTreeBuilderTest {
     val evaluationContext =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
     val actualResult = result.eval(evaluationContext)
     assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-    assertThat(actualResult.suitableApplicationId).isNull()
   }
 
   @Test
@@ -117,12 +113,12 @@ class DecisionTreeBuilderTest {
     val context1 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
       )
     val context2 =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = ServiceResult(ServiceStatus.SUBMITTED),
+        currentResult = buildServiceResult(ServiceStatus.SUBMITTED),
       )
 
     val notEligibleNode = builder.notEligible()

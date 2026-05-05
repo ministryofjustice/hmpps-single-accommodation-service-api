@@ -19,38 +19,38 @@ fun expectedGetEligibilityResponse(
    "data":{
       "crn":"$crn",
       "cas1":{
-         "serviceStatus":"SUBMITTED",
-         "suitableApplicationId":"$cas1ApplicationId",
-         "action":"Wait for approved premise (CAS1) assessment result",
-         "link":"View application"
+         "serviceResult":{
+            "serviceStatus":"SUBMITTED",
+            "action":"Wait for approved premise (CAS1) assessment result",
+            "link":"View application"
+         },
+         "cas1Application":{
+            "id":"$cas1ApplicationId",
+            "applicationStatus":"AWAITING_ASSESSMENT",
+            "requestForPlacementStatus":null,
+            "placementStatus":null
+         }
       },
       "cas3":{
-         "serviceStatus":"NOT_SUBMITTED",
-         "suitableApplicationId":"$cas3ApplicationId",
-         "action":null,
-         "link":"View referral"
+         "serviceResult":{
+            "serviceStatus":"NOT_SUBMITTED",
+            "action":null,
+            "link":"View referral"
+         },
+         "cas3Application":{
+            "id":"$cas3ApplicationId",
+            "applicationStatus":"IN_PROGRESS",
+            "assessmentStatus":null,
+            "bookingStatus":null
+         }
       },
       "dtr":{
-         "serviceStatus":"SUBMITTED",
-         "suitableApplicationId":null,
-         "action":"Add DTR outcome",
-         "link":"Add outcome"
-      },
-      "crs":{
-         "serviceStatus":"NOT_STARTED",
-         "suitableApplicationId":null,
-         "action":"Complete CRS Referral",
-         "link":"View refer and monitor"
-      },
-      "caseActions":[
-         "Add DTR outcome",
-         "Complete CRS Referral",
-         "Wait for approved premise (CAS1) assessment result"
-      ],
-      "dutyToRefer":{
+         "serviceResult":{
+            "serviceStatus":"SUBMITTED",
+            "action":"Add DTR outcome",
+            "link":"Add outcome"
+         },
          "caseId":"$dutyToReferCaseId",
-         "crn":"$crn",
-         "status":"SUBMITTED",
          "submission":{
             "id":"$dutyToReferId",
             "localAuthority":{
@@ -62,7 +62,20 @@ fun expectedGetEligibilityResponse(
             "createdBy":"$createdBy",
             "createdAt":"$createdAt"
          }
-      }
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"NOT_STARTED",
+            "action":"Complete CRS Referral",
+            "link":"View refer and monitor"
+         },
+         "commissionedRehabilitativeServices":null
+      },
+      "caseActions":[
+         "Add DTR outcome",
+         "Complete CRS Referral",
+         "Wait for approved premise (CAS1) assessment result"
+      ]
    }
 }
 """.trimIndent()

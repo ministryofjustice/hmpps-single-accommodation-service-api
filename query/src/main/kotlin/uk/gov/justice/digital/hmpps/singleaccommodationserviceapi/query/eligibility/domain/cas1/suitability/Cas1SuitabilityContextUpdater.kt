@@ -22,20 +22,17 @@ class Cas1SuitabilityContextUpdater : ContextUpdater {
     val applicationStatus = data.cas1Application?.applicationStatus
     val requestForPlacementStatus = data.cas1Application?.requestForPlacementStatus
     val placementStatus = data.cas1Application?.placementStatus
-    val suitableApplicationId = data.cas1Application?.id
 
     return if (requestForPlacementStatus == null && placementStatus == null) {
       when (applicationStatus) {
         Cas1ApplicationStatus.STARTED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_SUBMITTED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION,
           link = EligibilityKeys.CONTINUE_APPLICATION,
         )
 
         Cas1ApplicationStatus.REJECTED -> ServiceResult(
           serviceStatus = ServiceStatus.APPLICATION_REJECTED,
-          suitableApplicationId = suitableApplicationId,
           action = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
           link = EligibilityKeys.START_NEW_APPLICATION,
         )

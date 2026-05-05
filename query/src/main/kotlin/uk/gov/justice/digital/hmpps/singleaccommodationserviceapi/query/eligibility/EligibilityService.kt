@@ -130,7 +130,7 @@ class EligibilityService(
       cas3 = cas3,
       dtr = dtr,
       crs = crs,
-      dutyToRefer = data.dutyToRefer,
+      data = data,
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
@@ -150,7 +150,7 @@ class EligibilityService(
     // Build tree declaratively:
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
-    val placementBooked = treeBuilder.placementBooked(data.cas1Application?.id)
+    val placementBooked = treeBuilder.placementBooked()
 
     val eligibility =
       treeBuilder
@@ -193,7 +193,6 @@ class EligibilityService(
         currentResult =
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-          suitableApplicationId = data.cas1Application?.id,
           link = EligibilityKeys.VIEW_APPLICATION,
         ),
       )
@@ -206,9 +205,8 @@ class EligibilityService(
 
   private fun logServiceResult(result: ServiceResult) {
     log.info(
-      "Service Result: serviceStatus={}, suitableApplicationId={}, action={}, link={}",
+      "Service Result: serviceStatus={}, action={}, link={}",
       result.serviceStatus,
-      result.suitableApplicationId,
       result.action,
       result.link,
     )
@@ -272,7 +270,7 @@ class EligibilityService(
 
     val confirmed = treeBuilder.confirmed()
     val notEligible = treeBuilder.notEligible()
-    val bookingConfirmed = treeBuilder.bookingConfirmed(data.cas3Application?.id)
+    val bookingConfirmed = treeBuilder.bookingConfirmed()
 
     val eligibility =
       treeBuilder
@@ -315,7 +313,6 @@ class EligibilityService(
         currentResult =
         ServiceResult(
           serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-          suitableApplicationId = data.cas3Application?.id,
           link = EligibilityKeys.VIEW_REFERRAL,
         ),
       )
