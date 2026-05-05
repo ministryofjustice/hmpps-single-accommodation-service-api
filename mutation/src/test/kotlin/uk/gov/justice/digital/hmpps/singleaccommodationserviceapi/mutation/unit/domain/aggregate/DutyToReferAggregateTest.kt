@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.domain.aggregate
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -8,10 +9,12 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidWithdrawalReasonException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -48,7 +51,7 @@ class DutyToReferAggregateTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
+  @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED", "WITHDRAWN"])
   fun `create should throw DutyToReferInvalidStatusException when status is not SUBMITTED`(status: DtrStatus) {
     val aggregate = DutyToReferAggregate.hydrateNew(caseId)
 
@@ -101,6 +104,41 @@ class DutyToReferAggregateTest {
     assertThat(aggregate.pullDomainEvents()).isEmpty()
   }
 
+  @Test
+  fun `update should not emit domain event when status stays WITHDRAWN`() {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.WITHDRAWN)
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.DISENGAGED,
+    )
+
+    assertThat(aggregate.snapshot().status).isEqualTo(DtrStatus.WITHDRAWN)
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = DtrStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"])
+  fun `update to WITHDRAWN should emit domain event when transitioning from non-WITHDRAWN status`(currentStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(currentStatus)
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+    )
+
+    assertThat(aggregate.snapshot().status).isEqualTo(DtrStatus.WITHDRAWN)
+    val domainEvents = aggregate.pullDomainEvents()
+    assertThat(domainEvents).hasSize(1)
+    assertThat(domainEvents.first()).isInstanceOf(DutyToReferUpdatedDomainEvent::class.java)
+  }
+
   @ParameterizedTest
   @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
   fun `update should throw DutyToReferInvalidStatusTransitionException when reverting to SUBMITTED`(currentStatus: DtrStatus) {
@@ -112,6 +150,21 @@ class DutyToReferAggregateTest {
         submissionDate = submissionDate,
         referenceNumber = null,
         status = DtrStatus.SUBMITTED,
+      )
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = DtrStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"])
+  fun `update should throw DutyToReferInvalidStatusTransitionException when updating from WITHDRAWN`(newStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.WITHDRAWN)
+
+    assertThrows<DutyToReferInvalidStatusTransitionException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = newStatus,
       )
     }
   }
@@ -183,6 +236,98 @@ class DutyToReferAggregateTest {
     assertThat(aggregate.snapshot().notes.first().note).isEqualTo(note)
   }
 
+  @Nested
+  inner class `withdrawal reason validation` {
+    @Test
+    fun `update to WITHDRAWN without reason should throw DutyToReferInvalidWithdrawalReasonException`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferInvalidWithdrawalReasonException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.WITHDRAWN,
+          withdrawalReason = null,
+        )
+      }
+    }
+
+    @Test
+    fun `update to WITHDRAWN with OTHER reason but no text should throw`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferInvalidWithdrawalReasonException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.WITHDRAWN,
+          withdrawalReason = WithdrawalReason.OTHER,
+          withdrawalReasonOther = null,
+        )
+      }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+    fun `update to WITHDRAWN with OTHER reason and blank text should throw`(text: String) {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferInvalidWithdrawalReasonException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.WITHDRAWN,
+          withdrawalReason = WithdrawalReason.OTHER,
+          withdrawalReasonOther = text,
+        )
+      }
+    }
+
+    @Test
+    fun `update to WITHDRAWN with OTHER reason text exceeding 4000 chars should throw`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferInvalidWithdrawalReasonException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.WITHDRAWN,
+          withdrawalReason = WithdrawalReason.OTHER,
+          withdrawalReasonOther = "a".repeat(4001),
+        )
+      }
+    }
+
+    @Test
+    fun `update to WITHDRAWN with non-OTHER reason and text should throw`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferInvalidWithdrawalReasonException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.WITHDRAWN,
+          withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+          withdrawalReasonOther = "should not be here",
+        )
+      }
+    }
+
+    @Test
+    fun `update to non-WITHDRAWN status with withdrawal reason should throw`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferInvalidWithdrawalReasonException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.ACCEPTED,
+          withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+        )
+      }
+    }
+  }
+
   private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
     val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(
@@ -199,6 +344,7 @@ class DutyToReferAggregateTest {
         submissionDate = submissionDate,
         referenceNumber = null,
         status = status,
+        withdrawalReason = if (status == DtrStatus.WITHDRAWN) WithdrawalReason.NEW_REFERRAL else null,
       )
       aggregate.pullDomainEvents()
     }

@@ -7,6 +7,8 @@ fun createDtrRequestBody(
   submissionDate: String = "2026-01-15",
   referenceNumber: String? = "DTR-REF-001",
   status: String = "SUBMITTED",
+  withdrawalReason: String? = null,
+  withdrawalReasonOther: String? = null,
 ): String = """
 {
   "localAuthorityAreaId": "$localAuthorityAreaId",
@@ -14,6 +16,16 @@ fun createDtrRequestBody(
   "status": "$status"${if (referenceNumber != null) {
   """,
   "referenceNumber": "$referenceNumber""""
+} else {
+  ""
+}}${if (withdrawalReason != null) {
+  """,
+  "withdrawalReason": "$withdrawalReason""""
+} else {
+  ""
+}}${if (withdrawalReasonOther != null) {
+  """,
+  "withdrawalReasonOther": "$withdrawalReasonOther""""
 } else {
   ""
 }}
@@ -31,6 +43,8 @@ fun expectedDtrResponseBody(
   status: String = "SUBMITTED",
   createdBy: String,
   createdAt: String,
+  withdrawalReason: String? = null,
+  withdrawalReasonOther: String? = null,
 ): String = """
 {
   "caseId": "$caseId",
@@ -45,7 +59,9 @@ fun expectedDtrResponseBody(
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "createdBy": "$createdBy",
-    "createdAt": "$createdAt"
+    "createdAt": "$createdAt",
+    "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"},
+    "withdrawalReasonOther": ${if (withdrawalReasonOther != null) "\"$withdrawalReasonOther\"" else "null"}
   }
 }
 """.trimIndent()
@@ -61,7 +77,9 @@ fun expectedGetDtrResponseBody(
   status: String = "SUBMITTED",
   createdBy: String,
   createdAt: String,
-): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt)}}"""
+  withdrawalReason: String? = null,
+  withdrawalReasonOther: String? = null,
+): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther)}}"""
 
 fun expectedNotStartedDtrResponseBody(caseId: UUID, crn: String): String = """
 {

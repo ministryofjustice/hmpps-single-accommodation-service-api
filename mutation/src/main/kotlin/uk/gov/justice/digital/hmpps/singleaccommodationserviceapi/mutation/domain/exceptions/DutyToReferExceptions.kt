@@ -2,7 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 const val DTR_INVALID_STATUS_ERROR_KEY = "dtrInvalidStatus"
 const val DTR_INVALID_STATUS_TRANSITION_ERROR_KEY = "dtrInvalidStatusTransition"
+const val DTR_INVALID_WITHDRAWAL_REASON_ERROR_KEY = "dtrInvalidWithdrawalReason"
 
 class DutyToReferInvalidStatusException : DomainException(DTR_INVALID_STATUS_ERROR_KEY)
 
 class DutyToReferInvalidStatusTransitionException : DomainException(DTR_INVALID_STATUS_TRANSITION_ERROR_KEY)
+
+class DutyToReferInvalidWithdrawalReasonException : DomainException(DTR_INVALID_WITHDRAWAL_REASON_ERROR_KEY)

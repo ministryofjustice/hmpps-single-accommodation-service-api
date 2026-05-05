@@ -64,7 +64,9 @@ fun expectedGetEligibilityResponse(
             "referenceNumber":"$referenceNumber",
             "submissionDate":"$submissionDate",
             "createdBy":"$createdBy",
-            "createdAt":"$createdAt"
+            "createdAt":"$createdAt",
+            "withdrawalReason":null,
+            "withdrawalReasonOther":null
          }
       },
       "crs":{
