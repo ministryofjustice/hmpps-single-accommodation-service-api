@@ -4,7 +4,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
-import java.util.UUID
 
 /**
  * Generic builder for constructing decision trees. Allows declaratively to chain rulesets and outcomes.
@@ -32,18 +31,16 @@ class DecisionTreeBuilder(
 
   fun accepted() = outcome(ServiceResult(ServiceStatus.ACCEPTED))
 
-  fun bookingConfirmed(id: UUID?) = outcome(
+  fun bookingConfirmed() = outcome(
     ServiceResult(
       serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-      suitableApplicationId = id,
       link = EligibilityKeys.VIEW_REFERRAL,
     ),
   )
 
-  fun placementBooked(id: UUID?) = outcome(
+  fun placementBooked() = outcome(
     ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-      suitableApplicationId = id,
       link = EligibilityKeys.VIEW_APPLICATION,
     ),
   )

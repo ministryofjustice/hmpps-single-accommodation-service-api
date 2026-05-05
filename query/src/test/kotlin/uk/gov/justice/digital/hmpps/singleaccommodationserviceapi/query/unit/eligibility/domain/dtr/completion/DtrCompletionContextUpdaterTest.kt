@@ -4,13 +4,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
 class DtrCompletionContextUpdaterTest {
   private val updater = DtrCompletionContextUpdater()
@@ -22,12 +22,12 @@ class DtrCompletionContextUpdaterTest {
       val data = buildDomainData()
       val context = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val expectedContext = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(
+        currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.SUBMITTED,
           action = EligibilityKeys.ADD_DTR_OUTCOME,
           link = EligibilityKeys.ADD_OUTCOME,
@@ -46,12 +46,12 @@ class DtrCompletionContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val expectedContext = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ACCEPTED),
+        currentResult = buildServiceResult(ServiceStatus.NOT_ACCEPTED),
       )
 
       val result = updater.update(context)

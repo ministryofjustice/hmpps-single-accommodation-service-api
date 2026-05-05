@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -12,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import java.time.LocalDate
 import java.util.UUID
 
@@ -33,7 +33,7 @@ class Cas3ContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       val result = updater.update(context)
@@ -42,7 +42,6 @@ class Cas3ContextUpdaterTest {
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isNotNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
-      assertThat(result.currentResult.suitableApplicationId).isEqualTo(applicationId)
     }
   }
 }

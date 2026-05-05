@@ -6,7 +6,6 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
@@ -17,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
 class DecisionNodeTest {
 
@@ -26,15 +25,14 @@ class DecisionNodeTest {
     @Test
     fun `OutcomeNode returns correct ServiceResult from outcome function`() {
       val expectedResult =
-        ServiceResult(
+        buildServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-          suitableApplicationId = UUID.randomUUID(),
         )
       val outcomeNode = OutcomeNode { _ -> expectedResult }
       val context =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
 
       val result = outcomeNode.eval(context)
@@ -48,9 +46,8 @@ class DecisionNodeTest {
         EvaluationContext(
           data = buildDomainData(),
           currentResult =
-          ServiceResult(
+          buildServiceResult(
             serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-            suitableApplicationId = UUID.randomUUID(),
           ),
         )
       val outcomeNode = OutcomeNode { context -> context.currentResult }
@@ -65,19 +62,17 @@ class DecisionNodeTest {
       val context =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
-      val outcomeNode = OutcomeNode { context ->
-        ServiceResult(
+      val outcomeNode = OutcomeNode { _ ->
+        buildServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-          suitableApplicationId = context.data.cas1Application?.id,
         )
       }
 
       val result = outcomeNode.eval(context)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.PLACEMENT_BOOKED)
-      assertThat(result.suitableApplicationId).isEqualTo(context.data.cas1Application?.id)
     }
   }
 
@@ -94,9 +89,9 @@ class DecisionNodeTest {
       val initialContext =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+          currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
         )
-      val expectedResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+      val expectedResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
       every { engine.execute(ruleSet, initialContext.data) } returns RuleSetStatus.PASS
       every { onPassNode.eval(initialContext) } returns expectedResult
@@ -131,14 +126,14 @@ class DecisionNodeTest {
       val initialContext =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+          currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
         )
       val updatedContext =
         EvaluationContext(
           data = initialContext.data,
-          currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
         )
-      val expectedResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      val expectedResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
       every { engine.execute(ruleSet, initialContext.data) } returns RuleSetStatus.FAIL
       every { contextUpdater.update(initialContext) } returns
@@ -176,11 +171,11 @@ class DecisionNodeTest {
       val context =
         EvaluationContext(
           data = domainData,
-          currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+          currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
         )
 
       every { engine.execute(any(), any()) } returns RuleSetStatus.PASS
-      every { onPassNode.eval(any()) } returns ServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+      every { onPassNode.eval(any()) } returns buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
       val ruleSetNode =
         RuleSetNode(
@@ -208,16 +203,16 @@ class DecisionNodeTest {
       val context =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = ServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+          currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
         )
       val updatedContext = EvaluationContext(
         data = context.data,
-        currentResult = ServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
       every { engine.execute(any(), any()) } returns RuleSetStatus.FAIL
       every { contextUpdater.update(context) } returns updatedContext
-      every { onFailNode.eval(any()) } returns ServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      every { onFailNode.eval(any()) } returns buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
       val ruleSetNode =
         RuleSetNode(
