@@ -24,6 +24,8 @@ data class DtrSubmissionDto(
     timezone = "UTC",
   )
   val createdAt: Instant,
+  val withdrawalReason: WithdrawalReason? = null,
+  val withdrawalReasonOther: String? = null,
 )
 
 data class LocalAuthorityDto(
@@ -36,6 +38,8 @@ data class DtrCommand(
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val status: DtrStatus,
+  val withdrawalReason: WithdrawalReason? = null,
+  val withdrawalReasonOther: String? = null,
 )
 
 enum class DtrStatus {
@@ -43,4 +47,15 @@ enum class DtrStatus {
   SUBMITTED,
   ACCEPTED,
   NOT_ACCEPTED,
+  WITHDRAWN,
+}
+
+enum class WithdrawalReason {
+  NEW_REFERRAL,
+  INCORRECT_LOCAL_AUTHORITY,
+  NO_CONSENT,
+  DISENGAGED,
+  HOUSING_NEED_RESOLVED,
+  NOT_ELIGIBLE,
+  OTHER,
 }

@@ -90,6 +90,8 @@ class DutyToReferTransformerTest {
 
       assertThat(result.localAuthority.localAuthorityAreaName).isNull()
       assertThat(result.referenceNumber).isNull()
+      assertThat(result.withdrawalReason).isNull()
+      assertThat(result.withdrawalReasonOther).isNull()
     }
   }
 

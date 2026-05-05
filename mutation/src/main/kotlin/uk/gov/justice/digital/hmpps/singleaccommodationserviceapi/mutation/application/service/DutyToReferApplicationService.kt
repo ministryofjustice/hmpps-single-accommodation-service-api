@@ -40,6 +40,8 @@ class DutyToReferApplicationService(
       submissionDate = command.submissionDate,
       referenceNumber = command.referenceNumber,
       status = command.status,
+      withdrawalReason = command.withdrawalReason,
+      withdrawalReasonOther = command.withdrawalReasonOther,
     )
     val persistedRecord = dutyToReferRepository.save(
       DutyToReferMapper.toEntity(aggregate.snapshot()),
@@ -70,6 +72,8 @@ class DutyToReferApplicationService(
         submissionDate = command.submissionDate,
         referenceNumber = command.referenceNumber,
         status = command.status,
+        withdrawalReason = command.withdrawalReason,
+        withdrawalReasonOther = command.withdrawalReasonOther,
       )
     }
     val updatedRecord = dutyToReferRepository.save(merge(aggregate.snapshot(), dtr))

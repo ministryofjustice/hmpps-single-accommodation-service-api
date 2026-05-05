@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
@@ -372,6 +373,261 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isNotFound
+  }
+
+  @Test
+  fun `should withdraw duty to refer with a non-OTHER reason and return 200`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.WITHDRAWN.name,
+          withdrawalReason = "NEW_REFERRAL",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
+        status = DtrStatus.WITHDRAWN.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        withdrawalReason = "NEW_REFERRAL",
+      ),
+    )
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingEntity.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
+    )
+    assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
+  fun `should withdraw duty to refer with OTHER reason and free text and return 200`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.WITHDRAWN.name,
+          withdrawalReason = "OTHER",
+          withdrawalReasonOther = "Some custom reason",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
+        status = DtrStatus.WITHDRAWN.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        withdrawalReason = "OTHER",
+        withdrawalReasonOther = "Some custom reason",
+      ),
+    )
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingEntity.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
+    )
+    assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
+  fun `should return 400 when withdrawing duty to refer without a reason`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.WITHDRAWN.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when attempting to transition from WITHDRAWN to SUBMITTED`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.WITHDRAWN,
+        withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.SUBMITTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when providing withdrawal reason for a non-WITHDRAWN status`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.ACCEPTED.name,
+          withdrawalReason = "NEW_REFERRAL",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when withdrawing with OTHER reason and no free text`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.WITHDRAWN.name,
+          withdrawalReason = "OTHER",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when withdrawing with OTHER reason and free text exceeding 4000 characters`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.WITHDRAWN.name,
+          withdrawalReason = "OTHER",
+          withdrawalReasonOther = "a".repeat(4001),
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when withdrawing with non-OTHER reason and free text`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.WITHDRAWN.name,
+          withdrawalReason = "NEW_REFERRAL",
+          withdrawalReasonOther = "should not be here",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
   }
 
   @Test

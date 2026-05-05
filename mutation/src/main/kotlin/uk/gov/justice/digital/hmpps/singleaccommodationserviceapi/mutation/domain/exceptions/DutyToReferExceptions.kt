@@ -2,7 +2,16 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 const val DTR_INVALID_STATUS_ERROR_KEY = "dtrInvalidStatus"
 const val DTR_INVALID_STATUS_TRANSITION_ERROR_KEY = "dtrInvalidStatusTransition"
+const val DTR_WITHDRAWAL_REASON_REQUIRED_KEY = "dtrWithdrawalReasonRequired"
+const val DTR_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY = "dtrWithdrawalReasonOtherGreaterThanMaxLength"
+const val DTR_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY = "dtrWithdrawalReasonNotApplicable"
 
 class DutyToReferInvalidStatusException : DomainException(DTR_INVALID_STATUS_ERROR_KEY)
 
 class DutyToReferInvalidStatusTransitionException : DomainException(DTR_INVALID_STATUS_TRANSITION_ERROR_KEY)
+
+class DutyToReferWithdrawalReasonRequiredException : DomainException(DTR_WITHDRAWAL_REASON_REQUIRED_KEY)
+
+class DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException : DomainException(DTR_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY)
+
+class DutyToReferWithdrawalReasonNotApplicableException : DomainException(DTR_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY)
