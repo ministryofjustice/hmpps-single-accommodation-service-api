@@ -7,9 +7,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
-class DtrUpcomingContextUpdater : ContextUpdater {
-  override fun update(context: EvaluationContext): EvaluationContext {
-    val updatedServiceResult = ServiceResult(ServiceStatus.UPCOMING)
-    return context.copy(currentResult = updatedServiceResult)
-  }
+class DtrUpcomingContextUpdater : ContextUpdater() {
+  override fun toServiceResult(context: EvaluationContext) = ServiceResult(ServiceStatus.UPCOMING)
 }

@@ -20,7 +20,6 @@ data class DomainData(
   val hasNextAccommodation: Boolean,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
-  val crsStatus: String? = "SUBMITTED",
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
 ) {
@@ -32,7 +31,6 @@ data class DomainData(
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
-    crsStatus: String? = "SUBMITTED",
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
   ) : this(
     crn = crn,
@@ -47,7 +45,6 @@ data class DomainData(
     hasNextAccommodation = false,
     cas1Application = cas1Application,
     cas3Application = cas3Application,
-    crsStatus = crsStatus,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = commissionedRehabilitativeServices,
   )

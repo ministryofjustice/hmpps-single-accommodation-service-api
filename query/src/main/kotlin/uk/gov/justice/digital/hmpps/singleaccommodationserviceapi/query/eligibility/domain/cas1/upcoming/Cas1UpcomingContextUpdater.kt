@@ -11,14 +11,14 @@ import java.time.Clock
 import java.time.LocalDate
 
 @Component
-class Cas1UpcomingContextUpdater(val clock: Clock) : ContextUpdater {
-  override fun update(context: EvaluationContext): EvaluationContext {
-    val today = LocalDate.now(clock)
+class Cas1UpcomingContextUpdater(val clock: Clock) : ContextUpdater() {
 
-    val updatedServiceResult = ServiceResult(
-      serviceStatus = ServiceStatus.UPCOMING,
-      action = buildUpcomingAction(context.data.currentAccommodation!!.endDate!!, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION),
-    )
-    return context.copy(currentResult = updatedServiceResult)
-  }
+  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
+    serviceStatus = ServiceStatus.UPCOMING,
+    action = buildUpcomingAction(
+      context.data.currentAccommodation!!.endDate!!,
+      LocalDate.now(clock),
+      EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
+    ),
+  )
 }

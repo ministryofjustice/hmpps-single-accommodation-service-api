@@ -8,9 +8,10 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CrsStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NoConflictingCas1BookingRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsExpiredRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
 
@@ -20,9 +21,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     Cas3EligibilityRuleSet::class,
     CurrentAccommodationTypeRule::class,
     NextAccommodationRule::class,
-    CrsStatusRule::class,
     DtrExpiredReferralRule::class,
     NoConflictingCas1BookingRule::class,
+    CrsExpiredRule::class,
+    CrsSubmittedRule::class,
     ClockConfig::class,
   ],
 )
@@ -34,9 +36,10 @@ class Cas3EligibilityRuleSetTest {
   private val expectedCas3EligibilityRuleNames = listOf(
     CurrentAccommodationTypeRule::class.simpleName,
     NextAccommodationRule::class.simpleName,
-    CrsStatusRule::class.simpleName,
     DtrExpiredReferralRule::class.simpleName,
     NoConflictingCas1BookingRule::class.simpleName,
+    CrsExpiredRule::class.simpleName,
+    CrsSubmittedRule::class.simpleName,
   )
 
   @Test
@@ -44,7 +47,7 @@ class Cas3EligibilityRuleSetTest {
     val ruleSetRules = cas3EligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(5)
+      .hasSize(6)
       .containsExactlyInAnyOrderElementsOf(expectedCas3EligibilityRuleNames)
   }
 }
