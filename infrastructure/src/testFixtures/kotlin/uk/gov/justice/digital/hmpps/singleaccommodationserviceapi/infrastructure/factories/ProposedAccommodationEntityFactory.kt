@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus
@@ -16,9 +18,13 @@ fun buildProposedAccommodationEntity(
   id: UUID = UUID.randomUUID(),
   caseId: UUID = UUID.randomUUID(),
   name: String? = "Test Accommodation",
-  accommodationTypeEntity: AccommodationTypeEntity = buildAccommodationTypeEntity(),
+  arrangementType: AccommodationArrangementType = AccommodationArrangementType.PRIVATE,
+  arrangementSubType: AccommodationArrangementSubType? = AccommodationArrangementSubType.FRIENDS_OR_FAMILY,
+  arrangementSubTypeDescription: String? = null,
+  settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.TO_BE_DECIDED,
+  offenderReleaseType: OffenderReleaseType? = null,
   startDate: LocalDate? = null,
   endDate: LocalDate? = null,
   postcode: String? = "SW1A 1AA",
@@ -39,9 +45,13 @@ fun buildProposedAccommodationEntity(
   id = id,
   caseId = caseId,
   name = name,
-  accommodationTypeId = accommodationTypeEntity.id,
+  arrangementType = arrangementType,
+  arrangementSubType = arrangementSubType,
+  arrangementSubTypeDescription = arrangementSubTypeDescription,
+  settledType = settledType,
   verificationStatus = verificationStatus,
   nextAccommodationStatus = nextAccommodationStatus,
+  offenderReleaseType = offenderReleaseType,
   startDate = startDate,
   endDate = endDate,
   postcode = postcode,
@@ -76,18 +86,3 @@ fun buildProposedAccommodationNoteEntity(
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt
 }
-
-@TestData
-fun buildAccommodationTypeEntity(
-  id: UUID = UUID.randomUUID(),
-  deliusCode: String = "A07B",
-  name: String = "Living in the home of a friend, family member or partner: settled",
-  settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,
-  active: Boolean = true,
-) = AccommodationTypeEntity(
-  id,
-  name = name,
-  code = deliusCode,
-  settledType,
-  active,
-)

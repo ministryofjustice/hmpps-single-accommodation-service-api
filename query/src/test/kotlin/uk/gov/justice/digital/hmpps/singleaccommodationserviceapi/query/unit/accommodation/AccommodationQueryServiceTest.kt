@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
@@ -139,9 +140,9 @@ class AccommodationQueryServiceTest {
 
     assertThat(result.data.size).isEqualTo(2)
     assertThat(result.data.first().address.postcode).isEqualTo("SW1A 1AA")
-    assertThat(result.data.first().status!!.code).isEqualTo("M")
+    assertThat(result.data.first().status!!.code).isEqualTo(AccommodationStatusCode.M)
     assertThat(result.data[1].address.postcode).isEqualTo("GL53 8GH")
-    assertThat(result.data[1].status!!.code).isEqualTo("P")
+    assertThat(result.data[1].status!!.code).isEqualTo(AccommodationStatusCode.P)
     assertThat(result.upstreamFailures.size).isEqualTo(0)
   }
 
@@ -207,7 +208,7 @@ class AccommodationQueryServiceTest {
     val result = accommodationQueryService.getCurrentAccommodation(crn)
 
     assertThat(result.data!!.address.postcode).isEqualTo("SW1A 1AA")
-    assertThat(result.data!!.status!!.code).isEqualTo("M")
+    assertThat(result.data!!.status!!.code).isEqualTo(AccommodationStatusCode.M)
   }
 
   @Test
