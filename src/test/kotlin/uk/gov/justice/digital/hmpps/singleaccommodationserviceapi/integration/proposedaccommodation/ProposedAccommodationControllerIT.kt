@@ -17,15 +17,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
@@ -51,6 +49,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
 class ProposedAccommodationControllerIT : IntegrationTestBase() {
+  @Autowired
+  private lateinit var accommodationTypeRepository: AccommodationTypeRepository
+
   @Autowired
   private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
@@ -117,7 +118,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
             secondId = olderEntity.id,
             secondCreatedAt = olderEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crn = crn,
-            caseId = caseEntity.id,
           ),
         )
       }
@@ -140,7 +140,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
-            caseId = entity.caseId,
             crn = crn,
             createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
@@ -167,7 +166,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationByIdResponse(
             id = entity.id,
-            caseId = entity.caseId,
             crn = crn,
             createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
@@ -208,10 +206,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should create proposed-accommodation and publish sas-address-updated event`() {
+    val accommodationTypeCode = "A01A"
     val result = restTestClient.post().uri("/cases/$crn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -221,15 +221,16 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult =
-      proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
-    assertPersistedProposedAccommodation(proposedAccommodationPersistedResult)
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(accommodationTypeCode)!!
+    assertPersistedProposedAccommodation(proposedAccommodationPersistedResult, expectedAccommodationTypeEntity)
 
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
-        caseId = caseEntity.id,
         crn = crn,
         id = proposedAccommodationPersistedResult.id,
+        accommodationTypeCode = "A01A",
+        accommodationTypeDescription = "Owner of the property",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
@@ -250,13 +251,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should update proposed-accommodation and return 200 with updated data`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         name = "Old Name",
         caseId = caseEntity.id,
-        arrangementSubType = AccommodationArrangementSubType.OTHER,
-        arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        offenderReleaseType = OffenderReleaseType.REMAND,
       ),
     )
 
@@ -264,6 +263,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -276,11 +276,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
         id = existingEntity.id,
+        accommodationTypeCode = "A01A",
+        accommodationTypeDescription = "Owner of the property",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-        caseId = caseEntity.id,
         crn = crn,
       ),
     )
@@ -299,6 +300,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should update proposed-accommodation and not publish domain event when nextAccommodationStatus is NO`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
@@ -309,6 +311,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -327,6 +330,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -340,18 +344,25 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should return 404 when CRN does not match proposed-accommodation`() {
     proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
     val otherCase = caseRepository.save(buildCaseEntity { withCrn(UUID.randomUUID().toString()) })
-    val otherEntity = proposedAccommodationRepository.save(buildProposedAccommodationEntity(caseId = otherCase.id))
+    val otherEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        caseId = otherCase.id,
+      ),
+    )
 
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/${otherEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode = "A07B",
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -363,6 +374,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return proposed accommodation timeline when single proposed accommodation created`() {
+    val accommodationTypeCode = "A01A"
     val createdProposedAccommodation = restTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
@@ -371,6 +383,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           startDate = "2026-01-05",
           endDate = "2026-04-25",
           subBuildingName = null,
+          accommodationTypeCode = accommodationTypeCode,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -387,6 +400,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdProposedAccommodationId))
     assertThat(commitTimesAsc).hasSize(1)
 
+    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(accommodationTypeCode)
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, createdProposedAccommodationId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -395,6 +409,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationTimelineResponse(
             proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
+            accommodationTypeId = accommodationTypeEntity!!.id,
             caseId = caseEntity.id,
             createCommitTime = commitTimesAsc.first()
               .truncatedTo(ChronoUnit.SECONDS).toString(),
@@ -405,6 +420,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return proposed accommodation timeline when it is created, then a note is created, and then the proposed accommodation is updated a couple of times`() {
+    val firstAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07A")!!
+    val secondAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue("A01A")!!
     val createdProposedAccommodation = restTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
@@ -413,6 +430,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           startDate = "2026-01-05",
           endDate = "2026-04-25",
           subBuildingName = null,
+          accommodationTypeCode = firstAccommodationType.code,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -456,6 +474,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           startDate = null,
           endDate = null,
           subBuildingName = "another sub building name",
+          accommodationTypeCode = secondAccommodationType.code,
           verificationStatus = VerificationStatus.FAILED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -471,6 +490,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           endDate = "2026-08-01",
           subBuildingName = null,
           postcode = "correct postcode",
+          accommodationTypeCode = secondAccommodationType.code,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -492,6 +512,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           expectedGetProposedAccommodationTimelineResponse(
             proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
             caseId = caseEntity.id,
+            initialAccommodationTypeId = firstAccommodationType.id,
+            updatedAccommodationTypeId = secondAccommodationType.id,
             createCommitTime = commitTimesAsc.first()
               .truncatedTo(ChronoUnit.SECONDS).toString(),
             createNoteCommitTime = createNoteCommitTime!!
@@ -509,13 +531,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should create a note for proposed-accommodation`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         name = "Old Name",
         caseId = caseEntity.id,
-        arrangementSubType = AccommodationArrangementSubType.OTHER,
-        arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        offenderReleaseType = OffenderReleaseType.REMAND,
       ),
     )
     val note1Value = "Test note 1"
@@ -567,13 +587,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should not create a note when crn not found`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         name = "Old Name",
         caseId = caseEntity.id,
-        arrangementSubType = AccommodationArrangementSubType.OTHER,
-        arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        offenderReleaseType = OffenderReleaseType.REMAND,
       ),
     )
     restTestClient.post().uri("/cases/${UUID.randomUUID()}/proposed-accommodations/${existingEntity.id}/notes")
@@ -592,13 +610,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should fail with Bad Request for empty note`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         name = "Old Name",
         caseId = caseEntity.id,
-        arrangementSubType = AccommodationArrangementSubType.OTHER,
-        arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        offenderReleaseType = OffenderReleaseType.REMAND,
       ),
     )
     val note = ""
@@ -616,13 +632,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun `should fail with Bad Request for note exceeding 4000 characters`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
         name = "Old Name",
         caseId = caseEntity.id,
-        arrangementSubType = AccommodationArrangementSubType.OTHER,
-        arrangementSubTypeDescription = "Old description",
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-        offenderReleaseType = OffenderReleaseType.REMAND,
       ),
     )
     val note = "a".repeat(4001)
@@ -654,8 +668,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     thoroughfareName: String,
     postTown: String,
   ): ProposedAccommodationEntity {
+    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")
     val entity = buildProposedAccommodationEntity(
       caseId = caseEntity.id,
+      accommodationTypeEntity = accommodationTypeEntity!!,
       postcode = postcode,
       buildingNumber = buildingNumber,
       throughfareName = thoroughfareName,
@@ -664,13 +680,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     return proposedAccommodationRepository.save(entity)
   }
 
-  private fun assertPersistedProposedAccommodation(proposedAccommodationEntity: ProposedAccommodationEntity) {
+  private fun assertPersistedProposedAccommodation(proposedAccommodationEntity: ProposedAccommodationEntity, accommodationTypeEntity: AccommodationTypeEntity) {
     assertThat(proposedAccommodationEntity.name).isEqualTo("Mother's caravan")
-    assertThat(proposedAccommodationEntity.arrangementType).isEqualTo(AccommodationArrangementType.PRIVATE)
-    assertThat(proposedAccommodationEntity.arrangementSubType).isEqualTo(AccommodationArrangementSubType.OTHER)
-    assertThat(proposedAccommodationEntity.arrangementSubTypeDescription).isEqualTo("Caravan site")
-    assertThat(proposedAccommodationEntity.settledType).isEqualTo(AccommodationSettledType.SETTLED)
-    assertThat(proposedAccommodationEntity.offenderReleaseType).isEqualTo(OffenderReleaseType.REMAND)
+    assertThat(proposedAccommodationEntity.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
     assertThat(proposedAccommodationEntity.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
     assertThat(proposedAccommodationEntity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
     assertThat(proposedAccommodationEntity.postcode).isEqualTo("test postcode")

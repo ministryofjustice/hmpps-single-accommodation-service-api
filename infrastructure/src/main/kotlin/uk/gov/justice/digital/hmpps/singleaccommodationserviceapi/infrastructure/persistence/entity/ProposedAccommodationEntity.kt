@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
 
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -19,19 +20,12 @@ open class ProposedAccommodationEntity(
   val id: UUID,
   val caseId: UUID,
   var name: String?,
-  @Enumerated(EnumType.STRING)
-  var arrangementType: AccommodationArrangementType,
-  @Enumerated(EnumType.STRING)
-  var arrangementSubType: AccommodationArrangementSubType?,
-  var arrangementSubTypeDescription: String?,
-  @Enumerated(EnumType.STRING)
-  var settledType: AccommodationSettledType,
+  @Column(name = "accommodation_type_id", nullable = false)
+  var accommodationTypeId: UUID,
   @Enumerated(EnumType.STRING)
   var verificationStatus: VerificationStatus?,
   @Enumerated(EnumType.STRING)
   var nextAccommodationStatus: NextAccommodationStatus?,
-  @Enumerated(EnumType.STRING)
-  var offenderReleaseType: OffenderReleaseType?,
   var startDate: LocalDate?,
   var endDate: LocalDate?,
   var postcode: String?,
@@ -56,25 +50,6 @@ open class ProposedAccommodationEntity(
 
 ) : BaseAuditedEntity()
 
-enum class AccommodationArrangementType {
-  PRISON,
-  CAS1,
-  CAS2,
-  CAS2V2,
-  CAS3,
-  PRIVATE,
-  NO_FIXED_ABODE,
-}
-
-enum class AccommodationArrangementSubType {
-  FRIENDS_OR_FAMILY,
-  SOCIAL_RENTED,
-  PRIVATE_RENTED_WHOLE_PROPERTY,
-  PRIVATE_RENTED_ROOM,
-  OWNED,
-  OTHER,
-}
-
 enum class VerificationStatus {
   NOT_CHECKED_YET,
   FAILED,
@@ -85,10 +60,4 @@ enum class NextAccommodationStatus {
   YES,
   NO,
   TO_BE_DECIDED,
-}
-
-enum class OffenderReleaseType {
-  REMAND,
-  LICENCE,
-  BAIL,
 }

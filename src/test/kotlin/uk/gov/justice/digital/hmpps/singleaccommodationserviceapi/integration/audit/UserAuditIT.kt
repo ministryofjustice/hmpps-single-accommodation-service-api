@@ -172,6 +172,7 @@ class UserAuditIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -204,6 +205,7 @@ class UserAuditIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),

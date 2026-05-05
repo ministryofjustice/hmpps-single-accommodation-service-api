@@ -1,40 +1,37 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityArrangementSubType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntitySettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
 object ProposedAccommodationTransformer {
 
-  fun toAccommodationDetail(entity: ProposedAccommodationEntity, crn: String, createdBy: String): AccommodationDetail = AccommodationDetail(
-    id = entity.id,
-    name = entity.name,
-    caseId = entity.caseId,
+  fun toAccommodationDetail(
+    proposedAccommodationEntity: ProposedAccommodationEntity,
+    accommodationTypeEntity: AccommodationTypeEntity,
+    crn: String,
+    createdBy: String,
+  ) = ProposedAccommodationDto(
+    id = proposedAccommodationEntity.id,
+    name = proposedAccommodationEntity.name,
     crn = crn,
-    arrangementType = toArrangementType(entity.arrangementType),
-    arrangementSubType = entity.arrangementSubType?.let { toArrangementSubType(it) },
-    arrangementSubTypeDescription = entity.arrangementSubTypeDescription,
-    settledType = toSettledType(entity.settledType),
-    offenderReleaseType = entity.offenderReleaseType?.let { toOffenderReleaseType(it) },
-    verificationStatus = entity.verificationStatus?.let { toVerificationStatus(it) },
-    nextAccommodationStatus = entity.nextAccommodationStatus?.let { toNextAccommodationStatus(it) },
-    address = toAddressDetails(entity),
-    startDate = entity.startDate,
-    endDate = entity.endDate,
+    accommodationType = AccommodationTypeDto(
+      code = accommodationTypeEntity.code,
+      description = accommodationTypeEntity.name,
+    ),
+    verificationStatus = proposedAccommodationEntity.verificationStatus?.let { toVerificationStatus(it) },
+    nextAccommodationStatus = proposedAccommodationEntity.nextAccommodationStatus?.let { toNextAccommodationStatus(it) },
+    address = toAddressDetails(proposedAccommodationEntity),
+    startDate = proposedAccommodationEntity.startDate,
+    endDate = proposedAccommodationEntity.endDate,
     createdBy = createdBy,
-    createdAt = entity.createdAt!!,
+    createdAt = proposedAccommodationEntity.createdAt!!,
   )
 
   fun toAddressDetails(entity: ProposedAccommodationEntity): AccommodationAddressDetails = AccommodationAddressDetails(
@@ -50,15 +47,7 @@ object ProposedAccommodationTransformer {
     uprn = entity.uprn,
   )
 
-  fun toArrangementType(type: EntityArrangementType): AccommodationArrangementType = AccommodationArrangementType.valueOf(type.name)
-
-  fun toArrangementSubType(subType: EntityArrangementSubType): AccommodationArrangementSubType = AccommodationArrangementSubType.valueOf(subType.name)
-
-  fun toSettledType(settledType: EntitySettledType): AccommodationSettledType = AccommodationSettledType.valueOf(settledType.name)
-
   fun toVerificationStatus(status: EntityVerificationStatus): VerificationStatus = VerificationStatus.valueOf(status.name)
 
   fun toNextAccommodationStatus(status: EntityNextAccommodationStatus): NextAccommodationStatus = NextAccommodationStatus.valueOf(status.name)
-
-  fun toOffenderReleaseType(releaseType: EntityReleaseType): OffenderReleaseType = OffenderReleaseType.valueOf(releaseType.name)
 }
