@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions
 
+const val ARRANGEMENT_SUBTYPE_DESCRIPTION_UNEXPECTED_ERROR_KEY = "arrangementSubTypeDescriptionUnexpected"
 const val VERIFICATION_NOT_PASSED_ERROR_KEY = "verificationNotPassed"
 
+class AccommodationArrangementSubTypeDescriptionUnexpectedException : DomainException(ARRANGEMENT_SUBTYPE_DESCRIPTION_UNEXPECTED_ERROR_KEY)
 class AccommodationVerificationNotPassedException : DomainException(VERIFICATION_NOT_PASSED_ERROR_KEY)

@@ -1,28 +1,38 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate.ProposedAccommodationSnapshot
 import java.time.Instant
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementSubType as EntityAccommodationArrangementSubType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationArrangementType as EntityAccommodationArrangementType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType as EntityAccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OffenderReleaseType as EntityOffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
 object ProposedAccommodationMapper {
 
-  fun toEntity(snapshot: ProposedAccommodationSnapshot, accommodationTypeEntity: AccommodationTypeEntity) = ProposedAccommodationEntity(
+  fun toEntity(snapshot: ProposedAccommodationSnapshot) = ProposedAccommodationEntity(
     id = snapshot.id,
     caseId = snapshot.caseId,
     name = snapshot.name,
-    accommodationTypeId = accommodationTypeEntity.id,
+    arrangementType = EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name),
+    arrangementSubType = snapshot.arrangementSubType?.let { EntityAccommodationArrangementSubType.valueOf(it.name) },
+    arrangementSubTypeDescription = snapshot.arrangementSubTypeDescription,
+    settledType = EntityAccommodationSettledType.valueOf(snapshot.settledType.name),
     verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
     nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
+    offenderReleaseType = snapshot.offenderReleaseType?.let { EntityOffenderReleaseType.valueOf(snapshot.offenderReleaseType.name) },
     startDate = snapshot.startDate,
     endDate = snapshot.endDate,
     postcode = snapshot.address.postcode,
@@ -37,32 +47,34 @@ object ProposedAccommodationMapper {
     uprn = snapshot.address.uprn,
   )
 
-  fun merge(
-    snapshot: ProposedAccommodationSnapshot,
-    proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
-  ): ProposedAccommodationEntity {
-    proposedAccommodationEntity.name = snapshot.name
-    proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity.id
-    proposedAccommodationEntity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
-    proposedAccommodationEntity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
-    proposedAccommodationEntity.startDate = snapshot.startDate
-    proposedAccommodationEntity.endDate = snapshot.endDate
-    proposedAccommodationEntity.postcode = snapshot.address.postcode
-    proposedAccommodationEntity.subBuildingName = snapshot.address.subBuildingName
-    proposedAccommodationEntity.buildingName = snapshot.address.buildingName
-    proposedAccommodationEntity.buildingNumber = snapshot.address.buildingNumber
-    proposedAccommodationEntity.throughfareName = snapshot.address.thoroughfareName
-    proposedAccommodationEntity.dependentLocality = snapshot.address.dependentLocality
-    proposedAccommodationEntity.postTown = snapshot.address.postTown
-    proposedAccommodationEntity.county = snapshot.address.county
-    proposedAccommodationEntity.country = snapshot.address.country
-    proposedAccommodationEntity.uprn = snapshot.address.uprn
-    proposedAccommodationEntity.addMissingNotes(snapshot.notes)
-    return proposedAccommodationEntity
+  fun merge(snapshot: ProposedAccommodationSnapshot, entity: ProposedAccommodationEntity): ProposedAccommodationEntity {
+    entity.name = snapshot.name
+    entity.arrangementType = EntityAccommodationArrangementType.valueOf(snapshot.arrangementType.name)
+    entity.arrangementSubType =
+      snapshot.arrangementSubType?.let { EntityAccommodationArrangementSubType.valueOf(it.name) }
+    entity.arrangementSubTypeDescription = snapshot.arrangementSubTypeDescription
+    entity.settledType = EntityAccommodationSettledType.valueOf(snapshot.settledType.name)
+    entity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
+    entity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
+    entity.offenderReleaseType =
+      snapshot.offenderReleaseType?.let { EntityOffenderReleaseType.valueOf(snapshot.offenderReleaseType.name) }
+    entity.startDate = snapshot.startDate
+    entity.endDate = snapshot.endDate
+    entity.postcode = snapshot.address.postcode
+    entity.subBuildingName = snapshot.address.subBuildingName
+    entity.buildingName = snapshot.address.buildingName
+    entity.buildingNumber = snapshot.address.buildingNumber
+    entity.throughfareName = snapshot.address.thoroughfareName
+    entity.dependentLocality = snapshot.address.dependentLocality
+    entity.postTown = snapshot.address.postTown
+    entity.county = snapshot.address.county
+    entity.country = snapshot.address.country
+    entity.uprn = snapshot.address.uprn
+    entity.addMissingNotes(snapshot.notes)
+    return entity
   }
 
-  fun ProposedAccommodationEntity.addMissingNotes(snapshotNotes: List<ProposedAccommodationAggregate.ProposedAccommodationNoteSnapshot>) {
+  fun ProposedAccommodationEntity.addMissingNotes(snapshotNotes: List<ProposedAccommodationAggregate.ProposedAccommodationNote>) {
     val existingIds = this.notes.map { it.id }.toSet()
     val missingNotes = snapshotNotes
       .filter { it.id !in existingIds }
@@ -76,35 +88,33 @@ object ProposedAccommodationMapper {
     this.notes.addAll(missingNotes)
   }
 
-  fun toAggregate(
-    proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
-  ): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
-    id = proposedAccommodationEntity.id,
-    caseId = proposedAccommodationEntity.caseId,
-    name = proposedAccommodationEntity.name,
-    accommodationType = AccommodationTypeDto(
-      code = accommodationTypeEntity.code,
-      description = accommodationTypeEntity.name,
-    ),
-    verificationStatus = VerificationStatus.valueOf(proposedAccommodationEntity.verificationStatus!!.name),
-    nextAccommodationStatus = NextAccommodationStatus.valueOf(proposedAccommodationEntity.nextAccommodationStatus!!.name),
+  fun toAggregate(entity: ProposedAccommodationEntity): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
+    id = entity.id,
+    caseId = entity.caseId,
+    name = entity.name,
+    arrangementType = AccommodationArrangementType.valueOf(entity.arrangementType.name),
+    arrangementSubType = entity.arrangementSubType?.let { AccommodationArrangementSubType.valueOf(it.name) },
+    arrangementSubTypeDescription = entity.arrangementSubTypeDescription,
+    settledType = AccommodationSettledType.valueOf(entity.settledType.name),
+    verificationStatus = VerificationStatus.valueOf(entity.verificationStatus!!.name),
+    nextAccommodationStatus = NextAccommodationStatus.valueOf(entity.nextAccommodationStatus!!.name),
+    offenderReleaseType = entity.offenderReleaseType?.let { OffenderReleaseType.valueOf(it.name) },
     address = AccommodationAddressDetails(
-      postcode = proposedAccommodationEntity.postcode,
-      subBuildingName = proposedAccommodationEntity.subBuildingName,
-      buildingName = proposedAccommodationEntity.buildingName,
-      buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
-      dependentLocality = proposedAccommodationEntity.dependentLocality,
-      postTown = proposedAccommodationEntity.postTown,
-      county = proposedAccommodationEntity.county,
-      country = proposedAccommodationEntity.country,
-      uprn = proposedAccommodationEntity.uprn,
+      postcode = entity.postcode,
+      subBuildingName = entity.subBuildingName,
+      buildingName = entity.buildingName,
+      buildingNumber = entity.buildingNumber,
+      thoroughfareName = entity.throughfareName,
+      dependentLocality = entity.dependentLocality,
+      postTown = entity.postTown,
+      county = entity.county,
+      country = entity.country,
+      uprn = entity.uprn,
     ),
-    startDate = proposedAccommodationEntity.startDate,
-    endDate = proposedAccommodationEntity.endDate,
-    notes = proposedAccommodationEntity.notes.map {
-      ProposedAccommodationAggregate.ProposedAccommodationNoteSnapshot(
+    startDate = entity.startDate,
+    endDate = entity.endDate,
+    notes = entity.notes.map {
+      ProposedAccommodationAggregate.ProposedAccommodationNote(
         id = it.id,
         note = it.note,
       )
@@ -116,18 +126,20 @@ object ProposedAccommodationMapper {
     crn: String,
     createdBy: String,
     createdAt: Instant,
-  ) = ProposedAccommodationDto(
+  ) = AccommodationDetail(
     id = snapshot.id,
+    caseId = snapshot.caseId,
     crn = crn,
     name = snapshot.name,
-    accommodationType = AccommodationTypeDto(
-      code = snapshot.accommodationType.code,
-      description = snapshot.accommodationType.description,
-    ),
+    arrangementType = snapshot.arrangementType,
+    arrangementSubType = snapshot.arrangementSubType,
+    arrangementSubTypeDescription = snapshot.arrangementSubTypeDescription,
+    settledType = snapshot.settledType,
     verificationStatus = snapshot.verificationStatus,
     nextAccommodationStatus = snapshot.nextAccommodationStatus,
     startDate = snapshot.startDate,
     endDate = snapshot.endDate,
+    offenderReleaseType = snapshot.offenderReleaseType,
     address = snapshot.address,
     createdBy = createdBy,
     createdAt = createdAt,

@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
@@ -45,10 +47,10 @@ class AccommodationSummaryTransformerTest {
     assertThat(result.crn).isEqualTo("X92123")
     assertThat(result.startDate).isEqualTo(address.startDate)
     assertThat(result.endDate).isEqualTo(address.endDate)
-    assertThat(result.status!!.code).isEqualTo("M")
-    assertThat(result.status!!.description).isEqualTo(AddressStatus.M.description)
-    assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
-    assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
+    assertThat(result.status!!.code).isEqualTo(AccommodationStatusCode.M)
+    assertThat(result.status!!.description).isEqualTo(AccommodationStatusCode.M.description)
+    assertThat(result.type!!.code).isEqualTo(AccommodationTypeCode.A01A)
+    assertThat(result.type!!.description).isEqualTo(AccommodationTypeCode.A01A.description)
     assertThat(result.address.postcode).isEqualTo("NW1 6XE")
     assertThat(result.address.subBuildingName).isEqualTo("Flat 4B")
     assertThat(result.address.buildingName).isEqualTo("Camden Heights")
