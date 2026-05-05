@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Address
 
@@ -29,17 +27,17 @@ object AccommodationSummaryTransformer {
       uprn = address.uprn,
     ),
     status = address.addressStatus?.let {
-      val accommodationStatusCode = AccommodationStatusCode.valueOf(it.name)
+      val accommodationStatusCode = it.name
       AccommodationStatusDto(
         code = accommodationStatusCode,
-        description = accommodationStatusCode.description,
+        description = it.description,
       )
     },
     type = address.addressUsage?.let {
-      val accommodationTypeCode = AccommodationTypeCode.valueOf(it.addressUsageCode.name)
+      val accommodationTypeCode = it.addressUsageCode.name
       AccommodationTypeDto(
         code = accommodationTypeCode,
-        description = accommodationTypeCode.description,
+        description = it.addressUsageCode.description,
       )
     },
   )

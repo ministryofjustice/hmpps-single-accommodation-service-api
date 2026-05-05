@@ -1,15 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementSubType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationArrangementType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OffenderReleaseType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationArrangementSubTypeDescriptionUnexpectedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
@@ -22,17 +18,13 @@ class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
   private var name: String? = null,
-  private var arrangementType: AccommodationArrangementType? = null,
-  private var arrangementSubType: AccommodationArrangementSubType? = null,
-  private var arrangementSubTypeDescription: String? = null,
-  private var settledType: AccommodationSettledType? = null,
+  private var accommodationType: AccommodationTypeDto? = null,
   private var verificationStatus: VerificationStatus? = null,
   private var nextAccommodationStatus: NextAccommodationStatus? = null,
-  private var offenderReleaseType: OffenderReleaseType? = null,
   private var address: AccommodationAddressDetails? = null,
   private var startDate: LocalDate? = null,
   private var endDate: LocalDate? = null,
-  private var notes: MutableList<ProposedAccommodationNote> = mutableListOf(),
+  private var notes: MutableList<ProposedAccommodationNoteSnapshot> = mutableListOf(),
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
@@ -46,28 +38,20 @@ class ProposedAccommodationAggregate private constructor(
       id: UUID,
       caseId: UUID,
       name: String?,
-      arrangementType: AccommodationArrangementType,
-      arrangementSubType: AccommodationArrangementSubType?,
-      arrangementSubTypeDescription: String?,
-      settledType: AccommodationSettledType,
+      accommodationType: AccommodationTypeDto,
       verificationStatus: VerificationStatus,
       nextAccommodationStatus: NextAccommodationStatus,
-      offenderReleaseType: OffenderReleaseType?,
       address: AccommodationAddressDetails,
       startDate: LocalDate?,
       endDate: LocalDate?,
-      notes: List<ProposedAccommodationNote>,
+      notes: List<ProposedAccommodationNoteSnapshot>,
     ) = ProposedAccommodationAggregate(
       id = id,
       caseId = caseId,
       name = name,
-      arrangementType = arrangementType,
-      arrangementSubType = arrangementSubType,
-      arrangementSubTypeDescription = arrangementSubTypeDescription,
-      settledType = settledType,
+      accommodationType = accommodationType,
       verificationStatus = verificationStatus,
       nextAccommodationStatus = nextAccommodationStatus,
-      offenderReleaseType = offenderReleaseType,
       address = address,
       startDate = startDate,
       endDate = endDate,
@@ -77,25 +61,17 @@ class ProposedAccommodationAggregate private constructor(
 
   fun updateProposedAccommodation(
     newName: String?,
-    newArrangementType: AccommodationArrangementType,
-    newArrangementSubType: AccommodationArrangementSubType?,
-    newArrangementSubTypeDescription: String?,
-    newSettledType: AccommodationSettledType,
+    newAccommodationType: AccommodationTypeDto,
     newVerificationStatus: VerificationStatus,
     newNextAccommodationStatus: NextAccommodationStatus,
     newAddress: AccommodationAddressDetails,
-    newOffenderReleaseType: OffenderReleaseType?,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
   ) {
     name = newName
-    arrangementType = newArrangementType
-    arrangementSubType = newArrangementSubType
-    arrangementSubTypeDescription = newArrangementSubTypeDescription
-    settledType = newSettledType
+    accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
     nextAccommodationStatus = newNextAccommodationStatus
-    offenderReleaseType = newOffenderReleaseType
     address = newAddress
     startDate = newStartDate
     endDate = newEndDate
@@ -109,7 +85,7 @@ class ProposedAccommodationAggregate private constructor(
 
   fun addNote(note: String) {
     validateNote(note)
-    notes += ProposedAccommodationNote(
+    notes += ProposedAccommodationNoteSnapshot(
       id = UUID.randomUUID(),
       note,
     )
@@ -126,20 +102,11 @@ class ProposedAccommodationAggregate private constructor(
 
   private fun validateProposedAccommodation() {
     validateStatuses()
-    validateArrangement()
   }
 
   private fun validateStatuses() {
     if (nextAccommodationStatus == NextAccommodationStatus.YES && verificationStatus != VerificationStatus.PASSED) {
       throw AccommodationVerificationNotPassedException()
-    }
-  }
-
-  private fun validateArrangement() {
-    if (arrangementSubType == AccommodationArrangementSubType.OTHER && arrangementSubTypeDescription.isNullOrEmpty()) {
-      throw AccommodationArrangementSubTypeDescriptionUnexpectedException()
-    } else if (arrangementSubType != AccommodationArrangementSubType.OTHER && !arrangementSubTypeDescription.isNullOrEmpty()) {
-      throw AccommodationArrangementSubTypeDescriptionUnexpectedException()
     }
   }
 
@@ -149,13 +116,9 @@ class ProposedAccommodationAggregate private constructor(
     id,
     caseId,
     name,
-    arrangementType!!,
-    arrangementSubType,
-    arrangementSubTypeDescription,
-    settledType!!,
+    accommodationType!!,
     verificationStatus!!,
     nextAccommodationStatus!!,
-    offenderReleaseType,
     address!!,
     startDate,
     endDate,
@@ -166,20 +129,16 @@ class ProposedAccommodationAggregate private constructor(
     val id: UUID,
     val caseId: UUID,
     val name: String?,
-    val arrangementType: AccommodationArrangementType,
-    val arrangementSubType: AccommodationArrangementSubType?,
-    val arrangementSubTypeDescription: String?,
-    val settledType: AccommodationSettledType,
+    val accommodationType: AccommodationTypeDto,
     val verificationStatus: VerificationStatus,
     val nextAccommodationStatus: NextAccommodationStatus,
-    val offenderReleaseType: OffenderReleaseType?,
     val address: AccommodationAddressDetails,
     val startDate: LocalDate?,
     val endDate: LocalDate?,
-    val notes: List<ProposedAccommodationNote>,
+    val notes: List<ProposedAccommodationNoteSnapshot>,
   )
 
-  data class ProposedAccommodationNote(
+  data class ProposedAccommodationNoteSnapshot(
     val id: UUID,
     val note: String,
   )

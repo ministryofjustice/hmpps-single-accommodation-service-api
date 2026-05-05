@@ -4,6 +4,7 @@ import java.util.UUID
 
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
+  accommodationTypeId: UUID,
   caseId: UUID,
   createCommitTime: String,
 ): String = """
@@ -27,20 +28,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"Mother's caravan"
          },
          {
-            "field":"arrangementType",
-            "value":"PRIVATE"
-         },
-         {
-            "field":"arrangementSubType",
-            "value":"OTHER"
-         },
-         {
-            "field":"arrangementSubTypeDescription",
-            "value":"Caravan site"
-         },
-         {
-            "field":"settledType",
-            "value":"SETTLED"
+            "field":"accommodationTypeId",
+            "value":"$accommodationTypeId"
          },
          {
             "field":"verificationStatus",
@@ -49,10 +38,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
          {
             "field":"nextAccommodationStatus",
             "value":"NO"
-         },
-         {
-            "field":"offenderReleaseType",
-            "value":"REMAND"
          },
          {
             "field":"startDate",
@@ -111,6 +96,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
   caseId: UUID,
+  initialAccommodationTypeId: UUID,
+  updatedAccommodationTypeId: UUID,
   createCommitTime: String,
   createNoteCommitTime: String,
   update1CommitTime: String,
@@ -160,6 +147,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "author":"Nomis User",
       "commitDate":"$update1CommitTime",
       "changes":[
+         {
+            "field":"accommodationTypeId",
+            "value":"$updatedAccommodationTypeId",
+            "oldValue":"$initialAccommodationTypeId"
+         },
          {
             "field":"verificationStatus",
             "value":"FAILED",
@@ -211,20 +203,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"Mother's caravan"
          },
          {
-            "field":"arrangementType",
-            "value":"PRIVATE"
-         },
-         {
-            "field":"arrangementSubType",
-            "value":"OTHER"
-         },
-         {
-            "field":"arrangementSubTypeDescription",
-            "value":"Caravan site"
-         },
-         {
-            "field":"settledType",
-            "value":"SETTLED"
+            "field":"accommodationTypeId",
+            "value":"$initialAccommodationTypeId"
          },
          {
             "field":"verificationStatus",
@@ -233,10 +213,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
          {
             "field":"nextAccommodationStatus",
             "value":"NO"
-         },
-         {
-            "field":"offenderReleaseType",
-            "value":"REMAND"
          },
          {
             "field":"startDate",
