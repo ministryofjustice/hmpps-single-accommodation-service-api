@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_ROSH_DETAIL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
 
 @Configuration
@@ -97,18 +98,19 @@ class RedissonCacheConfig {
   fun cacheManager(redissonClient: RedissonClient): CacheManager {
     val configs = mapOf(
       GET_ROSH_DETAIL to CacheConfig(60_000, 30_000),
-      GET_CASE to CacheConfig(120_000, 60_000),
-      GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(180_000, 120_000),
-      GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(180_000, 120_000),
-      GET_TIER to CacheConfig(180_000, 120_000),
-      GET_ACCOMMODATION_RESPONSE to CacheConfig(180_000, 120_000),
-      GET_CAS1_REFERRAL to CacheConfig(60_000, 60_000),
-      GET_CAS2_REFERRAL to CacheConfig(60_000, 60_000),
-      GET_CAS2V2_REFERRAL to CacheConfig(60_000, 60_000),
-      GET_CAS3_REFERRAL to CacheConfig(60_000, 60_000),
-      GET_CAS_1_APPLICATION to CacheConfig(180_000, 120_000),
-      GET_CAS_3_APPLICATION to CacheConfig(180_000, 120_000),
-      GET_CASE_LIST to CacheConfig(120_000, 60_000),
+      GET_STAFF_DETAIL to CacheConfig(60_000, 30_000),
+      GET_CASE to CacheConfig(60_000, 30_000),
+      GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(60_000, 30_000),
+      GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
+      GET_TIER to CacheConfig(60_000, 30_000),
+      GET_ACCOMMODATION_RESPONSE to CacheConfig(60_000, 30_000),
+      GET_CAS1_REFERRAL to CacheConfig(60_000, 30_000),
+      GET_CAS2_REFERRAL to CacheConfig(60_000, 30_000),
+      GET_CAS2V2_REFERRAL to CacheConfig(60_000, 30_000),
+      GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
+      GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
+      GET_CAS_3_APPLICATION to CacheConfig(60_000, 30_000),
+      GET_CASE_LIST to CacheConfig(60_000, 30_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }
