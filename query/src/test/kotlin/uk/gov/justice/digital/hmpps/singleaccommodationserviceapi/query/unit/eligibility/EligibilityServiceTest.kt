@@ -89,8 +89,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.HasNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -197,10 +200,10 @@ class EligibilityServiceTest {
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
-    listOf(),
+    listOf(Cas1ApplicationNotSuitableRule(), Cas3ApplicationNotSuitableRule()),
   )
   var paCompletionRuleSet = PaCompletionRuleSet(
-    listOf(),
+    listOf(HasNextAccommodationRule()),
   )
   var paCompletionContextUpdater = PaCompletionContextUpdater()
 
@@ -655,6 +658,79 @@ class EligibilityServiceTest {
       }
     }
   }
+
+  @Nested
+  inner class PaEligibilityScenarios {
+
+    fun loadPaScenarios(): List<PaScenario> {
+      val rows = CsvReader().read("/pa-eligibility-scenarios.csv")
+
+      return rows.mapIndexed { idx, row ->
+        try {
+          PaScenario(
+            testCaseId = row["testCaseId"]!!,
+            description = row["description"],
+            hasNextAccommodation = row["hasNextAccommodation"]!!,
+            isSubmittedCas1 = row["isSubmittedCas1"]!!,
+            isSubmittedCas3 = row["isSubmittedCas3"]!!,
+            expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatus.valueOf(it) },
+            expectedPaAction = row["expectedPaAction"],
+          )
+        } catch (e: Exception) {
+          throw IllegalStateException("Row $idx failed: $row", e)
+        }
+      }
+    }
+
+    @Test
+    fun `should calculate eligibility for pa for all scenarios`() {
+      val scenarios = loadPaScenarios()
+
+      runScenarios(scenarios) { s ->
+
+        val cas1Application = if (s.isSubmittedCas1.toBoolean()) {
+          buildCas1Application(
+            applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+            placementStatus = Cas1PlacementStatus.UPCOMING,
+          )
+        } else {
+          null
+        }
+
+        val cas3Application = if (s.isSubmittedCas3.toBoolean()) {
+          buildCas3Application(
+            applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+            assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+            bookingStatus = Cas3BookingStatus.CONFIRMED,
+          )
+        } else {
+          null
+        }
+
+        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
+          buildAccommodationSummaryDto()
+        } else {
+          null
+        }
+
+        val data = buildDomainData(
+          crn = s.testCaseId,
+          nextAccommodation = nextAccommodation,
+          cas1Application = cas1Application,
+          cas3Application = cas3Application,
+        )
+
+        val result = eligibilityService.calculateEligibilityForPa(data)
+
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
+          .isEqualTo(s.expectedPaStatus)
+
+        assertThat(result.action).isEqualTo(s.expectedPaAction)
+      }
+    }
+  }
 }
 
 data class Cas1Scenario(
@@ -718,6 +794,16 @@ data class CrsScenario(
   val expectedCrsStatus: ServiceStatus?,
   val expectedCrsAction: String?,
   val expectedCrsLink: String?,
+)
+
+data class PaScenario(
+  val testCaseId: String,
+  val description: String?,
+  val hasNextAccommodation: String,
+  val isSubmittedCas1: String,
+  val isSubmittedCas3: String,
+  val expectedPaStatus: ServiceStatus?,
+  val expectedPaAction: String?,
 )
 
 private fun <T> runScenarios(

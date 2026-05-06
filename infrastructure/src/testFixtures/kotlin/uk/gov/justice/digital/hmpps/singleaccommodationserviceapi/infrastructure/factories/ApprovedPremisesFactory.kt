@@ -12,7 +12,7 @@ import java.util.UUID
 
 fun buildCas1Application(
   id: UUID = UUID.randomUUID(),
-  applicationStatus: Cas1ApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+  applicationStatus: Cas1ApplicationStatus = Cas1ApplicationStatus.STARTED,
   placementStatus: Cas1PlacementStatus? = null,
   requestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
 ) = Cas1Application(

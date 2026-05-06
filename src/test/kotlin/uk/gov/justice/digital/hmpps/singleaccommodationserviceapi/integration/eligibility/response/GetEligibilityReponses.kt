@@ -20,13 +20,13 @@ fun expectedGetEligibilityResponse(
       "crn":"$crn",
       "cas1":{
          "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":"Wait for approved premise (CAS1) assessment result",
-            "link":"View application"
+            "serviceStatus":"NOT_SUBMITTED",
+            "action":"Continue approved premise (CAS1) application",
+            "link":"Continue application"
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
-            "applicationStatus":"AWAITING_ASSESSMENT",
+            "applicationStatus":"STARTED",
             "requestForPlacementStatus":null,
             "placementStatus":null
          }
@@ -73,15 +73,16 @@ fun expectedGetEligibilityResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"COMPLETED",
-            "action":null,
+            "serviceStatus":"NOT_STARTED",
+            "action":"Add and confirm proposed address",
             "link":null
          }
       },
       "caseActions":[
          "Add DTR outcome",
          "Complete CRS Referral",
-         "Wait for approved premise (CAS1) assessment result"
+         "Continue approved premise (CAS1) application",
+         "Add and confirm proposed address"
       ]
    }
 }
