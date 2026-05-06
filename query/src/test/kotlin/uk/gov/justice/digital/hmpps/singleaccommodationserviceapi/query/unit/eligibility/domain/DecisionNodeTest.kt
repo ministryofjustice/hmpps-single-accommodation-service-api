@@ -2,10 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
@@ -13,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -93,7 +97,7 @@ class DecisionNodeTest {
         )
       val expectedResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
-      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetStatus.PASS
+      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetResult(RuleSetStatus.PASS, emptyList())
       every { onPassNode.eval(initialContext) } returns expectedResult
 
       val ruleSetNode =
@@ -111,7 +115,7 @@ class DecisionNodeTest {
       assertThat(result).isEqualTo(expectedResult)
       verify { engine.execute(ruleSet, initialContext.data) }
       verify { onPassNode.eval(initialContext) }
-      verify(exactly = 0) { contextUpdater.update(any()) }
+      verify(exactly = 0) { contextUpdater.update(any(), any()) }
       verify(exactly = 0) { onFailNode.eval(any()) }
     }
 
@@ -135,9 +139,8 @@ class DecisionNodeTest {
         )
       val expectedResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
-      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetStatus.FAIL
-      every { contextUpdater.update(initialContext) } returns
-        updatedContext
+      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetResult(RuleSetStatus.FAIL, emptyList())
+      every { contextUpdater.update(initialContext, emptyList()) } returns updatedContext
       every { onFailNode.eval(updatedContext) } returns expectedResult
 
       val ruleSetNode =
@@ -154,7 +157,7 @@ class DecisionNodeTest {
 
       assertThat(result).isEqualTo(expectedResult)
       verify { engine.execute(ruleSet, initialContext.data) }
-      verify { contextUpdater.update(initialContext) }
+      verify { contextUpdater.update(initialContext, emptyList()) }
       verify { onFailNode.eval(updatedContext) }
       verify(exactly = 0) { onPassNode.eval(any()) }
     }
@@ -174,7 +177,7 @@ class DecisionNodeTest {
           currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
         )
 
-      every { engine.execute(any(), any()) } returns RuleSetStatus.PASS
+      every { engine.execute(any(), any()) } returns RuleSetResult(RuleSetStatus.PASS, emptyList())
       every { onPassNode.eval(any()) } returns buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
       val ruleSetNode =
@@ -210,8 +213,8 @@ class DecisionNodeTest {
         currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
-      every { engine.execute(any(), any()) } returns RuleSetStatus.FAIL
-      every { contextUpdater.update(context) } returns updatedContext
+      every { engine.execute(any(), any()) } returns RuleSetResult(RuleSetStatus.FAIL, emptyList())
+      every { contextUpdater.update(context, emptyList()) } returns updatedContext
       every { onFailNode.eval(any()) } returns buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
       val ruleSetNode =
@@ -226,7 +229,85 @@ class DecisionNodeTest {
 
       ruleSetNode.eval(context)
 
-      verify { contextUpdater.update(context) }
+      verify { contextUpdater.update(context, emptyList()) }
+    }
+
+    @Test
+    fun `RuleSetNode on FAIL threads non-empty failure reasons through to onFail context`() {
+      val ruleSet: RuleSet = mockk()
+      val engine: RulesEngine = mockk()
+      val onPassNode: DecisionNode = mockk()
+      val onFailNode: DecisionNode = mockk()
+      val contextUpdater = object : ContextUpdater() {
+        override fun toServiceResult(context: EvaluationContext): ServiceResult = buildServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
+      }
+
+      val initialContext = EvaluationContext(
+        data = buildDomainData(),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+      )
+      val ruleFailureReasons = listOf(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+      val capturedContext = slot<EvaluationContext>()
+
+      every { engine.execute(ruleSet, initialContext.data) } returns
+        RuleSetResult(RuleSetStatus.FAIL, ruleFailureReasons)
+      every { onFailNode.eval(capture(capturedContext)) } returns
+        buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+
+      val ruleSetNode = RuleSetNode(
+        ruleSet = ruleSet,
+        engine = engine,
+        onPass = onPassNode,
+        onFail = onFailNode,
+        contextUpdater = contextUpdater,
+        ruleSetName = "Test RuleSet",
+      )
+
+      ruleSetNode.eval(initialContext)
+
+      assertThat(capturedContext.captured.currentResult.serviceStatus)
+        .isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(capturedContext.captured.currentResult.failureReasons)
+        .containsExactly(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
+    }
+
+    @Test
+    fun `RuleSetNode on FAIL falls back to contextUpdater failure reasons when rules supply none`() {
+      val ruleSet: RuleSet = mockk()
+      val engine: RulesEngine = mockk()
+      val onPassNode: DecisionNode = mockk()
+      val onFailNode: DecisionNode = mockk()
+      val contextUpdater = object : ContextUpdater() {
+        override fun toServiceResult(context: EvaluationContext): ServiceResult = buildServiceResult(
+          serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+          failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE),
+        )
+      }
+
+      val initialContext = EvaluationContext(
+        data = buildDomainData(),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+      )
+      val capturedContext = slot<EvaluationContext>()
+
+      every { engine.execute(ruleSet, initialContext.data) } returns
+        RuleSetResult(RuleSetStatus.FAIL, emptyList())
+      every { onFailNode.eval(capture(capturedContext)) } returns
+        buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+
+      val ruleSetNode = RuleSetNode(
+        ruleSet = ruleSet,
+        engine = engine,
+        onPass = onPassNode,
+        onFail = onFailNode,
+        contextUpdater = contextUpdater,
+        ruleSetName = "Test RuleSet",
+      )
+
+      ruleSetNode.eval(initialContext)
+
+      assertThat(capturedContext.captured.currentResult.failureReasons)
+        .containsExactly(FailureReason.INVALID_APPLICATION_STATE)
     }
   }
 }

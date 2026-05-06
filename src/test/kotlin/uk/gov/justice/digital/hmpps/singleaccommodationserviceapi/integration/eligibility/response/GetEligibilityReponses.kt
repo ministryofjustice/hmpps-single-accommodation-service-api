@@ -22,7 +22,8 @@ fun expectedGetEligibilityResponse(
          "serviceResult":{
             "serviceStatus":"NOT_SUBMITTED",
             "action":"Continue approved premise (CAS1) application",
-            "link":"Continue application"
+            "link":"Continue application",
+            "failureReasons":[]
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
@@ -35,7 +36,8 @@ fun expectedGetEligibilityResponse(
          "serviceResult":{
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
-            "link":null
+            "link":null,
+            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE","CRS_EXPIRED","CRS_NOT_SUBMITTED"]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -48,7 +50,8 @@ fun expectedGetEligibilityResponse(
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
             "action":"Add DTR outcome",
-            "link":"Add outcome"
+            "link":"Add outcome",
+            "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -67,7 +70,8 @@ fun expectedGetEligibilityResponse(
          "serviceResult":{
             "serviceStatus":"NOT_STARTED",
             "action":"Complete CRS Referral",
-            "link":"View refer and monitor"
+            "link":"View refer and monitor",
+            "failureReasons":[]
          },
          "commissionedRehabilitativeServices":null
       },
@@ -83,6 +87,87 @@ fun expectedGetEligibilityResponse(
          "Complete CRS Referral",
          "Continue approved premise (CAS1) application",
          "Add and confirm proposed address"
+      ]
+   }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityNotEligibleSTierFail(
+  crn: String,
+  cas1ApplicationId: UUID,
+  cas3ApplicationId: UUID,
+  dutyToReferCaseId: UUID,
+  dutyToReferId: UUID,
+  localAuthorityAreaId: UUID,
+  localAuthorityAreaName: String,
+  submissionDate: String,
+  referenceNumber: String,
+  createdBy: String,
+  createdAt: String,
+): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "cas1":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "failureReasons":["S_TIER"]
+         },
+         "cas1Application":{
+            "id":"$cas1ApplicationId",
+            "applicationStatus":"REJECTED",
+            "requestForPlacementStatus":null,
+            "placementStatus":null
+         }
+      },
+      "cas3":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE","CRS_EXPIRED","CRS_NOT_SUBMITTED"]
+         },
+         "cas3Application":{
+            "id":"$cas3ApplicationId",
+            "applicationStatus":"IN_PROGRESS",
+            "assessmentStatus":null,
+            "bookingStatus":null
+         }
+      },
+      "dtr":{
+         "serviceResult":{
+            "serviceStatus":"SUBMITTED",
+            "action":"Add DTR outcome",
+            "link":"Add outcome",
+            "failureReasons":[]
+         },
+         "caseId":"$dutyToReferCaseId",
+         "submission":{
+            "id":"$dutyToReferId",
+            "localAuthority":{
+               "localAuthorityAreaId":"$localAuthorityAreaId",
+               "localAuthorityAreaName":"$localAuthorityAreaName"
+            },
+            "referenceNumber":"$referenceNumber",
+            "submissionDate":"$submissionDate",
+            "createdBy":"$createdBy",
+            "createdAt":"$createdAt"
+         }
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"NOT_STARTED",
+            "action":"Complete CRS Referral",
+            "link":"View refer and monitor",
+            "failureReasons":[]
+         },
+         "commissionedRehabilitativeServices":null
+      },
+      "caseActions":[
+         "Add DTR outcome",
+         "Complete CRS Referral"
       ]
    }
 }

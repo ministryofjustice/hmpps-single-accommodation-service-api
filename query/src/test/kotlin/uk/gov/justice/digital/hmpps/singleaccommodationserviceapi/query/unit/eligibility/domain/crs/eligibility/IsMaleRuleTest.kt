@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -42,6 +43,7 @@ class IsMaleRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.NOT_MALE,
       ),
     )
   }
@@ -58,6 +60,7 @@ class IsMaleRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.NOT_MALE,
       ),
     )
   }

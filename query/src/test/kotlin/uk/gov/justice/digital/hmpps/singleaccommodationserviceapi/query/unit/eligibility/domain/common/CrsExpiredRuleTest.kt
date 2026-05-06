@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -68,6 +69,7 @@ class CrsExpiredRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.CRS_EXPIRED,
       ),
     )
   }
@@ -84,6 +86,7 @@ class CrsExpiredRuleTest {
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.CRS_EXPIRED,
       ),
     )
   }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
@@ -325,6 +326,11 @@ class EligibilityServiceTest {
             expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatus.valueOf(it) },
             expectedCas1Action = row["expectedCas1Action"],
             expectedCas1Link = row["expectedCas1Link"],
+            expectedFailureReasons = row["expectedFailureReasons"]
+              ?.takeIf { it.isNotBlank() }
+              ?.split(",")
+              ?.map { FailureReason.valueOf(it.trim()) }
+              ?: emptyList(),
           )
         } catch (e: Exception) {
           throw IllegalStateException("CAS1 CSV row $idx failed: $row", e)
@@ -366,6 +372,9 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCas1Action)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
+        assertThat(result.failureReasons)
+          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
   }
@@ -390,6 +399,11 @@ class EligibilityServiceTest {
             expectedDtrStatus = row["expectedDtrStatus"]?.let { ServiceStatus.valueOf(it) },
             expectedDtrAction = row["expectedDtrAction"],
             expectedDtrLink = row["expectedDtrLink"],
+            expectedFailureReasons = row["expectedFailureReasons"]
+              ?.takeIf { it.isNotBlank() }
+              ?.split(",")
+              ?.map { FailureReason.valueOf(it.trim()) }
+              ?: emptyList(),
           )
         } catch (e: Exception) {
           throw IllegalStateException("DTR CSV row $idx failed: $row", e)
@@ -458,6 +472,9 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedDtrAction)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
+        assertThat(result.failureReasons)
+          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
   }
@@ -487,6 +504,11 @@ class EligibilityServiceTest {
             expectedCas3Link = row["expectedCas3Link"],
             crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
             isCrsStatusTerminated = row["isCrsStatusTerminated"]!!,
+            expectedFailureReasons = row["expectedFailureReasons"]
+              ?.takeIf { it.isNotBlank() }
+              ?.split(",")
+              ?.map { FailureReason.valueOf(it.trim()) }
+              ?: emptyList(),
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -583,6 +605,9 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCas3Action)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
+        assertThat(result.failureReasons)
+          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
   }
@@ -607,6 +632,11 @@ class EligibilityServiceTest {
             expectedCrsLink = row["expectedCrsLink"],
             sex = row["sex"]?.let { SexCode.valueOf(it) },
             crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
+            expectedFailureReasons = row["expectedFailureReasons"]
+              ?.takeIf { it.isNotBlank() }
+              ?.split(",")
+              ?.map { FailureReason.valueOf(it.trim()) }
+              ?: emptyList(),
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -655,6 +685,9 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCrsAction)
         assertThat(result.link).isEqualTo(s.expectedCrsLink)
+        assertThat(result.failureReasons)
+          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
   }
@@ -731,6 +764,251 @@ class EligibilityServiceTest {
       }
     }
   }
+
+  @Nested
+  inner class FailureReasonsSmoke {
+
+    private val today = LocalDate.parse("01/01/2025", dateFormatter)
+
+    @Test
+    fun `Cas1 surfaces S_TIER when candidate is on an S tier`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.M,
+        tierScore = TierScore.A1S,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = null,
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas1(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.S_TIER)
+    }
+
+    @Test
+    fun `Cas1 surfaces MALE_NOT_HIGH_RISK_TIER for male candidate on a low-risk tier`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.M,
+        tierScore = TierScore.C3,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = null,
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas1(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.MALE_NOT_HIGH_RISK_TIER)
+    }
+
+    @Test
+    fun `Cas1 surfaces NON_MALE_NOT_HIGH_RISK_TIER for non-male candidate on a low-risk tier`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.F,
+        tierScore = TierScore.D3,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = null,
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas1(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
+    }
+
+    @Test
+    fun `Cas1 surfaces SEX_DATA_NOT_AVAILABLE when candidate has no sex`() {
+      clock.setNow(today)
+      val data = buildDomainData(sex = null)
+
+      val result = eligibilityService.calculateEligibilityForCas1(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.SEX_DATA_NOT_AVAILABLE)
+    }
+
+    @Test
+    fun `Cas1 surfaces NO_CURRENT_ACCOMMODATION_END_DATE when end date is missing`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = null),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas1(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.NO_CURRENT_ACCOMMODATION_END_DATE)
+    }
+
+    @Test
+    fun `Cas1 surfaces INVALID_APPLICATION_STATE when application has placement but unsuitable status`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.M,
+        tierScore = TierScore.A1,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = buildCas1Application(
+          applicationStatus = Cas1ApplicationStatus.STARTED,
+          placementStatus = Cas1PlacementStatus.ARRIVED,
+          requestForPlacementStatus = null,
+        ),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas1(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.INVALID_APPLICATION_STATE)
+    }
+
+    @Test
+    fun `Cas3 surfaces INVALID_CURRENT_ACCOMMODATION_TYPE when accommodation is not prison or CAS1 or CAS2`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A03"),
+        ),
+        cas1Application = null,
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas3(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE)
+    }
+
+    @Test
+    fun `Cas3 surfaces CONFLICTING_CAS1_BOOKING when there is an upcoming Cas1 placement`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = buildCas1Application(
+          applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+          placementStatus = Cas1PlacementStatus.UPCOMING,
+          requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+        ),
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas3(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.CONFLICTING_CAS1_BOOKING)
+    }
+
+    @Test
+    fun `Cas3 surfaces CRS_EXPIRED when CRS submission is older than 12 weeks`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = null,
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
+        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
+          submissionDate = today.minusWeeks(13),
+          status = CrsStatus.COMPLETED,
+        ),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas3(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.CRS_EXPIRED)
+    }
+
+    @Test
+    fun `Cas3 surfaces CRS_NOT_SUBMITTED when CRS is in a non-submitted status`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = null,
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
+        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
+          submissionDate = today,
+          status = CrsStatus.NSI_REFERRAL,
+        ),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas3(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED)
+    }
+
+    @Test
+    fun `Cas3 surfaces DTR_REFERRAL_EXPIRED when no DTR is present`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        cas1Application = null,
+        cas3Application = null,
+        dutyToRefer = null,
+      )
+
+      val result = eligibilityService.calculateEligibilityForCas3(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.DTR_REFERRAL_EXPIRED)
+    }
+
+    @Test
+    fun `Dtr surfaces HAS_NEXT_ACCOMMODATION when candidate has next accommodation`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A03"),
+        ),
+        nextAccommodation = buildAccommodationSummaryDto(),
+      )
+
+      val result = eligibilityService.calculateEligibilityForDtr(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.HAS_NEXT_ACCOMMODATION)
+    }
+
+    @Test
+    fun `Dtr surfaces CURRENT_ADDRESS_IS_PRIVATE when current address is private`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(
+          endDate = today.plusDays(1),
+          type = buildAccommodationTypeDto(code = "A01A"),
+        ),
+        nextAccommodation = null,
+      )
+
+      val result = eligibilityService.calculateEligibilityForDtr(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.CURRENT_ADDRESS_IS_PRIVATE)
+    }
+
+    @Test
+    fun `Crs surfaces NOT_MALE when candidate is not male`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.F,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
+          submissionDate = today.minusWeeks(13),
+          status = CrsStatus.COMPLETED,
+        ),
+      )
+
+      val result = eligibilityService.calculateEligibilityForCrs(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.NOT_MALE)
+    }
+  }
 }
 
 data class Cas1Scenario(
@@ -746,6 +1024,7 @@ data class Cas1Scenario(
   val expectedCas1Status: ServiceStatus?,
   val expectedCas1Action: String?,
   val expectedCas1Link: String?,
+  val expectedFailureReasons: List<FailureReason>,
 )
 
 data class DtrScenario(
@@ -760,6 +1039,7 @@ data class DtrScenario(
   val expectedDtrStatus: ServiceStatus?,
   val expectedDtrAction: String?,
   val expectedDtrLink: String?,
+  val expectedFailureReasons: List<FailureReason>,
 )
 
 data class Cas3Scenario(
@@ -779,7 +1059,7 @@ data class Cas3Scenario(
   val expectedCas3Status: ServiceStatus?,
   val expectedCas3Action: String?,
   val expectedCas3Link: String?,
-
+  val expectedFailureReasons: List<FailureReason>,
 )
 
 data class CrsScenario(
@@ -794,6 +1074,7 @@ data class CrsScenario(
   val expectedCrsStatus: ServiceStatus?,
   val expectedCrsAction: String?,
   val expectedCrsLink: String?,
+  val expectedFailureReasons: List<FailureReason>,
 )
 
 data class PaScenario(

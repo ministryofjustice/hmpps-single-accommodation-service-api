@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -24,12 +25,12 @@ class STierEligibilityRule : Cas1EligibilityRule {
     TierScore.D1S,
   )
 
-  override fun evaluate(data: DomainData) = RuleResult(
-    description = description,
-    ruleStatus = if (sRiskTiers.contains(data.tierScore)) {
-      RuleStatus.FAIL
-    } else {
-      RuleStatus.PASS
-    },
-  )
+  override fun evaluate(data: DomainData): RuleResult {
+    val isFail = sRiskTiers.contains(data.tierScore)
+    return RuleResult(
+      description = description,
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (isFail) FailureReason.S_TIER else null,
+    )
+  }
 }

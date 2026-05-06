@@ -6,5 +6,5 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CommonContextUpdater : ContextUpdater() {
-  override fun toServiceResult(context: EvaluationContext) = context.currentResult
+  override fun toServiceResult(context: EvaluationContext) = context.currentResult.copy(failureReasons = emptyList())
 }

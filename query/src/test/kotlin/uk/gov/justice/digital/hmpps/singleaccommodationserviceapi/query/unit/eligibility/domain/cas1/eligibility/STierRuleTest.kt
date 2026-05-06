@@ -4,12 +4,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class STierRuleTest {
+  private val description = "FAIL if candidate is S Tier"
+
   @ParameterizedTest(name = "{0}")
   @EnumSource(
     value = TierScore::class,
@@ -35,7 +39,7 @@ class STierRuleTest {
 
     val result = STierEligibilityRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @ParameterizedTest(name = "{0}")
@@ -63,7 +67,7 @@ class STierRuleTest {
 
     val result = STierEligibilityRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL, failureReason = FailureReason.S_TIER))
   }
 
   @Test

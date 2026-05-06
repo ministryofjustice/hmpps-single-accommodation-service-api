@@ -2,13 +2,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.CurrentAddressTypeNotPrivateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAddressTypeNotPrivateRuleTest {
+  private val description = "FAIL if current address is Private"
+
   // TODO turn these into parameterized test once the types are known for certain
   @Test
   fun `candidate passes when current address is not private`() {
@@ -22,7 +26,7 @@ class CurrentAddressTypeNotPrivateRuleTest {
 
     val result = CurrentAddressTypeNotPrivateRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
@@ -37,7 +41,7 @@ class CurrentAddressTypeNotPrivateRuleTest {
 
     val result = CurrentAddressTypeNotPrivateRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL, failureReason = FailureReason.CURRENT_ADDRESS_IS_PRIVATE))
   }
 
   @Test
@@ -48,7 +52,7 @@ class CurrentAddressTypeNotPrivateRuleTest {
 
     val result = CurrentAddressTypeNotPrivateRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test

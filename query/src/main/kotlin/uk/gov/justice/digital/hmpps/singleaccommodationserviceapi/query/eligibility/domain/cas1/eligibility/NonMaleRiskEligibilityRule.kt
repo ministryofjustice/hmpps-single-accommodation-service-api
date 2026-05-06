@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -27,12 +28,12 @@ class NonMaleRiskEligibilityRule : Cas1EligibilityRule {
     TierScore.C3S,
   )
 
-  override fun evaluate(data: DomainData) = RuleResult(
-    description = description,
-    ruleStatus = if (data.sex != SexCode.M && !highRiskTiers.contains(data.tierScore)) {
-      RuleStatus.FAIL
-    } else {
-      RuleStatus.PASS
-    },
-  )
+  override fun evaluate(data: DomainData): RuleResult {
+    val isFail = data.sex != SexCode.M && !highRiskTiers.contains(data.tierScore)
+    return RuleResult(
+      description = description,
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (isFail) FailureReason.NON_MALE_NOT_HIGH_RISK_TIER else null,
+    )
+  }
 }
