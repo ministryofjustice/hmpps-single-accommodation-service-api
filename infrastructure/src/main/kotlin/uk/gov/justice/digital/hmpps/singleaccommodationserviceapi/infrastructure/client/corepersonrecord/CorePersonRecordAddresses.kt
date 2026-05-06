@@ -55,6 +55,7 @@ enum class AddressUsageCode(
   A01D("Rental accommodation - social rental (LA or other)"),
   A04("Supported Housing"),
   A03("Transient/short term accommodation"),
+  B10("HMP ")
 }
 
 enum class AddressStatus(

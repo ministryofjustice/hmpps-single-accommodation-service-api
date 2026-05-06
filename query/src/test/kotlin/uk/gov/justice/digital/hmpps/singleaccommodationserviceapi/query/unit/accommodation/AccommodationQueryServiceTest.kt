@@ -33,7 +33,7 @@ class AccommodationQueryServiceTest {
 
   @BeforeEach
   fun setup() {
-    accommodationQueryService = AccommodationQueryService(accommodationOrchestrationService)
+    accommodationQueryService = AccommodationQueryService(accommodationOrchestrationService, caseRepository)
   }
 
   @Test

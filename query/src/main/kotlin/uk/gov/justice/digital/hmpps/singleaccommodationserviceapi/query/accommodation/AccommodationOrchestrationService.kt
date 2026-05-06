@@ -33,9 +33,10 @@ class AccommodationOrchestrationService(
     )
   }
 
-  fun getCorePersonRecordAddressesByCrn(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
+  fun getCorePersonRecordAddressesByCrn(crn: String, prisonNumber: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
     val calls = mapOf(
       GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordAddressesByCrn(crn) },
+      GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN to { prisonSearchAPi.get(prisonNumber) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
