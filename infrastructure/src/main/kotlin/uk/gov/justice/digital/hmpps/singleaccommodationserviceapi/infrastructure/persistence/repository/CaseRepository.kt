@@ -75,4 +75,11 @@ WHERE identifier NOT IN (
 
   fun findByCrn(crn: String) = findByIdentifier(crn, IdentifierType.CRN)
   fun findByPrisonNumber(prisonNumber: String) = findByIdentifier(prisonNumber, IdentifierType.PRISON_NUMBER)
+  fun mapByCrns(crns: List<String>) = findByCrns(crns)
+    .flatMap { entity ->
+      entity.caseIdentifiers
+        .filter { it.identifierType == IdentifierType.CRN && it.identifier in crns }
+        .map { it.identifier to entity }
+    }
+    .toMap()
 }

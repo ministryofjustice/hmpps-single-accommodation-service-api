@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -93,10 +93,16 @@ class EligibilityService(
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun getEligibility(personDto: PersonDto, caseEntity: CaseEntity?, dutyToRefer: DutyToReferDto?): EligibilityDto {
-    log.info("Calculating eligibility for CRN: ${personDto.crn} from the sas_case table")
+  fun getEligibility(
+    crn: String,
+    gender: String,
+    caseEntity: CaseEntity?,
+    dutyToRefer: DutyToReferDto?,
+  ): EligibilityDto {
+    log.info("Calculating eligibility for CRN: $crn from the sas_case table")
     val data = DomainData(
-      personDto,
+      crn = crn,
+      sexCode = SexCode.findByGender(gender),
       caseEntity,
       dutyToRefer,
     )

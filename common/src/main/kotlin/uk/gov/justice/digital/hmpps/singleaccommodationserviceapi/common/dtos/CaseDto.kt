@@ -2,24 +2,28 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.LocalDate
 
+enum class LAOStatus { RESTRICTED, EXCLUDED, NONE }
+
 data class CaseDto(
-  val name: String?,
-  val dateOfBirth: LocalDate?,
-  val crn: String?,
-  val prisonNumber: String?,
-  val photoUrl: String?,
-  val tierScore: TierScore?,
-  val riskLevel: RiskLevel?,
-  val pncReference: String?,
-  val assignedTo: AssignedToDto?,
-  val currentAccommodation: AccommodationDetail?,
-  val nextAccommodation: AccommodationDetail?,
+  val name: String? = null,
+  val dateOfBirth: LocalDate? = null,
+  val crn: String,
+  val prisonNumber: String? = null,
+  val photoUrl: String? = null,
+  val tierScore: TierScore? = null,
+  val riskLevel: RiskLevel? = null,
+  val pncReference: String? = null,
+  val assignedTo: AssignedToDto? = null,
+  val currentAccommodation: AccommodationDetail? = null,
+  val nextAccommodation: AccommodationDetail? = null,
   val status: Status? = null,
   val actions: List<String> = emptyList(),
+  val laoStatus: LAOStatus,
 )
 
 data class AssignedToDto(
-  val name: String,
+  val forename: String,
+  val surname: String,
   val username: String? = null,
   val staffCode: String? = null,
 )

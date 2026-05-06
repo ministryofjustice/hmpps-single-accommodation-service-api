@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -97,7 +97,7 @@ class DomainDataTest {
     val dutyToRefer = buildDutyToReferDto()
     val crn = "ABC1234"
     val tierScore = TierScore.A1
-    val personDto = buildPersonDto(
+    val personDto = buildFullPersonDto(
       crn = crn,
       gender = "Male",
     )
@@ -116,7 +116,8 @@ class DomainDataTest {
       commissionedRehabilitativeServices = null,
     )
     val result = DomainData(
-      personDto = personDto,
+      crn = crn,
+      sexCode = SexCode.findByGender(personDto.gender),
       caseEntity = caseEntity,
       dutyToRefer = dutyToRefer,
     )

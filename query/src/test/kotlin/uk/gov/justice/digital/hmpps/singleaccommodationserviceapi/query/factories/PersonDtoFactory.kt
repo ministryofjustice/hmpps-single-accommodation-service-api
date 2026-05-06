@@ -1,14 +1,15 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 import java.time.LocalDate
 
-fun buildPersonDto(
+fun buildFullPersonDto(
   crn: String,
   name: Name = buildName(),
   nomsNumber: String = "PRI1",
@@ -17,13 +18,19 @@ fun buildPersonDto(
   staff: Officer = buildOfficer(),
   gender: String = "Male",
   roshLevel: RiskLevel? = RiskLevel.VERY_HIGH,
-) = PersonDto(
-  crn,
-  name.fullName,
-  nomsNumber,
-  pncNumber,
-  dateOfBirth,
-  staff,
-  gender,
-  roshLevel,
+) = FullPersonDto(
+  crn = crn,
+  name = name.fullName,
+  nomsNumber = nomsNumber,
+  pncNumber = pncNumber,
+  dateOfBirth = dateOfBirth,
+  gender = gender,
+  roshLevel = roshLevel,
+  teamCode = "TEAM1",
+  assignedTo = AssignedToDto(
+    forename = staff.name.forename,
+    surname = staff.name.surname,
+    username = staff.username,
+    staffCode = staff.code,
+  ),
 )

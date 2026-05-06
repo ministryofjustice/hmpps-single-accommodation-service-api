@@ -8,18 +8,22 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LAOStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import java.time.LocalDate
 import java.util.stream.Stream
 
@@ -35,11 +39,10 @@ class CaseTransformerTest {
   ) {
     assertThat(
       CaseTransformer.toCaseDto(
-        crn = caseOrchestrationDto.crn,
         cpr = caseOrchestrationDto.cpr,
         roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,
-        case = caseOrchestrationDto.case,
+        person = toPersonDto(caseOrchestrationDto.case!!),
       ),
     ).isEqualTo(expectedCaseDto)
   }
@@ -47,17 +50,12 @@ class CaseTransformerTest {
   @Test
   fun `should transform from case entity and person dto to case dto`() {
     val caseEntity = buildCaseEntity { withCrn(CRN) }
-    val personDto = buildPersonDto(CRN)
+    val name = buildName()
+    val personDto = buildFullPersonDto(crn = CRN, name = name)
     val eligibilityDto = buildEligibilityDto(CRN)
-    val caseDto = buildCaseDto(CRN)
+    val caseDto = buildCaseDto(crn = CRN, name = name.fullName)
 
-    assertThat(
-      CaseTransformer.toCaseDto(
-        person = personDto,
-        caseEntity = caseEntity,
-        eligibility = eligibilityDto,
-      ),
-    ).isEqualTo(caseDto)
+    assertThat(personDto.toCaseDto(caseEntity = caseEntity, eligibility = eligibilityDto)).isEqualTo(caseDto)
   }
 
   @ParameterizedTest
@@ -82,7 +80,7 @@ class CaseTransformerTest {
     expected: String,
   ) {
     val cpr = buildCorePersonRecord(firstName = firstname, middleNames = middleNames, lastName = lastName)
-    assertThat(CaseTransformer.toFullName(cpr)).isEqualTo(expected)
+    assertThat(cpr.toFullName()).isEqualTo(expected)
   }
 
   private companion object {
@@ -97,7 +95,8 @@ class CaseTransformerTest {
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(
-        name = "First Middle Last",
+        forename = "First",
+        surname = "Last",
         username = "user1",
         staffCode = "ABCD1234",
       ),
@@ -106,17 +105,19 @@ class CaseTransformerTest {
       nextAccommodation = null,
       status = null,
       actions = emptyList(),
+      laoStatus = LAOStatus.NONE,
     )
 
     @JvmStatic
     fun caseTransformationCases(): Stream<Arguments> {
-      val caseWithAllData = buildCaseOrchestrationDto(CRN)
+      val caseWithAllData = buildCaseOrchestrationDto(crn = CRN)
       val caseWithCprWithNoIdentifiers = caseWithAllData.copy(
         cpr = buildCorePersonRecord(identifiers = null),
       )
       val caseWithCprWithEmptyPrisonNumberAndPncsIdentifiers = caseWithAllData.copy(
         cpr = buildCorePersonRecord(
           identifiers = buildIdentifiers(
+            crns = listOf(CRN),
             prisonNumbers = emptyList(),
             pncs = emptyList(),
           ),

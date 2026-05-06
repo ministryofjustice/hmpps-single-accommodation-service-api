@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import java.time.LocalDate
 
 data class DomainData(
@@ -50,13 +49,14 @@ data class DomainData(
   )
 
   constructor(
-    personDto: PersonDto,
+    crn: String,
+    sexCode: SexCode?,
     caseEntity: CaseEntity?,
     dutyToRefer: DutyToReferDto?,
   ) : this(
-    crn = personDto.crn,
+    crn = crn,
     tierScore = caseEntity?.tierScore,
-    sex = SexCode.findByGender(personDto.gender),
+    sex = sexCode,
     currentAccommodation = null,
     hasNextAccommodation = false,
     cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {

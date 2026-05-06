@@ -24,11 +24,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
 @ExtendWith(MockKExtension::class)
@@ -73,23 +75,29 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCaseList()
       assertThat(result).hasSize(2)
 
-      val firstPerson = result.first()
+      val firstPerson = result.first() as FullPersonDto
       assertThat(firstPerson.crn).isEqualTo(crnOne)
       assertThat(firstPerson.name).isEqualTo(case1.name.fullName)
       assertThat(firstPerson.nomsNumber).isEqualTo(case1.nomsNumber)
       assertThat(firstPerson.pncNumber).isEqualTo(case1.pncNumber)
       assertThat(firstPerson.dateOfBirth).isEqualTo(case1.dateOfBirth)
-      assertThat(firstPerson.staff).isEqualTo(case1.staff)
+      assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
+      assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
+      assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
       assertThat(firstPerson.roshLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
-      val lastPerson = result.last()
+      val lastPerson = result.last() as FullPersonDto
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
       assertThat(lastPerson.name).isEqualTo(case2.name.fullName)
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
-      assertThat(lastPerson.staff).isEqualTo(case2.staff)
+      assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
+      assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
+      assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.roshLevel).isEqualTo(RiskLevel.MEDIUM)
     }
@@ -101,18 +109,15 @@ class CaseQueryServiceTest {
     @Test
     fun `should get cases as all cases from case table and populate missing data from personDtos`() {
       val crnList = listOf(crnOne, crnTwo)
-      val personDto1 = buildPersonDto(crn = crnOne)
-      val personDto2 = buildPersonDto(crn = crnTwo)
+      val personDto1 = buildFullPersonDto(crn = crnOne)
+      val personDto2 = buildFullPersonDto(crn = crnTwo)
       val personDtos = listOf(
         personDto1,
         personDto2,
       )
       val caseEntity1 = buildCaseEntity { withCrn(crnOne) }
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
-      val caseEntities = listOf(
-        caseEntity1,
-        caseEntity2,
-      )
+      val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2)
 
       val dutyToReferDto1 = buildDutyToReferDto(crn = crnOne)
       val dutyToReferDto2 = buildDutyToReferDto(crn = crnTwo)
@@ -129,9 +134,23 @@ class CaseQueryServiceTest {
 
       every { dutyToReferQueryService.getDutyToRefer(caseEntity1, crnOne) } returns dutyToReferDto1
       every { dutyToReferQueryService.getDutyToRefer(caseEntity2, crnTwo) } returns dutyToReferDto2
-      every { caseRepository.findByCrns(crnList) } returns caseEntities
-      every { eligibilityService.getEligibility(personDto1, caseEntity1, dutyToReferDto1) } returns eligibilityDto1
-      every { eligibilityService.getEligibility(personDto2, caseEntity2, dutyToReferDto2) } returns eligibilityDto2
+      every { caseRepository.mapByCrns(crnList) } returns caseEntities
+      every {
+        eligibilityService.getEligibility(
+          personDto1.crn,
+          personDto1.gender,
+          caseEntity1,
+          dutyToReferDto1,
+        )
+      } returns eligibilityDto1
+      every {
+        eligibilityService.getEligibility(
+          personDto2.crn,
+          personDto2.gender,
+          caseEntity2,
+          dutyToReferDto2,
+        )
+      } returns eligibilityDto2
 
       val result = caseQueryService.getCases(personDtos = personDtos)
       assertThat(result).hasSize(2)
@@ -158,14 +177,15 @@ class CaseQueryServiceTest {
         data = caseOrchestrationDto,
       )
 
+      val person = toPersonDto(caseOrchestrationDto.case!!)
+
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
         CaseTransformer.toCaseDto(
-          crn = crnOne,
+          person = person,
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
-          case = caseOrchestrationDto.case,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()
