@@ -103,9 +103,9 @@ if [ -z "${PORT_FORWARD_CONTAINER_NAME}" ]
 then
   if [ -z "${CAS_PORT_FORWARD_CONTAINER_NAME}" ]
   then
-    PORT_FORWARD_CONTAINER_NAME='data-domain-port-forward-pod'
+    PORT_FORWARD_CONTAINER_NAME='sas-port-forward-pod'
   else
-    PORT_FORWARD_CONTAINER_NAME="data-domain-${CAS_PORT_FORWARD_CONTAINER_NAME}"
+    PORT_FORWARD_CONTAINER_NAME="sas-${CAS_PORT_FORWARD_CONTAINER_NAME}"
   fi
 fi
 
