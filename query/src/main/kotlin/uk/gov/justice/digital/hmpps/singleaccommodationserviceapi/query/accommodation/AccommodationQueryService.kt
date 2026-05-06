@@ -28,6 +28,9 @@ class AccommodationQueryService(
     .firstOrNull { it.addressStatus == AddressStatus.M }
     ?.let { toAccommodationSummary(crn, address = it) }
 
+  // TODO implement this once we understand how next accommodation is calculated - will also contain cas1 and cas3 arguments
+  fun getNextAccommodation(crn: String, addresses: List<Address>): AccommodationSummaryDto? = null
+
   fun getAccommodationHistory(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
     val orchestrationResult = accommodationOrchestrationService.getCorePersonRecordByCrn(crn)
     val corePersonRecord = orchestrationResult.data

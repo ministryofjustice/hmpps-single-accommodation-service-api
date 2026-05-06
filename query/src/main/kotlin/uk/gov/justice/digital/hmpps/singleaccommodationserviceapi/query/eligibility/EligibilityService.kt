@@ -111,14 +111,16 @@ class EligibilityService(
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "Eligibility input data: crn={}, currentAccommodation.?endDate={}, tierScore={}, sex={}, currentAccommodationIsPrisonCas1Cas2orCas2v2={}, currentAccommodationIsPrivate={}, hasNextAccommodation={}",
+      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationStartDate={}, nextAccommodationStatus={}, nextAccommodationType={}",
       data.crn,
-      data.currentAccommodation?.endDate,
       data.tierScore,
       data.sex,
-      data.currentAccommodation?.isPrisonCas1Cas2OrCas2v2,
-      data.currentAccommodation?.isPrivate,
-      data.hasNextAccommodation,
+      data.currentAccommodation?.endDate,
+      data.currentAccommodation?.status?.description,
+      data.currentAccommodation?.type?.description,
+      data.nextAccommodation?.startDate,
+      data.nextAccommodation?.status?.description,
+      data.nextAccommodation?.type?.description,
     )
 
     val cas1 = calculateEligibilityForCas1(data)
@@ -389,8 +391,15 @@ class EligibilityService(
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
-    val currentAccommodation = eligibilityOrchestrationDto.data.cprAddresses?.addresses?.let {
+    val currentAccommodation = eligibilityOrchestrationDto.data.cpr?.addresses?.let {
       accommodationQueryService.getCurrentAccommodation(
+        crn,
+        addresses = it,
+      )
+    }
+
+    val nextAccommodation = eligibilityOrchestrationDto.data.cpr?.addresses?.let {
+      accommodationQueryService.getNextAccommodation(
         crn,
         addresses = it,
       )
@@ -406,7 +415,8 @@ class EligibilityService(
       tier = eligibilityOrchestrationDto.data.tier,
       cas1Application = eligibilityOrchestrationDto.data.cas1Application,
       cas3Application = eligibilityOrchestrationDto.data.cas3Application,
-      currentAccommodationSummary = currentAccommodation,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,
       // TODO connect to crs endpoint when it becomes available
       commissionedRehabilitativeServices = null,

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
@@ -18,7 +19,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
@@ -47,7 +47,7 @@ class RulesEngineTest {
       crn = crn,
       tierScore = TierScore.A1,
       sex = SexCode.M,
-      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
     )
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
@@ -61,7 +61,7 @@ class RulesEngineTest {
       crn = crn,
       tierScore = TierScore.C1S,
       sex = SexCode.F,
-      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now().plusMonths(7)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
     )
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
