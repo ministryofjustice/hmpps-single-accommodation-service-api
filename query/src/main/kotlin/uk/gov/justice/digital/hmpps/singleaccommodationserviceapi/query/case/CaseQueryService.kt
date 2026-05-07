@@ -3,11 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -29,7 +26,8 @@ class CaseQueryService(
     return caseOrchestrationService.getCaseList(user.username).cases.map { toPersonDto(it) }
   }
 
-  private fun PersonDto.matchesUserOrTeam(teamCode: String?): Boolean = when {
+  private fun PersonDto.matchesTeam(teamCode: String?): Boolean = when {
+    // TODO this will become .matchesUserOrTeam, however it's a significant refactor to test data setup, so will be in a following PR.
     teamCode.isNullOrBlank() -> true
     teamCode.equals(this.teamCode, ignoreCase = true) -> true
     else -> false
@@ -53,12 +51,14 @@ class CaseQueryService(
     personDtos: List<PersonDto>,
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
+    teamCode: String? = null,
   ): List<CaseDto> {
     val filteredPersonDtos = personDtos
       .asSequence()
       .filter {
         it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel)
+          it.matchesRosh(riskLevel) &&
+          it.matchesTeam(teamCode)
       }.toList()
 
     val crns = filteredPersonDtos.map { it.crn }
@@ -73,7 +73,7 @@ class CaseQueryService(
         is RestrictedPersonDto, is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
           val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(it, personDto.crn) }
-          val eligibility = getEligibility(
+          val eligibility = eligibilityService.getEligibility(
             crn = personDto.crn,
             gender = personDto.gender,
             caseEntity = caseEntity,
@@ -84,13 +84,6 @@ class CaseQueryService(
       }
     }
   }
-
-  private fun getEligibility(
-    crn: String,
-    gender: String,
-    caseEntity: CaseEntity?,
-    dutyToRefer: DutyToReferDto?,
-  ): EligibilityDto = eligibilityService.getEligibility(crn, gender, caseEntity, dutyToRefer)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val user = userService.authorizeAndRetrieveUser()
