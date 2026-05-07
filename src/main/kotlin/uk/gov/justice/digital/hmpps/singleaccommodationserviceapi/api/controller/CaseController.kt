@@ -24,9 +24,8 @@ class CaseController(
     @RequestParam riskLevel: RiskLevel?,
     @RequestParam searchTerm: String?,
     @RequestParam teamCode: String?,
-    @RequestParam assignedToUsername: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val personDtos = caseQueryService.getCaseList(searchTerm, riskLevel, teamCode, assignedToUsername)
+    val personDtos = caseQueryService.getCaseList(searchTerm, riskLevel, teamCode)
     val crnsOnCaselist = personDtos.map { it.crn }
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
     if (unpersistedCrns.isNotEmpty()) {

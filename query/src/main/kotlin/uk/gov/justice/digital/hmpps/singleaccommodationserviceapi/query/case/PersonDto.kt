@@ -11,7 +11,7 @@ sealed interface PersonDto {
   val assignedTo: AssignedToDto
 }
 
-sealed interface PersonalIdentifiable {
+sealed interface Identifiable {
   val name: String
   val dateOfBirth: LocalDate?
   val pncNumber: String?
@@ -38,7 +38,7 @@ data class RestrictedPersonDto(
   override val gender: String,
 
 ) : PersonDto,
-  PersonalIdentifiable
+  Identifiable
 
 data class FullPersonDto(
   override val crn: String,
@@ -51,4 +51,4 @@ data class FullPersonDto(
   override val dateOfBirth: LocalDate,
   override val gender: String,
 ) : PersonDto,
-  PersonalIdentifiable
+  Identifiable
