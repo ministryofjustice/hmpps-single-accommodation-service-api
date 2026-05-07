@@ -15,8 +15,8 @@ data class DomainData(
   val crn: String,
   val tierScore: TierScore?,
   val sex: SexCode?,
-  val currentAccommodation: CurrentAccommodation?,
-  val hasNextAccommodation: Boolean,
+  val currentAccommodation: AccommodationSummaryDto?,
+  val nextAccommodation: AccommodationSummaryDto?,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
@@ -26,7 +26,8 @@ data class DomainData(
     crn: String,
     cpr: CorePersonRecord?,
     tier: Tier?,
-    currentAccommodationSummary: AccommodationSummaryDto?,
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
@@ -35,13 +36,8 @@ data class DomainData(
     crn = crn,
     tierScore = tier?.tierScore,
     sex = cpr?.sex?.code,
-    currentAccommodation = currentAccommodationSummary?.let {
-      CurrentAccommodation(
-        endDate = it.endDate,
-        isPrisonCas1Cas2OrCas2v2 = true,
-      )
-    },
-    hasNextAccommodation = false,
+    currentAccommodation = currentAccommodation,
+    nextAccommodation = nextAccommodation,
     cas1Application = cas1Application,
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
@@ -58,7 +54,7 @@ data class DomainData(
     tierScore = caseEntity?.tierScore,
     sex = sexCode,
     currentAccommodation = null,
-    hasNextAccommodation = false,
+    nextAccommodation = null,
     cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {
       Cas1Application(
         id = caseEntity.cas1ApplicationId!!,
@@ -74,12 +70,6 @@ data class DomainData(
     commissionedRehabilitativeServices = null,
   )
 }
-
-data class CurrentAccommodation(
-  val endDate: LocalDate? = null,
-  val isPrisonCas1Cas2OrCas2v2: Boolean = true,
-  val isPrivate: Boolean = false,
-)
 
 data class CommissionedRehabilitativeServices(
   val status: CrsStatus,

@@ -2,17 +2,23 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CurrentAccommodationTypeRuleTest {
-
+  // TODO turn these into parameterized test once the types are known for certain
   @Test
   fun `candidate passes when current accommodation is eligible type`() {
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(isPrisonCas1Cas2OrCas2v2 = true),
+      currentAccommodation = buildAccommodationSummaryDto(
+        type = buildAccommodationTypeDto(
+          code = AccommodationTypeCode.A02,
+        ),
+      ),
     )
 
     val result = CurrentAccommodationTypeRule().evaluate(data)
@@ -23,7 +29,11 @@ class CurrentAccommodationTypeRuleTest {
   @Test
   fun `candidate fails when current accommodation is ineligible type`() {
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(isPrisonCas1Cas2OrCas2v2 = false),
+      currentAccommodation = buildAccommodationSummaryDto(
+        type = buildAccommodationTypeDto(
+          code = AccommodationTypeCode.A03,
+        ),
+      ),
     )
 
     val result = CurrentAccommodationTypeRule().evaluate(data)

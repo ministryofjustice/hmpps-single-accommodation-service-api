@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
@@ -16,7 +18,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import java.time.LocalDate
@@ -35,10 +36,11 @@ class DomainDataTest {
 
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
 
-    val currentAccommodation = buildCurrentAccommodation(
-      endDate,
-      isPrisonCas1Cas2OrCas2v2 = true,
-      isPrivate = false,
+    val currentAccommodation = buildAccommodationSummaryDto(
+      endDate = endDate,
+      type = buildAccommodationTypeDto(
+        code = AccommodationTypeCode.A02,
+      ),
     )
 
     val cas1Application = buildCas1Application(
@@ -55,10 +57,6 @@ class DomainDataTest {
     )
     val cpr = buildCorePersonRecord()
 
-    val currentAccommodationSummary = buildAccommodationSummaryDto(
-      endDate = endDate,
-    )
-
     val tier = Tier(
       tierScore = TierScore.A1,
       calculationId = UUID.randomUUID(),
@@ -71,7 +69,7 @@ class DomainDataTest {
       tierScore = tier.tierScore,
       sex = cpr.sex?.code,
       currentAccommodation = currentAccommodation,
-      hasNextAccommodation = false,
+      nextAccommodation = null,
       cas1Application = cas1Application,
       cas3Application = cas3Application,
       dutyToRefer = dutyToRefer,
@@ -84,7 +82,8 @@ class DomainDataTest {
       tier = tier,
       cas1Application = cas1Application,
       cas3Application = cas3Application,
-      currentAccommodationSummary = currentAccommodationSummary,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = null,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     )
@@ -111,7 +110,7 @@ class DomainDataTest {
       cas1Application = null,
       cas3Application = null,
       currentAccommodation = null,
-      hasNextAccommodation = false,
+      nextAccommodation = null,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = null,
     )

@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -24,24 +25,10 @@ class CaseQueryService(
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
-  fun getCaseList(
-    searchTerm: String? = null,
-    riskLevel: RiskLevel? = null,
-    teamCode: String? = null,
-  ): List<PersonDto> {
+  fun getCaseList(): List<PersonDto> {
     val user = userService.authorizeAndRetrieveUser()
-
-    return caseOrchestrationService.getCaseList(user.username)
-      .cases
-      .asSequence()
-      .map { toPersonDto(it) }
-      .filter {
-        it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel) &&
-          it.matchesUserOrTeam(teamCode)
-      }.toList()
+    return caseOrchestrationService.getCaseList(user.username).cases.map { toPersonDto(it) }
   }
-
   private fun PersonDto.matchesUserOrTeam(teamCode: String?): Boolean = when {
     teamCode.isNullOrBlank() -> true
     teamCode.equals(this.teamCode, ignoreCase = true) -> true
@@ -50,7 +37,7 @@ class CaseQueryService(
 
   private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
     riskLevel == null -> true
-    this is Identifiable && roshLevel == riskLevel -> true
+    roshLevel == riskLevel -> true
     else -> false
   }
 
@@ -58,15 +45,27 @@ class CaseQueryService(
     searchTerm.isNullOrBlank() -> true
     crn.equals(searchTerm, true) -> true
     nomsNumber?.equals(searchTerm, true) == true -> true
-    this is Identifiable && name.contains(searchTerm, true) -> true
+    name.contains(searchTerm, true) -> true
     else -> false
   }
 
-  fun getCases(personDtos: List<PersonDto>): List<CaseDto> {
-    val crns = personDtos.map { it.crn }
+  fun getCases(
+    personDtos: List<PersonDto>,
+    searchTerm: String? = null,
+    riskLevel: RiskLevel? = null,
+  ): List<CaseDto> {
+    val filteredPersonDtos = personDtos
+      .asSequence()
+      .filter {
+        it.matchesSearch(searchTerm) &&
+          it.matchesRosh(riskLevel)
+      }.toList()
+
+    val crns = filteredPersonDtos.map { it.crn }
+
     val caseEntitiesByCrn = caseRepository.mapByCrns(crns)
 
-    return personDtos.map { personDto ->
+    return filteredPersonDtos.map { personDto ->
 
       when (personDto) {
         is ExcludedPersonDto -> personDto.toCaseDto(caseEntity = null, eligibility = null)
@@ -81,10 +80,10 @@ class CaseQueryService(
             dutyToRefer = dutyToRefer,
           )
           personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn], eligibility = eligibility)
-        }
-      }
     }
   }
+      }
+    }
 
   private fun getEligibility(
     crn: String,

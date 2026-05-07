@@ -25,14 +25,15 @@ class CaseController(
     @RequestParam searchTerm: String?,
     @RequestParam teamCode: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val personDtos = caseQueryService.getCaseList(searchTerm, riskLevel, teamCode)
+    val personDtos = caseQueryService.getCaseList()
+
     val crnsOnCaselist = personDtos.map { it.crn }
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
     if (unpersistedCrns.isNotEmpty()) {
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
       caseApplicationService.upsertCases(casesToAdd)
     }
-    val result = caseQueryService.getCases(personDtos)
+    val result = caseQueryService.getCases(personDtos, searchTerm = searchTerm, riskLevel = riskLevel)
 
     return ResponseEntity.ok(ApiResponseDto(data = result))
   }

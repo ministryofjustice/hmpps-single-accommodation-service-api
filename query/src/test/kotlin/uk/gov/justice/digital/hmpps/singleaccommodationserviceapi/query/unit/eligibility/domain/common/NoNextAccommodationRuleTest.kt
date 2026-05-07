@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -10,7 +11,7 @@ class NoNextAccommodationRuleTest {
   @Test
   fun `candidate passes when next accommodation is null`() {
     val data = buildDomainData(
-      hasNextAccommodation = false,
+      nextAccommodation = null,
     )
 
     val result = NoNextAccommodationRule().evaluate(data)
@@ -21,7 +22,7 @@ class NoNextAccommodationRuleTest {
   @Test
   fun `candidate fails when next accommodation exists`() {
     val data = buildDomainData(
-      hasNextAccommodation = true,
+      nextAccommodation = buildAccommodationSummaryDto(),
     )
 
     val result = NoNextAccommodationRule().evaluate(data)
