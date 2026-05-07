@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.LocalDate
 
-enum class LAOStatus { RESTRICTED, EXCLUDED, NONE }
+enum class LAOStatus { RESTRICTED, EXCLUDED, NONE, UNKNOWN }
 
 data class CaseDto(
   val name: String? = null,

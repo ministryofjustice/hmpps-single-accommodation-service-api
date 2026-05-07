@@ -12,7 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 object CaseTransformer {
   fun toCaseDto(
-    person: PersonDto,
+    crn: String,
+    person: PersonDto?,
     cpr: CorePersonRecord?,
     roshDetails: RoshDetails?,
     tier: Tier?,
@@ -20,6 +21,7 @@ object CaseTransformer {
     is ExcludedPersonDto -> person.excluded()
     is RestrictedPersonDto -> toOrchestratedCaseDto(person, cpr, roshDetails, tier, LAOStatus.RESTRICTED)
     is FullPersonDto -> toOrchestratedCaseDto(person, cpr, roshDetails, tier, LAOStatus.NONE)
+    null -> CaseDto(crn = crn, laoStatus = LAOStatus.UNKNOWN)
   }
 
   private fun toOrchestratedCaseDto(
