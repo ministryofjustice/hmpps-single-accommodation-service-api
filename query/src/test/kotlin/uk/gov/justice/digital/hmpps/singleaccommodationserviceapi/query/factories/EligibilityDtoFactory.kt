@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import java.util.UUID
@@ -20,12 +21,14 @@ fun buildEligibilityDto(
   caseActions: List<String> = emptyList(),
   dtr: DtrServiceResult = buildDtrServiceResult(),
   crs: CrsServiceResult = buildCrsServiceResult(),
+  pa: PaServiceResult = buildPaServiceResult(),
 ) = EligibilityDto(
   crn,
   cas1,
   cas3,
   dtr,
   crs,
+  pa,
   caseActions,
 )
 
@@ -71,4 +74,10 @@ fun buildCrsServiceResult(
 ) = CrsServiceResult(
   serviceResult = result,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+)
+
+fun buildPaServiceResult(
+  result: ServiceResult = buildServiceResult(),
+) = PaServiceResult(
+  serviceResult = result,
 )
