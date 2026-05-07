@@ -4,12 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import java.time.LocalDate
@@ -25,7 +25,7 @@ class Cas3CompletionContextUpdaterTest {
       val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
-        currentAccommodation = buildCurrentAccommodation(endDate = currentAccommodationEndDate),
+        currentAccommodation = buildAccommodationSummaryDto(endDate = currentAccommodationEndDate),
         cas3Application = buildCas3Application(
           id = applicationId,
           applicationStatus = Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,

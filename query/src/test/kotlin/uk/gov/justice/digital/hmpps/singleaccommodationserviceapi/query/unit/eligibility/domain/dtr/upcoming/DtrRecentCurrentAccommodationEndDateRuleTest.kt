@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
@@ -15,7 +15,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
   @Test
   fun `candidate passes when currentAccommodationEndDate is missing`() {
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(endDate = null),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = null),
     )
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
@@ -28,7 +28,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
     clock.setNow(LocalDate.parse("2025-01-01"))
 
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).minusDays(1)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now(clock).minusDays(1)),
     )
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
@@ -41,7 +41,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
     clock.setNow(LocalDate.parse("2025-01-01"))
 
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).plusDays(56)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now(clock).plusDays(56)),
     )
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
@@ -54,7 +54,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
     clock.setNow(LocalDate.parse("2025-01-01"))
 
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).plusDays(57)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now(clock).plusDays(57)),
     )
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)
@@ -67,7 +67,7 @@ class DtrRecentCurrentAccommodationEndDateRuleTest {
     clock.setNow(LocalDate.parse("2025-01-01"))
 
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(endDate = LocalDate.now(clock).plusDays(50)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now(clock).plusDays(50)),
     )
 
     val result = DtrRecentCurrentAccommodationEndDateRule(clock).evaluate(data)

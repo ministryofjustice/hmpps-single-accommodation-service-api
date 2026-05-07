@@ -4,11 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import java.time.LocalDate
@@ -24,7 +24,7 @@ class CommonContextUpdaterTest {
       val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
-        currentAccommodation = buildCurrentAccommodation(currentAccommodationEndDate),
+        currentAccommodation = buildAccommodationSummaryDto(endDate = currentAccommodationEndDate),
         cas1Application = buildCas1Application(
           id = applicationId,
           applicationStatus = Cas1ApplicationStatus.STARTED,
