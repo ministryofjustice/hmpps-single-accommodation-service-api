@@ -24,14 +24,7 @@ class CaseController(
     @RequestParam riskLevel: RiskLevel?,
     @RequestParam searchTerm: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val personDtos = caseQueryService.getCaseList().filter {
-      searchTerm == null ||
-        it.crn.equals(searchTerm, ignoreCase = true) ||
-        it.nomsNumber.equals(searchTerm, ignoreCase = true) ||
-        it.name.contains(searchTerm, ignoreCase = true)
-    }.filter { dto ->
-      riskLevel == null || dto.roshLevel == riskLevel
-    }
+    val personDtos = caseQueryService.getCaseList(searchTerm = searchTerm, riskLevel = riskLevel)
 
     val crnsOnCaselist = personDtos.map { it.crn }
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)

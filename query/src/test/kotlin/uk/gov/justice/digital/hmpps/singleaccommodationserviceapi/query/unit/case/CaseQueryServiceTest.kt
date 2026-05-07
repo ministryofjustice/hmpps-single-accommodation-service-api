@@ -109,10 +109,7 @@ class CaseQueryServiceTest {
       )
       val caseEntity1 = buildCaseEntity { withCrn(crnOne) }
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
-      val caseEntities = listOf(
-        caseEntity1,
-        caseEntity2,
-      )
+      val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2)
 
       val dutyToReferDto1 = buildDutyToReferDto(crn = crnOne)
       val dutyToReferDto2 = buildDutyToReferDto(crn = crnTwo)
@@ -129,7 +126,7 @@ class CaseQueryServiceTest {
 
       every { dutyToReferQueryService.getDutyToRefer(caseEntity1, crnOne) } returns dutyToReferDto1
       every { dutyToReferQueryService.getDutyToRefer(caseEntity2, crnTwo) } returns dutyToReferDto2
-      every { caseRepository.findByCrns(crnList) } returns caseEntities
+      every { caseRepository.mapByCrns(crnList) } returns caseEntities
       every { eligibilityService.getEligibility(personDto1, caseEntity1, dutyToReferDto1) } returns eligibilityDto1
       every { eligibilityService.getEligibility(personDto2, caseEntity2, dutyToReferDto2) } returns eligibilityDto2
 
