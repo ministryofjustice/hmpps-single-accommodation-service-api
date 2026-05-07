@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.referenc
 enum class ReferenceDataType {
   LOCAL_AUTHORITY_AREAS,
   ACCOMMODATION_TYPES,
+  PROPOSED_ACCOMMODATION_TYPES,
 }
 
 @RestController
@@ -28,5 +29,6 @@ class ReferenceDataController(
   ): ResponseEntity<ApiResponseDto<List<ReferenceDataDto>>> = when (type) {
     ReferenceDataType.LOCAL_AUTHORITY_AREAS -> ResponseEntity.ok(localAuthorityAreaQueryService.getLocalAuthorityAreas())
     ReferenceDataType.ACCOMMODATION_TYPES -> ResponseEntity.ok(accommodationTypeQueryService.getAccommodationTypes())
+    ReferenceDataType.PROPOSED_ACCOMMODATION_TYPES -> ResponseEntity.ok(accommodationTypeQueryService.getProposedAccommodationTypes())
   }
 }
