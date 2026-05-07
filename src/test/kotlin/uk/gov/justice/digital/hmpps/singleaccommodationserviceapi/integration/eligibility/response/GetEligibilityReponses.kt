@@ -33,9 +33,9 @@ fun expectedGetEligibilityResponse(
       },
       "cas3":{
          "serviceResult":{
-            "serviceStatus":"NOT_SUBMITTED",
+            "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
-            "link":"View referral"
+            "link":null
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",

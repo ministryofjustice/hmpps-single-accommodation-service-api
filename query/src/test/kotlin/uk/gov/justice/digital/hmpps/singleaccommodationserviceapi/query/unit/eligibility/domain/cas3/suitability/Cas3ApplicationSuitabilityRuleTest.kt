@@ -14,13 +14,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3ApplicationSuitabilityRuleTest {
-  private val description = "FAIL if CAS3 application is rejected"
+  private val description = "FAIL if CAS3 application is not suitable"
 
-  @Test
-  fun `application has rejected status so rule fails`() {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = Cas3ApplicationStatus::class, names = ["REJECTED", "IN_PROGRESS"])
+  fun `application is not suitable so fails`(applicationStatus: Cas3ApplicationStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
-        applicationStatus = Cas3ApplicationStatus.REJECTED,
+        applicationStatus = applicationStatus,
         assessmentStatus = null,
         bookingStatus = null,
       ),
@@ -37,8 +38,8 @@ class Cas3ApplicationSuitabilityRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3ApplicationStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["REJECTED"])
-  fun `application does not have rejected status so rule passes`(applicationStatus: Cas3ApplicationStatus) {
+  @EnumSource(value = Cas3ApplicationStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["REJECTED", "IN_PROGRESS"])
+  fun `application is suitable so passes`(applicationStatus: Cas3ApplicationStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = applicationStatus,

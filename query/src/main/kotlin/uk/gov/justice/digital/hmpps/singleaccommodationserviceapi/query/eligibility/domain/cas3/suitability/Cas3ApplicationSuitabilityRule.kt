@@ -8,13 +8,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3ApplicationSuitabilityRule : Cas3SuitabilityRule {
-  override val description = "FAIL if CAS3 application is rejected"
+  override val description = "FAIL if CAS3 application is not suitable"
 
   override fun evaluate(data: DomainData): RuleResult {
     val ruleStatus = if (
       data.cas3Application?.bookingStatus == null &&
       data.cas3Application?.assessmentStatus == null &&
-      data.cas3Application?.applicationStatus == Cas3ApplicationStatus.REJECTED
+      (data.cas3Application?.applicationStatus == Cas3ApplicationStatus.REJECTED || data.cas3Application?.applicationStatus == Cas3ApplicationStatus.IN_PROGRESS)
     ) {
       RuleStatus.FAIL
     } else {
