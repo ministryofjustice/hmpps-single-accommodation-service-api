@@ -3,17 +3,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class NextAccommodationRuleTest {
+class NoNextAccommodationRuleTest {
   @Test
   fun `candidate passes when next accommodation is null`() {
     val data = buildDomainData(
       hasNextAccommodation = false,
     )
 
-    val result = NextAccommodationRule().evaluate(data)
+    val result = NoNextAccommodationRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
@@ -24,14 +24,14 @@ class NextAccommodationRuleTest {
       hasNextAccommodation = true,
     )
 
-    val result = NextAccommodationRule().evaluate(data)
+    val result = NoNextAccommodationRule().evaluate(data)
 
     assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(NextAccommodationRule().description)
+    assertThat(NoNextAccommodationRule().description)
       .isEqualTo("FAIL if candidate has next accommodation")
   }
 }

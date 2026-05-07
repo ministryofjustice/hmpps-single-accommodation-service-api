@@ -13,14 +13,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3EligibilityRuleSet::class,
     CurrentAccommodationTypeRule::class,
-    NextAccommodationRule::class,
+    NoNextAccommodationRule::class,
     DtrExpiredReferralRule::class,
     NoConflictingCas1BookingRule::class,
     CrsExpiredRule::class,
@@ -35,7 +35,7 @@ class Cas3EligibilityRuleSetTest {
 
   private val expectedCas3EligibilityRuleNames = listOf(
     CurrentAccommodationTypeRule::class.simpleName,
-    NextAccommodationRule::class.simpleName,
+    NoNextAccommodationRule::class.simpleName,
     DtrExpiredReferralRule::class.simpleName,
     NoConflictingCas1BookingRule::class.simpleName,
     CrsExpiredRule::class.simpleName,
