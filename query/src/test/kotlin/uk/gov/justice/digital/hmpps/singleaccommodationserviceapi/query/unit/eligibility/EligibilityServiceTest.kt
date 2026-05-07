@@ -71,7 +71,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
@@ -153,7 +153,7 @@ class EligibilityServiceTest {
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     listOf(
       CurrentAccommodationTypeRule(),
-      NextAccommodationRule(),
+      NoNextAccommodationRule(),
       DtrExpiredReferralRule(clock),
       NoConflictingCas1BookingRule(),
       CrsSubmittedRule(),
@@ -177,13 +177,13 @@ class EligibilityServiceTest {
   var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
     listOf(
       CurrentAddressTypeNotPrivateRule(),
-      NextAccommodationRule(),
+      NoNextAccommodationRule(),
     ),
   )
 
   // CRS
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
-    listOf(IsMaleRule(), CurrentAccommodationEndDateValidationRule(), NextAccommodationRule()),
+    listOf(IsMaleRule(), CurrentAccommodationEndDateValidationRule(), NoNextAccommodationRule()),
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     listOf(CrsSubmittedRule(), CrsExpiredRule(clock)),

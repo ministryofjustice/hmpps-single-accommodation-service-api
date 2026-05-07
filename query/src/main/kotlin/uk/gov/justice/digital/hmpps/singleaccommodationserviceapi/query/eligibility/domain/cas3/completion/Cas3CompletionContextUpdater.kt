@@ -49,11 +49,6 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
         )
 
         null -> when (applicationStatus) {
-          Cas3ApplicationStatus.IN_PROGRESS -> ServiceResult(
-            serviceStatus = ServiceStatus.NOT_SUBMITTED,
-            link = EligibilityKeys.VIEW_REFERRAL,
-          )
-
           Cas3ApplicationStatus.SUBMITTED,
           Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
           -> ServiceResult(
