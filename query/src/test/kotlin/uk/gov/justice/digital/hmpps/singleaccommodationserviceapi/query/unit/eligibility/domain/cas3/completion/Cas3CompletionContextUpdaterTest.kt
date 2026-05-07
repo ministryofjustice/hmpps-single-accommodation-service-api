@@ -28,7 +28,7 @@ class Cas3CompletionContextUpdaterTest {
         currentAccommodation = buildCurrentAccommodation(endDate = currentAccommodationEndDate),
         cas3Application = buildCas3Application(
           id = applicationId,
-          applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+          applicationStatus = Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
         ),
       )
       val context = EvaluationContext(
@@ -38,8 +38,8 @@ class Cas3CompletionContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isNull()
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
+      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
     }
   }

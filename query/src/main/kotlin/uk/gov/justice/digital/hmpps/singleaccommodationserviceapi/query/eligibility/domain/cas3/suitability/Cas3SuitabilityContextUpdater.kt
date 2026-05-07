@@ -41,6 +41,11 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
         )
 
         null -> when (applicationStatus) {
+          Cas3ApplicationStatus.IN_PROGRESS -> ServiceResult(
+            serviceStatus = ServiceStatus.NOT_SUBMITTED,
+            link = EligibilityKeys.VIEW_REFERRAL,
+          )
+
           Cas3ApplicationStatus.REJECTED -> ServiceResult(
             serviceStatus = ServiceStatus.REJECTED,
             action = EligibilityKeys.START_CAS3_REFERRAL,
