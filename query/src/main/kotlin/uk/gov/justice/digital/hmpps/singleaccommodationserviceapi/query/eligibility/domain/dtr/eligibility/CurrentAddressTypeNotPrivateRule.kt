@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -11,6 +12,16 @@ class CurrentAddressTypeNotPrivateRule : DtrEligibilityRule {
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.currentAccommodation?.isPrivate == true) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (ALLOWED_TYPES.contains(data.currentAccommodation?.type?.code)) RuleStatus.FAIL else RuleStatus.PASS,
   )
+
+  companion object {
+    private val ALLOWED_TYPES = setOf(
+      AccommodationTypeCode.A07B, // Friends/Family (settled)
+      AccommodationTypeCode.A07A, // Friends/Family (transient)
+      AccommodationTypeCode.A01A, // Householder (Owner - freehold or leasehold)
+      AccommodationTypeCode.A01C, // Rental accommodation - private rental
+      AccommodationTypeCode.A01D, // Rental accommodation - social rental (LA or other)"
+    )
+  }
 }

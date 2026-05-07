@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
@@ -55,9 +54,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
       identifiers = buildIdentifiers(
         crns = listOf(crn),
       ),
-    )
-    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
-      crn = crn,
       addresses = listOf(
         buildAddress(
           addressStatus = AddressStatus.M,
@@ -65,6 +61,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         ),
       ),
     )
+
     val tier = buildTier(TierScore.A1)
     val cas1Application = buildCas1Application(id = cas1ApplicationId)
     val cas3Application = buildCas3Application(id = cas3ApplicationId)
@@ -73,7 +70,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
 
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(crn = crn, response = corePersonRecordAddresses)
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
     TierStubs.getTierOKResponse(crn = crn, tier)

@@ -8,9 +8,11 @@ import org.assertj.core.api.AssertionsForClassTypes.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
@@ -29,7 +31,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
@@ -92,7 +93,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
@@ -243,8 +243,7 @@ class EligibilityServiceTest {
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1Application()
       val cas3Application = buildCas3Application()
-      val cpr = buildCorePersonRecord()
-      val cprAddresses = buildCorePersonRecordAddresses(
+      val cpr = buildCorePersonRecord(
         addresses = listOf(
           buildAddress(
             addressStatus = AddressStatus.M,
@@ -258,7 +257,6 @@ class EligibilityServiceTest {
         data = EligibilityOrchestrationDto(
           crn = crn,
           cpr = cpr,
-          cprAddresses = cprAddresses,
           tier = tier,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
@@ -266,10 +264,11 @@ class EligibilityServiceTest {
       )
       val accommodationSummaryDto = buildAccommodationSummaryDto(endDate = endDate)
       val caseEntity = buildCaseEntity(id = caseId)
-      val currentAccommodation = buildCurrentAccommodation(endDate = endDate, isPrivate = false, isPrisonCas1Cas2OrCas2v2 = true)
+      val currentAccommodation = buildAccommodationSummaryDto(endDate = endDate, type = buildAccommodationTypeDto(code = AccommodationTypeCode.A02))
 
+      every { accommodationQueryService.getNextAccommodation(crn, cpr.addresses) } returns null
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationQueryService.getCurrentAccommodation(crn, cprAddresses.addresses) } returns accommodationSummaryDto
+      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses) } returns accommodationSummaryDto
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { caseRepository.findByCrn(crn) } returns caseEntity
 
@@ -279,7 +278,7 @@ class EligibilityServiceTest {
       assertThat(result.cas1Application).isEqualTo(cas1Application)
       assertThat(result.cas3Application).isEqualTo(cas3Application)
       assertThat(result.currentAccommodation).isEqualTo(currentAccommodation)
-      assertThat(result.hasNextAccommodation).isFalse()
+      assertThat(result.nextAccommodation).isNull()
       assertThat(result.dutyToRefer).isEqualTo(dutyToRefer)
     }
   }
@@ -331,14 +330,9 @@ class EligibilityServiceTest {
             requestForPlacementStatus = s.cas1RequestForPlacementStatus,
           )
         }
-
         val currentAccommodation = s.currentAccommodationEndDate?.let {
-          buildCurrentAccommodation(
-            endDate = it,
-            isPrisonCas1Cas2OrCas2v2 = false,
-          )
+          buildAccommodationSummaryDto(endDate = it)
         }
-
         val data = buildDomainData(
           crn = s.testCaseId,
           tierScore = s.tierScore,
@@ -403,18 +397,39 @@ class EligibilityServiceTest {
         }
 
         val currentAccommodation = s.currentAccommodationEndDate?.let {
-          buildCurrentAccommodation(
+          buildAccommodationSummaryDto(
             endDate = it,
-            isPrivate = s.isPrivateCurrentAccommodation.toBoolean(),
+            type = buildAccommodationTypeDto(
+              code = if (s.isPrivateCurrentAccommodation.toBoolean()) {
+                AccommodationTypeCode.A01A
+              } else {
+                AccommodationTypeCode.A03
+              },
+            ),
           )
-        } ?: buildCurrentAccommodation(endDate = null, isPrivate = s.isPrivateCurrentAccommodation.toBoolean())
+        } ?: buildAccommodationSummaryDto(
+          endDate = null,
+          type = buildAccommodationTypeDto(
+            code = if (s.isPrivateCurrentAccommodation.toBoolean()) {
+              AccommodationTypeCode.A01A
+            } else {
+              AccommodationTypeCode.A03
+            },
+          ),
+        )
+
+        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
+          buildAccommodationSummaryDto()
+        } else {
+          null
+        }
 
         val data = buildDomainData(
           crn = s.testCaseId,
           tierScore = null,
           sex = null,
           dutyToRefer = dutyToRefer,
-          hasNextAccommodation = s.hasNextAccommodation.toBoolean(),
+          nextAccommodation = nextAccommodation,
           currentAccommodation = currentAccommodation,
         )
 
@@ -494,9 +509,26 @@ class EligibilityServiceTest {
           )
         }
 
-        val currentAccommodation = buildCurrentAccommodation(
-          endDate = s.currentAccommodationEndDate,
-          isPrisonCas1Cas2OrCas2v2 = s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean(),
+        val currentAccommodation = s.currentAccommodationEndDate?.let {
+          buildAccommodationSummaryDto(
+            endDate = it,
+            type = buildAccommodationTypeDto(
+              code = if (s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean()) {
+                AccommodationTypeCode.A02
+              } else {
+                AccommodationTypeCode.A03
+              },
+            ),
+          )
+        } ?: buildAccommodationSummaryDto(
+          endDate = null,
+          type = buildAccommodationTypeDto(
+            code = if (s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean()) {
+              AccommodationTypeCode.A02
+            } else {
+              AccommodationTypeCode.A03
+            },
+          ),
         )
 
         val isCrsStatusTerminated = s.isCrsStatusTerminated.toBoolean()
@@ -508,12 +540,18 @@ class EligibilityServiceTest {
           )
         }
 
+        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
+          buildAccommodationSummaryDto()
+        } else {
+          null
+        }
+
         val data = buildDomainData(
           crn = s.testCaseId,
           tierScore = null,
           sex = null,
           currentAccommodation = currentAccommodation,
-          hasNextAccommodation = s.hasNextAccommodation.toBoolean(),
+          nextAccommodation = nextAccommodation,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
           dutyToRefer = dutyToRefer,
@@ -568,9 +606,7 @@ class EligibilityServiceTest {
         clock.setNow(s.referenceDate)
 
         val currentAccommodation = s.currentAccommodationEndDate?.let {
-          buildCurrentAccommodation(
-            endDate = it,
-          )
+          buildAccommodationSummaryDto(endDate = it)
         }
 
         val commissionedRehabilitativeServices = s.crsStatus?.let {
@@ -580,11 +616,17 @@ class EligibilityServiceTest {
           )
         }
 
+        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
+          buildAccommodationSummaryDto()
+        } else {
+          null
+        }
+
         val data = buildDomainData(
           crn = s.testCaseId,
           sex = s.sex,
           currentAccommodation = currentAccommodation,
-          hasNextAccommodation = s.hasNextAccommodation.toBoolean(),
+          nextAccommodation = nextAccommodation,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
         )
 

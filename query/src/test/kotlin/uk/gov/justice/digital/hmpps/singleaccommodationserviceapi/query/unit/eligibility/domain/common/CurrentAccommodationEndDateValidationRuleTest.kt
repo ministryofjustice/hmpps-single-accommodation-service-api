@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCurrentAccommodation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
@@ -12,7 +12,7 @@ class CurrentAccommodationEndDateValidationRuleTest {
   @Test
   fun `candidate passes if current accommodation end date is present`() {
     val data = buildDomainData(
-      currentAccommodation = buildCurrentAccommodation(LocalDate.now().plusYears(1)),
+      currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusYears(1)),
     )
 
     val result = CurrentAccommodationEndDateValidationRule().evaluate(data)
