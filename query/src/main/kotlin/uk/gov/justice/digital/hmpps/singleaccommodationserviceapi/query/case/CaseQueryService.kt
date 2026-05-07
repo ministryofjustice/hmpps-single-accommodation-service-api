@@ -28,7 +28,6 @@ class CaseQueryService(
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
     teamCode: String? = null,
-    assignedToUsername: String? = null,
   ): List<PersonDto> {
     val user = userService.authorizeAndRetrieveUser()
 
@@ -39,26 +38,19 @@ class CaseQueryService(
       .filter {
         it.matchesSearch(searchTerm) &&
           it.matchesRosh(riskLevel) &&
-          it.matchesAssignedTo(assignedToUsername) &&
-          it.matchesTeam(teamCode)
+          it.matchesUserOrTeam(teamCode)
       }.toList()
   }
 
-  private fun PersonDto.matchesAssignedTo(assignedToUsername: String?): Boolean = when {
-    assignedToUsername.isNullOrBlank() -> true
-    assignedTo.username.equals(assignedToUsername, ignoreCase = true) -> true
-    else -> false
-  }
-
-  private fun PersonDto.matchesTeam(teamCode: String?): Boolean = when {
+  private fun PersonDto.matchesUserOrTeam(teamCode: String?): Boolean = when {
     teamCode.isNullOrBlank() -> true
-    teamCode.equals(teamCode, ignoreCase = true) -> true
+    teamCode.equals(this.teamCode, ignoreCase = true) -> true
     else -> false
   }
 
   private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
     riskLevel == null -> true
-    this is PersonalIdentifiable && roshLevel == riskLevel -> true
+    this is Identifiable && roshLevel == riskLevel -> true
     else -> false
   }
 
@@ -66,7 +58,7 @@ class CaseQueryService(
     searchTerm.isNullOrBlank() -> true
     crn.equals(searchTerm, true) -> true
     nomsNumber?.equals(searchTerm, true) == true -> true
-    this is PersonalIdentifiable && name.contains(searchTerm, true) -> true
+    this is Identifiable && name.contains(searchTerm, true) -> true
     else -> false
   }
 
