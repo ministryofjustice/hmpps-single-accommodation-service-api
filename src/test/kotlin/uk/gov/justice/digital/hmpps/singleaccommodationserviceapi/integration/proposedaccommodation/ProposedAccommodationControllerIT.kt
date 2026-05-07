@@ -409,7 +409,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetProposedAccommodationTimelineResponse(
             proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
-            accommodationTypeId = accommodationTypeEntity!!.id,
+            accommodationDescription = accommodationTypeEntity!!.name,
             caseId = caseEntity.id,
             createCommitTime = commitTimesAsc.first()
               .truncatedTo(ChronoUnit.SECONDS).toString(),
@@ -512,8 +512,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           expectedGetProposedAccommodationTimelineResponse(
             proposedAccommodationId = UUID.fromString(createdProposedAccommodationId),
             caseId = caseEntity.id,
-            initialAccommodationTypeId = firstAccommodationType.id,
-            updatedAccommodationTypeId = secondAccommodationType.id,
+            initialAccommodationTypeDescription = firstAccommodationType.name,
+            updatedAccommodationTypeDescription = secondAccommodationType.name,
             createCommitTime = commitTimesAsc.first()
               .truncatedTo(ChronoUnit.SECONDS).toString(),
             createNoteCommitTime = createNoteCommitTime!!

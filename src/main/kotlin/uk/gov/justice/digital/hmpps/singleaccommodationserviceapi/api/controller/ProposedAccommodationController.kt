@@ -17,12 +17,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.util.UUID
 
 @RestController
 class ProposedAccommodationController(
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
+  private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
@@ -42,7 +44,7 @@ class ProposedAccommodationController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
   @GetMapping("/cases/{crn}/proposed-accommodations/{id}/timeline")
   fun getTimeline(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<List<AuditRecordDto>>> {
-    val timelineEntries = proposedAccommodationQueryService.getProposedAccommodationTimeline(id, crn)
+    val timelineEntries = proposedAccommodationTimelineService.getProposedAccommodationTimeline(id, crn)
     return ResponseEntity.ok(ApiResponseDto(data = timelineEntries))
   }
 
