@@ -44,17 +44,18 @@ class CaseQueryService(
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
   ): List<CaseDto> {
-    val crns = personDtos
+    val filteredPersonDtos = personDtos
       .asSequence()
       .filter {
         it.matchesSearch(searchTerm) &&
           it.matchesRosh(riskLevel)
       }.toList()
-      .map { it.crn }
+
+    val crns = filteredPersonDtos.map { it.crn }
 
     val caseEntitiesByCrn = caseRepository.mapByCrns(crns)
 
-    return personDtos.map { personDto ->
+    return filteredPersonDtos.map { personDto ->
       val caseEntity = caseEntitiesByCrn[personDto.crn]
       val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(it, personDto.crn) }
 
