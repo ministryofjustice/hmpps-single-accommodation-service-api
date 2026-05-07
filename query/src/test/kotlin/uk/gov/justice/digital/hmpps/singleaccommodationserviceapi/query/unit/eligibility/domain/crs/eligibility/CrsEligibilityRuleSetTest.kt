@@ -8,7 +8,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
 
@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @ContextConfiguration(
   classes = [
     CrsEligibilityRuleSet::class,
-    NextAccommodationRule::class,
+    NoNextAccommodationRule::class,
     CurrentAccommodationEndDateValidationRule::class,
     IsMaleRule::class,
     ClockConfig::class,
@@ -29,7 +29,7 @@ class CrsEligibilityRuleSetTest {
 
   private val expectedCrsEligibilityRuleNames = listOf(
     IsMaleRule::class.simpleName,
-    NextAccommodationRule::class.simpleName,
+    NoNextAccommodationRule::class.simpleName,
     CurrentAccommodationEndDateValidationRule::class.simpleName,
   )
 

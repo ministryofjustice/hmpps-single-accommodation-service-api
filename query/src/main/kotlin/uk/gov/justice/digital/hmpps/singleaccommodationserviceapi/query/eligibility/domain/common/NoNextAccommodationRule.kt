@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRule
 
 @Component
-class NextAccommodationRule :
+class NoNextAccommodationRule :
   Cas3EligibilityRule,
   DtrEligibilityRule,
   CrsEligibilityRule {
