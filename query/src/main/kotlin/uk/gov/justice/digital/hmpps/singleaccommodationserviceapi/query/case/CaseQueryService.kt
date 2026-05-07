@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -29,6 +28,7 @@ class CaseQueryService(
     val user = userService.authorizeAndRetrieveUser()
     return caseOrchestrationService.getCaseList(user.username).cases.map { toPersonDto(it) }
   }
+
   private fun PersonDto.matchesUserOrTeam(teamCode: String?): Boolean = when {
     teamCode.isNullOrBlank() -> true
     teamCode.equals(this.teamCode, ignoreCase = true) -> true
@@ -37,7 +37,7 @@ class CaseQueryService(
 
   private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
     riskLevel == null -> true
-    roshLevel == riskLevel -> true
+    this is Identifiable && roshLevel == riskLevel -> true
     else -> false
   }
 
@@ -45,7 +45,7 @@ class CaseQueryService(
     searchTerm.isNullOrBlank() -> true
     crn.equals(searchTerm, true) -> true
     nomsNumber?.equals(searchTerm, true) == true -> true
-    name.contains(searchTerm, true) -> true
+    this is Identifiable && name.contains(searchTerm, true) -> true
     else -> false
   }
 
@@ -80,10 +80,10 @@ class CaseQueryService(
             dutyToRefer = dutyToRefer,
           )
           personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn], eligibility = eligibility)
-    }
-  }
+        }
       }
     }
+  }
 
   private fun getEligibility(
     crn: String,
