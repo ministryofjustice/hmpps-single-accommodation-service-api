@@ -10,7 +10,7 @@ private fun caseJson(
   tierScore: String? = "A1",
   riskLevel: String? = "VERY_HIGH",
   pncReference: String? = "Some PNC Reference",
-  assignedTo: String = """{ "name": "First Middle Last", "username": "user1", "staffCode": "ABCD1234" }""",
+  assignedTo: String = """{"forename":"First","surname":"Last","username":"user1","staffCode":"ABCD1234"}""",
 ) = """
 {
   "name": ${if (name != null) "\"$name\"" else "null"},
@@ -25,7 +25,8 @@ private fun caseJson(
   "currentAccommodation": null,
   "nextAccommodation": null,
   "status": null,
-  "actions": []
+  "actions": [],
+  "laoStatus": "NONE"
 }
 """.trimIndent()
 

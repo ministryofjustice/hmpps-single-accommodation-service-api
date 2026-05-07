@@ -5,427 +5,467 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 @TestData
 fun expectedGetCaseListResponse(): String = """
 {
-   "data":[
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN1",
-         "prisonNumber":"PRI1",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+  "data": [
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN1",
+      "prisonNumber": "PRI1",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"Zack Middle Smith",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN2",
-         "prisonNumber":"PRI2",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"MEDIUM",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "Zack Middle Smith",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN2",
+      "prisonNumber": "PRI2",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "MEDIUM",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN3",
-         "prisonNumber":"PRI3",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN3",
+      "prisonNumber": "PRI3",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN4",
-         "prisonNumber":"PRI4",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN4",
+      "prisonNumber": "PRI4",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN5",
-         "prisonNumber":"PRI5",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN5",
+      "prisonNumber": "PRI5",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN6",
-         "prisonNumber":"PRI6",
-         "photoUrl":null,
-         "tierScore":"A1",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN6",
+      "prisonNumber": "PRI6",
+      "photoUrl": null,
+      "tierScore": "A1",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN7",
-         "prisonNumber":"PRI7",
-         "photoUrl":null,
-         "tierScore":"A1S",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN7",
+      "prisonNumber": "PRI7",
+      "photoUrl": null,
+      "tierScore": "A1S",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN8",
-         "prisonNumber":"PRI8",
-         "photoUrl":null,
-         "tierScore":"C1",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN8",
+      "prisonNumber": "PRI8",
+      "photoUrl": null,
+      "tierScore": "C1",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN9",
-         "prisonNumber":"PRI9",
-         "photoUrl":null,
-         "tierScore":"B3",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN9",
+      "prisonNumber": "PRI9",
+      "photoUrl": null,
+      "tierScore": "B3",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN10",
-         "prisonNumber":"PRI10",
-         "photoUrl":null,
-         "tierScore":"B3",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN10",
+      "prisonNumber": "PRI10",
+      "photoUrl": null,
+      "tierScore": "B3",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN11",
-         "prisonNumber":"PRI11",
-         "photoUrl":null,
-         "tierScore":"B3",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN11",
+      "prisonNumber": "PRI11",
+      "photoUrl": null,
+      "tierScore": "B3",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN12",
-         "prisonNumber":"PRI12",
-         "photoUrl":null,
-         "tierScore":"B3",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN12",
+      "prisonNumber": "PRI12",
+      "photoUrl": null,
+      "tierScore": "B3",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN13",
-         "prisonNumber":"PRI13",
-         "photoUrl":null,
-         "tierScore":"B3",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN13",
+      "prisonNumber": "PRI13",
+      "photoUrl": null,
+      "tierScore": "B3",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN14",
-         "prisonNumber":"PRI14",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN14",
+      "prisonNumber": "PRI14",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN15",
-         "prisonNumber":"PRI15",
-         "photoUrl":null,
-         "tierScore":"D3",
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN15",
+      "prisonNumber": "PRI15",
+      "photoUrl": null,
+      "tierScore": "D3",
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN16",
-         "prisonNumber":"PRI16",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN16",
+      "prisonNumber": "PRI16",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN17",
-         "prisonNumber":"PRI17",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN17",
+      "prisonNumber": "PRI17",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN18",
-         "prisonNumber":"PRI18",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN18",
+      "prisonNumber": "PRI18",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN19",
-         "prisonNumber":"PRI19",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN19",
+      "prisonNumber": "PRI19",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
       },
-      {
-         "name":"First Middle Last",
-         "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN20",
-         "prisonNumber":"PRI20",
-         "photoUrl":null,
-         "tierScore":null,
-         "riskLevel":"VERY_HIGH",
-         "pncReference":"Some PNC Reference",
-         "assignedTo":{
-            "name":"First Middle Last",
-            "username":"user1",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
-         "actions":[
-            "Add DTR referral details"
-         ]
-      }
-   ]
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    },
+    {
+      "name": "First Middle Last",
+      "dateOfBirth": "2000-12-03",
+      "crn": "FAKECRN20",
+      "prisonNumber": "PRI20",
+      "photoUrl": null,
+      "tierScore": null,
+      "riskLevel": "VERY_HIGH",
+      "pncReference": "Some PNC Reference",
+      "assignedTo": {
+        "forename": "First",
+        "surname": "Last",
+        "username": "user1",
+        "staffCode": "ABCD1234"
+      },
+      "currentAccommodation": null,
+      "nextAccommodation": null,
+      "status": null,
+      "actions": [
+        "Add DTR referral details"
+      ],
+      "laoStatus": "NONE"
+    }
+  ]
 }
 """.trimIndent()

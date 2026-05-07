@@ -15,14 +15,16 @@ fun expectedGetCaseResponse(): String = """
     "riskLevel": "VERY_HIGH",
     "pncReference": "Some PNC Reference",
     "assignedTo": {
-      "name": "First Middle Last",
+      "forename": "First",
+      "surname": "Last",
       "username": "user1",
       "staffCode": "ABCD1234"
     },
     "currentAccommodation": null,
     "nextAccommodation": null,
     "status": null,
-    "actions": []
+    "actions": [],
+    "laoStatus": "NONE"
   }
 }
 """.trimIndent()
