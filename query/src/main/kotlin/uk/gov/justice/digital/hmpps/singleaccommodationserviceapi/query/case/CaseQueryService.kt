@@ -20,20 +20,9 @@ class CaseQueryService(
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
-  fun getCaseList(
-    searchTerm: String? = null,
-    riskLevel: RiskLevel? = null,
-  ): List<PersonDto> {
+  fun getCaseList(): List<PersonDto> {
     val user = userService.authorizeAndRetrieveUser()
-
-    return caseOrchestrationService.getCaseList(user.username)
-      .cases
-      .asSequence()
-      .map { toPersonDto(it) }
-      .filter {
-        it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel)
-      }.toList()
+    return caseOrchestrationService.getCaseList(user.username).cases.map { toPersonDto(it) }
   }
 
   private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
@@ -50,8 +39,18 @@ class CaseQueryService(
     else -> false
   }
 
-  fun getCases(personDtos: List<PersonDto>): List<CaseDto> {
-    val crns = personDtos.map { it.crn }
+  fun getCases(
+    personDtos: List<PersonDto>,
+    searchTerm: String? = null,
+    riskLevel: RiskLevel? = null,
+  ): List<CaseDto> {
+    val crns = personDtos
+      .asSequence()
+      .filter {
+        it.matchesSearch(searchTerm) &&
+          it.matchesRosh(riskLevel)
+      }.toList()
+      .map { it.crn }
 
     val caseEntitiesByCrn = caseRepository.mapByCrns(crns)
 

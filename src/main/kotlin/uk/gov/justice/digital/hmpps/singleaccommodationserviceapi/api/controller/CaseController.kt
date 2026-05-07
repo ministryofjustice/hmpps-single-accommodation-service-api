@@ -24,7 +24,7 @@ class CaseController(
     @RequestParam riskLevel: RiskLevel?,
     @RequestParam searchTerm: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val personDtos = caseQueryService.getCaseList(searchTerm = searchTerm, riskLevel = riskLevel)
+    val personDtos = caseQueryService.getCaseList()
 
     val crnsOnCaselist = personDtos.map { it.crn }
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
@@ -32,7 +32,7 @@ class CaseController(
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
       caseApplicationService.upsertCases(casesToAdd)
     }
-    val result = caseQueryService.getCases(personDtos)
+    val result = caseQueryService.getCases(personDtos, searchTerm = searchTerm, riskLevel = riskLevel)
 
     return ResponseEntity.ok(ApiResponseDto(data = result))
   }
