@@ -38,7 +38,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildRestrictedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
-import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class CaseQueryServiceTest {
@@ -172,9 +171,9 @@ class CaseQueryServiceTest {
       val excludedCases = result.filter { it.caseAccess == CaseAccess.EXCLUDED }
       assertThat(excludedCases).allMatch {
         it.name == null &&
-        it.dateOfBirth == null &&
-      it.pncReference == null &&
-      it.riskLevel == null
+          it.dateOfBirth == null &&
+          it.pncReference == null &&
+          it.riskLevel == null
       }
     }
 
