@@ -34,14 +34,14 @@ class CaseTransformerTest {
   private val crn: String = UUID.randomUUID().toString()
 
   @Test
-  fun `returns LAOStatus of UKNOWN when personDto is missing`() {
+  fun `returns CaseAccess of UKNOWN when personDto is missing`() {
     val result = toCaseDto(crn = crn, person = null, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.caseAccess).isEqualTo(CaseAccess.UNKNOWN)
   }
 
   @Test
-  fun `returns LAOStatus of NONE when personDto is FullPersonDto`() {
+  fun `returns CaseAccess FULL when personDto is FullPersonDto`() {
     val person = buildFullPersonDto(crn)
     val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
@@ -52,7 +52,7 @@ class CaseTransformerTest {
   }
 
   @Test
-  fun `returns LAOStatus of RESTRICTED when personDto is RestrictedPersonDto`() {
+  fun `returns CaseAccess of RESTRICTED when personDto is RestrictedPersonDto`() {
     val person = buildRestrictedPersonDto(crn)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
@@ -63,7 +63,7 @@ class CaseTransformerTest {
   }
 
   @Test
-  fun `returns LAOStatus of EXCLUDED when personDto is RestrictedPersonDto`() {
+  fun `returns CaseAccess of EXCLUDED when personDto is RestrictedPersonDto`() {
     val person = buildExcludedPersonDto(crn)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)

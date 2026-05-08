@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
@@ -119,17 +121,28 @@ class CaseQueryServiceTest {
     }
 
     val personDtos = listOf(
-      buildFullPersonDto(crn = "CRN1", nomsNumber = "PRI_1", roshLevel = null),
+      buildFullPersonDto(crn = "CRN1", nomsNumber = "PRI_1", roshLevel = null, teamCode = "TestTeam1"),
       buildFullPersonDto(
         crn = "CRN2",
         nomsNumber = "PRI_2",
         name = buildName(forename = "QQQQQ"),
         roshLevel = RiskLevel.LOW,
+        teamCode = "TestTeam2",
       ),
-      buildRestrictedPersonDto(crn = "CRN3", nomsNumber = "PRI_3", roshLevel = RiskLevel.MEDIUM),
-      buildRestrictedPersonDto(crn = "CRN4", nomsNumber = "PRI_4", roshLevel = RiskLevel.VERY_HIGH),
-      buildExcludedPersonDto(crn = "CRN5", nomsNumber = "PRI_5"),
-      buildExcludedPersonDto(crn = "CRN6", nomsNumber = "PRI_6"),
+      buildRestrictedPersonDto(
+        crn = "CRN3",
+        nomsNumber = "PRI_3",
+        roshLevel = RiskLevel.MEDIUM,
+        teamCode = "TestTeam1",
+      ),
+      buildRestrictedPersonDto(
+        crn = "CRN4",
+        nomsNumber = "PRI_4",
+        roshLevel = RiskLevel.VERY_HIGH,
+        teamCode = "TestTeam2",
+      ),
+      buildExcludedPersonDto(crn = "CRN5", nomsNumber = "PRI_5", teamCode = "TestTeam1"),
+      buildExcludedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3"),
     )
 
     @Test
@@ -141,7 +154,7 @@ class CaseQueryServiceTest {
     @ParameterizedTest
     @CsvSource(
       value = [
-        "crn1,1,NONE",
+        "crn1,1,FULL",
         "crn3,1,RESTRICTED",
         "crn5,1,EXCLUDED",
         "null,6,null",
@@ -164,7 +177,7 @@ class CaseQueryServiceTest {
     }
 
     @Test
-    fun `no identifiable information is returned when LAOStatus is EXCLUDED`() {
+    fun `no identifiable information is returned when CaseAccess is EXCLUDED`() {
       val result = caseQueryService.getCases(personDtos = personDtos)
       assertThat(result).hasSize(6)
 
@@ -222,60 +235,83 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCases(personDtos = personDtos, riskLevel = riskLevel)
       assertThat(result).hasSize(count)
     }
-//
-//    @Test
-//    fun `filters by team code ignoring case`() {
-//      val people = listOf(
-//        fullPerson(crn = "CRN1", teamCode = "TEAM-A"),
-//        fullPerson(crn = "CRN2", teamCode = "TEAM-B"),
-//      )
-//
-//      every { caseRepository.mapByCrns(any()) } returns emptyMap()
-//      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns mockk()
-//
-//      val result = service.getCases(
-//        personDtos = people,
-//        teamCode = "team-a",
-//      )
-//
-//      assertThat(result).hasSize(1)
-//    }
-//
-//    @Test
-//    fun `does not call eligibility service for excluded people`() {
-//      val people = listOf(
-//        excludedPerson(crn = "CRN1"),
-//      )
-//
-//      every { caseRepository.mapByCrns(any()) } returns emptyMap()
-//
-//      service.getCases(people)
-//
-//      verify(exactly = 0) {
-//        eligibilityService.getEligibility(any(), any(), any(), any())
-//      }
-//    }
-//
-//    @Test
-//    fun `calls eligibility service for full person`() {
-//      val person = fullPerson(crn = "CRN1")
-//
-//      every { caseRepository.mapByCrns(any()) } returns mapOf(
-//        "CRN1" to mockk(),
-//      )
-//
-//      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns mockk()
-//
-//      service.getCases(listOf(person))
-//
-//      verify {
-//        eligibilityService.getEligibility(
-//          crn = "CRN1",
-//          gender = person.gender,
-//          caseEntity = any(),
-//          dutyToRefer = any(),
-//        )
-//      }
+
+    @ParameterizedTest
+    @CsvSource(
+      "TestTeam1, 3",
+      "TestTeam2,2",
+      "TestTeam3,1",
+      "TestTeam4,0",
+    )
+    fun `filters by team code`(teamCode: String, count: Int) {
+      val result = caseQueryService.getCases(personDtos = personDtos, teamCode = teamCode)
+      assertThat(result).hasSize(count)
+    }
+
+    @Test
+    fun `does not call eligibility service for excluded people`() {
+      val excluded = listOf(buildExcludedPersonDto(crn = "excluded"))
+
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+
+      caseQueryService.getCases(excluded)
+
+      verify(exactly = 0) {
+        eligibilityService.getEligibility(any(), any(), any(), any())
+      }
+    }
+
+    @Test
+    fun `calls eligibility service for full person`() {
+      val crn = "CRN1"
+      val person = buildFullPersonDto(crn = crn)
+
+      every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
+      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
+      every {
+        dutyToReferQueryService.getDutyToRefer(
+          any(CaseEntity::class),
+          any(String::class),
+        )
+      } returns buildDutyToReferDto(crn)
+
+      caseQueryService.getCases(listOf(person))
+
+      verify {
+        eligibilityService.getEligibility(
+          crn = "CRN1",
+          gender = person.gender,
+          caseEntity = any(),
+          dutyToRefer = any(),
+        )
+      }
+    }
+
+    @Test
+    fun `calls eligibility service for restricted person`() {
+      val crn = "CRN1"
+      val person = buildRestrictedPersonDto(crn = crn)
+
+      every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
+      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
+      every {
+        dutyToReferQueryService.getDutyToRefer(
+          any(CaseEntity::class),
+          any(String::class),
+        )
+      } returns buildDutyToReferDto(crn)
+
+      caseQueryService.getCases(listOf(person))
+
+      verify {
+        eligibilityService.getEligibility(
+          crn = "CRN1",
+          gender = person.gender,
+          caseEntity = any(),
+          dutyToRefer = any(),
+        )
+      }
+    }
   }
 
   @Nested

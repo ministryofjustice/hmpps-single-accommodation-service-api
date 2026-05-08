@@ -20,6 +20,7 @@ fun buildFullPersonDto(
   staff: Officer = buildOfficer(),
   gender: String = "Male",
   roshLevel: RiskLevel? = RiskLevel.VERY_HIGH,
+  teamCode: String = "TEAM1",
 ) = FullPersonDto(
   crn = crn,
   name = name.fullName,
@@ -28,7 +29,7 @@ fun buildFullPersonDto(
   dateOfBirth = dateOfBirth,
   gender = gender,
   roshLevel = roshLevel,
-  teamCode = "TEAM1",
+  teamCode = teamCode,
   assignedTo = AssignedToDto(
     forename = staff.name.forename,
     surname = staff.name.surname,
@@ -46,6 +47,7 @@ fun buildRestrictedPersonDto(
   staff: Officer = buildOfficer(),
   gender: String = "Male",
   roshLevel: RiskLevel? = RiskLevel.VERY_HIGH,
+  teamCode: String = "TEAM1",
 ) = RestrictedPersonDto(
   crn = crn,
   name = name.fullName,
@@ -54,7 +56,7 @@ fun buildRestrictedPersonDto(
   dateOfBirth = dateOfBirth,
   gender = gender,
   roshLevel = roshLevel,
-  teamCode = "TEAM1",
+  teamCode = teamCode,
   assignedTo = AssignedToDto(
     forename = staff.name.forename,
     surname = staff.name.surname,
@@ -67,10 +69,11 @@ fun buildExcludedPersonDto(
   crn: String,
   nomsNumber: String = "PRI1",
   staff: Officer = buildOfficer(),
+  teamCode: String = "TEAM1",
 ) = ExcludedPersonDto(
   crn = crn,
   nomsNumber = nomsNumber,
-  teamCode = "TEAM1",
+  teamCode = teamCode,
   assignedTo = AssignedToDto(
     forename = staff.name.forename,
     surname = staff.name.surname,
