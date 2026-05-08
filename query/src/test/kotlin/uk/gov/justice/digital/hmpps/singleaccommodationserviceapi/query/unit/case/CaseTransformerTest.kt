@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LAOStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
@@ -37,7 +37,7 @@ class CaseTransformerTest {
   fun `returns LAOStatus of UKNOWN when personDto is missing`() {
     val result = toCaseDto(crn = crn, person = null, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.laoStatus).isEqualTo(LAOStatus.UNKNOWN)
+    assertThat(result.caseAccess).isEqualTo(CaseAccess.UNKNOWN)
   }
 
   @Test
@@ -45,10 +45,10 @@ class CaseTransformerTest {
     val person = buildFullPersonDto(crn)
     val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
-    assertThat(fromOrchestrationDto.laoStatus).isEqualTo(LAOStatus.NONE)
+    assertThat(fromOrchestrationDto.caseAccess).isEqualTo(CaseAccess.FULL)
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
-    assertThat(fromSasAndDelius.laoStatus).isEqualTo(LAOStatus.NONE)
+    assertThat(fromSasAndDelius.caseAccess).isEqualTo(CaseAccess.FULL)
   }
 
   @Test
@@ -56,10 +56,10 @@ class CaseTransformerTest {
     val person = buildRestrictedPersonDto(crn)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.laoStatus).isEqualTo(LAOStatus.RESTRICTED)
+    assertThat(result.caseAccess).isEqualTo(CaseAccess.RESTRICTED)
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
-    assertThat(fromSasAndDelius.laoStatus).isEqualTo(LAOStatus.RESTRICTED)
+    assertThat(fromSasAndDelius.caseAccess).isEqualTo(CaseAccess.RESTRICTED)
   }
 
   @Test
@@ -67,10 +67,10 @@ class CaseTransformerTest {
     val person = buildExcludedPersonDto(crn)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.laoStatus).isEqualTo(LAOStatus.EXCLUDED)
+    assertThat(result.caseAccess).isEqualTo(CaseAccess.EXCLUDED)
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
-    assertThat(fromSasAndDelius.laoStatus).isEqualTo(LAOStatus.EXCLUDED)
+    assertThat(fromSasAndDelius.caseAccess).isEqualTo(CaseAccess.EXCLUDED)
   }
 
   @ParameterizedTest
@@ -150,7 +150,7 @@ class CaseTransformerTest {
       nextAccommodation = null,
       status = null,
       actions = emptyList(),
-      laoStatus = LAOStatus.NONE,
+      caseAccess = CaseAccess.FULL,
     )
 
     @JvmStatic

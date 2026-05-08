@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LAOStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
@@ -22,7 +22,7 @@ fun buildCaseDto(
   nextAccommodation: AccommodationDetail? = null,
   status: Status? = null,
   actions: List<String> = emptyList(),
-  laoStatus: LAOStatus = LAOStatus.NONE,
+  caseAccess: CaseAccess = CaseAccess.FULL,
 ) = CaseDto(
   name,
   dateOfBirth,
@@ -37,7 +37,7 @@ fun buildCaseDto(
   nextAccommodation,
   status,
   actions,
-  laoStatus = laoStatus,
+  caseAccess = caseAccess,
 )
 
 fun buildAssignedToDto(

@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.LocalDate
 
-enum class LAOStatus { RESTRICTED, EXCLUDED, NONE, UNKNOWN }
+enum class CaseAccess { RESTRICTED, EXCLUDED, FULL, UNKNOWN }
 
 data class CaseDto(
   val name: String? = null,
@@ -18,7 +18,7 @@ data class CaseDto(
   val nextAccommodation: AccommodationDetail? = null,
   val status: Status? = null,
   val actions: List<String> = emptyList(),
-  val laoStatus: LAOStatus,
+  val caseAccess: CaseAccess,
 )
 
 data class AssignedToDto(
