@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -16,7 +15,7 @@ class CurrentAddressTypeNotPrivateRuleTest {
     val data = buildDomainData(
       currentAccommodation = buildAccommodationSummaryDto(
         type = buildAccommodationTypeDto(
-          code = AccommodationTypeCode.A03,
+          code = "A03",
         ),
       ),
     )
@@ -31,7 +30,7 @@ class CurrentAddressTypeNotPrivateRuleTest {
     val data = buildDomainData(
       currentAccommodation = buildAccommodationSummaryDto(
         type = buildAccommodationTypeDto(
-          code = AccommodationTypeCode.A01A,
+          code = "A01A",
         ),
       ),
     )

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -22,9 +21,9 @@ class CurrentAccommodationTypeRule : Cas3EligibilityRule {
   companion object {
     // TODO add in prison and bail type
     private val ALLOWED_TYPES = setOf(
-      AccommodationTypeCode.A02, // CAS1
-      AccommodationTypeCode.A10, // CAS2
-      AccommodationTypeCode.A11, // CAS2
+      "A02", // CAS1
+      "A10", // CAS2
+      "A11", // CAS2
     )
   }
 }

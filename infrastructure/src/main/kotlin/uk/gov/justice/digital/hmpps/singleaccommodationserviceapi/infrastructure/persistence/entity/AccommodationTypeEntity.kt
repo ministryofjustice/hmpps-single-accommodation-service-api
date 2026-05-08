@@ -8,13 +8,11 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Immutable
 import java.util.UUID
 
 @Entity
 @Table(name = "accommodation_type")
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@Immutable
 data class AccommodationTypeEntity(
   @Id
   override val id: UUID,

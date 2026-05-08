@@ -8,7 +8,6 @@ import org.assertj.core.api.AssertionsForClassTypes.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -264,7 +263,7 @@ class EligibilityServiceTest {
       )
       val accommodationSummaryDto = buildAccommodationSummaryDto(endDate = endDate)
       val caseEntity = buildCaseEntity(id = caseId)
-      val currentAccommodation = buildAccommodationSummaryDto(endDate = endDate, type = buildAccommodationTypeDto(code = AccommodationTypeCode.A02))
+      val currentAccommodation = buildAccommodationSummaryDto(endDate = endDate, type = buildAccommodationTypeDto(code = "A02"))
 
       every { accommodationQueryService.getNextAccommodation(crn, cpr.addresses) } returns null
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
@@ -401,9 +400,9 @@ class EligibilityServiceTest {
             endDate = it,
             type = buildAccommodationTypeDto(
               code = if (s.isPrivateCurrentAccommodation.toBoolean()) {
-                AccommodationTypeCode.A01A
+                "A01A"
               } else {
-                AccommodationTypeCode.A03
+                "A03"
               },
             ),
           )
@@ -411,9 +410,9 @@ class EligibilityServiceTest {
           endDate = null,
           type = buildAccommodationTypeDto(
             code = if (s.isPrivateCurrentAccommodation.toBoolean()) {
-              AccommodationTypeCode.A01A
+              "A01A"
             } else {
-              AccommodationTypeCode.A03
+              "A03"
             },
           ),
         )
@@ -514,9 +513,9 @@ class EligibilityServiceTest {
             endDate = it,
             type = buildAccommodationTypeDto(
               code = if (s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean()) {
-                AccommodationTypeCode.A02
+                "A02"
               } else {
-                AccommodationTypeCode.A03
+                "A03"
               },
             ),
           )
@@ -524,9 +523,9 @@ class EligibilityServiceTest {
           endDate = null,
           type = buildAccommodationTypeDto(
             code = if (s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean()) {
-              AccommodationTypeCode.A02
+              "A02"
             } else {
-              AccommodationTypeCode.A03
+              "A03"
             },
           ),
         )
