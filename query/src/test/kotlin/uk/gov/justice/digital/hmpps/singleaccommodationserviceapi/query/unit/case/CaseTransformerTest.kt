@@ -18,16 +18,60 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildExcludedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildRestrictedPersonDto
 import java.time.LocalDate
+import java.util.UUID
 import java.util.stream.Stream
 
 class CaseTransformerTest {
+
+  private val crn: String = UUID.randomUUID().toString()
+
+  @Test
+  fun `returns LAOStatus of UKNOWN when personDto is missing`() {
+    val result = toCaseDto(crn = crn, person = null, cpr = null, roshDetails = null, tier = null)
+    assertThat(result.crn).isEqualTo(crn)
+    assertThat(result.laoStatus).isEqualTo(LAOStatus.UNKNOWN)
+  }
+
+  @Test
+  fun `returns LAOStatus of NONE when personDto is FullPersonDto`() {
+    val person = buildFullPersonDto(crn)
+    val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
+    assertThat(fromOrchestrationDto.laoStatus).isEqualTo(LAOStatus.NONE)
+
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
+    assertThat(fromSasAndDelius.laoStatus).isEqualTo(LAOStatus.NONE)
+  }
+
+  @Test
+  fun `returns LAOStatus of RESTRICTED when personDto is RestrictedPersonDto`() {
+    val person = buildRestrictedPersonDto(crn)
+    val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    assertThat(result.crn).isEqualTo(crn)
+    assertThat(result.laoStatus).isEqualTo(LAOStatus.RESTRICTED)
+
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
+    assertThat(fromSasAndDelius.laoStatus).isEqualTo(LAOStatus.RESTRICTED)
+  }
+
+  @Test
+  fun `returns LAOStatus of EXCLUDED when personDto is RestrictedPersonDto`() {
+    val person = buildExcludedPersonDto(crn)
+    val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    assertThat(result.crn).isEqualTo(crn)
+    assertThat(result.laoStatus).isEqualTo(LAOStatus.EXCLUDED)
+
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
+    assertThat(fromSasAndDelius.laoStatus).isEqualTo(LAOStatus.EXCLUDED)
+  }
 
   @ParameterizedTest
   @MethodSource(
@@ -38,7 +82,8 @@ class CaseTransformerTest {
     expectedCaseDto: CaseDto,
   ) {
     assertThat(
-      CaseTransformer.toCaseDto(
+      toCaseDto(
+        crn = CRN,
         cpr = caseOrchestrationDto.cpr,
         roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,

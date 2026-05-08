@@ -182,6 +182,7 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
         CaseTransformer.toCaseDto(
+          crn = crnOne,
           person = person,
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
