@@ -5,9 +5,13 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
@@ -30,8 +34,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildExcludedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildRestrictedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class CaseQueryServiceTest {
@@ -47,7 +54,7 @@ class CaseQueryServiceTest {
   @MockK
   lateinit var caseRepository: CaseRepository
 
-  @MockK
+  @MockK(relaxed = true)
   lateinit var eligibilityService: EligibilityService
 
   @InjectMockKs
@@ -101,6 +108,175 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.roshLevel).isEqualTo(RiskLevel.MEDIUM)
     }
+  }
+
+  @Nested
+  inner class FilteredCaseList {
+
+    @BeforeEach
+    fun setup() {
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
+    }
+
+    val personDtos = listOf(
+      buildFullPersonDto(crn = "CRN1", nomsNumber = "PRI_1", roshLevel = null),
+      buildFullPersonDto(
+        crn = "CRN2",
+        nomsNumber = "PRI_2",
+        name = buildName(forename = "QQQQQ"),
+        roshLevel = RiskLevel.LOW,
+      ),
+      buildRestrictedPersonDto(crn = "CRN3", nomsNumber = "PRI_3", roshLevel = RiskLevel.MEDIUM),
+      buildRestrictedPersonDto(crn = "CRN4", nomsNumber = "PRI_4", roshLevel = RiskLevel.VERY_HIGH),
+      buildExcludedPersonDto(crn = "CRN5", nomsNumber = "PRI_5"),
+      buildExcludedPersonDto(crn = "CRN6", nomsNumber = "PRI_6"),
+    )
+
+    @Test
+    fun `returns all people when no filters provided`() {
+      val result = caseQueryService.getCases(personDtos)
+      assertThat(result).hasSize(6)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "crn1,1,NONE",
+        "crn3,1,RESTRICTED",
+        "crn5,1,EXCLUDED",
+        "null,6,null",
+        "'',6,null",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by CRN search ignoring case, only returns excluded LAO when null or empty`(
+      searchTerm: String?,
+      count: Int,
+      caseAccess: CaseAccess?,
+    ) {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      assertThat(result).hasSize(count)
+
+      if (count == 1) {
+        assertThat(result.first().crn).isEqualToIgnoringCase(searchTerm)
+        assertThat(result.first().caseAccess).isEqualTo(caseAccess)
+      }
+    }
+
+    @Test
+    fun `no identifiable information is returned when LAOStatus is EXCLUDED`() {
+      val result = caseQueryService.getCases(personDtos = personDtos)
+      assertThat(result).hasSize(6)
+
+      val excludedCases = result.filter { it.caseAccess == CaseAccess.EXCLUDED }
+      assertThat(excludedCases).allMatch {
+        it.name == null &&
+        it.dateOfBirth == null &&
+      it.pncReference == null &&
+      it.riskLevel == null
+      }
+    }
+
+    @Test
+    fun `filters by noms number ignoring case, returns excluded LAO`() {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = "pri_6")
+      assertThat(result).hasSize(1).allMatch { it.prisonNumber == "PRI_6" }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "xxxxx,0",
+        "qqqqq,1",
+        "fIrSt,3",
+        "'',6",
+        "null,6",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by name ignoring case, does not return excluded LAO when null or empty `(
+      searchTerm: String?,
+      count: Int,
+    ) {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      assertThat(result).hasSize(count)
+      if (!searchTerm.isNullOrEmpty()) {
+        assertThat(result)
+          .allMatch { it.name!!.contains(searchTerm, ignoreCase = true) }
+          .noneMatch { it.caseAccess == CaseAccess.EXCLUDED }
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "LOW,1",
+        "MEDIUM,1",
+        "HIGH,0",
+        "VERY_HIGH,1",
+        "null,6",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by risk level`(riskLevel: RiskLevel?, count: Int) {
+      val result = caseQueryService.getCases(personDtos = personDtos, riskLevel = riskLevel)
+      assertThat(result).hasSize(count)
+    }
+//
+//    @Test
+//    fun `filters by team code ignoring case`() {
+//      val people = listOf(
+//        fullPerson(crn = "CRN1", teamCode = "TEAM-A"),
+//        fullPerson(crn = "CRN2", teamCode = "TEAM-B"),
+//      )
+//
+//      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+//      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns mockk()
+//
+//      val result = service.getCases(
+//        personDtos = people,
+//        teamCode = "team-a",
+//      )
+//
+//      assertThat(result).hasSize(1)
+//    }
+//
+//    @Test
+//    fun `does not call eligibility service for excluded people`() {
+//      val people = listOf(
+//        excludedPerson(crn = "CRN1"),
+//      )
+//
+//      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+//
+//      service.getCases(people)
+//
+//      verify(exactly = 0) {
+//        eligibilityService.getEligibility(any(), any(), any(), any())
+//      }
+//    }
+//
+//    @Test
+//    fun `calls eligibility service for full person`() {
+//      val person = fullPerson(crn = "CRN1")
+//
+//      every { caseRepository.mapByCrns(any()) } returns mapOf(
+//        "CRN1" to mockk(),
+//      )
+//
+//      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns mockk()
+//
+//      service.getCases(listOf(person))
+//
+//      verify {
+//        eligibilityService.getEligibility(
+//          crn = "CRN1",
+//          gender = person.gender,
+//          caseEntity = any(),
+//          dutyToRefer = any(),
+//        )
+//      }
   }
 
   @Nested
