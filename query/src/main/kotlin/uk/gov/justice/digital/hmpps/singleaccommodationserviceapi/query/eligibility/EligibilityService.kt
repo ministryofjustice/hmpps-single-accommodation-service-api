@@ -193,10 +193,10 @@ class EligibilityService(
       EvaluationContext(
         data = data,
         currentResult =
-          ServiceResult(
-            serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-            link = EligibilityKeys.VIEW_APPLICATION,
-          ),
+        ServiceResult(
+          serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
+          link = EligibilityKeys.VIEW_APPLICATION,
+        ),
       )
 
     return tree.eval(initialContext).also {
@@ -237,7 +237,9 @@ class EligibilityService(
 
     val tree =
       treeBuilder
-        .ruleSet("CrsCompletion", crsCompletionRuleSet,
+        .ruleSet(
+          "CrsCompletion",
+          crsCompletionRuleSet,
           onFailResult = ServiceResult(
             serviceStatus = ServiceStatus.NOT_STARTED,
             action = EligibilityKeys.COMPLETE_CRS_REFERRAL,
@@ -362,7 +364,9 @@ class EligibilityService(
 
     val suitability =
       treeBuilder
-        .ruleSet("DtrSuitability", dtrSuitabilityRuleSet,
+        .ruleSet(
+          "DtrSuitability",
+          dtrSuitabilityRuleSet,
           onFailResult = ServiceResult(
             serviceStatus = ServiceStatus.NOT_STARTED,
             action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
@@ -375,7 +379,9 @@ class EligibilityService(
 
     val tree =
       treeBuilder
-        .ruleSet("DtrUpcoming", dtrUpcomingRuleSet,
+        .ruleSet(
+          "DtrUpcoming",
+          dtrUpcomingRuleSet,
           onFailResult = ServiceResult(serviceStatus = ServiceStatus.UPCOMING),
         )
         .onPass(suitability)
@@ -412,7 +418,9 @@ class EligibilityService(
 
     val tree =
       treeBuilder
-        .ruleSet("PaCompletion", paCompletionRuleSet,
+        .ruleSet(
+          "PaCompletion",
+          paCompletionRuleSet,
           onFailResult = ServiceResult(
             serviceStatus = ServiceStatus.NOT_STARTED,
             action = EligibilityKeys.ADD_AND_CONFIRM_PROPOSED_ADDRESS,

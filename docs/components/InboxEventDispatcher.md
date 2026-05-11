@@ -112,8 +112,8 @@ class MyNewEventHandler(
       inboxEventRepository.save(inboxEvent)
     }
   }
-}
-```
+```}
+
 
 ### 3. Register the SQS filter (if needed)
 

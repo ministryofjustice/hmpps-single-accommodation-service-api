@@ -6,7 +6,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3SuitabilityRuleSet(
-  private val rules: List<Cas3SuitabilityRule>,
+  applicationSuitability: Cas3ApplicationSuitabilityRule,
+  applicationPresentSuitability: Cas3ApplicationPresentSuitabilityRule,
+  bookingSuitability: Cas3BookingSuitabilityRule,
+  assessmentSuitability: Cas3AssessmentSuitabilityRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(
+    applicationSuitability,
+    applicationPresentSuitability,
+    bookingSuitability,
+    assessmentSuitability,
+  )
   override fun getRules(): List<Rule> = rules
 }

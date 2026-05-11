@@ -1,10 +1,10 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.accommodation
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import java.time.LocalDate
 
@@ -17,7 +17,7 @@ class CurrentAccommodationEndDateValidationRuleTest {
 
     val result = CurrentAccommodationEndDateValidationRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
   }
 
   @Test
@@ -28,12 +28,12 @@ class CurrentAccommodationEndDateValidationRuleTest {
 
     val result = CurrentAccommodationEndDateValidationRule().evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    Assertions.assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
   }
 
   @Test
   fun `rule has correct description`() {
     val result = CurrentAccommodationEndDateValidationRule().description
-    assertThat(result).isEqualTo("FAIL if candidate has no current accommodation end date")
+    Assertions.assertThat(result).isEqualTo("FAIL if candidate has no current accommodation end date")
   }
 }
