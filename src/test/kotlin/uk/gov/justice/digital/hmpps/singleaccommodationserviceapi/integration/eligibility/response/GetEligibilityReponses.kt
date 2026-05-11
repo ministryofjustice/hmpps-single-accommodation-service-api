@@ -79,7 +79,8 @@ fun expectedGetEligibilityResponse(
          "serviceResult":{
             "serviceStatus":"NOT_STARTED",
             "action":"Add and confirm proposed address",
-            "link":null
+            "link":null,
+            "failureReasons":[]
          }
       },
       "caseActions":[
@@ -165,9 +166,18 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          },
          "commissionedRehabilitativeServices":null
       },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"NOT_STARTED",
+            "action":"Add and confirm proposed address",
+            "link":null,
+            "failureReasons":[]
+         }
+      },
       "caseActions":[
          "Add DTR outcome",
-         "Complete CRS Referral"
+         "Complete CRS Referral",
+         "Add and confirm proposed address"
       ]
    }
 }

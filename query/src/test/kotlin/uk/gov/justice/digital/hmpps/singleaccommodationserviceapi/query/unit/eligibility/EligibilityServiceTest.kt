@@ -708,6 +708,11 @@ class EligibilityServiceTest {
             isSubmittedCas3 = row["isSubmittedCas3"]!!,
             expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatus.valueOf(it) },
             expectedPaAction = row["expectedPaAction"],
+            expectedFailureReasons = row["expectedFailureReasons"]
+              ?.takeIf { it.isNotBlank() }
+              ?.split(",")
+              ?.map { FailureReason.valueOf(it.trim()) }
+              ?: emptyList(),
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -761,6 +766,9 @@ class EligibilityServiceTest {
           .isEqualTo(s.expectedPaStatus)
 
         assertThat(result.action).isEqualTo(s.expectedPaAction)
+        assertThat(result.failureReasons)
+          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
   }
@@ -1008,6 +1016,42 @@ class EligibilityServiceTest {
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.NOT_MALE)
     }
+
+    @Test
+    fun `Pa surfaces SUITABLE_CAS1_APPLICATION when candidate has a suitable CAS1 application`() {
+      val data = buildDomainData(
+        nextAccommodation = null,
+        cas1Application = buildCas1Application(
+          applicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+          requestForPlacementStatus = null,
+          placementStatus = null,
+        ),
+        cas3Application = null,
+      )
+
+      val result = eligibilityService.calculateEligibilityForPa(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS1_APPLICATION)
+    }
+
+    @Test
+    fun `Pa surfaces SUITABLE_CAS3_APPLICATION when candidate has a suitable CAS3 application`() {
+      val data = buildDomainData(
+        nextAccommodation = null,
+        cas1Application = null,
+        cas3Application = buildCas3Application(
+          applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+          assessmentStatus = null,
+          bookingStatus = null,
+        ),
+      )
+
+      val result = eligibilityService.calculateEligibilityForPa(data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS3_APPLICATION)
+    }
   }
 }
 
@@ -1085,6 +1129,7 @@ data class PaScenario(
   val isSubmittedCas3: String,
   val expectedPaStatus: ServiceStatus?,
   val expectedPaAction: String?,
+  val expectedFailureReasons: List<FailureReason>,
 )
 
 private fun <T> runScenarios(
