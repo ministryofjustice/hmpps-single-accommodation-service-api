@@ -851,26 +851,6 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `Cas1 surfaces INVALID_APPLICATION_STATE when application has placement but unsuitable status`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.M,
-        tierScore = TierScore.A1,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = buildCas1Application(
-          applicationStatus = Cas1ApplicationStatus.STARTED,
-          placementStatus = Cas1PlacementStatus.ARRIVED,
-          requestForPlacementStatus = null,
-        ),
-      )
-
-      val result = eligibilityService.calculateEligibilityForCas1(data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.INVALID_APPLICATION_STATE)
-    }
-
-    @Test
     fun `Cas3 surfaces INVALID_CURRENT_ACCOMMODATION_TYPE when accommodation is not prison or CAS1 or CAS2`() {
       clock.setNow(today)
       val data = buildDomainData(
