@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseUnknownResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
@@ -156,7 +157,7 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should filter cases based on search term`() {
+  fun `should filter cases based on provided search parameters`() {
     stubCaseList()
     seedCaseEntities()
     stubAdditionalCorePersonRecords()
@@ -221,17 +222,28 @@ class CaseControllerIT : IntegrationTestBase() {
     val assertions: List<(List<CaseDto>) -> Unit> = emptyList(),
   )
 
+  private fun getCaseResponse(crn: String) = restTestClient.get().uri("/cases/$crn")
+    .withDeliusUserJwt()
+    .exchangeSuccessfully()
+    .expectBody(String::class.java)
+
   @Test
   fun `should get case`() {
     val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
-    restTestClient.get().uri("/cases/${crns[0]}")
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponse())
-      }
+
+    getCaseResponse(case.crn).value {
+      assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponse())
+    }
+  }
+
+  @Test
+  fun `returns CaseAccess UNKOWN when delius doesn't return a result`() {
+    val crn = crns[0]
+    SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    getCaseResponse(crn).value {
+      assertThatJson(it!!).matchesExpectedJson(expectedGetCaseUnknownResponse())
+    }
   }
 
   private fun stubInitialCorePersonRecords() {

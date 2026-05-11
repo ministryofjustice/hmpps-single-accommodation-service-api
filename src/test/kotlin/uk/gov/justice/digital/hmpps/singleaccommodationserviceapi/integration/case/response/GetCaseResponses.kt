@@ -28,3 +28,33 @@ fun expectedGetCaseResponse(): String = """
   }
 }
 """.trimIndent()
+
+fun expectedGetCaseUnknownResponse(): String = """
+{
+  "data": {
+    "name": null,
+    "dateOfBirth": null,
+    "crn": "FAKECRN1",
+    "prisonNumber": null,
+    "photoUrl": null,
+    "tierScore": null,
+    "riskLevel": null,
+    "pncReference": null,
+    "assignedTo": null,
+    "currentAccommodation": null,
+    "nextAccommodation": null,
+    "status": null,
+    "actions": [],
+    "caseAccess": "UNKNOWN"
+  },
+  "upstreamFailures": [
+    {
+      "endpoint": "getCaseByCrn",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "500 INTERNAL_SERVER_ERROR",
+      "message": "500 Internal Server Error: [no body]",
+      "identifier": null
+    }
+  ]
+}
+""".trimIndent()
