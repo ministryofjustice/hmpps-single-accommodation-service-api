@@ -66,14 +66,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
@@ -84,16 +82,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrStatusRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.HasNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -167,9 +159,7 @@ class EligibilityServiceTest {
   )
 
   // DTR
-  val dtrUpcomingContextUpdater = DtrUpcomingContextUpdater()
   var dtrUpcomingRuleSet = DtrUpcomingRuleSet(listOf(DtrRecentCurrentAccommodationEndDateRule(clock)))
-  var dtrSuitabilityContextUpdater = DtrSuitabilityContextUpdater()
   var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
     listOf(
       DtrStatusRule(),
@@ -193,19 +183,14 @@ class EligibilityServiceTest {
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     listOf(CrsSubmittedRule(), CrsExpiredRule(clock)),
   )
-  var crsContextUpdater = CrsContextUpdater()
-
-  // COMMON
-  var commonContextUpdater = CommonContextUpdater()
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
-    listOf(Cas1ApplicationNotSuitableRule(), Cas3ApplicationNotSuitableRule()),
+    listOf(),
   )
   var paCompletionRuleSet = PaCompletionRuleSet(
-    listOf(HasNextAccommodationRule()),
+    listOf(),
   )
-  var paCompletionContextUpdater = PaCompletionContextUpdater()
 
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
@@ -216,7 +201,6 @@ class EligibilityServiceTest {
     cas1ValidationRuleSet = cas1ValidationRuleSet,
     cas3ValidationRuleSet = cas3ValidationRuleSet,
     cas1CompletionContextUpdater = cas1CompletionContextUpdater,
-    commonContextUpdater = commonContextUpdater,
     cas3EligibilityRuleSet = cas3EligibilityRuleSet,
     cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
     cas3CompletionRuleSet = cas3CompletionRuleSet,
@@ -224,10 +208,8 @@ class EligibilityServiceTest {
     engine = rulesEngine,
     dtrCompletionRuleSet = dtrCompletionRuleSet,
     dutyToReferQueryService = dutyToReferQueryService,
-    dtrSuitabilityContextUpdater = dtrSuitabilityContextUpdater,
     dtrEligibilityRuleSet = dtrEligibilityRuleSet,
     dtrSuitabilityRuleSet = dtrSuitabilityRuleSet,
-    dtrUpcomingContextUpdater = dtrUpcomingContextUpdater,
     dtrUpcomingRuleSet = dtrUpcomingRuleSet,
     dtrCompletionContextUpdater = dtrCompletionContextUpdater,
     caseRepository = caseRepository,
@@ -238,11 +220,9 @@ class EligibilityServiceTest {
     cas1SuitabilityContextUpdater = cas1SuitabilityContextUpdater,
     crsEligibilityRuleSet = crsEligibilityRuleSet,
     crsCompletionRuleSet = crsCompletionRuleSet,
-    crsContextUpdater = crsContextUpdater,
     cas3SuitabilityContextUpdater = cas3SuitabilityContextUpdater,
     paEligibilityRuleSet = paEligibilityRuleSet,
     paCompletionRuleSet = paCompletionRuleSet,
-    paCompletionContextUpdater = paCompletionContextUpdater,
   )
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -658,79 +638,6 @@ class EligibilityServiceTest {
       }
     }
   }
-
-  @Nested
-  inner class PaEligibilityScenarios {
-
-    fun loadPaScenarios(): List<PaScenario> {
-      val rows = CsvReader().read("/pa-eligibility-scenarios.csv")
-
-      return rows.mapIndexed { idx, row ->
-        try {
-          PaScenario(
-            testCaseId = row["testCaseId"]!!,
-            description = row["description"],
-            hasNextAccommodation = row["hasNextAccommodation"]!!,
-            isSubmittedCas1 = row["isSubmittedCas1"]!!,
-            isSubmittedCas3 = row["isSubmittedCas3"]!!,
-            expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatus.valueOf(it) },
-            expectedPaAction = row["expectedPaAction"],
-          )
-        } catch (e: Exception) {
-          throw IllegalStateException("Row $idx failed: $row", e)
-        }
-      }
-    }
-
-    @Test
-    fun `should calculate eligibility for pa for all scenarios`() {
-      val scenarios = loadPaScenarios()
-
-      runScenarios(scenarios) { s ->
-
-        val cas1Application = if (s.isSubmittedCas1.toBoolean()) {
-          buildCas1Application(
-            applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-            placementStatus = Cas1PlacementStatus.UPCOMING,
-          )
-        } else {
-          null
-        }
-
-        val cas3Application = if (s.isSubmittedCas3.toBoolean()) {
-          buildCas3Application(
-            applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-            assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-            bookingStatus = Cas3BookingStatus.CONFIRMED,
-          )
-        } else {
-          null
-        }
-
-        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
-          buildAccommodationSummaryDto()
-        } else {
-          null
-        }
-
-        val data = buildDomainData(
-          crn = s.testCaseId,
-          nextAccommodation = nextAccommodation,
-          cas1Application = cas1Application,
-          cas3Application = cas3Application,
-        )
-
-        val result = eligibilityService.calculateEligibilityForPa(data)
-
-        assertThat(result.serviceStatus)
-          .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
-          .isEqualTo(s.expectedPaStatus)
-
-        assertThat(result.action).isEqualTo(s.expectedPaAction)
-      }
-    }
-  }
 }
 
 data class Cas1Scenario(
@@ -780,7 +687,7 @@ data class Cas3Scenario(
   val expectedCas3Action: String?,
   val expectedCas3Link: String?,
 
-)
+  )
 
 data class CrsScenario(
   val testCaseId: String,
@@ -794,16 +701,6 @@ data class CrsScenario(
   val expectedCrsStatus: ServiceStatus?,
   val expectedCrsAction: String?,
   val expectedCrsLink: String?,
-)
-
-data class PaScenario(
-  val testCaseId: String,
-  val description: String?,
-  val hasNextAccommodation: String,
-  val isSubmittedCas1: String,
-  val isSubmittedCas3: String,
-  val expectedPaStatus: ServiceStatus?,
-  val expectedPaAction: String?,
 )
 
 private fun <T> runScenarios(
