@@ -23,6 +23,7 @@ class CaseController(
   fun getCases(
     @RequestParam riskLevel: RiskLevel?,
     @RequestParam searchTerm: String?,
+    @RequestParam teamCode: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val personDtos = caseQueryService.getCaseList()
 
@@ -32,7 +33,8 @@ class CaseController(
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
       caseApplicationService.upsertCases(casesToAdd)
     }
-    val result = caseQueryService.getCases(personDtos, searchTerm = searchTerm, riskLevel = riskLevel)
+    val result =
+      caseQueryService.getCases(personDtos, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode)
 
     return ResponseEntity.ok(ApiResponseDto(data = result))
   }

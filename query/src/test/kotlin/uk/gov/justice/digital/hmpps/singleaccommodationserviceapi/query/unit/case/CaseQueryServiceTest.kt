@@ -4,10 +4,17 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
@@ -19,16 +26,22 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.RestrictedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildExcludedPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildRestrictedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 
 @ExtendWith(MockKExtension::class)
@@ -45,7 +58,7 @@ class CaseQueryServiceTest {
   @MockK
   lateinit var caseRepository: CaseRepository
 
-  @MockK
+  @MockK(relaxed = true)
   lateinit var eligibilityService: EligibilityService
 
   @InjectMockKs
@@ -73,25 +86,299 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCaseList()
       assertThat(result).hasSize(2)
 
-      val firstPerson = result.first()
+      val firstPerson = result.first() as FullPersonDto
       assertThat(firstPerson.crn).isEqualTo(crnOne)
       assertThat(firstPerson.name).isEqualTo(case1.name.fullName)
       assertThat(firstPerson.nomsNumber).isEqualTo(case1.nomsNumber)
       assertThat(firstPerson.pncNumber).isEqualTo(case1.pncNumber)
       assertThat(firstPerson.dateOfBirth).isEqualTo(case1.dateOfBirth)
-      assertThat(firstPerson.staff).isEqualTo(case1.staff)
+      assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
+      assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
+      assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
       assertThat(firstPerson.roshLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
-      val lastPerson = result.last()
+      val lastPerson = result.last() as FullPersonDto
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
       assertThat(lastPerson.name).isEqualTo(case2.name.fullName)
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
-      assertThat(lastPerson.staff).isEqualTo(case2.staff)
+      assertThat(lastPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(lastPerson.assignedTo.surname).isEqualTo(case2.staff.name.surname)
+      assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
+      assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.roshLevel).isEqualTo(RiskLevel.MEDIUM)
+    }
+  }
+
+  @Nested
+  inner class CaseListFilters {
+
+    @BeforeEach
+    fun setup() {
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
+    }
+
+    val assignedTo = AssignedToDto(
+      forename = "Firstname",
+      surname = "Surname",
+      username = "Firstname.Surname",
+      staffCode = "5318008",
+    )
+
+    val personDtos = listOf(
+      buildFullPersonDto(
+        crn = "CRN1",
+        nomsNumber = "PRI_1",
+        name = buildName(surname = "MultiCaseSurname"),
+        roshLevel = null,
+        teamCode = "TestTeam1",
+        assignedTo = assignedTo,
+      ),
+      buildFullPersonDto(
+        crn = "CRN2",
+        nomsNumber = "PRI_2",
+        name = buildName(forename = "QQQQQ"),
+        roshLevel = RiskLevel.LOW,
+        teamCode = "TestTeam2",
+        assignedTo = assignedTo,
+      ),
+      buildRestrictedPersonDto(
+        crn = "CRN3",
+        nomsNumber = "PRI_3",
+        roshLevel = RiskLevel.MEDIUM,
+        teamCode = "TestTeam1",
+        assignedTo = assignedTo,
+      ),
+      buildRestrictedPersonDto(
+        crn = "CRN4",
+        nomsNumber = "PRI_4",
+        roshLevel = RiskLevel.VERY_HIGH,
+        teamCode = "TestTeam2",
+        assignedTo = assignedTo,
+      ),
+      buildExcludedPersonDto(
+        crn = "CRN5",
+        nomsNumber = "PRI_5",
+        teamCode = "TestTeam1",
+        assignedTo = assignedTo,
+      ),
+      buildExcludedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
+    )
+
+    private fun toExcludedCaseDto(crn: String, prisonNumber: String?, assignedTo: AssignedToDto) = CaseDto(
+      name = null,
+      dateOfBirth = null,
+      crn = crn,
+      prisonNumber = prisonNumber,
+      photoUrl = null,
+      tierScore = null,
+      riskLevel = null,
+      pncReference = null,
+      assignedTo = assignedTo,
+      currentAccommodation = null,
+      nextAccommodation = null,
+      status = null,
+      actions = emptyList(),
+      caseAccess = CaseAccess.EXCLUDED,
+    )
+
+    @Test
+    fun `returns full list when no filters provided, CaseDto is redacted when CaseAccess is Excluded`() {
+      val result = caseQueryService.getCases(personDtos = personDtos)
+      assertThat(result).hasSize(6)
+
+      val excludedCases = result.filter { it.caseAccess == CaseAccess.EXCLUDED }
+      assertThat(excludedCases).hasSize(2)
+
+      val excludedCaseDto1 = toExcludedCaseDto(crn = "CRN5", prisonNumber = "PRI_5", assignedTo = assignedTo)
+      val excludedCaseDto2 = toExcludedCaseDto(crn = "CRN6", prisonNumber = "PRI_6", assignedTo = assignedTo)
+      assertThat(excludedCases).containsExactly(excludedCaseDto1, excludedCaseDto2)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "crn1,1,FULL",
+        "CRN3,1,RESTRICTED",
+        "cRn5,1,EXCLUDED",
+        "crn,0,null", // attempted partial match
+        "null,6,null",
+        "'',6,null",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by match on FULL CRN search, ignoring case`(
+      searchTerm: String?,
+      count: Int,
+      caseAccess: CaseAccess?,
+    ) {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      assertThat(result).hasSize(count)
+
+      if (caseAccess != null) {
+        assertThat(result.size).isEqualTo(1)
+        assertThat(result.first().crn).isEqualToIgnoringCase(searchTerm)
+        assertThat(result.first().caseAccess).isEqualTo(caseAccess)
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "pri_2,1,FULL",
+        "PRI_4,1,RESTRICTED",
+        "pRi_6,1,EXCLUDED",
+        "pri_,0,null", // attempted partial match
+        "null,6,null",
+        "'',6,null",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by match on FULL prisonNumber search, ignoring case`(
+      searchTerm: String?,
+      count: Int,
+      caseAccess: CaseAccess?,
+    ) {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      assertThat(result).hasSize(count)
+
+      if (caseAccess != null) {
+        assertThat(result.size).isEqualTo(1)
+        assertThat(result.first().prisonNumber).isEqualToIgnoringCase(searchTerm)
+        assertThat(result.first().caseAccess).isEqualTo(caseAccess)
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "xxxxx,0",
+        "qqqqq,1",
+        "fIrSt,3",
+        " fIrSt ,3",
+        "fI,3",
+        "rSt,3",
+        "rSt Mid,3",
+        "First Middle Last,2", // Currently the search includes middle name. Will be changed in a future PR.
+        "First Last,0",
+        "MultiCaseSurname,1",
+        "Multi,1",
+        "CASE,1",
+        "SurNaMe,1",
+        "'',6",
+        "null,6",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by full and partial match on name ignoring case, does NOT return EXCLUDED LAO when a searchTerm IS provided but IS NOT a full CRN or PrisonNumber`(
+      searchTerm: String?,
+      count: Int,
+    ) {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      assertThat(result).hasSize(count)
+      if (!searchTerm.isNullOrEmpty()) {
+        assertThat(result)
+          .allMatch { it.name!!.contains(searchTerm, ignoreCase = true) }
+          .noneMatch { it.caseAccess == CaseAccess.EXCLUDED }
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "LOW,1",
+        "MEDIUM,1",
+        "HIGH,0",
+        "VERY_HIGH,1",
+        "null,6",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by risk level`(riskLevel: RiskLevel?, count: Int) {
+      val result = caseQueryService.getCases(personDtos = personDtos, riskLevel = riskLevel)
+      assertThat(result).hasSize(count)
+      if (riskLevel != null) {
+        assertThat(result.map { it.caseAccess }).noneMatch { it == CaseAccess.EXCLUDED }
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      "TestTeam1, 3", // FULL / RESTRICTED / EXCLUDED
+      "TestTeam2,2", // FULL / RESTRICTED
+      "TestTeam3,1", // EXCLUDED
+      "TestTeam4,0",
+    )
+    fun `filters by team code`(teamCode: String, count: Int) {
+      val result = caseQueryService.getCases(personDtos = personDtos, teamCode = teamCode)
+      assertThat(result).hasSize(count)
+    }
+
+    @Test
+    fun `does not call eligibility service when CaseAccess is EXCLUDED`() {
+      val excluded = listOf(buildExcludedPersonDto(crn = "excluded"))
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
+      caseQueryService.getCases(excluded)
+      verify(exactly = 0) {
+        eligibilityService.getEligibility(any(), any(), any(), any())
+      }
+    }
+
+    @Test
+    fun `calls eligibility service for full person`() {
+      val person = personDtos[0] as FullPersonDto
+      val crn = person.crn
+
+      every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
+      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
+      every {
+        dutyToReferQueryService.getDutyToRefer(
+          any(CaseEntity::class),
+          any(String::class),
+        )
+      } returns buildDutyToReferDto(crn)
+
+      caseQueryService.getCases(listOf(person))
+
+      verify {
+        eligibilityService.getEligibility(
+          crn = crn,
+          gender = person.gender,
+          caseEntity = any(),
+          dutyToRefer = any(),
+        )
+      }
+    }
+
+    @Test
+    fun `calls eligibility service for restricted person`() {
+      val person = personDtos[3] as RestrictedPersonDto
+      val crn = person.crn
+
+      every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
+      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
+      every {
+        dutyToReferQueryService.getDutyToRefer(
+          any(CaseEntity::class),
+          any(String::class),
+        )
+      } returns buildDutyToReferDto(crn)
+
+      caseQueryService.getCases(listOf(person))
+
+      verify {
+        eligibilityService.getEligibility(
+          crn = crn,
+          gender = person.gender,
+          caseEntity = any(),
+          dutyToRefer = any(),
+        )
+      }
     }
   }
 
@@ -101,8 +388,8 @@ class CaseQueryServiceTest {
     @Test
     fun `should get cases as all cases from case table and populate missing data from personDtos`() {
       val crnList = listOf(crnOne, crnTwo)
-      val personDto1 = buildPersonDto(crn = crnOne)
-      val personDto2 = buildPersonDto(crn = crnTwo)
+      val personDto1 = buildFullPersonDto(crn = crnOne)
+      val personDto2 = buildFullPersonDto(crn = crnTwo)
       val personDtos = listOf(
         personDto1,
         personDto2,
@@ -127,8 +414,22 @@ class CaseQueryServiceTest {
       every { dutyToReferQueryService.getDutyToRefer(caseEntity1, crnOne) } returns dutyToReferDto1
       every { dutyToReferQueryService.getDutyToRefer(caseEntity2, crnTwo) } returns dutyToReferDto2
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
-      every { eligibilityService.getEligibility(personDto1, caseEntity1, dutyToReferDto1) } returns eligibilityDto1
-      every { eligibilityService.getEligibility(personDto2, caseEntity2, dutyToReferDto2) } returns eligibilityDto2
+      every {
+        eligibilityService.getEligibility(
+          personDto1.crn,
+          personDto1.gender,
+          caseEntity1,
+          dutyToReferDto1,
+        )
+      } returns eligibilityDto1
+      every {
+        eligibilityService.getEligibility(
+          personDto2.crn,
+          personDto2.gender,
+          caseEntity2,
+          dutyToReferDto2,
+        )
+      } returns eligibilityDto2
 
       val result = caseQueryService.getCases(personDtos = personDtos)
       assertThat(result).hasSize(2)
@@ -155,14 +456,16 @@ class CaseQueryServiceTest {
         data = caseOrchestrationDto,
       )
 
+      val person = toPersonDto(caseOrchestrationDto.case!!)
+
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
         CaseTransformer.toCaseDto(
           crn = crnOne,
+          person = person,
           cpr = caseOrchestrationDto.cpr,
           roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
-          case = caseOrchestrationDto.case,
         ),
       )
       assertThat(result.upstreamFailures).isEmpty()
