@@ -6,12 +6,16 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     PaEligibilityRuleSet::class,
+    Cas3ApplicationNotSuitableRule::class,
+    Cas1ApplicationNotSuitableRule::class,
   ],
 )
 class PaEligibilityRuleSetTest {
@@ -19,14 +23,17 @@ class PaEligibilityRuleSetTest {
   @Autowired
   lateinit var paEligibilityRuleSet: PaEligibilityRuleSet
 
-  private val expectedPaEligibilityRuleNames = listOf<String>()
+  private val expectedPaEligibilityRuleNames = listOf(
+    Cas3ApplicationNotSuitableRule::class.simpleName,
+    Cas1ApplicationNotSuitableRule::class.simpleName,
+  )
 
   @Test
   fun `all PaEligibilityRule components are included in PaEligibilityRuleSet`() {
     val ruleSetRules = paEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(0)
+      .hasSize(2)
       .containsExactlyInAnyOrderElementsOf(expectedPaEligibilityRuleNames)
   }
 }
