@@ -26,7 +26,7 @@ private fun caseJson(
   "nextAccommodation": null,
   "status": null,
   "actions": [],
-  "laoStatus": "NONE"
+  "caseAccess": "FULL"
 }
 """.trimIndent()
 

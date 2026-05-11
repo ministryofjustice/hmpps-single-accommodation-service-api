@@ -27,7 +27,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "Zack Middle Smith",
@@ -50,7 +50,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -73,7 +73,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -96,7 +96,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -119,7 +119,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -142,7 +142,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -165,7 +165,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -188,7 +188,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -211,7 +211,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -234,7 +234,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -257,7 +257,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -280,7 +280,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -303,7 +303,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -326,7 +326,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -349,7 +349,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -372,7 +372,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -395,7 +395,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -418,7 +418,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -441,7 +441,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     },
     {
       "name": "First Middle Last",
@@ -464,7 +464,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "laoStatus": "NONE"
+      "caseAccess": "FULL"
     }
   ]
 }

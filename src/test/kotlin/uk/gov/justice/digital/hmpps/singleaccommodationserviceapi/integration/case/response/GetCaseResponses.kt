@@ -24,7 +24,7 @@ fun expectedGetCaseResponse(): String = """
     "nextAccommodation": null,
     "status": null,
     "actions": [],
-    "laoStatus": "NONE"
+    "caseAccess": "FULL"
   }
 }
 """.trimIndent()
