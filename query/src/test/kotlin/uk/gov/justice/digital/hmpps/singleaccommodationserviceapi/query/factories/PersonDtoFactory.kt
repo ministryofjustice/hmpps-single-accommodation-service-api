@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
@@ -21,6 +22,7 @@ fun buildFullPersonDto(
   gender: String = "Male",
   roshLevel: RiskLevel? = RiskLevel.VERY_HIGH,
   teamCode: String = "TEAM1",
+  assignedTo: AssignedToDto = assignedTo(staff),
 ) = FullPersonDto(
   crn = crn,
   name = name.fullName,
@@ -30,12 +32,7 @@ fun buildFullPersonDto(
   gender = gender,
   roshLevel = roshLevel,
   teamCode = teamCode,
-  assignedTo = AssignedToDto(
-    forename = staff.name.forename,
-    surname = staff.name.surname,
-    username = staff.username,
-    staffCode = staff.code,
-  ),
+  assignedTo = assignedTo,
 )
 
 fun buildRestrictedPersonDto(
@@ -48,6 +45,7 @@ fun buildRestrictedPersonDto(
   gender: String = "Male",
   roshLevel: RiskLevel? = RiskLevel.VERY_HIGH,
   teamCode: String = "TEAM1",
+  assignedTo: AssignedToDto = assignedTo(staff),
 ) = RestrictedPersonDto(
   crn = crn,
   name = name.fullName,
@@ -57,12 +55,7 @@ fun buildRestrictedPersonDto(
   gender = gender,
   roshLevel = roshLevel,
   teamCode = teamCode,
-  assignedTo = AssignedToDto(
-    forename = staff.name.forename,
-    surname = staff.name.surname,
-    username = staff.username,
-    staffCode = staff.code,
-  ),
+  assignedTo = assignedTo,
 )
 
 fun buildExcludedPersonDto(
@@ -70,14 +63,17 @@ fun buildExcludedPersonDto(
   nomsNumber: String = "PRI1",
   staff: Officer = buildOfficer(),
   teamCode: String = "TEAM1",
+  assignedTo: AssignedToDto = assignedTo(staff),
 ) = ExcludedPersonDto(
   crn = crn,
   nomsNumber = nomsNumber,
   teamCode = teamCode,
-  assignedTo = AssignedToDto(
-    forename = staff.name.forename,
-    surname = staff.name.surname,
-    username = staff.username,
-    staffCode = staff.code,
-  ),
+  assignedTo = assignedTo,
+)
+
+private fun assignedTo(staff: Officer) = buildAssignedToDto(
+  forename = staff.name.forename,
+  surname = staff.name.surname,
+  username = staff.username,
+  staffCode = staff.code,
 )

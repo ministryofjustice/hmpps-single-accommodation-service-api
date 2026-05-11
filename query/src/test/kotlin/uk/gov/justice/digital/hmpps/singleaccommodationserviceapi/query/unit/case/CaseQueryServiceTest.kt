@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
@@ -32,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.RestrictedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
@@ -112,7 +115,7 @@ class CaseQueryServiceTest {
   }
 
   @Nested
-  inner class FilteredCaseList {
+  inner class CaseListFilters {
 
     @BeforeEach
     fun setup() {
@@ -120,49 +123,96 @@ class CaseQueryServiceTest {
       every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
     }
 
+    val assignedTo = AssignedToDto(
+      forename = "Firstname",
+      surname = "Surname",
+      username = "Firstname.Surname",
+      staffCode = "5318008",
+    )
+
     val personDtos = listOf(
-      buildFullPersonDto(crn = "CRN1", nomsNumber = "PRI_1", roshLevel = null, teamCode = "TestTeam1"),
+      buildFullPersonDto(
+        crn = "CRN1",
+        nomsNumber = "PRI_1",
+        name = buildName(surname = "MultiCaseSurname"),
+        roshLevel = null,
+        teamCode = "TestTeam1",
+        assignedTo = assignedTo,
+      ),
       buildFullPersonDto(
         crn = "CRN2",
         nomsNumber = "PRI_2",
         name = buildName(forename = "QQQQQ"),
         roshLevel = RiskLevel.LOW,
         teamCode = "TestTeam2",
+        assignedTo = assignedTo,
       ),
       buildRestrictedPersonDto(
         crn = "CRN3",
         nomsNumber = "PRI_3",
         roshLevel = RiskLevel.MEDIUM,
         teamCode = "TestTeam1",
+        assignedTo = assignedTo,
       ),
       buildRestrictedPersonDto(
         crn = "CRN4",
         nomsNumber = "PRI_4",
         roshLevel = RiskLevel.VERY_HIGH,
         teamCode = "TestTeam2",
+        assignedTo = assignedTo,
       ),
-      buildExcludedPersonDto(crn = "CRN5", nomsNumber = "PRI_5", teamCode = "TestTeam1"),
-      buildExcludedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3"),
+      buildExcludedPersonDto(
+        crn = "CRN5",
+        nomsNumber = "PRI_5",
+        teamCode = "TestTeam1",
+        assignedTo = assignedTo,
+      ),
+      buildExcludedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
+    )
+
+    private fun toExcludedCaseDto(crn: String, prisonNumber: String?, assignedTo: AssignedToDto) = CaseDto(
+      name = null,
+      dateOfBirth = null,
+      crn = crn,
+      prisonNumber = prisonNumber,
+      photoUrl = null,
+      tierScore = null,
+      riskLevel = null,
+      pncReference = null,
+      assignedTo = assignedTo,
+      currentAccommodation = null,
+      nextAccommodation = null,
+      status = null,
+      actions = emptyList(),
+      caseAccess = CaseAccess.EXCLUDED,
     )
 
     @Test
-    fun `returns all people when no filters provided`() {
-      val result = caseQueryService.getCases(personDtos)
+    fun `returns full list when no filters provided, CaseDto is redacted when CaseAccess is Excluded`() {
+      val result = caseQueryService.getCases(personDtos = personDtos)
       assertThat(result).hasSize(6)
+
+      val excludedCases = result.filter { it.caseAccess == CaseAccess.EXCLUDED }
+      assertThat(excludedCases).hasSize(2)
+
+      val excludedCaseDto1 = toExcludedCaseDto(crn = "CRN5", prisonNumber = "PRI_5", assignedTo = assignedTo)
+      val excludedCaseDto2 = toExcludedCaseDto(crn = "CRN6", prisonNumber = "PRI_6", assignedTo = assignedTo)
+      assertThat(excludedCases).containsExactly(excludedCaseDto1, excludedCaseDto2)
     }
 
     @ParameterizedTest
     @CsvSource(
       value = [
         "crn1,1,FULL",
-        "crn3,1,RESTRICTED",
-        "crn5,1,EXCLUDED",
+        "CRN3,1,RESTRICTED",
+        "cRn5,1,EXCLUDED",
+        "crn,0,null", // attempted partial match
         "null,6,null",
         "'',6,null",
       ],
       nullValues = ["null"],
     )
-    fun `filters by CRN search ignoring case, only returns excluded LAO when null or empty`(
+    fun `filters by match on FULL CRN search, ignoring case`(
       searchTerm: String?,
       count: Int,
       caseAccess: CaseAccess?,
@@ -170,30 +220,38 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
 
-      if (count == 1) {
+      if (caseAccess != null) {
+        assertThat(result.size).isEqualTo(1)
         assertThat(result.first().crn).isEqualToIgnoringCase(searchTerm)
         assertThat(result.first().caseAccess).isEqualTo(caseAccess)
       }
     }
 
-    @Test
-    fun `no identifiable information is returned when CaseAccess is EXCLUDED`() {
-      val result = caseQueryService.getCases(personDtos = personDtos)
-      assertThat(result).hasSize(6)
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "pri_2,1,FULL",
+        "PRI_4,1,RESTRICTED",
+        "pRi_6,1,EXCLUDED",
+        "pri_,0,null", // attempted partial match
+        "null,6,null",
+        "'',6,null",
+      ],
+      nullValues = ["null"],
+    )
+    fun `filters by match on FULL prisonNumber search, ignoring case`(
+      searchTerm: String?,
+      count: Int,
+      caseAccess: CaseAccess?,
+    ) {
+      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      assertThat(result).hasSize(count)
 
-      val excludedCases = result.filter { it.caseAccess == CaseAccess.EXCLUDED }
-      assertThat(excludedCases).allMatch {
-        it.name == null &&
-          it.dateOfBirth == null &&
-          it.pncReference == null &&
-          it.riskLevel == null
+      if (caseAccess != null) {
+        assertThat(result.size).isEqualTo(1)
+        assertThat(result.first().prisonNumber).isEqualToIgnoringCase(searchTerm)
+        assertThat(result.first().caseAccess).isEqualTo(caseAccess)
       }
-    }
-
-    @Test
-    fun `filters by noms number ignoring case, returns excluded LAO`() {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = "pri_6")
-      assertThat(result).hasSize(1).allMatch { it.prisonNumber == "PRI_6" }
     }
 
     @ParameterizedTest
@@ -202,12 +260,22 @@ class CaseQueryServiceTest {
         "xxxxx,0",
         "qqqqq,1",
         "fIrSt,3",
+        " fIrSt ,3",
+        "fI,3",
+        "rSt,3",
+        "rSt Mid,3",
+        "First Middle Last,2", // Currently the search includes middle name. Will be changed in a future PR.
+        "First Last,0",
+        "MultiCaseSurname,1",
+        "Multi,1",
+        "CASE,1",
+        "SurNaMe,1",
         "'',6",
         "null,6",
       ],
       nullValues = ["null"],
     )
-    fun `filters by name ignoring case, does not return excluded LAO when null or empty `(
+    fun `filters by full and partial match on name ignoring case, does NOT return EXCLUDED LAO when a searchTerm IS provided but IS NOT a full CRN or PrisonNumber`(
       searchTerm: String?,
       count: Int,
     ) {
@@ -234,13 +302,16 @@ class CaseQueryServiceTest {
     fun `filters by risk level`(riskLevel: RiskLevel?, count: Int) {
       val result = caseQueryService.getCases(personDtos = personDtos, riskLevel = riskLevel)
       assertThat(result).hasSize(count)
+      if (riskLevel != null) {
+        assertThat(result.map { it.caseAccess }).noneMatch { it == CaseAccess.EXCLUDED }
+      }
     }
 
     @ParameterizedTest
     @CsvSource(
-      "TestTeam1, 3",
-      "TestTeam2,2",
-      "TestTeam3,1",
+      "TestTeam1, 3", // FULL / RESTRICTED / EXCLUDED
+      "TestTeam2,2", // FULL / RESTRICTED
+      "TestTeam3,1", // EXCLUDED
       "TestTeam4,0",
     )
     fun `filters by team code`(teamCode: String, count: Int) {
@@ -249,13 +320,10 @@ class CaseQueryServiceTest {
     }
 
     @Test
-    fun `does not call eligibility service for excluded people`() {
+    fun `does not call eligibility service when CaseAccess is EXCLUDED`() {
       val excluded = listOf(buildExcludedPersonDto(crn = "excluded"))
-
       every { caseRepository.mapByCrns(any()) } returns emptyMap()
-
       caseQueryService.getCases(excluded)
-
       verify(exactly = 0) {
         eligibilityService.getEligibility(any(), any(), any(), any())
       }
@@ -263,8 +331,8 @@ class CaseQueryServiceTest {
 
     @Test
     fun `calls eligibility service for full person`() {
-      val crn = "CRN1"
-      val person = buildFullPersonDto(crn = crn)
+      val person = personDtos[0] as FullPersonDto
+      val crn = person.crn
 
       every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
       every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
@@ -279,7 +347,7 @@ class CaseQueryServiceTest {
 
       verify {
         eligibilityService.getEligibility(
-          crn = "CRN1",
+          crn = crn,
           gender = person.gender,
           caseEntity = any(),
           dutyToRefer = any(),
@@ -289,8 +357,8 @@ class CaseQueryServiceTest {
 
     @Test
     fun `calls eligibility service for restricted person`() {
-      val crn = "CRN1"
-      val person = buildRestrictedPersonDto(crn = crn)
+      val person = personDtos[3] as RestrictedPersonDto
+      val crn = person.crn
 
       every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
       every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
@@ -305,7 +373,7 @@ class CaseQueryServiceTest {
 
       verify {
         eligibilityService.getEligibility(
-          crn = "CRN1",
+          crn = crn,
           gender = person.gender,
           caseEntity = any(),
           dutyToRefer = any(),

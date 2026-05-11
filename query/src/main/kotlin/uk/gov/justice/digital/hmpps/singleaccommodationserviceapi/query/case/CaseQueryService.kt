@@ -40,8 +40,8 @@ class CaseQueryService(
 
   private fun PersonDto.matchesSearch(searchTerm: String?): Boolean = when {
     searchTerm.isNullOrBlank() -> true
-    crn.equals(searchTerm, true) -> true
-    nomsNumber?.equals(searchTerm, true) == true -> true
+    crn.trim().equals(searchTerm, true) -> true
+    nomsNumber?.trim().equals(searchTerm, true) -> true
     this is Identifiable && name.contains(searchTerm, true) -> true
     else -> false
   }
