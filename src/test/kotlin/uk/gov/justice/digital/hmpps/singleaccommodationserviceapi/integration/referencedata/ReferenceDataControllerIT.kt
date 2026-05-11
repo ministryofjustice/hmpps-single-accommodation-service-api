@@ -41,6 +41,25 @@ class ReferenceDataControllerIT : IntegrationTestBase() {
         val response = jsonMapper.readTree(body)
         val results = response.get("data")
         assertThat(results).isNotNull
+        assertThat(results.size()).isEqualTo(20)
+        assertThat(results.first().get("code").asString()).isEqualTo("A02")
+        assertThat(results.first().get("name").asString()).isEqualTo("Approved Premises")
+        assertThat(results.last().get("code").asString()).isEqualTo("A03")
+        assertThat(results.last().get("name").asString()).isEqualTo("Transient or short-term accommodation")
+      }
+  }
+
+  @Test
+  fun `should return 200 with type of proposed accommodation_types`() {
+    restTestClient.get().uri("/reference-data?type=PROPOSED_ACCOMMODATION_TYPES")
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectStatus().isOk
+      .expectBody(String::class.java)
+      .value { body ->
+        val response = jsonMapper.readTree(body)
+        val results = response.get("data")
+        assertThat(results).isNotNull
         assertThat(results.size()).isEqualTo(13)
         assertThat(results.first().get("code").asString()).isEqualTo("A10")
         assertThat(results.first().get("name").asString()).isEqualTo("CAS2 accommodation of 13 weeks or more")

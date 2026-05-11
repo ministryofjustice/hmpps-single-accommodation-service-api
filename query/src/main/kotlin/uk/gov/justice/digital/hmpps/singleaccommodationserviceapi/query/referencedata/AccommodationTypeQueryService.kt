@@ -14,4 +14,9 @@ class AccommodationTypeQueryService(
     data = accommodationTypeRepository.findAllByActiveIsTrueOrderByName()
       .map { ReferenceDataTransformer.toReferenceDataDto(it) },
   )
+
+  fun getProposedAccommodationTypes(): ApiResponseDto<List<ReferenceDataDto>> = toApiResponseDto(
+    data = accommodationTypeRepository.findAllByActiveIsTrueAndIsProposedIsTrueOrderByName()
+      .map { ReferenceDataTransformer.toReferenceDataDto(it) },
+  )
 }
