@@ -421,14 +421,14 @@ fun expectedGetCaseListResponse(): String = """
       "caseAccess": "FULL"
     },
     {
-      "name": "First Middle Last",
-      "dateOfBirth": "2000-12-03",
+      "name": null,
+      "dateOfBirth": null,
       "crn": "FAKECRN19",
       "prisonNumber": "PRI19",
       "photoUrl": null,
       "tierScore": null,
-      "riskLevel": "VERY_HIGH",
-      "pncReference": "Some PNC Reference",
+      "riskLevel": null,
+      "pncReference": null,
       "assignedTo": {
         "forename": "First",
         "surname": "Last",
@@ -438,10 +438,8 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details"
-      ],
-      "caseAccess": "FULL"
+      "actions": [],
+      "caseAccess": "EXCLUDED"
     },
     {
       "name": "First Middle Last",
@@ -464,7 +462,7 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "caseAccess": "FULL"
+      "caseAccess": "RESTRICTED"
     }
   ]
 }
