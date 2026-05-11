@@ -16,6 +16,7 @@ data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val action: String? = null,
   val link: String? = null,
+  val failureReasons: List<FailureReason> = emptyList(),
 )
 
 data class PaServiceResult(
@@ -68,4 +69,23 @@ enum class ServiceStatus {
   BOOKING_CANCELLED,
   ACCEPTED,
   NOT_ACCEPTED,
+}
+
+enum class FailureReason {
+  S_TIER,
+  MALE_NOT_HIGH_RISK_TIER,
+  NON_MALE_NOT_HIGH_RISK_TIER,
+  SEX_DATA_NOT_AVAILABLE,
+  NO_CURRENT_ACCOMMODATION_END_DATE,
+  INVALID_CURRENT_ACCOMMODATION_TYPE,
+  CONFLICTING_CAS1_BOOKING,
+  CRS_EXPIRED,
+  CRS_NOT_SUBMITTED,
+  HAS_NEXT_ACCOMMODATION,
+  NOT_MALE,
+  CURRENT_ADDRESS_IS_PRIVATE,
+  DTR_REFERRAL_EXPIRED,
+  INVALID_APPLICATION_STATE,
+  SUITABLE_CAS1_APPLICATION,
+  SUITABLE_CAS3_APPLICATION,
 }

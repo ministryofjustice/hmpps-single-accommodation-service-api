@@ -18,18 +18,10 @@ class RecentCurrentAccommodationEndDateRule(val clock: Clock) :
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)
-
+    val isFail = !isLessThanOneYearInTheFuture(endDate = data.currentAccommodation?.endDate, today = today)
     return RuleResult(
       description = description,
-      ruleStatus = if (isLessThanOneYearInTheFuture(
-          endDate = data.currentAccommodation?.endDate,
-          today = today,
-        )
-      ) {
-        RuleStatus.PASS
-      } else {
-        RuleStatus.FAIL
-      },
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
     )
   }
 }

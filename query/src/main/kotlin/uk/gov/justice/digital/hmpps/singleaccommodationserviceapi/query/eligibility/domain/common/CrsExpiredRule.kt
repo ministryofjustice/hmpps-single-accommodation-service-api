@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -18,16 +19,11 @@ class CrsExpiredRule(val clock: Clock) :
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)
-
+    val isFail = !isLessThanXWeeksInThePast(data.commissionedRehabilitativeServices?.submissionDate, today, 12L)
     return RuleResult(
       description = description,
-      ruleStatus = if (
-        isLessThanXWeeksInThePast(data.commissionedRehabilitativeServices?.submissionDate, today, 12L)
-      ) {
-        RuleStatus.PASS
-      } else {
-        RuleStatus.FAIL
-      },
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (isFail) FailureReason.CRS_EXPIRED else null,
     )
   }
 }

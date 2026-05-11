@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -20,6 +21,7 @@ class NoConflictingCas1BookingRule : Cas3EligibilityRule {
     return RuleResult(
       description = description,
       ruleStatus = if (hasConflictingCas1Booking) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (hasConflictingCas1Booking) FailureReason.CONFLICTING_CAS1_BOOKING else null,
     )
   }
 }

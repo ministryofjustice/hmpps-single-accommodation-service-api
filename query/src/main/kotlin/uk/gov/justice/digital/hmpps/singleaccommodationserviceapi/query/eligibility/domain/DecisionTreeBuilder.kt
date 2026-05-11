@@ -24,10 +24,17 @@ class DecisionTreeBuilder(
   fun outcome(result: ServiceResult) = OutcomeNode { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
-  fun confirmed() = OutcomeNode { context -> context.currentResult }
+  fun confirmed() = OutcomeNode { ctx ->
+    val result = ctx.currentResult
+    if (result.serviceStatus == ServiceStatus.NOT_ELIGIBLE) {
+      result
+    } else {
+      result.copy(failureReasons = emptyList())
+    }
+  }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible() = outcome(ServiceResult(ServiceStatus.NOT_ELIGIBLE))
+  fun notEligible() = OutcomeNode { ctx -> ServiceResult(ServiceStatus.NOT_ELIGIBLE, failureReasons = ctx.currentResult.failureReasons) }
 
   fun accepted() = outcome(ServiceResult(ServiceStatus.ACCEPTED))
 

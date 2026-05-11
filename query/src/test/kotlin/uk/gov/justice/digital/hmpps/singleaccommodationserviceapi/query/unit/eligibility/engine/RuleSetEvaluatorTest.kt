@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -52,16 +53,19 @@ class RuleSetEvaluatorTest {
   fun buildSTierRuleResult(ruleStatus: RuleStatus) = RuleResult(
     description = stTierRuleDescription,
     ruleStatus = ruleStatus,
+    failureReason = if (ruleStatus == RuleStatus.FAIL) FailureReason.S_TIER else null,
   )
 
   fun buildMaleRiskRuleResult(ruleStatus: RuleStatus) = RuleResult(
     description = maleRiskRuleDescription,
     ruleStatus = ruleStatus,
+    failureReason = if (ruleStatus == RuleStatus.FAIL) FailureReason.MALE_NOT_HIGH_RISK_TIER else null,
   )
 
   fun buildNonMaleRiskRuleResult(ruleStatus: RuleStatus) = RuleResult(
     description = nonMaleRiskRuleDescription,
     ruleStatus = ruleStatus,
+    failureReason = if (ruleStatus == RuleStatus.FAIL) FailureReason.NON_MALE_NOT_HIGH_RISK_TIER else null,
   )
 
   @Nested
