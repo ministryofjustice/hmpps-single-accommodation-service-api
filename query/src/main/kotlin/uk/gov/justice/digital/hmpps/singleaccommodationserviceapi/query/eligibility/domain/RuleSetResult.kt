@@ -2,13 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 
-data class RuleResult(
-  val description: String,
-  val ruleStatus: RuleStatus,
-  val failureReason: FailureReason? = null,
+data class RuleSetResult(
+  val status: RuleSetStatus,
+  val failureReasons: List<FailureReason>,
 )
 
-enum class RuleStatus {
+enum class RuleSetStatus {
   PASS,
   FAIL,
 }

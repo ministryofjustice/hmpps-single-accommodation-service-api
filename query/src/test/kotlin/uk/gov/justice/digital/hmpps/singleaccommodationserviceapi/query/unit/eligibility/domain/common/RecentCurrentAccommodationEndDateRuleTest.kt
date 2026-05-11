@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Mu
 import java.time.LocalDate
 
 class RecentCurrentAccommodationEndDateRuleTest {
+  private val description = "FAIL if not within 1 year of release from current accommodation"
   private val clock = MutableClock()
 
   @Test
@@ -20,7 +22,7 @@ class RecentCurrentAccommodationEndDateRuleTest {
 
     val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL))
   }
 
   @Test
@@ -33,7 +35,7 @@ class RecentCurrentAccommodationEndDateRuleTest {
 
     val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
@@ -46,7 +48,7 @@ class RecentCurrentAccommodationEndDateRuleTest {
 
     val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
@@ -59,7 +61,7 @@ class RecentCurrentAccommodationEndDateRuleTest {
 
     val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.FAIL)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL))
   }
 
   @Test
@@ -72,7 +74,7 @@ class RecentCurrentAccommodationEndDateRuleTest {
 
     val result = RecentCurrentAccommodationEndDateRule(clock).evaluate(data)
 
-    assertThat(result.ruleStatus).isEqualTo(RuleStatus.PASS)
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test

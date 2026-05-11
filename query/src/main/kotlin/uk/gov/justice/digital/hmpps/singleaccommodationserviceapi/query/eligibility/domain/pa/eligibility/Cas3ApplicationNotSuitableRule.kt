@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -16,13 +17,12 @@ class Cas3ApplicationNotSuitableRule : PaEligibilityRule {
       Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
     )
 
-    val isSuitableApplication = suitableStatuses.contains(data.cas3Application?.applicationStatus)
-
-    val ruleStatus = if (isSuitableApplication) RuleStatus.FAIL else RuleStatus.PASS
+    val isFail = suitableStatuses.contains(data.cas3Application?.applicationStatus)
 
     return RuleResult(
       description = description,
-      ruleStatus = ruleStatus,
+      ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
+      failureReason = if (isFail) FailureReason.SUITABLE_CAS3_APPLICATION else null,
     )
   }
 }

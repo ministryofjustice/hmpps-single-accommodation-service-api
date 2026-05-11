@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -36,10 +37,12 @@ fun buildServiceResult(
   serviceStatus: ServiceStatus = ServiceStatus.NOT_ELIGIBLE,
   action: String? = null,
   link: String? = null,
+  failureReasons: List<FailureReason> = emptyList(),
 ) = ServiceResult(
   serviceStatus = serviceStatus,
   action = action,
   link = link,
+  failureReasons = failureReasons,
 )
 
 fun buildCas1ServiceResult(

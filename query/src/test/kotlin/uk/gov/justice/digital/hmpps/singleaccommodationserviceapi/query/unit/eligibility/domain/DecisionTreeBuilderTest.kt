@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -92,6 +93,35 @@ class DecisionTreeBuilderTest {
   }
 
   @Test
+  fun `confirmed preserves failureReasons when status is NOT_ELIGIBLE`() {
+    val builder = DecisionTreeBuilder(engine)
+    val failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE, failureReasons = failureReasons),
+    )
+
+    val result = builder.confirmed().eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+    assertThat(result.failureReasons).isEqualTo(failureReasons)
+  }
+
+  @Test
+  fun `confirmed strips failureReasons when status is not NOT_ELIGIBLE`() {
+    val builder = DecisionTreeBuilder(engine)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = buildServiceResult(ServiceStatus.NOT_STARTED, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE)),
+    )
+
+    val result = builder.confirmed().eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
+    assertThat(result.failureReasons).isEmpty()
+  }
+
+  @Test
   fun `notEligible creates OutcomeNode with NOT_ELIGIBLE status`() {
     val builder = DecisionTreeBuilder(engine)
 
@@ -128,5 +158,23 @@ class DecisionTreeBuilderTest {
 
     assertThat(result1).isEqualTo(result2)
     assertThat(result1.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+  }
+
+  @Test
+  fun `notEligible carries failureReasons from current context`() {
+    val builder = DecisionTreeBuilder(engine)
+    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = buildServiceResult(
+        serviceStatus = ServiceStatus.NOT_STARTED,
+        failureReasons = failureReasons,
+      ),
+    )
+
+    val result = builder.notEligible().eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+    assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
 }

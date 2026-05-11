@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityNotEligibleSTierFail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
@@ -99,6 +101,55 @@ class EligibilityControllerIT : IntegrationTestBase() {
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponse(
+            crn = crn,
+            cas1ApplicationId = cas1ApplicationId,
+            cas3ApplicationId = cas3ApplicationId,
+            dutyToReferCaseId = dutyToReferCaseId,
+            dutyToReferId = existingEntity.id,
+            localAuthorityAreaId = localAuthorityArea.id,
+            localAuthorityAreaName = localAuthorityArea.name,
+            submissionDate = "2026-01-15",
+            referenceNumber = "DTR-REF-001",
+            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should include S_TIER failureReason in CAS1 eligibility JSON for an S tier candidate`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1S))
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+      crn = crn,
+      response = buildCas1Application(
+        id = cas1ApplicationId,
+        applicationStatus = Cas1ApplicationStatus.REJECTED,
+      ),
+    )
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    caseRepository.save(entity)
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = entity.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 15),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetEligibilityNotEligibleSTierFail(
             crn = crn,
             cas1ApplicationId = cas1ApplicationId,
             cas3ApplicationId = cas3ApplicationId,
