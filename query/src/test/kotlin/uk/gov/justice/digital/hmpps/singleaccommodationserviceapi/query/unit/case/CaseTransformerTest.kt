@@ -63,7 +63,7 @@ class CaseTransformerTest {
   }
 
   @Test
-  fun `returns CaseAccess of EXCLUDED when personDto is RestrictedPersonDto`() {
+  fun `returns CaseAccess of EXCLUDED when personDto is ExcludedPersonDto`() {
     val person = buildExcludedPersonDto(crn)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
