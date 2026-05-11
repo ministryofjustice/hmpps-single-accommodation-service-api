@@ -89,6 +89,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
@@ -192,6 +195,15 @@ class EligibilityServiceTest {
   // COMMON
   var commonContextUpdater = CommonContextUpdater()
 
+  // PA
+  var paEligibilityRuleSet = PaEligibilityRuleSet(
+    listOf(),
+  )
+  var paCompletionRuleSet = PaCompletionRuleSet(
+    listOf(),
+  )
+  var paCompletionContextUpdater = PaCompletionContextUpdater()
+
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
@@ -225,6 +237,9 @@ class EligibilityServiceTest {
     crsCompletionRuleSet = crsCompletionRuleSet,
     crsContextUpdater = crsContextUpdater,
     cas3SuitabilityContextUpdater = cas3SuitabilityContextUpdater,
+    paEligibilityRuleSet = paEligibilityRuleSet,
+    paCompletionRuleSet = paCompletionRuleSet,
+    paCompletionContextUpdater = paCompletionContextUpdater,
   )
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")

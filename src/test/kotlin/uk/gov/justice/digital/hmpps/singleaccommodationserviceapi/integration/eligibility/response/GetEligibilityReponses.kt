@@ -71,6 +71,13 @@ fun expectedGetEligibilityResponse(
          },
          "commissionedRehabilitativeServices":null
       },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"COMPLETED",
+            "action":null,
+            "link":null
+         }
+      },
       "caseActions":[
          "Add DTR outcome",
          "Complete CRS Referral",

@@ -42,6 +42,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 @Service
@@ -89,6 +92,11 @@ class EligibilityService(
   private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
   private val crsCompletionRuleSet: CrsCompletionRuleSet,
   private val crsContextUpdater: CrsContextUpdater,
+
+  // PA
+  private val paEligibilityRuleSet: PaEligibilityRuleSet,
+  private val paCompletionRuleSet: PaCompletionRuleSet,
+  private val paCompletionContextUpdater: PaCompletionContextUpdater,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -127,6 +135,7 @@ class EligibilityService(
     val cas3 = calculateEligibilityForCas3(data)
     val crs = calculateEligibilityForCrs(data)
     val dtr = calculateEligibilityForDtr(data)
+    val pa = calculateEligibilityForPa(data)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
@@ -134,6 +143,7 @@ class EligibilityService(
       cas3 = cas3,
       dtr = dtr,
       crs = crs,
+      pa = pa,
       data = data,
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
@@ -217,7 +227,7 @@ class EligibilityService(
   }
 
   fun calculateEligibilityForCrs(data: DomainData): ServiceResult {
-    log.info("Calculating Crs eligibility for CRN: ${data.crn}")
+    log.info("Calculating CRS eligibility for CRN: ${data.crn}")
 
     data.commissionedRehabilitativeServices?.let {
       log.debug(
@@ -328,7 +338,7 @@ class EligibilityService(
   }
 
   fun calculateEligibilityForDtr(data: DomainData): ServiceResult {
-    log.info("Calculating Dtr eligibility for CRN: ${data.crn}")
+    log.info("Calculating DTR eligibility for CRN: ${data.crn}")
 
     data.dutyToRefer?.let {
       log.debug(
@@ -381,6 +391,41 @@ class EligibilityService(
 
     return tree.eval(initialContext).also {
       log.info("Finished DTR calculating eligibility for CRN: ${data.crn}")
+      logServiceResult(it)
+    }
+  }
+
+  fun calculateEligibilityForPa(data: DomainData): ServiceResult {
+    log.info("Calculating PA eligibility for CRN: ${data.crn}")
+
+    val confirmed = treeBuilder.confirmed()
+    val notEligible = treeBuilder.notEligible()
+
+    val eligibility =
+      treeBuilder
+        .ruleSet("PaEligibility", paEligibilityRuleSet, commonContextUpdater)
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+
+    val tree =
+      treeBuilder
+        .ruleSet("PaCompletion", paCompletionRuleSet, paCompletionContextUpdater)
+        .onPass(confirmed)
+        .onFail(eligibility)
+        .build()
+
+    val initialContext =
+      EvaluationContext(
+        data = data,
+        currentResult =
+        ServiceResult(
+          serviceStatus = ServiceStatus.COMPLETED,
+        ),
+      )
+
+    return tree.eval(initialContext).also {
+      log.info("Finished PA calculating eligibility for CRN: ${data.crn}")
       logServiceResult(it)
     }
   }
