@@ -67,14 +67,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
@@ -85,13 +83,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrStatusRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.HasNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
@@ -168,9 +163,7 @@ class EligibilityServiceTest {
   )
 
   // DTR
-  val dtrUpcomingContextUpdater = DtrUpcomingContextUpdater()
   var dtrUpcomingRuleSet = DtrUpcomingRuleSet(listOf(DtrRecentCurrentAccommodationEndDateRule(clock)))
-  var dtrSuitabilityContextUpdater = DtrSuitabilityContextUpdater()
   var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
     listOf(
       DtrStatusRule(),
@@ -194,10 +187,6 @@ class EligibilityServiceTest {
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     listOf(CrsSubmittedRule(), CrsExpiredRule(clock)),
   )
-  var crsContextUpdater = CrsContextUpdater()
-
-  // COMMON
-  var commonContextUpdater = CommonContextUpdater()
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
@@ -206,7 +195,6 @@ class EligibilityServiceTest {
   var paCompletionRuleSet = PaCompletionRuleSet(
     listOf(HasNextAccommodationRule()),
   )
-  var paCompletionContextUpdater = PaCompletionContextUpdater()
 
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
@@ -217,7 +205,6 @@ class EligibilityServiceTest {
     cas1ValidationRuleSet = cas1ValidationRuleSet,
     cas3ValidationRuleSet = cas3ValidationRuleSet,
     cas1CompletionContextUpdater = cas1CompletionContextUpdater,
-    commonContextUpdater = commonContextUpdater,
     cas3EligibilityRuleSet = cas3EligibilityRuleSet,
     cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
     cas3CompletionRuleSet = cas3CompletionRuleSet,
@@ -225,10 +212,8 @@ class EligibilityServiceTest {
     engine = rulesEngine,
     dtrCompletionRuleSet = dtrCompletionRuleSet,
     dutyToReferQueryService = dutyToReferQueryService,
-    dtrSuitabilityContextUpdater = dtrSuitabilityContextUpdater,
     dtrEligibilityRuleSet = dtrEligibilityRuleSet,
     dtrSuitabilityRuleSet = dtrSuitabilityRuleSet,
-    dtrUpcomingContextUpdater = dtrUpcomingContextUpdater,
     dtrUpcomingRuleSet = dtrUpcomingRuleSet,
     dtrCompletionContextUpdater = dtrCompletionContextUpdater,
     caseRepository = caseRepository,
@@ -239,11 +224,9 @@ class EligibilityServiceTest {
     cas1SuitabilityContextUpdater = cas1SuitabilityContextUpdater,
     crsEligibilityRuleSet = crsEligibilityRuleSet,
     crsCompletionRuleSet = crsCompletionRuleSet,
-    crsContextUpdater = crsContextUpdater,
     cas3SuitabilityContextUpdater = cas3SuitabilityContextUpdater,
     paEligibilityRuleSet = paEligibilityRuleSet,
     paCompletionRuleSet = paCompletionRuleSet,
-    paCompletionContextUpdater = paCompletionContextUpdater,
   )
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
