@@ -4,11 +4,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 
 abstract class ContextUpdater {
+  open val propagatesFailureReasons: Boolean = false
+
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
     val updatedServiceResult = toServiceResult(context)
+    val reasonsToApply = if (propagatesFailureReasons) failureReasons else emptyList()
 
     return context.copy(
-      currentResult = updatedServiceResult.copy(failureReasons = failureReasons.ifEmpty { updatedServiceResult.failureReasons }),
+      currentResult = updatedServiceResult.copy(failureReasons = reasonsToApply.ifEmpty { updatedServiceResult.failureReasons }),
     )
   }
 
