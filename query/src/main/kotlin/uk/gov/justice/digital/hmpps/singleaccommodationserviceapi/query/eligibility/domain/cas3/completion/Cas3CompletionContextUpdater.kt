@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -14,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class Cas3CompletionContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext): ServiceResult {
-    val applicationStatus = context.data.cas3Application?.applicationStatus
     val assessmentStatus = context.data.cas3Application?.assessmentStatus
     val bookingStatus = context.data.cas3Application?.bookingStatus
     return when (bookingStatus) {
@@ -38,7 +36,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
         link = EligibilityKeys.VIEW_REFERRAL,
       )
 
-      null -> when (assessmentStatus) {
+      else -> when (assessmentStatus) {
         Cas3AssessmentStatus.UNALLOCATED,
         Cas3AssessmentStatus.IN_REVIEW,
         Cas3AssessmentStatus.READY_TO_PLACE,
@@ -48,22 +46,12 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
           link = EligibilityKeys.VIEW_REFERRAL,
         )
 
-        null -> when (applicationStatus) {
-          Cas3ApplicationStatus.SUBMITTED,
-          Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
-          -> ServiceResult(
-            serviceStatus = ServiceStatus.SUBMITTED,
-            action = EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT,
-            link = EligibilityKeys.VIEW_REFERRAL,
-          )
-
-          else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
-        }
-
-        else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
+        else -> ServiceResult(
+          serviceStatus = ServiceStatus.SUBMITTED,
+          action = EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT,
+          link = EligibilityKeys.VIEW_REFERRAL,
+        )
       }
-
-      else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
     }
   }
 }
