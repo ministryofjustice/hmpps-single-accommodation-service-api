@@ -26,11 +26,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
@@ -119,6 +121,7 @@ class EligibilityServiceTest {
   private val dutyToReferQueryService = mockk<DutyToReferQueryService>()
 
   private val caseRepository = mockk<CaseRepository>()
+  private val accommodationTypeRepository = mockk<AccommodationTypeRepository>()
 
   // CAS1
   var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
@@ -244,6 +247,7 @@ class EligibilityServiceTest {
     paEligibilityRuleSet = paEligibilityRuleSet,
     paCompletionRuleSet = paCompletionRuleSet,
     paCompletionContextUpdater = paCompletionContextUpdater,
+    accommodationTypeRepository = accommodationTypeRepository,
   )
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -280,13 +284,14 @@ class EligibilityServiceTest {
           cas3Application = cas3Application,
         ),
       )
-      val accommodationSummaryDto = buildAccommodationSummaryDto(endDate = endDate)
       val caseEntity = buildCaseEntity(id = caseId)
       val currentAccommodation = buildAccommodationSummaryDto(endDate = endDate, type = buildAccommodationTypeDto(code = "A02"))
+      val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "AO2")
 
+      every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
       every { accommodationQueryService.getNextAccommodation(crn, cpr.addresses) } returns null
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses) } returns accommodationSummaryDto
+      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses) } returns currentAccommodation
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { caseRepository.findByCrn(crn) } returns caseEntity
 
@@ -449,6 +454,13 @@ class EligibilityServiceTest {
           ),
         )
 
+        val currentAccommodationTypeEntity = currentAccommodation.type?.code?.let {
+          buildAccommodationTypeEntity(
+            code = it,
+            isPrivate = s.isPrivateCurrentAccommodation.toBoolean(),
+          )
+        }
+
         val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
           buildAccommodationSummaryDto()
         } else {
@@ -462,6 +474,7 @@ class EligibilityServiceTest {
           dutyToRefer = dutyToRefer,
           nextAccommodation = nextAccommodation,
           currentAccommodation = currentAccommodation,
+          currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
         val result = eligibilityService.calculateEligibilityForDtr(data)
@@ -570,6 +583,13 @@ class EligibilityServiceTest {
           ),
         )
 
+        val currentAccommodationTypeEntity = currentAccommodation.type?.code?.let {
+          buildAccommodationTypeEntity(
+            code = it,
+            isCas1 = s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean(),
+          )
+        }
+
         val isCrsStatusTerminated = s.isCrsStatusTerminated.toBoolean()
 
         val commissionedRehabilitativeServices = s.crsSubmissionDate?.let {
@@ -595,6 +615,7 @@ class EligibilityServiceTest {
           cas3Application = cas3Application,
           dutyToRefer = dutyToRefer,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+          currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
         val result = eligibilityService.calculateEligibilityForCas3(data)
@@ -856,8 +877,8 @@ class EligibilityServiceTest {
       val data = buildDomainData(
         currentAccommodation = buildAccommodationSummaryDto(
           endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A03"),
         ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = false, isCas1 = false, isCas2 = false),
         cas1Application = null,
         cas3Application = null,
         dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
@@ -968,8 +989,8 @@ class EligibilityServiceTest {
       val data = buildDomainData(
         currentAccommodation = buildAccommodationSummaryDto(
           endDate = today.plusDays(1),
-          type = buildAccommodationTypeDto(code = "A01A"),
         ),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrivate = true),
         nextAccommodation = null,
       )
 

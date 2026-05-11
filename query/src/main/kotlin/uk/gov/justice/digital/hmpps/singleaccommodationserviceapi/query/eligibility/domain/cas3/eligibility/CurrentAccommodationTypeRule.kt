@@ -11,20 +11,11 @@ class CurrentAccommodationTypeRule : Cas3EligibilityRule {
   override val description = "FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = !ALLOWED_TYPES.contains(data.currentAccommodation?.type?.code)
+    val isFail = data.currentAccommodationTypeEntity?.isPrison != true && data.currentAccommodationTypeEntity?.isCas1 != true && data.currentAccommodationTypeEntity?.isCas2 != true
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
       failureReason = if (isFail) FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE else null,
-    )
-  }
-
-  companion object {
-    // TODO add in prison and bail type
-    private val ALLOWED_TYPES = setOf(
-      "A02", // CAS1
-      "A10", // CAS2
-      "A11", // CAS2
     )
   }
 }

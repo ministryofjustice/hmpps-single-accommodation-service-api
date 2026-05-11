@@ -11,21 +11,11 @@ class CurrentAddressTypeNotPrivateRule : DtrEligibilityRule {
   override val description = "FAIL if current address is Private"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = ALLOWED_TYPES.contains(data.currentAccommodation?.type?.code)
+    val isFail = data.currentAccommodationTypeEntity != null && data.currentAccommodationTypeEntity.isPrivate
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
       failureReason = if (isFail) FailureReason.CURRENT_ADDRESS_IS_PRIVATE else null,
-    )
-  }
-
-  companion object {
-    private val ALLOWED_TYPES = setOf(
-      "A07B", // Friends/Family (settled)
-      "A07A", // Friends/Family (transient)
-      "A01A", // Householder (Owner - freehold or leasehold)
-      "A01C", // Rental accommodation - private rental
-      "A01D", // Rental accommodation - social rental (LA or other)"
     )
   }
 }

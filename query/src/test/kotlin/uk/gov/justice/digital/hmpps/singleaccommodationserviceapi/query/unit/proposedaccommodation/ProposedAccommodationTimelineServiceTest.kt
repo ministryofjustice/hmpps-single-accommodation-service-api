@@ -57,7 +57,7 @@ class ProposedAccommodationTimelineServiceTest {
       val proposedAccommodationEntity = buildProposedAccommodationEntity(caseId = caseId)
       val auditEvent = buildAuditRecordDto()
       val accommodationType = buildAccommodationTypeEntity(
-        deliusCode = "A07B",
+        code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
       every {
@@ -110,7 +110,7 @@ class ProposedAccommodationTimelineServiceTest {
         this.notes.addAll(notes)
       }
       val accommodationType = buildAccommodationTypeEntity(
-        deliusCode = "A07B",
+        code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
       val expectedProposedAccommodationCreatedAuditRecord = buildAuditRecordDto()
@@ -177,7 +177,7 @@ class ProposedAccommodationTimelineServiceTest {
     fun `should return proposed accommodation timeline and replace accommodationTypeId create field change with description`() {
       val crn = "X12345"
       val accommodationType = buildAccommodationTypeEntity(
-        deliusCode = "A07B",
+        code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
       val proposedAccommodationEntity = buildProposedAccommodationEntity(
@@ -219,11 +219,11 @@ class ProposedAccommodationTimelineServiceTest {
     fun `should return proposed accommodation timeline and replaces accommodationTypeId update field change with description values`() {
       val id = UUID.randomUUID()
       val oldType = buildAccommodationTypeEntity(
-        deliusCode = "A07B",
+        code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
       val newType = buildAccommodationTypeEntity(
-        deliusCode = "A01D",
+        code = "A01D",
         name = "Rental accommodation - social rental (LA or other)",
       )
       val proposedAccommodationEntity = buildProposedAccommodationEntity(

@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import java.time.LocalDate
 
@@ -16,6 +17,7 @@ data class DomainData(
   val tierScore: TierScore?,
   val sex: SexCode?,
   val currentAccommodation: AccommodationSummaryDto?,
+  val currentAccommodationTypeEntity: AccommodationTypeEntity?,
   val nextAccommodation: AccommodationSummaryDto?,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
@@ -32,11 +34,13 @@ data class DomainData(
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
+    accommodationTypes: List<AccommodationTypeEntity>,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
     sex = cpr?.sex?.code,
     currentAccommodation = currentAccommodation,
+    currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
     nextAccommodation = nextAccommodation,
     cas1Application = cas1Application,
     cas3Application = cas3Application,
@@ -54,6 +58,7 @@ data class DomainData(
     tierScore = caseEntity?.tierScore,
     sex = sexCode,
     currentAccommodation = null,
+    currentAccommodationTypeEntity = null,
     nextAccommodation = null,
     cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {
       Cas1Application(
