@@ -27,7 +27,7 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
         link = EligibilityKeys.START_NEW_REFERRAL,
       )
 
-      null -> when (assessmentStatus) {
+      else -> when (assessmentStatus) {
         Cas3AssessmentStatus.CLOSED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_STARTED,
           action = EligibilityKeys.START_CAS3_REFERRAL,
@@ -40,7 +40,7 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
           link = EligibilityKeys.START_NEW_REFERRAL,
         )
 
-        null -> when (applicationStatus) {
+        else -> when (applicationStatus) {
           Cas3ApplicationStatus.IN_PROGRESS -> ServiceResult(
             serviceStatus = ServiceStatus.NOT_SUBMITTED,
             link = EligibilityKeys.VIEW_REFERRAL,
@@ -52,19 +52,13 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
             link = EligibilityKeys.START_NEW_REFERRAL,
           )
 
-          null -> ServiceResult(
+          else -> ServiceResult(
             serviceStatus = ServiceStatus.NOT_STARTED,
             action = EligibilityKeys.START_CAS3_REFERRAL,
             link = EligibilityKeys.START_REFERRAL,
           )
-
-          else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
         }
-
-        else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
       }
-
-      else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
     }
   }
 }

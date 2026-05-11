@@ -17,11 +17,16 @@ data class AccommodationTypeEntity(
   @Id
   override val id: UUID,
   override val name: String,
-  @Column(name = "delius_code")
+  @Column(name = "type_code")
   override val code: String,
   @Enumerated(EnumType.STRING)
   val settledType: AccommodationSettledType,
   val active: Boolean,
+  val isProposed: Boolean,
+  val isPrivate: Boolean,
+  val isPrison: Boolean,
+  val isCas1: Boolean,
+  val isCas2: Boolean,
 ) : ReferenceData
 
 enum class AccommodationSettledType {

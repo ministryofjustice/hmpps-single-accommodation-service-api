@@ -25,17 +25,17 @@ enum class AuditRecordType {
 }
 
 interface FieldChange {
-  val field: String
-  val value: String?
+  var field: String
+  var value: String?
 }
 
 data class UpdateFieldChangeDto(
-  override val field: String,
-  override val value: String?,
-  val oldValue: String?,
+  override var field: String,
+  override var value: String?,
+  var oldValue: String?,
 ) : FieldChange
 
 data class CreateFieldChangeDto(
-  override val field: String,
-  override val value: String?,
+  override var field: String,
+  override var value: String?,
 ) : FieldChange

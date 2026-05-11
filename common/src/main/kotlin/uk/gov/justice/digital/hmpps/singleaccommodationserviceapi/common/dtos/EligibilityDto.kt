@@ -8,6 +8,7 @@ data class EligibilityDto(
   val cas3: Cas3ServiceResult,
   val dtr: DtrServiceResult,
   val crs: CrsServiceResult,
+  val pa: PaServiceResult,
   val caseActions: List<String>,
 )
 
@@ -15,6 +16,10 @@ data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val action: String? = null,
   val link: String? = null,
+)
+
+data class PaServiceResult(
+  val serviceResult: ServiceResult,
 )
 
 data class DtrServiceResult(
@@ -44,6 +49,7 @@ enum class ServiceStatus {
   NOT_STARTED,
   NOT_SUBMITTED,
   INFO_REQUESTED,
+  COMPLETED,
   REJECTED,
   WITHDRAWN,
   SUBMITTED,

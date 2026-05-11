@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as InfraCas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus as InfraCas3ApplicationStatus
@@ -70,6 +71,9 @@ class EligibilityTransformerTest {
       action = EligibilityKeys.ADD_DTR_OUTCOME,
       link = EligibilityKeys.ADD_OUTCOME,
     )
+    val pa = buildServiceResult(
+      serviceStatus = ServiceStatus.COMPLETED,
+    )
 
     val cas1ServiceResult = buildCas1ServiceResult(
       result = cas1,
@@ -88,8 +92,10 @@ class EligibilityTransformerTest {
       result = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
     )
-
-    val caseActions = listOfNotNull(dtr.action, crs.action, cas1.action, cas3.action)
+    val paServiceResult = buildPaServiceResult(
+      result = pa,
+    )
+    val caseActions = listOfNotNull(dtr.action, crs.action, cas1.action, cas3.action, pa.action)
 
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
@@ -97,6 +103,7 @@ class EligibilityTransformerTest {
       cas3 = cas3ServiceResult,
       dtr = dtrServiceResult,
       crs = crsServiceResult,
+      pa = paServiceResult,
       caseActions = caseActions,
     )
 
@@ -106,6 +113,7 @@ class EligibilityTransformerTest {
       cas3 = cas3,
       dtr = dtr,
       crs = crs,
+      pa = pa,
       data = data,
     )
 

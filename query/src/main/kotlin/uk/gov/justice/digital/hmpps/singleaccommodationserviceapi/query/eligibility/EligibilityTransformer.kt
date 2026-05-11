@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
@@ -35,6 +36,7 @@ object EligibilityTransformer {
     cas3: ServiceResult,
     dtr: ServiceResult,
     crs: ServiceResult,
+    pa: ServiceResult,
     data: DomainData,
   ) = EligibilityDto(
     crn = crn,
@@ -55,12 +57,16 @@ object EligibilityTransformer {
       serviceResult = crs,
       commissionedRehabilitativeServices = toCommissionedRehabilitativeServicesDto(data.commissionedRehabilitativeServices),
     ),
+    pa = PaServiceResult(
+      serviceResult = pa,
+    ),
     caseActions =
     listOf(
       dtr.action,
       crs.action,
       cas1.action,
       cas3.action,
+      pa.action,
     ).mapNotNull { it },
   )
 
