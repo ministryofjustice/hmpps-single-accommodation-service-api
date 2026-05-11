@@ -34,12 +34,19 @@ class RuleSetNode(
   override fun eval(context: EvaluationContext): ServiceResult {
     log.debug("Executing RuleSet: $ruleSetName")
 
-    val ruleSetStatus = engine.execute(ruleSet, context.data).also {
-      log.debug("RuleSet Result: {}", it)
+    val evaluation = engine.execute(ruleSet, context.data)
+    log.debug("RuleSet {} status: {}", ruleSetName, evaluation.status)
+
+    if (evaluation.status == RuleSetStatus.FAIL) {
+      log.info(
+        "RuleSet {} FAILED: {}",
+        ruleSetName,
+        evaluation.failures.joinToString(", ") { it.description },
+      )
     }
 
     // Branch based on result: PASS returns current context unchanged, FAIL updates context
-    return when (ruleSetStatus) {
+    return when (evaluation.status) {
       // On PASS, return current context without updating
       RuleSetStatus.PASS -> onPass.eval(context)
       // On FAIL, update context and continue to next node

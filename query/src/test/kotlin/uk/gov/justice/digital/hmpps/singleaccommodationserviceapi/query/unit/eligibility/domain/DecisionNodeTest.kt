@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.OutcomeNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetEvaluation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -93,7 +94,7 @@ class DecisionNodeTest {
         )
       val expectedResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
-      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetStatus.PASS
+      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetEvaluation(RuleSetStatus.PASS, emptyList())
       every { onPassNode.eval(initialContext) } returns expectedResult
 
       val ruleSetNode =
@@ -135,7 +136,7 @@ class DecisionNodeTest {
         )
       val expectedResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
 
-      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetStatus.FAIL
+      every { engine.execute(ruleSet, initialContext.data) } returns RuleSetEvaluation(RuleSetStatus.FAIL, emptyList())
       every { contextUpdater.update(initialContext) } returns
         updatedContext
       every { onFailNode.eval(updatedContext) } returns expectedResult
@@ -174,7 +175,7 @@ class DecisionNodeTest {
           currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
         )
 
-      every { engine.execute(any(), any()) } returns RuleSetStatus.PASS
+      every { engine.execute(any(), any()) } returns RuleSetEvaluation(RuleSetStatus.PASS, emptyList())
       every { onPassNode.eval(any()) } returns buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
 
       val ruleSetNode =
@@ -210,7 +211,7 @@ class DecisionNodeTest {
         currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
       )
 
-      every { engine.execute(any(), any()) } returns RuleSetStatus.FAIL
+      every { engine.execute(any(), any()) } returns RuleSetEvaluation(RuleSetStatus.FAIL, emptyList())
       every { contextUpdater.update(context) } returns updatedContext
       every { onFailNode.eval(any()) } returns buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
 

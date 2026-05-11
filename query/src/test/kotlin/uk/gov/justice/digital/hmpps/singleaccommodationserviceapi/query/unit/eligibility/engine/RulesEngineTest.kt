@@ -52,7 +52,8 @@ class RulesEngineTest {
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
 
-    assertThat(result).isEqualTo(RuleSetStatus.PASS)
+    assertThat(result.status).isEqualTo(RuleSetStatus.PASS)
+    assertThat(result.failures).isEmpty()
   }
 
   @Test
@@ -66,6 +67,8 @@ class RulesEngineTest {
 
     val result = defaultRulesEngine.execute(cas1EligibilityRuleSet, data)
 
-    assertThat(result).isEqualTo(RuleSetStatus.FAIL)
+    assertThat(result.status).isEqualTo(RuleSetStatus.FAIL)
+    assertThat(result.failures).isNotEmpty()
+    assertThat(result.results).hasSize(3)
   }
 }
