@@ -4,7 +4,7 @@ import java.util.UUID
 
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
-  accommodationTypeId: UUID,
+  accommodationDescription: String,
   caseId: UUID,
   createCommitTime: String,
 ): String = """
@@ -28,8 +28,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"Mother's caravan"
          },
          {
-            "field":"accommodationTypeId",
-            "value":"$accommodationTypeId"
+            "field":"accommodationTypeDescription",
+            "value":"$accommodationDescription"
          },
          {
             "field":"verificationStatus",
@@ -96,8 +96,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
   caseId: UUID,
-  initialAccommodationTypeId: UUID,
-  updatedAccommodationTypeId: UUID,
+  initialAccommodationTypeDescription: String,
+  updatedAccommodationTypeDescription: String,
   createCommitTime: String,
   createNoteCommitTime: String,
   update1CommitTime: String,
@@ -148,9 +148,9 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "commitDate":"$update1CommitTime",
       "changes":[
          {
-            "field":"accommodationTypeId",
-            "value":"$updatedAccommodationTypeId",
-            "oldValue":"$initialAccommodationTypeId"
+            "field":"accommodationTypeDescription",
+            "value":"$updatedAccommodationTypeDescription",
+            "oldValue":"$initialAccommodationTypeDescription"
          },
          {
             "field":"verificationStatus",
@@ -203,8 +203,8 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"Mother's caravan"
          },
          {
-            "field":"accommodationTypeId",
-            "value":"$initialAccommodationTypeId"
+            "field":"accommodationTypeDescription",
+            "value":"$initialAccommodationTypeDescription"
          },
          {
             "field":"verificationStatus",
