@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -20,6 +21,11 @@ import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.ZoneOffset
 
+@ConditionalOnProperty(
+  name = ["hmpps.sqs.enabled"],
+  havingValue = "true",
+  matchIfMissing = true, // will default to true if no config provided.
+)
 @Profile(value = ["local", "dev", "test"])
 @Component
 class OutboxEventPublisher(
@@ -42,13 +48,12 @@ class OutboxEventPublisher(
   )
   @Transactional
   fun publish() {
-    log.info("Start OutboxEventPublisher...")
     val outboxEventsToPublish = outboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING)
     if (outboxEventsToPublish.isEmpty()) {
-      log.info("No events to publish")
       return
     }
     outboxEventsToPublish.forEach {
+      log.debug("Publishing Event [{}]", it.id)
       val eventType = SingleAccommodationServiceDomainEventType.from(it.domainEventType)!!
       val publishResult = publishHmppsDomainEvent(outboxEventEntity = it, eventType)
       log.info("Emitted SNS event (Message Id: ${publishResult.messageId()}, Sequence Id: ${publishResult.sequenceNumber()}) for Outbox Event: ${it.id} of type: $eventType")

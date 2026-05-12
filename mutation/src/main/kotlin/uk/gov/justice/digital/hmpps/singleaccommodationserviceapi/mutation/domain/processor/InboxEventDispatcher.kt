@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withPermit
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -31,6 +32,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * with different keys run in parallel using coroutines. Events are fetched ordered by
  * [eventOccurredAt] ascending; within each partition, this order is preserved.
  */
+@ConditionalOnProperty(
+  name = ["hmpps.sqs.enabled"],
+  havingValue = "true",
+  matchIfMissing = true, // will default to true if no config provided.
+)
 @Profile(value = ["local", "dev", "test"])
 @Component
 class InboxEventDispatcher(
@@ -61,7 +67,6 @@ class InboxEventDispatcher(
   fun process() = runBlocking {
     val inboxEvents = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
     if (inboxEvents.isEmpty()) {
-      log.debug("No pending inbox events to process")
       return@runBlocking
     }
 
