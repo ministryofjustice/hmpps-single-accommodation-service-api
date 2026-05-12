@@ -239,6 +239,7 @@ class DecisionNodeTest {
       val onPassNode: DecisionNode = mockk()
       val onFailNode: DecisionNode = mockk()
       val contextUpdater = object : ContextUpdater() {
+        override val propagatesFailureReasons = true
         override fun toServiceResult(context: EvaluationContext): ServiceResult = buildServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE)
       }
 

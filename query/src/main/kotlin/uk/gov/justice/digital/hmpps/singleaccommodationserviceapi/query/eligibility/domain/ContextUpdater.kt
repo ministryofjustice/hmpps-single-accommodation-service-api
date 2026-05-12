@@ -4,13 +4,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 
 abstract class ContextUpdater {
+  open val propagatesFailureReasons: Boolean = false
+
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
     val updatedServiceResult = toServiceResult(context)
-    // Use reasons from the Ruleset that just failed, fallback to any updater defined by the context
-    val mergedFailureReasons = failureReasons.ifEmpty { updatedServiceResult.failureReasons }
+    val reasonsToApply = if (propagatesFailureReasons) failureReasons else emptyList()
 
     return context.copy(
-      currentResult = updatedServiceResult.copy(failureReasons = mergedFailureReasons),
+      currentResult = updatedServiceResult.copy(failureReasons = reasonsToApply.ifEmpty { updatedServiceResult.failureReasons }),
     )
   }
 
@@ -22,9 +23,10 @@ abstract class ContextUpdater {
       override fun toServiceResult(context: EvaluationContext): ServiceResult = result
     }
 
-    /** Returns a ContextUpdater that leaves the current ServiceResult unchanged. */
+    /** Returns a ContextUpdater that leaves the current ServiceResult unchanged and propagates failure reasons. */
     fun identity(): ContextUpdater = object : ContextUpdater() {
-      override fun toServiceResult(context: EvaluationContext): ServiceResult = context.currentResult
+      override val propagatesFailureReasons = true
+      override fun toServiceResult(context: EvaluationContext): ServiceResult = context.currentResult.copy(failureReasons = emptyList())
     }
   }
 }

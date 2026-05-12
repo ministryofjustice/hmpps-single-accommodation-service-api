@@ -17,7 +17,13 @@ data class CorePersonRecord(
   var nationalities: List<Nationality> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val identifiers: Identifiers? = null,
-)
+) {
+  fun toFullName() = listOfNotNull(
+    firstName,
+    middleNames?.takeIf { it.isNotBlank() },
+    lastName,
+  ).joinToString(" ")
+}
 
 data class Title(
   val code: String? = null,
