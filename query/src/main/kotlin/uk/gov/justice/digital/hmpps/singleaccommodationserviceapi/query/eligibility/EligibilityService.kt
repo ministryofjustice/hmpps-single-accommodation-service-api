@@ -41,7 +41,7 @@ class EligibilityService(
     caseEntity: CaseEntity?,
     dutyToRefer: DutyToReferDto?,
   ): EligibilityDto {
-    log.info("Calculating eligibility for CRN: $crn from the sas_case table")
+    log.debug("Calculating eligibility for CRN: {} from the sas_case table", crn)
     val data = DomainData(
       crn = crn,
       sexCode = SexCode.findByGender(gender),
@@ -52,7 +52,7 @@ class EligibilityService(
   }
 
   fun getEligibility(crn: String): EligibilityDto {
-    log.info("Calculating eligibility for CRN: $crn using external APIs")
+    log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
     val data = getDomainData(crn)
     return getEligibility(data)
   }
@@ -91,7 +91,7 @@ class EligibilityService(
   internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult = provider.tree().eval(provider.initialContext(data))
 
   private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {
-    log.info("Calculating $line eligibility for CRN: ${data.crn}")
+    log.debug("Calculating {} eligibility for CRN: {}}", line, data.crn)
     return evaluate(provider, data).also {
       log.info(
         "$line Service Result for CRN ${data.crn}: serviceStatus={}, action={}, link={}",

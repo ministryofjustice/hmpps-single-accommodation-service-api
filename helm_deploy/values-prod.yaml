@@ -10,6 +10,7 @@ generic-service:
     JAVA_OPTS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: prod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
+    HMPPS_SQS_ENABLED: false
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius.hmpps.service.justice.gov.uk
