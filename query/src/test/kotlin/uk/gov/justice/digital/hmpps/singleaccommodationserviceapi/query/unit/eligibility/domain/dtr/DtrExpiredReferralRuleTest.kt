@@ -1,13 +1,13 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.common
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.dtr
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
@@ -25,7 +25,13 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL, failureReason = FailureReason.DTR_REFERRAL_EXPIRED))
+    Assertions.assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.DTR_REFERRAL_EXPIRED,
+      ),
+    )
   }
 
   @Test
@@ -36,45 +42,69 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL, failureReason = FailureReason.DTR_REFERRAL_EXPIRED))
+    Assertions.assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.DTR_REFERRAL_EXPIRED,
+      ),
+    )
   }
 
   @Test
   fun `candidate passes when DTR submission date is exactly 26 weeks ago`() {
     val data = buildDomainData(
-      dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = LocalDate.now(clock).minusWeeks(26))),
+      dutyToRefer = buildDutyToReferDto(
+        submission = buildDtrSubmission(
+          submissionDate = LocalDate.now(clock).minusWeeks(26),
+        ),
+      ),
     )
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
+    Assertions.assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
   fun `candidate passes when DTR submission date is within 26 weeks ago`() {
     val data = buildDomainData(
-      dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = LocalDate.now(clock).minusDays(100))),
+      dutyToRefer = buildDutyToReferDto(
+        submission = buildDtrSubmission(
+          submissionDate = LocalDate.now(clock).minusDays(100),
+        ),
+      ),
     )
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
+    Assertions.assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
   fun `candidate fails when DTR submission date is more than 26 weeks ago`() {
     val data = buildDomainData(
-      dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = LocalDate.now(clock).minusDays(200))),
+      dutyToRefer = buildDutyToReferDto(
+        submission = buildDtrSubmission(
+          submissionDate = LocalDate.now(clock).minusDays(200),
+        ),
+      ),
     )
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.FAIL, failureReason = FailureReason.DTR_REFERRAL_EXPIRED))
+    Assertions.assertThat(result).isEqualTo(
+      RuleResult(
+        description = description,
+        ruleStatus = RuleStatus.FAIL,
+        failureReason = FailureReason.DTR_REFERRAL_EXPIRED,
+      ),
+    )
   }
 
   @Test
   fun `rule has correct description`() {
-    assertThat(DtrExpiredReferralRule(clock).description)
+    Assertions.assertThat(DtrExpiredReferralRule(clock).description)
       .isEqualTo("FAIL if DTR is submitted more than 26 weeks ago.")
   }
 }
