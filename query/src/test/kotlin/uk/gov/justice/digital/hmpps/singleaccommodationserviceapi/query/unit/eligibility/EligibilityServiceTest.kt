@@ -56,6 +56,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1SexValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
@@ -215,15 +216,23 @@ class EligibilityServiceTest {
     eligibility = cas1EligibilityRuleSet,
   )
 
+  private val cas3Tree = Cas3EligibilityTreeProvider(
+    builder = builder,
+    validation = cas3ValidationRuleSet,
+    upcoming = cas3UpcomingRuleSet,
+    upcomingContextUpdater = cas3UpcomingContextUpdater,
+    suitability = cas3SuitabilityRuleSet,
+    suitabilityContextUpdater = cas3SuitabilityContextUpdater,
+    completion = cas3CompletionRuleSet,
+    completionContextUpdater = cas3CompletionContextUpdater,
+    eligibility = cas3EligibilityRuleSet,
+  )
+
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
     cas1Tree = cas1Tree,
-    cas3ValidationRuleSet = cas3ValidationRuleSet,
-    cas3EligibilityRuleSet = cas3EligibilityRuleSet,
-    cas3SuitabilityRuleSet = cas3SuitabilityRuleSet,
-    cas3CompletionRuleSet = cas3CompletionRuleSet,
-    cas3CompletionContextUpdater = cas3CompletionContextUpdater,
+    cas3Tree = cas3Tree,
     engine = rulesEngine,
     dtrCompletionRuleSet = dtrCompletionRuleSet,
     dutyToReferQueryService = dutyToReferQueryService,
@@ -232,11 +241,8 @@ class EligibilityServiceTest {
     dtrUpcomingRuleSet = dtrUpcomingRuleSet,
     dtrCompletionContextUpdater = dtrCompletionContextUpdater,
     caseRepository = caseRepository,
-    cas3UpcomingRuleSet = cas3UpcomingRuleSet,
-    cas3UpcomingContextUpdater = cas3UpcomingContextUpdater,
     crsEligibilityRuleSet = crsEligibilityRuleSet,
     crsCompletionRuleSet = crsCompletionRuleSet,
-    cas3SuitabilityContextUpdater = cas3SuitabilityContextUpdater,
     paEligibilityRuleSet = paEligibilityRuleSet,
     paCompletionRuleSet = paCompletionRuleSet,
     accommodationTypeRepository = accommodationTypeRepository,
@@ -610,7 +616,7 @@ class EligibilityServiceTest {
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
-        val result = eligibilityService.calculateEligibilityForCas3(data)
+        val result = eligibilityService.evaluate(cas3Tree, data)
 
         assertThat(result.serviceStatus)
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
@@ -876,7 +882,7 @@ class EligibilityServiceTest {
         dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
       )
 
-      val result = eligibilityService.calculateEligibilityForCas3(data)
+      val result = eligibilityService.evaluate(cas3Tree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE)
@@ -896,7 +902,7 @@ class EligibilityServiceTest {
         dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
       )
 
-      val result = eligibilityService.calculateEligibilityForCas3(data)
+      val result = eligibilityService.evaluate(cas3Tree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.CONFLICTING_CAS1_BOOKING)
@@ -916,7 +922,7 @@ class EligibilityServiceTest {
         ),
       )
 
-      val result = eligibilityService.calculateEligibilityForCas3(data)
+      val result = eligibilityService.evaluate(cas3Tree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.CRS_EXPIRED)
@@ -936,7 +942,7 @@ class EligibilityServiceTest {
         ),
       )
 
-      val result = eligibilityService.calculateEligibilityForCas3(data)
+      val result = eligibilityService.evaluate(cas3Tree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED)
@@ -952,7 +958,7 @@ class EligibilityServiceTest {
         dutyToRefer = null,
       )
 
-      val result = eligibilityService.calculateEligibilityForCas3(data)
+      val result = eligibilityService.evaluate(cas3Tree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.DTR_REFERRAL_EXPIRED)

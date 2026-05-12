@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
@@ -52,14 +53,7 @@ class EligibilityService(
   private val cas1Tree: Cas1EligibilityTreeProvider,
 
   // CAS3
-  private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
-  private val cas3CompletionContextUpdater: Cas3CompletionContextUpdater,
-  private val cas3EligibilityRuleSet: Cas3EligibilityRuleSet,
-  private val cas3SuitabilityRuleSet: Cas3SuitabilityRuleSet,
-  private val cas3SuitabilityContextUpdater: Cas3SuitabilityContextUpdater,
-  private val cas3UpcomingRuleSet: Cas3UpcomingRuleSet,
-  private val cas3UpcomingContextUpdater: Cas3UpcomingContextUpdater,
-  private val cas3ValidationRuleSet: Cas3ValidationRuleSet,
+  private val cas3Tree: Cas3EligibilityTreeProvider,
 
   // DTR
   private val dtrCompletionRuleSet: DtrCompletionRuleSet,
@@ -116,7 +110,7 @@ class EligibilityService(
     )
 
     val cas1 = evaluate("CAS1", data, cas1Tree)
-    val cas3 = calculateEligibilityForCas3(data)
+    val cas3 = evaluate("CAS3", data, cas3Tree)
     val crs = calculateEligibilityForCrs(data)
     val dtr = calculateEligibilityForDtr(data)
     val pa = calculateEligibilityForPa(data)
@@ -203,73 +197,6 @@ class EligibilityService(
 
     return tree.eval(initialContext).also {
       log.info("Finished CRS calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
-    }
-  }
-
-  fun calculateEligibilityForCas3(data: DomainData): ServiceResult {
-    log.info("Calculating CAS3 eligibility for CRN: ${data.crn}")
-
-    data.cas3Application?.let {
-      log.debug(
-        "CAS3 Data received: id={}, applicationStatus={}, bookingStatus={}",
-        it.id,
-        it.applicationStatus,
-        it.bookingStatus,
-      )
-    } ?: log.debug("CAS3 Data received: No CAS3 application")
-
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-    val bookingConfirmed = treeBuilder.bookingConfirmed()
-
-    val eligibility =
-      treeBuilder
-        .ruleSet("Cas3Eligibility", cas3EligibilityRuleSet)
-        .onPass(confirmed)
-        .onFail(notEligible)
-        .build()
-
-    val completion =
-      treeBuilder
-        .ruleSet("Cas3Completion", cas3CompletionRuleSet, cas3CompletionContextUpdater)
-        .onPass(bookingConfirmed)
-        .onFail(confirmed)
-        .build()
-
-    val suitability =
-      treeBuilder
-        .ruleSet("Cas3Suitability", cas3SuitabilityRuleSet, cas3SuitabilityContextUpdater)
-        .onPass(completion)
-        .onFail(eligibility)
-        .build()
-
-    val upcoming =
-      treeBuilder
-        .ruleSet("Cas3Upcoming", cas3UpcomingRuleSet, cas3UpcomingContextUpdater)
-        .onPass(suitability)
-        .onFail(eligibility)
-        .build()
-
-    val tree =
-      treeBuilder
-        .ruleSet("Cas3Validation", cas3ValidationRuleSet)
-        .onPass(upcoming)
-        .onFail(notEligible)
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-          link = EligibilityKeys.VIEW_REFERRAL,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished CAS3 calculating eligibility for CRN: ${data.crn}")
       logServiceResult(it)
     }
   }
