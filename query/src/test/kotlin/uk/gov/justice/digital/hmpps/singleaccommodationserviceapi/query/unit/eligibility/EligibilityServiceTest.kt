@@ -81,6 +81,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
@@ -228,18 +229,23 @@ class EligibilityServiceTest {
     eligibility = cas3EligibilityRuleSet,
   )
 
+  private val dtrTree = DtrEligibilityTreeProvider(
+    builder = builder,
+    upcoming = dtrUpcomingRuleSet,
+    suitability = dtrSuitabilityRuleSet,
+    completion = dtrCompletionRuleSet,
+    completionContextUpdater = dtrCompletionContextUpdater,
+    eligibility = dtrEligibilityRuleSet,
+  )
+
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
     cas1Tree = cas1Tree,
     cas3Tree = cas3Tree,
+    dtrTree = dtrTree,
     engine = rulesEngine,
-    dtrCompletionRuleSet = dtrCompletionRuleSet,
     dutyToReferQueryService = dutyToReferQueryService,
-    dtrEligibilityRuleSet = dtrEligibilityRuleSet,
-    dtrSuitabilityRuleSet = dtrSuitabilityRuleSet,
-    dtrUpcomingRuleSet = dtrUpcomingRuleSet,
-    dtrCompletionContextUpdater = dtrCompletionContextUpdater,
     caseRepository = caseRepository,
     crsEligibilityRuleSet = crsEligibilityRuleSet,
     crsCompletionRuleSet = crsCompletionRuleSet,
@@ -475,7 +481,7 @@ class EligibilityServiceTest {
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
-        val result = eligibilityService.calculateEligibilityForDtr(data)
+        val result = eligibilityService.evaluate(dtrTree, data)
 
         assertThat(result.serviceStatus)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedDtrStatus}")
@@ -975,7 +981,7 @@ class EligibilityServiceTest {
         nextAccommodation = buildAccommodationSummaryDto(),
       )
 
-      val result = eligibilityService.calculateEligibilityForDtr(data)
+      val result = eligibilityService.evaluate(dtrTree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.HAS_NEXT_ACCOMMODATION)
@@ -992,7 +998,7 @@ class EligibilityServiceTest {
         nextAccommodation = null,
       )
 
-      val result = eligibilityService.calculateEligibilityForDtr(data)
+      val result = eligibilityService.evaluate(dtrTree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.CURRENT_ADDRESS_IS_PRIVATE)

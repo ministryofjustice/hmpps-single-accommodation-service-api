@@ -1,0 +1,78 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr
+
+import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+
+@Component
+class DtrEligibilityTreeProvider(
+  private val builder: DecisionTreeBuilder,
+  private val upcoming: DtrUpcomingRuleSet,
+  private val suitability: DtrSuitabilityRuleSet,
+  private val completion: DtrCompletionRuleSet,
+  private val completionContextUpdater: DtrCompletionContextUpdater,
+  private val eligibility: DtrEligibilityRuleSet,
+) : EligibilityTreeProvider {
+
+  private val tree: DecisionNode by lazy { build() }
+
+  override fun tree(): DecisionNode = tree
+
+  override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
+    data = data,
+    currentResult = ServiceResult(serviceStatus = ServiceStatus.ACCEPTED),
+  )
+
+  private fun build(): DecisionNode {
+    val confirmed = builder.confirmed()
+    val notEligible = builder.notEligible()
+    val accepted = builder.outcome(ServiceResult(ServiceStatus.ACCEPTED))
+
+    val eligibilityNode = builder
+      .ruleSet("DtrEligibility", eligibility)
+      .onPass(confirmed)
+      .onFail(notEligible)
+      .build()
+
+    val completionNode = builder
+      .ruleSet("DtrCompletion", completion, completionContextUpdater)
+      .onPass(accepted)
+      .onFail(confirmed)
+      .build()
+
+    val suitabilityNode = builder
+      .ruleSet(
+        "DtrSuitability",
+        suitability,
+        onFailResult = ServiceResult(
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+          link = EligibilityKeys.ADD_REFERRAL_DETAILS,
+        ),
+      )
+      .onPass(completionNode)
+      .onFail(eligibilityNode)
+      .build()
+
+    return builder
+      .ruleSet(
+        "DtrUpcoming",
+        upcoming,
+        onFailResult = ServiceResult(serviceStatus = ServiceStatus.UPCOMING),
+      )
+      .onPass(suitabilityNode)
+      .onFail(eligibilityNode)
+      .build()
+  }
+}
