@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
@@ -44,7 +45,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Service
 class EligibilityService(
+
   private val accommodationQueryService: AccommodationQueryService,
+  private val accommodationTypeRepository: AccommodationTypeRepository,
   private val caseRepository: CaseRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
@@ -452,6 +455,7 @@ class EligibilityService(
   }
 
   fun getDomainData(crn: String): DomainData {
+    val accommodationTypes = accommodationTypeRepository.findAll()
     val caseEntity = caseRepository.findByCrn(crn)
 
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
@@ -486,6 +490,7 @@ class EligibilityService(
       dutyToRefer = dutyToRefer,
       // TODO connect to crs endpoint when it becomes available
       commissionedRehabilitativeServices = null,
+      accommodationTypes = accommodationTypes,
     )
   }
 }

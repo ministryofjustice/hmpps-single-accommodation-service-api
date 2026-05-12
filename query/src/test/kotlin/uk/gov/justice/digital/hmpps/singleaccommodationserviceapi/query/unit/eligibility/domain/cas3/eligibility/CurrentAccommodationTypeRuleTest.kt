@@ -3,8 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
@@ -13,14 +12,37 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 class CurrentAccommodationTypeRuleTest {
   private val description = "FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison"
 
-  // TODO turn these into parameterized test once the types are known for certain
   @Test
-  fun `candidate passes when current accommodation is eligible type`() {
+  fun `candidate passes when current accommodation is prison type`() {
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(
-        type = buildAccommodationTypeDto(
-          code = "A02",
-        ),
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+        isPrison = true,
+      ),
+    )
+
+    val result = CurrentAccommodationTypeRule().evaluate(data)
+
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
+  }
+
+  @Test
+  fun `candidate passes when current accommodation is cas1 type`() {
+    val data = buildDomainData(
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+        isCas1 = true,
+      ),
+    )
+
+    val result = CurrentAccommodationTypeRule().evaluate(data)
+
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
+  }
+
+  @Test
+  fun `candidate passes when current accommodation is cas2 type`() {
+    val data = buildDomainData(
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+        isCas2 = true,
       ),
     )
 
@@ -32,10 +54,10 @@ class CurrentAccommodationTypeRuleTest {
   @Test
   fun `candidate fails when current accommodation is ineligible type`() {
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(
-        type = buildAccommodationTypeDto(
-          code = "A03",
-        ),
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+        isCas2 = false,
+        isPrison = false,
+        isPrivate = false,
       ),
     )
 
@@ -47,7 +69,7 @@ class CurrentAccommodationTypeRuleTest {
   @Test
   fun `candidate fails when current accommodation is null`() {
     val data = buildDomainData(
-      currentAccommodation = null,
+      currentAccommodationTypeEntity = null,
     )
 
     val result = CurrentAccommodationTypeRule().evaluate(data)
@@ -58,6 +80,6 @@ class CurrentAccommodationTypeRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(CurrentAccommodationTypeRule().description)
-      .isEqualTo("FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison")
+      .isEqualTo(description)
   }
 }

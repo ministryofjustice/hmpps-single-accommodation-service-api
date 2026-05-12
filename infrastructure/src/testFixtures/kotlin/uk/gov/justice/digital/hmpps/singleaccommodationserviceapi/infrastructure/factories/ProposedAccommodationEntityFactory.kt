@@ -80,7 +80,7 @@ fun buildProposedAccommodationNoteEntity(
 @TestData
 fun buildAccommodationTypeEntity(
   id: UUID = UUID.randomUUID(),
-  deliusCode: String = "A07B",
+  code: String = "A07B",
   name: String = "Living in the home of a friend, family member or partner: settled",
   settledType: AccommodationSettledType = AccommodationSettledType.SETTLED,
   active: Boolean = true,
@@ -92,7 +92,7 @@ fun buildAccommodationTypeEntity(
 ) = AccommodationTypeEntity(
   id,
   name = name,
-  code = deliusCode,
+  code = code,
   settledType,
   active,
   isProposed = isProposed,

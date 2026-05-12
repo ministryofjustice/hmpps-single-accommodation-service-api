@@ -30,7 +30,7 @@ class ProposedAccommodationTransformerTest {
       val startDate = LocalDate.of(2024, 2, 1)
       val endDate = LocalDate.of(2024, 6, 30)
       val accommodationTypeEntity = buildAccommodationTypeEntity(
-        deliusCode = "A07B",
+        code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
       val entity = buildProposedAccommodationEntity(
