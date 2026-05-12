@@ -191,10 +191,11 @@ class EligibilityServiceTest {
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
-    listOf(Cas1ApplicationNotSuitableRule(), Cas3ApplicationNotSuitableRule()),
+    Cas1ApplicationNotSuitableRule(),
+    Cas3ApplicationNotSuitableRule(),
   )
   var paCompletionRuleSet = PaCompletionRuleSet(
-    listOf(HasNextAccommodationRule()),
+    HasNextAccommodationRule(),
   )
 
   private val builder = DecisionTreeBuilder(rulesEngine)

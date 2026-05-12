@@ -6,7 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class PaCompletionRuleSet(
-  private val rules: List<PaCompletionRule>,
+  hasNextAccommodationRule: HasNextAccommodationRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(hasNextAccommodationRule)
   override fun getRules(): List<Rule> = rules
 }
