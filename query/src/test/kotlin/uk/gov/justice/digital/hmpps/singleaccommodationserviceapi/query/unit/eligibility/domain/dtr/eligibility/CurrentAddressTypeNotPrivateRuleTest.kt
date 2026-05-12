@@ -3,8 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.CurrentAddressTypeNotPrivateRule
@@ -17,10 +16,8 @@ class CurrentAddressTypeNotPrivateRuleTest {
   @Test
   fun `candidate passes when current address is not private`() {
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(
-        type = buildAccommodationTypeDto(
-          code = "A03",
-        ),
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+        isPrivate = false,
       ),
     )
 
@@ -32,10 +29,8 @@ class CurrentAddressTypeNotPrivateRuleTest {
   @Test
   fun `candidate fails when current address is private`() {
     val data = buildDomainData(
-      currentAccommodation = buildAccommodationSummaryDto(
-        type = buildAccommodationTypeDto(
-          code = "A01A",
-        ),
+      currentAccommodationTypeEntity = buildAccommodationTypeEntity(
+        isPrivate = true,
       ),
     )
 
@@ -47,7 +42,7 @@ class CurrentAddressTypeNotPrivateRuleTest {
   @Test
   fun `candidate passes when current address is missing`() {
     val data = buildDomainData(
-      currentAccommodation = null,
+      currentAccommodationTypeEntity = null,
     )
 
     val result = CurrentAddressTypeNotPrivateRule().evaluate(data)
@@ -58,6 +53,6 @@ class CurrentAddressTypeNotPrivateRuleTest {
   @Test
   fun `rule has correct description`() {
     assertThat(CurrentAddressTypeNotPrivateRule().description)
-      .isEqualTo("FAIL if current address is Private")
+      .isEqualTo(description)
   }
 }

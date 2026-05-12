@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -16,6 +17,7 @@ fun buildDomainData(
   tierScore: TierScore? = null,
   sex: SexCode? = null,
   currentAccommodation: AccommodationSummaryDto? = null,
+  currentAccommodationTypeEntity: AccommodationTypeEntity? = null,
   nextAccommodation: AccommodationSummaryDto? = null,
   cas1Application: Cas1Application? = null,
   cas3Application: Cas3Application? = null,
@@ -26,6 +28,7 @@ fun buildDomainData(
   tierScore = tierScore,
   sex = sex,
   currentAccommodation = currentAccommodation,
+  currentAccommodationTypeEntity = currentAccommodationTypeEntity,
   nextAccommodation = nextAccommodation,
   cas1Application = cas1Application,
   cas3Application = cas3Application,
