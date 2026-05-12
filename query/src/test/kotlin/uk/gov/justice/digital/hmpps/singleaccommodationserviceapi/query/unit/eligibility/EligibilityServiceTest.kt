@@ -78,6 +78,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
@@ -92,6 +93,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.HasNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
@@ -238,19 +240,28 @@ class EligibilityServiceTest {
     eligibility = dtrEligibilityRuleSet,
   )
 
+  private val crsTree = CrsEligibilityTreeProvider(
+    builder = builder,
+    eligibility = crsEligibilityRuleSet,
+    completion = crsCompletionRuleSet,
+  )
+
+  private val paTree = PaEligibilityTreeProvider(
+    builder = builder,
+    eligibility = paEligibilityRuleSet,
+    completion = paCompletionRuleSet,
+  )
+
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
     cas1Tree = cas1Tree,
     cas3Tree = cas3Tree,
     dtrTree = dtrTree,
-    engine = rulesEngine,
+    paTree = paTree,
+    crsTree = crsTree,
     dutyToReferQueryService = dutyToReferQueryService,
     caseRepository = caseRepository,
-    crsEligibilityRuleSet = crsEligibilityRuleSet,
-    crsCompletionRuleSet = crsCompletionRuleSet,
-    paEligibilityRuleSet = paEligibilityRuleSet,
-    paCompletionRuleSet = paCompletionRuleSet,
     accommodationTypeRepository = accommodationTypeRepository,
   )
 
@@ -702,7 +713,7 @@ class EligibilityServiceTest {
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
         )
 
-        val result = eligibilityService.calculateEligibilityForCrs(data)
+        val result = eligibilityService.evaluate(crsTree, data)
 
         assertThat(result.serviceStatus)
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCrsStatus}")
@@ -784,7 +795,7 @@ class EligibilityServiceTest {
           cas3Application = cas3Application,
         )
 
-        val result = eligibilityService.calculateEligibilityForPa(data)
+        val result = eligibilityService.evaluate(paTree, data)
 
         assertThat(result.serviceStatus)
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
@@ -1016,7 +1027,7 @@ class EligibilityServiceTest {
         ),
       )
 
-      val result = eligibilityService.calculateEligibilityForCrs(data)
+      val result = eligibilityService.evaluate(crsTree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.NOT_MALE)
@@ -1034,7 +1045,7 @@ class EligibilityServiceTest {
         cas3Application = null,
       )
 
-      val result = eligibilityService.calculateEligibilityForPa(data)
+      val result = eligibilityService.evaluate(paTree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS1_APPLICATION)
@@ -1052,7 +1063,7 @@ class EligibilityServiceTest {
         ),
       )
 
-      val result = eligibilityService.calculateEligibilityForPa(data)
+      val result = eligibilityService.evaluate(paTree, data)
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS3_APPLICATION)

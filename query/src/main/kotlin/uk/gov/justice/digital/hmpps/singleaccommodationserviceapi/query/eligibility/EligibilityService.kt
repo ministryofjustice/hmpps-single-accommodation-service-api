@@ -1,30 +1,23 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
 
 @Service
 class EligibilityService(
@@ -34,27 +27,12 @@ class EligibilityService(
   private val caseRepository: CaseRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
-  @Qualifier("defaultRulesEngine")
-  private val engine: RulesEngine,
-
-  // CAS1
   private val cas1Tree: Cas1EligibilityTreeProvider,
-
-  // CAS3
   private val cas3Tree: Cas3EligibilityTreeProvider,
-
-  // DTR
   private val dtrTree: DtrEligibilityTreeProvider,
-
-  // CRS
-  private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
-  private val crsCompletionRuleSet: CrsCompletionRuleSet,
-
-  // PA
-  private val paEligibilityRuleSet: PaEligibilityRuleSet,
-  private val paCompletionRuleSet: PaCompletionRuleSet,
+  private val crsTree: CrsEligibilityTreeProvider,
+  private val paTree: PaEligibilityTreeProvider,
 ) {
-  private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
 
   fun getEligibility(
@@ -95,9 +73,9 @@ class EligibilityService(
 
     val cas1 = evaluate("CAS1", data, cas1Tree)
     val cas3 = evaluate("CAS3", data, cas3Tree)
-    val crs = calculateEligibilityForCrs(data)
+    val crs = evaluate("CRS", data, crsTree)
     val dtr = evaluate("DTR", data, dtrTree)
-    val pa = calculateEligibilityForPa(data)
+    val pa = evaluate("PA", data, paTree)
 
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
@@ -121,109 +99,6 @@ class EligibilityService(
         it.action,
         it.link,
       )
-    }
-  }
-
-  private fun logServiceResult(result: ServiceResult) {
-    log.info(
-      "Service Result: serviceStatus={}, action={}, link={}",
-      result.serviceStatus,
-      result.action,
-      result.link,
-    )
-  }
-
-  fun calculateEligibilityForCrs(data: DomainData): ServiceResult {
-    log.info("Calculating CRS eligibility for CRN: ${data.crn}")
-
-    data.commissionedRehabilitativeServices?.let {
-      log.debug(
-        "CRS Data received: status={}, submissionDate={}",
-        it.status,
-        it.submissionDate,
-      )
-    } ?: log.debug("CRS Data received: No CRS application")
-
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-
-    val eligibility =
-      treeBuilder
-        .ruleSet("CrsEligibility", crsEligibilityRuleSet)
-        .onPass(confirmed)
-        .onFail(notEligible)
-        .build()
-
-    val tree =
-      treeBuilder
-        .ruleSet(
-          "CrsCompletion",
-          crsCompletionRuleSet,
-          onFailResult = ServiceResult(
-            serviceStatus = ServiceStatus.NOT_STARTED,
-            action = EligibilityKeys.COMPLETE_CRS_REFERRAL,
-            link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-          ),
-        )
-        .onPass(confirmed)
-        .onFail(eligibility)
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.SUBMITTED,
-          link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished CRS calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
-    }
-  }
-
-  fun calculateEligibilityForPa(data: DomainData): ServiceResult {
-    log.info("Calculating PA eligibility for CRN: ${data.crn}")
-
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-
-    val eligibility =
-      treeBuilder
-        .ruleSet("PaEligibility", paEligibilityRuleSet)
-        .onPass(confirmed)
-        .onFail(notEligible)
-        .build()
-
-    val tree =
-      treeBuilder
-        .ruleSet(
-          "PaCompletion",
-          paCompletionRuleSet,
-          onFailResult = ServiceResult(
-            serviceStatus = ServiceStatus.NOT_STARTED,
-            action = EligibilityKeys.ADD_AND_CONFIRM_PROPOSED_ADDRESS,
-          ),
-        )
-        .onPass(confirmed)
-        .onFail(eligibility)
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.COMPLETED,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished PA calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
     }
   }
 
