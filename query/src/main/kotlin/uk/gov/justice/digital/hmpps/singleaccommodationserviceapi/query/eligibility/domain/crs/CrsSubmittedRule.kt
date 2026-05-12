@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -24,12 +24,12 @@ class CrsSubmittedRule : Rule {
 
   companion object {
     private val SUBMITTED_STATUSES = setOf(
-      CrsStatus.ACTION_PLAN_SUBMITTED,
-      CrsStatus.ACTION_PLAN_APPROVED,
-      CrsStatus.APPOINTMENT,
-      CrsStatus.COMPLETED,
-      CrsStatus.NSI_COMMENCED,
-      CrsStatus.END_OF_SERVICE_REPORT,
+      CrsReferralStatus.ACTION_PLAN_SUBMITTED,
+      CrsReferralStatus.ACTION_PLAN_APPROVED,
+      CrsReferralStatus.APPOINTMENT,
+      CrsReferralStatus.COMPLETED,
+      CrsReferralStatus.NSI_COMMENCED,
+      CrsReferralStatus.END_OF_SERVICE_REPORT,
     )
   }
 }

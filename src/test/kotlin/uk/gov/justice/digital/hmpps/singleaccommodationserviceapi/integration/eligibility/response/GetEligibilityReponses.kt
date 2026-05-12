@@ -14,6 +14,7 @@ fun expectedGetEligibilityResponse(
   referenceNumber: String,
   createdBy: String,
   createdAt: String,
+  crsSubmissionDate: String,
 ): String = """
 {
    "data":{
@@ -37,7 +38,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
-            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE","CRS_EXPIRED","CRS_NOT_SUBMITTED"]
+            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE"]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -68,12 +69,15 @@ fun expectedGetEligibilityResponse(
       },
       "crs":{
          "serviceResult":{
-            "serviceStatus":"NOT_STARTED",
-            "action":"Complete CRS Referral",
+            "serviceStatus":"SUBMITTED",
+            "action":null,
             "link":"View refer and monitor",
             "failureReasons":[]
          },
-         "commissionedRehabilitativeServices":null
+         "commissionedRehabilitativeServices":{
+            "status":"COMPLETED",
+            "submissionDate":"$crsSubmissionDate"
+         }
       },
       "pa":{
          "serviceResult":{
@@ -85,7 +89,6 @@ fun expectedGetEligibilityResponse(
       },
       "caseActions":[
          "Add DTR outcome",
-         "Complete CRS Referral",
          "Continue approved premise (CAS1) application",
          "Add and confirm proposed address"
       ]
@@ -271,6 +274,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
   referenceNumber: String,
   createdBy: String,
   createdAt: String,
+  crsSubmissionDate: String,
 ): String = """
 {
    "data":{
@@ -294,7 +298,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
-            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE","CRS_EXPIRED","CRS_NOT_SUBMITTED"]
+            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE"]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -325,12 +329,15 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       },
       "crs":{
          "serviceResult":{
-            "serviceStatus":"NOT_STARTED",
-            "action":"Complete CRS Referral",
+            "serviceStatus":"SUBMITTED",
+            "action":null,
             "link":"View refer and monitor",
             "failureReasons":[]
          },
-         "commissionedRehabilitativeServices":null
+         "commissionedRehabilitativeServices":{
+            "status":"COMPLETED",
+            "submissionDate":"$crsSubmissionDate"
+         }
       },
       "pa":{
          "serviceResult":{
@@ -342,7 +349,6 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       },
       "caseActions":[
          "Add DTR outcome",
-         "Complete CRS Referral",
          "Add and confirm proposed address"
       ]
    }

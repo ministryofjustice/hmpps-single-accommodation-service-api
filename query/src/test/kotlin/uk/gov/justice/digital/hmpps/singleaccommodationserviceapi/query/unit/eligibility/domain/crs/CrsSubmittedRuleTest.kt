@@ -5,25 +5,23 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.time.LocalDate
 
 class CrsSubmittedRuleTest {
   private val description = "FAIL if CRS not submitted"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = CrsStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["NSI_REFERRAL", "IN_PROGRESS", "NSI_TERMINATED"])
-  fun `crs is submitted so rule passes`(crsStatus: CrsStatus) {
+  @EnumSource(value = CrsReferralStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["NSI_REFERRAL", "IN_PROGRESS", "NSI_TERMINATED"])
+  fun `crs is submitted so rule passes`(crsStatus: CrsReferralStatus) {
     val data = buildDomainData(
-      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-        status = crsStatus,
-        submissionDate = LocalDate.now(),
-      ),
+      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = crsStatus),
     )
 
     val result = CrsSubmittedRule().evaluate(data)
@@ -37,13 +35,10 @@ class CrsSubmittedRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = CrsStatus::class, names = ["NSI_REFERRAL", "IN_PROGRESS", "NSI_TERMINATED"])
-  fun `crs is not submitted so rule fails`(crsStatus: CrsStatus) {
+  @EnumSource(value = CrsReferralStatus::class, names = ["NSI_REFERRAL", "IN_PROGRESS", "NSI_TERMINATED"])
+  fun `crs is not submitted so rule fails`(crsStatus: CrsReferralStatus) {
     val data = buildDomainData(
-      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-        status = crsStatus,
-        submissionDate = LocalDate.now(),
-      ),
+      commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = crsStatus),
     )
 
     val result = CrsSubmittedRule().evaluate(data)

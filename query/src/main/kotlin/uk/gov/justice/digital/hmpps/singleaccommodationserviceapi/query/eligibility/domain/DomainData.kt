@@ -4,13 +4,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import java.time.LocalDate
 
 data class DomainData(
   val crn: String,
@@ -74,21 +74,4 @@ data class DomainData(
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = null,
   )
-}
-
-data class CommissionedRehabilitativeServices(
-  val status: CrsStatus,
-  val submissionDate: LocalDate,
-)
-
-enum class CrsStatus {
-  NSI_REFERRAL,
-  IN_PROGRESS,
-  NSI_COMMENCED,
-  APPOINTMENT,
-  ACTION_PLAN_SUBMITTED,
-  ACTION_PLAN_APPROVED,
-  END_OF_SERVICE_REPORT,
-  COMPLETED,
-  NSI_TERMINATED,
 }

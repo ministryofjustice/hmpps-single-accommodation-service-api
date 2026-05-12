@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_ROSH_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
@@ -111,6 +112,7 @@ class RedissonCacheConfig {
       GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_3_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CASE_LIST to CacheConfig(60_000, 30_000),
+      GET_CRS to CacheConfig(60_000, 30_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

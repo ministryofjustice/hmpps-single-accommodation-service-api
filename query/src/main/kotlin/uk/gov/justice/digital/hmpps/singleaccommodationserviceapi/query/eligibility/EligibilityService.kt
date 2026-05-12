@@ -148,8 +148,7 @@ class EligibilityService(
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,
-      // TODO connect to crs endpoint when it becomes available
-      commissionedRehabilitativeServices = null,
+      commissionedRehabilitativeServices = eligibilityOrchestrationDto.data.commissionedRehabilitativeServices,
       accommodationTypes = accommodationTypes,
     )
   }

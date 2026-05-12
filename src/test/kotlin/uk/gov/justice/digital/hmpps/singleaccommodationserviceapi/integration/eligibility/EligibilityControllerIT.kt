@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -26,10 +27,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.el
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseTierNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityUpstreamFailuresResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CommissionedRehabilitativeServicesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
@@ -39,6 +42,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
   private val cas1ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111111")
   private val cas3ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f6-111111111111")
   private val dutyToReferCaseId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111112")
+
+  private val crsSubmissionDate = LocalDate.now()
 
   @Autowired
   private lateinit var caseRepository: CaseRepository
@@ -75,6 +80,12 @@ class EligibilityControllerIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
+      crn = crn,
+      response = buildCommissionedRehabilitativeServices(
+        sentAt = crsSubmissionDate.atStartOfDay().atOffset(ZoneOffset.UTC),
+      ),
+    )
   }
 
   @Test
@@ -116,6 +127,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            crsSubmissionDate = crsSubmissionDate.toString(),
           ),
         )
       }
@@ -224,6 +236,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            crsSubmissionDate = crsSubmissionDate.toString(),
           ),
         )
       }
