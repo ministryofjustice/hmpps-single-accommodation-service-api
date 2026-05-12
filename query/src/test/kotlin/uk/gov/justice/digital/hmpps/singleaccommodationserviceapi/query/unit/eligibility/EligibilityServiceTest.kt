@@ -144,27 +144,23 @@ class EligibilityServiceTest {
   // CAS3
   var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
   var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
-  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule()))
+  var cas3ValidationRuleSet = Cas3ValidationRuleSet(CurrentAccommodationEndDateValidationRule())
   val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater(clock)
-  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(listOf(RecentCurrentAccommodationEndDateRule(clock)))
+  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(RecentCurrentAccommodationEndDateRule(clock))
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
-    listOf(
-      Cas3ApplicationSuitabilityRule(),
-      Cas3ApplicationPresentSuitabilityRule(),
-      Cas3BookingSuitabilityRule(),
-      Cas3AssessmentSuitabilityRule(),
-    ),
+    Cas3ApplicationSuitabilityRule(),
+    Cas3ApplicationPresentSuitabilityRule(),
+    Cas3BookingSuitabilityRule(),
+    Cas3AssessmentSuitabilityRule(),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule()))
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationCompletionRule())
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
-    listOf(
-      CurrentAccommodationTypeRule(),
-      NoNextAccommodationRule(),
-      DtrExpiredReferralRule(clock),
-      NoConflictingCas1BookingRule(),
-      CrsSubmittedRule(),
-      CrsExpiredRule(clock),
-    ),
+    CurrentAccommodationTypeRule(),
+    NoNextAccommodationRule(),
+    DtrExpiredReferralRule(clock),
+    NoConflictingCas1BookingRule(),
+    CrsSubmittedRule(),
+    CrsExpiredRule(clock),
   )
 
   // DTR
