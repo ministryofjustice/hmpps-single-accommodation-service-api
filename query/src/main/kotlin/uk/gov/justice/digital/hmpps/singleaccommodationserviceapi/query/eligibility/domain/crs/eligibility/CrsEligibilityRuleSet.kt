@@ -3,10 +3,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
 
 @Component
 class CrsEligibilityRuleSet(
-  private val rules: List<CrsEligibilityRule>,
+  isMale: IsMaleRule,
+  currentAccommodationEndDate: CurrentAccommodationEndDateValidationRule,
+  noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(isMale, currentAccommodationEndDate, noNextAccommodation)
   override fun getRules(): List<Rule> = rules
 }

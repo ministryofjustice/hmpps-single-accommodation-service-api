@@ -183,10 +183,13 @@ class EligibilityServiceTest {
 
   // CRS
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
-    listOf(IsMaleRule(), CurrentAccommodationEndDateValidationRule(), NoNextAccommodationRule()),
+    IsMaleRule(),
+    CurrentAccommodationEndDateValidationRule(),
+    NoNextAccommodationRule(),
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
-    listOf(CrsSubmittedRule(), CrsExpiredRule(clock)),
+    CrsSubmittedRule(),
+    CrsExpiredRule(clock),
   )
 
   // PA
