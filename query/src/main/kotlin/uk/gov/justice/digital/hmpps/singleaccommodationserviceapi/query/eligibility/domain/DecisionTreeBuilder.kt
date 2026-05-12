@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -8,7 +10,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 /**
  * Generic builder for constructing decision trees. Allows declaratively to chain rulesets and outcomes.
  */
+@Component
 class DecisionTreeBuilder(
+  @param:Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
 ) {
   /**
