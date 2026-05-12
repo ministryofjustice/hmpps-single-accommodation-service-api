@@ -11,7 +11,6 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
@@ -35,9 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @ConditionalOnProperty(
   name = ["hmpps.sqs.enabled"],
   havingValue = "true",
-  matchIfMissing = true, // will default to true if no config provided.
 )
-@Profile(value = ["local", "dev", "test"])
 @Component
 class InboxEventDispatcher(
   private val inboxEventRepository: InboxEventRepository,
