@@ -3,11 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class Cas3ApplicationSuitabilityRule : Cas3SuitabilityRule {
+class Cas3ApplicationSuitabilityRule : Rule {
   override val description = "FAIL if CAS3 application is not suitable"
 
   override fun evaluate(data: DomainData): RuleResult {
