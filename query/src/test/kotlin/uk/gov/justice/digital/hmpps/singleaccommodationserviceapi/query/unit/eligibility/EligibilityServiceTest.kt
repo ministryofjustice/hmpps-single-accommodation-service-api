@@ -164,21 +164,18 @@ class EligibilityServiceTest {
   )
 
   // DTR
-  var dtrUpcomingRuleSet = DtrUpcomingRuleSet(listOf(DtrRecentCurrentAccommodationEndDateRule(clock)))
+  var dtrUpcomingRuleSet = DtrUpcomingRuleSet(DtrRecentCurrentAccommodationEndDateRule(clock))
   var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
-    listOf(
-      DtrStatusRule(),
-      DtrPresentRule(),
-      DtrExpiredReferralRule(clock),
-    ),
+    DtrStatusRule(),
+    DtrPresentRule(),
+    DtrExpiredReferralRule(clock),
   )
   var dtrCompletionContextUpdater = DtrCompletionContextUpdater()
-  var dtrCompletionRuleSet = DtrCompletionRuleSet(listOf(DtrApplicationCompleteRule()))
+  var dtrCompletionRuleSet = DtrCompletionRuleSet(DtrApplicationCompleteRule())
   var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
-    listOf(
-      CurrentAddressTypeNotPrivateRule(),
-      NoNextAccommodationRule(),
-    ),
+    CurrentAddressTypeNotPrivateRule(),
+    NoNextAccommodationRule(),
+
   )
 
   // CRS

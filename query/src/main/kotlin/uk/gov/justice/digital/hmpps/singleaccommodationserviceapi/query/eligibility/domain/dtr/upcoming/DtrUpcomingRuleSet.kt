@@ -6,7 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrUpcomingRuleSet(
-  private val rules: List<DtrUpcomingRule>,
+  recentCurrentAccommodationEndDate: DtrRecentCurrentAccommodationEndDateRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(recentCurrentAccommodationEndDate)
   override fun getRules(): List<Rule> = rules
 }

@@ -6,7 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class DtrCompletionRuleSet(
-  private val rules: List<DtrCompletionRule>,
+  applicationComplete: DtrApplicationCompleteRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(applicationComplete)
   override fun getRules(): List<Rule> = rules
 }
