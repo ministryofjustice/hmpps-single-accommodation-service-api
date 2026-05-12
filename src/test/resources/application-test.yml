@@ -29,6 +29,7 @@ event:
     duty-to-refer-updated: http://api-host/duty-to-refers/#id
 
 hmpps.sqs:
+  enabled: true
   useWebToken: false
   provider: localstack
   topics:

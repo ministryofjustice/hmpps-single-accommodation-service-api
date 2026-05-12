@@ -26,7 +26,7 @@ class SingleAccommodationServiceApiExceptionHandler {
         userMessage = "Domain exception: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.info("Domain exception: {}", e.message) }
+    ).also { log.error("Domain exception: {}", e.message) }
 
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -37,7 +37,7 @@ class SingleAccommodationServiceApiExceptionHandler {
         userMessage = "Validation failure: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.info("Validation exception: {}", e.message) }
+    ).also { log.error("Validation exception: {}", e.message) }
 
   @ExceptionHandler(NoResourceFoundException::class)
   fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -48,7 +48,7 @@ class SingleAccommodationServiceApiExceptionHandler {
         userMessage = "No resource found failure: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.info("No resource found exception: {}", e.message) }
+    ).also { log.error("No resource found exception: {}", e.message) }
 
   @ExceptionHandler(NotFoundException::class)
   fun handleNotFoundException(e: RuntimeException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -59,7 +59,7 @@ class SingleAccommodationServiceApiExceptionHandler {
         userMessage = "Not found: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.info("Not found: {}", e.message) }
+    ).also { log.error("Not found: {}", e.message) }
 
   @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -70,7 +70,7 @@ class SingleAccommodationServiceApiExceptionHandler {
         userMessage = "Forbidden: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.debug("Forbidden (403) returned: {}", e.message) }
+    ).also { log.error("Forbidden (403) returned: {}", e.message) }
 
   @ExceptionHandler(Exception::class)
   fun handleException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity

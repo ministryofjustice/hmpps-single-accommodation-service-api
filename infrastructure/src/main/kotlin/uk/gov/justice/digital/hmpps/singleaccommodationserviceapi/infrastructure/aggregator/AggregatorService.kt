@@ -34,11 +34,11 @@ class AggregatorService {
     callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
     if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
-      log.info("No API calls to execute")
+      log.debug("No API calls to execute")
       return@runBlocking AggregatorResult(emptyMap(), emptyMap())
     }
 
-    log.info("Starting async calls: ${LocalDateTime.now()}")
+    log.debug("Starting async calls: {}", LocalDateTime.now())
 
     val standardCallsSuspend: Map<String, suspend () -> Any> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
@@ -72,7 +72,7 @@ class AggregatorService {
       standardCallsNoIterationResults = standardDeferred.await(),
       callsPerIdentifierResults = perIdentifierDeferred.await(),
     )
-    log.info("Finished async calls at: ${LocalDateTime.now()}. ")
+    log.debug("Finished async calls at: {}. ", LocalDateTime.now())
 
     result
   }

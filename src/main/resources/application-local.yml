@@ -7,6 +7,7 @@ event:
     duty-to-refer-updated: http://localhost:8080/duty-to-refers/#id
 
 hmpps.sqs:
+  enabled: false
   useWebToken: false
   provider: localstack
   topics:
@@ -18,3 +19,16 @@ hmpps.sqs:
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
       subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        generate_statistics: true
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE # TRACE - shows what parameters are bound to queries
+    org.hibernate.session.metrics: INFO
