@@ -37,20 +37,14 @@ class Cas3EligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResult(
-      serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-      link = EligibilityKeys.VIEW_REFERRAL,
-    ),
+    currentResult = serviceResult(),
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible()
     val bookingConfirmed = builder.outcome(
-      ServiceResult(
-        serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-        link = EligibilityKeys.VIEW_REFERRAL,
-      ),
+      serviceResult(),
     )
 
     val eligibilityNode = builder
@@ -83,4 +77,9 @@ class Cas3EligibilityTreeProvider(
       .onFail(notEligible)
       .build()
   }
+
+  private fun serviceResult(): ServiceResult = ServiceResult(
+    serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
+    link = EligibilityKeys.VIEW_REFERRAL,
+  )
 }

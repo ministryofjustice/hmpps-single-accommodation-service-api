@@ -88,7 +88,7 @@ class EligibilityService(
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
-  fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult = provider.tree().eval(provider.initialContext(data))
+  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult = provider.tree().eval(provider.initialContext(data))
 
   private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {
     log.info("Calculating $line eligibility for CRN: ${data.crn}")
