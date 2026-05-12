@@ -32,18 +32,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CommonContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.completion.PaCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -58,9 +53,6 @@ class EligibilityService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
   @Qualifier("defaultRulesEngine")
   private val engine: RulesEngine,
-
-  // COMMON
-  private val commonContextUpdater: CommonContextUpdater,
 
   // CAS1
   private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
@@ -85,21 +77,17 @@ class EligibilityService(
   // DTR
   private val dtrCompletionRuleSet: DtrCompletionRuleSet,
   private val dtrCompletionContextUpdater: DtrCompletionContextUpdater,
-  private val dtrSuitabilityContextUpdater: DtrSuitabilityContextUpdater,
   private val dtrEligibilityRuleSet: DtrEligibilityRuleSet,
   private val dtrSuitabilityRuleSet: DtrSuitabilityRuleSet,
   private val dtrUpcomingRuleSet: DtrUpcomingRuleSet,
-  private val dtrUpcomingContextUpdater: DtrUpcomingContextUpdater,
 
   // CRS
   private val crsEligibilityRuleSet: CrsEligibilityRuleSet,
   private val crsCompletionRuleSet: CrsCompletionRuleSet,
-  private val crsContextUpdater: CrsContextUpdater,
 
   // PA
   private val paEligibilityRuleSet: PaEligibilityRuleSet,
   private val paCompletionRuleSet: PaCompletionRuleSet,
-  private val paCompletionContextUpdater: PaCompletionContextUpdater,
 ) {
   private val treeBuilder = DecisionTreeBuilder(engine)
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -177,7 +165,7 @@ class EligibilityService(
 
     val eligibility =
       treeBuilder
-        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet, commonContextUpdater)
+        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
@@ -205,7 +193,7 @@ class EligibilityService(
 
     val tree =
       treeBuilder
-        .ruleSet("Cas1Validation", cas1ValidationRuleSet, commonContextUpdater)
+        .ruleSet("Cas1Validation", cas1ValidationRuleSet)
         .onPass(upcoming)
         .onFail(notEligible)
         .build()
@@ -251,14 +239,22 @@ class EligibilityService(
 
     val eligibility =
       treeBuilder
-        .ruleSet("CrsEligibility", crsEligibilityRuleSet, commonContextUpdater)
+        .ruleSet("CrsEligibility", crsEligibilityRuleSet)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
 
     val tree =
       treeBuilder
-        .ruleSet("CrsCompletion", crsCompletionRuleSet, crsContextUpdater)
+        .ruleSet(
+          "CrsCompletion",
+          crsCompletionRuleSet,
+          onFailResult = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_STARTED,
+            action = EligibilityKeys.COMPLETE_CRS_REFERRAL,
+            link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+          ),
+        )
         .onPass(confirmed)
         .onFail(eligibility)
         .build()
@@ -297,7 +293,7 @@ class EligibilityService(
 
     val eligibility =
       treeBuilder
-        .ruleSet("Cas3Eligibility", cas3EligibilityRuleSet, commonContextUpdater)
+        .ruleSet("Cas3Eligibility", cas3EligibilityRuleSet)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
@@ -325,7 +321,7 @@ class EligibilityService(
 
     val tree =
       treeBuilder
-        .ruleSet("Cas3Validation", cas3ValidationRuleSet, commonContextUpdater)
+        .ruleSet("Cas3Validation", cas3ValidationRuleSet)
         .onPass(upcoming)
         .onFail(notEligible)
         .build()
@@ -363,7 +359,7 @@ class EligibilityService(
 
     val eligibility =
       treeBuilder
-        .ruleSet("DtrEligibility", dtrEligibilityRuleSet, commonContextUpdater)
+        .ruleSet("DtrEligibility", dtrEligibilityRuleSet)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
@@ -377,14 +373,26 @@ class EligibilityService(
 
     val suitability =
       treeBuilder
-        .ruleSet("DtrSuitability", dtrSuitabilityRuleSet, dtrSuitabilityContextUpdater)
+        .ruleSet(
+          "DtrSuitability",
+          dtrSuitabilityRuleSet,
+          onFailResult = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_STARTED,
+            action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+            link = EligibilityKeys.ADD_REFERRAL_DETAILS,
+          ),
+        )
         .onPass(completion)
         .onFail(eligibility)
         .build()
 
     val tree =
       treeBuilder
-        .ruleSet("DtrUpcoming", dtrUpcomingRuleSet, dtrUpcomingContextUpdater)
+        .ruleSet(
+          "DtrUpcoming",
+          dtrUpcomingRuleSet,
+          onFailResult = ServiceResult(serviceStatus = ServiceStatus.UPCOMING),
+        )
         .onPass(suitability)
         .onFail(eligibility)
         .build()
@@ -412,14 +420,21 @@ class EligibilityService(
 
     val eligibility =
       treeBuilder
-        .ruleSet("PaEligibility", paEligibilityRuleSet, commonContextUpdater)
+        .ruleSet("PaEligibility", paEligibilityRuleSet)
         .onPass(confirmed)
         .onFail(notEligible)
         .build()
 
     val tree =
       treeBuilder
-        .ruleSet("PaCompletion", paCompletionRuleSet, paCompletionContextUpdater)
+        .ruleSet(
+          "PaCompletion",
+          paCompletionRuleSet,
+          onFailResult = ServiceResult(
+            serviceStatus = ServiceStatus.NOT_STARTED,
+            action = EligibilityKeys.ADD_AND_CONFIRM_PROPOSED_ADDRESS,
+          ),
+        )
         .onPass(confirmed)
         .onFail(eligibility)
         .build()
