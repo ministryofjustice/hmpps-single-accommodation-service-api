@@ -127,22 +127,18 @@ class EligibilityServiceTest {
   // CAS1
   var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
   var cas1ValidationRuleSet = Cas1ValidationRuleSet(
-    listOf(
-      CurrentAccommodationEndDateValidationRule(),
-      Cas1SexValidationRule(),
-    ),
+    CurrentAccommodationEndDateValidationRule(),
+    Cas1SexValidationRule(),
   )
-  var cas1CompletionRuleSet = Cas1CompletionRuleSet(listOf(Cas1ApplicationCompletionRule()))
-  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(listOf(Cas1ApplicationSuitabilityRule()))
+  var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
+  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationSuitabilityRule())
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
-    listOf(
-      MaleRiskEligibilityRule(),
-      NonMaleRiskEligibilityRule(),
-      STierEligibilityRule(),
-    ),
+    STierEligibilityRule(),
+    MaleRiskEligibilityRule(),
+    NonMaleRiskEligibilityRule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater(clock)
-  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(listOf(RecentCurrentAccommodationEndDateRule(clock)))
+  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(RecentCurrentAccommodationEndDateRule(clock))
   val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
   // CAS3

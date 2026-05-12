@@ -3,10 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
 
 @Component
 class Cas1ValidationRuleSet(
-  private val rules: List<Cas1ValidationRule>,
+  currentAccommodationEndDate: CurrentAccommodationEndDateValidationRule,
+  sexValidation: Cas1SexValidationRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(currentAccommodationEndDate, sexValidation)
   override fun getRules(): List<Rule> = rules
 }
