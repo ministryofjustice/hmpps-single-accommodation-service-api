@@ -15,15 +15,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.Cas1EligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
@@ -55,14 +49,7 @@ class EligibilityService(
   private val engine: RulesEngine,
 
   // CAS1
-  private val cas1CompletionRuleSet: Cas1CompletionRuleSet,
-  private val cas1CompletionContextUpdater: Cas1CompletionContextUpdater,
-  private val cas1EligibilityRuleSet: Cas1EligibilityRuleSet,
-  private val cas1SuitabilityRuleSet: Cas1SuitabilityRuleSet,
-  private val cas1UpcomingRuleSet: Cas1UpcomingRuleSet,
-  private val cas1UpcomingContextUpdater: Cas1UpcomingContextUpdater,
-  private val cas1ValidationRuleSet: Cas1ValidationRuleSet,
-  private val cas1SuitabilityContextUpdater: Cas1SuitabilityContextUpdater,
+  private val cas1Tree: Cas1EligibilityTreeProvider,
 
   // CAS3
   private val cas3CompletionRuleSet: Cas3CompletionRuleSet,
@@ -128,7 +115,7 @@ class EligibilityService(
       data.nextAccommodation?.type?.description,
     )
 
-    val cas1 = calculateEligibilityForCas1(data)
+    val cas1 = evaluate("CAS1", data, cas1Tree)
     val cas3 = calculateEligibilityForCas3(data)
     val crs = calculateEligibilityForCrs(data)
     val dtr = calculateEligibilityForDtr(data)
@@ -145,72 +132,17 @@ class EligibilityService(
     ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
-  fun calculateEligibilityForCas1(data: DomainData): ServiceResult {
-    log.info("Calculating CAS1 eligibility for CRN: ${data.crn}")
+  fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult = provider.tree().eval(provider.initialContext(data))
 
-    data.cas1Application?.let {
-      log.debug(
-        "CAS1 Data received: id={}, applicationStatus={}, requestForPlacementStatus={}, placementStatus={}",
-        it.id,
-        it.applicationStatus,
-        it.requestForPlacementStatus,
-        it.placementStatus,
+  private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {
+    log.info("Calculating $line eligibility for CRN: ${data.crn}")
+    return evaluate(provider, data).also {
+      log.info(
+        "$line Service Result for CRN ${data.crn}: serviceStatus={}, action={}, link={}",
+        it.serviceStatus,
+        it.action,
+        it.link,
       )
-    } ?: log.debug("CAS1 Data received: No CAS1 application")
-
-    // Build tree declaratively:
-    val confirmed = treeBuilder.confirmed()
-    val notEligible = treeBuilder.notEligible()
-    val placementBooked = treeBuilder.placementBooked()
-
-    val eligibility =
-      treeBuilder
-        .ruleSet("Cas1Eligibility", cas1EligibilityRuleSet)
-        .onPass(confirmed)
-        .onFail(notEligible)
-        .build()
-
-    val completion =
-      treeBuilder
-        .ruleSet("Cas1Completion", cas1CompletionRuleSet, cas1CompletionContextUpdater)
-        .onPass(placementBooked)
-        .onFail(confirmed)
-        .build()
-
-    val suitability =
-      treeBuilder
-        .ruleSet("Cas1Suitability", cas1SuitabilityRuleSet, cas1SuitabilityContextUpdater)
-        .onPass(completion)
-        .onFail(eligibility)
-        .build()
-
-    val upcoming =
-      treeBuilder
-        .ruleSet("Cas1Upcoming", cas1UpcomingRuleSet, cas1UpcomingContextUpdater)
-        .onPass(suitability)
-        .onFail(eligibility)
-        .build()
-
-    val tree =
-      treeBuilder
-        .ruleSet("Cas1Validation", cas1ValidationRuleSet)
-        .onPass(upcoming)
-        .onFail(notEligible)
-        .build()
-
-    val initialContext =
-      EvaluationContext(
-        data = data,
-        currentResult =
-        ServiceResult(
-          serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-          link = EligibilityKeys.VIEW_APPLICATION,
-        ),
-      )
-
-    return tree.eval(initialContext).also {
-      log.info("Finished CAS1 calculating eligibility for CRN: ${data.crn}")
-      logServiceResult(it)
     }
   }
 
