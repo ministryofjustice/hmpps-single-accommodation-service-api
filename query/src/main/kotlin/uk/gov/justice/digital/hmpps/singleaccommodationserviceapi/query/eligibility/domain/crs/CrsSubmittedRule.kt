@@ -24,12 +24,8 @@ class CrsSubmittedRule : Rule {
 
   companion object {
     private val SUBMITTED_STATUSES = setOf(
-      CrsReferralStatus.ACTION_PLAN_SUBMITTED,
-      CrsReferralStatus.ACTION_PLAN_APPROVED,
-      CrsReferralStatus.APPOINTMENT,
+      CrsReferralStatus.LIVE,
       CrsReferralStatus.COMPLETED,
-      CrsReferralStatus.NSI_COMMENCED,
-      CrsReferralStatus.END_OF_SERVICE_REPORT,
     )
   }
 }

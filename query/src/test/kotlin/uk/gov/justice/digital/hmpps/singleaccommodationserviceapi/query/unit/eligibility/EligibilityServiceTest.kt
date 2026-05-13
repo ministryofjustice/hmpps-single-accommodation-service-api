@@ -714,7 +714,7 @@ class EligibilityServiceTest {
         val commissionedRehabilitativeServices = s.crsSubmissionDate?.let {
           buildCommissionedRehabilitativeServices(
             sentAt = s.crsSubmissionDate.atStartOfDay().atOffset(ZoneOffset.UTC),
-            status = if (isCrsStatusTerminated) CrsReferralStatus.NSI_TERMINATED else CrsReferralStatus.COMPLETED,
+            status = if (isCrsStatusTerminated) CrsReferralStatus.WITHDRAWN else CrsReferralStatus.COMPLETED,
           )
         }
 
@@ -1057,7 +1057,7 @@ class EligibilityServiceTest {
         dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
         commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
           sentAt = today.atStartOfDay().atOffset(ZoneOffset.UTC),
-          status = CrsReferralStatus.NSI_REFERRAL,
+          status = CrsReferralStatus.DRAFT,
         ),
       )
 

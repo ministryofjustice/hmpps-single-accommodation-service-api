@@ -26,13 +26,8 @@ data class CrsReferralServiceProvider(
 )
 
 enum class CrsReferralStatus {
-  NSI_REFERRAL,
-  IN_PROGRESS,
-  NSI_COMMENCED,
-  APPOINTMENT,
-  ACTION_PLAN_SUBMITTED,
-  ACTION_PLAN_APPROVED,
-  END_OF_SERVICE_REPORT,
+  DRAFT,
+  LIVE,
   COMPLETED,
-  NSI_TERMINATED,
+  WITHDRAWN,
 }

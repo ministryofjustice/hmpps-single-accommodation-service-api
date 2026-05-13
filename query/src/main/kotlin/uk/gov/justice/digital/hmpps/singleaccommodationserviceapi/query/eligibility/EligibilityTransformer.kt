@@ -138,15 +138,10 @@ object EligibilityTransformer {
   private fun toCrsStatus(
     crsStatus: CrsReferralStatus,
   ) = when (crsStatus) {
-    CrsReferralStatus.NSI_REFERRAL -> CrsStatus.NSI_REFERRAL
-    CrsReferralStatus.IN_PROGRESS -> CrsStatus.IN_PROGRESS
-    CrsReferralStatus.NSI_COMMENCED -> CrsStatus.NSI_COMMENCED
-    CrsReferralStatus.APPOINTMENT -> CrsStatus.APPOINTMENT
-    CrsReferralStatus.ACTION_PLAN_SUBMITTED -> CrsStatus.ACTION_PLAN_SUBMITTED
-    CrsReferralStatus.ACTION_PLAN_APPROVED -> CrsStatus.ACTION_PLAN_APPROVED
-    CrsReferralStatus.END_OF_SERVICE_REPORT -> CrsStatus.END_OF_SERVICE_REPORT
+    CrsReferralStatus.DRAFT -> CrsStatus.DRAFT
+    CrsReferralStatus.LIVE -> CrsStatus.LIVE
     CrsReferralStatus.COMPLETED -> CrsStatus.COMPLETED
-    CrsReferralStatus.NSI_TERMINATED -> CrsStatus.NSI_TERMINATED
+    CrsReferralStatus.WITHDRAWN -> CrsStatus.WITHDRAWN
   }
 
   private fun toCas1ApplicationStatus(

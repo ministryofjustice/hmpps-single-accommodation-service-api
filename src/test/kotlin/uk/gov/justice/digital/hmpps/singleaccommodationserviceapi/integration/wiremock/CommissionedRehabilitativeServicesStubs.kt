@@ -11,7 +11,7 @@ object CommissionedRehabilitativeServicesStubs {
 
   fun getCrsOkResponse(crn: String, response: CommissionedRehabilitativeServices) {
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/crs/$crn"))
+      get(WireMock.urlPathEqualTo("/sas-referral-details/$crn"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
