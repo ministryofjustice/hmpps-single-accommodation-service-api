@@ -15,10 +15,13 @@ class Cas1UpcomingContextUpdater(val clock: Clock) : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext) = ServiceResult(
     serviceStatus = ServiceStatus.UPCOMING,
-    action = buildUpcomingAction(
-      context.data.currentAccommodation!!.endDate!!,
-      LocalDate.now(clock),
-      EligibilityKeys.START_APPROVED_PREMISE_APPLICATION,
-    ),
+    action = buildUpcomingActionInOneYear(context),
   )
+
+  private fun buildUpcomingActionInOneYear(context: EvaluationContext): String {
+    val endDate = context.data.currentAccommodation!!.endDate!!
+    val dateToStartReferral = endDate.minusYears(1)
+    val today = LocalDate.now(clock)
+    return buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, dateToStartReferral)
+  }
 }

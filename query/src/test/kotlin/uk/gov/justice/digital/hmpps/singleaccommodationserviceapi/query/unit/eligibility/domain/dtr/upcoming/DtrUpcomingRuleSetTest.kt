@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrRecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithinEightWeeksRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    DtrRecentCurrentAccommodationEndDateRule::class,
+    ReleaseWithinEightWeeksRule::class,
     DtrUpcomingRuleSet::class,
     ClockConfig::class,
   ],
@@ -24,7 +24,7 @@ class DtrUpcomingRuleSetTest {
   lateinit var dtrUpcomingRuleSet: DtrUpcomingRuleSet
 
   private val expectedDtrUpcomingRuleNames = listOf(
-    DtrRecentCurrentAccommodationEndDateRule::class.simpleName,
+    ReleaseWithinEightWeeksRule::class.simpleName,
   )
 
   @Test

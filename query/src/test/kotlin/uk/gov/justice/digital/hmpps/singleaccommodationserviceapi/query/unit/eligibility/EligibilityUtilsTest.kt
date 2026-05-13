@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThan56DaysInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInThePast
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
@@ -17,10 +17,10 @@ class EligibilityUtilsTest {
   @Nested
   inner class IsLessThanOneYearInTheFuture {
     @Test
-    fun `Returns false when end date is missing`() {
+    fun `Returns true when end date is missing`() {
       val today = LocalDate.now(clock)
       val result = isLessThanOneYearInTheFuture(null, today)
-      assertThat(result).isFalse()
+      assertThat(result).isTrue()
     }
 
     @Test
@@ -49,41 +49,43 @@ class EligibilityUtilsTest {
   }
 
   @Nested
-  inner class IsLessThan56DaysInTheFuture {
+  inner class IsLessThanXWeeksInTheFuture {
+    val numOfWeeks = 4L
+
     @Test
     fun `Returns true when end date is missing`() {
       val today = LocalDate.now(clock)
-      val result = isLessThan56DaysInTheFuture(null, today)
+      val result = isLessThanXWeeksInTheFuture(null, today, numOfWeeks)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when end date is within 56 days in the future`() {
+    fun `Returns true when end date is within 4 weeks in the future`() {
       val today = LocalDate.now(clock)
-      val endDate = today.plusDays(56).minusDays(1)
-      val result = isLessThan56DaysInTheFuture(endDate, today)
+      val endDate = today.plusWeeks(numOfWeeks).minusDays(1)
+      val result = isLessThanXWeeksInTheFuture(endDate, today, numOfWeeks)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns true when end date is exactly 56 days in the future`() {
+    fun `Returns true when end date is exactly 4 weeks in the future`() {
       val today = LocalDate.now(clock)
-      val endDate = today.plusDays(56)
-      val result = isLessThan56DaysInTheFuture(endDate, today)
+      val endDate = today.plusWeeks(numOfWeeks)
+      val result = isLessThanXWeeksInTheFuture(endDate, today, numOfWeeks)
       assertThat(result).isTrue()
     }
 
     @Test
-    fun `Returns false when end date is more than 56 days in the future`() {
+    fun `Returns false when end date is more than 4 weeks in the future`() {
       val today = LocalDate.now(clock)
-      val endDate = today.plusDays(56).plusDays(1)
-      val result = isLessThan56DaysInTheFuture(endDate, today)
+      val endDate = today.plusWeeks(numOfWeeks).plusDays(1)
+      val result = isLessThanXWeeksInTheFuture(endDate, today, numOfWeeks)
       assertThat(result).isFalse()
     }
   }
 
   @Nested
-  inner class IsLessThan12weeksInThePast {
+  inner class IsLessThanXWeeksInThePast {
     val numOfWeeks = 12L
 
     @Test
@@ -121,52 +123,39 @@ class EligibilityUtilsTest {
   @Nested
   inner class BuildUpcomingAction {
     @Test
-    fun `Build action when end date is 3 days in future`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusDays(3))
+    fun `Build action when date to start referral is 3 days in future`() {
+      clock.setNow(LocalDate.parse("2025-01-01"))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.plusDays(3))
+      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 3 days (4 January 2025)"
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `Build action when date to start referral is 1 day in future`() {
+      clock.setNow(LocalDate.parse("2025-01-01"))
+      val today = LocalDate.now(clock)
+      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.plusDays(1))
+      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day (2 January 2025)"
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `Build action when date to start referral is today`() {
+      clock.setNow(LocalDate.parse("2025-01-01"))
+      val today = LocalDate.now(clock)
+      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today)
       val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
-    fun `Build action when end date is 13 months in future`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusMonths(13))
+    fun `Build action when date to start referral is in the past`() {
+      clock.setNow(LocalDate.parse("2025-01-01"))
       val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 31 days (31 December 2025)"
-      assertThat(result).isEqualTo(expectedResult)
-    }
-
-    @Test
-    fun `Build action when end date is 1 year in future`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusYears(1))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
+      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.minusDays(3))
       val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
-      assertThat(result).isEqualTo(expectedResult)
-    }
-
-    @Test
-    fun `Build action when end date is 1 year and 1 day in future`() {
-      val endDate = LocalDate.parse("2026-12-31")
-      clock.setNow(endDate.minusYears(1).minusDays(1))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day (31 December 2025)"
-      assertThat(result).isEqualTo(expectedResult)
-    }
-
-    @Test
-    fun `Build action when end date is 1 year and 2 days in future`() {
-      val endDate = LocalDate.parse("2026-07-01")
-      clock.setNow(endDate.minusYears(1).minusDays(2))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(endDate, today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION)
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 2 days (1 July 2025)"
       assertThat(result).isEqualTo(expectedResult)
     }
   }
