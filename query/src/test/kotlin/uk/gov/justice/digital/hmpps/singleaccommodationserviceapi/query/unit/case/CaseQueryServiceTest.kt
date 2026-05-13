@@ -77,16 +77,16 @@ class CaseQueryServiceTest {
       val roshLevel = buildRoshLevel(code = "RMRH", description = "Medium Risk")
       val case2 = buildCase(crn = crnTwo, name = buildName("Bob"), nomsNumber = "12234", roshLevel = roshLevel)
 
-      val caseList = CaseList(cases = listOf(case1, case2))
+      val caseList = OrchestrationResultDto(CaseList(cases = listOf(case1, case2)))
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
       every { caseOrchestrationService.getCaseList(username) } returns caseList
 
       val result = caseQueryService.getCaseList()
-      assertThat(result).hasSize(2)
+      assertThat(result.data).hasSize(2)
 
-      val firstPerson = result.first() as FullPersonDto
+      val firstPerson = result.data.first() as FullPersonDto
       assertThat(firstPerson.crn).isEqualTo(crnOne)
       assertThat(firstPerson.name).isEqualTo(case1.name.fullName)
       assertThat(firstPerson.nomsNumber).isEqualTo(case1.nomsNumber)
@@ -99,7 +99,7 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
       assertThat(firstPerson.roshLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
-      val lastPerson = result.last() as FullPersonDto
+      val lastPerson = result.data.last() as FullPersonDto
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
       assertThat(lastPerson.name).isEqualTo(case2.name.fullName)
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)

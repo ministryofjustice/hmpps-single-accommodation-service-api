@@ -26,17 +26,19 @@ class CaseController(
     @RequestParam teamCode: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val personDtos = caseQueryService.getCaseList()
+    val upstreamFailures = personDtos.upstreamFailures.toMutableList()
 
-    val crnsOnCaselist = personDtos.map { it.crn }
+    val crnsOnCaselist = personDtos.data.map { it.crn }
     val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist)
     if (unpersistedCrns.isNotEmpty()) {
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
-      caseApplicationService.upsertCases(casesToAdd)
+      upstreamFailures += casesToAdd.upstreamFailures
+      caseApplicationService.upsertCases(casesToAdd.data)
     }
     val result =
-      caseQueryService.getCases(personDtos, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode)
+      caseQueryService.getCases(personDtos.data, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode)
 
-    return ResponseEntity.ok(ApiResponseDto(data = result))
+    return ResponseEntity.ok(ApiResponseDto(data = result, upstreamFailures = upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
