@@ -7,10 +7,10 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -22,9 +22,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildExcludedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildRestrictedPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import java.time.LocalDate
 import java.util.UUID
 import java.util.stream.Stream
@@ -34,43 +33,47 @@ class CaseTransformerTest {
   private val crn: String = UUID.randomUUID().toString()
 
   @Test
-  fun `returns CaseAccess of UKNOWN when personDto is missing`() {
+  fun `returns UserAccess of UKNOWN when personDto is missing`() {
     val result = toCaseDto(crn = crn, person = null, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.caseAccess).isEqualTo(CaseAccess.UNKNOWN)
+    assertThat(result.userAccess).isEqualTo(UserAccess.UNKNOWN)
   }
 
   @Test
-  fun `returns CaseAccess FULL when personDto is FullPersonDto`() {
+  fun `returns UserAccess FULL when personDto is FullPersonDto`() {
     val person = buildFullPersonDto(crn)
     val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
-    assertThat(fromOrchestrationDto.caseAccess).isEqualTo(CaseAccess.FULL)
+    assertThat(fromOrchestrationDto.userAccess).isEqualTo(UserAccess.FULL)
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
-    assertThat(fromSasAndDelius.caseAccess).isEqualTo(CaseAccess.FULL)
+    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
   }
 
   @Test
-  fun `returns CaseAccess of RESTRICTED when personDto is RestrictedPersonDto`() {
-    val person = buildRestrictedPersonDto(crn)
+  fun `returns UserAccess of FULL when personDto is FullPersonDto and limitedAccess is true`() {
+    val person = buildFullPersonDto(crn, limitedAccess = true)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.caseAccess).isEqualTo(CaseAccess.RESTRICTED)
+    assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
+    assertThat(result.limitedAccess).isTrue
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
-    assertThat(fromSasAndDelius.caseAccess).isEqualTo(CaseAccess.RESTRICTED)
+    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
+    assertThat(result.limitedAccess).isTrue
   }
 
   @Test
-  fun `returns CaseAccess of EXCLUDED when personDto is ExcludedPersonDto`() {
-    val person = buildExcludedPersonDto(crn)
+  fun `returns UserAccess of LIMITED when personDto is LimitedPersonDto`() {
+    val person = buildLimitedPersonDto(crn)
     val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.caseAccess).isEqualTo(CaseAccess.EXCLUDED)
+    assertThat(result.userAccess).isEqualTo(UserAccess.LIMITED)
+    assertThat(result.limitedAccess).isTrue()
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
-    assertThat(fromSasAndDelius.caseAccess).isEqualTo(CaseAccess.EXCLUDED)
+    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.LIMITED)
+    assertThat(fromSasAndDelius.limitedAccess).isTrue
   }
 
   @ParameterizedTest
@@ -150,7 +153,8 @@ class CaseTransformerTest {
       nextAccommodation = null,
       status = null,
       actions = emptyList(),
-      caseAccess = CaseAccess.FULL,
+      userAccess = UserAccess.FULL,
+      limitedAccess = false,
     )
 
     @JvmStatic

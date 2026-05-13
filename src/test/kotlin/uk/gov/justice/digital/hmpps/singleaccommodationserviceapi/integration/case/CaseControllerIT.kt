@@ -4,12 +4,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -43,6 +44,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import java.util.UUID
 
 class CaseControllerIT : IntegrationTestBase() {
+  private val log = LoggerFactory.getLogger(javaClass)
+
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
 
@@ -162,42 +165,44 @@ class CaseControllerIT : IntegrationTestBase() {
     seedCaseEntities()
     stubAdditionalCorePersonRecords()
 
-    val failures = mutableMapOf<String, String>()
+    val failures = mutableListOf<String>()
 
     caseListFilters().forEach { filter ->
+      val response = restTestClient.get().uri {
+        it.path("/case-list")
+          .queryParam(filter.queryParameter, filter.value).build()
+      }
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
+        .returnResult()
+        .responseBody!!
+        .data
       try {
-        val response = restTestClient.get().uri {
-          it.path("/case-list")
-            .queryParam(filter.queryParameter, filter.value).build()
-        }
-          .withDeliusUserJwt()
-          .exchangeSuccessfully()
-          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
-          .returnResult()
-          .responseBody!!
-          .data
-
         assertAll(
           { assertThat(response.size).isEqualTo(filter.expectedResultSize) },
           { filter.assertions.forEach { assertion -> assertion(response) } },
         )
       } catch (e: AssertionError) {
-        failures += "Failed with [searchParameter:${filter.queryParameter}]:[${filter.value}]:[${filter.expectedResultSize}]" to e.message!!
+        log.error(e.stackTraceToString())
+        failures += "Expected: ${filter.expectedResultSize} but was: ${response.size} \n$filter"
       }
     }
-    assertThat(failures).isEmpty()
+    assertThat(failures)
+      .withFailMessage("Incorrect result for:\n%s", failures.joinToString("\n"))
+      .isEmpty()
   }
 
   private fun caseListFilters() = listOf(
     CaseListFilter("searchTerm", "AAAAA", 0),
-    CaseListFilter("searchTerm", "FAKECRN1", 1, listOf(containsNoExcludedCases())),
-    CaseListFilter("searchTerm", "FIR", 18, listOf(containsNoExcludedCases())),
-    CaseListFilter("searchTerm", "first", 18, listOf(containsNoExcludedCases())),
-    CaseListFilter("searchTerm", "FiRsT M", 18, listOf(containsNoExcludedCases())),
+    CaseListFilter("searchTerm", "FAKECRN1", 1, listOf(containsNoLimitedCases())),
+    CaseListFilter("searchTerm", "FIR", 17, listOf(containsNoLimitedCases())),
+    CaseListFilter("searchTerm", "first", 17, listOf(containsNoLimitedCases())),
+    CaseListFilter("searchTerm", "FiRsT M", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "FiRsT M Last", 0),
-    CaseListFilter("searchTerm", "Zack", 1, listOf(containsNoExcludedCases())),
-    CaseListFilter("riskLevel", "VERY_HIGH", 18, listOf(containsNoExcludedCases())),
-    CaseListFilter("riskLevel", "MEDIUM", 1, listOf(containsNoExcludedCases())),
+    CaseListFilter("searchTerm", "Zack", 1, listOf(containsNoLimitedCases())),
+    CaseListFilter("riskLevel", "VERY_HIGH", 17, listOf(containsNoLimitedCases())),
+    CaseListFilter("riskLevel", "MEDIUM", 1, listOf(containsNoLimitedCases())),
     CaseListFilter("riskLevel", "LOW", 0),
     CaseListFilter("riskLevel", "", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "", 20, listOf(containsAllCaseTypes())),
@@ -205,14 +210,14 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("teamCode", "OTHERTEAM", 0),
   )
 
-  private fun containsNoExcludedCases(): (List<CaseDto>) -> Unit = { response ->
-    assertThat(response.map { it.caseAccess })
-      .doesNotContain(CaseAccess.EXCLUDED)
+  private fun containsNoLimitedCases(): (List<CaseDto>) -> Unit = { response ->
+    assertThat(response.map { it.userAccess })
+      .doesNotContain(UserAccess.LIMITED)
   }
 
   private fun containsAllCaseTypes(): (List<CaseDto>) -> Unit = { response ->
-    assertThat(response.map { it.caseAccess })
-      .contains(CaseAccess.FULL, CaseAccess.EXCLUDED, CaseAccess.RESTRICTED)
+    assertThat(response.map { it.userAccess })
+      .contains(UserAccess.FULL, UserAccess.LIMITED)
   }
 
   private data class CaseListFilter(
@@ -238,7 +243,7 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `returns CaseAccess UNKOWN when delius doesn't return a result`() {
+  fun `returns UserAccess UNKOWN when delius doesn't return a result`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
     getCaseResponse(crn).value {

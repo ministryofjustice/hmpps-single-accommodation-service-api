@@ -51,3 +51,7 @@ test-data-setup:
 
 case-list:
   onboarded-teams: 12345
+logging:
+  level:
+    root: WARN
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: WARN

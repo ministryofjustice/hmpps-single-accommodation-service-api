@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -18,10 +18,9 @@ object CaseTransformer {
     roshDetails: RoshDetails?,
     tier: Tier?,
   ) = when (person) {
-    is ExcludedPersonDto -> person.excluded()
-    is RestrictedPersonDto -> toOrchestratedCaseDto(person, cpr, roshDetails, tier, CaseAccess.RESTRICTED)
-    is FullPersonDto -> toOrchestratedCaseDto(person, cpr, roshDetails, tier, CaseAccess.FULL)
-    null -> CaseDto(crn = crn, caseAccess = CaseAccess.UNKNOWN)
+    is LimitedPersonDto -> person.limited()
+    is FullPersonDto -> toOrchestratedCaseDto(person, cpr, roshDetails, tier, UserAccess.FULL, person.limitedAccess)
+    null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
   }
 
   private fun toOrchestratedCaseDto(
@@ -29,7 +28,8 @@ object CaseTransformer {
     cpr: CorePersonRecord?,
     roshDetails: RoshDetails?,
     tier: Tier?,
-    caseAccess: CaseAccess,
+    userAccess: UserAccess,
+    limitedAccess: Boolean,
   ) = CaseDto(
     name = cpr?.toFullName(),
     dateOfBirth = cpr?.dateOfBirth,
@@ -44,7 +44,8 @@ object CaseTransformer {
     nextAccommodation = null,
     status = null,
     actions = emptyList(),
-    caseAccess = caseAccess,
+    userAccess = userAccess,
+    limitedAccess = limitedAccess,
   )
 
   fun PersonDto.toCaseDto(
@@ -66,37 +67,20 @@ object CaseTransformer {
         tierScore = caseEntity?.tierScore?.let { toTierScore(it) },
         status = null,
         actions = eligibility?.caseActions.orEmpty(),
-        caseAccess = CaseAccess.FULL,
+        userAccess = UserAccess.FULL,
+        limitedAccess = this.limitedAccess,
       )
     }
 
-    is RestrictedPersonDto -> {
-      CaseDto(
-        name = name,
-        dateOfBirth = dateOfBirth,
-        crn = crn,
-        prisonNumber = nomsNumber,
-        riskLevel = roshLevel,
-        pncReference = pncNumber,
-        assignedTo = assignedTo,
-        photoUrl = null,
-        currentAccommodation = null,
-        nextAccommodation = null,
-        tierScore = caseEntity?.tierScore?.let { toTierScore(it) },
-        status = null,
-        actions = eligibility?.caseActions.orEmpty(),
-        caseAccess = CaseAccess.RESTRICTED,
-      )
-    }
-
-    is ExcludedPersonDto -> excluded()
+    is LimitedPersonDto -> limited()
   }
 
-  fun PersonDto.excluded() = CaseDto(
+  fun PersonDto.limited() = CaseDto(
     crn = crn,
     prisonNumber = nomsNumber,
     assignedTo = assignedTo,
-    caseAccess = CaseAccess.EXCLUDED,
+    userAccess = UserAccess.LIMITED,
+    limitedAccess = true,
   )
 
   fun toTierScore(tierScoreInfra: TierScoreInfra) = TierScore.valueOf(tierScoreInfra.name)
