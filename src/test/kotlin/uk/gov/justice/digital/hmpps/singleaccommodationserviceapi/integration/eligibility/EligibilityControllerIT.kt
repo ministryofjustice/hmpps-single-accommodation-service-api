@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityNotEligibleSTierFail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityUpstreamFailuresResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -64,7 +65,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val tier = buildTier(TierScore.A1)
     val cas1Application = buildCas1Application(id = cas1ApplicationId)
     val cas3Application = buildCas3Application(id = cas3ApplicationId)
 
@@ -74,11 +74,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
-    TierStubs.getTierOKResponse(crn = crn, tier)
   }
 
   @Test
   fun `should get eligibility for crn`() {
+    val tier = buildTier(TierScore.A1)
+
+    TierStubs.getTierOKResponse(crn = crn, tier)
+
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
@@ -112,6 +115,23 @@ class EligibilityControllerIT : IntegrationTestBase() {
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
+    TierStubs.getTierServerErrorResponse(crn = crn)
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetEligibilityUpstreamFailuresResponse(
+            crn = crn,
           ),
         )
       }

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -11,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
@@ -18,10 +20,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
 @Service
 class EligibilityService(
-
   private val accommodationQueryService: AccommodationQueryService,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val caseRepository: CaseRepository,
@@ -51,10 +53,18 @@ class EligibilityService(
     return getEligibility(data)
   }
 
-  fun getEligibility(crn: String): EligibilityDto {
+  fun getEligibility(crn: String): ApiResponseDto<EligibilityDto> {
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
-    val data = getDomainData(crn)
-    return getEligibility(data)
+
+    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
+
+    if (eligibilityOrchestrationDto.upstreamFailures.isNotEmpty()) {
+      log.error("Eligibility upstream failures for CRN {}: {}", crn, eligibilityOrchestrationDto.upstreamFailures)
+      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = eligibilityOrchestrationDto.upstreamFailures)
+    }
+    val data = buildDomainData(crn, eligibilityOrchestrationDto.data)
+    val eligibility = getEligibility(data)
+    return toApiResponseDto(data = eligibility)
   }
 
   fun getEligibility(data: DomainData): EligibilityDto {
@@ -102,37 +112,32 @@ class EligibilityService(
     }
   }
 
-  fun getDomainData(crn: String): DomainData {
+  fun buildDomainData(crn: String, eligibilityOrchestrationDto: EligibilityOrchestrationDto): DomainData {
     val accommodationTypes = accommodationTypeRepository.findAll()
     val caseEntity = caseRepository.findByCrn(crn)
 
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
-    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
-    val currentAccommodation = eligibilityOrchestrationDto.data.cpr?.addresses?.let {
+    val currentAccommodation = eligibilityOrchestrationDto.cpr?.addresses?.let {
       accommodationQueryService.getCurrentAccommodation(
         crn,
         addresses = it,
       )
     }
 
-    val nextAccommodation = eligibilityOrchestrationDto.data.cpr?.addresses?.let {
+    val nextAccommodation = eligibilityOrchestrationDto.cpr?.addresses?.let {
       accommodationQueryService.getNextAccommodation(
         crn,
         addresses = it,
       )
     }
 
-    if (eligibilityOrchestrationDto.upstreamFailures.isNotEmpty()) {
-      log.error("Eligibility upstream failures for CRN {}: {}", crn, eligibilityOrchestrationDto.upstreamFailures)
-    }
-
     return DomainData(
       crn = crn,
-      cpr = eligibilityOrchestrationDto.data.cpr,
-      tier = eligibilityOrchestrationDto.data.tier,
-      cas1Application = eligibilityOrchestrationDto.data.cas1Application,
-      cas3Application = eligibilityOrchestrationDto.data.cas3Application,
+      cpr = eligibilityOrchestrationDto.cpr,
+      tier = eligibilityOrchestrationDto.tier,
+      cas1Application = eligibilityOrchestrationDto.cas1Application,
+      cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,

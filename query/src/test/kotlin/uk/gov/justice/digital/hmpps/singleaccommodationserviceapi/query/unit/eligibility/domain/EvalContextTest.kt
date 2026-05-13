@@ -25,7 +25,7 @@ class EvalContextTest {
     val originalResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val context = EvaluationContext(data = originalData, currentResult = originalResult)
 
-    val updatedResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+    val updatedResult = buildServiceResult()
     val updatedContext = context.copy(currentResult = updatedResult)
 
     assertThat(updatedContext.data).isEqualTo(originalData)
@@ -77,7 +77,7 @@ class EvalContextTest {
   fun `EvalContext instances with different ServiceResult are not equal`() {
     val domainData = buildDomainData()
     val result1 = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
-    val result2 = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+    val result2 = buildServiceResult()
 
     val context1 = EvaluationContext(data = domainData, currentResult = result1)
     val context2 = EvaluationContext(data = domainData, currentResult = result2)

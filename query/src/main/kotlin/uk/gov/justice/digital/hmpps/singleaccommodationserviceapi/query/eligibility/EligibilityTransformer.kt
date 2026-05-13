@@ -15,8 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CommissionedRehabilitativeServices
@@ -68,6 +70,38 @@ object EligibilityTransformer {
       cas3.action,
       pa.action,
     ).mapNotNull { it },
+  )
+
+  fun toFailedEligibilityDto(
+    crn: String,
+  ) = EligibilityDto(
+    crn = crn,
+    cas1 = Cas1ServiceResult(
+      serviceResult = toNotEligibleServiceStatus(),
+      cas1Application = null,
+    ),
+    cas3 = Cas3ServiceResult(
+      serviceResult = toNotEligibleServiceStatus(),
+      cas3Application = null,
+    ),
+    dtr = DtrServiceResult(
+      serviceResult = toNotEligibleServiceStatus(),
+      caseId = null,
+      submission = null,
+    ),
+    crs = CrsServiceResult(
+      serviceResult = toNotEligibleServiceStatus(),
+      commissionedRehabilitativeServices = null,
+    ),
+    pa = PaServiceResult(
+      serviceResult = toNotEligibleServiceStatus(),
+    ),
+    caseActions = emptyList(),
+  )
+
+  fun toNotEligibleServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
+    serviceStatus = ServiceStatus.NOT_ELIGIBLE,
+    failureReasons = failureReasons,
   )
 
   private fun toCas3ApplicationDto(

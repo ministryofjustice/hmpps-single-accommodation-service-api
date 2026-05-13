@@ -27,7 +27,7 @@ class Cas1UpcomingContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(),
       )
 
       val expectedContext = EvaluationContext(

@@ -22,7 +22,7 @@ class DtrCompletionContextUpdaterTest {
       val data = buildDomainData()
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(),
       )
 
       val expectedContext = EvaluationContext(
@@ -46,7 +46,7 @@ class DtrCompletionContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(),
       )
 
       val expectedContext = EvaluationContext(

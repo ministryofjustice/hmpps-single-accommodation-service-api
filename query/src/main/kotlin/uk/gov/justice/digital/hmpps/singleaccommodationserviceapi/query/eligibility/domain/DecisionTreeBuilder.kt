@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 
 /**
@@ -57,21 +57,5 @@ class DecisionTreeBuilder(
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible() = OutcomeNode { ctx -> ServiceResult(ServiceStatus.NOT_ELIGIBLE, failureReasons = ctx.currentResult.failureReasons) }
-
-  fun accepted() = outcome(ServiceResult(ServiceStatus.ACCEPTED))
-
-  fun bookingConfirmed() = outcome(
-    ServiceResult(
-      serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
-      link = EligibilityKeys.VIEW_REFERRAL,
-    ),
-  )
-
-  fun placementBooked() = outcome(
-    ServiceResult(
-      serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-    ),
-  )
+  fun notEligible() = OutcomeNode { ctx -> toNotEligibleServiceStatus(ctx.currentResult.failureReasons) }
 }

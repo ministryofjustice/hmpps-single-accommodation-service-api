@@ -8,6 +8,7 @@ import org.assertj.core.api.AssertionsForClassTypes.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
@@ -23,11 +25,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -103,6 +107,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
@@ -247,15 +253,15 @@ class EligibilityServiceTest {
 
   private val eligibilityService = EligibilityService(
     accommodationQueryService = accommodationQueryService,
+    accommodationTypeRepository = accommodationTypeRepository,
+    caseRepository = caseRepository,
+    dutyToReferQueryService = dutyToReferQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
     cas1Tree = cas1Tree,
     cas3Tree = cas3Tree,
     dtrTree = dtrTree,
-    paTree = paTree,
     crsTree = crsTree,
-    dutyToReferQueryService = dutyToReferQueryService,
-    caseRepository = caseRepository,
-    accommodationTypeRepository = accommodationTypeRepository,
+    paTree = paTree,
   )
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -278,6 +284,10 @@ class EligibilityServiceTest {
           buildAddress(
             addressStatus = AddressStatus.M,
             endDate = endDate,
+            addressUsage = buildAddressUsage(
+              addressUsageCode = AddressUsageCode.A02,
+              addressUsageDescription = "Test",
+            ),
           ),
         ),
       )
@@ -294,23 +304,62 @@ class EligibilityServiceTest {
       )
       val caseEntity = buildCaseEntity(id = caseId)
       val currentAccommodation = buildAccommodationSummaryDto(endDate = endDate, type = buildAccommodationTypeDto(code = "A02"))
-      val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "AO2")
+      val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
 
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
       every { accommodationQueryService.getNextAccommodation(crn, cpr.addresses) } returns null
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses) } returns currentAccommodation
-      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
       every { caseRepository.findByCrn(crn) } returns caseEntity
 
-      val result = eligibilityService.getDomainData(crn)
-      assertThat(result.tierScore).isEqualTo(expectedTier)
-      assertThat(result.sex).isEqualTo(SexCode.M)
-      assertThat(result.cas1Application).isEqualTo(cas1Application)
-      assertThat(result.cas3Application).isEqualTo(cas3Application)
-      assertThat(result.currentAccommodation).isEqualTo(currentAccommodation)
-      assertThat(result.nextAccommodation).isNull()
-      assertThat(result.dutyToRefer).isEqualTo(dutyToRefer)
+      val result = eligibilityService.buildDomainData(crn, orchestrationDto.data)
+
+      val expected = buildDomainData(
+        crn = crn,
+        tierScore = expectedTier,
+        sex = cpr.sex!!.code,
+        currentAccommodation = currentAccommodation,
+        currentAccommodationTypeEntity = accommodationTypeEntity,
+        nextAccommodation = null,
+        cas1Application = cas1Application,
+        cas3Application = cas3Application,
+        commissionedRehabilitativeServices = null,
+        dutyToRefer = dutyToRefer,
+      )
+
+      assertThat(result).isEqualTo(expected)
+    }
+  }
+
+  @Nested
+  inner class GetEligibility {
+    val crn = "ABC123"
+
+    @Test
+    fun `getEligibility returns failed eligibility and upstream failures when external api fails`() {
+      val upstreamFailure = buildUpstreamFailure()
+      val orchestrationDto = OrchestrationResultDto(
+        data = EligibilityOrchestrationDto(
+          crn = crn,
+          cpr = null,
+          tier = null,
+          cas1Application = null,
+          cas3Application = null,
+        ),
+        upstreamFailures = listOf(
+          upstreamFailure,
+        ),
+      )
+
+      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
+
+      val result = eligibilityService.getEligibility(crn)
+
+      val expected = ApiResponseDto(
+        data = buildEligibilityDto(crn),
+        upstreamFailures = listOf(toUpstreamFailureDto(upstreamFailure)),
+      )
+      assertThat(result).isEqualTo(expected)
     }
   }
 

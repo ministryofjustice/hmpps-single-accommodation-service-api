@@ -36,7 +36,7 @@ class DecisionNodeTest {
       val context =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = buildServiceResult(),
         )
 
       val result = outcomeNode.eval(context)
@@ -66,7 +66,7 @@ class DecisionNodeTest {
       val context =
         EvaluationContext(
           data = buildDomainData(),
-          currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = buildServiceResult(),
         )
       val outcomeNode = OutcomeNode { _ ->
         buildServiceResult(
@@ -135,9 +135,9 @@ class DecisionNodeTest {
       val updatedContext =
         EvaluationContext(
           data = initialContext.data,
-          currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+          currentResult = buildServiceResult(),
         )
-      val expectedResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      val expectedResult = buildServiceResult()
 
       every { engine.execute(ruleSet, initialContext.data) } returns RuleSetResult(RuleSetStatus.FAIL, emptyList())
       every { contextUpdater.update(initialContext, emptyList()) } returns updatedContext
@@ -210,12 +210,12 @@ class DecisionNodeTest {
         )
       val updatedContext = EvaluationContext(
         data = context.data,
-        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(),
       )
 
       every { engine.execute(any(), any()) } returns RuleSetResult(RuleSetStatus.FAIL, emptyList())
       every { contextUpdater.update(context, emptyList()) } returns updatedContext
-      every { onFailNode.eval(any()) } returns buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      every { onFailNode.eval(any()) } returns buildServiceResult()
 
       val ruleSetNode =
         RuleSetNode(
@@ -253,7 +253,7 @@ class DecisionNodeTest {
       every { engine.execute(ruleSet, initialContext.data) } returns
         RuleSetResult(RuleSetStatus.FAIL, ruleFailureReasons)
       every { onFailNode.eval(capture(capturedContext)) } returns
-        buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+        buildServiceResult()
 
       val ruleSetNode = RuleSetNode(
         ruleSet = ruleSet,
@@ -294,7 +294,7 @@ class DecisionNodeTest {
       every { engine.execute(ruleSet, initialContext.data) } returns
         RuleSetResult(RuleSetStatus.FAIL, emptyList())
       every { onFailNode.eval(capture(capturedContext)) } returns
-        buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+        buildServiceResult()
 
       val ruleSetNode = RuleSetNode(
         ruleSet = ruleSet,
