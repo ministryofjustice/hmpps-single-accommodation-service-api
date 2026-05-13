@@ -3,10 +3,27 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 
 @Component
 class Cas3EligibilityRuleSet(
-  private val rules: List<Cas3EligibilityRule>,
+  currentAccommodationType: CurrentAccommodationTypeRule,
+  noNextAccommodation: NoNextAccommodationRule,
+  dtrExpiredReferral: DtrExpiredReferralRule,
+  noConflictingCas1Booking: NoConflictingCas1BookingRule,
+  crsSubmitted: CrsSubmittedRule,
+  crsExpired: CrsExpiredRule,
 ) : RuleSet {
+  private val rules: List<Rule> = listOf(
+    currentAccommodationType,
+    noNextAccommodation,
+    dtrExpiredReferral,
+    noConflictingCas1Booking,
+    crsExpired,
+    crsSubmitted,
+  )
   override fun getRules(): List<Rule> = rules
 }

@@ -41,6 +41,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
@@ -72,17 +75,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsExpiredRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CrsSubmittedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.CurrentAccommodationEndDateValidationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.DtrExpiredReferralRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.NoNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
@@ -127,82 +127,75 @@ class EligibilityServiceTest {
   // CAS1
   var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
   var cas1ValidationRuleSet = Cas1ValidationRuleSet(
-    listOf(
-      CurrentAccommodationEndDateValidationRule(),
-      Cas1SexValidationRule(),
-    ),
+    CurrentAccommodationEndDateValidationRule(),
+    Cas1SexValidationRule(),
   )
-  var cas1CompletionRuleSet = Cas1CompletionRuleSet(listOf(Cas1ApplicationCompletionRule()))
-  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(listOf(Cas1ApplicationSuitabilityRule()))
+  var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
+  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationSuitabilityRule())
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
-    listOf(
-      MaleRiskEligibilityRule(),
-      NonMaleRiskEligibilityRule(),
-      STierEligibilityRule(),
-    ),
+    STierEligibilityRule(),
+    MaleRiskEligibilityRule(),
+    NonMaleRiskEligibilityRule(),
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater(clock)
-  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(listOf(RecentCurrentAccommodationEndDateRule(clock)))
+  var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(RecentCurrentAccommodationEndDateRule(clock))
   val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
   // CAS3
   var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
   var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
-  var cas3ValidationRuleSet = Cas3ValidationRuleSet(listOf(CurrentAccommodationEndDateValidationRule()))
+  var cas3ValidationRuleSet = Cas3ValidationRuleSet(CurrentAccommodationEndDateValidationRule())
   val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater(clock)
-  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(listOf(RecentCurrentAccommodationEndDateRule(clock)))
+  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(RecentCurrentAccommodationEndDateRule(clock))
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
-    listOf(
-      Cas3ApplicationSuitabilityRule(),
-      Cas3ApplicationPresentSuitabilityRule(),
-      Cas3BookingSuitabilityRule(),
-      Cas3AssessmentSuitabilityRule(),
-    ),
+    Cas3ApplicationSuitabilityRule(),
+    Cas3ApplicationPresentSuitabilityRule(),
+    Cas3BookingSuitabilityRule(),
+    Cas3AssessmentSuitabilityRule(),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(listOf(Cas3ApplicationCompletionRule()))
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationCompletionRule())
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
-    listOf(
-      CurrentAccommodationTypeRule(),
-      NoNextAccommodationRule(),
-      DtrExpiredReferralRule(clock),
-      NoConflictingCas1BookingRule(),
-      CrsSubmittedRule(),
-      CrsExpiredRule(clock),
-    ),
+    CurrentAccommodationTypeRule(),
+    NoNextAccommodationRule(),
+    DtrExpiredReferralRule(clock),
+    NoConflictingCas1BookingRule(),
+    CrsSubmittedRule(),
+    CrsExpiredRule(clock),
   )
 
   // DTR
-  var dtrUpcomingRuleSet = DtrUpcomingRuleSet(listOf(DtrRecentCurrentAccommodationEndDateRule(clock)))
+  var dtrUpcomingRuleSet = DtrUpcomingRuleSet(DtrRecentCurrentAccommodationEndDateRule(clock))
   var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
-    listOf(
-      DtrStatusRule(),
-      DtrPresentRule(),
-      DtrExpiredReferralRule(clock),
-    ),
+    DtrStatusRule(),
+    DtrPresentRule(),
+    DtrExpiredReferralRule(clock),
   )
   var dtrCompletionContextUpdater = DtrCompletionContextUpdater()
-  var dtrCompletionRuleSet = DtrCompletionRuleSet(listOf(DtrApplicationCompleteRule()))
+  var dtrCompletionRuleSet = DtrCompletionRuleSet(DtrApplicationCompleteRule())
   var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
-    listOf(
-      CurrentAddressTypeNotPrivateRule(),
-      NoNextAccommodationRule(),
-    ),
+    CurrentAddressTypeNotPrivateRule(),
+    NoNextAccommodationRule(),
+
   )
 
   // CRS
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
-    listOf(IsMaleRule(), CurrentAccommodationEndDateValidationRule(), NoNextAccommodationRule()),
+    IsMaleRule(),
+    CurrentAccommodationEndDateValidationRule(),
+    NoNextAccommodationRule(),
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
-    listOf(CrsSubmittedRule(), CrsExpiredRule(clock)),
+    CrsSubmittedRule(),
+    CrsExpiredRule(clock),
   )
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
-    listOf(Cas1ApplicationNotSuitableRule(), Cas3ApplicationNotSuitableRule()),
+    Cas1ApplicationNotSuitableRule(),
+    Cas3ApplicationNotSuitableRule(),
   )
   var paCompletionRuleSet = PaCompletionRuleSet(
-    listOf(HasNextAccommodationRule()),
+    HasNextAccommodationRule(),
   )
 
   private val builder = DecisionTreeBuilder(rulesEngine)

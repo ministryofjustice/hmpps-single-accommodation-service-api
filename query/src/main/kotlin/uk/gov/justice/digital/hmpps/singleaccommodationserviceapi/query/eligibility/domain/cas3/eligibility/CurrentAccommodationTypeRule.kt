@@ -3,11 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class CurrentAccommodationTypeRule : Cas3EligibilityRule {
+class CurrentAccommodationTypeRule : Rule {
   override val description = "FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison"
 
   override fun evaluate(data: DomainData): RuleResult {
