@@ -26,6 +26,7 @@ object ProposedAccommodationMapper {
   ) = ProposedAccommodationEntity(
     id = snapshot.id,
     caseId = snapshot.caseId,
+    cprAddressId = snapshot.cprAddressId,
     name = snapshot.name,
     accommodationTypeId = accommodationTypeEntity.id,
     accommodationStatusId = accommodationStatusEntity?.id,
@@ -51,6 +52,7 @@ object ProposedAccommodationMapper {
     accommodationTypeEntity: AccommodationTypeEntity,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ): ProposedAccommodationEntity {
+    proposedAccommodationEntity.cprAddressId = snapshot.cprAddressId
     proposedAccommodationEntity.name = snapshot.name
     proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity.id
     proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
@@ -94,6 +96,7 @@ object ProposedAccommodationMapper {
   ): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
     id = proposedAccommodationEntity.id,
     caseId = proposedAccommodationEntity.caseId,
+    cprAddressId = proposedAccommodationEntity.cprAddressId,
     currentAccommodation = currentAccommodation,
     name = proposedAccommodationEntity.name,
     accommodationType = AccommodationTypeDto(

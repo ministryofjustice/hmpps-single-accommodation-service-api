@@ -10,9 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.No
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -22,18 +28,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
+import java.time.Clock
 import java.time.Instant
 import java.util.UUID
 
 @Service
 class ProposedAccommodationApplicationService(
   private val jsonMapper: JsonMapper,
+  private val clock: Clock,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val accommodationStatusRepository: AccommodationStatusRepository,
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
+  private val corePersonRecordClient: CorePersonRecordClient,
 ) {
   @Transactional
   fun createProposedAccommodation(
@@ -59,26 +68,65 @@ class ProposedAccommodationApplicationService(
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
     )
-    val aggregateSnapshot = aggregate.snapshot()
-    val accommodationStatusEntity = aggregateSnapshot.accommodationStatus
+    val accommodationStatusEntity = aggregate.snapshot().accommodationStatus
       ?.let {
         accommodationStatusRepository.findByCodeAndActiveIsTrue(it.code)
           .orThrowNotFound("code" to it.code)
       }
     val persistedRecord = proposedAccommodationRepository.save(
       ProposedAccommodationMapper.toEntity(
-        aggregateSnapshot,
+        aggregate.snapshot(),
         accommodationTypeEntity,
         accommodationStatusEntity,
       ),
     )
-    pullEventAndPersistToOutbox(aggregate)
+    createProposedAccommodationInCprWhereApplicable(crn, aggregate, updateRecord = persistedRecord)
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = user.name,
       createdAt = persistedRecord.createdAt!!,
     )
+  }
+
+  fun createProposedAccommodationInCprWhereApplicable(
+    crn: String,
+    aggregate: ProposedAccommodationAggregate,
+    updateRecord: ProposedAccommodationEntity,
+  ) {
+    if (aggregate.requiresCprRegistration()) {
+      val aggregateSnapshot = aggregate.snapshot()
+      val createdAccommodation = corePersonRecordClient.createProbationAddress(
+        crn = crn,
+        address = ProbationCreateAddress(
+          noFixedAbode = false,
+          startDate = Instant.now(clock),
+          endDate = null,
+          postcode = aggregateSnapshot.address.postcode,
+          subBuildingName = aggregateSnapshot.address.subBuildingName,
+          buildingName = aggregateSnapshot.address.buildingName,
+          buildingNumber = aggregateSnapshot.address.buildingNumber,
+          thoroughfareName = aggregateSnapshot.address.thoroughfareName,
+          dependentLocality = aggregateSnapshot.address.dependentLocality,
+          postTown = aggregateSnapshot.address.postTown,
+          county = aggregateSnapshot.address.county,
+          countryCode = null, // todo: might need to send this as an extra if the FE can get it from the lookup integration for us
+          uprn = aggregateSnapshot.address.uprn,
+          comment = null,
+          statusCode = AddressStatusCode.valueOf(aggregateSnapshot.accommodationStatus!!.code),
+          usages = listOf(
+            AddressUsage(
+              usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
+              isActive = true,
+            ),
+          ),
+          contacts = emptyList(),
+        ),
+      )
+      aggregate.markRegisteredWithCpr(createdAccommodation.cprAddressId)
+      updateRecord.cprAddressId = aggregate.snapshot().cprAddressId
+      proposedAccommodationRepository.save(updateRecord)
+    }
   }
 
   @Transactional
@@ -125,7 +173,7 @@ class ProposedAccommodationApplicationService(
         ),
       ),
     )
-
+    createProposedAccommodationInCprWhereApplicable(crn, aggregate, updateRecord = updatedRecord)
     pullEventAndPersistToOutbox(aggregate)
 
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
@@ -193,7 +241,7 @@ class ProposedAccommodationApplicationService(
         aggregateType = "ProposedAccommodation",
         domainEventType = event.type.name,
         payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(),
+        createdAt = Instant.now(clock),
         processedStatus = ProcessedStatus.PENDING,
         processedAt = null,
       ),

@@ -76,17 +76,18 @@ fun buildTeam(code: String = "12345") = Team(
 fun buildStaffDetail(
   username: String = "test.user",
   email: String = "test.user@justice.gov.uk",
+  name: PersonName = buildPersonName(),
 ) = StaffDetail(
   email = email,
   telephoneNumber = "07665111456",
   teams = listOf(buildTeam()),
   username = username,
-  name = buildPersonName(),
+  name = name,
   code = "code",
   active = true,
 )
 
-fun buildPersonName() = PersonName(
-  forename = "Test",
-  surname = "User",
-)
+fun buildPersonName(
+  forename: String = "Test",
+  surname: String = "User",
+) = PersonName(forename, surname)

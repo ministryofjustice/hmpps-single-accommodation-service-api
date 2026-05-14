@@ -12,6 +12,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 fun buildProposedAccommodationSnapshot(
+  cprAddressId: UUID? = null,
   accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(
     code = "A07B",
     description = "Friends/Family (settled)",
@@ -23,6 +24,7 @@ fun buildProposedAccommodationSnapshot(
 ) = ProposedAccommodationSnapshot(
   id = UUID.randomUUID(),
   caseId = UUID.randomUUID(),
+  cprAddressId = cprAddressId,
   name = "Test Accommodation",
   accommodationType = accommodationType,
   accommodationStatus = accommodationStatus,

@@ -6,6 +6,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 data class CanonicalAddressUsage(
   @field:JsonUnwrapped
   val usageCode: CanonicalAddressUsageCode,
-  @field:JsonProperty("isActive")
+  @get:JsonProperty("isActive")
   val isActive: Boolean,
 )

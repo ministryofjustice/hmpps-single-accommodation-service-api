@@ -65,7 +65,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
          },
          {
             "field":"throughfareName",
-            "value":"test thoroughfareName"
+            "value":"test thoroughfare"
          },
          {
             "field":"dependentLocality",
@@ -81,11 +81,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
          },
          {
             "field":"country",
-            "value":"test country"
+            "value":"England"
          },
          {
             "field":"uprn",
-            "value":"UP123454"
+            "value": "test uprn"
          }
       ]
    }
@@ -96,13 +96,23 @@ fun expectedGetProposedAccommodationTimelineResponse(
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
   caseId: UUID,
+  buildingName: String? = "test building name",
+  buildingNumber: String? = "4",
+  thoroughfareName: String? = "test thoroughfare",
+  dependentLocality: String? = "test dependent locality",
+  postTown: String? = "test post town",
+  county: String? = "test county",
+  country: String? = "England",
+  postcode: String = "test postcode",
+  uprn: String? = "test uprn",
   initialAccommodationTypeDescription: String,
   updatedAccommodationTypeDescription: String,
   createCommitTime: String,
   createNoteCommitTime: String,
+  update1Author: String,
   update1CommitTime: String,
   update2CommitTime: String,
-): String = """
+) = """
 {
   "data": [
    {
@@ -114,11 +124,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"verificationStatus",
             "value":"PASSED",
             "oldValue":"FAILED"
-         },
-         {
-            "field":"nextAccommodationStatus",
-            "value":"YES",
-            "oldValue":"NO"
          },
          {
             "field":"startDate",
@@ -144,7 +149,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
    },
    {
       "type":"UPDATE",
-      "author":"DeliusUser",
+      "author":"$update1Author",
       "commitDate":"$update1CommitTime",
       "changes":[
          {
@@ -156,6 +161,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"verificationStatus",
             "value":"FAILED",
             "oldValue":"PASSED"
+         },
+         {
+            "field": "nextAccommodationStatus",
+            "oldValue": "YES",
+            "value": "NO"
          },
          {
             "field":"startDate",
@@ -170,7 +180,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
          {
             "field":"subBuildingName",
             "value":"another sub building name",
-            "oldValue":null
+            "oldValue":"test sub building name"
          }
       ]
    },
@@ -212,7 +222,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
          },
          {
             "field":"nextAccommodationStatus",
-            "value":"NO"
+            "value":"YES"
          },
          {
             "field":"startDate",
@@ -224,43 +234,43 @@ fun expectedGetProposedAccommodationTimelineResponse(
          },
          {
             "field":"postcode",
-            "value":"test postcode"
+            "value":"$postcode"
          },
          {
             "field":"subBuildingName",
-            "value":null
+            "value":"test sub building name"
          },
          {
             "field":"buildingName",
-            "value":"test building name"
+            "value":"$buildingName"
          },
          {
             "field":"buildingNumber",
-            "value":"4"
+            "value":"$buildingNumber"
          },
          {
             "field":"throughfareName",
-            "value":"test thoroughfareName"
+            "value":"$thoroughfareName"
          },
          {
             "field":"dependentLocality",
-            "value":"test dependent locality"
+            "value":"$dependentLocality"
          },
          {
             "field":"postTown",
-            "value":"test post town"
+            "value":"$postTown"
          },
          {
             "field":"county",
-            "value":"test county"
+            "value":"$county"
          },
          {
             "field":"country",
-            "value":"test country"
+            "value":"$country"
          },
          {
             "field":"uprn",
-            "value":"UP123454"
+            "value":"$uprn"
          }
       ]
    }

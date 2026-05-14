@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import java.util.UUID
 
 fun expectedGetProposedAccommodationsResponse(
@@ -110,7 +111,15 @@ fun proposedAddressesRequestBody(
   verificationStatus: String,
   nextAccommodationStatus: String,
   subBuildingName: String? = "test sub building name",
+  buildingName: String? = "test building name",
+  buildingNumber: String? = "4",
+  thoroughfareName: String? = "test thoroughfare",
+  dependentLocality: String? = "test dependent locality",
+  postTown: String? = "test post town",
+  county: String? = "test county",
+  country: String? = "England",
   postcode: String = "test postcode",
+  uprn: String? = "test uprn",
   startDate: String? = "2026-01-05",
   endDate: String? = "2026-04-25",
 ) = """
@@ -122,14 +131,14 @@ fun proposedAddressesRequestBody(
     "address" : {
       "postcode" : "$postcode",
       "subBuildingName" : "$subBuildingName",
-      "buildingName" : "test building name",
-      "buildingNumber" : "4",
-      "thoroughfareName" : "test thoroughfareName",
-      "dependentLocality" : "test dependent locality",
-      "postTown" : "test post town",
-      "county" : "test county",
-      "country" : "test country",
-      "uprn" : "UP123454"
+      "buildingName" : "$buildingName",
+      "buildingNumber" : "$buildingNumber",
+      "thoroughfareName" : "$thoroughfareName",
+      "dependentLocality" : "$dependentLocality",
+      "postTown" : "$postTown",
+      "county" : "$county",
+      "country" : "$country",
+      "uprn" : "$uprn"
     },
     "startDate" : ${convertDate(startDate)},
     "endDate" : ${convertDate(endDate)}
@@ -159,6 +168,15 @@ fun expectedProposedAddressesResponseBody(
   accommodationTypeDescription: String,
   verificationStatus: String,
   nextAccommodationStatus: String,
+  postcode: String,
+  subBuildingName: String,
+  buildingName: String,
+  buildingNumber: String,
+  thoroughfareName: String,
+  dependentLocality: String,
+  postTown: String,
+  county: String,
+  uprn: String,
   createdBy: String,
   createdAt: String,
 ): String = """
@@ -173,16 +191,16 @@ fun expectedProposedAddressesResponseBody(
   "verificationStatus" : "$verificationStatus",
   "nextAccommodationStatus" : "$nextAccommodationStatus",
   "address" : {
-    "postcode" : "test postcode",
-    "subBuildingName" : "test sub building name",
-    "buildingName" : "test building name",
-    "buildingNumber" : "4",
-    "thoroughfareName" : "test thoroughfareName",
-    "dependentLocality" : "test dependent locality",
-    "postTown" : "test post town",
-    "county" : "test county",
-    "country" : "test country",
-    "uprn" : "UP123454"
+    "postcode" : "$postcode",
+    "subBuildingName" : "$subBuildingName",
+    "buildingName" : "$buildingName",
+    "buildingNumber" : "$buildingNumber",
+    "thoroughfareName" : "$thoroughfareName",
+    "dependentLocality" : "$dependentLocality",
+    "postTown" : "$postTown",
+    "county" : "$county",
+    "country" : "England",
+    "uprn" : "$uprn"
   },
   "startDate" : "2026-01-05",
   "endDate" : "2026-04-25",
@@ -191,9 +209,12 @@ fun expectedProposedAddressesResponseBody(
 }
 """.trimIndent()
 
-fun expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId: UUID) = """
+fun expectedSasAddressUpdatedDomainEventJson(
+  proposedAccommodationId: UUID,
+  eventType: SingleAccommodationServiceDomainEventType,
+) = """
   {
     "aggregateId" : "$proposedAccommodationId",
-    "type" : "SAS_ACCOMMODATION_UPDATED"
+    "type" : "${eventType.name}"
   }
 """.trimIndent()

@@ -16,6 +16,7 @@ import java.util.UUID
 fun buildProposedAccommodationEntity(
   id: UUID = UUID.randomUUID(),
   caseId: UUID = UUID.randomUUID(),
+  cprAddressId: UUID? = null,
   name: String? = "Test Accommodation",
   accommodationTypeEntity: AccommodationTypeEntity = buildAccommodationTypeEntity(),
   accommodationStatusEntity: AccommodationStatusEntity? = buildAccommodationStatusEntity(),
@@ -40,6 +41,7 @@ fun buildProposedAccommodationEntity(
 ) = ProposedAccommodationEntity(
   id = id,
   caseId = caseId,
+  cprAddressId = cprAddressId,
   name = name,
   accommodationTypeId = accommodationTypeEntity.id,
   accommodationStatusId = accommodationStatusEntity?.id,
