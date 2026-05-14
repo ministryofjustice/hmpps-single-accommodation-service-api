@@ -8,4 +8,5 @@ interface AccommodationStatusRepository :
   JpaRepository<AccommodationStatusEntity, UUID>,
   ReferenceDataRepository<AccommodationStatusEntity> {
   override fun findAllByActiveIsTrueOrderByName(): List<AccommodationStatusEntity>
+  fun findByCodeAndActiveIsTrue(code: String): AccommodationStatusEntity?
 }

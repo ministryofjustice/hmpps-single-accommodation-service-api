@@ -6,9 +6,14 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildProposedAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
@@ -77,6 +82,60 @@ class ProposedAccommodationAggregateTest {
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
     assertThat(domainEventsToPublish).hasSize(0)
+  }
+
+  @Test
+  fun `should set accommodation status to PR1 when current accommodation is prison`() {
+    val currentAccommodation = buildAccommodationSummaryDto(
+      type = buildAccommodationTypeDto(
+        code = "HMP",
+        description = "Prison",
+      ),
+    )
+    val aggregate = hydrateAndCreateProposedAccommodation(
+      currentAccommodation = currentAccommodation,
+      verificationStatus = VerificationStatus.PASSED,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+    )
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.accommodationStatus?.code)
+      .isEqualTo(AddressStatus.PR1.name)
+    assertThat(snapshot.accommodationStatus?.description)
+      .isEqualTo(AddressStatus.PR1.description)
+  }
+
+  @Test
+  fun `should set accommodation status to PR when current accommodation is not prison`() {
+    val currentAccommodation = buildAccommodationSummaryDto(
+      type = buildAccommodationTypeDto(
+        code = "A02",
+        description = "Approved Premises",
+      ),
+    )
+    val aggregate = hydrateAndCreateProposedAccommodation(
+      currentAccommodation = currentAccommodation,
+      verificationStatus = VerificationStatus.PASSED,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+    )
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.accommodationStatus?.code)
+      .isEqualTo(AddressStatus.PR.name)
+    assertThat(snapshot.accommodationStatus?.description)
+      .isEqualTo(AddressStatus.PR.description)
+  }
+
+  @Test
+  fun `should set accommodation status to PR when current accommodation is null`() {
+    val aggregate = hydrateAndCreateProposedAccommodation(
+      currentAccommodation = null,
+      verificationStatus = VerificationStatus.PASSED,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+    )
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.accommodationStatus?.code)
+      .isEqualTo(AddressStatus.PR.name)
+    assertThat(snapshot.accommodationStatus?.description)
+      .isEqualTo(AddressStatus.PR.description)
   }
 
   @Test
@@ -160,11 +219,16 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregate.snapshot().notes.first().note).isEqualTo(note)
   }
 
-  private fun hydrateAggregate() = ProposedAccommodationAggregate.hydrateExisting(
+  private fun hydrateAggregate(
+    currentAccommodation: AccommodationSummaryDto? = null,
+    accommodationStatus: AccommodationStatusDto? = null,
+  ) = ProposedAccommodationAggregate.hydrateExisting(
     id = UUID.randomUUID(),
     caseId = UUID.randomUUID(),
+    currentAccommodation = currentAccommodation,
     name = accommodationDetails.name,
     accommodationType = accommodationDetails.accommodationType,
+    accommodationStatus = accommodationStatus,
     verificationStatus = accommodationDetails.verificationStatus!!,
     nextAccommodationStatus = accommodationDetails.nextAccommodationStatus!!,
     address = AccommodationAddressDetails(
@@ -185,10 +249,14 @@ class ProposedAccommodationAggregateTest {
   )
 
   private fun hydrateAndCreateProposedAccommodation(
+    currentAccommodation: AccommodationSummaryDto? = null,
     verificationStatus: VerificationStatus,
     nextAccommodationStatus: NextAccommodationStatus,
   ): ProposedAccommodationAggregate {
-    val aggregate = ProposedAccommodationAggregate.hydrateNew(caseId = UUID.randomUUID())
+    val aggregate = ProposedAccommodationAggregate.hydrateNew(
+      caseId = UUID.randomUUID(),
+      currentAccommodation = currentAccommodation,
+    )
     aggregate.updateProposedAccommodation(
       newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
