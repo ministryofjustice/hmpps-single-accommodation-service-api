@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Identifiers
@@ -24,7 +26,13 @@ class CaseApplicationService(
 
   fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
 
-  fun getCasesFromOrchestrator(crns: List<String>) = caseOrchestrationService.getCases(crns)
+  fun getCasesFromOrchestrator(crns: List<String>): ApiResponseDto<List<CaseMutationOrchestrationDto>> {
+    val casesOrchestrationResult = caseOrchestrationService.getCases(crns)
+    return ApiResponseDto(
+      casesOrchestrationResult.data,
+      upstreamFailures = casesOrchestrationResult.upstreamFailures.map { UpstreamFailureTransformer.toUpstreamFailureDto(it) },
+    )
+  }
 
   @Transactional
   fun upsertCases(caseDtos: List<CaseMutationOrchestrationDto>) {

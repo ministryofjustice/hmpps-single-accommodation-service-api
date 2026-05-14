@@ -478,6 +478,22 @@ fun expectedGetCaseListResponse(): String = """
       ],
       "caseAccess": "RESTRICTED"
     }
+  ],
+  "upstreamFailures": [
+    {
+      "endpoint": "getCorePersonRecordByCrn",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "404 NOT_FOUND",
+      "message": "404 Not Found: [no body]",
+      "identifier": { "type": "CRN", "value": "FAKECRN16" }
+    },
+    {
+      "endpoint": "getCorePersonRecordByCrn",
+      "failureType": "UPSTREAM_HTTP_ERROR",
+      "httpResponseStatus": "500 INTERNAL_SERVER_ERROR",
+      "message": "500 Internal Server Error: [no body]",
+      "identifier": { "type": "CRN", "value": "FAKECRN17" }
+    }
   ]
 }
 """.trimIndent()

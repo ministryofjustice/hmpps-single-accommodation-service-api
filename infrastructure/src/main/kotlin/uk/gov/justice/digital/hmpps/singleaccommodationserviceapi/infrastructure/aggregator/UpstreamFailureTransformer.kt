@@ -1,10 +1,9 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 
 object UpstreamFailureTransformer {
   fun toUpstreamFailureDto(failure: UpstreamFailure) = UpstreamFailureDto(

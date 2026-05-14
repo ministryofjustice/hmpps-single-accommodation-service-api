@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
@@ -33,7 +35,7 @@ class CaseMutationOrchestrationService(
     return CaseMutationOrchestrationDto(crn, cpr = null, tier, cas1Application)
   }
 
-  fun getCases(crns: List<String>): List<CaseMutationOrchestrationDto> {
+  fun getCases(crns: List<String>): OrchestrationResultDto<List<CaseMutationOrchestrationDto>> {
     val callsPerIdentifier = mapOf(
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { crn: String -> corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
     )
@@ -44,7 +46,7 @@ class CaseMutationOrchestrationService(
         calls = callsPerIdentifier,
       ),
     )
-    return results.callsPerIdentifierResults!!.map { (crn, calls) ->
+    val cases = results.callsPerIdentifierResults!!.map { (crn, calls) ->
       val tier = calls.getResult<Tier>(ApiCallKeys.GET_TIER)
       val cas1Application = calls.getResult<Cas1Application>(ApiCallKeys.GET_CAS_1_APPLICATION)
       val cpr = calls.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
@@ -56,5 +58,7 @@ class CaseMutationOrchestrationService(
         cas1Application,
       )
     }
+    val upstreamFailures = results.callsPerIdentifierResults!!.values.flatMap { it.getFailures() }
+    return OrchestrationResultDto(data = cases, upstreamFailures = upstreamFailures)
   }
 }

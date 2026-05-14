@@ -25,7 +25,7 @@ class CaseOrchestrationService(
   val probationIntegrationOasysCachingService: ProbationIntegrationOasysCachingService,
   val tierCachingService: TierCachingService,
 ) {
-  fun getCaseList(username: String): CaseList {
+  fun getCaseList(username: String): OrchestrationResultDto<CaseList> {
     val bulkCall = mapOf(
       GET_CASE_LIST to { sasAndDeliusCachingService.getCaseList(username) },
     )
@@ -33,9 +33,13 @@ class CaseOrchestrationService(
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = bulkCall,
     )
-    return results.standardCallsNoIterationResults
+    val caseList = results.standardCallsNoIterationResults
       ?.getResult<CaseList>(GET_CASE_LIST)
       ?: CaseList(emptyList())
+    return OrchestrationResultDto(
+      data = caseList,
+      upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
+    )
   }
 
   fun getCase(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {

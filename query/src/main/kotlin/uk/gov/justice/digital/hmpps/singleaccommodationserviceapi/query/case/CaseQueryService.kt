@@ -20,9 +20,14 @@ class CaseQueryService(
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
-  fun getCaseList(): List<PersonDto> {
+  fun getCaseList(): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
-    return caseOrchestrationService.getCaseList(user.username).cases.map { toPersonDto(it) }
+    val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username)
+    val caseList = caseOrchestrationResult.data.cases.map { toPersonDto(it) }
+    return toApiResponseDto(
+      data = caseList,
+      upstreamFailures = caseOrchestrationResult.upstreamFailures,
+    )
   }
 
   private fun PersonDto.matchesTeam(teamCode: String?): Boolean = when {
