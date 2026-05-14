@@ -85,7 +85,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
@@ -187,7 +186,6 @@ class EligibilityServiceTest {
 
   // CRS
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
-    IsMaleRule(),
     CurrentAccommodationEndDateValidationRule(),
     NoNextAccommodationRule(),
   )
@@ -709,7 +707,6 @@ class EligibilityServiceTest {
             expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatus.valueOf(it) },
             expectedCrsAction = row["expectedCrsAction"],
             expectedCrsLink = row["expectedCrsLink"],
-            sex = row["sex"]?.let { SexCode.valueOf(it) },
             crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
             expectedFailureReasons = row["expectedFailureReasons"]
               ?.takeIf { it.isNotBlank() }
@@ -750,7 +747,6 @@ class EligibilityServiceTest {
 
         val data = buildDomainData(
           crn = s.testCaseId,
-          sex = s.sex,
           currentAccommodation = currentAccommodation,
           nextAccommodation = nextAccommodation,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -1059,24 +1055,6 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `Crs surfaces NOT_MALE when candidate is not male`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        sex = SexCode.F,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-          submissionDate = today.minusWeeks(13),
-          status = CrsStatus.COMPLETED,
-        ),
-      )
-
-      val result = eligibilityService.evaluate(crsTree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.NOT_MALE)
-    }
-
-    @Test
     fun `Pa surfaces SUITABLE_CAS1_APPLICATION when candidate has a suitable CAS1 application`() {
       val data = buildDomainData(
         nextAccommodation = null,
@@ -1171,7 +1149,6 @@ data class CrsScenario(
   val referenceDate: LocalDate,
   val hasNextAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
-  val sex: SexCode?,
   val crsSubmissionDate: LocalDate?,
   val crsStatus: CrsStatus?,
   val expectedCrsStatus: ServiceStatus?,

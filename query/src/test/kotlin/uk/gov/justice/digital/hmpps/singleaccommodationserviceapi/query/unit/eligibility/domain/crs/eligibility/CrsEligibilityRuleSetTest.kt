@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.C
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsMaleRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
@@ -18,7 +17,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     CrsEligibilityRuleSet::class,
     NoNextAccommodationRule::class,
     CurrentAccommodationEndDateValidationRule::class,
-    IsMaleRule::class,
     ClockConfig::class,
   ],
 )
@@ -28,7 +26,6 @@ class CrsEligibilityRuleSetTest {
   lateinit var crsEligibilityRuleSet: CrsEligibilityRuleSet
 
   private val expectedCrsEligibilityRuleNames = listOf(
-    IsMaleRule::class.simpleName,
     NoNextAccommodationRule::class.simpleName,
     CurrentAccommodationEndDateValidationRule::class.simpleName,
   )
@@ -38,7 +35,7 @@ class CrsEligibilityRuleSetTest {
     val ruleSetRules = crsEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(3)
+      .hasSize(2)
       .containsExactlyInAnyOrderElementsOf(expectedCrsEligibilityRuleNames)
   }
 }
