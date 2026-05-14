@@ -33,7 +33,7 @@ class Cas3CompletionContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(),
       )
 
       val result = updater.update(context)

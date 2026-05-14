@@ -46,41 +46,41 @@ fun buildServiceResult(
 )
 
 fun buildCas1ServiceResult(
-  result: ServiceResult = buildServiceResult(),
+  serviceResult: ServiceResult = buildServiceResult(),
   cas1Application: Cas1ApplicationDto? = null,
 ) = Cas1ServiceResult(
-  serviceResult = result,
+  serviceResult = serviceResult,
   cas1Application = cas1Application,
 )
 
 fun buildCas3ServiceResult(
-  result: ServiceResult = buildServiceResult(),
+  serviceResult: ServiceResult = buildServiceResult(),
   cas3Application: Cas3ApplicationDto? = null,
 ) = Cas3ServiceResult(
-  serviceResult = result,
+  serviceResult = serviceResult,
   cas3Application = cas3Application,
 )
 
 fun buildDtrServiceResult(
-  result: ServiceResult = buildServiceResult(),
+  serviceResult: ServiceResult = buildServiceResult(),
   caseId: UUID? = null,
   submission: DtrSubmissionDto? = null,
 ) = DtrServiceResult(
-  serviceResult = result,
+  serviceResult = serviceResult,
   caseId = caseId,
   submission = submission,
 )
 
 fun buildCrsServiceResult(
-  result: ServiceResult = buildServiceResult(),
+  serviceResult: ServiceResult = buildServiceResult(),
   commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto? = null,
 ) = CrsServiceResult(
-  serviceResult = result,
+  serviceResult = serviceResult,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
 )
 
 fun buildPaServiceResult(
-  result: ServiceResult = buildServiceResult(),
+  serviceResult: ServiceResult = buildServiceResult(),
 ) = PaServiceResult(
-  serviceResult = result,
+  serviceResult = serviceResult,
 )

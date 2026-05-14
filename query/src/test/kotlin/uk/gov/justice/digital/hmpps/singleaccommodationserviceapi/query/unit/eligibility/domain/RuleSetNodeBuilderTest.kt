@@ -35,7 +35,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `onFail sets the onFail node and returns builder`() {
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult()
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -50,7 +50,7 @@ class RuleSetNodeBuilderTest {
       buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult()
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -65,7 +65,7 @@ class RuleSetNodeBuilderTest {
       buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     }
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult()
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
@@ -81,7 +81,7 @@ class RuleSetNodeBuilderTest {
   @Test
   fun `build throws exception when onPass is not set`() {
     val onFailNode: DecisionNode = OutcomeNode { _ ->
-      buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+      buildServiceResult()
     }
 
     val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)

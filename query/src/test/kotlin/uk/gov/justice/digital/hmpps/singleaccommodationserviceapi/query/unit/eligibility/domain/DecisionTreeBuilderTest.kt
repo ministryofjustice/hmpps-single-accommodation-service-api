@@ -44,7 +44,7 @@ class DecisionTreeBuilderTest {
     val evaluationContext =
       EvaluationContext(
         data = buildDomainData(),
-        currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE),
+        currentResult = buildServiceResult(),
       )
     val actualResult = result.eval(evaluationContext)
     assertThat(actualResult).isEqualTo(expectedResult)
@@ -73,7 +73,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `confirmed returns different ServiceResult when context changes`() {
     val builder = DecisionTreeBuilder(engine)
-    val initialResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE)
+    val initialResult = buildServiceResult()
     val updatedResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
     val initialContext =
       EvaluationContext(

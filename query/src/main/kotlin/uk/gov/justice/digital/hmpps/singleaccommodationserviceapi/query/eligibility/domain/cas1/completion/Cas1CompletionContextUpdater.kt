@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
@@ -51,7 +52,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
       } else {
-        ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+        toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
       }
 
     Cas1ApplicationStatus.PLACEMENT_ALLOCATED -> if (
@@ -76,13 +77,13 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         )
 
-        else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+        else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
       }
     } else {
-      ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+      toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
     }
 
-    else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+    else -> toNotEligibleServiceStatus(failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
   }
 
   private fun toServiceResultBeforePlacement(applicationStatus: Cas1ApplicationStatus?, requestForPlacementStatus: Cas1RequestForPlacementStatus?) = when (applicationStatus) {
@@ -99,7 +100,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
-      else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+      else -> toNotEligibleServiceStatus(failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
     }
 
     Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> when (requestForPlacementStatus) {
@@ -129,10 +130,10 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       )
 
-      else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+      else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
     }
 
-    else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+    else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
   }
 
   private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?) = when (applicationStatus) {
@@ -151,6 +152,6 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
       link = EligibilityKeys.VIEW_APPLICATION,
     )
 
-    else -> ServiceResult(serviceStatus = ServiceStatus.NOT_ELIGIBLE, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
+    else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
   }
 }

@@ -12,7 +12,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
@@ -76,24 +78,24 @@ class EligibilityTransformerTest {
     )
 
     val cas1ServiceResult = buildCas1ServiceResult(
-      result = cas1,
+      serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
     )
     val cas3ServiceResult = buildCas3ServiceResult(
-      result = cas3,
+      serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
     )
     val dtrServiceResult = buildDtrServiceResult(
-      result = dtr,
+      serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
     )
     val crsServiceResult = buildCrsServiceResult(
-      result = crs,
+      serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
     )
     val paServiceResult = buildPaServiceResult(
-      result = pa,
+      serviceResult = pa,
     )
     val caseActions = listOfNotNull(dtr.action, crs.action, cas1.action, cas3.action, pa.action)
 
@@ -107,7 +109,7 @@ class EligibilityTransformerTest {
       caseActions = caseActions,
     )
 
-    val actualEligibility = EligibilityTransformer.toEligibilityDto(
+    val actualEligibility = toEligibilityDto(
       crn = crn,
       cas1 = cas1,
       cas3 = cas3,
@@ -118,5 +120,24 @@ class EligibilityTransformerTest {
     )
 
     assertThat(actualEligibility).isEqualTo(expectedEligibility)
+  }
+
+  @Test
+  fun `should transform to failed eligibility`() {
+    val crn = "FAKECRN1"
+    val expectedEligibility = buildEligibilityDto(crn)
+
+    val actualEligibility = toFailedEligibilityDto(crn)
+
+    assertThat(actualEligibility).isEqualTo(expectedEligibility)
+  }
+
+  @Test
+  fun `should transform to not eligible service status`() {
+    val expectedServiceStatus = buildServiceResult()
+
+    val actualEligibility = toNotEligibleServiceStatus()
+
+    assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
 }
