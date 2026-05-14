@@ -1,17 +1,28 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation
 
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationSummaryTransformer.toAccommodationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.util.UUID
 
 @Service
 class AccommodationQueryService(
   private val accommodationOrchestrationService: AccommodationOrchestrationService,
+  private val proposedAccommodationRepository: ProposedAccommodationRepository,
+  private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val accommodationStatusRepository: AccommodationStatusRepository,
+  private val caseRepository: CaseRepository,
 ) {
   fun getCurrentAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
     val orchestrationResult = accommodationOrchestrationService.getCorePersonRecordByCrn(crn)
@@ -55,6 +66,22 @@ class AccommodationQueryService(
     return toApiResponseDto(
       data = accommodationHistory,
       upstreamFailures = upstreamFailures,
+    )
+  }
+
+  fun getAccommodation(id: UUID): AccommodationSummaryDto {
+    val proposedAccommodationEntity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
+    val case = caseRepository.findWithIdentifiersById(proposedAccommodationEntity.caseId).orThrowNotFound("id" to proposedAccommodationEntity.id)
+    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
+      .orThrowNotFound("id" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId?.let {
+      accommodationStatusRepository.findByIdOrNull(it).orThrowNotFound("id" to it)
+    }
+    return toAccommodationSummary(
+      crn = case.latestCrn(),
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = accommodationTypeEntity,
+      accommodationStatusEntity = accommodationStatusEntity,
     )
   }
 }

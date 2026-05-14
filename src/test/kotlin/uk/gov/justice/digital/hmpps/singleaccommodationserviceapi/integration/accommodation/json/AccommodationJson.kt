@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json
 
+import java.util.UUID
+
 fun expectedGetAccommodationHistoryResponse(): String = """
 {
    "data":[
       {
          "crn":"FAKECRN",
+         "cprAddressId":null,
          "startDate":"2025-10-17",
          "endDate":"2026-10-17",
          "address":{
@@ -30,6 +33,7 @@ fun expectedGetAccommodationHistoryResponse(): String = """
       },
       {
          "crn":"FAKECRN",
+         "cprAddressId":null,
          "startDate":"2024-10-17",
          "endDate":"2025-10-17",
          "address":{
@@ -72,10 +76,11 @@ fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(): String = """
 }
 """.trimIndent()
 
-fun expectedGetCurrentAccommodationResponse(): String = """
+fun expectedGetCurrentAccommodationResponse(crn: String): String = """
 {
    "data":{
-      "crn":"FAKECRN",
+      "crn":"$crn",
+      "cprAddressId": null,
       "startDate":"2026-01-11",
       "endDate":null,
       "address":{
@@ -114,5 +119,40 @@ fun expectedGetCurrentAccommodationWithUpstreamFailureResponse(): String = """
          "message":"500 Internal Server Error: [no body]"
       }
    ]
+}
+""".trimIndent()
+
+fun expectedGetAccommodationByIdResponse(
+  crn: String,
+  cprAddressId: UUID,
+  createdAt: String,
+): String = """
+{
+    "data": {
+        "crn" : "$crn",
+        "cprAddressId" : "$cprAddressId",
+        "startDate": "$createdAt",
+        "endDate": null,
+        "address": {
+            "buildingName": "test building name",
+            "buildingNumber": "4",
+            "country": "England",
+            "county": "test county",
+            "dependentLocality": "test dependent locality",
+            "postcode": "test postcode",
+            "postTown": "test post town",
+            "subBuildingName": "test sub building name",
+            "thoroughfareName": "test thoroughfare",
+            "uprn": "test uprn"
+        },
+        "status": {
+            "code": "PR",
+            "description": "Proposed"
+        },
+        "type": {
+            "code": "A07B",
+            "description": "Living in the home of a friend, family member or partner: settled"
+        }
+    }
 }
 """.trimIndent()

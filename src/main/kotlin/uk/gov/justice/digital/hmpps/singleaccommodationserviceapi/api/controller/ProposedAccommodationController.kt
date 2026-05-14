@@ -79,13 +79,6 @@ class ProposedAccommodationController(
     return ResponseEntity(HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN')")
-  @GetMapping("/proposed-accommodations/{id}")
-  fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponseDto<ProposedAccommodationDto>> {
-    val accommodation = proposedAccommodationQueryService.getProposedAccommodation(id)
-    return ResponseEntity.ok(ApiResponseDto(data = accommodation))
-  }
-
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PutMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun update(

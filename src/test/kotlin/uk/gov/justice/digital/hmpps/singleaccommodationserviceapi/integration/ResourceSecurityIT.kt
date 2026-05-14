@@ -131,7 +131,6 @@ private val eligibilityControllerMap: Map<String, Set<String>> =
 private val proposedAccommodationControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/proposed-accommodations/{id}" to defaultRoles,
-    "GET /proposed-accommodations/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
     "GET /cases/{crn}/proposed-accommodations" to defaultRoles,
     "GET /cases/{crn}/proposed-accommodations/{id}/timeline" to defaultRoles,
     "POST /cases/{crn}/proposed-accommodations" to defaultRoles,
@@ -143,6 +142,7 @@ private val accommodationControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/accommodations/current" to defaultRoles,
     "GET /cases/{crn}/accommodations/next" to defaultRoles,
+    "GET /accommodations/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD"),
   )
 
 private val accommodationReferralControllerMap: Map<String, Set<String>> =
