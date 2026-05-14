@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.dtr
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
@@ -25,7 +25,7 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    Assertions.assertThat(result).isEqualTo(
+    assertThat(result).isEqualTo(
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
@@ -42,7 +42,7 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    Assertions.assertThat(result).isEqualTo(
+    assertThat(result).isEqualTo(
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
@@ -63,7 +63,7 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    Assertions.assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
@@ -78,7 +78,7 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    Assertions.assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
+    assertThat(result).isEqualTo(RuleResult(description = description, ruleStatus = RuleStatus.PASS))
   }
 
   @Test
@@ -93,7 +93,7 @@ class DtrExpiredReferralRuleTest {
 
     val result = DtrExpiredReferralRule(clock).evaluate(data)
 
-    Assertions.assertThat(result).isEqualTo(
+    assertThat(result).isEqualTo(
       RuleResult(
         description = description,
         ruleStatus = RuleStatus.FAIL,
@@ -104,7 +104,7 @@ class DtrExpiredReferralRuleTest {
 
   @Test
   fun `rule has correct description`() {
-    Assertions.assertThat(DtrExpiredReferralRule(clock).description)
+    assertThat(DtrExpiredReferralRule(clock).description)
       .isEqualTo("FAIL if DTR is submitted more than 26 weeks ago.")
   }
 }

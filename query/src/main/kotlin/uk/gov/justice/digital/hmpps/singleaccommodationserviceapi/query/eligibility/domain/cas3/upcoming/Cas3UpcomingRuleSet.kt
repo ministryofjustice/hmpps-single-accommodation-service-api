@@ -3,12 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.RecentCurrentAccommodationEndDateRule
 
 @Component
 class Cas3UpcomingRuleSet(
-  recentCurrentAccommodationEndDate: RecentCurrentAccommodationEndDateRule,
+  releaseWithinFourWeeksRule: ReleaseWithinFourWeeksRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(recentCurrentAccommodationEndDate)
+  private val rules: List<Rule> = listOf(releaseWithinFourWeeksRule)
   override fun getRules(): List<Rule> = rules
 }

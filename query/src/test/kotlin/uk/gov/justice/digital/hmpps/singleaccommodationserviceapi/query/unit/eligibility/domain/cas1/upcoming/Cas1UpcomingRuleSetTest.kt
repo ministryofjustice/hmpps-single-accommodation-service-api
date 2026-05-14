@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.RecentCurrentAccommodationEndDateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinOneYearRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
-    RecentCurrentAccommodationEndDateRule::class,
+    ReleaseWithinOneYearRule::class,
     Cas1UpcomingRuleSet::class,
     ClockConfig::class,
   ],
@@ -24,7 +24,7 @@ class Cas1UpcomingRuleSetTest {
   lateinit var cas1UpcomingRuleSet: Cas1UpcomingRuleSet
 
   private val expectedCas1UpcomingRuleNames = listOf(
-    RecentCurrentAccommodationEndDateRule::class.simpleName,
+    ReleaseWithinOneYearRule::class.simpleName,
   )
 
   @Test

@@ -15,6 +15,13 @@ class Cas3UpcomingContextUpdater(val clock: Clock) : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext) = ServiceResult(
     serviceStatus = ServiceStatus.UPCOMING,
-    action = buildUpcomingAction(context.data.currentAccommodation!!.endDate!!, LocalDate.now(clock), EligibilityKeys.START_REFERRAL),
+    action = buildUpcomingActionInFourWeeks(context),
   )
+
+  private fun buildUpcomingActionInFourWeeks(context: EvaluationContext): String {
+    val endDate = context.data.currentAccommodation!!.endDate!!
+    val dateToStartReferral = endDate.minusWeeks(4)
+    val today = LocalDate.now(clock)
+    return buildUpcomingAction(today, EligibilityKeys.START_CAS3_REFERRAL, dateToStartReferral)
+  }
 }
