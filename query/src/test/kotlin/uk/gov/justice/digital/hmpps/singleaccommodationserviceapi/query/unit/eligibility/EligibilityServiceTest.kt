@@ -350,7 +350,7 @@ class EligibilityServiceTest {
           tier = null,
           cas1Application = null,
           cas3Application = null,
-          commissionedRehabilitativeServices = null
+          commissionedRehabilitativeServices = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
