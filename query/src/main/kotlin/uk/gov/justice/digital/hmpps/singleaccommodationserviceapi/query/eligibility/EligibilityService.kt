@@ -148,7 +148,7 @@ class EligibilityService(
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,
-      commissionedRehabilitativeServices = eligibilityOrchestrationDto.data.commissionedRehabilitativeServices,
+      commissionedRehabilitativeServices = eligibilityOrchestrationDto.commissionedRehabilitativeServices,
       accommodationTypes = accommodationTypes,
     )
   }
