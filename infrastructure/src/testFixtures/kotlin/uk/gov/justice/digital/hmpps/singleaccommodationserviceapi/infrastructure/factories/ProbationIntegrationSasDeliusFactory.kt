@@ -23,6 +23,7 @@ fun buildCase(
   staff: Officer = buildOfficer(),
   roshLevel: RoshLevel = buildRoshLevel(),
   team: Team = buildCaseTeam(),
+  limitedAccess: Boolean = false,
 ) = Case(
   crn = crn,
   name = name,
@@ -37,6 +38,7 @@ fun buildCase(
   userRestricted = userRestricted,
   exclusionMessage = exclusionMessage,
   restrictionMessage = restrictionMessage,
+  limitedAccess = limitedAccess,
 )
 
 fun buildName(

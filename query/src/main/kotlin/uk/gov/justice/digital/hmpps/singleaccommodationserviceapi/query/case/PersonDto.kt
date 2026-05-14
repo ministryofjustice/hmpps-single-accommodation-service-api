@@ -19,26 +19,12 @@ sealed interface Identifiable {
   val roshLevel: RiskLevel?
 }
 
-data class ExcludedPersonDto(
+data class LimitedPersonDto(
   override val crn: String,
   override val nomsNumber: String?,
   override val teamCode: String,
   override val assignedTo: AssignedToDto,
 ) : PersonDto
-
-data class RestrictedPersonDto(
-  override val crn: String,
-  override val nomsNumber: String?,
-  override val teamCode: String,
-  override val assignedTo: AssignedToDto,
-  override val roshLevel: RiskLevel?,
-  override val name: String,
-  override val pncNumber: String?,
-  override val dateOfBirth: LocalDate,
-  override val gender: String,
-
-) : PersonDto,
-  Identifiable
 
 data class FullPersonDto(
   override val crn: String,
@@ -50,5 +36,6 @@ data class FullPersonDto(
   override val pncNumber: String?,
   override val dateOfBirth: LocalDate,
   override val gender: String,
+  val limitedAccess: Boolean,
 ) : PersonDto,
   Identifiable

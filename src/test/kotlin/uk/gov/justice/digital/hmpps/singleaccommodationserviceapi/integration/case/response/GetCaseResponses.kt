@@ -24,7 +24,8 @@ fun expectedGetCaseResponse(): String = """
     "nextAccommodation": null,
     "status": null,
     "actions": [],
-    "caseAccess": "FULL"
+    "userAccess": "FULL",
+    "limitedAccess": false
   }
 }
 """.trimIndent()
@@ -45,7 +46,8 @@ fun expectedGetCaseUnknownResponse(): String = """
     "nextAccommodation": null,
     "status": null,
     "actions": [],
-    "caseAccess": "UNKNOWN"
+    "userAccess": "UNKNOWN",
+    "limitedAccess": null
   },
   "upstreamFailures": [
     {

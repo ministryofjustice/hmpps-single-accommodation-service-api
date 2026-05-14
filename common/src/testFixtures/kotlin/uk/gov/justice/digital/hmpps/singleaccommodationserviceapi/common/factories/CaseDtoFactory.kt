@@ -2,11 +2,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import java.time.LocalDate
 
 fun buildCaseDto(
@@ -22,7 +22,8 @@ fun buildCaseDto(
   nextAccommodation: AccommodationSummaryDto? = null,
   status: Status? = null,
   actions: List<String> = emptyList(),
-  caseAccess: CaseAccess = CaseAccess.FULL,
+  userAccess: UserAccess = UserAccess.FULL,
+  limitedAccess: Boolean = false,
 ) = CaseDto(
   name,
   dateOfBirth,
@@ -37,7 +38,8 @@ fun buildCaseDto(
   nextAccommodation,
   status,
   actions,
-  caseAccess = caseAccess,
+  userAccess = userAccess,
+  limitedAccess = limitedAccess,
 )
 
 fun buildAssignedToDto(

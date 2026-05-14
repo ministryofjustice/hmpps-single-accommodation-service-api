@@ -21,6 +21,6 @@ class SasAndDeliusCachingService(
   @Cacheable(ApiCallKeys.GET_CASE_LIST, key = "#username", sync = true)
   fun getCaseList(username: String) = sasAndDeliusClient.getCaseList(username)
 
-  @Cacheable(ApiCallKeys.GET_CASE, key = "#username", sync = true)
+  @Cacheable(ApiCallKeys.GET_CASE, sync = true)
   fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
 }

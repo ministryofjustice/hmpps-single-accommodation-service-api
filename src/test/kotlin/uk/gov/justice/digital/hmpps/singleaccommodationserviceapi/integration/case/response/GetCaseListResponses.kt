@@ -28,7 +28,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "Zack Middle Smith",
@@ -52,7 +53,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -76,7 +78,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -100,7 +103,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -124,7 +128,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -148,7 +153,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -171,7 +177,8 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -194,7 +201,8 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -217,7 +225,8 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -240,7 +249,8 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -263,7 +273,8 @@ fun expectedGetCaseListResponse(): String = """
       "actions": [
         "Add DTR referral details"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -287,7 +298,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -311,7 +323,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -335,7 +348,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -359,7 +373,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -383,7 +398,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -407,7 +423,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": "First Middle Last",
@@ -431,7 +448,8 @@ fun expectedGetCaseListResponse(): String = """
         "Add DTR referral details",
         "Add and confirm proposed address"
       ],
-      "caseAccess": "FULL"
+      "userAccess": "FULL",
+      "limitedAccess": false
     },
     {
       "name": null,
@@ -452,17 +470,18 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [],
-      "caseAccess": "EXCLUDED"
+      "userAccess": "LIMITED",
+      "limitedAccess": true
     },
     {
-      "name": "First Middle Last",
-      "dateOfBirth": "2000-12-03",
+      "name": null,
+      "dateOfBirth": null,
       "crn": "FAKECRN20",
       "prisonNumber": "PRI20",
       "photoUrl": null,
       "tierScore": null,
-      "riskLevel": "VERY_HIGH",
-      "pncReference": "Some PNC Reference",
+      "riskLevel": null,
+      "pncReference": null,
       "assignedTo": {
         "forename": "First",
         "surname": "Last",
@@ -472,11 +491,9 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details",
-        "Add and confirm proposed address"
-      ],
-      "caseAccess": "RESTRICTED"
+      "actions": [],
+      "userAccess": "LIMITED",
+      "limitedAccess": true
     }
   ],
   "upstreamFailures": [

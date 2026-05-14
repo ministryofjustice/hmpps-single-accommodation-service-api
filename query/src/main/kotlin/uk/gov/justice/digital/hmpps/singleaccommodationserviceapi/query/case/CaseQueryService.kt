@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.limited
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
@@ -72,9 +73,9 @@ class CaseQueryService(
     return filteredPersonDtos.map { personDto ->
 
       when (personDto) {
-        is ExcludedPersonDto -> personDto.toCaseDto(caseEntity = null, eligibility = null)
+        is LimitedPersonDto -> personDto.limited()
 
-        is RestrictedPersonDto, is FullPersonDto -> {
+        is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
           val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(it, personDto.crn) }
           val eligibility = eligibilityService.getEligibility(
