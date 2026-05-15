@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -24,6 +25,13 @@ object TierStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/crn/$crn/tier"))
         .willReturn(serverError()),
+    )
+  }
+
+  fun getTierNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/crn/$crn/tier"))
+        .willReturn(notFound()),
     )
   }
 
