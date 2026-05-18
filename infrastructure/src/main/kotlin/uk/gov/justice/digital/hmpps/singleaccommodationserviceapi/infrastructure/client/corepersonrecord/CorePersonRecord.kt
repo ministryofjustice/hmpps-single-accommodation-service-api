@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import java.time.LocalDate
 import java.util.UUID
 
@@ -15,7 +16,7 @@ data class CorePersonRecord(
   val ethnicity: Ethnicity? = null,
   val aliases: List<Alias> = emptyList(),
   var nationalities: List<Nationality> = emptyList(),
-  val addresses: List<Address> = emptyList(),
+  val addresses: List<CanonicalAddress> = emptyList(),
   val identifiers: Identifiers? = null,
 ) {
   fun toFullName() = listOfNotNull(

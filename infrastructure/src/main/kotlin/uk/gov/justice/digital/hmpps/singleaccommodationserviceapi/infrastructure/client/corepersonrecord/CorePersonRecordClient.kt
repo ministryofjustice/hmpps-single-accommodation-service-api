@@ -12,9 +12,6 @@ interface CorePersonRecordClient {
 
   @GetExchange(value = "/person/prison/{prisonNumber}")
   fun getByPrisonNumber(@PathVariable prisonNumber: String): CorePersonRecord
-
-  @GetExchange(value = "/person/probation/{crn}/address")
-  fun getAddressesByCrn(@PathVariable crn: String): CorePersonRecordAddresses
 }
 
 @Service
@@ -26,7 +23,4 @@ class CorePersonRecordCachingService(
 
   @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER, key = "#prisonNumber", sync = true)
   fun getCorePersonRecordByNoms(prisonNumber: String) = corePersonRecordClient.getByPrisonNumber(prisonNumber)
-
-  @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD_ADDRESSES_BY_CRN, key = "#crn", sync = true)
-  fun getCorePersonRecordAddressesByCrn(crn: String) = corePersonRecordClient.getAddressesByCrn(crn)
 }
