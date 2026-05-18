@@ -24,6 +24,9 @@ object ApiCallKeys {
   const val GET_CAS_1_APPLICATION = "getCas1Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
 
+  // commissioned rehabilitative services (CRS)
+  const val GET_CRS = "getCrsByCrn"
+
   // approved-premises service - referrals
   const val GET_CAS1_REFERRAL = "getCas1ReferralByCrn"
   const val GET_CAS2_REFERRAL = "getCas2ReferralByCrn"

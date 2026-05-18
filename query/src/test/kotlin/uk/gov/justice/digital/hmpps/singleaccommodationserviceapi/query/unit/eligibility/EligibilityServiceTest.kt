@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -46,7 +48,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
@@ -108,7 +109,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.PaEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
@@ -116,6 +116,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Cs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -295,6 +296,7 @@ class EligibilityServiceTest {
       )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, null)
+      val crs = buildCommissionedRehabilitativeServices()
       val orchestrationDto = OrchestrationResultDto(
         data = EligibilityOrchestrationDto(
           crn = crn,
@@ -302,6 +304,7 @@ class EligibilityServiceTest {
           tier = tier,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
+          commissionedRehabilitativeServices = crs,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -325,7 +328,7 @@ class EligibilityServiceTest {
         nextAccommodation = null,
         cas1Application = cas1Application,
         cas3Application = cas3Application,
-        commissionedRehabilitativeServices = null,
+        commissionedRehabilitativeServices = crs,
         dutyToRefer = dutyToRefer,
       )
 
@@ -347,6 +350,7 @@ class EligibilityServiceTest {
           tier = null,
           cas1Application = null,
           cas3Application = null,
+          commissionedRehabilitativeServices = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
@@ -377,6 +381,7 @@ class EligibilityServiceTest {
           tier = null,
           cas1Application = null,
           cas3Application = null,
+          commissionedRehabilitativeServices = null,
         ),
         upstreamFailures = listOf(notFoundFailure),
       )
@@ -405,6 +410,7 @@ class EligibilityServiceTest {
           tier = null,
           cas1Application = null,
           cas3Application = null,
+          commissionedRehabilitativeServices = null,
         ),
         upstreamFailures = listOf(notFoundFailure, blockingFailure),
       )
@@ -709,8 +715,8 @@ class EligibilityServiceTest {
 
         val commissionedRehabilitativeServices = s.crsSubmissionDate?.let {
           buildCommissionedRehabilitativeServices(
-            submissionDate = s.crsSubmissionDate,
-            status = if (isCrsStatusTerminated) CrsStatus.NSI_TERMINATED else CrsStatus.COMPLETED,
+            sentAt = s.crsSubmissionDate.atStartOfDay().atOffset(ZoneOffset.UTC),
+            status = if (isCrsStatusTerminated) CrsReferralStatus.WITHDRAWN else CrsReferralStatus.COMPLETED,
           )
         }
 
@@ -762,7 +768,7 @@ class EligibilityServiceTest {
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             hasNextAccommodation = row["hasNextAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
-            crsStatus = row["crsStatus"]?.let { CrsStatus.valueOf(it) },
+            crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
             expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatus.valueOf(it) },
             expectedCrsAction = row["expectedCrsAction"],
             expectedCrsLink = row["expectedCrsLink"],
@@ -793,7 +799,7 @@ class EligibilityServiceTest {
 
         val commissionedRehabilitativeServices = s.crsStatus?.let {
           buildCommissionedRehabilitativeServices(
-            submissionDate = s.crsSubmissionDate!!,
+            sentAt = s.crsSubmissionDate!!.atStartOfDay().atOffset(ZoneOffset.UTC),
             status = it,
           )
         }
@@ -1032,8 +1038,8 @@ class EligibilityServiceTest {
         cas3Application = null,
         dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
         commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-          submissionDate = today.minusWeeks(13),
-          status = CrsStatus.COMPLETED,
+          sentAt = today.minusWeeks(13).atStartOfDay().atOffset(ZoneOffset.UTC),
+          status = CrsReferralStatus.COMPLETED,
         ),
       )
 
@@ -1052,8 +1058,8 @@ class EligibilityServiceTest {
         cas3Application = null,
         dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
         commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-          submissionDate = today,
-          status = CrsStatus.NSI_REFERRAL,
+          sentAt = today.atStartOfDay().atOffset(ZoneOffset.UTC),
+          status = CrsReferralStatus.DRAFT,
         ),
       )
 
@@ -1209,7 +1215,7 @@ data class CrsScenario(
   val hasNextAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
   val crsSubmissionDate: LocalDate?,
-  val crsStatus: CrsStatus?,
+  val crsStatus: CrsReferralStatus?,
   val expectedCrsStatus: ServiceStatus?,
   val expectedCrsAction: String?,
   val expectedCrsLink: String?,

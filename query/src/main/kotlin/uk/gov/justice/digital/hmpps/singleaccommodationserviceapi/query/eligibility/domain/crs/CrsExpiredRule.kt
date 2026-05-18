@@ -16,7 +16,7 @@ class CrsExpiredRule(val clock: Clock) : Rule {
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)
-    val isFail = !isLessThanXWeeksInThePast(data.commissionedRehabilitativeServices?.submissionDate, today, 12L)
+    val isFail = !isLessThanXWeeksInThePast(data.commissionedRehabilitativeServices?.sentAt?.toLocalDate(), today, 12L)
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,

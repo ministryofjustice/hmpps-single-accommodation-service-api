@@ -3,14 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 class CrsExpiredRuleTest {
   private val description = "FAIL if CRS not within 12 weeks"
@@ -20,8 +20,7 @@ class CrsExpiredRuleTest {
   fun `crs is exactly 12 weeks so passes`() {
     val data = buildDomainData(
       commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-        status = CrsStatus.COMPLETED,
-        submissionDate = LocalDate.now(clock).minusWeeks(12),
+        sentAt = LocalDate.now(clock).minusWeeks(12).atStartOfDay().atOffset(ZoneOffset.UTC),
       ),
     )
 
@@ -39,8 +38,7 @@ class CrsExpiredRuleTest {
   fun `crs is within 12 weeks so passes`() {
     val data = buildDomainData(
       commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-        status = CrsStatus.COMPLETED,
-        submissionDate = LocalDate.now(clock).minusWeeks(11),
+        sentAt = LocalDate.now(clock).minusWeeks(11).atStartOfDay().atOffset(ZoneOffset.UTC),
       ),
     )
 
@@ -58,8 +56,7 @@ class CrsExpiredRuleTest {
   fun `crs is submitted longer than 12 weeks ago so fails`() {
     val data = buildDomainData(
       commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-        status = CrsStatus.COMPLETED,
-        submissionDate = LocalDate.now(clock).minusWeeks(13),
+        sentAt = LocalDate.now(clock).minusWeeks(13).atStartOfDay().atOffset(ZoneOffset.UTC),
       ),
     )
 

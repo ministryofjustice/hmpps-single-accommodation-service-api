@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -59,7 +60,8 @@ class EligibilityService(
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
     val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
-    val blockingFailures = upstreamFailures.filterNot { it.errorDetail.httpStatus == HttpStatus.NOT_FOUND }
+    // TODO - remove CRS from being filtered out here once the CRS endpoint is delivered
+    val blockingFailures = upstreamFailures.filterNot { it.errorDetail.httpStatus == HttpStatus.NOT_FOUND || it.callKey == GET_CRS }
 
     if (blockingFailures.isNotEmpty()) {
       log.error("Eligibility upstream failures for CRN {}: {}", crn, blockingFailures)
@@ -148,8 +150,7 @@ class EligibilityService(
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,
-      // TODO connect to crs endpoint when it becomes available
-      commissionedRehabilitativeServices = null,
+      commissionedRehabilitativeServices = eligibilityOrchestrationDto.commissionedRehabilitativeServices,
       accommodationTypes = accommodationTypes,
     )
   }

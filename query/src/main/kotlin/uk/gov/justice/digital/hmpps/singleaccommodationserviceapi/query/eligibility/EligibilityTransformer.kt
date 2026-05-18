@@ -21,7 +21,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CommissionedRehabilitativeServices
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
@@ -29,7 +30,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus as Cas3ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus as Cas3AssessmentStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus as Cas3BookingStatusInfra
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.CrsStatus as CrsStatusDomain
 
 object EligibilityTransformer {
   fun toEligibilityDto(
@@ -131,22 +131,17 @@ object EligibilityTransformer {
   ) = commissionedRehabilitativeServices?.let {
     CommissionedRehabilitativeServicesDto(
       status = toCrsStatus(it.status),
-      submissionDate = it.submissionDate,
+      submissionDate = it.sentAt.toLocalDate(),
     )
   }
 
   private fun toCrsStatus(
-    crsStatus: CrsStatusDomain,
+    crsStatus: CrsReferralStatus,
   ) = when (crsStatus) {
-    CrsStatusDomain.NSI_REFERRAL -> CrsStatus.NSI_REFERRAL
-    CrsStatusDomain.IN_PROGRESS -> CrsStatus.IN_PROGRESS
-    CrsStatusDomain.NSI_COMMENCED -> CrsStatus.NSI_COMMENCED
-    CrsStatusDomain.APPOINTMENT -> CrsStatus.APPOINTMENT
-    CrsStatusDomain.ACTION_PLAN_SUBMITTED -> CrsStatus.ACTION_PLAN_SUBMITTED
-    CrsStatusDomain.ACTION_PLAN_APPROVED -> CrsStatus.ACTION_PLAN_APPROVED
-    CrsStatusDomain.END_OF_SERVICE_REPORT -> CrsStatus.END_OF_SERVICE_REPORT
-    CrsStatusDomain.COMPLETED -> CrsStatus.COMPLETED
-    CrsStatusDomain.NSI_TERMINATED -> CrsStatus.NSI_TERMINATED
+    CrsReferralStatus.DRAFT -> CrsStatus.DRAFT
+    CrsReferralStatus.LIVE -> CrsStatus.LIVE
+    CrsReferralStatus.COMPLETED -> CrsStatus.COMPLETED
+    CrsReferralStatus.WITHDRAWN -> CrsStatus.WITHDRAWN
   }
 
   private fun toCas1ApplicationStatus(
