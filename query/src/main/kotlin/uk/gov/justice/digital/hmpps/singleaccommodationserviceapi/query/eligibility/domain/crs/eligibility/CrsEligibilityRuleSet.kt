@@ -8,10 +8,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CrsEligibilityRuleSet(
-  isMale: IsMaleRule,
   currentAccommodationEndDate: CurrentAccommodationEndDateValidationRule,
   noNextAccommodation: NoNextAccommodationRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(isMale, currentAccommodationEndDate, noNextAccommodation)
+  private val rules: List<Rule> = listOf(currentAccommodationEndDate, noNextAccommodation)
   override fun getRules(): List<Rule> = rules
 }
