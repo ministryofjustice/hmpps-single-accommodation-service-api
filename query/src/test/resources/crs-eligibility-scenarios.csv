@@ -1,55 +1,19 @@
-testCaseId,description,referenceDate,hasNextAccommodation,currentAccommodationEndDate,sex,crsSubmissionDate,crsStatus,expectedCrsStatus,expectedCrsAction,expectedCrsLink,expectedFailureReasons
-1,F not submitted,01/01/2025,FALSE,01/01/2025,F,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NOT_MALE"
-2,F submitted but expired,01/01/2025,FALSE,01/01/2025,F,08/10/2024,LIVE,NOT_ELIGIBLE,,,"NOT_MALE"
-3,F submitted LIVE,01/01/2025,FALSE,01/01/2025,F,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-4,F submitted but expired COMPLETED,01/01/2025,FALSE,01/01/2025,F,08/10/2024,COMPLETED,NOT_ELIGIBLE,,,"NOT_MALE"
-5,F submitted COMPLETED,01/01/2025,FALSE,01/01/2025,F,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-6,F withdrawn,01/01/2025,FALSE,01/01/2025,F,09/10/2024,WITHDRAWN,NOT_ELIGIBLE,,,"NOT_MALE"
-7,F no CRS,01/01/2025,FALSE,01/01/2025,F,,,NOT_ELIGIBLE,,,"NOT_MALE"
-8,M not submitted,01/01/2025,FALSE,01/01/2025,M,09/10/2024,DRAFT,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-9,M submitted but expired,01/01/2025,FALSE,01/01/2025,M,08/10/2024,LIVE,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-10,M submitted LIVE,01/01/2025,FALSE,01/01/2025,M,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-11,M submitted but expired COMPLETED,01/01/2025,FALSE,01/01/2025,M,08/10/2024,COMPLETED,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-12,M submitted COMPLETED,01/01/2025,FALSE,01/01/2025,M,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-13,M withdrawn,01/01/2025,FALSE,01/01/2025,M,09/10/2024,WITHDRAWN,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-14,M no CRS,01/01/2025,FALSE,01/01/2025,M,,,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-15,N not submitted,01/01/2025,FALSE,01/01/2025,N,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NOT_MALE"
-16,N submitted LIVE,01/01/2025,FALSE,01/01/2025,N,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-17,N submitted COMPLETED,01/01/2025,FALSE,01/01/2025,N,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-18,N withdrawn,01/01/2025,FALSE,01/01/2025,N,09/10/2024,WITHDRAWN,NOT_ELIGIBLE,,,"NOT_MALE"
-19,N no CRS,01/01/2025,FALSE,01/01/2025,N,,,NOT_ELIGIBLE,,,"NOT_MALE"
-20,NS not submitted,01/01/2025,FALSE,01/01/2025,NS,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NOT_MALE"
-21,NS submitted LIVE,01/01/2025,FALSE,01/01/2025,NS,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-22,NS submitted COMPLETED,01/01/2025,FALSE,01/01/2025,NS,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-23,NS no CRS,01/01/2025,FALSE,01/01/2025,NS,,,NOT_ELIGIBLE,,,"NOT_MALE"
-24,F no end date not submitted,01/01/2025,FALSE,,F,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE"
-25,F no end date submitted LIVE,01/01/2025,FALSE,,F,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-26,F no end date no CRS,01/01/2025,FALSE,,F,,,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE"
-27,M no end date not submitted,01/01/2025,FALSE,,M,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
-28,M no end date submitted but expired,01/01/2025,FALSE,,M,08/10/2024,LIVE,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
-29,M no end date submitted LIVE,01/01/2025,FALSE,,M,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-30,M no end date submitted COMPLETED,01/01/2025,FALSE,,M,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-31,M no end date withdrawn,01/01/2025,FALSE,,M,09/10/2024,WITHDRAWN,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
-32,M no end date no CRS,01/01/2025,FALSE,,M,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
-33,N no end date submitted LIVE,01/01/2025,FALSE,,N,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-34,N no end date no CRS,01/01/2025,FALSE,,N,,,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE"
-35,NS no end date submitted LIVE,01/01/2025,FALSE,,NS,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-36,NS no end date no CRS,01/01/2025,FALSE,,NS,,,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE"
-37,F has next accommodation submitted LIVE,01/01/2025,TRUE,01/01/2025,F,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-38,F has next accommodation not submitted,01/01/2025,TRUE,01/01/2025,F,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NOT_MALE, HAS_NEXT_ACCOMMODATION"
-39,F has next accommodation no CRS,01/01/2025,TRUE,01/01/2025,F,,,NOT_ELIGIBLE,,,"NOT_MALE, HAS_NEXT_ACCOMMODATION"
-40,M has next accommodation submitted LIVE,01/01/2025,TRUE,01/01/2025,M,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-41,M has next accommodation not submitted,01/01/2025,TRUE,01/01/2025,M,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
-42,M has next accommodation no CRS,01/01/2025,TRUE,01/01/2025,M,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
-43,N has next accommodation submitted LIVE,01/01/2025,TRUE,01/01/2025,N,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-44,N has next accommodation no CRS,01/01/2025,TRUE,01/01/2025,N,,,NOT_ELIGIBLE,,,"NOT_MALE, HAS_NEXT_ACCOMMODATION"
-45,NS has next accommodation submitted LIVE,01/01/2025,TRUE,01/01/2025,NS,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-46,NS has next accommodation no CRS,01/01/2025,TRUE,01/01/2025,NS,,,NOT_ELIGIBLE,,,"NOT_MALE, HAS_NEXT_ACCOMMODATION"
-47,F has next accommodation no end date submitted LIVE,01/01/2025,TRUE,,F,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-48,F has next accommodation no end date no CRS,01/01/2025,TRUE,,F,,,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE, HAS_NEXT_ACCOMMODATION"
-49,M has next accommodation no end date submitted LIVE,01/01/2025,TRUE,,M,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-50,M has next accommodation no end date no CRS,01/01/2025,TRUE,,M,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE, HAS_NEXT_ACCOMMODATION"
-51,N has next accommodation no end date submitted LIVE,01/01/2025,TRUE,,N,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-52,N has next accommodation no end date no CRS,01/01/2025,TRUE,,N,,,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE, HAS_NEXT_ACCOMMODATION"
-53,NS has next accommodation no end date submitted LIVE,01/01/2025,TRUE,,NS,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-54,NS has next accommodation no end date no CRS,01/01/2025,TRUE,,NS,,,NOT_ELIGIBLE,,,"NOT_MALE, NO_CURRENT_ACCOMMODATION_END_DATE, HAS_NEXT_ACCOMMODATION"
+testCaseId,description,referenceDate,hasNextAccommodation,currentAccommodationEndDate,crsSubmissionDate,crsStatus,expectedCrsStatus,expectedCrsAction,expectedCrsLink,expectedFailureReasons
+1,not submitted,01/01/2025,FALSE,01/01/2025,09/10/2024,DRAFT,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+2,submitted but expired,01/01/2025,FALSE,01/01/2025,08/10/2024,LIVE,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+3,submitted LIVE,01/01/2025,FALSE,01/01/2025,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
+4,submitted but expired COMPLETED,01/01/2025,FALSE,01/01/2025,08/10/2024,COMPLETED,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+5,submitted COMPLETED,01/01/2025,FALSE,01/01/2025,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
+6,withdrawn,01/01/2025,FALSE,01/01/2025,09/10/2024,WITHDRAWN,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+7,no CRS,01/01/2025,FALSE,01/01/2025,,,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+8,no end date not submitted,01/01/2025,FALSE,,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+9,no end date submitted but expired,01/01/2025,FALSE,,08/10/2024,LIVE,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+10,no end date submitted LIVE,01/01/2025,FALSE,,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
+11,no end date submitted COMPLETED,01/01/2025,FALSE,,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
+12,no end date withdrawn,01/01/2025,FALSE,,09/10/2024,WITHDRAWN,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+13,no end date no CRS,01/01/2025,FALSE,,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+14,has next accommodation submitted LIVE,01/01/2025,TRUE,01/01/2025,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
+15,has next accommodation not submitted,01/01/2025,TRUE,01/01/2025,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
+16,has next accommodation no CRS,01/01/2025,TRUE,01/01/2025,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
+17,has next accommodation no end date submitted LIVE,01/01/2025,TRUE,,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
+18,has next accommodation no end date no CRS,01/01/2025,TRUE,,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE, HAS_NEXT_ACCOMMODATION"

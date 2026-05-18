@@ -175,6 +175,7 @@ fun expectedGetEligibilityResponseTierNotFound(
   referenceNumber: String,
   createdBy: String,
   createdAt: String,
+  crsSubmissionDate: String,
 ): String = """
 {
    "data":{
@@ -198,7 +199,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
-            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE","CRS_EXPIRED","CRS_NOT_SUBMITTED"]
+            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE"]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -229,12 +230,15 @@ fun expectedGetEligibilityResponseTierNotFound(
       },
       "crs":{
          "serviceResult":{
-            "serviceStatus":"NOT_STARTED",
-            "action":"Complete CRS Referral",
+            "serviceStatus":"SUBMITTED",
+            "action":null,
             "link":"View refer and monitor",
             "failureReasons":[]
          },
-         "commissionedRehabilitativeServices":null
+         "commissionedRehabilitativeServices":{
+            "status":"COMPLETED",
+            "submissionDate":"$crsSubmissionDate"
+         }
       },
       "pa":{
          "serviceResult":{
@@ -246,7 +250,6 @@ fun expectedGetEligibilityResponseTierNotFound(
       },
       "caseActions":[
          "Add DTR outcome",
-         "Complete CRS Referral",
          "Add and confirm proposed address"
       ]
    },

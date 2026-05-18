@@ -170,6 +170,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            crsSubmissionDate = crsSubmissionDate.toString(),
           ),
         )
       }

@@ -381,6 +381,7 @@ class EligibilityServiceTest {
           tier = null,
           cas1Application = null,
           cas3Application = null,
+          commissionedRehabilitativeServices = null,
         ),
         upstreamFailures = listOf(notFoundFailure),
       )
@@ -409,6 +410,7 @@ class EligibilityServiceTest {
           tier = null,
           cas1Application = null,
           cas3Application = null,
+          commissionedRehabilitativeServices = null,
         ),
         upstreamFailures = listOf(notFoundFailure, blockingFailure),
       )
