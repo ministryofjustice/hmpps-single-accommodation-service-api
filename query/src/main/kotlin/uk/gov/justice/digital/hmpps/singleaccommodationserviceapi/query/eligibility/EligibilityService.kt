@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
@@ -57,14 +58,20 @@ class EligibilityService(
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
+    val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
+    val blockingFailures = upstreamFailures.filterNot { it.errorDetail.httpStatus == HttpStatus.NOT_FOUND }
 
-    if (eligibilityOrchestrationDto.upstreamFailures.isNotEmpty()) {
-      log.error("Eligibility upstream failures for CRN {}: {}", crn, eligibilityOrchestrationDto.upstreamFailures)
-      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = eligibilityOrchestrationDto.upstreamFailures)
+    if (blockingFailures.isNotEmpty()) {
+      log.error("Eligibility upstream failures for CRN {}: {}", crn, blockingFailures)
+      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = upstreamFailures)
     }
+    if (upstreamFailures.isNotEmpty()) {
+      log.warn("Eligibility upstream 404s for CRN {}: {}", crn, upstreamFailures)
+    }
+
     val data = buildDomainData(crn, eligibilityOrchestrationDto.data)
     val eligibility = getEligibility(data)
-    return toApiResponseDto(data = eligibility)
+    return toApiResponseDto(data = eligibility, upstreamFailures = upstreamFailures)
   }
 
   fun getEligibility(data: DomainData): EligibilityDto {
