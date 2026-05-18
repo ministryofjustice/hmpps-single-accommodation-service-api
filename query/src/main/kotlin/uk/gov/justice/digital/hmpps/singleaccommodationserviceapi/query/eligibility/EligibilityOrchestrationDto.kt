@@ -12,5 +12,5 @@ data class EligibilityOrchestrationDto(
   val tier: Tier?,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
-  val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
+  val commissionedRehabilitativeServices: List<CommissionedRehabilitativeServices>?,
 )

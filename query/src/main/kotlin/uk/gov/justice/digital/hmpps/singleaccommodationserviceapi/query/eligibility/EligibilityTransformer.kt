@@ -131,7 +131,7 @@ object EligibilityTransformer {
   ) = commissionedRehabilitativeServices?.let {
     CommissionedRehabilitativeServicesDto(
       status = toCrsStatus(it.status),
-      submissionDate = it.sentAt.toLocalDate(),
+      submissionDate = it.sentAt?.toLocalDate(),
     )
   }
 
