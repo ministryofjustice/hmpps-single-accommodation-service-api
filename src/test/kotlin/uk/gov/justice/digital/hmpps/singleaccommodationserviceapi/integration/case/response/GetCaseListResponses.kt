@@ -25,7 +25,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -50,7 +49,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -75,7 +73,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -100,7 +97,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -125,7 +121,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -150,7 +145,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -174,9 +168,7 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details"
-      ],
+      "actions": [],
       "userAccess": "FULL",
       "limitedAccess": false
     },
@@ -198,9 +190,7 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details"
-      ],
+      "actions": [],
       "userAccess": "FULL",
       "limitedAccess": false
     },
@@ -222,9 +212,7 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details"
-      ],
+      "actions": [],
       "userAccess": "FULL",
       "limitedAccess": false
     },
@@ -246,9 +234,7 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details"
-      ],
+      "actions": [],
       "userAccess": "FULL",
       "limitedAccess": false
     },
@@ -270,9 +256,7 @@ fun expectedGetCaseListResponse(): String = """
       "currentAccommodation": null,
       "nextAccommodation": null,
       "status": null,
-      "actions": [
-        "Add DTR referral details"
-      ],
+      "actions": [],
       "userAccess": "FULL",
       "limitedAccess": false
     },
@@ -295,7 +279,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -320,7 +303,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -345,7 +327,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -370,7 +351,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -395,7 +375,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -420,7 +399,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
@@ -445,7 +423,6 @@ fun expectedGetCaseListResponse(): String = """
       "nextAccommodation": null,
       "status": null,
       "actions": [
-        "Add DTR referral details",
         "Add and confirm proposed address"
       ],
       "userAccess": "FULL",
