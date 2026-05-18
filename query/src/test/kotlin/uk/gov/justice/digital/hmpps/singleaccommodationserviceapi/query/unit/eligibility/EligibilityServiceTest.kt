@@ -94,7 +94,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.CurrentAddressTypeNotPrivateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrStatusRule
@@ -183,9 +182,8 @@ class EligibilityServiceTest {
   var dtrCompletionContextUpdater = DtrCompletionContextUpdater()
   var dtrCompletionRuleSet = DtrCompletionRuleSet(DtrApplicationCompleteRule())
   var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
-    CurrentAddressTypeNotPrivateRule(),
+    CurrentAccommodationEndDateValidationRule(),
     NoNextAccommodationRule(),
-
   )
 
   // CRS
@@ -499,7 +497,7 @@ class EligibilityServiceTest {
         assertThat(result.action).isEqualTo(s.expectedCas1Action)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
         assertThat(result.failureReasons)
-          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
@@ -519,7 +517,6 @@ class EligibilityServiceTest {
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             hasNextAccommodation = row["hasNextAccommodation"]!!,
-            isPrivateCurrentAccommodation = row["isPrivateCurrentAccommodation"]!!,
             dtrStatus = row["dtrStatus"]?.let { DtrStatus.valueOf(it) },
             dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
             expectedDtrStatus = row["expectedDtrStatus"]?.let { ServiceStatus.valueOf(it) },
@@ -553,32 +550,13 @@ class EligibilityServiceTest {
           )
         }
 
-        val currentAccommodation = s.currentAccommodationEndDate?.let {
-          buildAccommodationSummaryDto(
-            endDate = it,
-            type = buildAccommodationTypeDto(
-              code = if (s.isPrivateCurrentAccommodation.toBoolean()) {
-                "A01A"
-              } else {
-                "A03"
-              },
-            ),
-          )
-        } ?: buildAccommodationSummaryDto(
-          endDate = null,
-          type = buildAccommodationTypeDto(
-            code = if (s.isPrivateCurrentAccommodation.toBoolean()) {
-              "A01A"
-            } else {
-              "A03"
-            },
-          ),
+        val currentAccommodation = buildAccommodationSummaryDto(
+          endDate = s.currentAccommodationEndDate,
         )
 
         val currentAccommodationTypeEntity = currentAccommodation.type?.code?.let {
           buildAccommodationTypeEntity(
             code = it,
-            isPrivate = s.isPrivateCurrentAccommodation.toBoolean(),
           )
         }
 
@@ -607,7 +585,7 @@ class EligibilityServiceTest {
         assertThat(result.action).isEqualTo(s.expectedDtrAction)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
         assertThat(result.failureReasons)
-          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
@@ -748,7 +726,7 @@ class EligibilityServiceTest {
         assertThat(result.action).isEqualTo(s.expectedCas3Action)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
         assertThat(result.failureReasons)
-          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
@@ -826,7 +804,7 @@ class EligibilityServiceTest {
         assertThat(result.action).isEqualTo(s.expectedCrsAction)
         assertThat(result.link).isEqualTo(s.expectedCrsLink)
         assertThat(result.failureReasons)
-          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
@@ -907,7 +885,7 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedPaAction)
         assertThat(result.failureReasons)
-          .withFailMessage("${s.testCaseId} - ${s.description}, failure reasons mismatch")
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
       }
     }
@@ -1103,23 +1081,6 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `Dtr surfaces CURRENT_ADDRESS_IS_PRIVATE when current address is private`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(
-          endDate = today.plusDays(1),
-        ),
-        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrivate = true),
-        nextAccommodation = null,
-      )
-
-      val result = eligibilityService.evaluate(dtrTree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.CURRENT_ADDRESS_IS_PRIVATE)
-    }
-
-    @Test
     fun `Pa surfaces SUITABLE_CAS1_APPLICATION when candidate has a suitable CAS1 application`() {
       val data = buildDomainData(
         nextAccommodation = null,
@@ -1179,7 +1140,6 @@ data class DtrScenario(
   val referenceDate: LocalDate,
   val currentAccommodationEndDate: LocalDate?,
   val hasNextAccommodation: String,
-  val isPrivateCurrentAccommodation: String,
   val dtrStatus: DtrStatus?,
   val dtrSubmissionDate: LocalDate?,
   val expectedDtrStatus: ServiceStatus?,

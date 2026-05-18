@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.CurrentAddressTypeNotPrivateRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
 
 @ExtendWith(SpringExtension::class)
@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   classes = [
     DtrEligibilityRuleSet::class,
     NoNextAccommodationRule::class,
-    CurrentAddressTypeNotPrivateRule::class,
+    CurrentAccommodationEndDateValidationRule::class,
   ],
 )
 class DtrEligibilityRuleSetTest {
@@ -25,7 +25,7 @@ class DtrEligibilityRuleSetTest {
 
   private val expectedDtrEligibilityRuleNames = listOf(
     NoNextAccommodationRule::class.simpleName,
-    CurrentAddressTypeNotPrivateRule::class.simpleName,
+    CurrentAccommodationEndDateValidationRule::class.simpleName,
   )
 
   @Test
