@@ -45,7 +45,7 @@ class EligibilityOrchestrationService(
     val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(GET_TIER)
     val cas1Application = results.standardCallsNoIterationResults!!.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas3Application = results.standardCallsNoIterationResults!!.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
-    val crs = results.standardCallsNoIterationResults!!.getResult<CommissionedRehabilitativeServices>(GET_CRS)
+    val crs = results.standardCallsNoIterationResults!!.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
 
     return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(

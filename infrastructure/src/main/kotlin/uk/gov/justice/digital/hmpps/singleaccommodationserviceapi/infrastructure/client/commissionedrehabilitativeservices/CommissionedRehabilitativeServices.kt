@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 data class CommissionedRehabilitativeServices(
   val status: CrsReferralStatus,
-  val sentAt: OffsetDateTime,
+  val sentAt: OffsetDateTime?,
   val sentBy: CrsReferralSentBy?,
   val referral: CrsReferral?,
 )
@@ -17,7 +17,7 @@ data class CrsReferralSentBy(
 
 data class CrsReferral(
   val createdAt: OffsetDateTime?,
-  val serviceProvider: CrsReferralServiceProvider?,
+  val serviceProviders: List<CrsReferralServiceProvider>,
 )
 
 data class CrsReferralServiceProvider(

@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 fun buildCommissionedRehabilitativeServicesDto(
   status: CrsStatus = CrsStatus.COMPLETED,
-  submissionDate: LocalDate = LocalDate.now(),
+  submissionDate: LocalDate? = LocalDate.now(),
 ) = CommissionedRehabilitativeServicesDto(
   status = status,
   submissionDate = submissionDate,

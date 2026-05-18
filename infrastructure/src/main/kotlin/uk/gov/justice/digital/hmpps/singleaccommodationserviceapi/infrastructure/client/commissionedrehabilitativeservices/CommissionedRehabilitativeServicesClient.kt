@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 interface CommissionedRehabilitativeServicesClient {
 
   @GetExchange(value = "/sas-referral-details/{crn}")
-  fun getCrs(@PathVariable crn: String): CommissionedRehabilitativeServices
+  fun getCrs(@PathVariable crn: String): List<CommissionedRehabilitativeServices>
 }
 
 @Service

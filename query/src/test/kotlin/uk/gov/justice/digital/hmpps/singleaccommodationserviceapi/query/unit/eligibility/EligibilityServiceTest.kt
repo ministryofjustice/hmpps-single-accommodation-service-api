@@ -302,7 +302,7 @@ class EligibilityServiceTest {
           tier = tier,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
-          commissionedRehabilitativeServices = crs,
+          commissionedRehabilitativeServices = listOf(crs),
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
