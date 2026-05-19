@@ -4,13 +4,16 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
@@ -27,18 +30,23 @@ class ProposedAccommodationApplicationService(
   private val jsonMapper: JsonMapper,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val accommodationStatusRepository: AccommodationStatusRepository,
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
 ) {
   @Transactional
-  fun createProposedAccommodation(crn: String, proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand): ProposedAccommodationDto {
+  fun createProposedAccommodation(
+    crn: String,
+    currentAccommodation: AccommodationSummaryDto?,
+    proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand,
+  ): ProposedAccommodationDto {
     val user = userService.authorizeAndRetrieveUser()
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
       .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
-    val aggregate = ProposedAccommodationAggregate.hydrateNew(case.id)
+    val aggregate = ProposedAccommodationAggregate.hydrateNew(caseId = case.id, currentAccommodation = currentAccommodation)
     aggregate.updateProposedAccommodation(
       newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
@@ -51,10 +59,17 @@ class ProposedAccommodationApplicationService(
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
     )
+    val aggregateSnapshot = aggregate.snapshot()
+    val accommodationStatusEntity = aggregateSnapshot.accommodationStatus
+      ?.let {
+        accommodationStatusRepository.findByCodeAndActiveIsTrue(it.code)
+          .orThrowNotFound("code" to it.code)
+      }
     val persistedRecord = proposedAccommodationRepository.save(
       ProposedAccommodationMapper.toEntity(
-        aggregate.snapshot(),
+        aggregateSnapshot,
         accommodationTypeEntity,
+        accommodationStatusEntity,
       ),
     )
     pullEventAndPersistToOutbox(aggregate)
@@ -67,11 +82,26 @@ class ProposedAccommodationApplicationService(
   }
 
   @Transactional
-  fun updateProposedAccommodation(crn: String, id: UUID, proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand): ProposedAccommodationDto {
+  fun updateProposedAccommodation(
+    id: UUID,
+    crn: String,
+    proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand,
+    currentAccommodation: AccommodationSummaryDto?,
+  ): ProposedAccommodationDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
       .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
-    val aggregate = ProposedAccommodationMapper.toAggregate(proposedAccommodationEntity, accommodationTypeEntity)
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
+      ?.let {
+        accommodationStatusRepository.findByIdOrNull(it)
+          .orThrowNotFound("id" to it)
+      }
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity,
+      accommodationTypeEntity,
+      accommodationStatusEntity,
+      currentAccommodation,
+    )
     aggregate.updateProposedAccommodation(
       newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
@@ -84,7 +114,18 @@ class ProposedAccommodationApplicationService(
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
     )
-    val updatedRecord = proposedAccommodationRepository.save(merge(aggregate.snapshot(), proposedAccommodationEntity, accommodationTypeEntity))
+    val updatedRecord = proposedAccommodationRepository.save(
+      merge(
+        snapshot = aggregate.snapshot(),
+        proposedAccommodationEntity,
+        accommodationTypeEntity,
+        accommodationStatusEntity = getAccommodationStatusEntity(
+          preUpdateAccommodationStatusEntity = accommodationStatusEntity,
+          aggregate,
+        ),
+      ),
+    )
+
     pullEventAndPersistToOutbox(aggregate)
 
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
@@ -97,14 +138,50 @@ class ProposedAccommodationApplicationService(
     )
   }
 
+  private fun getAccommodationStatusEntity(
+    preUpdateAccommodationStatusEntity: AccommodationStatusEntity?,
+    aggregate: ProposedAccommodationAggregate,
+  ) = if (aggregate.snapshot().accommodationStatus?.code == preUpdateAccommodationStatusEntity?.code) {
+    preUpdateAccommodationStatusEntity
+  } else {
+    aggregate.snapshot().accommodationStatus
+      ?.let {
+        accommodationStatusRepository.findByCodeAndActiveIsTrue(it.code)
+          .orThrowNotFound("code" to it.code)
+      }
+  }
+
   @Transactional
-  fun createProposedAccommodationNote(crn: String, id: UUID, noteCommand: NoteCommand) {
+  fun createProposedAccommodationNote(
+    id: UUID,
+    crn: String,
+    noteCommand: NoteCommand,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
       .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
-    val aggregate = ProposedAccommodationMapper.toAggregate(proposedAccommodationEntity, accommodationTypeEntity)
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
+      ?.let {
+        accommodationStatusRepository.findByIdOrNull(it)
+          .orThrowNotFound("id" to it)
+      }
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity,
+      accommodationTypeEntity,
+      accommodationStatusEntity,
+      currentAccommodation,
+    )
     aggregate.addNote(note = noteCommand.note)
-    val merged = merge(aggregate.snapshot(), proposedAccommodationEntity, accommodationTypeEntity)
+    val merged = merge(
+      snapshot = aggregate.snapshot(),
+      proposedAccommodationEntity,
+      accommodationTypeEntity,
+      accommodationStatusEntity = getAccommodationStatusEntity(
+        preUpdateAccommodationStatusEntity = accommodationStatusEntity,
+        aggregate,
+      ),
+    )
     proposedAccommodationRepository.save(merged)
   }
 

@@ -22,6 +22,9 @@ open class ProposedAccommodationEntity(
   var name: String?,
   @Column(name = "accommodation_type_id", nullable = false)
   var accommodationTypeId: UUID,
+  @DiffIgnore
+  @Column(name = "accommodation_status_id", nullable = true)
+  var accommodationStatusId: UUID?,
   @Enumerated(EnumType.STRING)
   var verificationStatus: VerificationStatus?,
   @Enumerated(EnumType.STRING)

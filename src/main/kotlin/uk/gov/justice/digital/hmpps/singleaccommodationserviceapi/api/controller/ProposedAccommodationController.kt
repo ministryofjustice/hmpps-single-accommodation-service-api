@@ -15,13 +15,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.util.UUID
 
 @RestController
 class ProposedAccommodationController(
+  private val accommodationQueryService: AccommodationQueryService,
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
@@ -55,7 +59,9 @@ class ProposedAccommodationController(
     @PathVariable crn: String,
     @RequestBody request: ProposedAccommodationDetailCommand,
   ): ResponseEntity<ProposedAccommodationDto> {
-    val createdProposedAccommodation = proposedAccommodationApplicationService.createProposedAccommodation(crn, request)
+    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
+    handleUpstreamFailure(currentAccommodation.upstreamFailures)
+    val createdProposedAccommodation = proposedAccommodationApplicationService.createProposedAccommodation(crn, currentAccommodation.data, request)
     return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
   }
 
@@ -67,7 +73,9 @@ class ProposedAccommodationController(
     @PathVariable id: UUID,
     @RequestBody request: NoteCommand,
   ): ResponseEntity<Void> {
-    proposedAccommodationApplicationService.createProposedAccommodationNote(crn, id, request)
+    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
+    handleUpstreamFailure(currentAccommodation.upstreamFailures)
+    proposedAccommodationApplicationService.createProposedAccommodationNote(id, crn, request, currentAccommodation.data)
     return ResponseEntity(HttpStatus.CREATED)
   }
 
@@ -85,7 +93,15 @@ class ProposedAccommodationController(
     @PathVariable id: UUID,
     @RequestBody request: ProposedAccommodationDetailCommand,
   ): ResponseEntity<ProposedAccommodationDto> {
-    val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(crn, id, request)
+    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
+    handleUpstreamFailure(currentAccommodation.upstreamFailures)
+    val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(id, crn, request, currentAccommodation.data)
     return ResponseEntity.ok(updatedProposedAccommodation)
+  }
+
+  private fun handleUpstreamFailure(upstreamFailures: List<UpstreamFailureDto>) {
+    if (upstreamFailures.isNotEmpty()) {
+      throw UpstreamFailureException(upstreamFailures)
+    }
   }
 }

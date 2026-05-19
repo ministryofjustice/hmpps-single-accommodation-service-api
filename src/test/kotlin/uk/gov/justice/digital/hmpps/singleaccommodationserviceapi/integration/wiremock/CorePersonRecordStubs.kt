@@ -53,4 +53,11 @@ object CorePersonRecordStubs {
         .willReturn(serverError()),
     )
   }
+
+  fun getCorePersonRecordAddressesNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/person/probation/$crn/address"))
+        .willReturn(notFound()),
+    )
+  }
 }

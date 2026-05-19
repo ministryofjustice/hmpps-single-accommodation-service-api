@@ -10,7 +10,12 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -24,10 +29,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
@@ -64,12 +71,39 @@ class UserAuditIT : IntegrationTestBase() {
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
+    stubCurrentAccommodationIsCas1(crn)
   }
 
   @AfterEach
   fun teardown() {
     proposedAccommodationRepository.deleteAll()
     userRepository.deleteAll()
+  }
+
+  private fun stubCurrentAccommodationIsCas1(crn: String) {
+    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
+      crn = crn,
+      addresses = listOf(
+        buildAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          addressStatus = AddressStatus.M,
+          addressUsage = buildAddressUsage(
+            addressUsageCode = AddressUsageCode.A02,
+            addressUsageDescription = "Approved Premises",
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(
+      crn = crn,
+      response = corePersonRecordAddresses,
+    )
   }
 
   @Test

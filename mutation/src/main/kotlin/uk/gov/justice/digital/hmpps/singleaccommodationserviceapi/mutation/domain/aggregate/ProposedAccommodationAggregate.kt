@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
@@ -13,12 +16,15 @@ import java.time.LocalDate
 import java.util.UUID
 
 private const val NOTE_MAX_LENGTH = 4000
+private const val PRISON_ACCOMMODATION_TYPE_CODE = "HMP"
 
 class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
+  private var currentAccommodation: AccommodationSummaryDto?,
   private var name: String? = null,
   private var accommodationType: AccommodationTypeDto? = null,
+  private var accommodationStatus: AccommodationStatusDto? = null,
   private var verificationStatus: VerificationStatus? = null,
   private var nextAccommodationStatus: NextAccommodationStatus? = null,
   private var address: AccommodationAddressDetails? = null,
@@ -29,16 +35,19 @@ class ProposedAccommodationAggregate private constructor(
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
   companion object {
-    fun hydrateNew(caseId: UUID) = ProposedAccommodationAggregate(
+    fun hydrateNew(caseId: UUID, currentAccommodation: AccommodationSummaryDto?) = ProposedAccommodationAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
+      currentAccommodation = currentAccommodation,
     )
 
     fun hydrateExisting(
       id: UUID,
       caseId: UUID,
+      currentAccommodation: AccommodationSummaryDto?,
       name: String?,
       accommodationType: AccommodationTypeDto,
+      accommodationStatus: AccommodationStatusDto?,
       verificationStatus: VerificationStatus,
       nextAccommodationStatus: NextAccommodationStatus,
       address: AccommodationAddressDetails,
@@ -48,8 +57,10 @@ class ProposedAccommodationAggregate private constructor(
     ) = ProposedAccommodationAggregate(
       id = id,
       caseId = caseId,
+      currentAccommodation = currentAccommodation,
       name = name,
       accommodationType = accommodationType,
+      accommodationStatus = accommodationStatus,
       verificationStatus = verificationStatus,
       nextAccommodationStatus = nextAccommodationStatus,
       address = address,
@@ -75,6 +86,7 @@ class ProposedAccommodationAggregate private constructor(
     address = newAddress
     startDate = newStartDate
     endDate = newEndDate
+    accommodationStatus = getAccommodationStatus()
 
     validateProposedAccommodation()
 
@@ -112,11 +124,28 @@ class ProposedAccommodationAggregate private constructor(
 
   fun pullDomainEvents(): List<SingleAccommodationServiceDomainEvent> = domainEvents.toList().also { domainEvents.clear() }
 
+  private fun getAccommodationStatus(): AccommodationStatusDto? = if (nextAccommodationStatus == NextAccommodationStatus.YES) {
+    if (PRISON_ACCOMMODATION_TYPE_CODE == currentAccommodation?.type?.code) {
+      AccommodationStatusDto(
+        code = AddressStatus.PR1.name,
+        description = AddressStatus.PR1.description,
+      )
+    } else {
+      AccommodationStatusDto(
+        code = AddressStatus.PR.name,
+        description = AddressStatus.PR.description,
+      )
+    }
+  } else {
+    null
+  }
+
   fun snapshot() = ProposedAccommodationSnapshot(
     id,
     caseId,
     name,
     accommodationType!!,
+    accommodationStatus,
     verificationStatus!!,
     nextAccommodationStatus!!,
     address!!,
@@ -130,6 +159,7 @@ class ProposedAccommodationAggregate private constructor(
     val caseId: UUID,
     val name: String?,
     val accommodationType: AccommodationTypeDto,
+    val accommodationStatus: AccommodationStatusDto?,
     val verificationStatus: VerificationStatus,
     val nextAccommodationStatus: NextAccommodationStatus,
     val address: AccommodationAddressDetails,
