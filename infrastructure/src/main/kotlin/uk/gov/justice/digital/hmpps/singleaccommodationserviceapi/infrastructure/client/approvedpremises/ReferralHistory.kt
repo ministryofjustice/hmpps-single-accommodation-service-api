@@ -11,6 +11,12 @@ data class Cas1ReferralHistory(
   val applicationId: UUID,
   val status: Cas1AssessmentStatus,
   val createdAt: Instant,
+  val referralRejectionReason: String?,
+  val localAuthorityArea: String?,
+  val pdu: String?,
+  val referredBy: String?,
+  val placementAddress: String?,
+  val placementStatus: String?,
 ) : CasReferralHistory {
   enum class Cas1AssessmentStatus(val value: String) {
     AWAITING_RESPONSE("awaiting_response"),
@@ -34,6 +40,12 @@ data class Cas2ReferralHistory(
   val applicationId: UUID,
   val status: Cas2Status,
   val createdAt: Instant,
+  val referralRejectionReason: String?,
+  val localAuthorityArea: String?,
+  val pdu: String?,
+  val referredBy: String?,
+  val placementAddress: String?,
+  val placementStatus: String?,
 ) : CasReferralHistory {
   enum class Cas2Status(val value: String) {
     MORE_INFORMATION_REQUESTED("More information requested"),
@@ -60,6 +72,12 @@ data class Cas3ReferralHistory(
   val applicationId: UUID,
   val status: TemporaryAccommodationAssessmentStatus,
   val createdAt: Instant,
+  val referralRejectionReason: String?,
+  val localAuthorityArea: String?,
+  val pdu: String?,
+  val referredBy: String?,
+  val placementAddress: String?,
+  val placementStatus: String?,
 ) : CasReferralHistory {
   enum class TemporaryAccommodationAssessmentStatus(val value: String) {
 
