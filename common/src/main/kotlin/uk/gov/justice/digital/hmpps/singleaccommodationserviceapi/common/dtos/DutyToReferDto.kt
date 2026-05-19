@@ -43,4 +43,6 @@ enum class DtrStatus {
   SUBMITTED,
   ACCEPTED,
   NOT_ACCEPTED,
+  UPCOMING,
+  NOT_ELIGIBLE,
 }
