@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
@@ -16,11 +19,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 object ProposedAccommodationMapper {
 
-  fun toEntity(snapshot: ProposedAccommodationSnapshot, accommodationTypeEntity: AccommodationTypeEntity) = ProposedAccommodationEntity(
+  fun toEntity(
+    snapshot: ProposedAccommodationSnapshot,
+    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationStatusEntity: AccommodationStatusEntity?,
+  ) = ProposedAccommodationEntity(
     id = snapshot.id,
     caseId = snapshot.caseId,
     name = snapshot.name,
     accommodationTypeId = accommodationTypeEntity.id,
+    accommodationStatusId = accommodationStatusEntity?.id,
     verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
     nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
     startDate = snapshot.startDate,
@@ -41,9 +49,11 @@ object ProposedAccommodationMapper {
     snapshot: ProposedAccommodationSnapshot,
     proposedAccommodationEntity: ProposedAccommodationEntity,
     accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationStatusEntity: AccommodationStatusEntity?,
   ): ProposedAccommodationEntity {
     proposedAccommodationEntity.name = snapshot.name
     proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity.id
+    proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
     proposedAccommodationEntity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
     proposedAccommodationEntity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
     proposedAccommodationEntity.startDate = snapshot.startDate
@@ -79,14 +89,23 @@ object ProposedAccommodationMapper {
   fun toAggregate(
     proposedAccommodationEntity: ProposedAccommodationEntity,
     accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationStatusEntity: AccommodationStatusEntity?,
+    currentAccommodation: AccommodationSummaryDto?,
   ): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
     id = proposedAccommodationEntity.id,
     caseId = proposedAccommodationEntity.caseId,
+    currentAccommodation = currentAccommodation,
     name = proposedAccommodationEntity.name,
     accommodationType = AccommodationTypeDto(
       code = accommodationTypeEntity.code,
       description = accommodationTypeEntity.name,
     ),
+    accommodationStatus = accommodationStatusEntity?.let {
+      AccommodationStatusDto(
+        code = accommodationStatusEntity.code,
+        description = accommodationStatusEntity.name,
+      )
+    },
     verificationStatus = VerificationStatus.valueOf(proposedAccommodationEntity.verificationStatus!!.name),
     nextAccommodationStatus = NextAccommodationStatus.valueOf(proposedAccommodationEntity.nextAccommodationStatus!!.name),
     address = AccommodationAddressDetails(

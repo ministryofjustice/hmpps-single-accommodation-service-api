@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -17,6 +18,7 @@ fun buildProposedAccommodationEntity(
   caseId: UUID = UUID.randomUUID(),
   name: String? = "Test Accommodation",
   accommodationTypeEntity: AccommodationTypeEntity = buildAccommodationTypeEntity(),
+  accommodationStatusEntity: AccommodationStatusEntity? = buildAccommodationStatusEntity(),
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.TO_BE_DECIDED,
   startDate: LocalDate? = null,
@@ -40,6 +42,7 @@ fun buildProposedAccommodationEntity(
   caseId = caseId,
   name = name,
   accommodationTypeId = accommodationTypeEntity.id,
+  accommodationStatusId = accommodationStatusEntity?.id,
   verificationStatus = verificationStatus,
   nextAccommodationStatus = nextAccommodationStatus,
   startDate = startDate,
@@ -100,4 +103,17 @@ fun buildAccommodationTypeEntity(
   isPrison = isPrison,
   isCas1 = isCas1,
   isCas2 = isCas2,
+)
+
+@TestData
+fun buildAccommodationStatusEntity(
+  id: UUID = UUID.randomUUID(),
+  code: String = "M",
+  name: String = "Main",
+  active: Boolean = true,
+) = AccommodationStatusEntity(
+  id,
+  name = name,
+  code = code,
+  active,
 )

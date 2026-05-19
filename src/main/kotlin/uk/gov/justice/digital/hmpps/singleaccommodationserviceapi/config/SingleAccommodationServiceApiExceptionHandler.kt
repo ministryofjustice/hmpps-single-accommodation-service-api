@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config
 
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DomainException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
@@ -82,6 +84,22 @@ class SingleAccommodationServiceApiExceptionHandler {
         developerMessage = e.message,
       ),
     ).also { log.error("Unexpected exception", e) }
+
+  @ExceptionHandler(UpstreamFailureException::class)
+  fun handleUpstreamFailureException(e: UpstreamFailureException): ResponseEntity<ErrorResponse> {
+    val firstUpstreamFailure = e.upstreamFailures.first()
+    val httpStatusCode = firstUpstreamFailure.httpResponseStatus?.value() ?: INTERNAL_SERVER_ERROR.value()
+    val httpStatus = HttpStatus.valueOf(httpStatusCode)
+    return ResponseEntity
+      .status(httpStatus)
+      .body(
+        ErrorResponse(
+          status = httpStatus,
+          userMessage = e.message,
+          developerMessage = e.message,
+        ),
+      ).also { log.error("{}: {}", httpStatus.name, e.message) }
+  }
 
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

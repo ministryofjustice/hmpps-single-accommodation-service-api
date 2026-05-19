@@ -12,17 +12,24 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
@@ -38,6 +45,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedSasAddressUpdatedDomainEventJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
@@ -51,6 +59,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var accommodationTypeRepository: AccommodationTypeRepository
+
+  @Autowired
+  lateinit var accommodationStatusRepository: AccommodationStatusRepository
 
   @Autowired
   private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
@@ -82,12 +93,39 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
+    stubCurrentAccommodationIsCas1(crn)
   }
 
   @AfterEach
   fun teardown() {
     proposedAccommodationRepository.deleteAll()
     outboxEventRepository.deleteAll()
+  }
+
+  private fun stubCurrentAccommodationIsCas1(crn: String) {
+    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
+      crn = crn,
+      addresses = listOf(
+        buildAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          addressStatus = AddressStatus.M,
+          addressUsage = buildAddressUsage(
+            addressUsageCode = AddressUsageCode.A02,
+            addressUsageDescription = "Approved Premises",
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(
+      crn = crn,
+      response = corePersonRecordAddresses,
+    )
   }
 
   @Test
@@ -223,7 +261,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
     val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(accommodationTypeCode)!!
-    assertPersistedProposedAccommodation(proposedAccommodationPersistedResult, expectedAccommodationTypeEntity)
+    val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
+    assertPersistedProposedAccommodation(proposedAccommodationPersistedResult, expectedAccommodationTypeEntity, expectedAccommodationStatusEntity)
 
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
@@ -248,10 +287,47 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should receive 5xx Error for create proposed-accommodation when current accommodation has 5xx upstream failure`() {
+    val currentAccommodation5xxWireMockedCrn = "X123"
+    CorePersonRecordStubs.getCorePersonRecordAddressesErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
+    restTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().is5xxServerError
+  }
+
+  @Test
+  fun `should receive NOT_FOUND Error for create proposed-accommodation when current accommodation has NOT_FOUND upstream failure`() {
+    val currentAccommodation4xxWireMockedCrn = "X123"
+    CorePersonRecordStubs.getCorePersonRecordAddressesNotFoundResponse(crn = currentAccommodation4xxWireMockedCrn)
+    restTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().is4xxClientError
+  }
+
+  @Test
   fun `should update proposed-accommodation and return 200 with updated data`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         name = "Old Name",
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
@@ -297,10 +373,29 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should receive 5xx Error for update proposed-accommodation when current accommodation has upstream failures`() {
+    val noCurrentAccommodationWireMockedCrn = "X123"
+    CorePersonRecordStubs.getCorePersonRecordAddressesErrorResponse(crn = noCurrentAccommodationWireMockedCrn)
+    restTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = "A01A",
+          verificationStatus = EntityVerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().is5xxServerError
+  }
+
+  @Test
   fun `should update proposed-accommodation and not publish domain event when nextAccommodationStatus is NO`() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
@@ -345,6 +440,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
@@ -354,7 +450,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val otherEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         caseId = otherCase.id,
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
 
@@ -532,6 +631,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         name = "Old Name",
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
@@ -585,16 +685,19 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should not create a note when crn not found`() {
+    val unknownCrn = "54321"
+    stubCurrentAccommodationIsCas1(crn = unknownCrn)
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         name = "Old Name",
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
       ),
     )
-    restTestClient.post().uri("/cases/${UUID.randomUUID()}/proposed-accommodations/${existingEntity.id}/notes")
+    restTestClient.post().uri("/cases/$unknownCrn/proposed-accommodations/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAccommodationNoteRequestBody(
@@ -611,6 +714,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         name = "Old Name",
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
@@ -633,6 +737,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationStatusEntity = null,
         name = "Old Name",
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
@@ -669,9 +774,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     postTown: String,
   ): ProposedAccommodationEntity {
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")
+    val accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")
     val entity = buildProposedAccommodationEntity(
       caseId = caseEntity.id,
       accommodationTypeEntity = accommodationTypeEntity!!,
+      accommodationStatusEntity = accommodationStatusEntity,
       postcode = postcode,
       buildingNumber = buildingNumber,
       throughfareName = thoroughfareName,
@@ -680,9 +787,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     return proposedAccommodationRepository.save(entity)
   }
 
-  private fun assertPersistedProposedAccommodation(proposedAccommodationEntity: ProposedAccommodationEntity, accommodationTypeEntity: AccommodationTypeEntity) {
+  private fun assertPersistedProposedAccommodation(proposedAccommodationEntity: ProposedAccommodationEntity, accommodationTypeEntity: AccommodationTypeEntity, accommodationStatusEntity: AccommodationStatusEntity) {
     assertThat(proposedAccommodationEntity.name).isEqualTo("Mother's caravan")
     assertThat(proposedAccommodationEntity.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
+    assertThat(proposedAccommodationEntity.accommodationStatusId).isEqualTo(accommodationStatusEntity.id)
     assertThat(proposedAccommodationEntity.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
     assertThat(proposedAccommodationEntity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
     assertThat(proposedAccommodationEntity.postcode).isEqualTo("test postcode")
