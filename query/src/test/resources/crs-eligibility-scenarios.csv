@@ -1,11 +1,11 @@
 testCaseId,description,referenceDate,hasNextAccommodation,currentAccommodationEndDate,crsSubmissionDate,crsStatus,expectedCrsStatus,expectedCrsAction,expectedCrsLink,expectedFailureReasons
-1,not submitted,01/01/2025,FALSE,01/01/2025,09/10/2024,DRAFT,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-2,submitted but expired,01/01/2025,FALSE,01/01/2025,08/10/2024,LIVE,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+1,not submitted,01/01/2025,FALSE,01/01/2025,09/10/2024,DRAFT,NOT_STARTED,Submit a CRS referral,View refer and monitor,
+2,submitted but expired,01/01/2025,FALSE,01/01/2025,08/10/2024,LIVE,NOT_STARTED,Submit a CRS referral,View refer and monitor,
 3,submitted LIVE,01/01/2025,FALSE,01/01/2025,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-4,submitted but expired COMPLETED,01/01/2025,FALSE,01/01/2025,08/10/2024,COMPLETED,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+4,submitted but expired COMPLETED,01/01/2025,FALSE,01/01/2025,08/10/2024,COMPLETED,NOT_STARTED,Submit a CRS referral,View refer and monitor,
 5,submitted COMPLETED,01/01/2025,FALSE,01/01/2025,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-6,withdrawn,01/01/2025,FALSE,01/01/2025,09/10/2024,WITHDRAWN,NOT_STARTED,Complete CRS Referral,View refer and monitor,
-7,no CRS,01/01/2025,FALSE,01/01/2025,,,NOT_STARTED,Complete CRS Referral,View refer and monitor,
+6,withdrawn,01/01/2025,FALSE,01/01/2025,09/10/2024,WITHDRAWN,NOT_STARTED,Submit a CRS referral,View refer and monitor,
+7,no CRS,01/01/2025,FALSE,01/01/2025,,,NOT_STARTED,Submit a CRS referral,View refer and monitor,
 8,no end date not submitted,01/01/2025,FALSE,,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
 9,no end date submitted but expired,01/01/2025,FALSE,,08/10/2024,LIVE,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
 10,no end date submitted LIVE,01/01/2025,FALSE,,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,

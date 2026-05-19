@@ -18,6 +18,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
     return when (bookingStatus) {
       Cas3BookingStatus.PROVISIONAL -> ServiceResult(
         serviceStatus = ServiceStatus.BEDSPACE_OFFERED,
+        action = EligibilityKeys.REPLY_TO_CAS3_BEDSPACE_OFFER,
         link = EligibilityKeys.VIEW_REFERRAL,
       )
 
@@ -42,13 +43,11 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
         Cas3AssessmentStatus.READY_TO_PLACE,
         -> ServiceResult(
           serviceStatus = ServiceStatus.SUBMITTED,
-          action = EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT,
           link = EligibilityKeys.VIEW_REFERRAL,
         )
 
         else -> ServiceResult(
           serviceStatus = ServiceStatus.SUBMITTED,
-          action = EligibilityKeys.WAIT_FOR_CAS3_ASSESSMENT_RESULT,
           link = EligibilityKeys.VIEW_REFERRAL,
         )
       }

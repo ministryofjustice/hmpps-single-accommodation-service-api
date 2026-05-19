@@ -47,7 +47,7 @@ class CrsEligibilityTreeProvider(
         completion,
         onFailResult = ServiceResult(
           serviceStatus = ServiceStatus.NOT_STARTED,
-          action = EligibilityKeys.COMPLETE_CRS_REFERRAL,
+          action = EligibilityKeys.SUBMIT_CRS_REFERRAL,
           link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
         ),
       )

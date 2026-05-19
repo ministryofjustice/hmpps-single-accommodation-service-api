@@ -11,10 +11,10 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 10,Eligible - with application,01/01/2025,01/01/2025,FALSE,NOT_STARTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 11,With application,01/01/2025,01/01/2025,TRUE,SUBMITTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 12,Eligible - with application,01/01/2025,01/01/2025,FALSE,SUBMITTED,,NOT_STARTED,Add DTR referral details,Add referral details,
-13,With application,01/01/2025,01/01/2025,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-14,Eligible - with application,01/01/2025,01/01/2025,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-15,With application,01/01/2025,01/01/2025,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-16,Eligible - with application,01/01/2025,01/01/2025,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
+13,With application,01/01/2025,01/01/2025,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+14,Eligible - with application,01/01/2025,01/01/2025,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+15,With application,01/01/2025,01/01/2025,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+16,Eligible - with application,01/01/2025,01/01/2025,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
 17,With application,01/01/2025,01/01/2025,TRUE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 18,Eligible - with application,01/01/2025,01/01/2025,FALSE,SUBMITTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 19,With application,01/01/2025,01/01/2025,TRUE,ACCEPTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
@@ -45,10 +45,10 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 44,Eligible - with application,01/01/2025,01/02/2025,FALSE,NOT_STARTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 45,With application,01/01/2025,01/02/2025,TRUE,SUBMITTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 46,Eligible - with application,01/01/2025,01/02/2025,FALSE,SUBMITTED,,NOT_STARTED,Add DTR referral details,Add referral details,
-47,With application,01/01/2025,01/02/2025,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-48,Eligible - with application,01/01/2025,01/02/2025,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-49,With application,01/01/2025,01/02/2025,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-50,Eligible - with application,01/01/2025,01/02/2025,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
+47,With application,01/01/2025,01/02/2025,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+48,Eligible - with application,01/01/2025,01/02/2025,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+49,With application,01/01/2025,01/02/2025,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+50,Eligible - with application,01/01/2025,01/02/2025,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
 51,With application,01/01/2025,01/02/2025,TRUE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 52,Eligible - with application,01/01/2025,01/02/2025,FALSE,SUBMITTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 53,With application,01/01/2025,01/02/2025,TRUE,ACCEPTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
@@ -79,10 +79,10 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 78,Eligible - with application,01/01/2025,01/12/2024,FALSE,NOT_STARTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 79,With application,01/01/2025,01/12/2024,TRUE,SUBMITTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 80,Eligible - with application,01/01/2025,01/12/2024,FALSE,SUBMITTED,,NOT_STARTED,Add DTR referral details,Add referral details,
-81,With application,01/01/2025,01/12/2024,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-82,Eligible - with application,01/01/2025,01/12/2024,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-83,With application,01/01/2025,01/12/2024,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-84,Eligible - with application,01/01/2025,01/12/2024,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
+81,With application,01/01/2025,01/12/2024,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+82,Eligible - with application,01/01/2025,01/12/2024,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+83,With application,01/01/2025,01/12/2024,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+84,Eligible - with application,01/01/2025,01/12/2024,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
 85,With application,01/01/2025,01/12/2024,TRUE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 86,Eligible - with application,01/01/2025,01/12/2024,FALSE,SUBMITTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 87,With application,01/01/2025,01/12/2024,TRUE,ACCEPTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
@@ -113,10 +113,10 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 112,Eligible - with application,01/01/2025,26/02/2025,FALSE,NOT_STARTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 113,With application,01/01/2025,26/02/2025,TRUE,SUBMITTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 114,Eligible - with application,01/01/2025,26/02/2025,FALSE,SUBMITTED,,NOT_STARTED,Add DTR referral details,Add referral details,
-115,With application,01/01/2025,26/02/2025,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-116,Eligible - with application,01/01/2025,26/02/2025,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-117,With application,01/01/2025,26/02/2025,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-118,Eligible - with application,01/01/2025,26/02/2025,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
+115,With application,01/01/2025,26/02/2025,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+116,Eligible - with application,01/01/2025,26/02/2025,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+117,With application,01/01/2025,26/02/2025,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+118,Eligible - with application,01/01/2025,26/02/2025,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
 119,With application,01/01/2025,26/02/2025,TRUE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 120,Eligible - with application,01/01/2025,26/02/2025,FALSE,SUBMITTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 121,With application,01/01/2025,26/02/2025,TRUE,ACCEPTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
@@ -136,39 +136,39 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 135,With application,01/01/2025,26/02/2025,TRUE,NOT_ACCEPTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 136,Eligible - with application,01/01/2025,26/02/2025,FALSE,NOT_ACCEPTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
 137,Upcoming,01/01/2025,27/02/2025,TRUE,,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-138,Eligible - upcoming,01/01/2025,27/02/2025,FALSE,,,UPCOMING,,,
+138,Eligible - upcoming,01/01/2025,27/02/2025,FALSE,,,UPCOMING,Submit a DTR referral in 1 day,,
 139,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_STARTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-140,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,,UPCOMING,,,
+140,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,,UPCOMING,Submit a DTR referral in 1 day,,
 141,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_STARTED,04/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-142,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,04/07/2024,UPCOMING,,,
+142,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,04/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 143,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_STARTED,03/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-144,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,03/07/2024,UPCOMING,,,
+144,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,03/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 145,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_STARTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-146,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,02/07/2024,UPCOMING,,,
+146,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_STARTED,02/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 147,With application - upcoming,01/01/2025,27/02/2025,TRUE,SUBMITTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-148,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,,UPCOMING,,,
+148,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,,UPCOMING,Submit a DTR referral in 1 day,,
 149,With application - upcoming,01/01/2025,27/02/2025,TRUE,SUBMITTED,04/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-150,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,04/07/2024,UPCOMING,,,
+150,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,04/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 151,With application - upcoming,01/01/2025,27/02/2025,TRUE,SUBMITTED,03/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-152,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,03/07/2024,UPCOMING,,,
+152,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,03/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 153,With application - upcoming,01/01/2025,27/02/2025,TRUE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-154,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,02/07/2024,UPCOMING,,,
+154,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,SUBMITTED,02/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 155,With application - upcoming,01/01/2025,27/02/2025,TRUE,ACCEPTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-156,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,,UPCOMING,,,
+156,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,,UPCOMING,Submit a DTR referral in 1 day,,
 157,With application - upcoming,01/01/2025,27/02/2025,TRUE,ACCEPTED,04/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-158,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,04/07/2024,UPCOMING,,,
+158,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,04/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 159,With application - upcoming,01/01/2025,27/02/2025,TRUE,ACCEPTED,03/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-160,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,03/07/2024,UPCOMING,,,
+160,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,03/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 161,With application - upcoming,01/01/2025,27/02/2025,TRUE,ACCEPTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-162,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,02/07/2024,UPCOMING,,,
+162,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,ACCEPTED,02/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 163,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_ACCEPTED,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-164,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,,UPCOMING,,,
+164,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,,UPCOMING,Submit a DTR referral in 1 day,,
 165,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_ACCEPTED,04/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-166,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,04/07/2024,UPCOMING,,,
+166,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,04/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 167,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_ACCEPTED,03/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-168,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,03/07/2024,UPCOMING,,,
+168,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,03/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 169,With application - upcoming,01/01/2025,27/02/2025,TRUE,NOT_ACCEPTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
-170,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,02/07/2024,UPCOMING,,,
+170,Eligible - with application - upcoming,01/01/2025,27/02/2025,FALSE,NOT_ACCEPTED,02/07/2024,UPCOMING,Submit a DTR referral in 1 day,,
 171,,01/01/2025,,TRUE,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION, NO_CURRENT_ACCOMMODATION_END_DATE"
 172,Eligible,01/01/2025,,FALSE,,,NOT_ELIGIBLE,,,NO_CURRENT_ACCOMMODATION_END_DATE
 173,With application,01/01/2025,,TRUE,NOT_STARTED,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION, NO_CURRENT_ACCOMMODATION_END_DATE"
@@ -181,10 +181,10 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 180,Eligible - with application,01/01/2025,,FALSE,NOT_STARTED,02/07/2024,NOT_ELIGIBLE,,,NO_CURRENT_ACCOMMODATION_END_DATE
 181,With application,01/01/2025,,TRUE,SUBMITTED,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION, NO_CURRENT_ACCOMMODATION_END_DATE"
 182,Eligible - with application,01/01/2025,,FALSE,SUBMITTED,,NOT_ELIGIBLE,,,NO_CURRENT_ACCOMMODATION_END_DATE
-183,With application,01/01/2025,,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-184,Eligible - with application,01/01/2025,,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-185,With application,01/01/2025,,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
-186,Eligible - with application,01/01/2025,,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR outcome,Add outcome,
+183,With application,01/01/2025,,TRUE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+184,Eligible - with application,01/01/2025,,FALSE,SUBMITTED,04/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+185,With application,01/01/2025,,TRUE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
+186,Eligible - with application,01/01/2025,,FALSE,SUBMITTED,03/07/2024,SUBMITTED,Add DTR referral outcome,Add outcome,
 187,With application,01/01/2025,,TRUE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION, NO_CURRENT_ACCOMMODATION_END_DATE"
 188,Eligible - with application,01/01/2025,,FALSE,SUBMITTED,02/07/2024,NOT_ELIGIBLE,,,NO_CURRENT_ACCOMMODATION_END_DATE
 189,With application,01/01/2025,,TRUE,ACCEPTED,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION, NO_CURRENT_ACCOMMODATION_END_DATE"

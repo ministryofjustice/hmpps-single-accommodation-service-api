@@ -90,7 +90,6 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
     Cas1ApplicationStatus.AWAITING_PLACEMENT -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.AWAITING_MATCH -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
-        action = EligibilityKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
         link = EligibilityKeys.VIEW_APPLICATION,
       )
 
@@ -120,7 +119,6 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
       Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
       -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
-        action = EligibilityKeys.WAIT_FOR_PLACEMENT_REQUEST_RESULT,
         link = EligibilityKeys.VIEW_APPLICATION,
       )
 
@@ -142,7 +140,6 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
     Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
     -> ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
-      action = EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
 
