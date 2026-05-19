@@ -6,8 +6,8 @@ wiremock = "3.13.2"
 redisson = "4.4.0"
 mockk = "1.14.9"
 shedlock = "7.7.0"
-coroutines = "1.11.0"
-swagger-parser = "2.1.42"
+coroutines = "1.10.2"
+swagger-parser = "2.1.41"
 hmpps-gradle-spring-boot = "10.3.1"
 kotlin = "2.3.21"
 apache-commons-csv = "1.14.1"
@@ -54,6 +54,7 @@ wiremock = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremoc
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
 awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 # Runtime
 postgres = { module = "org.postgresql:postgresql" }

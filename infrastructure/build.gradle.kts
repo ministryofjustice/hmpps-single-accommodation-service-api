@@ -15,7 +15,7 @@ dependencies {
   implementation(libs.shedlock.jdbc)
   implementation(libs.javers)
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly(libs.junit.platform.launcher)
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))

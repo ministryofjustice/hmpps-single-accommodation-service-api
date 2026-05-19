@@ -6,7 +6,7 @@ dependencies {
   implementation(libs.spring.data.jpa)
 
   testImplementation(libs.hmpps.starter.test)
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly(libs.junit.platform.launcher)
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))
