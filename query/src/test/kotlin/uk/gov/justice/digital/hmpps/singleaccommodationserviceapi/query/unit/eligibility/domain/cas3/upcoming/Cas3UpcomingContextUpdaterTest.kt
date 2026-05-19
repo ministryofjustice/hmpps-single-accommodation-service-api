@@ -34,7 +34,7 @@ class Cas3UpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
-          action = "Start CAS3 referral in 702 days (4 December 2026)",
+          action = "Start a CAS3 referral in 702 days",
         ),
       )
 

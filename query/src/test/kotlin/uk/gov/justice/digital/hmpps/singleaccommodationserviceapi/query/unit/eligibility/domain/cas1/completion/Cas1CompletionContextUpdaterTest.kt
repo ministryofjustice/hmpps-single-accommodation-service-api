@@ -35,7 +35,7 @@ class Cas1CompletionContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT)
+      assertThat(result.currentResult.action).isNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
     }
   }

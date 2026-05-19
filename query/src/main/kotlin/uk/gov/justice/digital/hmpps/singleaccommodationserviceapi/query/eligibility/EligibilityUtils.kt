@@ -5,18 +5,11 @@ import java.time.temporal.ChronoUnit.DAYS
 
 fun buildUpcomingAction(today: LocalDate, initialText: String, dateToStartReferral: LocalDate): String {
   val daysUntilReferralMustStart = DAYS.between(today, dateToStartReferral).toInt()
-  val formattedMonth = dateToStartReferral.month.name.lowercase()
-    .replaceFirstChar { it.uppercase() }
-
-  val formattedDate = "(${dateToStartReferral.dayOfMonth} $formattedMonth ${dateToStartReferral.year})"
 
   return when {
-    daysUntilReferralMustStart > 1
-    -> "$initialText in $daysUntilReferralMustStart days $formattedDate"
-
-    daysUntilReferralMustStart < 1 -> initialText
-
-    else -> "$initialText in 1 day $formattedDate"
+    daysUntilReferralMustStart > 1 -> "$initialText in $daysUntilReferralMustStart days"
+    daysUntilReferralMustStart == 1 -> "$initialText in 1 day"
+    else -> initialText
   }
 }
 

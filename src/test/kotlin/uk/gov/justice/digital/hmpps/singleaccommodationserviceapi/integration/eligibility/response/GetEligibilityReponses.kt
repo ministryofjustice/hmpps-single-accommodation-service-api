@@ -22,7 +22,7 @@ fun expectedGetEligibilityResponse(
       "cas1":{
          "serviceResult":{
             "serviceStatus":"NOT_SUBMITTED",
-            "action":"Continue approved premise (CAS1) application",
+            "action":"Continue an approved premises (CAS1) application",
             "link":"Continue application",
             "failureReasons":[]
          },
@@ -50,7 +50,7 @@ fun expectedGetEligibilityResponse(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR outcome",
+            "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "failureReasons":[]
          },
@@ -88,8 +88,8 @@ fun expectedGetEligibilityResponse(
          }
       },
       "caseActions":[
-         "Add DTR outcome",
-         "Continue approved premise (CAS1) application",
+         "Add DTR referral outcome",
+         "Continue an approved premises (CAS1) application",
          "Add and confirm proposed address"
       ]
    }
@@ -211,7 +211,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR outcome",
+            "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "failureReasons":[]
          },
@@ -249,7 +249,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         "Add DTR outcome",
+         "Add DTR referral outcome",
          "Add and confirm proposed address"
       ]
    },
@@ -284,7 +284,7 @@ fun expectedGetEligibilityCrsServerErrorResponse(
       "cas1":{
          "serviceResult":{
             "serviceStatus":"NOT_SUBMITTED",
-            "action":"Continue approved premise (CAS1) application",
+            "action":"Continue an approved premises (CAS1) application",
             "link":"Continue application",
             "failureReasons":[]
          },
@@ -312,7 +312,7 @@ fun expectedGetEligibilityCrsServerErrorResponse(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR outcome",
+            "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "failureReasons":[]
          },
@@ -347,9 +347,9 @@ fun expectedGetEligibilityCrsServerErrorResponse(
          }
       },
       "caseActions":[
-         "Add DTR outcome",
+         "Add DTR referral outcome",
          "Complete CRS Referral",
-         "Continue approved premise (CAS1) application",
+         "Continue an approved premises (CAS1) application",
          "Add and confirm proposed address"
       ]
    },
@@ -413,7 +413,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR outcome",
+            "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "failureReasons":[]
          },
@@ -451,7 +451,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         "Add DTR outcome",
+         "Add DTR referral outcome",
          "Add and confirm proposed address"
       ]
    }

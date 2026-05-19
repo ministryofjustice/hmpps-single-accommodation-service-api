@@ -98,6 +98,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithinEightWeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
@@ -174,6 +175,7 @@ class EligibilityServiceTest {
 
   // DTR
   var dtrUpcomingRuleSet = DtrUpcomingRuleSet(ReleaseWithinEightWeeksRule(clock))
+  var dtrUpcomingContextUpdater = DtrUpcomingContextUpdater(clock)
   var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
     DtrStatusRule(),
     DtrPresentRule(),
@@ -234,6 +236,7 @@ class EligibilityServiceTest {
   private val dtrTree = DtrEligibilityTreeProvider(
     builder = builder,
     upcoming = dtrUpcomingRuleSet,
+    upcomingContextUpdater = dtrUpcomingContextUpdater,
     suitability = dtrSuitabilityRuleSet,
     completion = dtrCompletionRuleSet,
     completionContextUpdater = dtrCompletionContextUpdater,
