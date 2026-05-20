@@ -24,7 +24,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
 
   @Bean
   fun customOpenAPI(@Value($$"${spring.profiles.active:current}") envName: String): OpenAPI = OpenAPI()
-    .servers(listOf(Server().description(envName)))
+    .servers(listOf(Server().url("/").description(envName)))
     .info(
       Info().title("HMPPS Single Accommodation Service Api").version(version)
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
