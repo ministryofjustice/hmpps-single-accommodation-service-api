@@ -31,28 +31,28 @@ class ProposedAccommodationController(
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
 ) {
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
     val accommodations = proposedAccommodationQueryService.getProposedAccommodations(crn)
     return ResponseEntity.ok(ApiResponseDto(data = accommodations))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun getById(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<ProposedAccommodationDto>> {
     val accommodation = proposedAccommodationQueryService.getProposedAccommodation(crn, id)
     return ResponseEntity.ok(ApiResponseDto(data = accommodation))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations/{id}/timeline")
   fun getTimeline(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<List<AuditRecordDto>>> {
     val timelineEntries = proposedAccommodationTimelineService.getProposedAccommodationTimeline(id, crn)
     return ResponseEntity.ok(ApiResponseDto(data = timelineEntries))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/proposed-accommodations")
   @ResponseStatus(HttpStatus.CREATED)
   fun create(
@@ -65,7 +65,7 @@ class ProposedAccommodationController(
     return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/proposed-accommodations/{id}/notes")
   @ResponseStatus(HttpStatus.CREATED)
   fun createNote(
@@ -86,7 +86,7 @@ class ProposedAccommodationController(
     return ResponseEntity.ok(ApiResponseDto(data = accommodation))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PutMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun update(
     @PathVariable crn: String,

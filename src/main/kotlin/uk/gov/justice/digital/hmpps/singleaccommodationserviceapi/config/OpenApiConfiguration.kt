@@ -1,48 +1,33 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config
 
-import io.swagger.v3.oas.models.Components
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
+import io.swagger.v3.oas.annotations.security.SecurityScheme
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Contact
 import io.swagger.v3.oas.models.info.Info
-import io.swagger.v3.oas.models.security.SecurityScheme
+import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.servers.Server
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+@SecurityScheme(
+  name = "bearer-jwt",
+  type = SecuritySchemeType.HTTP,
+  scheme = "bearer",
+  bearerFormat = "JWT",
+)
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
   private val version: String? = buildProperties.version
 
   @Bean
-  fun customOpenAPI(): OpenAPI = OpenAPI()
-    .servers(
-      listOf(
-        Server().url("https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk").description("Development"),
-        Server().url("https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk").description("Pre-Production"),
-        Server().url("https://single-accommodation-service-api.hmpps.service.justice.gov.uk").description("Production"),
-        Server().url("http://localhost:8080").description("Local"),
-      ),
-    )
-    .tags(
-      listOf(),
-    )
+  fun customOpenAPI(@Value($$"${spring.profiles.active:current}") envName: String): OpenAPI = OpenAPI()
+    .servers(listOf(Server().description(envName)))
     .info(
       Info().title("HMPPS Single Accommodation Service Api").version(version)
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
-    .components(
-      Components().addSecuritySchemes(
-        "role-probation",
-        SecurityScheme().addBearerJwtRequirement("ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
-      ),
-    )
-  // TODO Add security schema and roles in `.addSecurityItem()`
+    .addSecurityItem(SecurityRequirement().addList("bearer-jwt"))
 }
-
-private fun SecurityScheme.addBearerJwtRequirement(role: String): SecurityScheme = type(SecurityScheme.Type.HTTP)
-  .scheme("bearer")
-  .bearerFormat("JWT")
-  .`in`(SecurityScheme.In.HEADER)
-  .name("Authorization")
-  .description("A HMPPS Auth access token with the `$role` role.")

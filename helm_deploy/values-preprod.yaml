@@ -25,6 +25,9 @@ generic-service:
     EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk/proposed-accommodations/#id
     EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk/duty-to-refers/#id
 
+    SPRINGDOC_API_DOCS_ENABLED: false
+    SPRINGDOC_SWAGGER_UI_ENABLED: false
+
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
