@@ -3,17 +3,16 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryV2Response
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryV2WithUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationHistoryWithUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -35,15 +34,64 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
         buildAddress(
-          cprAddressId = null,
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "W1 2ZZ",
+          thoroughfareName = "Another Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 10, 18),
+          endDate = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07B.name,
+              description = AddressUsageCode.A07B.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildAddress(
+          cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = "SW1A 1AA",
           thoroughfareName = "Some Street",
           postTown = "London",
           startDate = LocalDate.of(2025, 10, 17),
           endDate = LocalDate.of(2026, 10, 17),
-          addressStatus = null,
-          addressUsage = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = null,
+          thoroughfareName = null,
+          postTown = null,
+          startDate = LocalDate.of(2024, 10, 17),
+          endDate = LocalDate.of(2025, 10, 17),
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.P.name,
+            description = AddressStatusCode.P.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A08A.name,
+              description = AddressUsageCode.A08A.description,
+            ),
+            isActive = true,
+          ),
         ),
       ),
     )
@@ -69,52 +117,6 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryWithUpstreamFailureResponse())
-      }
-  }
-
-  @Test
-  fun `should get accommodation history v2 for crn`() {
-    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
-      crn = crn,
-      addresses = listOf(
-        buildAddress(
-          cprAddressId = UUID.randomUUID(),
-          noFixedAbode = false,
-          postcode = "SW1A 1AA",
-          thoroughfareName = "Some Street",
-          postTown = "London",
-          startDate = LocalDate.of(2025, 10, 17),
-          endDate = LocalDate.of(2026, 10, 17),
-          addressStatus = AddressStatus.M,
-          addressUsage = buildAddressUsage(
-            addressUsageCode = AddressUsageCode.A07B,
-            addressUsageDescription = "Friends/Family (settled)",
-          ),
-        ),
-      ),
-    )
-    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(
-      crn = crn,
-      response = corePersonRecordAddresses,
-    )
-    restTestClient.get().uri("/v2/cases/{crn}/accommodation-history", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryV2Response())
-      }
-  }
-
-  @Test
-  fun `get accommodation history v2 should return partial success when CPR Addresses call returns server error`() {
-    CorePersonRecordStubs.getCorePersonRecordAddressesErrorResponse(crn)
-    restTestClient.get().uri("/v2/cases/{crn}/accommodation-history", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryV2WithUpstreamFailureResponse())
       }
   }
 }

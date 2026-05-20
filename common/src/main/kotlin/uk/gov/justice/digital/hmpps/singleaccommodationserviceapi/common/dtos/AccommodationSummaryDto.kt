@@ -13,12 +13,12 @@ data class AccommodationSummaryDto(
 
 data class AccommodationStatusDto(
   val code: String,
-  val description: String,
+  val description: String?,
 )
 
 data class AccommodationTypeDto(
   val code: String,
-  val description: String,
+  val description: String?,
 )
 
 data class AccommodationAddressDetails(

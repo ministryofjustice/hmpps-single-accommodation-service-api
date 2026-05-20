@@ -4,16 +4,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.Address
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
+import java.time.LocalDate
 
 object AccommodationSummaryTransformer {
   fun toAccommodationSummary(
     crn: String,
-    address: Address,
+    address: CanonicalAddress,
   ) = AccommodationSummaryDto(
     crn = crn,
-    startDate = address.startDate,
-    endDate = address.endDate,
+    startDate = address.startDate?.let { LocalDate.parse(it) },
+    endDate = address.endDate?.let { LocalDate.parse(it) },
     address = AccommodationAddressDetails(
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,
@@ -26,19 +27,19 @@ object AccommodationSummaryTransformer {
       country = address.countryCode,
       uprn = address.uprn,
     ),
-    status = address.addressStatus?.let {
-      val accommodationStatusCode = it.name
+    status = address.status.code?.let {
       AccommodationStatusDto(
-        code = accommodationStatusCode,
-        description = it.description,
+        code = it,
+        description = address.status.description,
       )
     },
-    type = address.addressUsage?.let {
-      val accommodationTypeCode = it.addressUsageCode.name
-      AccommodationTypeDto(
-        code = accommodationTypeCode,
-        description = it.addressUsageCode.description,
-      )
-    },
+    type = address.usages
+      .firstOrNull { it.isActive && it.usageCode.code != null }
+      ?.let {
+        AccommodationTypeDto(
+          code = it.usageCode.code!!,
+          description = it.usageCode.description,
+        )
+      },
   )
 }
