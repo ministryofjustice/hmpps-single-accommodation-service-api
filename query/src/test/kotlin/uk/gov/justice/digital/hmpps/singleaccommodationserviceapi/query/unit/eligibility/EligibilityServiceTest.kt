@@ -87,8 +87,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
@@ -197,6 +201,9 @@ class EligibilityServiceTest {
     CrsSubmittedRule(),
     CrsExpiredRule(clock),
   )
+  var crsCompletionContextUpdater = CrsCompletionContextUpdater()
+  var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
+  var crsUpcomingContextUpdater = CrsUpcomingContextUpdater(clock)
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
@@ -247,6 +254,9 @@ class EligibilityServiceTest {
     builder = builder,
     eligibility = crsEligibilityRuleSet,
     completion = crsCompletionRuleSet,
+    completionContextUpdater = crsCompletionContextUpdater,
+    upcoming = crsUpcomingRuleSet,
+    upcomingContextUpdater = crsUpcomingContextUpdater,
   )
 
   private val paTree = PaEligibilityTreeProvider(
@@ -747,6 +757,7 @@ class EligibilityServiceTest {
             testCaseId = row["testCaseId"]!!,
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
+            sex = row["sex"]?.takeIf { it.isNotBlank() }?.let { SexCode.valueOf(it) },
             hasNextAccommodation = row["hasNextAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
@@ -793,6 +804,7 @@ class EligibilityServiceTest {
 
         val data = buildDomainData(
           crn = s.testCaseId,
+          sex = s.sex,
           currentAccommodation = currentAccommodation,
           nextAccommodation = nextAccommodation,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -1175,6 +1187,7 @@ data class CrsScenario(
   val testCaseId: String,
   val description: String?,
   val referenceDate: LocalDate,
+  val sex: SexCode?,
   val hasNextAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
   val crsSubmissionDate: LocalDate?,

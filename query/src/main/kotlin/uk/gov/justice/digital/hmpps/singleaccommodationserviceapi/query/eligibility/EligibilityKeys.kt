@@ -28,6 +28,7 @@ object EligibilityKeys {
   const val ADD_OUTCOME = "Add outcome" // LINK TEXT
 
   // CRS
+  const val SUBMIT_CRS_ACCOMMODATION_REFERRAL = "Submit a CRS accommodation referral" // ACTION TEXT
   const val SUBMIT_CRS_REFERRAL = "Submit a CRS referral" // ACTION TEXT
   const val VIEW_REFER_AND_MONITOR = "View refer and monitor" // LINK TEXT
 
