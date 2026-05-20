@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
@@ -138,6 +139,8 @@ class UserAuditIT : IntegrationTestBase() {
     )
   }
 
+  // TODO: re-enable this test
+  @Disabled(value = "POM roles have been removed for MVP. Re-enable when re-added.")
   @Test
   fun `should audit data properly for Nomis User`() {
     NomisUserRolesStubs.stubMe(

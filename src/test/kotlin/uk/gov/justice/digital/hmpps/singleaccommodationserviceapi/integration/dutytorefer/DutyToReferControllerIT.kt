@@ -592,18 +592,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = buildNomisUserDetail(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
-      ),
-    )
-
     restTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -614,7 +602,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
           status = EntityDtrStatus.NOT_ACCEPTED.name,
         ),
       )
-      .withNomisUserJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
 
     restTestClient.put().uri("/cases/{crn}/dtr/{id}", crn, createdDtrId)

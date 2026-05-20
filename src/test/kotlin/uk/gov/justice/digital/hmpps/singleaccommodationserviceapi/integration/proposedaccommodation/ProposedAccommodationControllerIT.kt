@@ -563,18 +563,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = buildNomisUserDetail(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
-      ),
-    )
-
     restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -587,7 +575,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
-      .withNomisUserJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
 
     restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
