@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,12 +15,9 @@ class AccommodationReferralController(
   private val accommodationReferralService: AccommodationReferralService,
 ) {
 
-  @Operation(
-    description = "Retrieve application history by CRN.",
-    security = [SecurityRequirement(name = "role-probation")],
-  )
+  @Operation(description = "Retrieve application history by CRN.")
   @GetMapping("/cases/{crn}/applications")
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   fun getApplicationHistory(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<AccommodationReferralDto>>> {
     val referralHistory = accommodationReferralService.getReferralHistory(crn)
     return ResponseEntity.ok(referralHistory)
