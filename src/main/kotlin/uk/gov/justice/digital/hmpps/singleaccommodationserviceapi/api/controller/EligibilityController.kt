@@ -14,7 +14,7 @@ class EligibilityController(
   val eligibilityService: EligibilityService,
 ) {
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/eligibility")
   fun getEligibility(@PathVariable crn: String): ResponseEntity<ApiResponseDto<EligibilityDto>> = ResponseEntity.ok(eligibilityService.getEligibility(crn))
 }

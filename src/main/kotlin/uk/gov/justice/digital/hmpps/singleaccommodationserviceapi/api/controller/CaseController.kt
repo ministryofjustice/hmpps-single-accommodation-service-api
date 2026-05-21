@@ -18,7 +18,7 @@ class CaseController(
   private val caseApplicationService: CaseApplicationService,
 ) {
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list")
   fun getCases(
     @RequestParam riskLevel: RiskLevel?,
@@ -41,7 +41,7 @@ class CaseController(
     return ResponseEntity.ok(ApiResponseDto(data = result, upstreamFailures = upstreamFailures))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCase(crn))
 }

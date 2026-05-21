@@ -25,21 +25,21 @@ class DutyToReferController(
   private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/dtr")
   fun getDutyToRefer(@PathVariable crn: String): ResponseEntity<ApiResponseDto<DutyToReferDto>> {
     val dutyToRefer = dutyToReferQueryService.getDutyToRefer(crn)
     return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/dtr/{id}")
   fun getByCrnAndId(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<DutyToReferDto>> {
     val dutyToRefer = dutyToReferQueryService.getDutyToRefer(crn, id)
     return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/dtr")
   @ResponseStatus(HttpStatus.CREATED)
   fun create(
@@ -50,7 +50,7 @@ class DutyToReferController(
     return ResponseEntity(createdDutyToRefer, HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/dtr/{id}/timeline")
   fun getTimeline(
     @PathVariable crn: String,
@@ -60,7 +60,7 @@ class DutyToReferController(
     return ResponseEntity.ok(timelineEntries)
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/dtr/{id}/notes")
   @ResponseStatus(HttpStatus.CREATED)
   fun createNote(
@@ -79,7 +79,7 @@ class DutyToReferController(
     return ResponseEntity.ok(ApiResponseDto(data = dutyToRefer))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PutMapping("/cases/{crn}/dtr/{id}")
   fun update(
     @PathVariable crn: String,
