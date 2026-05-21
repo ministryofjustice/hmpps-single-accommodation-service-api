@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ve
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildProposedAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
@@ -99,9 +99,9 @@ class ProposedAccommodationAggregateTest {
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus?.code)
-      .isEqualTo(AddressStatus.PR1.name)
+      .isEqualTo(AddressStatusCode.PR1.name)
     assertThat(snapshot.accommodationStatus?.description)
-      .isEqualTo(AddressStatus.PR1.description)
+      .isEqualTo(AddressStatusCode.PR1.description)
   }
 
   @Test
@@ -119,9 +119,9 @@ class ProposedAccommodationAggregateTest {
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus?.code)
-      .isEqualTo(AddressStatus.PR.name)
+      .isEqualTo(AddressStatusCode.PR.name)
     assertThat(snapshot.accommodationStatus?.description)
-      .isEqualTo(AddressStatus.PR.description)
+      .isEqualTo(AddressStatusCode.PR.description)
   }
 
   @Test
@@ -133,9 +133,9 @@ class ProposedAccommodationAggregateTest {
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus?.code)
-      .isEqualTo(AddressStatus.PR.name)
+      .isEqualTo(AddressStatusCode.PR.name)
     assertThat(snapshot.accommodationStatus?.description)
-      .isEqualTo(AddressStatus.PR.description)
+      .isEqualTo(AddressStatusCode.PR.description)
   }
 
   @Test

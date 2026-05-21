@@ -85,7 +85,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"UPDATE",
-         "author":"Nomis User",
+         "author":"DeliusUser",
          "commitDate":"$update1CommitTime",
          "changes":[
             {

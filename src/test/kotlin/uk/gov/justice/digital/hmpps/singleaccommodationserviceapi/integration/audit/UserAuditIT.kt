@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
@@ -10,12 +11,15 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -81,8 +85,8 @@ class UserAuditIT : IntegrationTestBase() {
   }
 
   private fun stubCurrentAccommodationIsCas1(crn: String) {
-    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
-      crn = crn,
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
         buildAddress(
           cprAddressId = UUID.randomUUID(),
@@ -92,17 +96,23 @@ class UserAuditIT : IntegrationTestBase() {
           postTown = "London",
           startDate = LocalDate.of(2026, 1, 11),
           endDate = null,
-          addressStatus = AddressStatus.M,
-          addressUsage = buildAddressUsage(
-            addressUsageCode = AddressUsageCode.A02,
-            addressUsageDescription = "Approved Premises",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A02.name,
+              description = AddressUsageCode.A02.description,
+            ),
+            isActive = true,
           ),
         ),
       ),
     )
-    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
       crn = crn,
-      response = corePersonRecordAddresses,
+      response = corePersonRecord,
     )
   }
 
@@ -129,6 +139,8 @@ class UserAuditIT : IntegrationTestBase() {
     )
   }
 
+  // TODO: re-enable this test
+  @Disabled(value = "POM roles have been removed for MVP. Re-enable when re-added.")
   @Test
   fun `should audit data properly for Nomis User`() {
     NomisUserRolesStubs.stubMe(

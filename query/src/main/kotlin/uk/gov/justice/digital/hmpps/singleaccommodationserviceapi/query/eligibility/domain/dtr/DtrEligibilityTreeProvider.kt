@@ -13,12 +13,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
 
 @Component
 class DtrEligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
   private val upcoming: DtrUpcomingRuleSet,
+  private val upcomingContextUpdater: DtrUpcomingContextUpdater,
   private val suitability: DtrSuitabilityRuleSet,
   private val completion: DtrCompletionRuleSet,
   private val completionContextUpdater: DtrCompletionContextUpdater,
@@ -66,11 +68,7 @@ class DtrEligibilityTreeProvider(
       .build()
 
     return builder
-      .ruleSet(
-        "DtrUpcoming",
-        upcoming,
-        onFailResult = ServiceResult(serviceStatus = ServiceStatus.UPCOMING),
-      )
+      .ruleSet("DtrUpcoming", upcoming, upcomingContextUpdater)
       .onPass(suitabilityNode)
       .onFail(eligibilityNode)
       .build()

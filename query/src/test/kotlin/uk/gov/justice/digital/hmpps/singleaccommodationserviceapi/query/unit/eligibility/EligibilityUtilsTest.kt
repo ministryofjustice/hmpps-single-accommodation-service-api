@@ -127,7 +127,7 @@ class EligibilityUtilsTest {
       clock.setNow(LocalDate.parse("2025-01-01"))
       val today = LocalDate.now(clock)
       val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.plusDays(3))
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 3 days (4 January 2025)"
+      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 3 days"
       assertThat(result).isEqualTo(expectedResult)
     }
 
@@ -136,7 +136,7 @@ class EligibilityUtilsTest {
       clock.setNow(LocalDate.parse("2025-01-01"))
       val today = LocalDate.now(clock)
       val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.plusDays(1))
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day (2 January 2025)"
+      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
 
       assertThat(result).isEqualTo(expectedResult)
     }

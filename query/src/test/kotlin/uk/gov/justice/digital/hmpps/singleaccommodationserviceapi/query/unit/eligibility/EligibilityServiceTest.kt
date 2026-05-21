@@ -28,14 +28,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -87,8 +89,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion.DtrApplicationCompleteRule
@@ -98,6 +104,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.ReleaseWithinEightWeeksRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.PaEligibilityTreeProvider
@@ -174,6 +181,7 @@ class EligibilityServiceTest {
 
   // DTR
   var dtrUpcomingRuleSet = DtrUpcomingRuleSet(ReleaseWithinEightWeeksRule(clock))
+  var dtrUpcomingContextUpdater = DtrUpcomingContextUpdater(clock)
   var dtrSuitabilityRuleSet = DtrSuitabilityRuleSet(
     DtrStatusRule(),
     DtrPresentRule(),
@@ -195,6 +203,9 @@ class EligibilityServiceTest {
     CrsSubmittedRule(),
     CrsExpiredRule(clock),
   )
+  var crsCompletionContextUpdater = CrsCompletionContextUpdater()
+  var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
+  var crsUpcomingContextUpdater = CrsUpcomingContextUpdater(clock)
 
   // PA
   var paEligibilityRuleSet = PaEligibilityRuleSet(
@@ -234,6 +245,7 @@ class EligibilityServiceTest {
   private val dtrTree = DtrEligibilityTreeProvider(
     builder = builder,
     upcoming = dtrUpcomingRuleSet,
+    upcomingContextUpdater = dtrUpcomingContextUpdater,
     suitability = dtrSuitabilityRuleSet,
     completion = dtrCompletionRuleSet,
     completionContextUpdater = dtrCompletionContextUpdater,
@@ -244,6 +256,9 @@ class EligibilityServiceTest {
     builder = builder,
     eligibility = crsEligibilityRuleSet,
     completion = crsCompletionRuleSet,
+    completionContextUpdater = crsCompletionContextUpdater,
+    upcoming = crsUpcomingRuleSet,
+    upcomingContextUpdater = crsUpcomingContextUpdater,
   )
 
   private val paTree = PaEligibilityTreeProvider(
@@ -283,11 +298,17 @@ class EligibilityServiceTest {
       val cpr = buildCorePersonRecord(
         addresses = listOf(
           buildAddress(
-            addressStatus = AddressStatus.M,
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.M.name,
+              description = AddressStatusCode.M.description,
+            ),
             endDate = endDate,
-            addressUsage = buildAddressUsage(
-              addressUsageCode = AddressUsageCode.A02,
-              addressUsageDescription = "Test",
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
+              ),
+              isActive = true,
             ),
           ),
         ),
@@ -744,6 +765,7 @@ class EligibilityServiceTest {
             testCaseId = row["testCaseId"]!!,
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
+            sex = row["sex"]?.takeIf { it.isNotBlank() }?.let { SexCode.valueOf(it) },
             hasNextAccommodation = row["hasNextAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
@@ -790,6 +812,7 @@ class EligibilityServiceTest {
 
         val data = buildDomainData(
           crn = s.testCaseId,
+          sex = s.sex,
           currentAccommodation = currentAccommodation,
           nextAccommodation = nextAccommodation,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -1172,6 +1195,7 @@ data class CrsScenario(
   val testCaseId: String,
   val description: String?,
   val referenceDate: LocalDate,
+  val sex: SexCode?,
   val hasNextAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
   val crsSubmissionDate: LocalDate?,

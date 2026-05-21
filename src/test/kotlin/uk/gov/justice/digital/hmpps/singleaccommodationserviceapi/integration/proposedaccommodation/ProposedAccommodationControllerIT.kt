@@ -12,19 +12,20 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -37,7 +38,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_NOMIS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
@@ -47,7 +47,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
@@ -103,8 +102,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   private fun stubCurrentAccommodationIsCas1(crn: String) {
-    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
-      crn = crn,
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
         buildAddress(
           cprAddressId = UUID.randomUUID(),
@@ -114,17 +113,23 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           postTown = "London",
           startDate = LocalDate.of(2026, 1, 11),
           endDate = null,
-          addressStatus = AddressStatus.M,
-          addressUsage = buildAddressUsage(
-            addressUsageCode = AddressUsageCode.A02,
-            addressUsageDescription = "Approved Premises",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A02.name,
+              description = AddressUsageCode.A02.description,
+            ),
+            isActive = true,
           ),
         ),
       ),
     )
-    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
       crn = crn,
-      response = corePersonRecordAddresses,
+      response = corePersonRecord,
     )
   }
 
@@ -289,7 +294,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `should receive 5xx Error for create proposed-accommodation when current accommodation has 5xx upstream failure`() {
     val currentAccommodation5xxWireMockedCrn = "X123"
-    CorePersonRecordStubs.getCorePersonRecordAddressesErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
     restTestClient.post().uri("/cases/$currentAccommodation5xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -307,7 +312,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `should receive NOT_FOUND Error for create proposed-accommodation when current accommodation has NOT_FOUND upstream failure`() {
     val currentAccommodation4xxWireMockedCrn = "X123"
-    CorePersonRecordStubs.getCorePersonRecordAddressesNotFoundResponse(crn = currentAccommodation4xxWireMockedCrn)
+    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn = currentAccommodation4xxWireMockedCrn)
     restTestClient.post().uri("/cases/$currentAccommodation4xxWireMockedCrn/proposed-accommodations")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -375,7 +380,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `should receive 5xx Error for update proposed-accommodation when current accommodation has upstream failures`() {
     val noCurrentAccommodationWireMockedCrn = "X123"
-    CorePersonRecordStubs.getCorePersonRecordAddressesErrorResponse(crn = noCurrentAccommodationWireMockedCrn)
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = noCurrentAccommodationWireMockedCrn)
     restTestClient.put().uri("/cases/$noCurrentAccommodationWireMockedCrn/proposed-accommodations/${UUID.randomUUID()}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -554,18 +559,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
 
-    NomisUserRolesStubs.stubMe(
-      jwt = jwtAuthHelper.createJwtAccessToken(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        roles = listOf("ROLE_POM", "ROLE_PRISON"),
-        authSource = AuthSource.NOMIS.source,
-      ),
-      response = buildNomisUserDetail(
-        USERNAME_OF_LOGGED_IN_NOMIS_USER,
-        primaryEmail = USERNAME_OF_LOGGED_IN_NOMIS_USER,
-      ),
-    )
-
     restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -578,7 +571,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
-      .withNomisUserJwt()
+      .withDeliusUserJwt()
       .exchangeSuccessfully()
 
     restTestClient.put().uri("/cases/{crn}/proposed-accommodations/{id}", crn, createdProposedAccommodationId)

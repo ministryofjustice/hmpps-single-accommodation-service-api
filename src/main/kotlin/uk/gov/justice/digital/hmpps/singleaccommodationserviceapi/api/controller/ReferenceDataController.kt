@@ -25,7 +25,7 @@ class ReferenceDataController(
   private val accommodationStatusQueryService: AccommodationStatusQueryService,
 ) {
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/reference-data")
   fun getReferenceData(
     @RequestParam(required = true) type: ReferenceDataType,

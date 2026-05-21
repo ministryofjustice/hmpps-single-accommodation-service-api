@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
@@ -127,13 +127,13 @@ class ProposedAccommodationAggregate private constructor(
   private fun getAccommodationStatus(): AccommodationStatusDto? = if (nextAccommodationStatus == NextAccommodationStatus.YES) {
     if (PRISON_ACCOMMODATION_TYPE_CODE == currentAccommodation?.type?.code) {
       AccommodationStatusDto(
-        code = AddressStatus.PR1.name,
-        description = AddressStatus.PR1.description,
+        code = AddressStatusCode.PR1.name,
+        description = AddressStatusCode.PR1.description,
       )
     } else {
       AccommodationStatusDto(
-        code = AddressStatus.PR.name,
-        description = AddressStatus.PR.description,
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
       )
     }
   } else {

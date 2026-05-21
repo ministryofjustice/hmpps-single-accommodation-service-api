@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationSummaryTransformer
 import java.time.LocalDate
 import java.util.UUID
@@ -29,10 +31,16 @@ class AccommodationSummaryTransformerTest {
       county = "Greater London",
       country = "United Kingdom",
       countryCode = "GB",
-      addressStatus = AddressStatus.M,
-      addressUsage = buildAddressUsage(
-        addressUsageCode = AddressUsageCode.A01A,
-        addressUsageDescription = "Owner occupier",
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+      usage = CanonicalAddressUsage(
+        usageCode = CanonicalAddressUsageCode(
+          code = AddressUsageCode.A01A.name,
+          description = AddressUsageCode.A01A.description,
+        ),
+        isActive = true,
       ),
       uprn = "100012345678",
     )
@@ -46,7 +54,7 @@ class AccommodationSummaryTransformerTest {
     assertThat(result.startDate).isEqualTo(address.startDate)
     assertThat(result.endDate).isEqualTo(address.endDate)
     assertThat(result.status!!.code).isEqualTo("M")
-    assertThat(result.status!!.description).isEqualTo(AddressStatus.M.description)
+    assertThat(result.status!!.description).isEqualTo(AddressStatusCode.M.description)
     assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
     assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
     assertThat(result.address.postcode).isEqualTo("NW1 6XE")
@@ -62,10 +70,12 @@ class AccommodationSummaryTransformerTest {
   }
 
   @Test
-  fun `should return null status and type when addressStatus and addressUsage are null`() {
+  fun `should return null status when addressStatus is null`() {
     val address = buildAddress(
-      addressStatus = null,
-      addressUsage = null,
+      status = CanonicalAddressStatus(
+        code = null,
+        description = null,
+      ),
     )
     val result = AccommodationSummaryTransformer.toAccommodationSummary(
       crn = "X92123",

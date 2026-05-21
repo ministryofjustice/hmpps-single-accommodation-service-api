@@ -34,7 +34,7 @@ class Cas1UpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
-          action = "Start approved premise (CAS1) application in 365 days (1 January 2026)",
+          action = "Start an approved premises (CAS1) application in 365 days",
         ),
       )
 
