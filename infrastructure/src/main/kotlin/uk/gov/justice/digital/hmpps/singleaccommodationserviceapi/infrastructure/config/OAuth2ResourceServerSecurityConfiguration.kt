@@ -66,13 +66,12 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
   private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> =
     JwtGrantedAuthoritiesConverter()
 
-  override fun convert(jwt: Jwt): AbstractAuthenticationToken {
-    val claims = jwt.claims
-    val grantType = GrantType.findByType(claims[CLAIM_GRANT_TYPE] as String) ?: throw RuntimeException("JWT grant_type failure")
-    return when (grantType) {
-      GrantType.AUTHORIZATION_CODE -> convertForAuthorizationCodeFlow(jwt)
-      GrantType.CLIENT_CREDENTIALS -> convertForClientCredentialsFlow(jwt)
-    }
+  override fun convert(jwt: Jwt): AbstractAuthenticationToken = if (jwt.claims.containsKey(CLAIM_USERNAME) || jwt.claims.containsKey(CLAIM_USER_ID)) {
+    convertForAuthorizationCodeFlow(jwt)
+  } else if (jwt.claims.containsKey(CLAIM_CLIENT_ID)) {
+    convertForClientCredentialsFlow(jwt)
+  } else {
+    error("Unable to find Username or Client ID")
   }
 
   private fun convertForAuthorizationCodeFlow(jwt: Jwt): AuthAwareAuthenticationToken {
