@@ -329,7 +329,7 @@ class EligibilityServiceTest {
       val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
 
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
-      every { accommodationQueryService.getNextAccommodation(crn, cpr.addresses) } returns null
+      every { accommodationQueryService.getNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses) } returns currentAccommodation
       every { caseRepository.findByCrn(crn) } returns caseEntity
@@ -342,7 +342,7 @@ class EligibilityServiceTest {
         sex = cpr.sex!!.code,
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
-        nextAccommodation = null,
+        nextAccommodations = emptyList(),
         cas1Application = cas1Application,
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
@@ -404,6 +404,8 @@ class EligibilityServiceTest {
       )
 
       every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
+      every { accommodationQueryService.getNextAccommodations(crn, null, null, null, null) } returns emptyList()
+
       every { accommodationTypeRepository.findAll() } returns emptyList()
       every { caseRepository.findByCrn(crn) } returns null
 
@@ -579,10 +581,10 @@ class EligibilityServiceTest {
           )
         }
 
-        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
-          buildAccommodationSummaryDto()
+        val nextAccommodations = if (s.hasNextAccommodation.toBoolean()) {
+          listOf(buildAccommodationSummaryDto())
         } else {
-          null
+          emptyList()
         }
 
         val data = buildDomainData(
@@ -590,7 +592,7 @@ class EligibilityServiceTest {
           tierScore = null,
           sex = null,
           dutyToRefer = dutyToRefer,
-          nextAccommodation = nextAccommodation,
+          nextAccommodations = nextAccommodations,
           currentAccommodation = currentAccommodation,
           currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
@@ -706,10 +708,10 @@ class EligibilityServiceTest {
           )
         }
 
-        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
-          buildAccommodationSummaryDto()
+        val nextAccommodations = if (s.hasNextAccommodation.toBoolean()) {
+          listOf(buildAccommodationSummaryDto())
         } else {
-          null
+          emptyList()
         }
 
         val data = buildDomainData(
@@ -717,7 +719,7 @@ class EligibilityServiceTest {
           tierScore = null,
           sex = null,
           currentAccommodation = currentAccommodation,
-          nextAccommodation = nextAccommodation,
+          nextAccommodations = nextAccommodations,
           cas3Application = cas3Application,
           dutyToRefer = dutyToRefer,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -790,17 +792,17 @@ class EligibilityServiceTest {
           )
         }
 
-        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
-          buildAccommodationSummaryDto()
+        val nextAccommodations = if (s.hasNextAccommodation.toBoolean()) {
+          listOf(buildAccommodationSummaryDto())
         } else {
-          null
+          emptyList()
         }
 
         val data = buildDomainData(
           crn = s.testCaseId,
           sex = s.sex,
           currentAccommodation = currentAccommodation,
-          nextAccommodation = nextAccommodation,
+          nextAccommodations = nextAccommodations,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
         )
 
@@ -873,15 +875,15 @@ class EligibilityServiceTest {
           null
         }
 
-        val nextAccommodation = if (s.hasNextAccommodation.toBoolean()) {
-          buildAccommodationSummaryDto()
+        val nextAccommodations = if (s.hasNextAccommodation.toBoolean()) {
+          listOf(buildAccommodationSummaryDto())
         } else {
-          null
+          emptyList()
         }
 
         val data = buildDomainData(
           crn = s.testCaseId,
-          nextAccommodation = nextAccommodation,
+          nextAccommodations = nextAccommodations,
           cas1Application = cas1Application,
           cas3Application = cas3Application,
         )
@@ -1060,7 +1062,7 @@ class EligibilityServiceTest {
           endDate = today.plusDays(1),
           type = buildAccommodationTypeDto(code = "A03"),
         ),
-        nextAccommodation = buildAccommodationSummaryDto(),
+        nextAccommodations = listOf(buildAccommodationSummaryDto()),
       )
 
       val result = eligibilityService.evaluate(dtrTree, data)
@@ -1072,7 +1074,7 @@ class EligibilityServiceTest {
     @Test
     fun `Pa surfaces SUITABLE_CAS1_APPLICATION when candidate has a suitable CAS1 application`() {
       val data = buildDomainData(
-        nextAccommodation = null,
+        nextAccommodations = emptyList(),
         cas1Application = buildCas1Application(
           applicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
           requestForPlacementStatus = null,
@@ -1090,7 +1092,7 @@ class EligibilityServiceTest {
     @Test
     fun `Pa surfaces SUITABLE_CAS3_APPLICATION when candidate has a suitable CAS3 application`() {
       val data = buildDomainData(
-        nextAccommodation = null,
+        nextAccommodations = emptyList(),
         cas1Application = null,
         cas3Application = buildCas3Application(
           applicationStatus = Cas3ApplicationStatus.SUBMITTED,

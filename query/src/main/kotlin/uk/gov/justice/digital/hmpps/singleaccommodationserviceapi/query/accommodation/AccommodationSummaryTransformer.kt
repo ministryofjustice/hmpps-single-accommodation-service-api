@@ -4,14 +4,33 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import java.time.LocalDate
 import java.time.ZoneId
 
+private const val PRISON_ACCOMMODATION_TYPE_CODE = "HMP"
+
 object AccommodationSummaryTransformer {
+
+  fun getAccommodationStatus(currentAccommodation: AccommodationSummaryDto?): AccommodationStatusDto? = if (PRISON_ACCOMMODATION_TYPE_CODE == currentAccommodation?.type?.code) {
+    AccommodationStatusDto(
+      code = AddressStatusCode.PR1.name,
+      description = AddressStatusCode.PR1.description,
+    )
+  } else {
+    AccommodationStatusDto(
+      code = AddressStatusCode.PR.name,
+      description = AddressStatusCode.PR.description,
+    )
+  }
+
   fun toAccommodationSummary(
     crn: String,
     address: CanonicalAddress,
@@ -49,6 +68,60 @@ object AccommodationSummaryTransformer {
 
   fun toAccommodationSummary(
     crn: String,
+    premises: Cas1SuitablePremisesDto,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    startDate = premises.startDate,
+    endDate = premises.endDate,
+    address = AccommodationAddressDetails(
+      postcode = premises.postcode,
+      subBuildingName = null,
+      buildingName = null,
+      buildingNumber = null,
+      thoroughfareName = premises.addressLine1,
+      dependentLocality = premises.addressLine2,
+      postTown = premises.town,
+      county = null,
+      country = null,
+      uprn = null,
+    ),
+    status = getAccommodationStatus(currentAccommodation),
+    type = AccommodationTypeDto(
+      code = AddressUsageCode.A02.name,
+      description = AddressUsageCode.A02.description,
+    ),
+  )
+
+  fun toAccommodationSummary(
+    crn: String,
+    premises: Cas3SuitablePremisesDto,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    startDate = premises.startDate,
+    endDate = premises.endDate,
+    address = AccommodationAddressDetails(
+      postcode = premises.postcode,
+      subBuildingName = null,
+      buildingName = premises.name,
+      buildingNumber = null,
+      thoroughfareName = premises.addressLine1,
+      dependentLocality = premises.addressLine2,
+      postTown = premises.town,
+      county = null,
+      country = null,
+      uprn = null,
+    ),
+    status = getAccommodationStatus(currentAccommodation),
+    type = AccommodationTypeDto(
+      code = AddressUsageCode.A17.name,
+      description = AddressUsageCode.A17.description,
+    ),
+  )
+
+  fun toAccommodationSummary(
+    crn: String,
     proposedAccommodationEntity: ProposedAccommodationEntity,
     accommodationTypeEntity: AccommodationTypeEntity,
     accommodationStatusEntity: AccommodationStatusEntity?,
@@ -75,7 +148,7 @@ object AccommodationSummaryTransformer {
         description = it.name,
       )
     },
-    type = accommodationTypeEntity?.let {
+    type = accommodationTypeEntity.let {
       AccommodationTypeDto(
         code = it.code,
         description = it.name,

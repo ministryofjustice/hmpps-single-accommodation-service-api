@@ -1,7 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.accommodation
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -10,6 +15,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationSummaryTransformer
 import java.time.Instant
@@ -18,6 +25,149 @@ import java.time.ZoneId
 import java.util.UUID
 
 class AccommodationSummaryTransformerTest {
+
+  @Test
+  fun `should get accommodation status for next accommodation when current accommodation is HMP`() {
+    val result = AccommodationSummaryTransformer.getAccommodationStatus(
+      currentAccommodation = buildAccommodationSummaryDto(
+        type = buildAccommodationTypeDto(
+          code = "HMP",
+        ),
+      ),
+    )
+
+    assertThat(result).isEqualTo(
+      buildAccommodationStatusDto(
+        code = AddressStatusCode.PR1.name,
+        description = AddressStatusCode.PR1.description,
+      ),
+    )
+  }
+
+  @Test
+  fun `should get accommodation status for next accommodation when current accommodation is not HMP`() {
+    val result = AccommodationSummaryTransformer.getAccommodationStatus(
+      currentAccommodation = buildAccommodationSummaryDto(
+        type = buildAccommodationTypeDto(
+          code = "NOT_HMP",
+        ),
+      ),
+    )
+
+    assertThat(result).isEqualTo(
+      buildAccommodationStatusDto(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+    )
+  }
+
+  @Nested
+  inner class ToAccommodationSummaryForCas1Premises {
+    @Test
+    fun `should map all fields`() {
+      val cas1Premises = buildCas1SuitablePremisesDto(
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        postcode = "NW1 6XE",
+        addressLine1 = "test1",
+        addressLine2 = "test2",
+        town = "test3",
+      )
+
+      val expected = buildAccommodationSummaryDto(
+        crn = "X92123",
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        address = buildAccommodationAddressDetails(
+          postcode = "NW1 6XE",
+          subBuildingName = null,
+          buildingName = null,
+          buildingNumber = null,
+          thoroughfareName = "test1",
+          dependentLocality = "test2",
+          postTown = "test3",
+          county = null,
+          country = null,
+          uprn = null,
+        ),
+        type = buildAccommodationTypeDto(
+          code = AddressUsageCode.A02.name,
+          description = AddressUsageCode.A02.description,
+        ),
+        status = buildAccommodationStatusDto(
+          code = AddressStatusCode.PR1.name,
+          description = AddressStatusCode.PR1.description,
+        ),
+      )
+
+      val result = AccommodationSummaryTransformer.toAccommodationSummary(
+        crn = "X92123",
+        premises = cas1Premises,
+        currentAccommodation = buildAccommodationSummaryDto(
+          type = buildAccommodationTypeDto(
+            code = "HMP",
+          ),
+        ),
+      )
+
+      assertThat(result).isEqualTo(expected)
+    }
+  }
+
+  @Nested
+  inner class ToAccommodationSummaryForCas3Premises {
+    @Test
+    fun `should map all fields`() {
+      val cas3Premises = buildCas3SuitablePremisesDto(
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        postcode = "NW1 6XE",
+        addressLine1 = "test1",
+        addressLine2 = "test2",
+        town = "test3",
+        name = "test4",
+      )
+
+      val expected = buildAccommodationSummaryDto(
+        crn = "X92123",
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        address = buildAccommodationAddressDetails(
+          postcode = "NW1 6XE",
+          subBuildingName = null,
+          buildingName = "test4",
+          buildingNumber = null,
+          thoroughfareName = "test1",
+          dependentLocality = "test2",
+          postTown = "test3",
+          county = null,
+          country = null,
+          uprn = null,
+        ),
+        type = buildAccommodationTypeDto(
+          code = AddressUsageCode.A17.name,
+          description = AddressUsageCode.A17.description,
+        ),
+        status = buildAccommodationStatusDto(
+          code = AddressStatusCode.PR1.name,
+          description = AddressStatusCode.PR1.description,
+        ),
+      )
+
+      val result = AccommodationSummaryTransformer.toAccommodationSummary(
+        crn = "X92123",
+        premises = cas3Premises,
+        currentAccommodation = buildAccommodationSummaryDto(
+          type = buildAccommodationTypeDto(
+            code = "HMP",
+          ),
+        ),
+      )
+
+      assertThat(result).isEqualTo(expected)
+    }
+  }
 
   @Test
   fun `should map all fields when address has status and usage`() {

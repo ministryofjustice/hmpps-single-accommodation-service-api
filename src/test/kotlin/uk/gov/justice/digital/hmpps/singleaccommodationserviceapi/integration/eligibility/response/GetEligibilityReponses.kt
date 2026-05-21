@@ -21,16 +21,16 @@ fun expectedGetEligibilityResponse(
       "crn":"$crn",
       "cas1":{
          "serviceResult":{
-            "serviceStatus":"NOT_SUBMITTED",
-            "action":"Continue an approved premises (CAS1) application",
-            "link":"Continue application",
+            "serviceStatus":"ARRIVED",
+            "action":null,
+            "link":"View application",
             "failureReasons":[]
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
-            "applicationStatus":"STARTED",
-            "requestForPlacementStatus":null,
-            "placementStatus":null
+            "applicationStatus":"PLACEMENT_ALLOCATED",
+            "requestForPlacementStatus":"PLACEMENT_BOOKED",
+            "placementStatus":"ARRIVED"
          }
       },
       "cas3":{
@@ -83,16 +83,16 @@ fun expectedGetEligibilityResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"NOT_STARTED",
-            "action":"Add and confirm proposed address",
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
             "link":null,
-            "failureReasons":[]
+            "failureReasons":[
+               "SUITABLE_CAS1_APPLICATION"
+            ]
          }
       },
       "caseActions":[
-         "Add DTR referral outcome",
-         "Continue an approved premises (CAS1) application",
-         "Add and confirm proposed address"
+         "Add DTR referral outcome"
       ]
    }
 }
@@ -184,16 +184,16 @@ fun expectedGetEligibilityResponseTierNotFound(
       "crn":"$crn",
       "cas1":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"ARRIVED",
             "action":null,
-            "link":null,
-            "failureReasons":["MALE_NOT_HIGH_RISK_TIER"]
+            "link":"View application",
+            "failureReasons":[]
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
-            "applicationStatus":"STARTED",
-            "requestForPlacementStatus":null,
-            "placementStatus":null
+            "applicationStatus":"PLACEMENT_ALLOCATED",
+            "requestForPlacementStatus":"PLACEMENT_BOOKED",
+            "placementStatus":"ARRIVED"
          }
       },
       "cas3":{
@@ -246,15 +246,16 @@ fun expectedGetEligibilityResponseTierNotFound(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"NOT_STARTED",
-            "action":"Add and confirm proposed address",
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
             "link":null,
-            "failureReasons":[]
+            "failureReasons":[
+               "SUITABLE_CAS1_APPLICATION"
+            ]
          }
       },
       "caseActions":[
-         "Add DTR referral outcome",
-         "Add and confirm proposed address"
+         "Add DTR referral outcome"
       ]
    }
 }

@@ -124,6 +124,7 @@ class ProposedAccommodationAggregate private constructor(
           aggregateId = id,
         )
       }
+
       shouldPublishUpdateEvent -> {
         domainEvents += AccommodationUpdatedDomainEvent(
           aggregateId = id,

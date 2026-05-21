@@ -6,6 +6,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
@@ -35,12 +39,54 @@ class AccommodationQueryService(
     )
   }
 
+  fun getNextAccommodations(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
+    val orchestrationResult = accommodationOrchestrationService.getNextAccommodationData(crn)
+    val currentAccommodation = orchestrationResult.data.cpr?.addresses?.let {
+      getCurrentAccommodation(crn, addresses = it)
+    }
+    val nextAccommodations = getNextAccommodations(
+      crn,
+      addresses = orchestrationResult.data.cpr?.addresses,
+      cas1Application = orchestrationResult.data.cas1Application,
+      cas3Application = orchestrationResult.data.cas3Application,
+      currentAccommodation = currentAccommodation,
+    )
+
+    return toApiResponseDto(
+      data = nextAccommodations,
+      upstreamFailures = orchestrationResult.upstreamFailures,
+    )
+  }
+
   fun getCurrentAccommodation(crn: String, addresses: List<CanonicalAddress>): AccommodationSummaryDto? = addresses
     .firstOrNull { it.status.code == AddressStatusCode.M.name }
     ?.let { toAccommodationSummary(crn, address = it) }
 
-  // TODO implement this once we understand how next accommodation is calculated - will also contain cas1 and cas3 arguments
-  fun getNextAccommodation(crn: String, addresses: List<CanonicalAddress>): AccommodationSummaryDto? = null
+  fun getNextAccommodations(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+    cas1Application: Cas1Application?,
+    cas3Application: Cas3Application?,
+    currentAccommodation: AccommodationSummaryDto?,
+  ): List<AccommodationSummaryDto> {
+    val cas1NextAccommodation = cas1Application?.takeIf { it.placementStatus == Cas1PlacementStatus.UPCOMING }
+      ?.premises?.let {
+        toAccommodationSummary(crn, premises = it, currentAccommodation)
+      }
+
+    val cas3NextAccommodation = cas3Application?.takeIf { it.bookingStatus == Cas3BookingStatus.CONFIRMED }
+      ?.premises?.let {
+        toAccommodationSummary(crn, premises = it, currentAccommodation)
+      }
+
+    return (
+      (
+        addresses
+          ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
+          ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
+        ) + cas1NextAccommodation + cas3NextAccommodation
+      ).mapNotNull { it }
+  }
 
   fun getAccommodationHistory(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
     val orchestrationResult = accommodationOrchestrationService.getCorePersonRecordByCrn(crn)

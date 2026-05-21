@@ -4,12 +4,18 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -25,6 +31,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationWithUpstreamFailureResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationWithUpstreamFailureResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationsResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import java.time.LocalDate
@@ -189,5 +198,111 @@ class AccommodationControllerIT : IntegrationTestBase() {
       uprn = "test uprn",
     )
     return proposedAccommodationRepository.save(entity)
+  }
+
+  @Test
+  fun `should get next accommodations for crn`() {
+    val nextAddress = buildCanonicalAddress(
+      cprAddressId = UUID.randomUUID(),
+      noFixedAbode = false,
+      postcode = "W5 2AB",
+      thoroughfareName = "Another Street",
+      postTown = "London",
+      startDate = LocalDate.of(2025, 10, 17),
+      endDate = LocalDate.of(2026, 1, 10),
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      usage = CanonicalAddressUsage(
+        usageCode = CanonicalAddressUsageCode(
+          code = AddressUsageCode.A07A.name,
+          description = AddressUsageCode.A07A.description,
+        ),
+        isActive = true,
+      ),
+    )
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
+      addresses = listOf(
+        nextAddress,
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07B.name,
+              description = AddressUsageCode.A07B.description,
+            ),
+            isActive = true,
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = corePersonRecord,
+    )
+    val cas1Application = buildCas1Application(
+      placementStatus = Cas1PlacementStatus.UPCOMING,
+      premises = buildCas1SuitablePremisesDto(
+        postcode = "SW1A 1AB",
+      ),
+    )
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+      crn = crn,
+      response = cas1Application,
+    )
+    val cas3Application = buildCas3Application(
+      bookingStatus = Cas3BookingStatus.CONFIRMED,
+      premises = buildCas3SuitablePremisesDto(
+        postcode = "SW1A 1A4",
+      ),
+    )
+    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(
+      crn = crn,
+      response = cas3Application,
+    )
+    restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetNextAccommodationsResponse(
+            crn = crn,
+            cas1StartDate = cas1Application.premises!!.startDate.toString(),
+            cas1EndDate = cas1Application.premises!!.endDate.toString(),
+            cas3StartDate = cas3Application.premises!!.startDate.toString(),
+            cas3EndDate = cas3Application.premises!!.endDate.toString(),
+            prStartDate = nextAddress.startDate.toString(),
+            prEndDate = nextAddress.endDate.toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `get next accommodations should return partial success when CPR Addresses call returns server error`() {
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
+
+    restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedGetNextAccommodationWithUpstreamFailureResponse())
+      }
   }
 }

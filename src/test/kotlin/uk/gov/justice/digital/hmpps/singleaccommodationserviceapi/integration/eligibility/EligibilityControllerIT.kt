@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -73,7 +75,12 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val cas1Application = buildCas1Application(id = cas1ApplicationId)
+    val cas1Application = buildCas1Application(
+      id = cas1ApplicationId,
+      applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+      placementStatus = Cas1PlacementStatus.ARRIVED,
+    )
     val cas3Application = buildCas3Application(id = cas3ApplicationId)
 
     HmppsAuthStubs.stubGrantToken()
