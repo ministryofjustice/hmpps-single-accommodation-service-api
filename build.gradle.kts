@@ -65,8 +65,18 @@ tasks.register<Copy>("copyGitHooks") {
   }
 }
 
+tasks.register<Exec>("validateFlywayFilenames") {
+  description = "Validate Flyway migration filenames"
+  group = "verification"
+  commandLine("sh", "$rootDir/scripts/validate_flyway_filenames.sh")
+}
+
 tasks.compileKotlin {
   dependsOn("copyGitHooks")
+}
+
+tasks.named("check") {
+  dependsOn("validateFlywayFilenames")
 }
 
 allprojects {
