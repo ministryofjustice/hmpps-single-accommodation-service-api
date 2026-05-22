@@ -57,8 +57,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    dutyToReferRepository.deleteAll()
-    caseRepository.deleteAll()
+    databaseUtils.truncate("duty_to_refer")
 
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInstance
@@ -12,14 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.stereotype.Repository
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
@@ -28,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
@@ -65,17 +60,12 @@ abstract class IntegrationTestBase {
   protected lateinit var userRepository: UserRepository
 
   @Autowired
-  private lateinit var testCaseRepository: TestCaseRepository
+  protected lateinit var databaseUtils: DatabaseUtils
 
   @BeforeEach
   fun resetStubs() {
     sasWiremock.resetAll()
-    testCaseRepository.truncateWithCascade()
-  }
-
-  @AfterEach
-  fun teardownUsers() {
-    userRepository.deleteAll()
+    databaseUtils.truncate()
   }
 
   protected fun createTestDataSetupUserAndDeliusUser() {
@@ -168,12 +158,4 @@ abstract class IntegrationTestBase {
       ),
     )
   }
-}
-
-@Repository
-interface TestCaseRepository : JpaRepository<UserEntity, UUID> {
-  @Query("TRUNCATE sas_case CASCADE", nativeQuery = true)
-  @Modifying
-  @Transactional
-  fun truncateWithCascade()
 }
