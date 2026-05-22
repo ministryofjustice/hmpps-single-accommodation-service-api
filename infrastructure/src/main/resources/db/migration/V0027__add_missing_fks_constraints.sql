@@ -35,8 +35,7 @@ alter table inbox_event
 -- sas_user
 alter table sas_user
     alter column created_at set not null,
-    alter column is_active set not null,
-    alter column created_at set not null;
+    alter column is_active set not null;
 
 drop index if exists sas_user_username_key; -- named as key but is index. also could conflict if a user has delius and nomis accounts.
 create unique index idx_sas_user_username_auth_source on sas_user (username, auth_source);
