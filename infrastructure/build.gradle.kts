@@ -3,8 +3,8 @@ plugins {
 }
 dependencies {
   implementation(project(":common"))
-
   implementation(libs.hmpps.starter)
+  implementation(libs.postgres)
   implementation(libs.hmpps.sqs)
   implementation(libs.spring.cache)
   implementation(libs.redisson)

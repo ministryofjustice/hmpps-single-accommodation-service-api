@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -53,6 +54,12 @@ class OAuth2ResourceServerSecurityConfiguration(
             )
           }
         }
+      }
+
+      authorizeHttpRequests {
+        authorize(HttpMethod.GET, "/subject-access-request", hasAnyRole("SAR_DATA_ACCESS"))
+        authorize(HttpMethod.GET, "/subject-access-request/template", hasAnyRole("SAR_DATA_ACCESS"))
+        authorize(anyRequest, authenticated)
       }
 
       sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }

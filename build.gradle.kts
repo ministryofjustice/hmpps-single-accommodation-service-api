@@ -37,6 +37,7 @@ dependencies {
 
   testImplementation(libs.awaitility)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.4.1")
 }
 
 kotlin {

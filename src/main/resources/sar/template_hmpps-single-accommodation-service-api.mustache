@@ -1,0 +1,185 @@
+§<h1 class="title">Single Accommodation Service</h1>
+{{#.}}
+    {{#Cases}}
+    <h2>Cases</h2>
+
+        <h3>Cases</h3>
+        {{#Cases}}
+            <h4>Case</h4>
+            <table class="summary-list">
+                <tr><td>Tier score</td><td>{{ optionalValue tier_score }}</td></tr>
+                <tr><td>CAS1 application ID</td><td>{{ optionalValue cas1_application_id }}</td></tr>
+                <tr><td>CAS1 application status</td><td>{{ optionalValue cas1_application_application_status }}</td></tr>
+                <tr><td>CAS1 placement status</td><td>{{ optionalValue cas1_application_placement_status }}</td></tr>
+                <tr><td>CAS1 request for placement status</td><td>{{ optionalValue cas1_application_request_for_placement_status }}</td></tr>
+            </table>
+        {{/Cases}}
+        {{^Cases}}
+            <p>No Data Held</p>
+        {{/Cases}}
+
+        <h3>Case Identifiers</h3>
+        {{#CaseIdentifiers}}
+            <h4>Identifier</h4>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-30">Identifier</td>
+                    <td class="data-column-30">Identifier type</td>
+                    <td class="data-column-30">Created at</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue identifier }}</td>
+                    <td>{{ optionalValue identifier_type }}</td>
+                    <td>{{ optionalValue (formatDate created_at) }}</td>
+                </tr>
+            </table>
+        {{/CaseIdentifiers}}
+        {{^CaseIdentifiers}}
+            <p>No Data Held</p>
+        {{/CaseIdentifiers}}
+
+    {{/Cases}}
+
+    {{#DutyToRefers}}
+    <h2>Duty to Refer</h2>
+
+        <h3>Duty to Refer</h3>
+        {{#DutyToRefers}}
+            <h4>Duty to Refer</h4>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-25">Reference number</td>
+                    <td class="data-column-25">Submission date</td>
+                    <td class="data-column-25">Status</td>
+                    <td class="data-column-25">Local authority area</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue reference_number }}</td>
+                    <td>{{ optionalValue (formatDate submission_date) }}</td>
+                    <td>{{ convertCamelCase status }}</td>
+                    <td>{{ optionalValue local_authority_area_name }}</td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-50">Created at</td>
+                    <td class="data-column-50">Last updated at</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue (formatDate created_at) }}</td>
+                    <td>{{ optionalValue (formatDate last_updated_at) }}</td>
+                </tr>
+            </table>
+        {{/DutyToRefers}}
+        {{^DutyToRefers}}
+            <p>No Data Held</p>
+        {{/DutyToRefers}}
+
+        <h3>Duty to Refer Notes</h3>
+        {{#DutyToReferNotes}}
+            <h4>Note</h4>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-50">Note</td>
+                    <td class="data-column-25">Created at</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue note }}</td>
+                    <td>{{ optionalValue (formatDate created_at) }}</td>
+                </tr>
+            </table>
+        {{/DutyToReferNotes}}
+        {{^DutyToReferNotes}}
+            <p>No Data Held</p>
+        {{/DutyToReferNotes}}
+
+    {{/DutyToRefers}}
+
+    {{#ProposedAccommodations}}
+    <h2>Proposed Accommodations</h2>
+
+        <h3>Proposed Accommodations</h3>
+        {{#ProposedAccommodations}}
+            <h4>Proposed Accommodation</h4>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-25">Name</td>
+                    <td class="data-column-25">Arrangement type</td>
+                    <td class="data-column-25">Status</td>
+                    <td class="data-column-25">Created at</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue name }}</td>
+                    <td>{{ convertCamelCase arrangement_type }}</td>
+                    <td>{{ convertCamelCase status }}</td>
+                    <td>{{ optionalValue (formatDate created_at) }}</td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-25">Start date</td>
+                    <td class="data-column-25">End date</td>
+                    <td class="data-column-25">Postcode</td>
+                    <td class="data-column-25">Post town</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue (formatDate start_date) }}</td>
+                    <td>{{ optionalValue (formatDate end_date) }}</td>
+                    <td>{{ optionalValue postcode }}</td>
+                    <td>{{ optionalValue post_town }}</td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-25">Building number</td>
+                    <td class="data-column-25">Building name</td>
+                    <td class="data-column-25">Sub building name</td>
+                    <td class="data-column-25">Thoroughfare name</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue building_number }}</td>
+                    <td>{{ optionalValue building_name }}</td>
+                    <td>{{ optionalValue sub_building_name }}</td>
+                    <td>{{ optionalValue throughfare_name }}</td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-25">Dependent locality</td>
+                    <td class="data-column-25">County</td>
+                    <td class="data-column-25">Country</td>
+                    <td class="data-column-25">UPRN</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue dependent_locality }}</td>
+                    <td>{{ optionalValue county }}</td>
+                    <td>{{ optionalValue country }}</td>
+                    <td>{{ optionalValue uprn }}</td>
+                </tr>
+            </table>
+        {{/ProposedAccommodations}}
+        {{^ProposedAccommodations}}
+            <p>No Data Held</p>
+        {{/ProposedAccommodations}}
+
+        <h3>Proposed Accommodation Notes</h3>
+        {{#ProposedAccommodationNotes}}
+            <h4>Note</h4>
+            <table class="data-table">
+                <tr>
+                    <td class="data-column-50">Note</td>
+                    <td class="data-column-25">Created at</td>
+                </tr>
+                <tr>
+                    <td>{{ optionalValue note }}</td>
+                    <td>{{ optionalValue (formatDate created_at) }}</td>
+                </tr>
+            </table>
+        {{/ProposedAccommodationNotes}}
+        {{^ProposedAccommodationNotes}}
+            <p>No Data Held</p>
+        {{/ProposedAccommodationNotes}}
+
+    {{/ProposedAccommodations}}
+
+{{/.}}
