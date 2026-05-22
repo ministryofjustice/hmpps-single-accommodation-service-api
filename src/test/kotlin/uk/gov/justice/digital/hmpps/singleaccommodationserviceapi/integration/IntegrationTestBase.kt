@@ -12,10 +12,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
-import org.springframework.http.HttpHeaders
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.stereotype.Repository
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
@@ -60,16 +64,13 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var userRepository: UserRepository
 
-  internal fun setAuthorisation(
-    username: String? = "AUTH_ADM",
-    roles: List<String> = listOf(),
-    scopes: List<String> = listOf("read"),
-  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles)
+  @Autowired
+  private lateinit var testCaseRepository: TestCaseRepository
 
   @BeforeEach
   fun resetStubs() {
     sasWiremock.resetAll()
-    userRepository.deleteAll()
+    testCaseRepository.truncateWithCascade()
   }
 
   @AfterEach
@@ -167,4 +168,12 @@ abstract class IntegrationTestBase {
       ),
     )
   }
+}
+
+@Repository
+interface TestCaseRepository : JpaRepository<UserEntity, UUID> {
+  @Query("TRUNCATE sas_case CASCADE", nativeQuery = true)
+  @Modifying
+  @Transactional
+  fun truncateWithCascade()
 }
