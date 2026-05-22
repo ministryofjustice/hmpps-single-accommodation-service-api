@@ -23,6 +23,7 @@ dependencies {
 
   implementation(libs.springdoc)
   implementation(libs.javers)
+  runtimeOnly(libs.postgres)
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
