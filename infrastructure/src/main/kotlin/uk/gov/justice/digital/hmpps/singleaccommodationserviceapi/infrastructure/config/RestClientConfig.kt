@@ -77,7 +77,7 @@ class RestClientConfig(
 
   private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
     val client = restClientBuilder
-      .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofSeconds(5)))
+      .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofMillis(3500)))
       .requestInterceptor(HmppsAuthInterceptor(clientManager, "default"))
       .baseUrl(baseUrl)
       .build()
