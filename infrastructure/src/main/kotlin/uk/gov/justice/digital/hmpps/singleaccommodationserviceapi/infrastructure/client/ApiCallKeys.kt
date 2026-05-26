@@ -31,4 +31,6 @@ object ApiCallKeys {
   const val GET_CAS2_REFERRAL = "getCas2ReferralByCrn"
   const val GET_CAS2V2_REFERRAL = "getCas2v2ReferralByCrn"
   const val GET_CAS3_REFERRAL = "getCas3ReferralByCrn"
+
+  const val GET_CASES_FROM_ORCHESTRATOR = "getCasesFromOrchestrator"
 }

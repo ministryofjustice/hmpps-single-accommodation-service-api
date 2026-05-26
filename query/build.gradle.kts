@@ -11,4 +11,5 @@ dependencies {
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))
   testImplementation(libs.apache.commons.csv)
+  testImplementation(libs.coroutines.test)
 }

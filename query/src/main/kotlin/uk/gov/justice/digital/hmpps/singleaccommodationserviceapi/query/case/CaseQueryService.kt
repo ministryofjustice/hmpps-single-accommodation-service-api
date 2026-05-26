@@ -23,12 +23,9 @@ class CaseQueryService(
 ) {
   fun getCaseList(): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
-    val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username)
-    val caseList = caseOrchestrationResult.data.cases.map { toPersonDto(it) }
-    return toApiResponseDto(
-      data = caseList,
-      upstreamFailures = caseOrchestrationResult.upstreamFailures,
-    )
+    val result = caseOrchestrationService.getCaseList(user.username)
+    val caseList = result.data.cases.map { toPersonDto(it) }
+    return toApiResponseDto(data = caseList)
   }
 
   private fun PersonDto.matchesTeam(teamCode: String?): Boolean = when {

@@ -56,6 +56,8 @@ swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref =
 awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+coroutines-test = {module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines"}
+
 
 # Runtime
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }

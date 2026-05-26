@@ -1,7 +1,11 @@
 info.app:
   name: HMPPS Single Accommodation Service Api
   version: 1.0
+
 spring:
+  threads:
+    virtual:
+      enabled: true
   autoconfigure:
     exclude:
       - org.redisson.spring.starter.RedissonAutoConfigurationV4
@@ -13,12 +17,6 @@ spring:
     date-format: "yyyy-MM-dd HH:mm:ss"
   jpa:
     open-in-view: false
-    properties:
-      hibernate:
-        jdbc:
-          batch_size: 500
-        order_inserts: true
-        order_updates: true
   security:
     oauth2:
       resourceserver:

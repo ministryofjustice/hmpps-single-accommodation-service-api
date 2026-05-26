@@ -30,15 +30,18 @@ spring:
       enabled: true
 
 redisson:
-  timeout: 3000
+  threads: 12
+  nettyThreads: 12
+  timeout: 1000
   scan:
     interval: 2000
   retry:
-    interval: 1500
+    interval: 300
     attempts: 3
   connection:
-    pool-size: 10
-    minimum-idle-size: 5
+    timeout: 2000
+    pool-size: 20
+    minimum-idle-size: 10
 
 redis:
   replica:

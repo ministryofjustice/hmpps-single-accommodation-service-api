@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
 import org.redisson.config.Config
+import org.redisson.config.ReadMode
 import org.redisson.spring.cache.CacheConfig
 import org.redisson.spring.cache.RedissonSpringCacheManager
 import org.springframework.beans.factory.annotation.Value
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASES_FROM_ORCHESTRATOR
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
@@ -29,10 +31,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 @Configuration
 @Profile("dev", "preprod", "prod")
-open class RedissonMasterSlaveServersConfig {
+class RedissonMasterSlaveServersConfig {
 
   @Bean(name = ["redissonClient"], destroyMethod = "shutdown")
-  open fun redissonClient(
+  fun redissonClient(
     @Value($$"${redis.host}") redisHost: String,
     @Value($$"${redis.replica.host}") redisReplicaHost: String,
     @Value($$"${redis.port}") redisPort: Int,
@@ -42,13 +44,19 @@ open class RedissonMasterSlaveServersConfig {
     @Value($$"${redisson.retry.interval}") redissonRetryInterval: Int,
     @Value($$"${redisson.connection.pool-size}") redissonConnectionPoolSize: Int,
     @Value($$"${redisson.connection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
+    @Value($$"${redisson.connection.timeout}") redissonConnectionTimeout: Int,
+    @Value($$"${redisson.threads}") redissonThreads: Int,
+    @Value($$"${redisson.nettyThreads}") redissonNettyThreads: Int,
   ): RedissonClient {
     val masterAddress = "rediss://$redisHost:$redisPort"
     val replicaAddress = "rediss://$redisReplicaHost:$redisPort"
     val config = Config()
+    config.nettyThreads = redissonNettyThreads
+    config.threads = redissonThreads
     config.useMasterSlaveServers()
       .setMasterAddress(masterAddress)
       .addSlaveAddress(replicaAddress)
+      .setReadMode(ReadMode.SLAVE)
       .setPassword(authToken)
       .setTimeout(redissonTimeout)
       .setRetryAttempts(redissonRetryAttempts)
@@ -57,16 +65,17 @@ open class RedissonMasterSlaveServersConfig {
       .setMasterConnectionMinimumIdleSize(redissonConnectionMinimumIdleSize)
       .setSlaveConnectionPoolSize(redissonConnectionPoolSize)
       .setSlaveConnectionMinimumIdleSize(redissonConnectionMinimumIdleSize)
+      .setConnectTimeout(redissonConnectionTimeout)
     return Redisson.create(config)
   }
 }
 
 @Configuration
 @Profile("local")
-open class RedissonLocalConfig {
+class RedissonLocalConfig {
 
   @Bean(name = ["redissonClient"], destroyMethod = "shutdown")
-  open fun redissonLocalClient(
+  fun redissonLocalClient(
     @Value($$"${redis.host}") redisHost: String,
     @Value($$"${redis.port}") redisPort: Int,
     @Value($$"${redisson.timeout}") redissonTimeout: Int,
@@ -74,14 +83,19 @@ open class RedissonLocalConfig {
     @Value($$"${redisson.retry.attempts}") redissonRetryAttempts: Int,
     @Value($$"${redisson.connection.pool-size}") redissonConnectionPoolSize: Int,
     @Value($$"${redisson.connection.minimum-idle-size}") redissonConnectionMinimumIdleSize: Int,
+    @Value($$"${redisson.connection.timeout}") redissonConnectionTimeout: Int,
+    @Value($$"${redisson.threads}") redissonThreads: Int,
+    @Value($$"${redisson.nettyThreads}") redissonNettyThreads: Int,
   ): RedissonClient {
     val config = Config()
+    config.nettyThreads = redissonNettyThreads
+    config.threads = redissonThreads
     config
       .useSingleServer()
       .setAddress("redis://$redisHost:$redisPort")
-      .setPassword(null)
       .setConnectionPoolSize(redissonConnectionPoolSize)
       .setConnectionMinimumIdleSize(redissonConnectionMinimumIdleSize)
+      .setConnectTimeout(redissonConnectionTimeout)
       .setTimeout(redissonTimeout)
       .setRetryAttempts(redissonRetryAttempts)
       .setRetryInterval(redissonRetryInterval)
@@ -111,8 +125,9 @@ class RedissonCacheConfig {
       GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_3_APPLICATION to CacheConfig(60_000, 30_000),
-      GET_CASE_LIST to CacheConfig(60_000, 30_000),
+      GET_CASE_LIST to CacheConfig(600_000, 300_000),
       GET_CRS to CacheConfig(60_000, 30_000),
+      GET_CASES_FROM_ORCHESTRATOR to CacheConfig(600_000, 300_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }
