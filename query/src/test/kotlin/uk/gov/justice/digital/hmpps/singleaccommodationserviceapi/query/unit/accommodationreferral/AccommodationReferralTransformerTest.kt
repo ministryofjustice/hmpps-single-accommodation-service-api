@@ -28,6 +28,15 @@ class AccommodationReferralTransformerTest {
       CasService.CAS2v2,
       CasService.CAS3,
     )
+
+    result.forEach {
+      assertThat(it.referralRejectionReason).isNotNull()
+      assertThat(it.localAuthorityArea).isNotNull()
+      assertThat(it.pdu).isNotNull()
+      assertThat(it.referredBy).isNotNull()
+      assertThat(it.placementAddress).isNotNull()
+      assertThat(it.placementStatus).isNotNull()
+    }
   }
 
   @ParameterizedTest

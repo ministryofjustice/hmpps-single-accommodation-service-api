@@ -8,6 +8,12 @@ data class AccommodationReferralDto(
   val type: CasService,
   val status: CasReferralStatus,
   val date: Instant,
+  val referralRejectionReason: String?,
+  val localAuthorityArea: String?,
+  val pdu: String?,
+  val referredBy: String?,
+  val placementAddress: String?,
+  val placementStatus: String?,
 )
 
 enum class CasReferralStatus {
