@@ -21,48 +21,48 @@ fun expectedGetReferralHistory(
       "type":"CAS2v2",
       "status":"ACCEPTED",
       "date":"2025-04-01T00:00:00Z",
-      "referralRejectionReason": ${referralRejectionReason?.let { "\"$it\"" } ?: "null"},
-      "localAuthorityArea": ${localAuthorityArea?.let { "\"$it\"" } ?: "null"},
-      "pdu": ${pdu?.let { "\"$it\"" } ?: "null"},
-      "referredBy": ${referredBy?.let { "\"$it\"" } ?: "null"},
-      "placementAddress": ${placementAddress?.let { "\"$it\"" } ?: "null"},
-      "placementStatus": ${placementStatus?.let { "\"$it\"" } ?: "null"}
+      "referralRejectionReason": "$referralRejectionReason",
+      "localAuthorityArea": "$localAuthorityArea",
+      "pdu": "$pdu",
+      "referredBy": "$referredBy",
+      "placementAddress": "$placementAddress",
+      "placementStatus": "$placementStatus"
    },
    {
       "id":"$id1",
       "type":"CAS1",
       "status":"PENDING",
       "date":"2025-03-01T00:00:00Z",
-      "referralRejectionReason": ${referralRejectionReason?.let { "\"$it\"" } ?: "null"},
-      "localAuthorityArea": ${localAuthorityArea?.let { "\"$it\"" } ?: "null"},
-      "pdu": ${pdu?.let { "\"$it\"" } ?: "null"},
-      "referredBy": ${referredBy?.let { "\"$it\"" } ?: "null"},
-      "placementAddress": ${placementAddress?.let { "\"$it\"" } ?: "null"},
-      "placementStatus": ${placementStatus?.let { "\"$it\"" } ?: "null"}
+      "referralRejectionReason": "$referralRejectionReason",
+      "localAuthorityArea": "$localAuthorityArea",
+      "pdu": "$pdu",
+      "referredBy": "$referredBy",
+      "placementAddress": "$placementAddress",
+      "placementStatus": "$placementStatus"
    },
    {
       "id":"$id4",
       "type":"CAS3",
       "status":"PENDING",
       "date":"2025-02-01T00:00:00Z",
-      "referralRejectionReason": ${referralRejectionReason?.let { "\"$it\"" } ?: "null"},
-      "localAuthorityArea": ${localAuthorityArea?.let { "\"$it\"" } ?: "null"},
-      "pdu": ${pdu?.let { "\"$it\"" } ?: "null"},
-      "referredBy": ${referredBy?.let { "\"$it\"" } ?: "null"},
-      "placementAddress": ${placementAddress?.let { "\"$it\"" } ?: "null"},
-      "placementStatus": ${placementStatus?.let { "\"$it\"" } ?: "null"}
+      "referralRejectionReason": "$referralRejectionReason",
+      "localAuthorityArea": "$localAuthorityArea",
+      "pdu": "$pdu",
+      "referredBy": "$referredBy",
+      "placementAddress": "$placementAddress",
+      "placementStatus": "$placementStatus"
    },
    {
       "id":"$id2",
       "type":"CAS2",
       "status":"PENDING",
       "date":"2025-01-01T00:00:00Z",
-      "referralRejectionReason": ${referralRejectionReason?.let { "\"$it\"" } ?: "null"},
-      "localAuthorityArea": ${localAuthorityArea?.let { "\"$it\"" } ?: "null"},
-      "pdu": ${pdu?.let { "\"$it\"" } ?: "null"},
-      "referredBy": ${referredBy?.let { "\"$it\"" } ?: "null"},
-      "placementAddress": ${placementAddress?.let { "\"$it\"" } ?: "null"},
-      "placementStatus": ${placementStatus?.let { "\"$it\"" } ?: "null"}
+      "referralRejectionReason": "$referralRejectionReason",
+      "localAuthorityArea": "$localAuthorityArea",
+      "pdu": "$pdu",
+      "referredBy": "$referredBy",
+      "placementAddress": "$placementAddress",
+      "placementStatus": "$placementStatus"
    }
   ]
 }

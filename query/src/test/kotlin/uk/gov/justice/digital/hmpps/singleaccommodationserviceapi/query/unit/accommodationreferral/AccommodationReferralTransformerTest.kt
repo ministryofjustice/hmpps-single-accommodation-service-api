@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 import java.util.stream.Stream
@@ -30,12 +31,12 @@ class AccommodationReferralTransformerTest {
     )
 
     result.forEach {
-      assertThat(it.referralRejectionReason).isNotNull()
-      assertThat(it.localAuthorityArea).isNotNull()
-      assertThat(it.pdu).isNotNull()
-      assertThat(it.referredBy).isNotNull()
-      assertThat(it.placementAddress).isNotNull()
-      assertThat(it.placementStatus).isNotNull()
+      assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+      assertThat(it.localAuthorityArea).isEqualTo("Some area")
+      assertThat(it.pdu).isEqualTo("Some pdu")
+      assertThat(it.referredBy).isEqualTo(buildName())
+      assertThat(it.placementAddress).isEqualTo("Some address")
+      assertThat(it.placementStatus).isEqualTo("Some status")
     }
   }
 

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationDto
 
@@ -13,7 +14,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = "Some person",
+      referredBy = buildName(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
@@ -24,7 +25,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = "Some person",
+      referredBy = buildName(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
@@ -35,7 +36,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = "Some person",
+      referredBy = buildName(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
@@ -46,7 +47,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = "Some person",
+      referredBy = buildName(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
