@@ -16,6 +16,12 @@ object AccommodationReferralTransformer {
       type = CasService.CAS1,
       status = toCasReferralStatus(it.status),
       date = it.createdAt,
+      referralRejectionReason = it.referralRejectionReason,
+      localAuthorityArea = it.localAuthorityArea,
+      pdu = it.pdu,
+      referredBy = it.referredBy,
+      placementAddress = it.placementAddress,
+      placementStatus = it.placementStatus,
     )
   } +
     dto.cas2Referrals.map {
@@ -24,6 +30,12 @@ object AccommodationReferralTransformer {
         type = CasService.CAS2,
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
+        referralRejectionReason = it.referralRejectionReason,
+        localAuthorityArea = it.localAuthorityArea,
+        pdu = it.pdu,
+        referredBy = it.referredBy,
+        placementAddress = it.placementAddress,
+        placementStatus = it.placementStatus,
       )
     } +
     dto.cas2v2Referrals.map {
@@ -32,6 +44,12 @@ object AccommodationReferralTransformer {
         type = CasService.CAS2v2,
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
+        referralRejectionReason = it.referralRejectionReason,
+        localAuthorityArea = it.localAuthorityArea,
+        pdu = it.pdu,
+        referredBy = it.referredBy,
+        placementAddress = it.placementAddress,
+        placementStatus = it.placementStatus,
       )
     } +
     dto.cas3Referrals.map {
@@ -40,6 +58,12 @@ object AccommodationReferralTransformer {
         type = CasService.CAS3,
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
+        referralRejectionReason = it.referralRejectionReason,
+        localAuthorityArea = it.localAuthorityArea,
+        pdu = it.pdu,
+        referredBy = it.referredBy,
+        placementAddress = it.placementAddress,
+        placementStatus = it.placementStatus,
       )
     }
 
@@ -48,11 +72,23 @@ object AccommodationReferralTransformer {
     type: CasService,
     status: CasReferralStatus,
     date: Instant,
+    referralRejectionReason: String?,
+    localAuthorityArea: String?,
+    pdu: String?,
+    referredBy: String?,
+    placementAddress: String?,
+    placementStatus: String?,
   ) = AccommodationReferralDto(
     id = id,
     type = type,
     status = status,
     date = date,
+    referralRejectionReason = referralRejectionReason,
+    localAuthorityArea = localAuthorityArea,
+    pdu = pdu,
+    referredBy = referredBy,
+    placementAddress = placementAddress,
+    placementStatus = placementStatus,
   )
 
   fun toCasReferralStatus(status: Cas1AssessmentStatus): CasReferralStatus = when (status) {
