@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.domain.Name
 
 data class CaseList(
   val cases: List<Case>,
@@ -25,18 +26,6 @@ data class Case(
   val limitedAccess: Boolean,
 )
 
-data class Name(
-  val forename: String,
-  val middleName: String?,
-  val surname: String,
-) {
-  val fullName: String
-    get() = listOfNotNull(
-      forename,
-      middleName?.takeIf { it.isNotBlank() },
-      surname,
-    ).joinToString(" ")
-}
 
 data class Officer(
   val name: Name,
