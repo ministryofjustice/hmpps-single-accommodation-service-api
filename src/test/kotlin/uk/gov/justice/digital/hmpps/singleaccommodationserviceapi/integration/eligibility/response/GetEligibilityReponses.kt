@@ -252,16 +252,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          "Add DTR referral outcome",
          "Add and confirm proposed address"
       ]
-   },
-   "upstreamFailures":[
-      {
-         "endpoint":"getTierByCrn",
-         "failureType":"UPSTREAM_HTTP_ERROR",
-         "httpResponseStatus":"404 NOT_FOUND",
-         "message":"404 Not Found: [no body]",
-         "identifier":null
-      }
-   ]
+   }
 }
 """.trimIndent()
 

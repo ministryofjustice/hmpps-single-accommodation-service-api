@@ -138,7 +138,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should continue evaluation and include 404 in upstream failures when tier returns not found`() {
+  fun `should continue evaluation and do not include 404 in upstream failures when tier returns not found`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
     TierStubs.getTierNotFoundResponse(crn = crn)
