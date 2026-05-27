@@ -14,8 +14,8 @@ data class AuditRecordDto(
   )
   val commitDate: Instant,
   val changes: List<FieldChange>,
-  @field:JsonInclude(JsonInclude.Include.NON_EMPTY)
-  val extraInformation: Map<String, String> = emptyMap(),
+  @field:JsonInclude(JsonInclude.Include.NON_NULL)
+  val extraInformation: Map<String, String>? = null,
 )
 
 enum class AuditRecordType {
