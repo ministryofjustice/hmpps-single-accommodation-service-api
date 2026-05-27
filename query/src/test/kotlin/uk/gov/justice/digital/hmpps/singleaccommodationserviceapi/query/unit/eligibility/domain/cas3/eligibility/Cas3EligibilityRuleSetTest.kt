@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.C
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NoConflictingCas1BookingRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
@@ -22,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
     CurrentAccommodationTypeRule::class,
     NoNextAccommodationRule::class,
     DtrExpiredReferralRule::class,
-    NoConflictingCas1BookingRule::class,
     CrsExpiredRule::class,
     CrsSubmittedRule::class,
     ClockConfig::class,
@@ -37,7 +35,6 @@ class Cas3EligibilityRuleSetTest {
     CurrentAccommodationTypeRule::class.simpleName,
     NoNextAccommodationRule::class.simpleName,
     DtrExpiredReferralRule::class.simpleName,
-    NoConflictingCas1BookingRule::class.simpleName,
     CrsExpiredRule::class.simpleName,
     CrsSubmittedRule::class.simpleName,
   )
@@ -47,7 +44,7 @@ class Cas3EligibilityRuleSetTest {
     val ruleSetRules = cas3EligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(6)
+      .hasSize(5)
       .containsExactlyInAnyOrderElementsOf(expectedCas3EligibilityRuleNames)
   }
 }

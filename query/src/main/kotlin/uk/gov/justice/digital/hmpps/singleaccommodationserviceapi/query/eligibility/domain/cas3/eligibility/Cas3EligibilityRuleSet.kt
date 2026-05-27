@@ -13,7 +13,6 @@ class Cas3EligibilityRuleSet(
   currentAccommodationType: CurrentAccommodationTypeRule,
   noNextAccommodation: NoNextAccommodationRule,
   dtrExpiredReferral: DtrExpiredReferralRule,
-  noConflictingCas1Booking: NoConflictingCas1BookingRule,
   crsSubmitted: CrsSubmittedRule,
   crsExpired: CrsExpiredRule,
 ) : RuleSet {
@@ -21,9 +20,9 @@ class Cas3EligibilityRuleSet(
     currentAccommodationType,
     noNextAccommodation,
     dtrExpiredReferral,
-    noConflictingCas1Booking,
     crsExpired,
     crsSubmitted,
   )
+
   override fun getRules(): List<Rule> = rules
 }
