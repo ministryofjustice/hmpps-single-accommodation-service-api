@@ -64,7 +64,7 @@ class EligibilityService(
 
     if (blockingFailures.isNotEmpty()) {
       log.error("Eligibility upstream failures for CRN {}: {}", crn, blockingFailures)
-      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = upstreamFailures)
+      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = blockingFailures)
     }
     if (upstreamFailures.isNotEmpty()) {
       log.warn("Eligibility upstream 404s for CRN {}: {}", crn, upstreamFailures)
@@ -72,7 +72,7 @@ class EligibilityService(
 
     val data = buildDomainData(crn, eligibilityOrchestrationDto.data)
     val eligibility = getEligibility(data)
-    return toApiResponseDto(data = eligibility, upstreamFailures = upstreamFailures)
+    return toApiResponseDto(data = eligibility, upstreamFailures = emptyList())
   }
 
   fun getEligibility(data: DomainData): EligibilityDto {

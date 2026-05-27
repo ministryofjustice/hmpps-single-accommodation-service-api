@@ -388,7 +388,7 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `getEligibility continues and passes 404 through when only 404 upstream failures`() {
+    fun `getEligibility continues and does not pass 404s through when only 404 upstream failures`() {
       val notFoundFailure = buildUpstreamFailure(
         type = FailureType.UPSTREAM_HTTP_ERROR,
         errorDetail = ErrorDetail(httpStatus = HttpStatus.NOT_FOUND, message = "Not found"),
@@ -411,12 +411,12 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.getEligibility(crn)
 
-      assertThat(result.upstreamFailures).containsExactly(toUpstreamFailureDto(notFoundFailure))
+      assertThat(result.upstreamFailures).isEmpty()
       assertThat(result.data).isNotEqualTo(buildEligibilityDto(crn))
     }
 
     @Test
-    fun `getEligibility circuit breaks and includes all failures when 404s are mixed with blocking failures`() {
+    fun `getEligibility circuit breaks and includes not 404 failures when 404s are mixed with blocking failures`() {
       val notFoundFailure = buildUpstreamFailure(
         type = FailureType.UPSTREAM_HTTP_ERROR,
         errorDetail = ErrorDetail(httpStatus = HttpStatus.NOT_FOUND, message = "Not found"),
@@ -440,7 +440,7 @@ class EligibilityServiceTest {
 
       val expected = ApiResponseDto(
         data = buildEligibilityDto(crn),
-        upstreamFailures = listOf(toUpstreamFailureDto(notFoundFailure), toUpstreamFailureDto(blockingFailure)),
+        upstreamFailures = listOf(toUpstreamFailureDto(blockingFailure)),
       )
       assertThat(result).isEqualTo(expected)
     }
