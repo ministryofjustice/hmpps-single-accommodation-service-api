@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.domain.Name
 import java.time.Instant
 import java.util.UUID
 
@@ -68,16 +68,6 @@ object AccommodationReferralTransformer {
       )
     }
 
-  private fun String?.toName(): Name? {
-    if (this == null) return null
-    val parts = this.split(" ")
-    return Name(
-      forename = parts.firstOrNull() ?: "",
-      middleName = parts.drop(1).dropLast(1).joinToString(" ").takeIf { it.isNotBlank() },
-      surname = parts.lastOrNull() ?: "",
-    )
-  }
-
   fun toAccommodationReferralDto(
     id: UUID,
     type: CasService,
@@ -86,7 +76,7 @@ object AccommodationReferralTransformer {
     referralRejectionReason: String?,
     localAuthorityArea: String?,
     pdu: String?,
-    referredBy: Name?,
+    referredBy: AssignedToDto?,
     placementAddress: String?,
     placementStatus: String?,
   ) = AccommodationReferralDto(
