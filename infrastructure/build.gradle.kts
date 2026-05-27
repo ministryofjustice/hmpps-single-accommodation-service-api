@@ -20,5 +20,4 @@ dependencies {
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
   testFixturesImplementation(project(":common"))
-
 }

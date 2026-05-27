@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.domain.Name
 import java.time.Instant
 import java.util.UUID
 
@@ -15,7 +15,7 @@ fun buildReferralHistory(
   referralRejectionReason: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: Name? = null,
+  referredBy: AssignedToDto? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas1ReferralHistory(
@@ -39,7 +39,7 @@ fun buildReferralHistory(
   referralRejectionReason: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: Name? = null,
+  referredBy: AssignedToDto? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas2ReferralHistory(
@@ -63,7 +63,7 @@ fun buildReferralHistory(
   referralRejectionReason: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: Name? = null,
+  referredBy: AssignedToDto? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas3ReferralHistory(

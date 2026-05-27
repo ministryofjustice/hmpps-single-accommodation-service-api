@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.Instant
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.domain.Name
 
 data class AccommodationReferralDto(
   val id: UUID,
@@ -12,7 +11,7 @@ data class AccommodationReferralDto(
   val referralRejectionReason: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: Name?,
+  val referredBy: AssignedToDto?,
   val placementAddress: String?,
   val placementStatus: String?,
 )
