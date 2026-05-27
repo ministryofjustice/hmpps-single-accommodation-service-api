@@ -75,7 +75,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.NoConflictingCas1BookingRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
@@ -174,7 +173,6 @@ class EligibilityServiceTest {
     CurrentAccommodationTypeRule(),
     NoNextAccommodationRule(),
     DtrExpiredReferralRule(clock),
-    NoConflictingCas1BookingRule(),
     CrsSubmittedRule(),
     CrsExpiredRule(clock),
   )
@@ -625,7 +623,6 @@ class EligibilityServiceTest {
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             hasNextAccommodation = row["hasNextAccommodation"]!!,
-            hasCas1UpcomingBooking = row["hasCas1UpcomingBooking"]!!,
             isPrisonCas1Cas2OrCas2v2CurrentAccommodation = row["isPrisonCas1Cas2OrCas2v2CurrentAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
@@ -661,16 +658,6 @@ class EligibilityServiceTest {
           buildDutyToReferDto(
             submission = buildDtrSubmission(submissionDate = it),
           )
-        }
-
-        val cas1Application = if (s.hasCas1UpcomingBooking.toBoolean()) {
-          buildCas1Application(
-            applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-            placementStatus = Cas1PlacementStatus.UPCOMING,
-          )
-        } else {
-          null
         }
 
         val cas3Application = s.cas3ApplicationStatus?.let {
@@ -731,7 +718,6 @@ class EligibilityServiceTest {
           sex = null,
           currentAccommodation = currentAccommodation,
           nextAccommodation = nextAccommodation,
-          cas1Application = cas1Application,
           cas3Application = cas3Application,
           dutyToRefer = dutyToRefer,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -1011,26 +997,6 @@ class EligibilityServiceTest {
     }
 
     @Test
-    fun `Cas3 surfaces CONFLICTING_CAS1_BOOKING when there is an upcoming Cas1 placement`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = buildCas1Application(
-          applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-          placementStatus = Cas1PlacementStatus.UPCOMING,
-          requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-        ),
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.CONFLICTING_CAS1_BOOKING)
-    }
-
-    @Test
     fun `Cas3 surfaces CRS_EXPIRED when CRS submission is older than 12 weeks`() {
       clock.setNow(today)
       val data = buildDomainData(
@@ -1176,7 +1142,6 @@ data class Cas3Scenario(
   val description: String?,
   val referenceDate: LocalDate,
   val hasNextAccommodation: String,
-  val hasCas1UpcomingBooking: String,
   val isPrisonCas1Cas2OrCas2v2CurrentAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
   val dtrSubmissionDate: LocalDate?,
