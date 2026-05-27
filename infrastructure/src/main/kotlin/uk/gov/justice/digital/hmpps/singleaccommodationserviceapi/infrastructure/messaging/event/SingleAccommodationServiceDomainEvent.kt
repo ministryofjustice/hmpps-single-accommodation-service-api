@@ -13,7 +13,11 @@ enum class SingleAccommodationServiceDomainEventType(
 ) {
   SAS_ACCOMMODATION_UPDATED(
     "sas.accommodation.updated",
-    "SAS accommodation has been updated",
+    "Accommodation has been updated",
+  ),
+  SAS_ACCOMMODATION_DELETED(
+    "sas.accommodation.deleted",
+    "Accommodation has been deleted",
   ),
   SAS_DUTY_TO_REFER_UPDATED(
     "sas.duty-to-refer.updated",

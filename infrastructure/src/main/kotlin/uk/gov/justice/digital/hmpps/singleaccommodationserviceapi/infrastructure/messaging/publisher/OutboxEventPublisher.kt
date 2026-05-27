@@ -64,9 +64,14 @@ class OutboxEventPublisher(
     eventType: SingleAccommodationServiceDomainEventType,
   ): PublishResponse {
     val detailUrl = hmppsDomainEventUrlConfig.getUrlForDomainEventId(eventType, outboxEventEntity.aggregateId)
+    val externalId = if (eventType == SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED) {
+      outboxEventEntity.aggregateId
+    } else {
+      null
+    }
     val snsEvent = HmppsDomainEvent(
       eventType = eventType.typeName,
-      externalId = outboxEventEntity.aggregateId,
+      externalId = externalId,
       detailUrl = detailUrl,
       version = 1,
       description = eventType.typeDescription,

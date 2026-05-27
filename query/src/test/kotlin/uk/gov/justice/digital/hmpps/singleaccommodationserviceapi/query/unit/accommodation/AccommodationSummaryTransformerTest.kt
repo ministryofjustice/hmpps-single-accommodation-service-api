@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationSummaryTransformer
 import java.time.LocalDate
 import java.util.UUID
@@ -16,7 +16,7 @@ class AccommodationSummaryTransformerTest {
 
   @Test
   fun `should map all fields when address has status and usage`() {
-    val address = buildAddress(
+    val address = buildCanonicalAddress(
       cprAddressId = UUID.randomUUID(),
       noFixedAbode = false,
       startDate = LocalDate.of(2023, 1, 1),
@@ -71,7 +71,7 @@ class AccommodationSummaryTransformerTest {
 
   @Test
   fun `should return null status when addressStatus is null`() {
-    val address = buildAddress(
+    val address = buildCanonicalAddress(
       status = CanonicalAddressStatus(
         code = null,
         description = null,
@@ -87,7 +87,7 @@ class AccommodationSummaryTransformerTest {
 
   @Test
   fun `should handle null address fields`() {
-    val address = buildAddress(
+    val address = buildCanonicalAddress(
       postcode = null,
       subBuildingName = null,
       buildingName = null,

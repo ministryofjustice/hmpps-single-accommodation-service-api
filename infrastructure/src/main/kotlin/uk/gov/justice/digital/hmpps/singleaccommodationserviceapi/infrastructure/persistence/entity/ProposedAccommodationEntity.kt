@@ -19,6 +19,8 @@ open class ProposedAccommodationEntity(
   @Id
   val id: UUID,
   val caseId: UUID,
+  @DiffIgnore
+  var cprAddressId: UUID?,
   var name: String?,
   @Column(name = "accommodation_type_id", nullable = false)
   var accommodationTypeId: UUID,
