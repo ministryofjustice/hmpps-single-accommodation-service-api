@@ -110,15 +110,22 @@ class DutyToReferAggregate private constructor(
     }
   }
 
+  // validate against all withdrawal related fields for incoming change
   private fun validateWithdrawal(newStatus: DtrStatus, reason: WithdrawalReason?, reasonOther: String?) {
     when {
-      newStatus != DtrStatus.WITHDRAWN ->
+      // if status is not WITHDRAWN
+      newStatus != DtrStatus.WITHDRAWN -> {
+        // validate no reason or free text reason is provided
         if (reason != null || reasonOther != null) throw DutyToReferWithdrawalReasonNotApplicableException()
+      }
+      // withdrawal - mandatory reason enum check
       reason == null -> throw DutyToReferWithdrawalReasonRequiredException()
+      // withdrawal - free text reason validation
       reason == WithdrawalReason.OTHER -> {
         if (reasonOther.isNullOrBlank()) throw DutyToReferWithdrawalReasonRequiredException()
         if (reasonOther.length > WITHDRAWAL_REASON_OTHER_MAX_LENGTH) throw DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException()
       }
+      // Non-OTHER reason enum provided — validate no free text reason is provided
       reasonOther != null -> throw DutyToReferWithdrawalReasonNotApplicableException()
     }
   }
