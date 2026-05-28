@@ -24,6 +24,10 @@ dependencies {
   implementation(libs.springdoc)
   implementation(libs.javers)
 
+  // Due to use of a spring bom in hmpps-starter we have to force
+  // the postgres version using enforcedPlatform
+  implementation(enforcedPlatform(libs.postgres))
+
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
   testImplementation(libs.spring.resttestclient)

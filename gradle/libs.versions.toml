@@ -14,6 +14,7 @@ apache-commons-csv = "1.14.1"
 detekt = "2.0.0-alpha.3"
 awaitility = "4.3.0"
 javers = "7.11.0"
+postgres = "42.7.11"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -57,7 +58,7 @@ apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = 
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 # Runtime
-postgres = { module = "org.postgresql:postgresql" }
+postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql" }
 
