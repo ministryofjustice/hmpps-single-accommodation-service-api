@@ -109,7 +109,7 @@ class DutyToReferQueryService(
 
   private fun createDutyToReferTimelineRecordWithLAName(record: AuditRecordDto, localAuthorityAreaName: String?): AuditRecordDto {
     if (localAuthorityAreaName == null) return record
-    return record.copy(extraInformation = record.extraInformation + (LOCAL_AUTHORITY_AREA_NAME to localAuthorityAreaName))
+    return record.copy(extraInformation = record.extraInformation.orEmpty() + (LOCAL_AUTHORITY_AREA_NAME to localAuthorityAreaName))
   }
 
   private fun getDutyToReferNotesTimeline(dtrEntity: DutyToReferEntity): List<AuditRecordDto> {
