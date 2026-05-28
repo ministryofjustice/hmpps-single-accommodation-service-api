@@ -239,7 +239,7 @@ class DutyToReferAggregateTest {
   }
 
   @Nested
-  inner class `withdrawal reason validation` {
+  inner class WithdrawalReasonValidation {
     @Test
     fun `update to WITHDRAWN without reason should throw DutyToReferWithdrawalReasonRequiredException`() {
       val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
