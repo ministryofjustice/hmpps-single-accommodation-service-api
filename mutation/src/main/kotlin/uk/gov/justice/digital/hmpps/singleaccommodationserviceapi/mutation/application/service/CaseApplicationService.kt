@@ -39,40 +39,45 @@ class CaseApplicationService(
     val caseByIdentifier = mapPersistedIdentifiersToCase(caseDtos).toMutableMap()
     val casesToPersist = mutableSetOf<CaseEntity>()
 
-    caseDtos.filter { it.cpr != null }.forEach { caseDto ->
+    caseDtos.forEach { caseDto ->
 
-      val latestIdentifiers = buildMap {
-        put(caseDto.crn, IdentifierType.CRN)
-        crnToPrisonNumber[caseDto.crn]?.let { put(it, IdentifierType.PRISON_NUMBER) }
+      val cprIds = caseDto.cpr?.identifiers ?: run {
+        log.error("No identifiers returned from CPR for CRN {}", caseDto.crn)
+        return@forEach
       }
 
-      val identifiers = buildMap {
-        caseDto.cpr?.identifiers?.crns?.associateWith { IdentifierType.CRN }?.let { putAll(it) }
-        caseDto.cpr?.identifiers?.prisonNumbers?.associateWith { IdentifierType.PRISON_NUMBER }?.let { putAll(it) }
+      val identifiersFromDelius = buildIdentifiers(crn = caseDto.crn, prisonNumber = crnToPrisonNumber[caseDto.crn])
+
+      // map the identifiers from CPR, to check if any are already known to SAS
+      val identifiersFromCpr = buildMap {
+        cprIds.crns.associateWith { IdentifierType.CRN }.let { putAll(it) }
+        cprIds.prisonNumbers.associateWith { IdentifierType.PRISON_NUMBER }.let { putAll(it) }
       }
 
-      val existingCase = identifiers.firstNotNullOfOrNull { (value, type) ->
-        caseByIdentifier[value to type]
+      // try to find any existing case with the identifiers
+      val existingCase = identifiersFromCpr.firstNotNullOfOrNull { (identifier, identifierType) ->
+        caseByIdentifier[identifier to identifierType]
       }
 
+      // if there is a match, update the case with the latest CRN and ON from delius, or create a new entity
       val caseEntity = if (existingCase != null) {
-        log.debug("Updating identifiers for case: {}", existingCase.id)
-        existingCase.addMissingIdentifiers(latestIdentifiers)
+        log.info("Updating case: [{}] with identifiers: {}", existingCase.id, identifiersFromDelius)
+        existingCase.addMissingIdentifiers(identifiersFromDelius)
         existingCase
       } else {
-        log.debug("Creating new Case for CRN: {}", caseDto.crn)
+        log.info("Creating new Case with identifiers: {}", identifiersFromDelius)
         CaseMapper.create(
           CaseAggregate.hydrateNew().snapshot(),
-          latestIdentifiers,
+          identifiersFromDelius,
         )
       }
 
       casesToPersist += caseEntity
 
-      latestIdentifiers.forEach {
-        caseByIdentifier[it.key to it.value] = caseEntity
-      }
+      // add the new identifiers and existing case to the cases caseByIdentifier, so we don't duplicate.
+      identifiersFromDelius.forEach { caseByIdentifier[it.key to it.value] = caseEntity }
     }
+    caseRepository.saveAll(casesToPersist)
   }
 
   private fun mapPersistedIdentifiersToCase(caseDtos: List<CaseMutationOrchestrationDto>): Map<Pair<String, IdentifierType>, CaseEntity> {
@@ -105,21 +110,13 @@ class CaseApplicationService(
     if (caseEntity != null) {
       updateCase(crn, caseEntity)
     } else {
-      val identifiers = getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!
+      val identifiers = getCorePersonRecord(crn, IdentifierType.CRN).identifiers
+      requireNotNull(identifiers) { "No identifiers returned from CPR for CRN $crn." }
+
       val caseEntity =
         findByAndUpdatePersonIdentifiers(crn = crn, prisonNumber = prisonNumber, identifiers = identifiers)
-      upsertCase(crn, caseEntity, identifiers)
-    }
-  }
 
-  private fun upsertCase(crn: String, caseEntity: CaseEntity?, identifiers: Identifiers?) {
-    require(caseEntity != null || identifiers != null) {
-      "Either caseEntity or identifiers must be provided"
-    }
-    if (caseEntity != null) {
-      updateCase(crn, caseEntity)
-    } else {
-      createNewCase(crn, identifiers!!)
+      caseEntity?.let { updateCase(crn, caseEntity) } ?: createNewCase(crn, identifiers)
     }
   }
 
@@ -182,12 +179,7 @@ class CaseApplicationService(
     }
 
     return caseRepository.findByIdentifiers(crns = crns, prisonNumbers = prisonNumbers)?.also { entity ->
-      entity.addMissingIdentifiers(
-        buildMap {
-          put(crn, IdentifierType.CRN)
-          prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
-        },
-      )
+      entity.addMissingIdentifiers(buildIdentifiers(crn, prisonNumber))
     }
   }
 
@@ -204,5 +196,10 @@ class CaseApplicationService(
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     caseAggregate.updateTier(tier.tierScore)
     caseRepository.save(CaseMapper.merge(caseEntity, caseAggregate.snapshot()))
+  }
+
+  private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
+    put(crn, IdentifierType.CRN)
+    prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
   }
 }

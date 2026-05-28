@@ -68,6 +68,7 @@ class CaseControllerIT : IntegrationTestBase() {
     stubInitialRoshAndTier()
   }
 
+  @Test
   fun `matches a case by all identifiers from CorePersonRecord and adds the latest ones`() {
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
@@ -80,6 +81,10 @@ class CaseControllerIT : IntegrationTestBase() {
     val crnToAddForCase2 = "crnToAddForCase2"
     val prisonNumberToAddForCase2 = "prisonNumberToAddForCase2"
 
+    // cas3 3 identifiers
+    val unknownCaseCRN = "unknownCRN"
+    val unknownCasePrisonNumber = "unknownPrisonNumber"
+
     val case1 = buildCaseEntity {
       withCrn(knownCrnForCase1)
     }
@@ -90,9 +95,15 @@ class CaseControllerIT : IntegrationTestBase() {
 
     caseRepository.saveAllAndFlush(listOf(case1, case2))
 
+    val unknownCase = buildCaseEntity {
+      withCrn(unknownCaseCRN)
+      withPrisonNumber(unknownCasePrisonNumber)
+    }
+
     val cases = listOf(
       buildCase(crn = crnToAddForCase1, nomsNumber = prisonNumberToAddForCase1),
       buildCase(crn = crnToAddForCase2, nomsNumber = prisonNumberToAddForCase2),
+      buildCase(crn = unknownCaseCRN, nomsNumber = unknownCasePrisonNumber),
     )
 
     // case list return should not match any persisted CRNs
@@ -118,11 +129,21 @@ class CaseControllerIT : IntegrationTestBase() {
       additionalPrisonNumbers = listOf(prisonNumberToAddForCase2),
     )
 
+    // returns the CRN from the case list, and the persisted Prison Number for the case
+    stubCorePersonRecord(
+      crn = unknownCaseCRN,
+      prisonNumber = unknownCasePrisonNumber,
+    )
+
+    assertThat(caseRepository.findAll().size).isEqualTo(2)
+
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
-      .jsonPath("$.data.length()").isEqualTo(2)
+      .jsonPath("$.data.length()").isEqualTo(3)
+
+    assertThat(caseRepository.findAll().size).isEqualTo(3)
 
     val updatedCase1 = caseRepository.findByCrn(crnToAddForCase1)!!
 
@@ -139,7 +160,7 @@ class CaseControllerIT : IntegrationTestBase() {
     val updatedCase2 = caseRepository.findByCrn(crnToAddForCase2)!!
     assertThat(updatedCase2.latestCrn()).isEqualTo(crnToAddForCase2)
 
-    assertThat(caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!.caseIdentifiers)
+    assertThat(updatedCase2.caseIdentifiers)
       .extracting<String> { it.identifier }
       .hasSize(4)
       .containsExactlyInAnyOrder(
@@ -148,18 +169,39 @@ class CaseControllerIT : IntegrationTestBase() {
         crnToAddForCase2,
         prisonNumberToAddForCase2,
       )
+
+    val createdCase = caseRepository.findByCrn(unknownCaseCRN)!!
+    assertThat(createdCase.caseIdentifiers)
+      .extracting<String> { it.identifier }
+      .hasSize(2)
+      .containsExactlyInAnyOrder(
+        unknownCaseCRN,
+        unknownCasePrisonNumber,
+      )
   }
 
   @Test
-  fun `should get successful response from case-list`() {
+  fun `should update existing, create new and return expected case list`() {
+    // there are 20 crns created and stubbed for the case list.
     stubCaseList()
+    // there are 10 added to the SAS database
     seedCaseEntities()
+    // and 10 we will need to call CPR for. 2 of these are errors.
     stubAdditionalCorePersonRecords()
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    assertThat(caseRepository.findAll().size).isEqualTo(10)
+
+    val result = restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+
+    result.expectBody().jsonPath("$.data.length()").isEqualTo(20)
+
+    // TODO this returns 18 (instead of 20) because we currently do not persist case-list results from delius that fail CPR calls,
+    // but still return them in the case list...
+    assertThat(caseRepository.findAll().size).isEqualTo(18)
+
+    result.expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
