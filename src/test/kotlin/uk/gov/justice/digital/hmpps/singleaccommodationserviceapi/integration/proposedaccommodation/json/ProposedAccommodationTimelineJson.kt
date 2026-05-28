@@ -24,10 +24,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"$caseId"
          },
          {
-            "field":"name",
-            "value":"Mother's caravan"
-         },
-         {
             "field":"accommodationTypeDescription",
             "value":"$accommodationDescription"
          },
@@ -50,10 +46,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
          {
             "field":"postcode",
             "value":"test postcode"
-         },
-         {
-            "field":"subBuildingName",
-            "value":null
          },
          {
             "field":"buildingName",
@@ -209,10 +201,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "value":"$caseId"
          },
          {
-            "field":"name",
-            "value":"Mother's caravan"
-         },
-         {
             "field":"accommodationTypeDescription",
             "value":"$initialAccommodationTypeDescription"
          },
@@ -275,5 +263,75 @@ fun expectedGetProposedAccommodationTimelineResponse(
       ]
    }
   ]
+}
+""".trimIndent()
+
+fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
+  proposedAccommodationId: UUID,
+  caseId: UUID,
+  startDate: String,
+) = """
+{
+   "data":[
+      {
+         "type":"UPDATE",
+         "author":"nDelius user",
+         "commitDate":null,
+         "changes":[
+            {
+               "field":"buildingNumber",
+               "value":"15",
+               "oldValue":"11"
+            }
+         ]
+      },
+      {
+         "type":"CREATE",
+         "author":"nDelius user",
+         "commitDate":null,
+         "changes":[
+            {
+               "field":"id",
+               "value":"$proposedAccommodationId"
+            },
+            {
+               "field":"caseId",
+               "value":"$caseId"
+            },
+            {
+               "field":"accommodationTypeDescription",
+               "value":"Living in the home of a friend, family member or partner: transient"
+            },
+            {
+               "field":"verificationStatus",
+               "value":"PASSED"
+            },
+            {
+               "field":"nextAccommodationStatus",
+               "value":"YES"
+            },
+            {
+               "field":"startDate",
+               "value":"$startDate"
+            },
+            {
+               "field":"postcode",
+               "value":"W1 8XX"
+            },
+            {
+               "field":"buildingNumber",
+               "value":"11"
+            },
+            {
+               "field":"throughfareName",
+               "value":"Piccadilly Circus"
+            },
+            {
+               "field":"postTown",
+               "value":"London"
+            }
+         ]
+      }
+   ]
 }
 """.trimIndent()

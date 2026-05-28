@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.toAccommodationDetail
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -55,6 +56,20 @@ class AccommodationTransformerTest {
           code = "NOT_HMP",
         ),
       ),
+    )
+
+    assertThat(result).isEqualTo(
+      buildAccommodationStatusDto(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+    )
+  }
+
+  @Test
+  fun `should get accommodation status for next accommodation when current accommodation is null`() {
+    val result = AccommodationTransformer.getAccommodationStatus(
+      currentAccommodation = null,
     )
 
     assertThat(result).isEqualTo(
@@ -363,80 +378,6 @@ class AccommodationTransformerTest {
     assertThat(result.address.uprn).isNull()
   }
 
-  @Test
-  fun `should map proposed accommodation entity correctly`() {
-    val entity = buildProposedAccommodationEntity(
-      cprAddressId = UUID.randomUUID(),
-      createdAt = Instant.now(),
-      startDate = LocalDate.of(2023, 1, 1),
-      endDate = LocalDate.of(2024, 1, 1),
-      postcode = "AB1 2CD",
-      subBuildingName = "Flat 1",
-      buildingName = "Test House",
-      buildingNumber = "10",
-      throughfareName = "High Street",
-      dependentLocality = "Town Centre",
-      postTown = "London",
-      county = "Greater London",
-      country = "England",
-      uprn = "12345",
-    )
-    val type = buildAccommodationTypeEntity(
-      code = AddressUsageCode.A01A.name,
-      name = AddressUsageCode.A01A.description,
-    )
-    val status = buildAccommodationStatusEntity(
-      code = AddressStatusCode.M.name,
-      name = AddressStatusCode.M.description,
-    )
-
-    val result = AccommodationTransformer.toAccommodationSummary(
-      crn = "X123",
-      entity,
-      type,
-      status,
-    )
-
-    assertThat(result.crn).isEqualTo("X123")
-    assertThat(result.startDate).isEqualTo(entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate().toString())
-    assertThat(result.endDate).isNull()
-    assertThat(result.status!!.code).isEqualTo(AddressStatusCode.M.name)
-    assertThat(result.status!!.description).isEqualTo(AddressStatusCode.M.description)
-    assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
-    assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
-    assertThat(result.address.postcode).isEqualTo(entity.postcode)
-    assertThat(result.address.subBuildingName).isEqualTo(entity.subBuildingName)
-    assertThat(result.address.buildingName).isEqualTo(entity.buildingName)
-    assertThat(result.address.buildingNumber).isEqualTo(entity.buildingNumber)
-    assertThat(result.address.thoroughfareName).isEqualTo(entity.throughfareName)
-    assertThat(result.address.dependentLocality).isEqualTo(entity.dependentLocality)
-    assertThat(result.address.postTown).isEqualTo(entity.postTown)
-    assertThat(result.address.county).isEqualTo(entity.county)
-    assertThat(result.address.country).isEqualTo(entity.country)
-    assertThat(result.address.uprn).isEqualTo(entity.uprn)
-  }
-
-  @Test
-  fun `should handle null status entity`() {
-    val entity = buildProposedAccommodationEntity(
-      cprAddressId = UUID.randomUUID(),
-      createdAt = Instant.now(),
-    )
-    val type = buildAccommodationTypeEntity(
-      code = AddressUsageCode.A01A.name,
-      name = AddressUsageCode.A01A.description,
-    )
-    val result = AccommodationTransformer.toAccommodationSummary(
-      crn = "X123",
-      entity,
-      type,
-      null,
-    )
-    assertThat(result.status).isNull()
-    assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
-    assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
-  }
-
   @Nested
   inner class ToAccommodationDetail {
 
@@ -480,7 +421,7 @@ class AccommodationTransformerTest {
       assertThat(result.cprAddressId).isEqualTo(entity.cprAddressId)
       assertThat(result.typeVerified).isEqualTo(entity.typeVerified)
       assertThat(result.noFixedAbode).isEqualTo(entity.noFixedAbode)
-      assertThat(result.startDate).isEqualTo(entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate().toString())
+      assertThat(result.startDate).isEqualTo(entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate())
       assertThat(result.endDate).isNull()
       assertThat(result.status!!.code).isEqualTo(AddressStatusCode.M.name)
       assertThat(result.status!!.description).isEqualTo(AddressStatusCode.M.description)
@@ -517,6 +458,92 @@ class AccommodationTransformerTest {
       assertThat(result.status).isNull()
       assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
       assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
+    }
+
+    @Test
+    fun `should map canonical address correctly`() {
+      val cprAddressId = UUID.randomUUID()
+      val address = buildCanonicalAddress(
+        cprAddressId = cprAddressId,
+        typeVerified = true,
+        noFixedAbode = true,
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        postcode = "NW1 6XE",
+        subBuildingName = "Flat 4B",
+        buildingName = "Camden Heights",
+        buildingNumber = "12",
+        thoroughfareName = "Camden High Street",
+        dependentLocality = "Camden Town",
+        postTown = "London",
+        county = "Greater London",
+        country = "United Kingdom",
+        countryCode = "GB",
+        status = CanonicalAddressStatus(
+          code = AddressStatusCode.P.name,
+          description = AddressStatusCode.P.description,
+        ),
+        usage = CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A01A.name,
+            description = AddressUsageCode.A01A.description,
+          ),
+          isActive = true,
+        ),
+        uprn = "100012345678",
+      )
+
+      val result = toAccommodationDetail(
+        crn = "X92123",
+        address = address,
+      )
+
+      assertThat(result.crn).isEqualTo("X92123")
+      assertThat(result.cprAddressId).isEqualTo(cprAddressId)
+      assertThat(result.typeVerified).isTrue
+      assertThat(result.noFixedAbode).isTrue
+      assertThat(result.startDate).isEqualTo(LocalDate.of(2023, 1, 1))
+      assertThat(result.endDate).isEqualTo(LocalDate.of(2024, 1, 1))
+      assertThat(result.status!!.code).isEqualTo(AddressStatusCode.P.name)
+      assertThat(result.status!!.description).isEqualTo(AddressStatusCode.P.description)
+      assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
+      assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
+      assertThat(result.address.postcode).isEqualTo(address.postcode)
+      assertThat(result.address.subBuildingName).isEqualTo(address.subBuildingName)
+      assertThat(result.address.buildingName).isEqualTo(address.buildingName)
+      assertThat(result.address.buildingNumber).isEqualTo(address.buildingNumber)
+      assertThat(result.address.thoroughfareName).isEqualTo(address.thoroughfareName)
+      assertThat(result.address.dependentLocality).isEqualTo(address.dependentLocality)
+      assertThat(result.address.postTown).isEqualTo(address.postTown)
+      assertThat(result.address.county).isEqualTo(address.county)
+      assertThat(result.address.country).isEqualTo(null)
+      assertThat(result.address.uprn).isEqualTo(address.uprn)
+    }
+
+    @Test
+    fun `should return null status and type when canonical address has null status code and no active usage`() {
+      val address = buildCanonicalAddress(
+        cprAddressId = UUID.randomUUID(),
+        status = CanonicalAddressStatus(
+          code = null,
+          description = null,
+        ),
+        usage = CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A01A.name,
+            description = AddressUsageCode.A01A.description,
+          ),
+          isActive = false,
+        ),
+      )
+
+      val result = toAccommodationDetail(
+        crn = "X92123",
+        address = address,
+      )
+
+      assertThat(result.status).isNull()
+      assertThat(result.type).isNull()
     }
   }
 }

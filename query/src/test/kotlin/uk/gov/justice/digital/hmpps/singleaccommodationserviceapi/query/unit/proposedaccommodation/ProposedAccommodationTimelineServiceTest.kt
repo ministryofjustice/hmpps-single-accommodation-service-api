@@ -20,10 +20,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.time.Instant
 import java.util.UUID
@@ -48,6 +50,13 @@ class ProposedAccommodationTimelineServiceTest {
 
   private val crn = UUID.randomUUID().toString()
   private val caseId = UUID.randomUUID()
+  private val deliusSyncUser = buildUserEntity(
+    username = "DELIUS_SYNC_USER",
+    authSource = AuthSource.DELIUS,
+    forename = "nDelius",
+    surname = "user",
+    email = "DELIUS_SYNC_USER",
+  )
 
   @Nested
   inner class GetProposedAccommodationTimeline {
@@ -60,6 +69,12 @@ class ProposedAccommodationTimelineServiceTest {
         code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
+      every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -116,6 +131,12 @@ class ProposedAccommodationTimelineServiceTest {
       val expectedProposedAccommodationCreatedAuditRecord = buildAuditRecordDto()
 
       every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
+      every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
           eq(crn),
@@ -165,6 +186,12 @@ class ProposedAccommodationTimelineServiceTest {
     @Test
     fun `should throw NotFoundException when not found`() {
       val id = UUID.randomUUID()
+      every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
       every { proposedAccommodationRepository.findByIdAndCrnWithNotes(id, crn) } returns null
 
       assertThatThrownBy { service.getProposedAccommodationTimeline(id, crn) }
@@ -193,6 +220,12 @@ class ProposedAccommodationTimelineServiceTest {
         ),
       )
 
+      every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -241,6 +274,12 @@ class ProposedAccommodationTimelineServiceTest {
       )
 
       every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
+      every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
           eq(crn),
@@ -284,6 +323,12 @@ class ProposedAccommodationTimelineServiceTest {
       )
 
       every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
+      every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
           eq(crn),
@@ -303,6 +348,51 @@ class ProposedAccommodationTimelineServiceTest {
       assertThat(change.field).isEqualTo("nextAccommodationStatus")
       assertThat(change.oldValue).isEqualTo("NO")
       assertThat(change.value).isEqualTo("YES")
+    }
+
+    @Test
+    fun `should nullify commit date for proposed accommodation audit records authored by Delius sync user`() {
+      val id = UUID.randomUUID()
+      val accommodationType = buildAccommodationTypeEntity()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(
+        id = id,
+        accommodationTypeEntity = accommodationType,
+      )
+      val deliusSyncAuditRecord = buildAuditRecordDto(
+        author = deliusSyncUser.displayName(),
+        commitDate = Instant.now(),
+      )
+      val otherUserAuditRecord = buildAuditRecordDto(
+        author = "Joe Bloggs",
+        commitDate = Instant.now().minusSeconds(60),
+      )
+
+      every {
+        userRepository.findByUsernameAndAuthSource(
+          username = Username("DELIUS_SYNC_USER"),
+          authSource = AuthSource.DELIUS,
+        )
+      } returns deliusSyncUser
+      every {
+        proposedAccommodationRepository.findByIdAndCrnWithNotes(
+          eq(proposedAccommodationEntity.id),
+          eq(crn),
+        )
+      } returns proposedAccommodationEntity
+      every {
+        auditService.fullAuditHistory(id, ProposedAccommodationEntity::class.java)
+      } returns listOf(deliusSyncAuditRecord, otherUserAuditRecord)
+      every { accommodationTypeRepository.findAll() } returns listOf(accommodationType)
+
+      val result = service.getProposedAccommodationTimeline(id, crn)
+
+      assertThat(result).hasSize(2)
+      assertThat(result[0]).isEqualTo(
+        deliusSyncAuditRecord.copy(
+          commitDate = null,
+        ),
+      )
+      assertThat(result[1]).isEqualTo(otherUserAuditRecord)
     }
   }
 }

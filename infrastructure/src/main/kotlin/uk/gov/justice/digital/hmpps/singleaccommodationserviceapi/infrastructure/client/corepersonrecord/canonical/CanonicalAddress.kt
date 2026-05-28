@@ -18,6 +18,7 @@ data class CanonicalAddress(
   val uprn: String? = null,
   val status: CanonicalAddressStatus,
   val comment: String? = null,
+  val typeVerified: Boolean? = null,
   val usages: List<CanonicalAddressUsage> = emptyList(),
   val contacts: List<CanonicalContact> = emptyList(),
 )

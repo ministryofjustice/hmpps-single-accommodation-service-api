@@ -109,4 +109,9 @@ class UserService(
   }
 
   fun findUserByUserId(id: UUID) = userRepository.findByIdOrNull(id)
+
+  fun getNationalDeliusSystemUser() = userRepository.findByUsernameAndAuthSource(
+    username = Username("DELIUS_SYNC_USER"),
+    authSource = AuthSourceEntity.DELIUS,
+  )!!
 }

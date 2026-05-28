@@ -36,7 +36,7 @@ class AccommodationQueryService(
   fun getCurrentAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
     val caseEntity = caseRepository.findByCrn(crn)
     val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber)
+    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
     return if (orchestrationResult.upstreamFailures.isNotEmpty()) {
       toApiResponseDto(
         data = null,
@@ -101,12 +101,33 @@ class AccommodationQueryService(
       ).mapNotNull { it }
   }
 
+  fun getCurrentAndAllAccommodations(crn: String): ApiResponseDto<Pair<AccommodationSummaryDto?, List<AccommodationDetailDto>>> {
+    val caseEntity = caseRepository.findByCrn(crn)
+    val prisonNumber = caseEntity?.latestPrisonNumber()
+    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
+
+    val allAccommodations = orchestrationResult.data.cpr?.let {
+      it.addresses.map { toAccommodationDetail(crn, address = it) }
+    } ?: emptyList()
+
+    val currentAccommodation = getCurrentAccommodation(
+      crn = crn,
+      addresses = orchestrationResult.data.cpr?.addresses,
+      prisoner = orchestrationResult.data.prisoner,
+    )
+
+    return toApiResponseDto(
+      data = Pair(currentAccommodation, allAccommodations),
+      upstreamFailures = orchestrationResult.upstreamFailures,
+    )
+  }
+
   fun getAccommodationHistory(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
     val caseEntity = caseRepository.findByCrn(crn)
     val prisonNumber = caseEntity?.latestPrisonNumber()
 
     val orchestrationResult =
-      accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber)
+      accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
 
     val data = orchestrationResult.data
     val prisoner = data.prisoner

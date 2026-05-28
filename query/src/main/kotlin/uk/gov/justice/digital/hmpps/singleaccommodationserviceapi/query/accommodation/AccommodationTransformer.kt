@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 
 private const val PRISON_ACCOMMODATION_TYPE_CODE = "HMP"
 
@@ -151,41 +152,6 @@ object AccommodationTransformer {
     ),
   )
 
-  fun toAccommodationSummary(
-    crn: String,
-    proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
-    accommodationStatusEntity: AccommodationStatusEntity?,
-  ) = AccommodationSummaryDto(
-    crn = crn,
-    startDate = proposedAccommodationEntity.createdAt?.atZone(ZoneId.systemDefault())?.toLocalDate(),
-    endDate = null,
-    address = AccommodationAddressDetails(
-      postcode = proposedAccommodationEntity.postcode,
-      subBuildingName = proposedAccommodationEntity.subBuildingName,
-      buildingName = proposedAccommodationEntity.buildingName,
-      buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
-      dependentLocality = proposedAccommodationEntity.dependentLocality,
-      postTown = proposedAccommodationEntity.postTown,
-      county = proposedAccommodationEntity.county,
-      country = proposedAccommodationEntity.country,
-      uprn = proposedAccommodationEntity.uprn,
-    ),
-    status = accommodationStatusEntity?.let {
-      AccommodationStatusDto(
-        code = it.code,
-        description = it.name,
-      )
-    },
-    type = accommodationTypeEntity.let {
-      AccommodationTypeDto(
-        code = it.code,
-        description = it.name,
-      )
-    },
-  )
-
   fun toAccommodationDetail(
     crn: String,
     proposedAccommodationEntity: ProposedAccommodationEntity,
@@ -214,13 +180,49 @@ object AccommodationTransformer {
         description = it.name,
       )
     },
-    type = accommodationTypeEntity.let {
-      AccommodationTypeDto(
-        code = it.code,
-        description = it.name,
-      )
-    },
+    type = AccommodationTypeDto(
+      code = accommodationTypeEntity.code,
+      description = accommodationTypeEntity.name,
+    ),
     typeVerified = proposedAccommodationEntity.typeVerified,
     noFixedAbode = proposedAccommodationEntity.noFixedAbode,
   )
 }
+
+fun toAccommodationDetail(
+  crn: String,
+  address: CanonicalAddress,
+) = AccommodationDetailDto(
+  crn = crn,
+  cprAddressId = UUID.fromString(address.cprAddressId),
+  typeVerified = address.typeVerified,
+  noFixedAbode = address.noFixedAbode,
+  startDate = address.startDate?.let { LocalDate.parse(it) },
+  endDate = address.endDate?.let { LocalDate.parse(it) },
+  address = AccommodationAddressDetails(
+    postcode = address.postcode,
+    subBuildingName = address.subBuildingName,
+    buildingName = address.buildingName,
+    buildingNumber = address.buildingNumber,
+    thoroughfareName = address.thoroughfareName,
+    dependentLocality = address.dependentLocality,
+    postTown = address.postTown,
+    county = address.county,
+    country = null,
+    uprn = address.uprn,
+  ),
+  status = address.status.code?.let {
+    AccommodationStatusDto(
+      code = it,
+      description = address.status.description,
+    )
+  },
+  type = address.usages
+    .firstOrNull { it.isActive && it.usageCode.code != null }
+    ?.let {
+      AccommodationTypeDto(
+        code = it.usageCode.code!!,
+        description = it.usageCode.description,
+      )
+    },
+)
