@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
@@ -365,8 +366,9 @@ class ProposedAccommodationAggregateTest {
     assertThat(domainEventsToPublish).isEmpty()
   }
 
-  @Test
-  fun `should add AccommodationDeletedDomainEvent when registered with CPR and next accommodation changes to NO`() {
+  @ParameterizedTest
+  @EnumSource(value = NextAccommodationStatus::class, names = ["NO", "TO_BE_DECIDED"])
+  fun `should add AccommodationDeletedDomainEvent when registered with CPR and next accommodation changes`(nextAccommodationStatus: NextAccommodationStatus) {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -375,7 +377,7 @@ class ProposedAccommodationAggregateTest {
       newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
-      newNextAccommodationStatus = NextAccommodationStatus.NO,
+      newNextAccommodationStatus = nextAccommodationStatus,
       newAddress = AccommodationAddressDetails(
         postcode = accommodationDetails.address.postcode,
         subBuildingName = accommodationDetails.address.subBuildingName,

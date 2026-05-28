@@ -199,7 +199,7 @@ class ProposedAccommodationAggregate private constructor(
     newVerificationStatus: VerificationStatus,
   ): Boolean = (
     wasNextAccommodation(previousNextAccommodationStatus) &&
-      newNextAccommodationStatus == NextAccommodationStatus.NO
+      newNextAccommodationStatus != NextAccommodationStatus.YES
     ) ||
     (
       wasNextAccommodation(previousNextAccommodationStatus) &&
