@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
@@ -40,6 +41,8 @@ object DutyToReferTransformer {
     submissionDate = entity.submissionDate,
     createdBy = createdByName,
     createdAt = entity.createdAt!!,
+    withdrawalReason = entity.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
+    withdrawalReasonOther = entity.withdrawalReasonOther,
   )
 
   fun toLocalAuthority(entity: DutyToReferEntity, localAuthorityAreaName: String?) = LocalAuthorityDto(

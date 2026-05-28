@@ -1,16 +1,21 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
 import java.util.UUID
 
 private const val NOTE_MAX_LENGTH = 4000
+private const val WITHDRAWAL_REASON_OTHER_MAX_LENGTH = 4000
 
 class DutyToReferAggregate private constructor(
   private val id: UUID,
@@ -19,6 +24,8 @@ class DutyToReferAggregate private constructor(
   private var referenceNumber: String? = null,
   private var submissionDate: LocalDate? = null,
   private var status: DtrStatus? = null,
+  private var withdrawalReason: WithdrawalReason? = null,
+  private var withdrawalReasonOther: String? = null,
   private var notes: MutableList<DutyToReferNote> = mutableListOf(),
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
@@ -37,6 +44,8 @@ class DutyToReferAggregate private constructor(
       submissionDate: LocalDate,
       status: DtrStatus,
       notes: List<DutyToReferNote>,
+      withdrawalReason: WithdrawalReason? = null,
+      withdrawalReasonOther: String? = null,
     ) = DutyToReferAggregate(
       id = id,
       caseId = caseId,
@@ -44,6 +53,8 @@ class DutyToReferAggregate private constructor(
       referenceNumber = referenceNumber,
       submissionDate = submissionDate,
       status = status,
+      withdrawalReason = withdrawalReason,
+      withdrawalReasonOther = withdrawalReasonOther,
       notes = notes.toMutableList(),
     )
   }
@@ -53,8 +64,11 @@ class DutyToReferAggregate private constructor(
     submissionDate: LocalDate,
     referenceNumber: String?,
     status: DtrStatus,
+    withdrawalReason: WithdrawalReason? = null,
+    withdrawalReasonOther: String? = null,
   ) {
     validateStatusTransition(status)
+    validateWithdrawal(status, withdrawalReason, withdrawalReasonOther)
 
     val previousStatus = this.status
 
@@ -62,6 +76,8 @@ class DutyToReferAggregate private constructor(
     this.submissionDate = submissionDate
     this.referenceNumber = referenceNumber
     this.status = status
+    this.withdrawalReason = withdrawalReason
+    this.withdrawalReasonOther = withdrawalReasonOther
 
     if (previousStatus != status) {
       domainEvents += DutyToReferUpdatedDomainEvent(id)
@@ -89,7 +105,28 @@ class DutyToReferAggregate private constructor(
     when (this.status) {
       null -> if (newStatus != DtrStatus.SUBMITTED) throw DutyToReferInvalidStatusException()
       DtrStatus.SUBMITTED -> Unit
+      DtrStatus.WITHDRAWN -> if (newStatus != DtrStatus.WITHDRAWN) throw DutyToReferInvalidStatusTransitionException()
       else -> if (newStatus == DtrStatus.SUBMITTED) throw DutyToReferInvalidStatusTransitionException()
+    }
+  }
+
+  // validate against all withdrawal related fields for incoming change
+  private fun validateWithdrawal(newStatus: DtrStatus, reason: WithdrawalReason?, reasonOther: String?) {
+    when {
+      // if status is not WITHDRAWN
+      newStatus != DtrStatus.WITHDRAWN -> {
+        // validate no reason or free text reason is provided
+        if (reason != null || reasonOther != null) throw DutyToReferWithdrawalReasonNotApplicableException()
+      }
+      // withdrawal - mandatory reason enum check
+      reason == null -> throw DutyToReferWithdrawalReasonRequiredException()
+      // withdrawal - free text reason validation
+      reason == WithdrawalReason.OTHER -> {
+        if (reasonOther.isNullOrBlank()) throw DutyToReferWithdrawalReasonRequiredException()
+        if (reasonOther.length > WITHDRAWAL_REASON_OTHER_MAX_LENGTH) throw DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException()
+      }
+      // Non-OTHER reason enum provided — validate no free text reason is provided
+      reasonOther != null -> throw DutyToReferWithdrawalReasonNotApplicableException()
     }
   }
 
@@ -103,6 +140,8 @@ class DutyToReferAggregate private constructor(
     submissionDate = submissionDate!!,
     status = status!!,
     notes = notes.toList(),
+    withdrawalReason = withdrawalReason,
+    withdrawalReasonOther = withdrawalReasonOther,
   )
 
   data class DutyToReferSnapshot(
@@ -113,6 +152,8 @@ class DutyToReferAggregate private constructor(
     val submissionDate: LocalDate,
     val status: DtrStatus,
     val notes: List<DutyToReferNote>,
+    val withdrawalReason: WithdrawalReason? = null,
+    val withdrawalReasonOther: String? = null,
   )
 
   data class DutyToReferNote(
