@@ -44,7 +44,7 @@ fun buildAccommodationAddressDetails(
   dependentLocality: String? = "The Area",
   postTown: String = "London",
   county: String? = "London",
-  country: String = "England",
+  country: String? = "England",
   uprn: String? = "1234567890",
 ) = AccommodationAddressDetails(
   postcode = postcode,

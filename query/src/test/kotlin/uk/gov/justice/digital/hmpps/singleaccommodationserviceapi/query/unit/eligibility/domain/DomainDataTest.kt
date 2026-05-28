@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
@@ -69,12 +70,20 @@ class DomainDataTest {
       isCas1 = true,
     )
 
+    val nextAccommodations = listOf(
+      buildAccommodationSummaryDto(
+        status = buildAccommodationStatusDto(
+          code = "PR1",
+        ),
+      ),
+    )
+
     val expected = buildDomainData(
       crn = crn,
       tierScore = tier.tierScore,
       sex = cpr.sex?.code,
       currentAccommodation = currentAccommodation,
-      nextAccommodation = null,
+      nextAccommodations = nextAccommodations,
       cas1Application = cas1Application,
       cas3Application = cas3Application,
       dutyToRefer = dutyToRefer,
@@ -90,7 +99,7 @@ class DomainDataTest {
       cas3Application = cas3Application,
       currentAccommodation = currentAccommodation,
       accommodationTypes = listOf(currentAccommodationTypeEntity),
-      nextAccommodation = null,
+      nextAccommodations = nextAccommodations,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     )
@@ -118,7 +127,7 @@ class DomainDataTest {
       cas3Application = null,
       currentAccommodation = null,
       currentAccommodationTypeEntity = null,
-      nextAccommodation = null,
+      nextAccommodations = emptyList(),
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = null,
     )

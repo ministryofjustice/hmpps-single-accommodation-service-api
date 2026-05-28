@@ -14,6 +14,8 @@ import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -22,6 +24,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -239,6 +245,352 @@ class AccommodationQueryServiceTest {
       // then
       assertThat(result.data).isNull()
       assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
+    }
+
+    @Test
+    fun `getNextAccommodations should orchestrate calls and get the next accommodations`() {
+      every { accommodationOrchestrationService.getNextAccommodationData(crn) } returns OrchestrationResultDto(
+        data = buildAccommodationOrchestrationDto(
+          cpr = buildCorePersonRecord(
+            addresses = listOf(
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "SW1A 1AA",
+                thoroughfareName = "Some Street",
+                postTown = "London",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.M.name,
+                  description = AddressStatusCode.M.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A01A.name,
+                    description = AddressUsageCode.A01A.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "GL53 8GH",
+                thoroughfareName = "",
+                postTown = "Cheltenham",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.PR.name,
+                  description = AddressStatusCode.PR.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A07A.name,
+                    description = AddressUsageCode.A07A.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+            ),
+          ),
+          cas1Application = buildCas1Application(
+            placementStatus = Cas1PlacementStatus.UPCOMING,
+            premises = buildCas1SuitablePremisesDto(
+              postcode = "SW1A 1AB",
+            ),
+          ),
+          cas3Application = buildCas3Application(
+            bookingStatus = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3SuitablePremisesDto(
+              postcode = "SW1A 1A4",
+            ),
+          ),
+        ),
+        upstreamFailures = emptyList(),
+      )
+
+      val result = accommodationQueryService.getNextAccommodations(crn)
+      assertThat(result.data.size).isEqualTo(3)
+      assertThat(result.data.first().address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.data.first().status!!.code).isEqualTo("PR")
+
+      assertThat(result.data[1].address.postcode).isEqualTo("SW1A 1AB")
+      assertThat(result.data[1].status!!.code).isEqualTo("PR")
+
+      assertThat(result.data.last().address.postcode).isEqualTo("SW1A 1A4")
+      assertThat(result.data.last().status!!.code).isEqualTo("PR")
+    }
+
+    @Test
+    fun `getNextAccommodations get the next accommodations`() {
+      val addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = null,
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A01A.name,
+              description = AddressUsageCode.A01A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = null,
+          noFixedAbode = false,
+          postcode = "GL53 8GH",
+          thoroughfareName = "",
+          postTown = "Cheltenham",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+      )
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.UPCOMING,
+        premises = buildCas1SuitablePremisesDto(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.CONFIRMED,
+        premises = buildCas3SuitablePremisesDto(
+          postcode = "SW1A 1A4",
+        ),
+      )
+
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
+      assertThat(result.size).isEqualTo(3)
+      assertThat(result.first().address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.first().status!!.code).isEqualTo("PR")
+
+      assertThat(result[1].address.postcode).isEqualTo("SW1A 1AB")
+      assertThat(result[1].status!!.code).isEqualTo("PR")
+
+      assertThat(result.last().address.postcode).isEqualTo("SW1A 1A4")
+      assertThat(result.last().status!!.code).isEqualTo("PR")
+    }
+
+    @Test
+    fun `getNextAccommodations get the next accommodations without cas1`() {
+      val addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = null,
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A01A.name,
+              description = AddressUsageCode.A01A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = null,
+          noFixedAbode = false,
+          postcode = "GL53 8GH",
+          thoroughfareName = "",
+          postTown = "Cheltenham",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+      )
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.ARRIVED,
+        premises = buildCas1SuitablePremisesDto(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.CONFIRMED,
+        premises = buildCas3SuitablePremisesDto(
+          postcode = "SW1A 1A4",
+        ),
+      )
+
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
+      assertThat(result.size).isEqualTo(2)
+      assertThat(result.first().address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.first().status!!.code).isEqualTo("PR")
+
+      assertThat(result.last().address.postcode).isEqualTo("SW1A 1A4")
+      assertThat(result.last().status!!.code).isEqualTo("PR")
+    }
+
+    @Test
+    fun `getNextAccommodations get the next accommodations without cas3`() {
+      val addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = null,
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A01A.name,
+              description = AddressUsageCode.A01A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = null,
+          noFixedAbode = false,
+          postcode = "GL53 8GH",
+          thoroughfareName = "",
+          postTown = "Cheltenham",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+      )
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.UPCOMING,
+        premises = buildCas1SuitablePremisesDto(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.ARRIVED,
+        premises = buildCas3SuitablePremisesDto(
+          postcode = "SW1A 1A4",
+        ),
+      )
+
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
+      assertThat(result.size).isEqualTo(2)
+      assertThat(result.first().address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.first().status!!.code).isEqualTo("PR")
+
+      assertThat(result[1].address.postcode).isEqualTo("SW1A 1AB")
+      assertThat(result[1].status!!.code).isEqualTo("PR")
+    }
+
+    @Test
+    fun `getNextAccommodations should orchestrate calls and get no next accommodations when none are proposed`() {
+      every { accommodationOrchestrationService.getNextAccommodationData(crn) } returns OrchestrationResultDto(
+        data = buildAccommodationOrchestrationDto(
+          cpr = buildCorePersonRecord(
+            addresses = listOf(
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "SW1A 1AA",
+                thoroughfareName = "Some Street",
+                postTown = "London",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.M.name,
+                  description = AddressStatusCode.M.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A01A.name,
+                    description = AddressUsageCode.A01A.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "GL53 8GH",
+                thoroughfareName = "",
+                postTown = "Cheltenham",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.P.name,
+                  description = AddressStatusCode.P.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A07A.name,
+                    description = AddressUsageCode.A07A.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+            ),
+          ),
+          cas1Application = null,
+          cas3Application = null,
+        ),
+        upstreamFailures = emptyList(),
+      )
+
+      val result = accommodationQueryService.getNextAccommodations(crn)
+      assertThat(result.data.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `getNextAccommodations should return null data and upstream failure when calls fail`() {
+      every { accommodationOrchestrationService.getNextAccommodationData(crn) } returns OrchestrationResultDto(
+        data = buildAccommodationOrchestrationDto(
+          cpr = null,
+          cas1Application = null,
+          cas3Application = null,
+        ),
+        upstreamFailures = listOf(
+          buildUpstreamFailure(
+            callKey = ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN,
+          ),
+          buildUpstreamFailure(
+            callKey = ApiCallKeys.GET_CAS_1_APPLICATION,
+          ),
+          buildUpstreamFailure(
+            callKey = ApiCallKeys.GET_CAS_3_APPLICATION,
+          ),
+        ),
+      )
+
+      // when
+      val result = accommodationQueryService.getNextAccommodations(crn)
+
+      // then
+      assertThat(result.data).isEmpty()
+      assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
+      assertThat(result.upstreamFailures[1].endpoint).isEqualTo(ApiCallKeys.GET_CAS_1_APPLICATION)
+      assertThat(result.upstreamFailures.last().endpoint).isEqualTo(ApiCallKeys.GET_CAS_3_APPLICATION)
     }
   }
 

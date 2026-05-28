@@ -77,16 +77,14 @@ class EligibilityService(
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationStartDate={}, nextAccommodationStatus={}, nextAccommodationType={}",
+      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationsSize={}",
       data.crn,
       data.tierScore,
       data.sex,
       data.currentAccommodation?.endDate,
       data.currentAccommodation?.status?.description,
       data.currentAccommodation?.type?.description,
-      data.nextAccommodation?.startDate,
-      data.nextAccommodation?.status?.description,
-      data.nextAccommodation?.type?.description,
+      data.nextAccommodations.size,
     )
 
     val cas1 = evaluate("CAS1", data, cas1Tree)
@@ -133,12 +131,13 @@ class EligibilityService(
       )
     }
 
-    val nextAccommodation = eligibilityOrchestrationDto.cpr?.addresses?.let {
-      accommodationQueryService.getNextAccommodation(
-        crn,
-        addresses = it,
-      )
-    }
+    val nextAccommodations = accommodationQueryService.getNextAccommodations(
+      crn,
+      addresses = eligibilityOrchestrationDto.cpr?.addresses,
+      cas1Application = eligibilityOrchestrationDto.cas1Application,
+      cas3Application = eligibilityOrchestrationDto.cas3Application,
+      currentAccommodation = currentAccommodation,
+    )
 
     val suitableCrsReferral = eligibilityOrchestrationDto.commissionedRehabilitativeServices
       ?.filter { it.status == CrsReferralStatus.LIVE || it.status == CrsReferralStatus.COMPLETED }
@@ -152,7 +151,7 @@ class EligibilityService(
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
-      nextAccommodation = nextAccommodation,
+      nextAccommodations = nextAccommodations,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       accommodationTypes = accommodationTypes,

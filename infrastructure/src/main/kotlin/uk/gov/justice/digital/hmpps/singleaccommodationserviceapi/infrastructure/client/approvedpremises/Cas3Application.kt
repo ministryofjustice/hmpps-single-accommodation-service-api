@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import java.time.LocalDate
 import java.util.UUID
 
 data class Cas3Application(
@@ -8,6 +9,17 @@ data class Cas3Application(
   val applicationStatus: Cas3ApplicationStatus,
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
+  val premises: Cas3SuitablePremisesDto?,
+)
+
+data class Cas3SuitablePremisesDto(
+  val name: String?,
+  val startDate: LocalDate?,
+  val endDate: LocalDate?,
+  val addressLine1: String,
+  val addressLine2: String?,
+  val town: String?,
+  val postcode: String,
 )
 
 enum class Cas3ApplicationStatus(val casValue: String) {
