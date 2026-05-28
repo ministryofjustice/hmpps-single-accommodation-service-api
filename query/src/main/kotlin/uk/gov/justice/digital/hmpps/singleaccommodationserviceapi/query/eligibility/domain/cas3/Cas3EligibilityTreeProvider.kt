@@ -16,12 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
 
 @Component
 class Cas3EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val validation: Cas3ValidationRuleSet,
   private val upcoming: Cas3UpcomingRuleSet,
   private val upcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val suitability: Cas3SuitabilityRuleSet,
@@ -65,16 +63,10 @@ class Cas3EligibilityTreeProvider(
       .onFail(eligibilityNode)
       .build()
 
-    val upcomingNode = builder
+    return builder
       .ruleSet("Cas3Upcoming", upcoming, upcomingContextUpdater)
       .onPass(suitabilityNode)
       .onFail(eligibilityNode)
-      .build()
-
-    return builder
-      .ruleSet("Cas3Validation", validation)
-      .onPass(upcomingNode)
-      .onFail(notEligible)
       .build()
   }
 

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
 
@@ -16,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   classes = [
     CrsEligibilityRuleSet::class,
     NoNextAccommodationRule::class,
-    CurrentAccommodationEndDateValidationRule::class,
     ClockConfig::class,
   ],
 )
@@ -27,7 +25,6 @@ class CrsEligibilityRuleSetTest {
 
   private val expectedCrsEligibilityRuleNames = listOf(
     NoNextAccommodationRule::class.simpleName,
-    CurrentAccommodationEndDateValidationRule::class.simpleName,
   )
 
   @Test
@@ -35,7 +32,7 @@ class CrsEligibilityRuleSetTest {
     val ruleSetRules = crsEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
+      .hasSize(1)
       .containsExactlyInAnyOrderElementsOf(expectedCrsEligibilityRuleNames)
   }
 }

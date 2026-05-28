@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.eligibility.DtrEligibilityRuleSet
 
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   classes = [
     DtrEligibilityRuleSet::class,
     NoNextAccommodationRule::class,
-    CurrentAccommodationEndDateValidationRule::class,
   ],
 )
 class DtrEligibilityRuleSetTest {
@@ -25,7 +23,6 @@ class DtrEligibilityRuleSetTest {
 
   private val expectedDtrEligibilityRuleNames = listOf(
     NoNextAccommodationRule::class.simpleName,
-    CurrentAccommodationEndDateValidationRule::class.simpleName,
   )
 
   @Test
@@ -33,7 +30,7 @@ class DtrEligibilityRuleSetTest {
     val ruleSetRules = dtrEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
+      .hasSize(1)
       .containsExactlyInAnyOrderElementsOf(expectedDtrEligibilityRuleNames)
   }
 }
