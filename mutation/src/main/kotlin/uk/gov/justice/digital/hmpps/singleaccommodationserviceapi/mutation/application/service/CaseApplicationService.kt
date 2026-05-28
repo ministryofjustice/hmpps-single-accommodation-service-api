@@ -35,36 +35,44 @@ class CaseApplicationService(
   }
 
   @Transactional
-  fun upsertCases(caseDtos: List<CaseMutationOrchestrationDto>) {
-    val caseByIdentifier = mapPersistedIdentifiersToCase(caseDtos)
-
+  fun upsertCases(caseDtos: List<CaseMutationOrchestrationDto>, crnToPrisonNumber: Map<String, String?>) {
+    val caseByIdentifier = mapPersistedIdentifiersToCase(caseDtos).toMutableMap()
     val casesToPersist = mutableSetOf<CaseEntity>()
 
-    // TODO this can change to filter successful results when we switch to v2
     caseDtos.filter { it.cpr != null }.forEach { caseDto ->
-      val identifiersFromCPR = caseDto.cpr?.identifiers?.let { ids ->
-        ids.crns.map { it to IdentifierType.CRN } + ids.prisonNumbers.map { it to IdentifierType.PRISON_NUMBER }
+
+      val latestIdentifiers = buildMap {
+        put(caseDto.crn, IdentifierType.CRN)
+        crnToPrisonNumber[caseDto.crn]?.let { put(it, IdentifierType.PRISON_NUMBER) }
       }
 
-      if (identifiersFromCPR.isNullOrEmpty()) {
-        // TODO adding this to maintain previous functionality. We can update when comment above is addressed.
-        log.warn("No identifiers returned from CPR for CRN: {}. Skipping case upsert for this record.", caseDto.crn)
-        return@forEach
+      val identifiers = buildMap {
+        caseDto.cpr?.identifiers?.crns?.associateWith { IdentifierType.CRN }?.let { putAll(it) }
+        caseDto.cpr?.identifiers?.prisonNumbers?.associateWith { IdentifierType.PRISON_NUMBER }?.let { putAll(it) }
       }
 
-      val caseToUpdate = identifiersFromCPR.firstNotNullOfOrNull { caseByIdentifier[it.first to it.second] }
+      val existingCase = identifiers.firstNotNullOfOrNull { (value, type) ->
+        caseByIdentifier[value to type]
+      }
 
-      if (caseToUpdate != null) {
-        log.debug("Updating identifiers for case: {}", caseToUpdate.id)
-        caseToUpdate.addMissingIdentifiers(identifiersFromCPR.toMap())
-        casesToPersist += caseToUpdate
+      val caseEntity = if (existingCase != null) {
+        log.debug("Updating identifiers for case: {}", existingCase.id)
+        existingCase.addMissingIdentifiers(latestIdentifiers)
+        existingCase
       } else {
-        log.debug("Creating new case with identifiers: {}", identifiersFromCPR)
-        casesToPersist += CaseMapper.create(CaseAggregate.hydrateNew().snapshot(), identifiersFromCPR.toMap())
+        log.debug("Creating new Case for CRN: {}", caseDto.crn)
+        CaseMapper.create(
+          CaseAggregate.hydrateNew().snapshot(),
+          latestIdentifiers,
+        )
+      }
+
+      casesToPersist += caseEntity
+
+      latestIdentifiers.forEach {
+        caseByIdentifier[it.key to it.value] = caseEntity
       }
     }
-    caseRepository.saveAll(casesToPersist)
-    log.debug("Successfully upserted {} cases", casesToPersist.size)
   }
 
   private fun mapPersistedIdentifiersToCase(caseDtos: List<CaseMutationOrchestrationDto>): Map<Pair<String, IdentifierType>, CaseEntity> {
@@ -92,13 +100,14 @@ class CaseApplicationService(
   }
 
   @Transactional
-  fun upsertCase(crn: String) {
-    val caseEntity = findByIdentifier(crn, IdentifierType.CRN)
+  fun upsertCase(crn: String, prisonNumber: String?) {
+    val caseEntity = caseRepository.findByCrn(crn)
     if (caseEntity != null) {
       updateCase(crn, caseEntity)
     } else {
       val identifiers = getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!
-      val caseEntity = findByAndUpdatePersonIdentifiers(identifiers = identifiers)
+      val caseEntity =
+        findByAndUpdatePersonIdentifiers(crn = crn, prisonNumber = prisonNumber, identifiers = identifiers)
       upsertCase(crn, caseEntity, identifiers)
     }
   }
@@ -160,10 +169,10 @@ class CaseApplicationService(
     IdentifierType.PRISON_NUMBER -> corePersonRecordCachingService.getCorePersonRecordByNoms(identifier)
   }
 
-  fun findByIdentifier(identifier: String, identifierType: IdentifierType) = caseRepository.findByIdentifier(identifier, identifierType)
-
   @Transactional
   fun findByAndUpdatePersonIdentifiers(
+    crn: String,
+    prisonNumber: String?,
     identifiers: Identifiers,
   ): CaseEntity? {
     val crns = identifiers.crns
@@ -171,18 +180,25 @@ class CaseApplicationService(
     require(crns.isNotEmpty() || prisonNumbers.isNotEmpty()) {
       "At least one identifier must be provided"
     }
-    return caseRepository.findByIdentifiers(crns = crns, prisonNumbers = prisonNumbers)?.also { caseEntity ->
-      CaseMapper.toAggregate(caseEntity).also { caseAggregate ->
-        val caseIdentifiers = getCaseIdentifiers(identifiers)
-        caseRepository.save(CaseMapper.merge(caseEntity, caseAggregate.snapshot(), caseIdentifiers))
-      }
+
+    return caseRepository.findByIdentifiers(crns = crns, prisonNumbers = prisonNumbers)?.also { entity ->
+      entity.addMissingIdentifiers(
+        buildMap {
+          put(crn, IdentifierType.CRN)
+          prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
+        },
+      )
     }
   }
 
   @Transactional
   fun updateTier(tier: Tier, crn: String) {
-    val caseEntity: CaseEntity = findByIdentifier(crn, IdentifierType.CRN)
-      ?: findByAndUpdatePersonIdentifiers(getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!)
+    val caseEntity: CaseEntity = caseRepository.findByCrn(crn)
+      ?: findByAndUpdatePersonIdentifiers(
+        crn = crn,
+        prisonNumber = null,
+        getCorePersonRecord(crn, IdentifierType.CRN).identifiers!!,
+      )
       ?: return
 
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
