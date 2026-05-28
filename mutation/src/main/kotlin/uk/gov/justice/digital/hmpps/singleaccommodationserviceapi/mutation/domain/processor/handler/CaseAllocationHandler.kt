@@ -42,7 +42,7 @@ class CaseAllocationHandler(
       }
       val case = probationIntegrationDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
       if (onboardedTeamsCodes.contains(case.manager.team.code)) {
-        caseApplicationService.upsertCase(case.crn)
+        caseApplicationService.upsertCase(case.crn, case.nomsId)
         inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.PROCESSED)
       } else {
         inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.NOT_PROCESSED)
