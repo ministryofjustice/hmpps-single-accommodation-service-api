@@ -5,7 +5,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import java.time.LocalDate
+import java.time.ZoneId
 
 object AccommodationSummaryTransformer {
   fun toAccommodationSummary(
@@ -41,5 +45,41 @@ object AccommodationSummaryTransformer {
           description = it.usageCode.description,
         )
       },
+  )
+
+  fun toAccommodationSummary(
+    crn: String,
+    proposedAccommodationEntity: ProposedAccommodationEntity,
+    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationStatusEntity: AccommodationStatusEntity?,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    cprAddressId = proposedAccommodationEntity.cprAddressId,
+    startDate = proposedAccommodationEntity.createdAt?.atZone(ZoneId.systemDefault())?.toLocalDate(),
+    endDate = null,
+    address = AccommodationAddressDetails(
+      postcode = proposedAccommodationEntity.postcode,
+      subBuildingName = proposedAccommodationEntity.subBuildingName,
+      buildingName = proposedAccommodationEntity.buildingName,
+      buildingNumber = proposedAccommodationEntity.buildingNumber,
+      thoroughfareName = proposedAccommodationEntity.throughfareName,
+      dependentLocality = proposedAccommodationEntity.dependentLocality,
+      postTown = proposedAccommodationEntity.postTown,
+      county = proposedAccommodationEntity.county,
+      country = proposedAccommodationEntity.country,
+      uprn = proposedAccommodationEntity.uprn,
+    ),
+    status = accommodationStatusEntity?.let {
+      AccommodationStatusDto(
+        code = it.code,
+        description = it.name,
+      )
+    },
+    type = accommodationTypeEntity?.let {
+      AccommodationTypeDto(
+        code = it.code,
+        description = it.name,
+      )
+    },
   )
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import java.util.UUID
@@ -15,7 +14,6 @@ class ProposedAccommodationQueryService(
   private val userRepository: UserRepository,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
-  private val caseRepository: CaseRepository,
 ) {
   fun getProposedAccommodations(crn: String): List<ProposedAccommodationDto> {
     val proposedAccommodations = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
@@ -40,14 +38,5 @@ class ProposedAccommodationQueryService(
     val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
       .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
     return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, crn, createdByUser!!.name)
-  }
-
-  fun getProposedAccommodation(id: UUID): ProposedAccommodationDto {
-    val proposedAccommodationEntity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
-    val case = caseRepository.findWithIdentifiersById(proposedAccommodationEntity.caseId).orThrowNotFound("id" to proposedAccommodationEntity.id)
-    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
-      .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
-    val createdByUser = userRepository.findByIdOrNull(proposedAccommodationEntity.createdByUserId!!)
-    return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, case.latestCrn(), createdByUser!!.name)
   }
 }

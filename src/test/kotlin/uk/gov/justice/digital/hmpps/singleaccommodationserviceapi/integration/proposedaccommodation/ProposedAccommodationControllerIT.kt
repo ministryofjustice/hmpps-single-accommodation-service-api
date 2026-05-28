@@ -209,52 +209,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should get proposed-accommodation by id with ADDA role`() {
-    val entity = createAndSaveProposedAccommodation(
-      postcode = "W1 8XX",
-      buildingNumber = "11",
-      thoroughfareName = "Piccadilly Circus",
-      postTown = "London",
-    )
-
-    restTestClient.get().uri("/proposed-accommodations/{id}", entity.id)
-      .withClientCredentialsJwt(
-        roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
-      )
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetProposedAccommodationByIdResponse(
-            id = entity.id,
-            crn = crn,
-            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          ),
-        )
-      }
-  }
-
-  @Test
-  fun `should return 404 when proposed-accommodation not found for ADDA role`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/proposed-accommodations/{id}", nonExistentId)
-      .withDeliusUserJwt(roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"))
-      .exchange()
-      .expectStatus().isNotFound
-  }
-
-  @Test
-  fun `should return 404 when proposed-accommodation not found`() {
-    val nonExistentId = UUID.randomUUID()
-
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}", crn, nonExistentId)
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isNotFound
-  }
-
-  @Test
   fun `should return empty list when no proposed-accommodations exist for crn`() {
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()

@@ -1,35 +1,37 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class AccommodationSummaryDto(
   val crn: String,
-  val startDate: LocalDate?,
-  val endDate: LocalDate?,
+  val cprAddressId: UUID? = null,
+  val startDate: LocalDate? = null,
+  val endDate: LocalDate? = null,
   val address: AccommodationAddressDetails,
-  val status: AccommodationStatusDto?,
-  val type: AccommodationTypeDto?,
+  val status: AccommodationStatusDto? = null,
+  val type: AccommodationTypeDto? = null,
 )
 
 data class AccommodationStatusDto(
   val code: String,
-  val description: String?,
+  val description: String? = null,
 )
 
 data class AccommodationTypeDto(
   val code: String,
-  val description: String?,
+  val description: String? = null,
 )
 
 data class AccommodationAddressDetails(
-  val postcode: String?,
-  val subBuildingName: String?,
-  val buildingName: String?,
-  val buildingNumber: String?,
-  val thoroughfareName: String?,
-  val dependentLocality: String?,
-  val postTown: String?,
-  val county: String?,
-  val country: String?,
-  val uprn: String?,
+  val postcode: String? = null,
+  val subBuildingName: String? = null,
+  val buildingName: String? = null,
+  val buildingNumber: String? = null,
+  val thoroughfareName: String? = null,
+  val dependentLocality: String? = null,
+  val postTown: String? = null,
+  val county: String? = null,
+  val country: String? = null,
+  val uprn: String? = null,
 )
