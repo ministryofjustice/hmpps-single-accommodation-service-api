@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
@@ -35,7 +36,7 @@ class CaseOrchestrationService(
     )
     val caseList = results.standardCallsNoIterationResults
       ?.getResult<CaseList>(GET_CASE_LIST)
-      ?: CaseList(emptyList())
+      ?: CaseList(emptyList(), PageMetadata(0, 0, 0, 0))
     return OrchestrationResultDto(
       data = caseList,
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
