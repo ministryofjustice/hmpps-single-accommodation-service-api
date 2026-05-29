@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -55,7 +56,11 @@ class ProposedAccommodationApplicationService(
       .orThrowNotFound("crn" to crn)
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
       .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
-    val aggregate = ProposedAccommodationAggregate.hydrateNew(caseId = case.id, currentAccommodation = currentAccommodation)
+    val aggregate = ProposedAccommodationAggregate.hydrateNew(
+      caseId = case.id,
+      accommodationSource = AccommodationSource.SAS,
+      currentAccommodation = currentAccommodation,
+    )
     aggregate.updateProposedAccommodation(
       newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
@@ -67,6 +72,8 @@ class ProposedAccommodationApplicationService(
       newAddress = proposedAccommodationDetailCommand.address,
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
+      newTypeVerified = null,
+      newNoFixedAbode = false,
     )
     val accommodationStatusEntity = aggregate.snapshot().accommodationStatus
       ?.let {
@@ -161,6 +168,8 @@ class ProposedAccommodationApplicationService(
       newAddress = proposedAccommodationDetailCommand.address,
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
+      newTypeVerified = null,
+      newNoFixedAbode = false,
     )
     val updatedRecord = proposedAccommodationRepository.save(
       merge(
