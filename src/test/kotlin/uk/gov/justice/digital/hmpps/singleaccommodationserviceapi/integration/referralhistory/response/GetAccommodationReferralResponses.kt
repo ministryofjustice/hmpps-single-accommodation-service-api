@@ -19,8 +19,6 @@ fun expectedGetReferralHistory(
     "null"
   } else {
     """{
-          "forename": "${dto.forename}",
-          "surname": "${dto.surname}",
           "username": "${dto.username}",
           "staffCode": "${dto.staffCode}" 
        }

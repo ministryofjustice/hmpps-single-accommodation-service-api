@@ -50,8 +50,6 @@ fun buildLimitedPersonDto(
 )
 
 private fun assignedTo(staff: Officer) = buildAssignedToDto(
-  forename = staff.name.forename,
-  surname = staff.name.surname,
   username = staff.username,
   staffCode = staff.code,
 )

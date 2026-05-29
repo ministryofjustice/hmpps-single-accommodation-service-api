@@ -31,8 +31,6 @@ object PersonTransformer {
 
   fun Case.getRosh() = roshLevel?.code?.let { RiskLevel.findByCode(it) }
   fun Case.getAssignedTo() = AssignedToDto(
-    forename = staff.name.forename,
-    surname = staff.name.surname,
     username = staff.username,
     staffCode = staff.code,
   )

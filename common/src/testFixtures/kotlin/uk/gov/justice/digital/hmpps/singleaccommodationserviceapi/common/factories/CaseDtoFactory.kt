@@ -43,13 +43,9 @@ fun buildCaseDto(
 )
 
 fun buildAssignedToDto(
-  forename: String = "First",
-  surname: String = "Last",
   username: String? = "user1",
   staffCode: String? = "ABCD1234",
 ) = AssignedToDto(
-  forename = forename,
-  surname = surname,
   username = username,
   staffCode = staffCode,
 )
