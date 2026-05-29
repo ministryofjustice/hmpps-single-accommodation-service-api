@@ -81,17 +81,6 @@ fun expectedGetDtrResponseBody(
   withdrawalReasonOther: String? = null,
 ): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther)}}"""
 
-fun expectedNotStartedDtrResponseBody(caseId: UUID, crn: String): String = """
-{
-  "data": {
-    "caseId": "$caseId",
-    "crn": "$crn",
-    "status": "NOT_STARTED",
-    "submission": null
-  }
-}
-""".trimIndent()
-
 fun dtrNoteRequestBody(note: String): String = """
   {
     "note" : "$note"

@@ -16,22 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class DutyToReferTransformerTest {
 
   @Nested
-  inner class ToNotStartedDto {
-
-    @Test
-    fun `should return NOT_STARTED status with null submission`() {
-      val caseId = UUID.randomUUID()
-      val crn = UUID.randomUUID().toString()
-      val dto = DutyToReferTransformer.toNotStartedDto(caseId = caseId, crn = crn)
-
-      assertThat(dto.crn).isEqualTo(crn)
-      assertThat(dto.caseId).isEqualTo(caseId)
-      assertThat(dto.status).isEqualTo(DtrStatus.NOT_STARTED)
-      assertThat(dto.submission).isNull()
-    }
-  }
-
-  @Nested
   inner class ToDutyToReferDto {
     private val createdByName = "Joe Bloggs"
 

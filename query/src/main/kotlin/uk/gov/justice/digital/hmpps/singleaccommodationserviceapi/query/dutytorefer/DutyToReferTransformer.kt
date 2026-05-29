@@ -6,17 +6,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
-import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 object DutyToReferTransformer {
-
-  fun toNotStartedDto(caseId: UUID, crn: String) = DutyToReferDto(
-    caseId = caseId,
-    crn = crn,
-    status = DtrStatus.NOT_STARTED,
-    submission = null,
-  )
 
   fun toDutyToReferDto(
     entity: DutyToReferEntity,
