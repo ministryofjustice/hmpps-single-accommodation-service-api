@@ -72,17 +72,17 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `matches a case by all identifiers from CorePersonRecord and adds the latest ones`() {
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
-    val crnToAddForCase1 = "crnToAddForCase1"
-    val prisonNumberToAddForCase1 = "prisonNumberToAddForCase1"
+    val unkownCrnCase1 = "crnToAddForCase1"
+    val unkownPrisonNumberCase1 = "prisonNumberToAddForCase1"
 
     // case 2 identifiers
     val knownCrnForCase2 = "knownCrnForCase2"
-    val knownPrisonNumberForCase2 = "knownPrisonNumberForCase2"
-    val crnToAddForCase2 = "crnToAddForCase2"
-    val prisonNumberToAddForCase2 = "prisonNumberToAddForCase2"
+    val knownPrisonNumberCase2 = "knownPrisonNumberForCase2"
+    val unknownCrnCase2 = "crnToAddForCase2"
+    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase2"
 
     // cas3 3 identifiers
-    val unknownCaseCRN = "unknownCRN"
+    val unknownCaseCrn = "unknownCRN"
     val unknownCasePrisonNumber = "unknownPrisonNumber"
 
     val case1 = buildCaseEntity {
@@ -90,24 +90,25 @@ class CaseControllerIT : IntegrationTestBase() {
     }
     val case2 = buildCaseEntity {
       withCrn(knownCrnForCase2)
-      withPrisonNumber(knownPrisonNumberForCase2)
+      withPrisonNumber(knownPrisonNumberCase2)
     }
 
     caseRepository.saveAllAndFlush(listOf(case1, case2))
 
-    val unknownCase = buildCaseEntity {
-      withCrn(unknownCaseCRN)
-      withPrisonNumber(unknownCasePrisonNumber)
-    }
-
     val cases = listOf(
-      buildCase(crn = crnToAddForCase1, nomsNumber = prisonNumberToAddForCase1),
-      buildCase(crn = crnToAddForCase2, nomsNumber = prisonNumberToAddForCase2),
-      buildCase(crn = unknownCaseCRN, nomsNumber = unknownCasePrisonNumber),
+      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1),
+      buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2),
+      buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber),
     )
 
-    // case list return should not match any persisted CRNs
+    // the case list returned should not match any persisted CRNs
     val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
+    assertThat(
+      caseRepository.findAllByIdentifiers(
+        crns = cases.map { it.crn },
+        prisonNumbers = cases.map { it.nomsNumber!! },
+      ),
+    ).hasSize(0)
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
@@ -116,22 +117,22 @@ class CaseControllerIT : IntegrationTestBase() {
 
     // returns the unknown CRN from the caselist, and the persisted CRN for the case
     stubCorePersonRecord(
-      crn = crnToAddForCase1,
-      prisonNumber = prisonNumberToAddForCase1,
+      crn = unkownCrnCase1,
+      prisonNumber = unkownPrisonNumberCase1,
       additionalCrns = listOf(knownCrnForCase1),
     )
 
     // returns the CRN from the case list, and the persisted Prison Number for the case
     stubCorePersonRecord(
-      crn = crnToAddForCase2,
-      prisonNumber = knownPrisonNumberForCase2,
+      crn = unknownCrnCase2,
+      prisonNumber = knownPrisonNumberCase2,
       additionalCrns = listOf(knownCrnForCase2),
-      additionalPrisonNumbers = listOf(prisonNumberToAddForCase2),
+      additionalPrisonNumbers = listOf(unknownPrisonNumberCase2),
     )
 
     // returns the CRN from the case list, and the persisted Prison Number for the case
     stubCorePersonRecord(
-      crn = unknownCaseCRN,
+      crn = unknownCaseCrn,
       prisonNumber = unknownCasePrisonNumber,
     )
 
@@ -143,41 +144,41 @@ class CaseControllerIT : IntegrationTestBase() {
       .expectBody()
       .jsonPath("$.data.length()").isEqualTo(3)
 
-    assertThat(caseRepository.findAll().size).isEqualTo(3)
+    assertThat(caseRepository.findAll()).hasSize(3)
 
-    val updatedCase1 = caseRepository.findByCrn(crnToAddForCase1)!!
+    assertCaseIdentifiers(
+      crn = unkownCrnCase1,
+      expectedIdentifiers = listOf(knownCrnForCase1, unkownCrnCase1, unkownPrisonNumberCase1),
+    )
 
-    assertThat(updatedCase1.latestCrn()).isEqualTo(crnToAddForCase1)
-    assertThat(updatedCase1.caseIdentifiers)
-      .extracting<String> { it.identifier }
-      .hasSize(3)
-      .containsExactlyInAnyOrder(
-        knownCrnForCase1,
-        crnToAddForCase1,
-        prisonNumberToAddForCase1,
-      )
-
-    val updatedCase2 = caseRepository.findByCrn(crnToAddForCase2)!!
-    assertThat(updatedCase2.latestCrn()).isEqualTo(crnToAddForCase2)
-
-    assertThat(updatedCase2.caseIdentifiers)
-      .extracting<String> { it.identifier }
-      .hasSize(4)
-      .containsExactlyInAnyOrder(
+    assertCaseIdentifiers(
+      crn = unknownCrnCase2,
+      expectedIdentifiers = listOf(
         knownCrnForCase2,
-        knownPrisonNumberForCase2,
-        crnToAddForCase2,
-        prisonNumberToAddForCase2,
-      )
+        knownPrisonNumberCase2,
+        unknownCrnCase2,
+        unknownPrisonNumberCase2,
+      ),
+    )
 
-    val createdCase = caseRepository.findByCrn(unknownCaseCRN)!!
-    assertThat(createdCase.caseIdentifiers)
+    assertCaseIdentifiers(
+      crn = unknownCaseCrn,
+      expectedIdentifiers = listOf(unknownCaseCrn, unknownCasePrisonNumber),
+    )
+  }
+
+  private fun assertCaseIdentifiers(
+    crn: String,
+    expectedIdentifiers: List<String?>,
+  ) {
+    val case = caseRepository.findByCrn(crn)!!
+
+    assertThat(case.latestCrn()).isEqualTo(crn)
+
+    assertThat(case.caseIdentifiers)
       .extracting<String> { it.identifier }
-      .hasSize(2)
-      .containsExactlyInAnyOrder(
-        unknownCaseCRN,
-        unknownCasePrisonNumber,
-      )
+      .hasSize(expectedIdentifiers.size)
+      .containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
   @Test
