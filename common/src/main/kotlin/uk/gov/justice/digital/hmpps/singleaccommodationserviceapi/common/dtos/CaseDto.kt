@@ -23,8 +23,6 @@ data class CaseDto(
 )
 
 data class AssignedToDto(
-  val forename: String,
-  val surname: String,
   val username: String? = null,
   val staffCode: String? = null,
 )
