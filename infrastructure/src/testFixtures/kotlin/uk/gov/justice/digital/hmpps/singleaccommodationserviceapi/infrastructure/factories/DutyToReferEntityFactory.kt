@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
@@ -19,6 +20,7 @@ fun buildDutyToReferEntity(
   status: DtrStatus = DtrStatus.SUBMITTED,
   withdrawalReason: WithdrawalReason? = null,
   withdrawalReasonOther: String? = null,
+  outcomeReason: OutcomeReason? = null,
   createdByUserId: UUID? = null,
   createdAt: Instant = Instant.now(),
   lastUpdatedByUserId: UUID? = null,
@@ -32,6 +34,7 @@ fun buildDutyToReferEntity(
   status = status,
   withdrawalReason = withdrawalReason,
   withdrawalReasonOther = withdrawalReasonOther,
+  outcomeReason = outcomeReason,
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt

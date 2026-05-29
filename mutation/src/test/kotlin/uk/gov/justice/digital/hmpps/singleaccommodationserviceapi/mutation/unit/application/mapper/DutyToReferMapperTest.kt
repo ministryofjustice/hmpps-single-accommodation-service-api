@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
@@ -15,6 +16,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason as EntityOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.WithdrawalReason as EntityWithdrawalReason
 
 class DutyToReferMapperTest {
@@ -240,5 +242,58 @@ class DutyToReferMapperTest {
 
     assertThat(merged.withdrawalReason).isEqualTo(EntityWithdrawalReason.HOUSING_NEED_RESOLVED)
     assertThat(merged.withdrawalReasonOther).isNull()
+  }
+
+  @Test
+  fun `toEntity maps outcome reason correctly`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+    )
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.outcomeReason).isEqualTo(EntityOutcomeReason.PRIORITY_NEED)
+  }
+
+  @Test
+  fun `toAggregate maps outcome reason correctly`() {
+    val entity = buildDutyToReferEntity(
+      status = EntityDtrStatus.NOT_ACCEPTED,
+      outcomeReason = EntityOutcomeReason.NO_LOCAL_CONNECTION,
+    )
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.outcomeReason).isEqualTo(OutcomeReason.NO_LOCAL_CONNECTION)
+  }
+
+  @Test
+  fun `toDto maps outcome reason onto submission`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PREVENTION_AND_RELIEF_DUTY,
+    )
+
+    val dto = DutyToReferMapper.toDto(snapshot, "X123456", "Test User", Instant.now(), "Test LA")
+
+    assertThat(dto.submission!!.outcomeReason).isEqualTo(OutcomeReason.PREVENTION_AND_RELIEF_DUTY)
+  }
+
+  @Test
+  fun `merge copies outcome reason from snapshot to entity`() {
+    val entity = buildDutyToReferEntity(
+      status = EntityDtrStatus.SUBMITTED,
+      outcomeReason = null,
+    )
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.NOT_ACCEPTED,
+      outcomeReason = OutcomeReason.INTENTIONALLY_HOMELESS,
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.outcomeReason).isEqualTo(EntityOutcomeReason.INTENTIONALLY_HOMELESS)
   }
 }

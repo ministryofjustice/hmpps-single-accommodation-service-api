@@ -301,6 +301,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
           submissionDate = LocalDate.of(2026, 1, 20).toString(),
           referenceNumber = "DTR-REF-002",
           status = EntityDtrStatus.ACCEPTED.name,
+          outcomeReason = "PRIORITY_NEED",
         ),
       )
       .withDeliusUserJwt()
@@ -320,6 +321,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
         status = DtrStatus.ACCEPTED.name,
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        outcomeReason = "PRIORITY_NEED",
       ),
     )
 
@@ -629,6 +631,131 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should reject DTR referral with an outcome reason and return 200`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.NOT_ACCEPTED.name,
+          outcomeReason = "NO_LOCAL_CONNECTION",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
+        status = DtrStatus.NOT_ACCEPTED.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        outcomeReason = "NO_LOCAL_CONNECTION",
+      ),
+    )
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingEntity.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
+    )
+    assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
+  fun `should return 400 when accepting DTR referral without an outcome reason`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.ACCEPTED.name,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when accepting DTR referral with a NOT_ACCEPTED outcome reason`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.ACCEPTED.name,
+          outcomeReason = "NO_LOCAL_CONNECTION",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when providing an outcome reason for a SUBMITTED status`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityAreaId,
+          status = EntityDtrStatus.SUBMITTED.name,
+          outcomeReason = "PRIORITY_NEED",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
   fun `should update duty to refer and not publish domain event when status stays the same`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val existingEntity = dutyToReferRepository.save(
@@ -850,6 +977,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
           submissionDate = "2026-01-15",
           referenceNumber = "DTR-REF-002",
           status = EntityDtrStatus.NOT_ACCEPTED.name,
+          outcomeReason = "NO_LOCAL_CONNECTION",
         ),
       )
       .withDeliusUserJwt()
@@ -863,6 +991,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
           submissionDate = "2026-01-15",
           referenceNumber = "DTR-REF-002",
           status = EntityDtrStatus.ACCEPTED.name,
+          outcomeReason = "PRIORITY_NEED",
         ),
       )
       .withDeliusUserJwt()

@@ -72,6 +72,7 @@ class DutyToReferApplicationService(
         status = command.status,
         withdrawalReason = command.withdrawalReason,
         withdrawalReasonOther = command.withdrawalReasonOther,
+        outcomeReason = command.outcomeReason,
       )
     }
     val updatedRecord = dutyToReferRepository.save(merge(aggregate.snapshot(), dtr))
