@@ -130,13 +130,13 @@ class CaseControllerIT : IntegrationTestBase() {
       additionalPrisonNumbers = listOf(unknownPrisonNumberCase2),
     )
 
-    // returns the CRN from the case list, and the persisted Prison Number for the case
+    // returns the data for the unknown case
     stubCorePersonRecord(
       crn = unknownCaseCrn,
       prisonNumber = unknownCasePrisonNumber,
     )
 
-    assertThat(caseRepository.findAll().size).isEqualTo(2)
+    assertThat(caseRepository.findAll()).hasSize(2)
 
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()

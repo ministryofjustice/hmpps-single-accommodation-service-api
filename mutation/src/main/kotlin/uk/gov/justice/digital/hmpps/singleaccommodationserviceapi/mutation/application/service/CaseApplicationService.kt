@@ -59,13 +59,13 @@ class CaseApplicationService(
         caseByIdentifier[identifier to identifierType]
       }
 
-      // if there is a match, update the case with the latest CRN and ON from delius, or create a new entity
+      // if there is a match, update the case with the latest CRN and PrisonNumber from delius, or create a new entity
       val caseEntity = if (existingCase != null) {
-        log.info("Updating case: [{}] with identifiers: {}", existingCase.id, identifiersFromDelius)
+        log.debug("Updating case: [{}] with identifiers: {}", existingCase.id, identifiersFromDelius)
         existingCase.addMissingIdentifiers(identifiersFromDelius)
         existingCase
       } else {
-        log.info("Creating new Case with identifiers: {}", identifiersFromDelius)
+        log.debug("Creating new Case with identifiers: {}", identifiersFromDelius)
         CaseMapper.create(
           CaseAggregate.hydrateNew().snapshot(),
           identifiersFromDelius,

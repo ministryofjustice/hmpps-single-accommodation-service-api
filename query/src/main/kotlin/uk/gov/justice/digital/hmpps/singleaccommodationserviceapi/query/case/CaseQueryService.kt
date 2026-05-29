@@ -59,7 +59,7 @@ class CaseQueryService(
     teamCode: String? = null,
   ): List<CaseDto> {
     // TODO this may or may not be a bug - if there is case data on sas and delius but NOT in CPR (or CPR fails),
-    // what do we do? return the case list data without it being in our db? or remove it from teh case list.
+    // what do we do? return the case list data without it being in our db? or remove it from the case list.
     val filteredPersonDtos = personDtos
       .asSequence()
       .filter {
