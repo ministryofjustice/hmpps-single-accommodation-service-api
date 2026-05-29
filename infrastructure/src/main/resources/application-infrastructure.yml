@@ -40,6 +40,11 @@ redisson:
     pool-size: 10
     minimum-idle-size: 5
 
+os:
+  places:
+    base-url: ${OS_PLACES_BASE_URL:https://api.os.uk/search/places/v1}
+    api-key: ${OS_PLACES_API_KEY}
+
 redis:
   replica:
     host:

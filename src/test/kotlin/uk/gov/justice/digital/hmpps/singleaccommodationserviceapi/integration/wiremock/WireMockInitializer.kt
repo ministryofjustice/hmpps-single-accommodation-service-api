@@ -45,6 +45,7 @@ class WireMockInitializer :
         "service.$service.base-url=${sasWiremock.baseUrl()}"
       },
     ).and("hmpps-auth.url=${sasWiremock.baseUrl()}/auth")
+      .and("os.places.base-url=${sasWiremock.baseUrl()}/os-places")
       .applyTo(context.environment)
   }
 
