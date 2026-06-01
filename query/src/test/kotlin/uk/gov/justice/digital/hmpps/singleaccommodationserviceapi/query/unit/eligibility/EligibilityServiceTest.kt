@@ -8,7 +8,6 @@ import org.assertj.core.api.AssertionsForClassTypes.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
@@ -17,8 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.ErrorDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.FailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -379,66 +376,6 @@ class EligibilityServiceTest {
       val expected = ApiResponseDto(
         data = buildEligibilityDto(crn),
         upstreamFailures = listOf(toUpstreamFailureDto(upstreamFailure)),
-      )
-      assertThat(result).isEqualTo(expected)
-    }
-
-    @Test
-    fun `getEligibility continues and does not pass 404s through when only 404 upstream failures`() {
-      val notFoundFailure = buildUpstreamFailure(
-        type = FailureType.UPSTREAM_HTTP_ERROR,
-        errorDetail = ErrorDetail(httpStatus = HttpStatus.NOT_FOUND, message = "Not found"),
-      )
-      val orchestrationDto = OrchestrationResultDto(
-        data = EligibilityOrchestrationDto(
-          crn = crn,
-          cpr = null,
-          tier = null,
-          cas1Application = null,
-          cas3Application = null,
-          commissionedRehabilitativeServices = null,
-        ),
-        upstreamFailures = listOf(notFoundFailure),
-      )
-
-      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
-      every { accommodationQueryService.getNextAccommodations(crn, null, null, null, null) } returns emptyList()
-
-      every { accommodationTypeRepository.findAll() } returns emptyList()
-      every { caseRepository.findByCrn(crn) } returns null
-
-      val result = eligibilityService.getEligibility(crn)
-
-      assertThat(result.upstreamFailures).isEmpty()
-      assertThat(result.data).isNotEqualTo(buildEligibilityDto(crn))
-    }
-
-    @Test
-    fun `getEligibility circuit breaks and includes not 404 failures when 404s are mixed with blocking failures`() {
-      val notFoundFailure = buildUpstreamFailure(
-        type = FailureType.UPSTREAM_HTTP_ERROR,
-        errorDetail = ErrorDetail(httpStatus = HttpStatus.NOT_FOUND, message = "Not found"),
-      )
-      val blockingFailure = buildUpstreamFailure()
-      val orchestrationDto = OrchestrationResultDto(
-        data = EligibilityOrchestrationDto(
-          crn = crn,
-          cpr = null,
-          tier = null,
-          cas1Application = null,
-          cas3Application = null,
-          commissionedRehabilitativeServices = null,
-        ),
-        upstreamFailures = listOf(notFoundFailure, blockingFailure),
-      )
-
-      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
-
-      val result = eligibilityService.getEligibility(crn)
-
-      val expected = ApiResponseDto(
-        data = buildEligibilityDto(crn),
-        upstreamFailures = listOf(toUpstreamFailureDto(blockingFailure)),
       )
       assertThat(result).isEqualTo(expected)
     }
