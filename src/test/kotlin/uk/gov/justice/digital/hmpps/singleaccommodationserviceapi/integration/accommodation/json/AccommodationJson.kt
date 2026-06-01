@@ -203,20 +203,6 @@ fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
     "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
     "message":"500 Internal Server Error: [no body]",
     "identifier":null
-  },
-  {
-    "endpoint":"getCas1Application",
-    "failureType":"UPSTREAM_HTTP_ERROR",
-    "httpResponseStatus":"404 NOT_FOUND",
-    "message":"404 Not Found: [no body]",
-    "identifier":null
-  },
-  {
-    "endpoint":"getCas3Application",
-    "failureType":"UPSTREAM_HTTP_ERROR",
-    "httpResponseStatus":"404 NOT_FOUND",
-    "message":"404 Not Found: [no body]",
-    "identifier":null
   }
   ]
 }
