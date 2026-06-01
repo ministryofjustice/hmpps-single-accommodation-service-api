@@ -1,12 +1,16 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
+import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -42,10 +46,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import java.util.UUID
 
+@TestPropertySource(properties = ["case-list.page-size=1"])
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
+
+  @Value("\${case-list.page-size}")
+  private lateinit var pageSize: String
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
@@ -113,6 +122,7 @@ class CaseControllerIT : IntegrationTestBase() {
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       response = caseList,
+      pageSize = pageSize.toInt(),
     )
 
     // returns the unknown CRN from the caselist, and the persisted CRN for the case
@@ -206,6 +216,12 @@ class CaseControllerIT : IntegrationTestBase() {
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
+
+    // verify we call case-list endpoint 20 times (once per CRN)
+    sasWiremock.verify(
+      20,
+      getRequestedFor(WireMock.urlPathMatching("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")),
+    )
   }
 
   @Test
@@ -363,11 +379,12 @@ class CaseControllerIT : IntegrationTestBase() {
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       response = caseList,
+      pageSize = pageSize.toInt(),
     )
   }
 
   private fun getPageMetadata(cases: List<Case>) = PageMetadata(
-    size = cases.size.toLong(),
+    size = 1,
     number = 0,
     totalElements = cases.size.toLong(),
     totalPages = 1,
