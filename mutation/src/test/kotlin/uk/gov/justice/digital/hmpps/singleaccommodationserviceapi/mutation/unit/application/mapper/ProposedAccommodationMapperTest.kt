@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildProposedAccommodationSnapshot
@@ -53,6 +54,28 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.county).isEqualTo(snapshot.address.county)
     assertThat(entity.country).isEqualTo(snapshot.address.country)
     assertThat(entity.uprn).isEqualTo(snapshot.address.uprn)
+    assertThat(entity.accommodationSource).isEqualTo(snapshot.accommodationSource)
+    assertThat(entity.typeVerified).isEqualTo(snapshot.typeVerified)
+    assertThat(entity.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
+  }
+
+  @Test
+  fun `toEntity maps accommodation source type verified and no fixed abode`() {
+    val snapshot = buildProposedAccommodationSnapshot(
+      accommodationSource = AccommodationSource.DELIUS,
+      typeVerified = true,
+      noFixedAbode = true,
+    )
+
+    val entity = ProposedAccommodationMapper.toEntity(
+      snapshot = snapshot,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(entity.accommodationSource).isEqualTo(snapshot.accommodationSource)
+    assertThat(entity.typeVerified).isEqualTo(snapshot.typeVerified)
+    assertThat(entity.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
   }
 
   @Test
@@ -206,6 +229,31 @@ class ProposedAccommodationMapperTest {
   }
 
   @Test
+  fun `merge should copy accommodation source type verified and no fixed abode from snapshot to entity`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      accommodationSource = AccommodationSource.SAS,
+      typeVerified = false,
+      noFixedAbode = false,
+    )
+    val snapshot = buildProposedAccommodationSnapshot(
+      accommodationSource = AccommodationSource.DELIUS,
+      typeVerified = true,
+      noFixedAbode = true,
+    )
+
+    val merged = ProposedAccommodationMapper.merge(
+      snapshot = snapshot,
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(merged.accommodationSource).isEqualTo(snapshot.accommodationSource)
+    assertThat(merged.typeVerified).isEqualTo(snapshot.typeVerified)
+    assertThat(merged.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
+  }
+
+  @Test
   fun `toAggregate maps all fields correctly`() {
     val currentAccommodation = buildAccommodationSummaryDto(
       type = buildAccommodationTypeDto(
@@ -295,6 +343,9 @@ class ProposedAccommodationMapperTest {
     assertThat(snapshot.notes.first().note).isEqualTo(noteEntity.note)
     assertThat(snapshot.notes[1].id).isEqualTo(noteEntity2.id)
     assertThat(snapshot.notes[1].note).isEqualTo(noteEntity2.note)
+    assertThat(snapshot.accommodationSource).isEqualTo(proposedAccommodationEntity.accommodationSource)
+    assertThat(snapshot.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
+    assertThat(snapshot.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
   }
 
   @Test
@@ -324,6 +375,28 @@ class ProposedAccommodationMapperTest {
 
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.cprAddressId).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps accommodation source type verified and no fixed abode`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      accommodationSource = AccommodationSource.DELIUS,
+      typeVerified = true,
+      noFixedAbode = true,
+    )
+
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+      currentAccommodation = null,
+    )
+
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.accommodationSource).isEqualTo(proposedAccommodationEntity.accommodationSource)
+    assertThat(snapshot.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
+    assertThat(snapshot.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
   }
 
   @Test

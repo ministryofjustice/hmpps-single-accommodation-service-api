@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
@@ -349,6 +350,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationPersistedResult.accommodationStatusId).isNull()
     assertThat(proposedAccommodationPersistedResult.buildingName).isEqualTo("test building name")
     assertThat(proposedAccommodationPersistedResult.accommodationTypeId).isEqualTo(expectedAccommodationTypeEntity.id)
+    assertThat(proposedAccommodationPersistedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
+    assertThat(proposedAccommodationPersistedResult.typeVerified).isFalse()
+    assertThat(proposedAccommodationPersistedResult.noFixedAbode).isFalse()
 
     assertThatJson(createdProposedAccommodation).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
@@ -582,6 +586,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationPersistedResult.accommodationStatusId).isEqualTo(expectedAccommodationStatusEntity.id)
     assertThat(proposedAccommodationPersistedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
     assertThat(proposedAccommodationPersistedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
+    assertThat(proposedAccommodationPersistedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
+    assertThat(proposedAccommodationPersistedResult.typeVerified).isTrue()
+    assertThat(proposedAccommodationPersistedResult.noFixedAbode).isFalse()
 
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
@@ -670,6 +677,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationPersistedResult.accommodationStatusId).isEqualTo(null)
     assertThat(proposedAccommodationPersistedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.NO)
     assertThat(proposedAccommodationPersistedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
+    assertThat(proposedAccommodationPersistedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
+    assertThat(proposedAccommodationPersistedResult.typeVerified).isFalse()
+    assertThat(proposedAccommodationPersistedResult.noFixedAbode).isFalse()
 
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
@@ -1148,11 +1158,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     updatedByUserId: UUID,
   ) {
     assertThat(proposedAccommodationEntity.cprAddressId).isEqualTo(cprAddressId)
+    assertThat(proposedAccommodationEntity.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(proposedAccommodationEntity.name).isEqualTo("Mother's caravan")
     assertThat(proposedAccommodationEntity.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
     assertThat(proposedAccommodationEntity.accommodationStatusId).isEqualTo(accommodationStatusEntity.id)
     assertThat(proposedAccommodationEntity.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
     assertThat(proposedAccommodationEntity.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
+    assertThat(proposedAccommodationEntity.typeVerified).isTrue()
+    assertThat(proposedAccommodationEntity.noFixedAbode).isFalse()
     assertThat(proposedAccommodationEntity.postcode).isEqualTo(probationCreateAddress.postcode)
     assertThat(proposedAccommodationEntity.subBuildingName).isEqualTo(probationCreateAddress.subBuildingName)
     assertThat(proposedAccommodationEntity.buildingName).isEqualTo(probationCreateAddress.buildingName)
