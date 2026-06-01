@@ -27,58 +27,93 @@ class RestClientConfig(
   private val clientManager: OAuth2AuthorizedClientManager,
 
 ) {
+
+  private val readTimeoutMillis = 3500L
+  private val connectionTimeoutMillis = 1000L
+
   @Bean
-  open fun probationIntegrationSasDeliusClient(@Value($$"${service.sas-and-delius.base-url}") baseUrl: String) = createClient(
+  fun probationIntegrationSasDeliusClient(
+    @Value($$"${service.sas-and-delius.base-url}") baseUrl: String,
+    @Value($$"${service.sas-and-delius.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     SasAndDeliusClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
-  open fun probationIntegrationDeliusClient(@Value($$"${service.approved-premises-and-delius.base-url}") baseUrl: String) = createClient(
+  fun probationIntegrationDeliusClient(
+    @Value($$"${service.approved-premises-and-delius.base-url}") baseUrl: String,
+    @Value($$"${service.approved-premises-and-delius.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     ApprovedPremisesAndDeliusClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
-  open fun probationIntegrationOasysClient(@Value($$"${service.approved-premises-and-oasys.base-url}") baseUrl: String) = createClient(
+  fun probationIntegrationOasysClient(
+    @Value($$"${service.approved-premises-and-oasys.base-url}") baseUrl: String,
+    @Value($$"${service.approved-premises-and-oasys.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     ApprovedPremisesAndOasysClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
-  open fun approvedPremisesClient(@Value($$"${service.approved-premises-api.base-url}") baseUrl: String) = createClient(
+  fun approvedPremisesClient(
+    @Value($$"${service.approved-premises-api.base-url}") baseUrl: String,
+    @Value($$"${service.approved-premises-api.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     ApprovedPremisesClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
-  open fun corePersonRecordClient(@Value($$"${service.core-person-record.base-url}") baseUrl: String) = createClient(
+  fun corePersonRecordClient(
+    @Value($$"${service.core-person-record.base-url}") baseUrl: String,
+    @Value($$"${service.core-person-record.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     CorePersonRecordClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
-  open fun commissionedRehabilitativeServicesClient(@Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String) = createClient(
+  fun commissionedRehabilitativeServicesClient(@Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String) = createClient(
     baseUrl,
     CommissionedRehabilitativeServicesClient::class,
   )
 
   @Bean
-  open fun tierClient(@Value($$"${service.tier.base-url}") baseUrl: String) = createClient(
+  fun tierClient(
+    @Value($$"${service.tier.base-url}") baseUrl: String,
+    @Value($$"${service.tier.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     TierClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
-  fun accommodationDataDomainClient(@Value($$"${service.accommodation-data-domain.base-url}") baseUrl: String) = createClient(
+  fun accommodationDataDomainClient(
+    @Value($$"${service.accommodation-data-domain.base-url}") baseUrl: String,
+    @Value($$"${service.accommodation-data-domain.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     AccommodationDataDomainClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
-  private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
-    // TODO: Set these values in config. Using large timeout now for slow endpoints that are being refined.
+  private fun <T : Any> createClient(
+    baseUrl: String,
+    type: KClass<T>,
+    readTimeout: Duration = Duration.ofMillis(readTimeoutMillis),
+  ): T {
     val client = restClientBuilder
-      .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofSeconds(30)))
+      .requestFactory(withTimeouts(Duration.ofSeconds(connectionTimeoutMillis), readTimeout))
       .requestInterceptor(HmppsAuthInterceptor(clientManager, "default"))
       .baseUrl(baseUrl)
       .build()

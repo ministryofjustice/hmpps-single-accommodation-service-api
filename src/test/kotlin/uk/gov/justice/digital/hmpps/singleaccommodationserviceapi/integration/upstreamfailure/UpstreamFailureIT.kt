@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -25,6 +26,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 
+@TestPropertySource(
+  properties = [
+    "service.sas-and-delius.read-timeout=100",
+    "service.approved-premises-and-delius.read-timeout=100",
+    "service.approved-premises-and-oasys.read-timeout=100",
+    "service.approved-premises-api.read-timeout=100",
+    "service.core-person-record.read-timeout=100",
+    "service.commissioned-rehabilitative-services.read-timeout=100",
+    "service.tier.read-timeout=100",
+    "service.accommodation-data-domain.read-timeout=100",
+    "service.nomis-user-roles.read-timeout=100",
+  ],
+)
 class UpstreamFailureIT : IntegrationTestBase() {
 
   private val crn = "FAKECRN1"
