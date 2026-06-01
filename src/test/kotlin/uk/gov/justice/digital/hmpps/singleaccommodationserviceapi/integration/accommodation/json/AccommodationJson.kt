@@ -7,7 +7,6 @@ fun expectedGetAccommodationHistoryResponse(): String = """
    "data":[
       {
          "crn":"FAKECRN",
-         "cprAddressId":null,
          "startDate":"2025-10-17",
          "endDate":"2026-10-17",
          "address":{
@@ -33,7 +32,6 @@ fun expectedGetAccommodationHistoryResponse(): String = """
       },
       {
          "crn":"FAKECRN",
-         "cprAddressId":null,
          "startDate":"2024-10-17",
          "endDate":"2025-10-17",
          "address":{
@@ -80,7 +78,6 @@ fun expectedGetCurrentAccommodationResponse(crn: String): String = """
 {
    "data":{
       "crn":"$crn",
-      "cprAddressId": null,
       "startDate":"2026-01-11",
       "endDate":null,
       "address":{
@@ -116,7 +113,6 @@ fun expectedGetNextAccommodationsResponse(
    "data":
       {
          "crn":"$crn",
-         "cprAddressId": null,
          "startDate":"$prStartDate",
          "endDate":"$prEndDate",
          "address":{
@@ -167,6 +163,8 @@ fun expectedGetAccommodationByIdResponse(
     "data": {
         "crn" : "$crn",
         "cprAddressId" : "$cprAddressId",
+        "noFixedAbode": false,
+        "typeVerified": true,
         "startDate": "$createdAt",
         "endDate": null,
         "address": {
