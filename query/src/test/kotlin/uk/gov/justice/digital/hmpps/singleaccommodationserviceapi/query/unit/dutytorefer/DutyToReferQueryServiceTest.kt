@@ -61,17 +61,13 @@ class DutyToReferQueryServiceTest {
   inner class GetDutyToRefer {
 
     @Test
-    fun `should return NOT_STARTED with null submission when no DTR exists`() {
+    fun `should throw NotFoundException when no DTR exists`() {
       val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
       every { caseRepository.findByCrn(crn) } returns caseEntity
       every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
 
-      val result = service.getDutyToRefer(crn)
-
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.status).isEqualTo(DtrStatus.NOT_STARTED)
-      assertThat(result.submission).isNull()
+      assertThatThrownBy { service.getDutyToRefer(crn) }
+        .isInstanceOf(NotFoundException::class.java)
     }
 
     @Test
@@ -111,16 +107,13 @@ class DutyToReferQueryServiceTest {
   inner class GetDutyToReferByCrnAndCaseEntity {
 
     @Test
-    fun `should return NOT_STARTED with null submission when no DTR exists`() {
+    fun `should return null when no DTR exists`() {
       val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
       every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
 
       val result = service.getDutyToRefer(caseEntity, crn)
 
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.status).isEqualTo(DtrStatus.NOT_STARTED)
-      assertThat(result.submission).isNull()
+      assertThat(result).isNull()
     }
 
     @Test
@@ -142,7 +135,7 @@ class DutyToReferQueryServiceTest {
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
       every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
 
-      val result = service.getDutyToRefer(caseEntity, crn)
+      val result = service.getDutyToRefer(caseEntity, crn)!!
 
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.caseId).isEqualTo(caseId)

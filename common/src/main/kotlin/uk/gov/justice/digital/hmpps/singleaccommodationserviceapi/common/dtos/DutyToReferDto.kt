@@ -43,7 +43,6 @@ data class DtrCommand(
 )
 
 enum class DtrStatus {
-  NOT_STARTED,
   SUBMITTED,
   ACCEPTED,
   NOT_ACCEPTED,
