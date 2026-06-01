@@ -66,7 +66,6 @@ fun buildProposedAccommodationEntity(
   accommodationSource = accommodationSource,
   noFixedAbode = noFixedAbode,
   typeVerified = typeVerified,
-
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt

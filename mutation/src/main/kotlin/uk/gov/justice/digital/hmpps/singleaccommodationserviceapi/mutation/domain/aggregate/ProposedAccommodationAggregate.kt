@@ -98,7 +98,7 @@ class ProposedAccommodationAggregate private constructor(
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
     newTypeVerified: Boolean?,
-    newNoFixedAbode: Boolean,
+    newNoFixedAbode: Boolean?,
   ) {
     val previousNextAccommodationStatus = nextAccommodationStatus
     val previousVerificationStatus = verificationStatus
@@ -130,9 +130,9 @@ class ProposedAccommodationAggregate private constructor(
     endDate = newEndDate
     noFixedAbode = newNoFixedAbode
 
-    setTypeVerified(newTypeVerified)
     downgradeNextAccommodationStatusIfVerificationFailed()
     accommodationStatus = getAccommodationStatus()
+    setTypeVerified(newTypeVerified)
 
     validateProposedAccommodation()
 
@@ -170,10 +170,9 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   private fun setTypeVerified(newTypeVerified: Boolean?) {
-    if (accommodationSource == AccommodationSource.SAS) {
-      typeVerified = nextAccommodationStatus == NextAccommodationStatus.YES
-    } else if (accommodationSource == AccommodationSource.DELIUS) {
-      typeVerified = newTypeVerified ?: false
+    typeVerified = when (accommodationSource) {
+      AccommodationSource.SAS -> nextAccommodationStatus == NextAccommodationStatus.YES
+      AccommodationSource.DELIUS -> newTypeVerified ?: false
     }
   }
 
