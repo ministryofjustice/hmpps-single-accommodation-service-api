@@ -39,7 +39,7 @@ class AccommodationQueryService(
     )
   }
 
-  fun getNextAccommodations(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
+  fun getNextAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
     val orchestrationResult = accommodationOrchestrationService.getNextAccommodationData(crn)
     val currentAccommodation = orchestrationResult.data.cpr?.addresses?.let {
       getCurrentAccommodation(crn, addresses = it)
@@ -53,7 +53,7 @@ class AccommodationQueryService(
     )
 
     return toApiResponseDto(
-      data = nextAccommodations,
+      data = nextAccommodations.firstOrNull(),
       upstreamFailures = orchestrationResult.upstreamFailures,
     )
   }

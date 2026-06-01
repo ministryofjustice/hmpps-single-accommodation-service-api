@@ -20,7 +20,7 @@ class AccommodationController(
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/accommodations/next")
-  fun getNextAccommodation(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<AccommodationSummaryDto>>> = ResponseEntity.ok(accommodationQueryService.getNextAccommodations(crn))
+  fun getNextAccommodation(@PathVariable crn: String): ResponseEntity<ApiResponseDto<AccommodationSummaryDto?>> = ResponseEntity.ok(accommodationQueryService.getNextAccommodation(crn))
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD')")
   @GetMapping("/accommodations/{id}")

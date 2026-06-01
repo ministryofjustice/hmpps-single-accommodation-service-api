@@ -248,7 +248,7 @@ class AccommodationQueryServiceTest {
     }
 
     @Test
-    fun `getNextAccommodations should orchestrate calls and get the next accommodations`() {
+    fun `getNextAccommodation should orchestrate calls and get the next accommodation`() {
       every { accommodationOrchestrationService.getNextAccommodationData(crn) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
@@ -307,16 +307,9 @@ class AccommodationQueryServiceTest {
         upstreamFailures = emptyList(),
       )
 
-      val result = accommodationQueryService.getNextAccommodations(crn)
-      assertThat(result.data.size).isEqualTo(3)
-      assertThat(result.data.first().address.postcode).isEqualTo("GL53 8GH")
-      assertThat(result.data.first().status!!.code).isEqualTo("PR")
-
-      assertThat(result.data[1].address.postcode).isEqualTo("SW1A 1AB")
-      assertThat(result.data[1].status!!.code).isEqualTo("PR")
-
-      assertThat(result.data.last().address.postcode).isEqualTo("SW1A 1A4")
-      assertThat(result.data.last().status!!.code).isEqualTo("PR")
+      val result = accommodationQueryService.getNextAccommodation(crn)
+      assertThat(result.data!!.address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.data!!.status!!.code).isEqualTo("PR")
     }
 
     @Test
@@ -558,8 +551,8 @@ class AccommodationQueryServiceTest {
         upstreamFailures = emptyList(),
       )
 
-      val result = accommodationQueryService.getNextAccommodations(crn)
-      assertThat(result.data.size).isEqualTo(0)
+      val result = accommodationQueryService.getNextAccommodation(crn)
+      assertThat(result.data).isNull()
     }
 
     @Test
@@ -584,10 +577,10 @@ class AccommodationQueryServiceTest {
       )
 
       // when
-      val result = accommodationQueryService.getNextAccommodations(crn)
+      val result = accommodationQueryService.getNextAccommodation(crn)
 
       // then
-      assertThat(result.data).isEmpty()
+      assertThat(result.data).isNull()
       assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
       assertThat(result.upstreamFailures[1].endpoint).isEqualTo(ApiCallKeys.GET_CAS_1_APPLICATION)
       assertThat(result.upstreamFailures.last().endpoint).isEqualTo(ApiCallKeys.GET_CAS_3_APPLICATION)
