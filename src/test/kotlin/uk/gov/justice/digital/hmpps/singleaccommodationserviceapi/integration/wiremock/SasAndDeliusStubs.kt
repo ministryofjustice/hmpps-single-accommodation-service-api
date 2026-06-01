@@ -14,12 +14,12 @@ object SasAndDeliusStubs {
 
   fun stubGetCaseListByUsername(
     deliusUsername: String,
-    response: CaseList,
+    cases: List<Case>,
     pageSize: Int,
   ) {
-    val totalPages = (response.cases.size + pageSize - 1) / pageSize
+    val totalPages = Math.ceilDiv(cases.size, pageSize)
 
-    response.cases.forEachIndexed { page, case ->
+    cases.forEachIndexed { page, case ->
       sasWiremock.stubFor(
         get(WireMock.urlPathEqualTo("/case-list/$deliusUsername"))
           .withQueryParam("page", WireMock.equalTo(page.toString()))
@@ -32,7 +32,7 @@ object SasAndDeliusStubs {
                   page = PageMetadata(
                     size = pageSize.toLong(),
                     number = page.toLong(),
-                    totalElements = response.cases.size.toLong(),
+                    totalElements = cases.size.toLong(),
                     totalPages = totalPages.toLong(),
                   ),
                 ),

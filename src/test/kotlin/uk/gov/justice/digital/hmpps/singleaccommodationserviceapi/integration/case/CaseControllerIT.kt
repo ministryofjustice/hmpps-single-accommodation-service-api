@@ -14,14 +14,11 @@ import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -111,7 +108,6 @@ class CaseControllerIT : IntegrationTestBase() {
     )
 
     // the case list returned should not match any persisted CRNs
-    val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
     assertThat(
       caseRepository.findAllByIdentifiers(
         crns = cases.map { it.crn },
@@ -121,7 +117,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      response = caseList,
+      cases = cases,
       pageSize = pageSize.toInt(),
     )
 
@@ -374,21 +370,12 @@ class CaseControllerIT : IntegrationTestBase() {
       )
     }
 
-    val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
-
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      response = caseList,
+      cases = cases,
       pageSize = pageSize.toInt(),
     )
   }
-
-  private fun getPageMetadata(cases: List<Case>) = PageMetadata(
-    size = 1,
-    number = 0,
-    totalElements = cases.size.toLong(),
-    totalPages = 1,
-  )
 
   private fun seedCaseEntities() {
     val entities = listOf(

@@ -62,7 +62,7 @@ service:
   commissioned-rehabilitative-services:
     read-timeout: 3500
   tier:
-    read-timeout: 7500
+    read-timeout: 7500 # TODO reduce this when Tier have fixed the response times
   accommodation-data-domain:
     read-timeout: 3500
   nomis-user-roles:

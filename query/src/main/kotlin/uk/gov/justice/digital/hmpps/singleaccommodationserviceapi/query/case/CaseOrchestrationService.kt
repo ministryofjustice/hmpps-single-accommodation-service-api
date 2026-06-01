@@ -39,7 +39,7 @@ class CaseOrchestrationService(
   fun getCaseList(username: String): OrchestrationResultDto<List<Case>> {
     log.info("Retrieving case list from Delius")
     val initialCall = mapOf(
-      GET_CASE_LIST to {
+      getCallKey(username, initialPage) to {
         sasAndDeliusCachingService.getCaseList(
           username = username,
           page = initialPage,
@@ -55,7 +55,7 @@ class CaseOrchestrationService(
     val initialResultSet = initialResults.standardCallsNoIterationResults!!
 
     val caseList = initialResultSet
-      .getResult<CaseList>(GET_CASE_LIST)
+      .getResult<CaseList>(getCallKey(username, initialPage))
       ?: CaseList(emptyList(), PageMetadata(0, 0, 0, 0))
 
     log.debug(
@@ -73,12 +73,13 @@ class CaseOrchestrationService(
     )
   }
 
+  private fun getCallKey(username: String, page: Long) = GET_CASE_LIST + username + page
+
   private fun getAdditionalCases(page: PageMetadata, username: String) = if (page.number + 1 < page.totalPages) {
-    fun getCallKey(page: Long) = GET_CASE_LIST + username + page
     val remainingPages = 1 until page.totalPages
     val additionalResults = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = remainingPages.associate { nextPage ->
-        (getCallKey(nextPage)) to {
+        (getCallKey(username, nextPage)) to {
           sasAndDeliusCachingService.getCaseList(
             username,
             page = nextPage,
@@ -91,7 +92,7 @@ class CaseOrchestrationService(
     val resultSet = additionalResults.standardCallsNoIterationResults!!
 
     val cases = remainingPages.mapNotNull { nextPage ->
-      resultSet.getResult<CaseList>(getCallKey(nextPage))?.cases
+      resultSet.getResult<CaseList>(getCallKey(username, nextPage))?.cases
     }.flatten()
 
     cases to resultSet.getFailures()

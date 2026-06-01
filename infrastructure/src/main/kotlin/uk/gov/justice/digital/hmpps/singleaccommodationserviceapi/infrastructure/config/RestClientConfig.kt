@@ -82,9 +82,13 @@ class RestClientConfig(
   )
 
   @Bean
-  fun commissionedRehabilitativeServicesClient(@Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String) = createClient(
+  fun commissionedRehabilitativeServicesClient(
+    @Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String,
+    @Value($$"${service.commissioned-rehabilitative-services-api.read-timeout}") readTimeout: Long,
+  ) = createClient(
     baseUrl,
     CommissionedRehabilitativeServicesClient::class,
+    Duration.ofMillis(readTimeout),
   )
 
   @Bean
