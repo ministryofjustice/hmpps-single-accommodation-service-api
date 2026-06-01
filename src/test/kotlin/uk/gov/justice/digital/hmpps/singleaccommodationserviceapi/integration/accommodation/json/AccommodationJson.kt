@@ -108,16 +108,12 @@ fun expectedGetCurrentAccommodationResponse(crn: String): String = """
 """.trimIndent()
 
 fun expectedGetNextAccommodationsResponse(
-  cas1StartDate: String,
-  cas1EndDate: String,
-  cas3StartDate: String,
-  cas3EndDate: String,
   prStartDate: String,
   prEndDate: String,
   crn: String,
 ): String = """
 {
-   "data":[
+   "data":
       {
          "crn":"$crn",
          "cprAddressId": null,
@@ -143,60 +139,7 @@ fun expectedGetNextAccommodationsResponse(
             "code":"A07A",
             "description":"Friends/Family (transient)"
          }
-      },
-      {
-         "crn":"$crn",
-         "cprAddressId":null,
-         "startDate":"$cas1StartDate",
-         "endDate":"$cas1EndDate",
-         "address":{
-            "postcode":"SW1A 1AB",
-            "subBuildingName":null,
-            "buildingName":null,
-            "buildingNumber":null,
-            "thoroughfareName":"123 Test Street",
-            "dependentLocality":"Test Village",
-            "postTown":"Test Town",
-            "county":null,
-            "country":null,
-            "uprn":null
-         },
-         "status":{
-            "code":"PR",
-            "description":"Proposed"
-         },
-         "type":{
-            "code":"A02",
-            "description":"Approved Premises"
-         }
-      },
-      {
-         "crn":"$crn",
-         "cprAddressId":null,
-         "startDate":"$cas3StartDate",
-         "endDate":"$cas3EndDate",
-         "address":{
-            "postcode":"SW1A 1A4",
-            "subBuildingName":null,
-            "buildingName":"Test Premises",
-            "buildingNumber":null,
-            "thoroughfareName":"123 Test Street",
-            "dependentLocality":"Test Village",
-            "postTown":"Test Town",
-            "county":null,
-            "country":null,
-            "uprn":null
-         },
-         "status":{
-            "code":"PR",
-            "description":"Proposed"
-         },
-         "type":{
-            "code":"A17",
-            "description":"CAS3"
-         }
       }
-   ]
 }
 """.trimIndent()
 
@@ -252,7 +195,7 @@ fun expectedGetAccommodationByIdResponse(
 
 fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
 {
-  "data":[],
+  "data":null,
   "upstreamFailures":[
   {
     "endpoint":"getCorePersonRecordByCrn",
