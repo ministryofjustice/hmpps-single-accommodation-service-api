@@ -10,11 +10,13 @@ import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -28,7 +30,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
@@ -68,41 +69,46 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `matches a case by all identifiers from CorePersonRecord and adds missing ones`() {
+  fun `matches a case by all identifiers from CorePersonRecord and adds the latest ones`() {
     // case 1 identifiers
-    val knownCrnForCase1 = UUID.randomUUID().toString()
-    val unknownCrnForCase1 = UUID.randomUUID().toString()
-    val unknownPrisonNumberForCase1 = UUID.randomUUID().toString()
+    val knownCrnForCase1 = "knownCrnForCase1"
+    val unkownCrnCase1 = "crnToAddForCase1"
+    val unkownPrisonNumberCase1 = "prisonNumberToAddForCase1"
 
     // case 2 identifiers
-    val knownPrisonNumberForCase2 = UUID.randomUUID().toString()
-    val unknownCrnForCase2 = UUID.randomUUID().toString()
+    val knownCrnForCase2 = "knownCrnForCase2"
+    val knownPrisonNumberCase2 = "knownPrisonNumberForCase2"
+    val unknownCrnCase2 = "crnToAddForCase2"
+    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase2"
 
-    val case1 = buildCaseEntity { withCrn(knownCrnForCase1) }
-    val case2 = buildCaseEntity {
-      withCrn(unknownCrnForCase2)
-      withPrisonNumber(knownPrisonNumberForCase2)
+    // cas3 3 identifiers
+    val unknownCaseCrn = "unknownCRN"
+    val unknownCasePrisonNumber = "unknownPrisonNumber"
+
+    val case1 = buildCaseEntity {
+      withCrn(knownCrnForCase1)
     }
-    val cases = listOf(case1, case2)
+    val case2 = buildCaseEntity {
+      withCrn(knownCrnForCase2)
+      withPrisonNumber(knownPrisonNumberCase2)
+    }
 
-    caseRepository.saveAllAndFlush(cases)
+    caseRepository.saveAllAndFlush(listOf(case1, case2))
 
-    // currently crn is not nullable in dtos, so doing this way to avoid refactoring but add coverage
-    caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!
-      .also { entity ->
-        entity.caseIdentifiers.removeIf {
-          it.identifierType == IdentifierType.CRN
-        }
-        caseRepository.saveAndFlush(entity)
-      }
-
-    // case list return should not match any persisted CRNs
-    val caseList = CaseList(
-      listOf(
-        buildCase(crn = unknownCrnForCase1, nomsNumber = null),
-        buildCase(crn = unknownCrnForCase2, nomsNumber = knownPrisonNumberForCase2),
-      ),
+    val cases = listOf(
+      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1),
+      buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2),
+      buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber),
     )
+
+    // the case list returned should not match any persisted CRNs
+    val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
+    assertThat(
+      caseRepository.findAllByIdentifiers(
+        crns = cases.map { it.crn },
+        prisonNumbers = cases.map { it.nomsNumber!! },
+      ),
+    ).hasSize(0)
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
@@ -111,49 +117,92 @@ class CaseControllerIT : IntegrationTestBase() {
 
     // returns the unknown CRN from the caselist, and the persisted CRN for the case
     stubCorePersonRecord(
-      crn = unknownCrnForCase1,
-      prisonNumber = unknownPrisonNumberForCase1,
+      crn = unkownCrnCase1,
+      prisonNumber = unkownPrisonNumberCase1,
       additionalCrns = listOf(knownCrnForCase1),
     )
 
     // returns the CRN from the case list, and the persisted Prison Number for the case
     stubCorePersonRecord(
-      crn = unknownCrnForCase2,
-      prisonNumber = knownPrisonNumberForCase2,
+      crn = unknownCrnCase2,
+      prisonNumber = knownPrisonNumberCase2,
+      additionalCrns = listOf(knownCrnForCase2),
+      additionalPrisonNumbers = listOf(unknownPrisonNumberCase2),
     )
+
+    // returns the data for the unknown case
+    stubCorePersonRecord(
+      crn = unknownCaseCrn,
+      prisonNumber = unknownCasePrisonNumber,
+    )
+
+    assertThat(caseRepository.findAll()).hasSize(2)
 
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
-      .jsonPath("$.data.length()").isEqualTo(2)
+      .jsonPath("$.data.length()").isEqualTo(3)
 
-    assertThat(caseRepository.findByCrn(unknownCrnForCase1)!!.caseIdentifiers)
-      .extracting<String> { it.identifier }
-      .containsExactlyInAnyOrder(
-        knownCrnForCase1,
-        unknownCrnForCase1,
-        unknownPrisonNumberForCase1,
-      )
+    assertThat(caseRepository.findAll()).hasSize(3)
 
-    assertThat(caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!.caseIdentifiers)
+    assertCaseIdentifiers(
+      crn = unkownCrnCase1,
+      expectedIdentifiers = listOf(knownCrnForCase1, unkownCrnCase1, unkownPrisonNumberCase1),
+    )
+
+    assertCaseIdentifiers(
+      crn = unknownCrnCase2,
+      expectedIdentifiers = listOf(
+        knownCrnForCase2,
+        knownPrisonNumberCase2,
+        unknownCrnCase2,
+        unknownPrisonNumberCase2,
+      ),
+    )
+
+    assertCaseIdentifiers(
+      crn = unknownCaseCrn,
+      expectedIdentifiers = listOf(unknownCaseCrn, unknownCasePrisonNumber),
+    )
+  }
+
+  private fun assertCaseIdentifiers(
+    crn: String,
+    expectedIdentifiers: List<String?>,
+  ) {
+    val case = caseRepository.findByCrn(crn)!!
+
+    assertThat(case.latestCrn()).isEqualTo(crn)
+
+    assertThat(case.caseIdentifiers)
       .extracting<String> { it.identifier }
-      .containsExactlyInAnyOrder(
-        knownPrisonNumberForCase2,
-        unknownCrnForCase2,
-      )
+      .hasSize(expectedIdentifiers.size)
+      .containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
   @Test
-  fun `should get successful response from case-list`() {
+  fun `should update existing, create new and return expected case list`() {
+    // there are 20 crns created and stubbed for the case list.
     stubCaseList()
+    // there are 10 added to the SAS database
     seedCaseEntities()
+    // and 10 we will need to call CPR for. 2 of these are errors.
     stubAdditionalCorePersonRecords()
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    assertThat(caseRepository.findAll().size).isEqualTo(10)
+
+    val result = restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+
+    result.expectBody().jsonPath("$.data.length()").isEqualTo(20)
+
+    // TODO this returns 18 (instead of 20) because we currently do not persist case-list results from delius that fail CPR calls,
+    // but still return them in the case list...
+    assertThat(caseRepository.findAll().size).isEqualTo(18)
+
+    result.expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
@@ -282,40 +331,47 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   private fun stubCaseList() {
-    val caseList = CaseList(
-      crns.mapIndexed { i, crn ->
-        buildCase(
-          crn = crn,
-          nomsNumber = nomsNumbers[i],
-          gender = when (i) {
-            3, 6 -> "Female"
-            4, 7 -> "Non-Specified"
-            5, 8 -> "Not Known / Not Recorded"
-            else -> "Male"
-          },
-          name = if (i == 1) buildName("Zack", "Smith") else buildName(),
-          roshLevel = if (i == 1) {
-            buildRoshLevel("RMRH", "Medium")
-          } else {
-            buildRoshLevel()
-          },
-          userRestricted = when (i) {
-            crns.size - 1 -> true
-            else -> false
-          },
-          userExcluded = when (i) {
-            crns.size - 2 -> true
-            else -> false
-          },
-        )
-      },
-    )
+    val cases = crns.mapIndexed { i, crn ->
+      buildCase(
+        crn = crn,
+        nomsNumber = nomsNumbers[i],
+        gender = when (i) {
+          3, 6 -> "Female"
+          4, 7 -> "Non-Specified"
+          5, 8 -> "Not Known / Not Recorded"
+          else -> "Male"
+        },
+        name = if (i == 1) buildName("Zack", "Smith") else buildName(),
+        roshLevel = if (i == 1) {
+          buildRoshLevel("RMRH", "Medium")
+        } else {
+          buildRoshLevel()
+        },
+        userRestricted = when (i) {
+          crns.size - 1 -> true
+          else -> false
+        },
+        userExcluded = when (i) {
+          crns.size - 2 -> true
+          else -> false
+        },
+      )
+    }
+
+    val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       response = caseList,
     )
   }
+
+  private fun getPageMetadata(cases: List<Case>) = PageMetadata(
+    size = cases.size.toLong(),
+    number = 0,
+    totalElements = cases.size.toLong(),
+    totalPages = 1,
+  )
 
   private fun seedCaseEntities() {
     val entities = listOf(

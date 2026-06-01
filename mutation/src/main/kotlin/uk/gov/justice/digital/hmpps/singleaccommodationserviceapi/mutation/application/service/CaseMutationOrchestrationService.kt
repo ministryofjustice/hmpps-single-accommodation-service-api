@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.CallsPerIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
@@ -21,6 +23,8 @@ class CaseMutationOrchestrationService(
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val approvedPremisesCachingService: ApprovedPremisesCachingService,
 ) {
+
+  private val log = LoggerFactory.getLogger(javaClass)
 
   fun getCase(crn: String): CaseMutationOrchestrationDto {
     val calls = mapOf(
@@ -59,6 +63,17 @@ class CaseMutationOrchestrationService(
       )
     }
     val upstreamFailures = results.callsPerIdentifierResults!!.values.flatMap { it.getFailures() }
+
+    logCprFailures(upstreamFailures)
     return OrchestrationResultDto(data = cases, upstreamFailures = upstreamFailures)
+  }
+
+  private fun logCprFailures(upstreamFailures: List<UpstreamFailure>) = upstreamFailures.forEach { failure ->
+    if (failure.callKey == ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN) {
+      log.warn(
+        "Unable to get CPR data for provided CRN {}. This will appear in the case-list but a SAS CaseEntity may not be created¬",
+        failure.identifier,
+      )
+    }
   }
 }

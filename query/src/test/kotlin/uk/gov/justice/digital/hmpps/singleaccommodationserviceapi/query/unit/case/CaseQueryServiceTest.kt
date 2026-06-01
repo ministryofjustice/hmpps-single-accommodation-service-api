@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
@@ -75,7 +76,7 @@ class CaseQueryServiceTest {
       val roshLevel = buildRoshLevel(code = "RMRH", description = "Medium Risk")
       val case2 = buildCase(crn = crnTwo, name = buildName("Bob"), nomsNumber = "12234", roshLevel = roshLevel)
 
-      val caseList = OrchestrationResultDto(CaseList(cases = listOf(case1, case2)))
+      val caseList = OrchestrationResultDto(CaseList(cases = listOf(case1, case2), page = PageMetadata(0, 0, 0, 0)))
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
