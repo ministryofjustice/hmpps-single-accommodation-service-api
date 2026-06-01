@@ -16,6 +16,7 @@ data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val action: String? = null,
   val link: String? = null,
+  val url: String? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 )
 

@@ -15,6 +15,9 @@ fun expectedGetEligibilityResponse(
   createdBy: String,
   createdAt: String,
   crsSubmissionDate: String,
+  cas1Url: String,
+  cas3Url: String,
+  crsUrl: String,
 ): String = """
 {
    "data":{
@@ -24,6 +27,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"ARRIVED",
             "action":null,
             "link":"View application",
+            "url":"$cas1Url",
             "failureReasons":[]
          },
          "cas1Application":{
@@ -35,15 +39,16 @@ fun expectedGetEligibilityResponse(
       },
       "cas3":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"SUBMITTED",
             "action":null,
-            "link":null,
-            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE"]
+            "link":"View referral",
+            "url":"$cas3Url",
+            "failureReasons":[]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
-            "applicationStatus":"IN_PROGRESS",
-            "assessmentStatus":null,
+            "applicationStatus":"SUBMITTED",
+            "assessmentStatus":"UNALLOCATED",
             "bookingStatus":null
          }
       },
@@ -52,6 +57,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"SUBMITTED",
             "action":"Add DTR referral outcome",
             "link":"Add outcome",
+            "url":null,
             "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
@@ -75,6 +81,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View refer and monitor",
+            "url":"$crsUrl",
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -87,8 +94,10 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[
-               "SUITABLE_CAS1_APPLICATION"
+               "SUITABLE_CAS1_APPLICATION",
+               "SUITABLE_CAS3_APPLICATION"
             ]
          }
       },
@@ -110,6 +119,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[]
          },
          "cas1Application":null
@@ -119,6 +129,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[]
          },
          "cas3Application":null
@@ -128,6 +139,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[]
          },
          "caseId":null,
@@ -138,6 +150,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":null
@@ -147,12 +160,11 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[]
          }
       },
-      "caseActions":[
-         
-      ]
+      "caseActions":[]
    },
    "upstreamFailures":[
       {
@@ -179,6 +191,9 @@ fun expectedGetEligibilityResponseTierNotFound(
   createdBy: String,
   createdAt: String,
   crsSubmissionDate: String,
+  cas1Url: String,
+  cas3Url: String,
+  crsUrl: String,
 ): String = """
 {
    "data":{
@@ -188,6 +203,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"ARRIVED",
             "action":null,
             "link":"View application",
+            "url":"$cas1Url",
             "failureReasons":[]
          },
          "cas1Application":{
@@ -199,15 +215,16 @@ fun expectedGetEligibilityResponseTierNotFound(
       },
       "cas3":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"SUBMITTED",
             "action":null,
-            "link":null,
-            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE"]
+            "link":"View referral",
+            "url":"$cas3Url",
+            "failureReasons":[]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
-            "applicationStatus":"IN_PROGRESS",
-            "assessmentStatus":null,
+            "applicationStatus":"SUBMITTED",
+            "assessmentStatus":"UNALLOCATED",
             "bookingStatus":null
          }
       },
@@ -216,6 +233,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"SUBMITTED",
             "action":"Add DTR referral outcome",
             "link":"Add outcome",
+            "url":null,
             "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
@@ -239,6 +257,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View refer and monitor",
+            "url":"$crsUrl",
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -251,8 +270,10 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
+            "url":null,
             "failureReasons":[
-               "SUITABLE_CAS1_APPLICATION"
+               "SUITABLE_CAS1_APPLICATION",
+               "SUITABLE_CAS3_APPLICATION"
             ]
          }
       },
@@ -276,6 +297,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
   createdBy: String,
   createdAt: String,
   crsSubmissionDate: String,
+  cas3Url: String,
+  crsUrl: String,
 ): String = """
 {
    "data":{
@@ -285,7 +308,10 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
             "link":null,
-            "failureReasons":["S_TIER"]
+            "url":null,
+            "failureReasons":[
+               "S_TIER"
+            ]
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
@@ -296,15 +322,16 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       },
       "cas3":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"SUBMITTED",
             "action":null,
-            "link":null,
-            "failureReasons":["INVALID_CURRENT_ACCOMMODATION_TYPE"]
+            "link":"View referral",
+            "url":"$cas3Url",
+            "failureReasons":[]
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
-            "applicationStatus":"IN_PROGRESS",
-            "assessmentStatus":null,
+            "applicationStatus":"SUBMITTED",
+            "assessmentStatus":"UNALLOCATED",
             "bookingStatus":null
          }
       },
@@ -313,6 +340,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"SUBMITTED",
             "action":"Add DTR referral outcome",
             "link":"Add outcome",
+            "url":null,
             "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
@@ -336,6 +364,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View refer and monitor",
+            "url":"$crsUrl",
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -345,15 +374,17 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"NOT_STARTED",
-            "action":"Add and confirm proposed address",
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
             "link":null,
-            "failureReasons":[]
+            "url":null,
+            "failureReasons":[
+               "SUITABLE_CAS3_APPLICATION"
+            ]
          }
       },
       "caseActions":[
-         "Add DTR referral outcome",
-         "Add and confirm proposed address"
+         "Add DTR referral outcome"
       ]
    }
 }

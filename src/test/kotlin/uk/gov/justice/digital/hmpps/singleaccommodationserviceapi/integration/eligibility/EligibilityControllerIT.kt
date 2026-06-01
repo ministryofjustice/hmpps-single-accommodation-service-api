@@ -7,6 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.ass
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
@@ -49,6 +51,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   private val crsSubmissionDate = LocalDate.now()
 
+  val cas1Url = "https://approved-premises-dev.hmpps.service.justice.gov.uk"
+  val cas3Url = "https://transitional-accommodation-dev.hmpps.service.justice.gov.uk"
+  val crsUrl = "https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk"
+
   @Autowired
   private lateinit var caseRepository: CaseRepository
 
@@ -82,7 +88,11 @@ class EligibilityControllerIT : IntegrationTestBase() {
       requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       placementStatus = Cas1PlacementStatus.ARRIVED,
     )
-    val cas3Application = buildCas3Application(id = cas3ApplicationId)
+    val cas3Application = buildCas3Application(
+      id = cas3ApplicationId,
+      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+      assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
+    )
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
@@ -140,6 +150,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
+            cas1Url = cas1Url,
+            crsUrl = crsUrl,
+            cas3Url = cas3Url,
           ),
         )
       }
@@ -183,6 +196,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
+            cas1Url = cas1Url,
+            crsUrl = crsUrl,
+            cas3Url = cas3Url,
           ),
         )
       }
@@ -250,6 +266,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
+            crsUrl = crsUrl,
+            cas3Url = cas3Url,
           ),
         )
       }

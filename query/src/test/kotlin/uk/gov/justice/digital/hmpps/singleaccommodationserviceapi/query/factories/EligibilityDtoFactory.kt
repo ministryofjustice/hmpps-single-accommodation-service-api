@@ -37,12 +37,14 @@ fun buildServiceResult(
   serviceStatus: ServiceStatus = ServiceStatus.NOT_ELIGIBLE,
   action: String? = null,
   link: String? = null,
+  url: String? = null,
   failureReasons: List<FailureReason> = emptyList(),
 ) = ServiceResult(
   serviceStatus = serviceStatus,
   action = action,
   link = link,
   failureReasons = failureReasons,
+  url = url,
 )
 
 fun buildCas1ServiceResult(

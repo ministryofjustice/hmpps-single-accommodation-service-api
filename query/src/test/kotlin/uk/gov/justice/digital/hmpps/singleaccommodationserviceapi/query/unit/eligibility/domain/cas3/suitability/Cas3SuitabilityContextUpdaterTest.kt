@@ -16,7 +16,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 class Cas3SuitabilityContextUpdaterTest {
-  private val updater = Cas3SuitabilityContextUpdater()
+  val cas3UiUrl = "CAS3_UI_URL"
+  private val updater = Cas3SuitabilityContextUpdater(cas3UiUrl)
 
   @Nested
   inner class UpdateTests {
@@ -41,6 +42,7 @@ class Cas3SuitabilityContextUpdaterTest {
       assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.START_CAS3_REFERRAL)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.REJECTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.START_NEW_REFERRAL)
+      assertThat(result.currentResult.url).isEqualTo(cas3UiUrl)
     }
   }
 }

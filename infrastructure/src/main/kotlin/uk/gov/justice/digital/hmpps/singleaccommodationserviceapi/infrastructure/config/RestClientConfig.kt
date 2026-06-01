@@ -58,7 +58,7 @@ class RestClientConfig(
   )
 
   @Bean
-  open fun commissionedRehabilitativeServicesClient(@Value($$"${service.commissioned-rehabilitative-services.base-url}") baseUrl: String) = createClient(
+  open fun commissionedRehabilitativeServicesClient(@Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String) = createClient(
     baseUrl,
     CommissionedRehabilitativeServicesClient::class,
   )

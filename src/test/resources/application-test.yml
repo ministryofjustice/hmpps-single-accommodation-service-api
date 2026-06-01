@@ -11,7 +11,7 @@ service:
   - approved-premises-and-oasys
   - approved-premises-api
   - core-person-record
-  - commissioned-rehabilitative-services
+  - commissioned-rehabilitative-services-api
   - tier
   - accommodation-data-domain
   - nomis-user-roles
