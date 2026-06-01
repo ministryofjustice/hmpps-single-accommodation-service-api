@@ -219,7 +219,7 @@ TC5,ineligible,01/01/2025,M,D1,01/02/2025,,,,NOT_ELIGIBLE,,,"MALE_NOT_HIGH_RISK_
 TC6,ineligible,01/01/2025,F,D1,01/02/2025,,,,NOT_ELIGIBLE,,,"NON_MALE_NOT_HIGH_RISK_TIER"
 TC7,ineligible,01/01/2025,N,D1,01/02/2025,,,,NOT_ELIGIBLE,,,"NON_MALE_NOT_HIGH_RISK_TIER"
 TC8,ineligible,01/01/2025,NS,D1,01/02/2025,,,,NOT_ELIGIBLE,,,"NON_MALE_NOT_HIGH_RISK_TIER"
-TC10,eligible but no current accommodation end date,01/01/2025,M,A1,,,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+TC10,eligible but no current accommodation end date,01/01/2025,M,A1,,,,,NOT_STARTED,Start an approved premises (CAS1) application,Start application,
 TC11,ineligible,01/01/2025,M,A1S,01/02/2025,,,,NOT_ELIGIBLE,,,"S_TIER"
 TC15,eligible with current accommodation end date exactly one year and one day into the future,01/01/2025,M,A1,02/01/2026,,,,UPCOMING,Start an approved premises (CAS1) application in 1 day,,
 TC9,eligible but outside 1 year,01/01/2025,M,A1,01/02/2026,,,,UPCOMING,Start an approved premises (CAS1) application in 31 days,,

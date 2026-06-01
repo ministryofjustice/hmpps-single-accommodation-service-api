@@ -48,7 +48,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.CurrentAccommodationEndDateValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
@@ -81,7 +80,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.ReleaseWithinFourWeeksRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.validation.Cas3ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
@@ -138,7 +136,6 @@ class EligibilityServiceTest {
   // CAS1
   var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
   var cas1ValidationRuleSet = Cas1ValidationRuleSet(
-    CurrentAccommodationEndDateValidationRule(),
     Cas1SexValidationRule(),
   )
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
@@ -155,7 +152,6 @@ class EligibilityServiceTest {
   // CAS3
   var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
   var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
-  var cas3ValidationRuleSet = Cas3ValidationRuleSet(CurrentAccommodationEndDateValidationRule())
   val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater(clock)
   var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(ReleaseWithinFourWeeksRule(clock))
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
@@ -183,13 +179,11 @@ class EligibilityServiceTest {
   var dtrCompletionContextUpdater = DtrCompletionContextUpdater()
   var dtrCompletionRuleSet = DtrCompletionRuleSet(DtrApplicationCompleteRule())
   var dtrEligibilityRuleSet = DtrEligibilityRuleSet(
-    CurrentAccommodationEndDateValidationRule(),
     NoNextAccommodationRule(),
   )
 
   // CRS
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
-    CurrentAccommodationEndDateValidationRule(),
     NoNextAccommodationRule(),
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
@@ -225,7 +219,6 @@ class EligibilityServiceTest {
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
     builder = builder,
-    validation = cas3ValidationRuleSet,
     upcoming = cas3UpcomingRuleSet,
     upcomingContextUpdater = cas3UpcomingContextUpdater,
     suitability = cas3SuitabilityRuleSet,
@@ -899,19 +892,6 @@ class EligibilityServiceTest {
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.SEX_DATA_NOT_AVAILABLE)
-    }
-
-    @Test
-    fun `Cas1 surfaces NO_CURRENT_ACCOMMODATION_END_DATE when end date is missing`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = null),
-      )
-
-      val result = eligibilityService.evaluate(cas1Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.NO_CURRENT_ACCOMMODATION_END_DATE)
     }
 
     @Test
