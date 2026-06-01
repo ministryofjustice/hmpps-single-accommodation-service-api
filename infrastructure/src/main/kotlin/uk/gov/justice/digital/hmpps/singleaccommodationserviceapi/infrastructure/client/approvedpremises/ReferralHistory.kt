@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DeliusUserDto
 import java.time.Instant
 import java.util.UUID
 
@@ -15,7 +15,7 @@ data class Cas1ReferralHistory(
   val referralRejectionReason: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: AssignedToDto?,
+  val referredBy: DeliusUserDto?,
   val placementAddress: String?,
   val placementStatus: String?,
 ) : CasReferralHistory {
@@ -44,7 +44,7 @@ data class Cas2ReferralHistory(
   val referralRejectionReason: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: AssignedToDto?,
+  val referredBy: DeliusUserDto?,
   val placementAddress: String?,
   val placementStatus: String?,
 ) : CasReferralHistory {
@@ -76,7 +76,7 @@ data class Cas3ReferralHistory(
   val referralRejectionReason: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: AssignedToDto?,
+  val referredBy: DeliusUserDto?,
   val placementAddress: String?,
   val placementStatus: String?,
 ) : CasReferralHistory {
