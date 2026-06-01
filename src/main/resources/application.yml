@@ -68,5 +68,11 @@ management:
 javers:
   springDataAuditableRepositoryAspectEnabled: true
 
+hmpps:
+  sqs:
+    dispatcher:
+      max-events-per-batch: 10    # How many events to fetch per scheduler run (default: 10)
+      max-concurrent-events: 4    # Max partitions processed in parallel (default: 4)
+
 case-list:
   onboarded-teams: []
