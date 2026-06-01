@@ -76,8 +76,9 @@ class RestClientConfig(
   )
 
   private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
+    // TODO: Set these values in config. Using large timeout now for slow endpoints that are being refined.
     val client = restClientBuilder
-      .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofMillis(3500)))
+      .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofSeconds(30)))
       .requestInterceptor(HmppsAuthInterceptor(clientManager, "default"))
       .baseUrl(baseUrl)
       .build()

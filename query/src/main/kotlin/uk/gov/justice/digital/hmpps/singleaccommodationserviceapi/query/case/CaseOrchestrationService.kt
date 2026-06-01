@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
+import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
@@ -7,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ApprovedPremisesAndOasysCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
@@ -26,20 +29,75 @@ class CaseOrchestrationService(
   val approvedPremisesAndOasysCachingService: ApprovedPremisesAndOasysCachingService,
   val tierCachingService: TierCachingService,
 ) {
-  fun getCaseList(username: String): OrchestrationResultDto<CaseList> {
-    val bulkCall = mapOf(
-      GET_CASE_LIST to { sasAndDeliusCachingService.getCaseList(username) },
+
+  private val log = LoggerFactory.getLogger(javaClass)
+  private val pageSize = 200L
+  private val initialPage = 0L
+
+  @Cacheable(FULL_CASE_LIST)
+  fun getCaseList(username: String): OrchestrationResultDto<List<Case>> {
+    log.info("Retrieving case list from Delius")
+    val initialCall = mapOf(
+      GET_CASE_LIST to {
+        sasAndDeliusCachingService.getCaseList(
+          username = username,
+          page = initialPage,
+          size = pageSize,
+        )
+      },
     )
 
-    val results = aggregatorService.orchestrateAsyncCalls(
-      standardCallsNoIteration = bulkCall,
+    val initialResults = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = initialCall,
     )
-    val caseList = results.standardCallsNoIterationResults
-      ?.getResult<CaseList>(GET_CASE_LIST)
+
+    val initialResultSet = initialResults.standardCallsNoIterationResults!!
+
+    val caseList = initialResultSet
+      .getResult<CaseList>(GET_CASE_LIST)
       ?: CaseList(emptyList(), PageMetadata(0, 0, 0, 0))
+
+    log.info(
+      "Received {} cases, page {} of {}",
+      caseList.cases.size,
+      caseList.page.number + 1,
+      caseList.page.totalPages,
+    )
+
+    val remainingPages = 1 until caseList.page.totalPages
+
+    val (additionalCases, additionalFailures) =
+      if (caseList.page.number + 1 < caseList.page.totalPages) {
+        val additionalResults = aggregatorService.orchestrateAsyncCalls(
+          standardCallsNoIteration = remainingPages.associate { nextPage ->
+            (GET_CASE_LIST + nextPage) to {
+              sasAndDeliusCachingService.getCaseList(
+                username,
+                page = nextPage,
+                size = pageSize,
+              )
+            }
+          },
+        )
+
+        val resultSet = additionalResults.standardCallsNoIterationResults!!
+
+        val cases = remainingPages
+          .mapNotNull { nextPage ->
+            resultSet.getResult<CaseList>(GET_CASE_LIST + nextPage)?.cases
+          }
+          .flatten()
+
+        cases to resultSet.getFailures()
+      } else {
+        emptyList<Case>() to emptyList()
+      }
+
+    val allFailures = initialResultSet.getFailures() + additionalFailures
+
     return OrchestrationResultDto(
-      data = caseList,
-      upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
+      data = caseList.cases + additionalCases,
+      upstreamFailures = allFailures,
     )
   }
 

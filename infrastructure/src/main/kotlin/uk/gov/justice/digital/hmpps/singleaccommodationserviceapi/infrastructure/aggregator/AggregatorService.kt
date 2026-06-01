@@ -26,7 +26,7 @@ data class AggregatorResult(
 
 @Service
 class AggregatorService {
-  private val maxConcurrency: Int = 100
+  private val maxConcurrency: Int = 50
   private val log = LoggerFactory.getLogger(AggregatorService::class.java)
 
   fun orchestrateAsyncCalls(

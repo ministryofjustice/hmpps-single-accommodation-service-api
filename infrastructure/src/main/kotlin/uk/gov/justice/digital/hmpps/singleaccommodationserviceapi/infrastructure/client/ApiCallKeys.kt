@@ -7,6 +7,7 @@ object ApiCallKeys {
 
   // probation-integration SAS and Delius service
   const val GET_CASE_LIST = "getCaseListByUsername"
+  const val FULL_CASE_LIST = "fullCaseListByUsername"
 
   // probation-integration Oasys service
   const val GET_ROSH_DETAIL = "getRoshSummaryByCrn"
@@ -31,4 +32,7 @@ object ApiCallKeys {
   const val GET_CAS2_REFERRAL = "getCas2ReferralByCrn"
   const val GET_CAS2V2_REFERRAL = "getCas2v2ReferralByCrn"
   const val GET_CAS3_REFERRAL = "getCas3ReferralByCrn"
+
+  // other
+  const val GET_CASES_FROM_ORCHESTRATOR = "getCasesFromOrchestrator"
 }

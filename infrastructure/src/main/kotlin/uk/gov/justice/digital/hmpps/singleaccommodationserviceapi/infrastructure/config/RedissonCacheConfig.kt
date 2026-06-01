@@ -11,12 +11,14 @@ import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_ACCOMMODATION_RESPONSE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASES_FROM_ORCHESTRATOR
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
@@ -111,8 +113,10 @@ class RedissonCacheConfig {
       GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_3_APPLICATION to CacheConfig(60_000, 30_000),
-      GET_CASE_LIST to CacheConfig(60_000, 30_000),
+      GET_CASE_LIST to CacheConfig(300_000, 300_000),
+      FULL_CASE_LIST to CacheConfig(600_000, 600_000),
       GET_CRS to CacheConfig(60_000, 30_000),
+      GET_CASES_FROM_ORCHESTRATOR to CacheConfig(600_000, 300_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }
