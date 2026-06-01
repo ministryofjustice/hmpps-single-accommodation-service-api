@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
@@ -34,7 +34,7 @@ class AccommodationReferralTransformerTest {
       assertThat(it.referralRejectionReason).isEqualTo("Some reason")
       assertThat(it.localAuthorityArea).isEqualTo("Some area")
       assertThat(it.pdu).isEqualTo("Some pdu")
-      assertThat(it.referredBy).isEqualTo(buildAssignedToDto())
+      assertThat(it.referredBy).isEqualTo(buildDeliusUserDto())
       assertThat(it.placementAddress).isEqualTo("Some address")
       assertThat(it.placementStatus).isEqualTo("Some status")
     }

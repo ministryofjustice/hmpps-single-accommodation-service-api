@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
@@ -14,7 +14,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = buildAssignedToDto(),
+      referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
@@ -25,7 +25,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = buildAssignedToDto(),
+      referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
@@ -36,7 +36,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = buildAssignedToDto(),
+      referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),
@@ -47,7 +47,7 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = buildAssignedToDto(),
+      referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),

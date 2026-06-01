@@ -89,6 +89,8 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.nomsNumber).isEqualTo(case1.nomsNumber)
       assertThat(firstPerson.pncNumber).isEqualTo(case1.pncNumber)
       assertThat(firstPerson.dateOfBirth).isEqualTo(case1.dateOfBirth)
+      assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
       assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
       assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
@@ -100,6 +102,8 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
+      assertThat(lastPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(lastPerson.assignedTo.surname).isEqualTo(case2.staff.name.surname)
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
       assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
@@ -117,6 +121,8 @@ class CaseQueryServiceTest {
     }
 
     val assignedTo = AssignedToDto(
+      forename = "Firstname",
+      surname = "Surname",
       username = "Firstname.Surname",
       staffCode = "5318008",
     )

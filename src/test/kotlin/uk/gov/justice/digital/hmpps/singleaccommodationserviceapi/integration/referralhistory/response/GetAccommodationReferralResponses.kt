@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DeliusUserDto
 import java.util.UUID
 
 fun expectedGetReferralHistory(
@@ -11,11 +11,11 @@ fun expectedGetReferralHistory(
   referralRejectionReason: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: AssignedToDto? = null,
+  referredBy: DeliusUserDto? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ): String {
-  fun referredByJson(dto: AssignedToDto?) = if (dto == null) {
+  fun referredByJson(dto: DeliusUserDto?) = if (dto == null) {
     "null"
   } else {
     """{
