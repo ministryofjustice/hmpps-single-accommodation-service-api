@@ -29,7 +29,7 @@ class SasAndDeliusCachingService(
     page: Long,
     size: Long,
   ): CaseList {
-    log.info("Calling getCaseList for username: $username, size: $size, page: $page")
+    log.debug("Calling getCaseList for username: $username, size: $size, page: $page")
     return sasAndDeliusClient.getCaseList(username = username, page = page, size = size)
   }
 

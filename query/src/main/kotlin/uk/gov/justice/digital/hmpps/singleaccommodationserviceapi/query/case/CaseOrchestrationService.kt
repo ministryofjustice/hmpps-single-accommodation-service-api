@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
@@ -28,10 +29,10 @@ class CaseOrchestrationService(
   val corePersonRecordCachingService: CorePersonRecordCachingService,
   val approvedPremisesAndOasysCachingService: ApprovedPremisesAndOasysCachingService,
   val tierCachingService: TierCachingService,
+  @param:Value($$"${case-list.page-size:100}") val pageSize: Long,
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
-  private val pageSize = 200L
   private val initialPage = 0L
 
   @Cacheable(FULL_CASE_LIST)
@@ -57,48 +58,45 @@ class CaseOrchestrationService(
       .getResult<CaseList>(GET_CASE_LIST)
       ?: CaseList(emptyList(), PageMetadata(0, 0, 0, 0))
 
-    log.info(
+    log.debug(
       "Received {} cases, page {} of {}",
       caseList.cases.size,
       caseList.page.number + 1,
       caseList.page.totalPages,
     )
 
-    val remainingPages = 1 until caseList.page.totalPages
-
-    val (additionalCases, additionalFailures) =
-      if (caseList.page.number + 1 < caseList.page.totalPages) {
-        val additionalResults = aggregatorService.orchestrateAsyncCalls(
-          standardCallsNoIteration = remainingPages.associate { nextPage ->
-            (GET_CASE_LIST + nextPage) to {
-              sasAndDeliusCachingService.getCaseList(
-                username,
-                page = nextPage,
-                size = pageSize,
-              )
-            }
-          },
-        )
-
-        val resultSet = additionalResults.standardCallsNoIterationResults!!
-
-        val cases = remainingPages
-          .mapNotNull { nextPage ->
-            resultSet.getResult<CaseList>(GET_CASE_LIST + nextPage)?.cases
-          }
-          .flatten()
-
-        cases to resultSet.getFailures()
-      } else {
-        emptyList<Case>() to emptyList()
-      }
-
-    val allFailures = initialResultSet.getFailures() + additionalFailures
+    val (additionalCases, additionalFailures) = getAdditionalCases(caseList.page, username)
 
     return OrchestrationResultDto(
       data = caseList.cases + additionalCases,
-      upstreamFailures = allFailures,
+      upstreamFailures = initialResultSet.getFailures() + additionalFailures,
     )
+  }
+
+  private fun getAdditionalCases(page: PageMetadata, username: String) = if (page.number + 1 < page.totalPages) {
+    fun getCallKey(page: Long) = GET_CASE_LIST + username + page
+    val remainingPages = 1 until page.totalPages
+    val additionalResults = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = remainingPages.associate { nextPage ->
+        (getCallKey(nextPage)) to {
+          sasAndDeliusCachingService.getCaseList(
+            username,
+            page = nextPage,
+            size = pageSize,
+          )
+        }
+      },
+    )
+
+    val resultSet = additionalResults.standardCallsNoIterationResults!!
+
+    val cases = remainingPages.mapNotNull { nextPage ->
+      resultSet.getResult<CaseList>(getCallKey(nextPage))?.cases
+    }.flatten()
+
+    cases to resultSet.getFailures()
+  } else {
+    emptyList<Case>() to emptyList()
   }
 
   fun getCase(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
