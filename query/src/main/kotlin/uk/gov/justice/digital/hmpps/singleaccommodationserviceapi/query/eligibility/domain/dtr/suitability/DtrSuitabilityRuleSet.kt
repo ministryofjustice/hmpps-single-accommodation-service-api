@@ -8,8 +8,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class DtrSuitabilityRuleSet(
   dtrPresent: DtrPresentRule,
+  dtrNotWithdrawn: DtrNotWithdrawnRule,
   dtrExpiredReferral: DtrExpiredReferralRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(dtrPresent, dtrExpiredReferral)
+  private val rules: List<Rule> = listOf(dtrPresent, dtrNotWithdrawn, dtrExpiredReferral)
   override fun getRules(): List<Rule> = rules
 }

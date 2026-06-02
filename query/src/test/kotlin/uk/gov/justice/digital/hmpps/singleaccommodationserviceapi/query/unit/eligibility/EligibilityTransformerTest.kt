@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
@@ -120,6 +121,30 @@ class EligibilityTransformerTest {
     )
 
     assertThat(actualEligibility).isEqualTo(expectedEligibility)
+  }
+
+  @Test
+  fun `does not surface the DTR submission when the DTR result is NOT_STARTED`() {
+    val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
+    val data = buildDomainData(dutyToRefer = dutyToReferDto)
+    val dtr = buildServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+      link = EligibilityKeys.ADD_REFERRAL_DETAILS,
+    )
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(),
+      dtr = dtr,
+      crs = buildServiceResult(),
+      pa = buildServiceResult(),
+      data = data,
+    )
+
+    assertThat(actualEligibility.dtr.submission).isNull()
+    assertThat(actualEligibility.dtr.caseId).isEqualTo(dutyToReferDto.caseId)
   }
 
   @Test

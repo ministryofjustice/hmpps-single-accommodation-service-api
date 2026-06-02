@@ -8,6 +8,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrNotWithdrawnRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   classes = [
     DtrSuitabilityRuleSet::class,
     DtrPresentRule::class,
+    DtrNotWithdrawnRule::class,
     DtrExpiredReferralRule::class,
     ClockConfig::class,
   ],
@@ -27,6 +29,7 @@ class DtrSuitabilityRuleSetTest {
 
   private val expectedDtrSuitabilityRuleNames = listOf(
     DtrPresentRule::class.simpleName,
+    DtrNotWithdrawnRule::class.simpleName,
     DtrExpiredReferralRule::class.simpleName,
   )
 
@@ -35,7 +38,7 @@ class DtrSuitabilityRuleSetTest {
     val ruleSetRules = dtrSuitabilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
+      .hasSize(3)
       .containsExactlyInAnyOrderElementsOf(expectedDtrSuitabilityRuleNames)
   }
 }
