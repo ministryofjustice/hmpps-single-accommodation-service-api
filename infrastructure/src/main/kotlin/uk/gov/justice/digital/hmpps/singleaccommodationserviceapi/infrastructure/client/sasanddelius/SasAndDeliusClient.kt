@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 
 interface SasAndDeliusClient {
   @GetExchange(value = "/case-list/{username}")
@@ -23,7 +22,6 @@ class SasAndDeliusCachingService(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Cacheable(GET_CASE_LIST)
   fun getCaseList(
     username: String,
     page: Long,

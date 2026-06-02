@@ -37,7 +37,7 @@ class CaseOrchestrationService(
 
   @Cacheable(FULL_CASE_LIST)
   fun getCaseList(username: String): OrchestrationResultDto<List<Case>> {
-    log.info("Retrieving case list from Delius")
+    log.debug("Retrieving case list from Delius for username {}", username)
     val initialCall = mapOf(
       getCallKey(username, initialPage) to {
         sasAndDeliusCachingService.getCaseList(
@@ -56,19 +56,22 @@ class CaseOrchestrationService(
 
     val caseList = initialResultSet
       .getResult<CaseList>(getCallKey(username, initialPage))
-      ?: CaseList(emptyList(), PageMetadata(0, 0, 0, 0))
 
-    log.debug(
-      "Received {} cases, page {} of {}",
-      caseList.cases.size,
-      caseList.page.number + 1,
-      caseList.page.totalPages,
-    )
+    val (additionalCases, additionalFailures) =
+      caseList?.let { list ->
 
-    val (additionalCases, additionalFailures) = getAdditionalCases(caseList.page, username)
+        log.debug(
+          "Received {} cases, page {} of {}",
+          list.cases.size,
+          list.page.number + 1,
+          list.page.totalPages,
+        )
+
+        getAdditionalCases(list.page, username)
+      } ?: (emptyList<Case>() to emptyList())
 
     return OrchestrationResultDto(
-      data = caseList.cases + additionalCases,
+      data = caseList?.cases?.plus(additionalCases) ?: emptyList(),
       upstreamFailures = initialResultSet.getFailures() + additionalFailures,
     )
   }
@@ -97,7 +100,7 @@ class CaseOrchestrationService(
 
     cases to resultSet.getFailures()
   } else {
-    emptyList<Case>() to emptyList()
+    null
   }
 
   fun getCase(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
