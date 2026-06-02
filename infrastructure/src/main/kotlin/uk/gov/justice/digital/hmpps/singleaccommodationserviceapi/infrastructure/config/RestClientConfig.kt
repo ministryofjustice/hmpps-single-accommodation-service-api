@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.util.TypeUtils.type
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.client.RestClient
@@ -28,7 +29,6 @@ class RestClientConfig(
 
 ) {
 
-  private val readTimeoutMillis = 3500L
   private val connectionTimeoutMillis = 1000L
 
   @Bean
@@ -114,7 +114,7 @@ class RestClientConfig(
   private fun <T : Any> createClient(
     baseUrl: String,
     type: KClass<T>,
-    readTimeout: Duration = Duration.ofMillis(readTimeoutMillis),
+    readTimeout: Duration,
   ): T {
     val client = restClientBuilder
       .requestFactory(withTimeouts(Duration.ofSeconds(connectionTimeoutMillis), readTimeout))
