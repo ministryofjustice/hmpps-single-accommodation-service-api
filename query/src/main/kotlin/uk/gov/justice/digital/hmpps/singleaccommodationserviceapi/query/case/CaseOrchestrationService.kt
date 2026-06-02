@@ -67,7 +67,7 @@ class CaseOrchestrationService(
           list.page.totalPages,
         )
 
-        getAdditionalCases(list.page, username)
+        getRemainingCases(list.page, username)
       } ?: (emptyList<Case>() to emptyList())
 
     return OrchestrationResultDto(
@@ -78,7 +78,7 @@ class CaseOrchestrationService(
 
   private fun getCallKey(username: String, page: Long) = GET_CASE_LIST + username + page
 
-  private fun getAdditionalCases(page: PageMetadata, username: String) = if (page.number + 1 < page.totalPages) {
+  private fun getRemainingCases(page: PageMetadata, username: String) = if (page.number + 1 < page.totalPages) {
     val remainingPages = 1 until page.totalPages
     val additionalResults = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = remainingPages.associate { nextPage ->

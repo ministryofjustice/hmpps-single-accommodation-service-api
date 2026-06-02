@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
-import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -44,13 +43,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import java.util.UUID
 
-@TestPropertySource(properties = ["case-list.page-size=1"])
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Value("\${case-list.page-size}")
+  @Value("\${case-list.page-size:1}")
   private lateinit var pageSize: String
 
   @Autowired
@@ -64,8 +64,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    dutyToReferRepository.deleteAll()
-    caseRepository.deleteAll()
+    databaseUtils.truncate(DUTY_TO_REFER, SAS_CASE)
 
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()

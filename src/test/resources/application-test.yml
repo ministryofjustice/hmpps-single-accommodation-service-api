@@ -5,16 +5,37 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
+wiremock:
+  service-names:
+    - sas-and-delius
+    - approved-premises-and-delius
+    - approved-premises-and-oasys
+    - approved-premises-api
+    - core-person-record
+    - commissioned-rehabilitative-services-api
+    - tier
+    - accommodation-data-domain
+    - nomis-user-roles
+
 service:
-  - sas-and-delius
-  - approved-premises-and-delius
-  - approved-premises-and-oasys
-  - approved-premises-api
-  - core-person-record
-  - commissioned-rehabilitative-services-api
-  - tier
-  - accommodation-data-domain
-  - nomis-user-roles
+  sas-and-delius:
+    read-timeout: 100ms
+  approved-premises-and-delius:
+    read-timeout: 100ms
+  approved-premises-and-oasys:
+    read-timeout: 100ms
+  approved-premises-api:
+    read-timeout: 100ms
+  core-person-record:
+    read-timeout: 300ms # 300 required
+  commissioned-rehabilitative-services:
+    read-timeout: 100ms
+  tier:
+    read-timeout: 300ms # 300 required
+  accommodation-data-domain:
+    read-timeout: 100ms
+  nomis-user-roles:
+    read-timeout: 100ms
 
 spring:
   cache:
@@ -62,6 +83,7 @@ test-data-setup:
   user-id: 48785d6e-19f2-49e6-9530-d48423f95e66
 
 case-list:
+  page-size: 1
   onboarded-teams: 12345
 logging:
   level:

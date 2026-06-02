@@ -50,20 +50,20 @@ redis:
 
 service:
   sas-and-delius:
-    read-timeout: 15000
+    read-timeout: 15s
   approved-premises-and-delius:
-    read-timeout: 3500
+    read-timeout: 3.5s
   approved-premises-and-oasys:
-    read-timeout: 3500
+    read-timeout: 3.5s
   approved-premises-api:
-    read-timeout: 3500
+    read-timeout: 3.5s
   core-person-record:
-    read-timeout: 3500
+    read-timeout: 3.5s
   commissioned-rehabilitative-services:
-    read-timeout: 7500 # TODO reduce this when Interventions have fixed the response times
+    read-timeout: 7.5s # TODO reduce this when Interventions have fixed the response times
   tier:
-    read-timeout: 3500
+    read-timeout: 3.5s
   accommodation-data-domain:
-    read-timeout: 3500
+    read-timeout: 3.5s
   nomis-user-roles:
-    read-timeout: 3500
+    read-timeout: 3.5s

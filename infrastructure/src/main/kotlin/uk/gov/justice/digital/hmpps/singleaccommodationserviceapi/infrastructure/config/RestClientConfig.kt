@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.util.TypeUtils.type
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.client.RestClient
@@ -34,81 +33,81 @@ class RestClientConfig(
   @Bean
   fun probationIntegrationSasDeliusClient(
     @Value($$"${service.sas-and-delius.base-url}") baseUrl: String,
-    @Value($$"${service.sas-and-delius.read-timeout}") readTimeout: Long,
+    @Value($$"${service.sas-and-delius.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     SasAndDeliusClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun probationIntegrationDeliusClient(
     @Value($$"${service.approved-premises-and-delius.base-url}") baseUrl: String,
-    @Value($$"${service.approved-premises-and-delius.read-timeout}") readTimeout: Long,
+    @Value($$"${service.approved-premises-and-delius.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     ApprovedPremisesAndDeliusClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun probationIntegrationOasysClient(
     @Value($$"${service.approved-premises-and-oasys.base-url}") baseUrl: String,
-    @Value($$"${service.approved-premises-and-oasys.read-timeout}") readTimeout: Long,
+    @Value($$"${service.approved-premises-and-oasys.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     ApprovedPremisesAndOasysClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun approvedPremisesClient(
     @Value($$"${service.approved-premises-api.base-url}") baseUrl: String,
-    @Value($$"${service.approved-premises-api.read-timeout}") readTimeout: Long,
+    @Value($$"${service.approved-premises-api.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     ApprovedPremisesClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun corePersonRecordClient(
     @Value($$"${service.core-person-record.base-url}") baseUrl: String,
-    @Value($$"${service.core-person-record.read-timeout}") readTimeout: Long,
+    @Value($$"${service.core-person-record.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     CorePersonRecordClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun commissionedRehabilitativeServicesClient(
     @Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String,
-    @Value($$"${service.commissioned-rehabilitative-services-api.read-timeout}") readTimeout: Long,
+    @Value($$"${service.commissioned-rehabilitative-services-api.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     CommissionedRehabilitativeServicesClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun tierClient(
     @Value($$"${service.tier.base-url}") baseUrl: String,
-    @Value($$"${service.tier.read-timeout}") readTimeout: Long,
+    @Value($$"${service.tier.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     TierClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   @Bean
   fun accommodationDataDomainClient(
     @Value($$"${service.accommodation-data-domain.base-url}") baseUrl: String,
-    @Value($$"${service.accommodation-data-domain.read-timeout}") readTimeout: Long,
+    @Value($$"${service.accommodation-data-domain.read-timeout}") readTimeout: Duration,
   ) = createClient(
     baseUrl,
     AccommodationDataDomainClient::class,
-    Duration.ofMillis(readTimeout),
+    readTimeout,
   )
 
   private fun <T : Any> createClient(
