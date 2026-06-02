@@ -26,6 +26,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -60,7 +64,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
-    databaseUtils.truncate("sas_user", "sas_case", "duty_to_refer", "inbox_event")
+    databaseUtils.truncate(SAS_CASE, SAS_USER, DUTY_TO_REFER, INBOX_EVENT)
     dispatcherConfig.maxConcurrentEvents = 4
     dispatcherConfig.maxEventsPerBatch = 10
   }
