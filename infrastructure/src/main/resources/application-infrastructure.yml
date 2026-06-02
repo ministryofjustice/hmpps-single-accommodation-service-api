@@ -59,7 +59,7 @@ service:
     read-timeout: 3.5s
   core-person-record:
     read-timeout: 3.5s
-  commissioned-rehabilitative-services:
+  commissioned-rehabilitative-services-api:
     read-timeout: 7.5s # TODO reduce this when Interventions have fixed the response times
   tier:
     read-timeout: 3.5s

@@ -28,7 +28,7 @@ service:
     read-timeout: 300ms # 300 required
   core-person-record:
     read-timeout: 300ms # 300 required
-  commissioned-rehabilitative-services:
+  commissioned-rehabilitative-services-api:
     read-timeout: 150ms
   tier:
     read-timeout: 300ms # 300 required
