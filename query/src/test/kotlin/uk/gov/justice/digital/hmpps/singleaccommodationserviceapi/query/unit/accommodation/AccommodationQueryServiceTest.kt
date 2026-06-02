@@ -599,6 +599,8 @@ class AccommodationQueryServiceTest {
       val proposedAccommodationEntity = buildProposedAccommodationEntity(
         id = id,
         cprAddressId = UUID.randomUUID(),
+        typeVerified = true,
+        noFixedAbode = true,
         caseId = caseId,
         accommodationTypeEntity = accommodationTypeEntity,
         accommodationStatusEntity = accommodationStatusEntity,
@@ -615,6 +617,8 @@ class AccommodationQueryServiceTest {
 
       assertThat(result.crn).isEqualTo(case.latestCrn())
       assertThat(result.cprAddressId).isEqualTo(proposedAccommodationEntity.cprAddressId)
+      assertThat(result.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
+      assertThat(result.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
       assertThat(result.startDate).isEqualTo(proposedAccommodationEntity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate())
       assertThat(result.endDate).isNull()
       assertThat(result.address.postcode).isEqualTo(proposedAccommodationEntity.postcode)
@@ -628,6 +632,8 @@ class AccommodationQueryServiceTest {
       val proposedAccommodationEntity = buildProposedAccommodationEntity(
         id = id,
         cprAddressId = UUID.randomUUID(),
+        typeVerified = true,
+        noFixedAbode = true,
         caseId = caseId,
         accommodationTypeEntity = accommodationTypeEntity,
         accommodationStatusEntity = null,
@@ -642,6 +648,8 @@ class AccommodationQueryServiceTest {
 
       assertThat(result.crn).isEqualTo(case.latestCrn())
       assertThat(result.cprAddressId).isEqualTo(proposedAccommodationEntity.cprAddressId)
+      assertThat(result.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
+      assertThat(result.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
       assertThat(result.startDate).isEqualTo(proposedAccommodationEntity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate())
       assertThat(result.endDate).isNull()
       assertThat(result.address.postcode).isEqualTo(proposedAccommodationEntity.postcode)

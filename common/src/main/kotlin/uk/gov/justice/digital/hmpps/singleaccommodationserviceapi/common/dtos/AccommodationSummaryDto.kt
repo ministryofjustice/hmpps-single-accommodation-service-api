@@ -5,12 +5,23 @@ import java.util.UUID
 
 data class AccommodationSummaryDto(
   val crn: String,
+  val startDate: LocalDate? = null,
+  val endDate: LocalDate? = null,
+  val address: AccommodationAddressDetails,
+  val status: AccommodationStatusDto? = null,
+  val type: AccommodationTypeDto? = null,
+)
+
+data class AccommodationDetailDto(
+  val crn: String,
   val cprAddressId: UUID? = null,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val address: AccommodationAddressDetails,
   val status: AccommodationStatusDto? = null,
   val type: AccommodationTypeDto? = null,
+  val typeVerified: Boolean? = null,
+  val noFixedAbode: Boolean? = null,
 )
 
 data class AccommodationStatusDto(

@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
@@ -24,7 +25,7 @@ class AccommodationController(
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD')")
   @GetMapping("/accommodations/{id}")
-  fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponseDto<AccommodationSummaryDto>> {
+  fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponseDto<AccommodationDetailDto>> {
     val accommodation = accommodationQueryService.getAccommodation(id)
     return ResponseEntity.ok(ApiResponseDto(data = accommodation))
   }

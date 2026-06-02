@@ -18,17 +18,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationSummaryTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
-class AccommodationSummaryTransformerTest {
+class AccommodationTransformerTest {
 
   @Test
   fun `should get accommodation status for next accommodation when current accommodation is HMP`() {
-    val result = AccommodationSummaryTransformer.getAccommodationStatus(
+    val result = AccommodationTransformer.getAccommodationStatus(
       currentAccommodation = buildAccommodationSummaryDto(
         type = buildAccommodationTypeDto(
           code = "HMP",
@@ -46,7 +46,7 @@ class AccommodationSummaryTransformerTest {
 
   @Test
   fun `should get accommodation status for next accommodation when current accommodation is not HMP`() {
-    val result = AccommodationSummaryTransformer.getAccommodationStatus(
+    val result = AccommodationTransformer.getAccommodationStatus(
       currentAccommodation = buildAccommodationSummaryDto(
         type = buildAccommodationTypeDto(
           code = "NOT_HMP",
@@ -101,7 +101,7 @@ class AccommodationSummaryTransformerTest {
         ),
       )
 
-      val result = AccommodationSummaryTransformer.toAccommodationSummary(
+      val result = AccommodationTransformer.toAccommodationSummary(
         crn = "X92123",
         premises = cas1Premises,
         currentAccommodation = buildAccommodationSummaryDto(
@@ -155,7 +155,7 @@ class AccommodationSummaryTransformerTest {
         ),
       )
 
-      val result = AccommodationSummaryTransformer.toAccommodationSummary(
+      val result = AccommodationTransformer.toAccommodationSummary(
         crn = "X92123",
         premises = cas3Premises,
         currentAccommodation = buildAccommodationSummaryDto(
@@ -170,7 +170,7 @@ class AccommodationSummaryTransformerTest {
   }
 
   @Test
-  fun `should map all fields when address has status and usage`() {
+  fun `toAccommodationSummary() should map all fields when address has status and usage`() {
     val address = buildCanonicalAddress(
       cprAddressId = UUID.randomUUID(),
       noFixedAbode = false,
@@ -200,7 +200,7 @@ class AccommodationSummaryTransformerTest {
       uprn = "100012345678",
     )
 
-    val result = AccommodationSummaryTransformer.toAccommodationSummary(
+    val result = AccommodationTransformer.toAccommodationSummary(
       crn = "X92123",
       address = address,
     )
@@ -232,7 +232,7 @@ class AccommodationSummaryTransformerTest {
         description = null,
       ),
     )
-    val result = AccommodationSummaryTransformer.toAccommodationSummary(
+    val result = AccommodationTransformer.toAccommodationSummary(
       crn = "X92123",
       address = address,
     )
@@ -246,7 +246,7 @@ class AccommodationSummaryTransformerTest {
       status = CanonicalAddressStatus(code = "M", description = null),
     )
 
-    val result = AccommodationSummaryTransformer.toAccommodationSummary("X92123", address)
+    val result = AccommodationTransformer.toAccommodationSummary("X92123", address)
 
     assertThat(result.status).isNotNull()
     assertThat(result.status!!.code).isEqualTo("M")
@@ -262,7 +262,7 @@ class AccommodationSummaryTransformerTest {
       ),
     )
 
-    val result = AccommodationSummaryTransformer.toAccommodationSummary("X92123", address)
+    val result = AccommodationTransformer.toAccommodationSummary("X92123", address)
 
     assertThat(result.type).isNull()
   }
@@ -276,7 +276,7 @@ class AccommodationSummaryTransformerTest {
       ),
     )
 
-    val result = AccommodationSummaryTransformer.toAccommodationSummary("X92123", address)
+    val result = AccommodationTransformer.toAccommodationSummary("X92123", address)
 
     assertThat(result.type).isNull()
   }
@@ -296,7 +296,7 @@ class AccommodationSummaryTransformerTest {
       uprn = null,
     )
 
-    val result = AccommodationSummaryTransformer.toAccommodationSummary(
+    val result = AccommodationTransformer.toAccommodationSummary(
       crn = "X92123",
       address = address,
     )
@@ -340,7 +340,7 @@ class AccommodationSummaryTransformerTest {
       name = AddressStatusCode.M.description,
     )
 
-    val result = AccommodationSummaryTransformer.toAccommodationSummary(
+    val result = AccommodationTransformer.toAccommodationSummary(
       crn = "X123",
       entity,
       type,
@@ -348,7 +348,6 @@ class AccommodationSummaryTransformerTest {
     )
 
     assertThat(result.crn).isEqualTo("X123")
-    assertThat(result.cprAddressId).isEqualTo(entity.cprAddressId)
     assertThat(result.startDate).isEqualTo(entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate().toString())
     assertThat(result.endDate).isNull()
     assertThat(result.status!!.code).isEqualTo(AddressStatusCode.M.name)
@@ -377,7 +376,7 @@ class AccommodationSummaryTransformerTest {
       code = AddressUsageCode.A01A.name,
       name = AddressUsageCode.A01A.description,
     )
-    val result = AccommodationSummaryTransformer.toAccommodationSummary(
+    val result = AccommodationTransformer.toAccommodationSummary(
       crn = "X123",
       entity,
       type,
@@ -386,5 +385,88 @@ class AccommodationSummaryTransformerTest {
     assertThat(result.status).isNull()
     assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
     assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
+  }
+
+  @Nested
+  inner class ToAccommodationDetail {
+
+    @Test
+    fun `should map proposed accommodation entity correctly`() {
+      val entity = buildProposedAccommodationEntity(
+        cprAddressId = UUID.randomUUID(),
+        typeVerified = true,
+        noFixedAbode = true,
+        createdAt = Instant.now(),
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        postcode = "AB1 2CD",
+        subBuildingName = "Flat 1",
+        buildingName = "Test House",
+        buildingNumber = "10",
+        throughfareName = "High Street",
+        dependentLocality = "Town Centre",
+        postTown = "London",
+        county = "Greater London",
+        country = "England",
+        uprn = "12345",
+      )
+      val type = buildAccommodationTypeEntity(
+        code = AddressUsageCode.A01A.name,
+        name = AddressUsageCode.A01A.description,
+      )
+      val status = buildAccommodationStatusEntity(
+        code = AddressStatusCode.M.name,
+        name = AddressStatusCode.M.description,
+      )
+
+      val result = AccommodationTransformer.toAccommodationDetail(
+        crn = "X123",
+        entity,
+        type,
+        status,
+      )
+
+      assertThat(result.crn).isEqualTo("X123")
+      assertThat(result.cprAddressId).isEqualTo(entity.cprAddressId)
+      assertThat(result.typeVerified).isEqualTo(entity.typeVerified)
+      assertThat(result.noFixedAbode).isEqualTo(entity.noFixedAbode)
+      assertThat(result.startDate).isEqualTo(entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate().toString())
+      assertThat(result.endDate).isNull()
+      assertThat(result.status!!.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(result.status!!.description).isEqualTo(AddressStatusCode.M.description)
+      assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
+      assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
+      assertThat(result.address.postcode).isEqualTo(entity.postcode)
+      assertThat(result.address.subBuildingName).isEqualTo(entity.subBuildingName)
+      assertThat(result.address.buildingName).isEqualTo(entity.buildingName)
+      assertThat(result.address.buildingNumber).isEqualTo(entity.buildingNumber)
+      assertThat(result.address.thoroughfareName).isEqualTo(entity.throughfareName)
+      assertThat(result.address.dependentLocality).isEqualTo(entity.dependentLocality)
+      assertThat(result.address.postTown).isEqualTo(entity.postTown)
+      assertThat(result.address.county).isEqualTo(entity.county)
+      assertThat(result.address.country).isEqualTo(entity.country)
+      assertThat(result.address.uprn).isEqualTo(entity.uprn)
+    }
+
+    @Test
+    fun `should handle null status entity`() {
+      val entity = buildProposedAccommodationEntity(
+        cprAddressId = UUID.randomUUID(),
+        createdAt = Instant.now(),
+      )
+      val type = buildAccommodationTypeEntity(
+        code = AddressUsageCode.A01A.name,
+        name = AddressUsageCode.A01A.description,
+      )
+      val result = AccommodationTransformer.toAccommodationDetail(
+        crn = "X123",
+        entity,
+        type,
+        null,
+      )
+      assertThat(result.status).isNull()
+      assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
+      assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
+    }
   }
 }
