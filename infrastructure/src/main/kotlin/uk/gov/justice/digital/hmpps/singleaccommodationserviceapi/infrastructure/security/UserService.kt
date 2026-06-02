@@ -4,7 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationIntegrationDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class UserService(
   private val httpAuthService: HttpAuthService,
   private val userRepository: UserRepository,
-  private val probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService,
+  private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
 
@@ -42,7 +42,7 @@ class UserService(
       return existingUser
     }
     val staffUserDetails =
-      probationIntegrationDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
+      approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
     val savedUser = userRepository.save(
       UserEntity(
         id = UUID.randomUUID(),
