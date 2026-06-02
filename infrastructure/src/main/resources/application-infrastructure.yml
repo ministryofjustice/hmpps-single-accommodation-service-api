@@ -49,21 +49,22 @@ redis:
     token:
 
 service:
+  # seconds must be whole numbers :)
   sas-and-delius:
     read-timeout: 15s
   approved-premises-and-delius:
-    read-timeout: 3.5s
+    read-timeout: 4s
   approved-premises-and-oasys:
-    read-timeout: 3.5s
+    read-timeout: 4s
   approved-premises-api:
-    read-timeout: 3.5s
+    read-timeout: 4s
   core-person-record:
-    read-timeout: 3.5s
+    read-timeout: 4s
   commissioned-rehabilitative-services-api:
-    read-timeout: 7.5s # TODO reduce this when Interventions have fixed the response times
+    read-timeout: 8s # TODO reduce this when Interventions have fixed the response times
   tier:
-    read-timeout: 3.5s
+    read-timeout: 4s
   accommodation-data-domain:
-    read-timeout: 3.5s
+    read-timeout: 4s
   nomis-user-roles:
-    read-timeout: 3.5s
+    read-timeout: 4s
