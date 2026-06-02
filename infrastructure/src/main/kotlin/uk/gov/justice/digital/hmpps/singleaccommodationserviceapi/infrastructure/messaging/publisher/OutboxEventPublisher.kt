@@ -37,11 +37,11 @@ class OutboxEventPublisher(
     hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
   }
 
-  @Scheduled(fixedDelay = 5000)
+  @Scheduled(fixedDelayString = $$"${shedlock.outbox-event-publisher.fixed-delay}")
   @SchedulerLock(
     name = "OutboxEventPublisher",
-    lockAtMostFor = "PT2M",
-    lockAtLeastFor = "PT1S",
+    lockAtMostFor = $$"${shedlock.outbox-event-publisher.lock-at-most-for}",
+    lockAtLeastFor = $$"${shedlock.outbox-event-publisher.lock-at-least-for}",
   )
   @Transactional
   fun publish() {

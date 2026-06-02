@@ -29,6 +29,9 @@ spring:
 logging:
   level:
     root: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE # TRACE - shows what parameters are bound to queries
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO # TRACE - shows what parameters are bound to queries
     org.hibernate.session.metrics: INFO
+
+shedlock:
+  enabled: false

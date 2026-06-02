@@ -54,11 +54,11 @@ class InboxEventDispatcher(
   private val handlerMap: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
-  @Scheduled(fixedDelay = 5000)
+  @Scheduled(fixedDelayString = $$"${shedlock.inbox-event-dispatcher.fixed-delay}")
   @SchedulerLock(
     name = "InboxDispatcherProcessor",
-    lockAtMostFor = "PT2M",
-    lockAtLeastFor = "PT1S",
+    lockAtMostFor = $$"${shedlock.inbox-event-dispatcher.lock-at-most-for}",
+    lockAtLeastFor = $$"${shedlock.inbox-event-dispatcher.lock-at-least-for}",
   )
   fun process() = runBlocking {
     val pageable = PageRequest.of(

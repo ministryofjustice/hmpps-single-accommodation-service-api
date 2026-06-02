@@ -136,6 +136,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
 
   @Test
   fun `processes events in eventOccurredAt ascending order`() {
+    dispatcherConfig.maxEventsPerBatch = 1
     val crns = listOf("X123451", "X123452", "X123453")
     val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
     caseRepository.saveAll(caseEntities)
@@ -160,6 +161,9 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     )
 
     inboxEventDispatcher.process()
+    inboxEventDispatcher.process()
+    inboxEventDispatcher.process()
+
     val processed = inboxEventRepository.findAllByProcessedStatus(
       ProcessedStatus.PROCESSED,
       Pageable.unpaged(Sort.by("eventOccurredAt").ascending()),

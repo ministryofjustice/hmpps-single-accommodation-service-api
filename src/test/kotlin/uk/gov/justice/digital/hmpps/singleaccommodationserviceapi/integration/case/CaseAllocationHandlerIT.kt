@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.TestPropertySource
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
@@ -43,6 +44,12 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
+@TestPropertySource(
+  properties = [
+    "shedlock.enabled=true",
+    "shedlock.inbox-event-dispatcher.fixed-delay=100",
+  ],
+)
 class CaseAllocationHandlerIT : IntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
