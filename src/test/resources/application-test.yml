@@ -24,6 +24,15 @@ spring:
     username: sas_user
     password: sas_psw
 
+scheduling:
+  enabled: false
+
+shedlock:
+  inbox-event-dispatcher:
+    fixed-delay: 100
+  outbox-event-dispatcher:
+    fixed-delay: 100
+
 event:
   details-url:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
@@ -55,4 +64,4 @@ case-list:
 logging:
   level:
     root: WARN
-    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: WARN
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: INFO

@@ -9,8 +9,8 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
@@ -31,6 +31,14 @@ import java.util.concurrent.atomic.AtomicInteger
  * with different keys run in parallel using coroutines. Events are fetched ordered by
  * [eventOccurredAt] ascending; within each partition, this order is preserved.
  */
+
+@Component
+@ConfigurationProperties(prefix = "hmpps.sqs.dispatcher")
+class DispatcherConfig(
+  var maxEventsPerBatch: Int = 10,
+  var maxConcurrentEvents: Int = 4,
+)
+
 @ConditionalOnProperty(
   name = ["hmpps.sqs.enabled"],
   havingValue = "true",
@@ -39,33 +47,32 @@ import java.util.concurrent.atomic.AtomicInteger
 class InboxEventDispatcher(
   private val inboxEventRepository: InboxEventRepository,
   handlers: List<InboxEventHandler>,
-  @Value($$"${hmpps.sqs.dispatcher.max-events-per-batch:10}") maxEventsPerBatch: Int,
-  @Value($$"${hmpps.sqs.dispatcher.max-concurrent-events:4}") maxConcurrentEvents: Int,
+  private val dispatcherConfig: DispatcherConfig,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
   private val handlerMap: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
-  private val concurrencyLimit = Semaphore(maxConcurrentEvents)
-
-  private val pageable = PageRequest.of(
-    0,
-    maxEventsPerBatch,
-    Sort.by("eventOccurredAt").ascending(),
-  )
-
-  @Scheduled(fixedDelay = 5000)
+  @Scheduled(fixedDelayString = $$"${shedlock.inbox-event-dispatcher.fixed-delay}")
   @SchedulerLock(
     name = "InboxDispatcherProcessor",
-    lockAtMostFor = "PT2M",
-    lockAtLeastFor = "PT1S",
+    lockAtMostFor = $$"${shedlock.inbox-event-dispatcher.lock-at-most-for}",
+    lockAtLeastFor = $$"${shedlock.inbox-event-dispatcher.lock-at-least-for}",
   )
   fun process() = runBlocking {
+    val pageable = PageRequest.of(
+      0,
+      dispatcherConfig.maxEventsPerBatch,
+      Sort.by("eventOccurredAt").ascending(),
+    )
+
     val inboxEvents = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
     if (inboxEvents.isEmpty()) {
       return@runBlocking
     }
+
+    val concurrencyLimit = Semaphore(dispatcherConfig.maxConcurrentEvents)
 
     log.info("Processing inbox batch [count={}, eventIds={}]", inboxEvents.size, inboxEvents.map { it.id })
 

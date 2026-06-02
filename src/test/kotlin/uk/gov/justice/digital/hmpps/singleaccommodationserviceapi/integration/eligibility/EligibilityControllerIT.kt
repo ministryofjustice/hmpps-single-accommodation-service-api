@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -59,7 +60,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    databaseUtils.truncate("duty_to_refer")
+    databaseUtils.truncate(DUTY_TO_REFER)
 
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(
