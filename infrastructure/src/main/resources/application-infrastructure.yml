@@ -60,9 +60,9 @@ service:
   core-person-record:
     read-timeout: 3500
   commissioned-rehabilitative-services:
-    read-timeout: 3500
+    read-timeout: 7500 # TODO reduce this when Interventions have fixed the response times
   tier:
-    read-timeout: 7500 # TODO reduce this when Tier have fixed the response times
+    read-timeout: 3500
   accommodation-data-domain:
     read-timeout: 3500
   nomis-user-roles:
