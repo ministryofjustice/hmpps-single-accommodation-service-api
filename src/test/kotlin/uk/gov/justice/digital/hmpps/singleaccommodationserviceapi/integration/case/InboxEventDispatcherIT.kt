@@ -170,7 +170,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
 
     val processed = inboxEventRepository.findAllByProcessedStatus(
       ProcessedStatus.PROCESSED,
-      Pageable.unpaged(Sort.by("eventOccurredAt").ascending()),
+      Pageable.unpaged(Sort.by("processedAt").ascending()),
     )
 
     assertThat(processed[0].eventOccurredAt).isEqualTo(t1)
