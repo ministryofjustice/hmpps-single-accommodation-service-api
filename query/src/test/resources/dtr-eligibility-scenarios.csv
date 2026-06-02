@@ -155,3 +155,9 @@ testCaseId,description,referenceDate,currentAccommodationEndDate,hasNextAccommod
 202,Eligible - with application,01/01/2025,,FALSE,NOT_ACCEPTED,03/07/2024,NOT_ACCEPTED,,,
 203,With application,01/01/2025,,TRUE,NOT_ACCEPTED,02/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
 204,Eligible - with application,01/01/2025,,FALSE,NOT_ACCEPTED,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
+205,Withdrawn referral,01/01/2025,01/01/2025,TRUE,WITHDRAWN,,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
+206,Eligible - withdrawn referral,01/01/2025,01/01/2025,FALSE,WITHDRAWN,,NOT_STARTED,Add DTR referral details,Add referral details,
+207,Withdrawn referral with submission,01/01/2025,01/01/2025,TRUE,WITHDRAWN,04/07/2024,NOT_ELIGIBLE,,,HAS_NEXT_ACCOMMODATION
+208,Eligible - withdrawn referral with submission,01/01/2025,01/01/2025,FALSE,WITHDRAWN,04/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
+209,Eligible - withdrawn referral with expired submission,01/01/2025,01/01/2025,FALSE,WITHDRAWN,02/07/2024,NOT_STARTED,Add DTR referral details,Add referral details,
+210,Eligible - withdrawn referral - upcoming,01/01/2025,27/02/2025,FALSE,WITHDRAWN,,UPCOMING,Submit a DTR referral in 1 day,,
