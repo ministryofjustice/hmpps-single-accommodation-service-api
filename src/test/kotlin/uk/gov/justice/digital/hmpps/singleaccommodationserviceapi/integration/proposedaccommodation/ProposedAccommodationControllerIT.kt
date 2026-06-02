@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
@@ -60,6 +61,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
@@ -68,6 +71,7 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
+@TestPropertySource(properties = ["shedlock.enabled=true"])
 class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var clock: MutableTestClock
@@ -111,13 +115,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
     stubCurrentAccommodationIsCas1(crn)
+    databaseUtils.truncate(PROPOSED_ACCOMMODATION, OUTBOX_EVENT)
   }
 
   @AfterEach
   fun teardown() {
     clock.reset()
-    proposedAccommodationRepository.deleteAll()
-    outboxEventRepository.deleteAll()
   }
 
   private fun stubCurrentAccommodationIsCas1(crn: String) {

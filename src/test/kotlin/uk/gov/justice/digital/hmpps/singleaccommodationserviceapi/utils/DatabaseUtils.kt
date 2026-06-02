@@ -16,6 +16,7 @@ class DatabaseUtils(
     DUTY_TO_REFER("duty_to_refer"),
     INBOX_EVENT("inbox_event"),
     OUTBOX_EVENT("outbox_event"),
+    PROPOSED_ACCOMMODATION("proposed_accommodation"),
   }
 
   @Transactional
