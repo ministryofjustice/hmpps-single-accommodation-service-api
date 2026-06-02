@@ -19,7 +19,6 @@ hmpps.sqs:
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
       subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
-
 spring:
   jpa:
     properties:

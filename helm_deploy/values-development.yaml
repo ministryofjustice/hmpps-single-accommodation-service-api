@@ -17,8 +17,11 @@ generic-service:
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-OASYS_BASE-URL: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
+    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-dev.hmpps.service.justice.gov.uk
+    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
+    SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
-    SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES_BASE-URL: https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk
+    SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-API_BASE-URL: https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk
     SERVICE_TIER_BASE-URL: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
     SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk

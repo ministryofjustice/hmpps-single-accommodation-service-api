@@ -135,7 +135,8 @@ class EligibilityServiceTest {
   private val accommodationTypeRepository = mockk<AccommodationTypeRepository>()
 
   // CAS1
-  var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
+  var cas1UiUrl = "CAS1_UI_URL"
+  var cas1CompletionContextUpdater = Cas1CompletionContextUpdater(cas1UiUrl)
   var cas1ValidationRuleSet = Cas1ValidationRuleSet(
     Cas1SexValidationRule(),
   )
@@ -148,11 +149,12 @@ class EligibilityServiceTest {
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater(clock)
   var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
-  val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
+  val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater(cas1UiUrl)
 
   // CAS3
-  var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
-  var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
+  var cas3UiUrl = "CAS3_UI_URL"
+  var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater(cas3UiUrl)
+  var cas3CompletionContextUpdater = Cas3CompletionContextUpdater(cas3UiUrl)
   val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater(clock)
   var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(ReleaseWithinFourWeeksRule(clock))
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
@@ -185,6 +187,7 @@ class EligibilityServiceTest {
   )
 
   // CRS
+  var crsUiUrl = "CRS_UI_URL"
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
     NoNextAccommodationRule(),
   )
@@ -192,7 +195,7 @@ class EligibilityServiceTest {
     CrsSubmittedRule(),
     CrsExpiredRule(clock),
   )
-  var crsCompletionContextUpdater = CrsCompletionContextUpdater()
+  var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsUiUrl)
   var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
   var crsUpcomingContextUpdater = CrsUpcomingContextUpdater(clock)
 
@@ -217,6 +220,7 @@ class EligibilityServiceTest {
     completion = cas1CompletionRuleSet,
     completionContextUpdater = cas1CompletionContextUpdater,
     eligibility = cas1EligibilityRuleSet,
+    approvedPremisesUiBaseUrl = cas1UiUrl,
   )
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
@@ -228,6 +232,7 @@ class EligibilityServiceTest {
     completion = cas3CompletionRuleSet,
     completionContextUpdater = cas3CompletionContextUpdater,
     eligibility = cas3EligibilityRuleSet,
+    temporaryAccommodationUiBaseUrl = cas3UiUrl,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(
@@ -247,6 +252,7 @@ class EligibilityServiceTest {
     completionContextUpdater = crsCompletionContextUpdater,
     upcoming = crsUpcomingRuleSet,
     upcomingContextUpdater = crsUpcomingContextUpdater,
+    crsUiBaseUrl = crsUiUrl,
   )
 
   private val paTree = PaEligibilityTreeProvider(
@@ -447,6 +453,11 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCas1Action)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
+        if (s.expectedCas1Link == null) {
+          assertThat(result.url).isNull()
+        } else {
+          assertThat(result.url).isEqualTo(cas1UiUrl)
+        }
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
@@ -535,6 +546,7 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedDtrAction)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
+        assertThat(result.url).isNull()
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
@@ -664,6 +676,11 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCas3Action)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
+        if (s.expectedCas3Link == null) {
+          assertThat(result.url).isNull()
+        } else {
+          assertThat(result.url).isEqualTo(cas3UiUrl)
+        }
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
@@ -744,6 +761,11 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCrsAction)
         assertThat(result.link).isEqualTo(s.expectedCrsLink)
+        if (s.expectedCrsLink == null) {
+          assertThat(result.url).isNull()
+        } else {
+          assertThat(result.url).isEqualTo(crsUiUrl)
+        }
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
@@ -825,6 +847,9 @@ class EligibilityServiceTest {
           .isEqualTo(s.expectedPaStatus)
 
         assertThat(result.action).isEqualTo(s.expectedPaAction)
+        assertThat(result.link).isNull()
+        assertThat(result.url).isNull()
+
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)

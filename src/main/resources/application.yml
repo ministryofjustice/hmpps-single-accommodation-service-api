@@ -74,6 +74,14 @@ hmpps:
       max-events-per-batch: 10
       max-concurrent-events: 4
 
+service:
+  approved-premises-ui:
+    base-url: https://approved-premises-dev.hmpps.service.justice.gov.uk
+  temporary-accommodation-ui:
+    base-url: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
+  commissioned-rehabilitative-services-ui:
+    base-url: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
+
 case-list:
   page-size: 200
   onboarded-teams: []
