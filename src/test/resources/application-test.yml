@@ -19,23 +19,23 @@ wiremock:
 
 service:
   sas-and-delius:
-    read-timeout: 100ms
+    read-timeout: 150ms
   approved-premises-and-delius:
-    read-timeout: 100ms
+    read-timeout: 150ms
   approved-premises-and-oasys:
-    read-timeout: 100ms
+    read-timeout: 150ms
   approved-premises-api:
-    read-timeout: 100ms
+    read-timeout: 300ms # 300 required
   core-person-record:
     read-timeout: 300ms # 300 required
   commissioned-rehabilitative-services:
-    read-timeout: 100ms
+    read-timeout: 150ms
   tier:
     read-timeout: 300ms # 300 required
   accommodation-data-domain:
-    read-timeout: 100ms
+    read-timeout: 150ms
   nomis-user-roles:
-    read-timeout: 100ms
+    read-timeout: 150ms
 
 spring:
   cache:
