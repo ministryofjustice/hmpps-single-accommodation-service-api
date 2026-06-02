@@ -165,17 +165,35 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     )
 
     inboxEventDispatcher.process()
-    inboxEventDispatcher.process()
-    inboxEventDispatcher.process()
+    val firstProcessed =
+      inboxEventRepository
+        .findAllByProcessedStatus(
+          ProcessedStatus.PROCESSED,
+          PageRequest.of(0, 10, Sort.by("processedAt").ascending()),
+        )
+        .single()
 
-    val processed = inboxEventRepository.findAllByProcessedStatus(
-      ProcessedStatus.PROCESSED,
-      Pageable.unpaged(Sort.by("processedAt").ascending()),
-    )
+    inboxEventDispatcher.process()
+    val secondProcessed =
+      inboxEventRepository
+        .findAllByProcessedStatus(
+          ProcessedStatus.PROCESSED,
+          PageRequest.of(0, 10, Sort.by("processedAt").ascending()),
+        )
+        .last()
 
-    assertThat(processed[0].eventOccurredAt).isEqualTo(t1)
-    assertThat(processed[1].eventOccurredAt).isEqualTo(t2)
-    assertThat(processed[2].eventOccurredAt).isEqualTo(t3)
+    inboxEventDispatcher.process()
+    val thirdProcessed =
+      inboxEventRepository
+        .findAllByProcessedStatus(
+          ProcessedStatus.PROCESSED,
+          PageRequest.of(0, 10, Sort.by("processedAt").ascending()),
+        )
+        .last()
+
+    assertThat(firstProcessed.eventOccurredAt).isEqualTo(t1)
+    assertThat(secondProcessed.eventOccurredAt).isEqualTo(t2)
+    assertThat(thirdProcessed.eventOccurredAt).isEqualTo(t3)
     assertThat(caseRepository.findAll()).hasSize(3)
   }
 
