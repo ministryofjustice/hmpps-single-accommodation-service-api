@@ -1,23 +1,23 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -42,10 +42,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import java.util.UUID
 
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
+
+  @Value("\${case-list.page-size:1}")
+  private lateinit var pageSize: String
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
@@ -58,8 +64,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    dutyToReferRepository.deleteAll()
-    caseRepository.deleteAll()
+    databaseUtils.truncate(DUTY_TO_REFER, SAS_CASE)
 
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
@@ -102,7 +107,6 @@ class CaseControllerIT : IntegrationTestBase() {
     )
 
     // the case list returned should not match any persisted CRNs
-    val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
     assertThat(
       caseRepository.findAllByIdentifiers(
         crns = cases.map { it.crn },
@@ -112,7 +116,8 @@ class CaseControllerIT : IntegrationTestBase() {
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      response = caseList,
+      cases = cases,
+      pageSize = pageSize.toInt(),
     )
 
     // returns the unknown CRN from the caselist, and the persisted CRN for the case
@@ -206,6 +211,12 @@ class CaseControllerIT : IntegrationTestBase() {
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
+
+    // verify we call case-list endpoint 20 times (once per CRN)
+    sasWiremock.verify(
+      20,
+      getRequestedFor(WireMock.urlPathMatching("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")),
+    )
   }
 
   @Test
@@ -358,20 +369,12 @@ class CaseControllerIT : IntegrationTestBase() {
       )
     }
 
-    val caseList = CaseList(cases = cases, page = getPageMetadata(cases))
-
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      response = caseList,
+      cases = cases,
+      pageSize = pageSize.toInt(),
     )
   }
-
-  private fun getPageMetadata(cases: List<Case>) = PageMetadata(
-    size = cases.size.toLong(),
-    number = 0,
-    totalElements = cases.size.toLong(),
-    totalPages = 1,
-  )
 
   private fun seedCaseEntities() {
     val entities = listOf(
