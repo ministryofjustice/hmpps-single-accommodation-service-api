@@ -26,6 +26,10 @@ spring:
 
 shedlock:
   enabled: false
+  inbox-event-dispatcher:
+    fixed-delay: 100
+  outbox-event-dispatcher:
+    fixed-delay: 100
 
 event:
   details-url:

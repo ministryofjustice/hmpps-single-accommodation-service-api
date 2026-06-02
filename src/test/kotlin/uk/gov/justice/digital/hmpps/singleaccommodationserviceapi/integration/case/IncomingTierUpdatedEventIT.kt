@@ -37,12 +37,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-@TestPropertySource(
-  properties = [
-    "shedlock.enabled=true",
-    "shedlock.inbox-event-dispatcher.fixed-delay=100",
-  ],
-)
+@TestPropertySource(properties = ["shedlock.enabled=true"])
 class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
   @Autowired
