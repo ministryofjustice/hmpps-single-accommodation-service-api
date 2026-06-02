@@ -26,6 +26,8 @@ open class DutyToReferEntity(
   @Enumerated(EnumType.STRING)
   var withdrawalReason: WithdrawalReason? = null,
   var withdrawalReasonOther: String? = null,
+  @Enumerated(EnumType.STRING)
+  var outcomeReason: OutcomeReason? = null,
 
   @DiffIgnore
   @OneToMany(
@@ -53,4 +55,12 @@ enum class WithdrawalReason {
   HOUSING_NEED_RESOLVED,
   NOT_ELIGIBLE,
   OTHER,
+}
+
+enum class OutcomeReason {
+  PREVENTION_AND_RELIEF_DUTY,
+  PRIORITY_NEED,
+  NO_LOCAL_CONNECTION,
+  INTENTIONALLY_HOMELESS,
+  REJECTED_FOR_ANOTHER_REASON,
 }

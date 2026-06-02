@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
@@ -11,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate.DutyToReferSnapshot
 import java.time.Instant
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason as EntityOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.WithdrawalReason as EntityWithdrawalReason
 
 object DutyToReferMapper {
@@ -24,6 +26,7 @@ object DutyToReferMapper {
     status = EntityDtrStatus.valueOf(snapshot.status.name),
     withdrawalReason = snapshot.withdrawalReason?.let { EntityWithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = snapshot.withdrawalReasonOther,
+    outcomeReason = snapshot.outcomeReason?.let { EntityOutcomeReason.valueOf(it.name) },
   )
 
   fun merge(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity): DutyToReferEntity {
@@ -33,6 +36,7 @@ object DutyToReferMapper {
     entity.status = EntityDtrStatus.valueOf(snapshot.status.name)
     entity.withdrawalReason = snapshot.withdrawalReason?.let { EntityWithdrawalReason.valueOf(it.name) }
     entity.withdrawalReasonOther = snapshot.withdrawalReasonOther
+    entity.outcomeReason = snapshot.outcomeReason?.let { EntityOutcomeReason.valueOf(it.name) }
     entity.addMissingNotes(snapshot.notes)
     return entity
   }
@@ -66,6 +70,7 @@ object DutyToReferMapper {
     },
     withdrawalReason = entity.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = entity.withdrawalReasonOther,
+    outcomeReason = entity.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
   )
 
   fun toDto(
@@ -90,6 +95,7 @@ object DutyToReferMapper {
       createdAt = createdAt,
       withdrawalReason = snapshot.withdrawalReason,
       withdrawalReasonOther = snapshot.withdrawalReasonOther,
+      outcomeReason = snapshot.outcomeReason,
     ),
   )
 }

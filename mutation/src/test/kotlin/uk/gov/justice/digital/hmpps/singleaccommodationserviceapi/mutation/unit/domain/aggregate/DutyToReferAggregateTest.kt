@@ -9,11 +9,14 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.DutyToReferUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonRequiredException
@@ -82,6 +85,7 @@ class DutyToReferAggregateTest {
       submissionDate = submissionDate,
       referenceNumber = null,
       status = newStatus,
+      outcomeReason = outcomeReasonFor(newStatus),
     )
 
     assertThat(aggregate.snapshot().status).isEqualTo(newStatus)
@@ -100,6 +104,7 @@ class DutyToReferAggregateTest {
       submissionDate = submissionDate,
       referenceNumber = null,
       status = status,
+      outcomeReason = outcomeReasonFor(status),
     )
 
     assertThat(aggregate.snapshot().status).isEqualTo(status)
@@ -391,6 +396,115 @@ class DutyToReferAggregateTest {
     }
   }
 
+  @Nested
+  inner class OutcomeReasonValidation {
+    @ParameterizedTest
+    @EnumSource(value = OutcomeReason::class, names = ["PREVENTION_AND_RELIEF_DUTY", "PRIORITY_NEED"])
+    fun `update to ACCEPTED with a valid ACCEPTED outcome reason should succeed`(outcomeReason: OutcomeReason) {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.ACCEPTED,
+        outcomeReason = outcomeReason,
+      )
+
+      val snapshot = aggregate.snapshot()
+      assertThat(snapshot.status).isEqualTo(DtrStatus.ACCEPTED)
+      assertThat(snapshot.outcomeReason).isEqualTo(outcomeReason)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = OutcomeReason::class, names = ["NO_LOCAL_CONNECTION", "INTENTIONALLY_HOMELESS", "REJECTED_FOR_ANOTHER_REASON"])
+    fun `update to NOT_ACCEPTED with a valid NOT_ACCEPTED outcome reason should succeed`(outcomeReason: OutcomeReason) {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.NOT_ACCEPTED,
+        outcomeReason = outcomeReason,
+      )
+
+      val snapshot = aggregate.snapshot()
+      assertThat(snapshot.status).isEqualTo(DtrStatus.NOT_ACCEPTED)
+      assertThat(snapshot.outcomeReason).isEqualTo(outcomeReason)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
+    fun `update to ACCEPTED or NOT_ACCEPTED without an outcome reason should throw DutyToReferOutcomeReasonRequiredException`(status: DtrStatus) {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferOutcomeReasonRequiredException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = status,
+          outcomeReason = null,
+        )
+      }
+    }
+
+    @Test
+    fun `update to ACCEPTED with a NOT_ACCEPTED outcome reason should throw DutyToReferOutcomeReasonNotApplicableException`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferOutcomeReasonNotApplicableException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.ACCEPTED,
+          outcomeReason = OutcomeReason.NO_LOCAL_CONNECTION,
+        )
+      }
+    }
+
+    @Test
+    fun `update to NOT_ACCEPTED with an ACCEPTED outcome reason should throw DutyToReferOutcomeReasonNotApplicableException`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferOutcomeReasonNotApplicableException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.NOT_ACCEPTED,
+          outcomeReason = OutcomeReason.PRIORITY_NEED,
+        )
+      }
+    }
+
+    @Test
+    fun `update to SUBMITTED with an outcome reason should throw DutyToReferOutcomeReasonNotApplicableException`() {
+      val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+      assertThrows<DutyToReferOutcomeReasonNotApplicableException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.SUBMITTED,
+          outcomeReason = OutcomeReason.PRIORITY_NEED,
+        )
+      }
+    }
+
+    @Test
+    fun `update to WITHDRAWN with an outcome reason should throw DutyToReferOutcomeReasonNotApplicableException`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      assertThrows<DutyToReferOutcomeReasonNotApplicableException> {
+        aggregate.updateDutyToRefer(
+          localAuthorityAreaId = localAuthorityAreaId,
+          submissionDate = submissionDate,
+          referenceNumber = null,
+          status = DtrStatus.WITHDRAWN,
+          withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+          outcomeReason = OutcomeReason.PRIORITY_NEED,
+        )
+      }
+    }
+  }
+
   private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
     val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(
@@ -408,10 +522,17 @@ class DutyToReferAggregateTest {
         referenceNumber = null,
         status = status,
         withdrawalReason = if (status == DtrStatus.WITHDRAWN) WithdrawalReason.NEW_REFERRAL else null,
+        outcomeReason = outcomeReasonFor(status),
       )
       aggregate.pullDomainEvents()
     }
 
     return aggregate
+  }
+
+  private fun outcomeReasonFor(status: DtrStatus): OutcomeReason? = when (status) {
+    DtrStatus.ACCEPTED -> OutcomeReason.PRIORITY_NEED
+    DtrStatus.NOT_ACCEPTED -> OutcomeReason.NO_LOCAL_CONNECTION
+    else -> null
   }
 }

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate.DutyToReferNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate.DutyToReferSnapshot
@@ -17,6 +18,7 @@ fun buildDutyToReferSnapshot(
   notes: List<DutyToReferNote> = mutableListOf(buildDutyToReferNote()),
   withdrawalReason: WithdrawalReason? = null,
   withdrawalReasonOther: String? = null,
+  outcomeReason: OutcomeReason? = null,
 ) = DutyToReferSnapshot(
   id = id,
   caseId = caseId,
@@ -27,6 +29,7 @@ fun buildDutyToReferSnapshot(
   notes = notes,
   withdrawalReason = withdrawalReason,
   withdrawalReasonOther = withdrawalReasonOther,
+  outcomeReason = outcomeReason,
 )
 
 fun buildDutyToReferNote(id: UUID = UUID.randomUUID(), note: String = "Test Note") = DutyToReferNote(id, note)

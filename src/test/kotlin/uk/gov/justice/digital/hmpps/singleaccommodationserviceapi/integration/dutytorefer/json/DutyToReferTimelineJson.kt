@@ -77,6 +77,11 @@ fun expectedGetDutyToReferTimelineResponse(
                "field":"status",
                "value":"ACCEPTED",
                "oldValue":"NOT_ACCEPTED"
+            },
+            {
+               "field":"outcomeReason",
+               "value":"PRIORITY_NEED",
+               "oldValue":"NO_LOCAL_CONNECTION"
             }
          ],
          "extraInformation":{
@@ -97,6 +102,11 @@ fun expectedGetDutyToReferTimelineResponse(
                "field":"status",
                "value":"NOT_ACCEPTED",
                "oldValue":"SUBMITTED"
+            },
+            {
+               "field":"outcomeReason",
+               "value":"NO_LOCAL_CONNECTION",
+               "oldValue":null
             }
          ],
          "extraInformation":{

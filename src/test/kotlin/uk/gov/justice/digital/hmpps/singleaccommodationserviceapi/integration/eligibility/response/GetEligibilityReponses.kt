@@ -66,7 +66,8 @@ fun expectedGetEligibilityResponse(
             "createdBy":"$createdBy",
             "createdAt":"$createdAt",
             "withdrawalReason":null,
-            "withdrawalReasonOther":null
+            "withdrawalReasonOther":null,
+            "outcomeReason":null
          }
       },
       "crs":{
@@ -229,7 +230,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "createdBy":"$createdBy",
             "createdAt":"$createdAt",
             "withdrawalReason":null,
-            "withdrawalReasonOther":null
+            "withdrawalReasonOther":null,
+            "outcomeReason":null
          }
       },
       "crs":{
@@ -325,7 +327,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "createdBy":"$createdBy",
             "createdAt":"$createdAt",
             "withdrawalReason":null,
-            "withdrawalReasonOther":null
+            "withdrawalReasonOther":null,
+            "outcomeReason":null
          }
       },
       "crs":{

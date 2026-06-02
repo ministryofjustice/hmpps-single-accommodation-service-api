@@ -9,6 +9,7 @@ fun createDtrRequestBody(
   status: String = "SUBMITTED",
   withdrawalReason: String? = null,
   withdrawalReasonOther: String? = null,
+  outcomeReason: String? = null,
 ): String = """
 {
   "localAuthorityAreaId": "$localAuthorityAreaId",
@@ -28,6 +29,11 @@ fun createDtrRequestBody(
   "withdrawalReasonOther": "$withdrawalReasonOther""""
 } else {
   ""
+}}${if (outcomeReason != null) {
+  """,
+  "outcomeReason": "$outcomeReason""""
+} else {
+  ""
 }}
 }
 """.trimIndent()
@@ -45,6 +51,7 @@ fun expectedDtrResponseBody(
   createdAt: String,
   withdrawalReason: String? = null,
   withdrawalReasonOther: String? = null,
+  outcomeReason: String? = null,
 ): String = """
 {
   "caseId": "$caseId",
@@ -61,7 +68,8 @@ fun expectedDtrResponseBody(
     "createdBy": "$createdBy",
     "createdAt": "$createdAt",
     "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"},
-    "withdrawalReasonOther": ${if (withdrawalReasonOther != null) "\"$withdrawalReasonOther\"" else "null"}
+    "withdrawalReasonOther": ${if (withdrawalReasonOther != null) "\"$withdrawalReasonOther\"" else "null"},
+    "outcomeReason": ${if (outcomeReason != null) "\"$outcomeReason\"" else "null"}
   }
 }
 """.trimIndent()
@@ -79,7 +87,8 @@ fun expectedGetDtrResponseBody(
   createdAt: String,
   withdrawalReason: String? = null,
   withdrawalReasonOther: String? = null,
-): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther)}}"""
+  outcomeReason: String? = null,
+): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther, outcomeReason)}}"""
 
 fun dtrNoteRequestBody(note: String): String = """
   {

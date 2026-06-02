@@ -26,6 +26,7 @@ data class DtrSubmissionDto(
   val createdAt: Instant,
   val withdrawalReason: WithdrawalReason? = null,
   val withdrawalReasonOther: String? = null,
+  val outcomeReason: OutcomeReason? = null,
 )
 
 data class LocalAuthorityDto(
@@ -40,6 +41,7 @@ data class DtrCommand(
   val status: DtrStatus,
   val withdrawalReason: WithdrawalReason? = null,
   val withdrawalReasonOther: String? = null,
+  val outcomeReason: OutcomeReason? = null,
 )
 
 enum class DtrStatus {
@@ -57,4 +59,12 @@ enum class WithdrawalReason {
   HOUSING_NEED_RESOLVED,
   NOT_ELIGIBLE,
   OTHER,
+}
+
+enum class OutcomeReason {
+  PREVENTION_AND_RELIEF_DUTY,
+  PRIORITY_NEED,
+  NO_LOCAL_CONNECTION,
+  INTENTIONALLY_HOMELESS,
+  REJECTED_FOR_ANOTHER_REASON,
 }
