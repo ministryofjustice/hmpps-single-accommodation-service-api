@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.oauth2.jwt.Jwt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationIntegrationDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
@@ -34,7 +34,7 @@ class UserServiceTest {
   lateinit var userRepository: UserRepository
 
   @MockK
-  lateinit var probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService
+  lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
   @MockK
   lateinit var nomisUserRolesService: NomisUserRolesService
@@ -50,7 +50,7 @@ class UserServiceTest {
     @Test
     fun `getExistingDeliusUserOrCreate should throw NotFoundException when staff-detail not found`() {
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
-      every { probationIntegrationDeliusCachingService.getStaffDetail(username.value) } returns null
+      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns null
 
       assertThatThrownBy { userService.getExistingDeliusUserOrCreate(username) }
         .isInstanceOf(NotFoundException::class.java)
@@ -73,7 +73,7 @@ class UserServiceTest {
       val deliusUser = buildStaffDetail()
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
-      every { probationIntegrationDeliusCachingService.getStaffDetail(username.value) } returns deliusUser
+      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns deliusUser
 
       val result = userService.getExistingDeliusUserOrCreate(username)
 

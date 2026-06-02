@@ -11,8 +11,8 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.HmppsAuthInterceptor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.accommodationdatadomain.AccommodationDataDomainClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationIntegrationDeliusClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ProbationIntegrationOasysClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ApprovedPremisesAndOasysClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
@@ -36,13 +36,13 @@ class RestClientConfig(
   @Bean
   open fun probationIntegrationDeliusClient(@Value($$"${service.approved-premises-and-delius.base-url}") baseUrl: String) = createClient(
     baseUrl,
-    ProbationIntegrationDeliusClient::class,
+    ApprovedPremisesAndDeliusClient::class,
   )
 
   @Bean
   open fun probationIntegrationOasysClient(@Value($$"${service.approved-premises-and-oasys.base-url}") baseUrl: String) = createClient(
     baseUrl,
-    ProbationIntegrationOasysClient::class,
+    ApprovedPremisesAndOasysClient::class,
   )
 
   @Bean

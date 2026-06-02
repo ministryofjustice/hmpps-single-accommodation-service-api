@@ -8,7 +8,7 @@ import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 
-interface ProbationIntegrationDeliusClient {
+interface ApprovedPremisesAndDeliusClient {
   @PostExchange(value = "/probation-cases/summaries")
   fun postCaseSummaries(@RequestBody crns: List<String>): CaseSummaries
 
@@ -17,10 +17,10 @@ interface ProbationIntegrationDeliusClient {
 }
 
 @Service
-open class ProbationIntegrationDeliusCachingService(
-  val probationIntegrationDeliusClient: ProbationIntegrationDeliusClient,
+class ApprovedPremisesAndDeliusCachingService(
+  val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
 ) {
 
   @Cacheable(ApiCallKeys.GET_STAFF_DETAIL, key = "#username", sync = true)
-  open fun getStaffDetail(username: String) = probationIntegrationDeliusClient.getStaffDetail(username)
+  fun getStaffDetail(username: String) = approvedPremisesAndDeliusClient.getStaffDetail(username)
 }
