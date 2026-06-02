@@ -33,5 +33,5 @@ logging:
     org.hibernate.orm.jdbc.bind: INFO # TRACE - shows what parameters are bound to queries
     org.hibernate.session.metrics: INFO
 
-shedlock:
+scheduling:
   enabled: true

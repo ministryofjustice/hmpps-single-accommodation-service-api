@@ -37,7 +37,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-@TestPropertySource(properties = ["shedlock.enabled=true"])
+@TestPropertySource(properties = ["scheduling.enabled=true"])
 class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
   @Autowired

@@ -41,7 +41,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
-@TestPropertySource(properties = ["shedlock.enabled=true"])
+@TestPropertySource(properties = ["scheduling.enabled=true"])
 class DutyToReferControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener

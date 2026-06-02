@@ -78,8 +78,10 @@ case-list:
   page-size: 200
   onboarded-teams: []
 
-shedlock:
+scheduling:
   enabled: true
+
+shedlock:
   outbox-event-publisher:
     fixed-delay: 5000
     lock-at-most-for: PT2M

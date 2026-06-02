@@ -71,7 +71,7 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
-@TestPropertySource(properties = ["shedlock.enabled=true"])
+@TestPropertySource(properties = ["scheduling.enabled=true"])
 class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Autowired
   private lateinit var clock: MutableTestClock
