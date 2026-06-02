@@ -53,7 +53,8 @@ object EligibilityTransformer {
     dtr = DtrServiceResult(
       serviceResult = dtr,
       caseId = data.dutyToRefer?.caseId,
-      submission = data.dutyToRefer?.submission,
+      // suppresses withdrawn or expired referral data as service is NOT_STARTED and data is not required
+      submission = data.dutyToRefer?.submission?.takeUnless { dtr.serviceStatus == ServiceStatus.NOT_STARTED },
     ),
     crs = CrsServiceResult(
       serviceResult = crs,
