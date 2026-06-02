@@ -34,4 +34,4 @@ logging:
     org.hibernate.session.metrics: INFO
 
 shedlock:
-  enabled: false
+  enabled: true
