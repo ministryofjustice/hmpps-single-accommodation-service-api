@@ -286,4 +286,32 @@ class EligibilityControllerIT : IntegrationTestBase() {
         )
       }
   }
+
+  @Test
+  fun `should succeed when prisoner search returns 404`() {
+    PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonerNumber = prisonerNumber)
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonerNumber)
+    }
+    caseRepository.save(entity)
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+  }
+
+  @Test
+  fun `should succeed when case has no prison number`() {
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    caseRepository.save(entity)
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+  }
 }

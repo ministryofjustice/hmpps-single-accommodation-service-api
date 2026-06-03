@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
@@ -12,6 +13,13 @@ object PrisonerSearchStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/prisoner/$prisonerNumber"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun getPrisonerNotFoundResponse(prisonerNumber: String) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/prisoner/$prisonerNumber"))
+        .willReturn(notFound()),
     )
   }
 }
