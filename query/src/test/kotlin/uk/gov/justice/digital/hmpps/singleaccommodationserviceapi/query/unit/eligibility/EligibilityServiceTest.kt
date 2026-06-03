@@ -318,6 +318,7 @@ class EligibilityServiceTest {
           cas1Application = cas1Application,
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
+          prisoner = null,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -328,9 +329,7 @@ class EligibilityServiceTest {
       every { accommodationQueryService.getNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
       every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses) } returns currentAccommodation
-      every { caseRepository.findByCrn(crn) } returns caseEntity
-
-      val result = eligibilityService.buildDomainData(crn, orchestrationDto.data)
+      val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
 
       val expected = buildDomainData(
         crn = crn,
@@ -364,13 +363,15 @@ class EligibilityServiceTest {
           cas1Application = null,
           cas3Application = null,
           commissionedRehabilitativeServices = null,
+          prisoner = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
         ),
       )
 
-      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
+      every { caseRepository.findByCrn(crn) } returns null
+      every { eligibilityOrchestrationService.getData(crn, null) } returns orchestrationDto
 
       val result = eligibilityService.getEligibility(crn)
 

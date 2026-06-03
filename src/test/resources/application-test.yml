@@ -16,6 +16,7 @@ wiremock:
     - tier
     - accommodation-data-domain
     - nomis-user-roles
+    - prisoner-search
 
 service:
   sas-and-delius:
@@ -35,6 +36,8 @@ service:
   accommodation-data-domain:
     read-timeout: 150ms
   nomis-user-roles:
+    read-timeout: 150ms
+  prisoner-search:
     read-timeout: 150ms
 
 spring:

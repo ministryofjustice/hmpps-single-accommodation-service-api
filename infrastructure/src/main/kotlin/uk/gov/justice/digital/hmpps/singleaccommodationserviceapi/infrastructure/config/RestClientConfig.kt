@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ApprovedPremisesAndOasysClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import java.net.http.HttpClient
@@ -77,6 +78,16 @@ class RestClientConfig(
   ) = createClient(
     baseUrl,
     CorePersonRecordClient::class,
+    readTimeout,
+  )
+
+  @Bean
+  fun prisonerSearchClient(
+    @Value($$"${service.prisoner-search.base-url}") baseUrl: String,
+    @Value($$"${service.prisoner-search.read-timeout}") readTimeout: Duration,
+  ) = createClient(
+    baseUrl,
+    PrisonerSearchClient::class,
     readTimeout,
   )
 
