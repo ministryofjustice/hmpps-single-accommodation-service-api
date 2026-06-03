@@ -51,7 +51,7 @@ class EligibilityOrchestrationService(
     val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
-    val releaseDate = prisonNumber?.let { results.getResult<Prisoner>(GET_PRISONER)?.releaseDate }
+    val prisoner = prisonNumber?.let { results.getResult<Prisoner>(GET_PRISONER) }
 
     return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(
@@ -61,7 +61,7 @@ class EligibilityOrchestrationService(
         cas1Application,
         cas3Application,
         crs,
-        releaseDate,
+        prisoner,
       ),
       upstreamFailures = results.getFailures(),
     )

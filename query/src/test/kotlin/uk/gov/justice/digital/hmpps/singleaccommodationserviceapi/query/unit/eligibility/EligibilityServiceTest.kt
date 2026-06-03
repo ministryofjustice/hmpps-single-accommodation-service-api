@@ -318,7 +318,7 @@ class EligibilityServiceTest {
           cas1Application = cas1Application,
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
-          releaseDate = null,
+          prisoner = null,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -363,7 +363,7 @@ class EligibilityServiceTest {
           cas1Application = null,
           cas3Application = null,
           commissionedRehabilitativeServices = null,
-          releaseDate = null,
+          prisoner = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
