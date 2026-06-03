@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.LocalDate
 
 fun buildPrisoner(
-  prisonerNumber: String? = "PRI1",
+  prisonNumber: String? = "PRI1",
   releaseDate: LocalDate? = LocalDate.now(),
   confirmedReleaseDate: LocalDate? = LocalDate.now(),
   inOutStatus: InOutStatus? = null,
@@ -13,7 +13,7 @@ fun buildPrisoner(
   prisonName: String? = null,
   status: String? = null,
 ) = Prisoner(
-  prisonerNumber = prisonerNumber,
+  prisonerNumber = prisonNumber,
   releaseDate = releaseDate,
   confirmedReleaseDate = confirmedReleaseDate,
   inOutStatus = inOutStatus,

@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -21,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
@@ -31,7 +36,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -65,13 +73,20 @@ class AccommodationQueryServiceTest {
   lateinit var accommodationQueryService: AccommodationQueryService
 
   private val crn = "X12345"
+  private val prisonNumber = "12345"
   private val caseId = UUID.randomUUID()
+  private val prisonAccommodationTypeCode = "HMP"
 
   @Nested
   inner class GetAccommodationHistory {
     @Test
     fun `getAccommodationHistory should orchestrate calls and map addresses`() {
-      every { accommodationOrchestrationService.getCorePersonRecordByCrn(crn) } returns OrchestrationResultDto(
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
             identifiers = buildIdentifiers(crns = listOf(crn)),
@@ -149,8 +164,101 @@ class AccommodationQueryServiceTest {
     }
 
     @Test
+    fun `getAccommodationHistory should orchestrate calls and map addresses and include prison at top if in prison`() {
+      val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN, prisonName = "A Prison")
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
+        data = buildAccommodationOrchestrationDto(
+          prisoner = prisoner,
+          cpr = buildCorePersonRecord(
+            identifiers = buildIdentifiers(crns = listOf(crn)),
+            addresses = listOf(
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "SW1A 1AA",
+                thoroughfareName = "Some Street",
+                postTown = "London",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.M.name,
+                  description = AddressStatusCode.M.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A07B.name,
+                    description = AddressUsageCode.A07B.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "GL53 8GH",
+                thoroughfareName = "Another Road",
+                postTown = "Cheltenham",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.PR.name,
+                  description = AddressStatusCode.PR.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A07A.name,
+                    description = AddressUsageCode.A07A.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+              buildCanonicalAddress(
+                cprAddressId = UUID.randomUUID(),
+                noFixedAbode = false,
+                postcode = null,
+                thoroughfareName = null,
+                postTown = null,
+                startDate = LocalDate.of(2024, 10, 17),
+                endDate = LocalDate.of(2025, 10, 17),
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.P.name,
+                  description = AddressStatusCode.P.description,
+                ),
+                usage = CanonicalAddressUsage(
+                  usageCode = CanonicalAddressUsageCode(
+                    code = AddressUsageCode.A08A.name,
+                    description = AddressUsageCode.A08A.description,
+                  ),
+                  isActive = true,
+                ),
+              ),
+            ),
+          ),
+        ),
+        upstreamFailures = emptyList(),
+      )
+
+      val result = accommodationQueryService.getAccommodationHistory(crn)
+
+      assertThat(result.data.size).isEqualTo(3)
+      assertThat(result.data[0].address.buildingName).isEqualTo(prisoner.prisonName)
+      assertThat(result.data[0].status!!.code).isEqualTo("C")
+      assertThat(result.data[1].address.postcode).isEqualTo("SW1A 1AA")
+      assertThat(result.data[1].status!!.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(result.data[2].address.postcode).isNull()
+      assertThat(result.data[2].status!!.code).isEqualTo(AddressStatusCode.P.name)
+      assertThat(result.upstreamFailures.size).isEqualTo(0)
+    }
+
+    @Test
     fun `getAccommodationHistory should return empty list when cpr addresses call fails`() {
-      every { accommodationOrchestrationService.getCorePersonRecordByCrn(crn) } returns OrchestrationResultDto(
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = null,
         ),
@@ -173,8 +281,149 @@ class AccommodationQueryServiceTest {
   @Nested
   inner class GetCurrentAccommodation {
     @Test
+    fun `getCurrentAccommodation should get the current accommodation when in prison`() {
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN, prisonName = "A Prison")
+      val cpr = buildCorePersonRecord(
+        identifiers = buildIdentifiers(prisonNumbers = listOf(prisonNumber)),
+        addresses = listOf(
+          buildCanonicalAddress(
+            cprAddressId = null,
+            noFixedAbode = false,
+            postcode = "SW1A 1AA",
+            thoroughfareName = "Some Street",
+            postTown = "London",
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.M.name,
+              description = AddressStatusCode.M.description,
+            ),
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+          buildCanonicalAddress(
+            cprAddressId = null,
+            noFixedAbode = false,
+            postcode = "GL53 8GH",
+            thoroughfareName = "",
+            postTown = "Cheltenham",
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.P.name,
+              description = AddressStatusCode.P.description,
+            ),
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      )
+
+      val expectedResult = buildAccommodationSummaryDto(
+        crn = crn,
+        endDate = prisoner.releaseDate,
+        address = buildAccommodationAddressDetails(
+          subBuildingName = null,
+          postcode = null,
+          buildingName = prisoner.prisonName,
+          buildingNumber = null,
+          thoroughfareName = null,
+          dependentLocality = null,
+          postTown = null,
+          county = null,
+          country = null,
+          uprn = null,
+        ),
+        status = buildAccommodationStatusDto(
+          code = "C",
+          description = "Custody",
+        ),
+        type = buildAccommodationTypeDto(
+          code = prisonAccommodationTypeCode,
+          description = prisoner.prisonName,
+        ),
+      )
+
+      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner)
+
+      assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun `getCurrentAccommodation should get the current accommodation when not in prison`() {
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
+      val cpr = buildCorePersonRecord(
+        identifiers = buildIdentifiers(prisonNumbers = listOf(prisonNumber)),
+        addresses = listOf(
+          buildCanonicalAddress(
+            cprAddressId = null,
+            noFixedAbode = false,
+            postcode = "SW1A 1AA",
+            thoroughfareName = "Some Street",
+            postTown = "London",
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.M.name,
+              description = AddressStatusCode.M.description,
+            ),
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+          buildCanonicalAddress(
+            cprAddressId = null,
+            noFixedAbode = false,
+            postcode = "GL53 8GH",
+            thoroughfareName = "",
+            postTown = "Cheltenham",
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.P.name,
+              description = AddressStatusCode.P.description,
+            ),
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      )
+
+      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner)
+
+      assertThat(result?.address?.postcode).isEqualTo("SW1A 1AA")
+      assertThat(result?.status!!.code).isEqualTo("M")
+    }
+
+    @Test
     fun `getCurrentAccommodation should orchestrate calls and get the current accommodation`() {
-      every { accommodationOrchestrationService.getCorePersonRecordByCrn(crn) } returns OrchestrationResultDto(
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
             addresses = listOf(
@@ -228,7 +477,12 @@ class AccommodationQueryServiceTest {
 
     @Test
     fun `getCurrentAccommodation should return null data and upstream failure when cpr addresses call fails`() {
-      every { accommodationOrchestrationService.getCorePersonRecordByCrn(crn) } returns OrchestrationResultDto(
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = null,
         ),
@@ -246,7 +500,10 @@ class AccommodationQueryServiceTest {
       assertThat(result.data).isNull()
       assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
     }
+  }
 
+  @Nested
+  inner class GetNextAccommodation {
     @Test
     fun `getNextAccommodation should orchestrate calls and get the next accommodation`() {
       every { accommodationOrchestrationService.getNextAccommodationData(crn) } returns OrchestrationResultDto(

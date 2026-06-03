@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
@@ -19,8 +20,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -31,13 +34,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationByIdResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationPrisonResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationWithUpstreamFailureResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationWithAllUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationWithUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -57,13 +62,21 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   private val cprAddressId = UUID.randomUUID()
   private lateinit var crn: String
+  private lateinit var prisonNumber: String
+
   private lateinit var caseEntity: CaseEntity
 
   @BeforeEach
   fun setup() {
     proposedAccommodationRepository.deleteAll()
     crn = UUID.randomUUID().toString()
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    prisonNumber = "PR1"
+    caseEntity = caseRepository.save(
+      buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      },
+    )
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
   }
@@ -129,14 +142,86 @@ class AccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `get current accommodation should return partial success when CPR Addresses call returns server error`() {
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+  fun `should get current accommodation for crn when it is a prison`() {
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
+      addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "W5 2AB",
+          thoroughfareName = "Another Street",
+          postTown = "London",
+          startDate = LocalDate.of(2025, 10, 17),
+          endDate = LocalDate.of(2026, 1, 10),
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.P.name,
+            description = AddressStatusCode.P.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07B.name,
+              description = AddressUsageCode.A07B.description,
+            ),
+            isActive = true,
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = corePersonRecord,
+    )
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = prisonNumber,
+      response = buildPrisoner(
+        prisonNumber = prisonNumber,
+        prisonId = "WWI",
+        prisonName = "Wandsworth",
+        inOutStatus = InOutStatus.IN,
+        releaseDate = LocalDate.of(2025, 10, 17),
+      ),
+    )
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationWithUpstreamFailureResponse())
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationPrisonResponse(crn))
+      }
+  }
+
+  @Test
+  fun `get current accommodation should return partial success when CPR Addresses call returns server error`() {
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    PrisonerSearchStubs.getPrisonerServerErrorResponse(prisonNumber)
+
+    restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationWithAllUpstreamFailureResponse())
       }
   }
 

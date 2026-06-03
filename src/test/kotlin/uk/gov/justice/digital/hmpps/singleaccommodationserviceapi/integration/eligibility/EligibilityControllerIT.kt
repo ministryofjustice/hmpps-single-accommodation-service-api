@@ -48,7 +48,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 class EligibilityControllerIT : IntegrationTestBase() {
   private val crn = "FAKECRN1"
-  private val prisonerNumber = "PRI1"
+  private val prisonNumber = "PRI1"
   private val cas1ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111111")
   private val cas3ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f6-111111111111")
   private val dutyToReferCaseId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111112")
@@ -102,7 +102,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
 
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-    PrisonerSearchStubs.getPrisonerOKResponse(prisonerNumber = prisonerNumber, response = buildPrisoner(prisonerNumber = prisonerNumber))
+    PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
@@ -125,7 +125,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
-      withPrisonNumber(prisonerNumber)
+      withPrisonNumber(prisonNumber)
     }
     caseRepository.save(entity)
 
@@ -174,7 +174,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
-      withPrisonNumber(prisonerNumber)
+      withPrisonNumber(prisonNumber)
     }
     caseRepository.save(entity)
 
@@ -247,7 +247,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
-      withPrisonNumber(prisonerNumber)
+      withPrisonNumber(prisonNumber)
     }
     caseRepository.save(entity)
 
@@ -289,12 +289,12 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should succeed when prisoner search returns 404`() {
-    PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonerNumber = prisonerNumber)
+    PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
     TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
-      withPrisonNumber(prisonerNumber)
+      withPrisonNumber(prisonNumber)
     }
     caseRepository.save(entity)
 

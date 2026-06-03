@@ -12,11 +12,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer
 import java.time.Instant
@@ -25,13 +27,14 @@ import java.time.ZoneId
 import java.util.UUID
 
 class AccommodationTransformerTest {
+  private val prisonAccommodationTypeCode = "HMP"
 
   @Test
   fun `should get accommodation status for next accommodation when current accommodation is HMP`() {
     val result = AccommodationTransformer.getAccommodationStatus(
       currentAccommodation = buildAccommodationSummaryDto(
         type = buildAccommodationTypeDto(
-          code = "HMP",
+          code = prisonAccommodationTypeCode,
         ),
       ),
     )
@@ -106,7 +109,7 @@ class AccommodationTransformerTest {
         premises = cas1Premises,
         currentAccommodation = buildAccommodationSummaryDto(
           type = buildAccommodationTypeDto(
-            code = "HMP",
+            code = prisonAccommodationTypeCode,
           ),
         ),
       )
@@ -160,7 +163,7 @@ class AccommodationTransformerTest {
         premises = cas3Premises,
         currentAccommodation = buildAccommodationSummaryDto(
           type = buildAccommodationTypeDto(
-            code = "HMP",
+            code = prisonAccommodationTypeCode,
           ),
         ),
       )
@@ -222,6 +225,53 @@ class AccommodationTransformerTest {
     assertThat(result.address.county).isEqualTo("Greater London")
     assertThat(result.address.country).isEqualTo("GB")
     assertThat(result.address.uprn).isEqualTo("100012345678")
+  }
+
+  @Test
+  fun `toAccommodationSummary() should map all fields when it is a prison`() {
+    val crn = "X92123"
+
+    val prisoner = buildPrisoner(
+      prisonNumber = "PRI1",
+      releaseDate = LocalDate.now(),
+      confirmedReleaseDate = LocalDate.now(),
+      inOutStatus = InOutStatus.IN,
+      prisonId = "SOMETHING",
+      prisonName = "SOME PRISON",
+      status = "A STATUS",
+    )
+
+    val expectedResult = buildAccommodationSummaryDto(
+      crn = crn,
+      endDate = prisoner.releaseDate,
+      address = buildAccommodationAddressDetails(
+        subBuildingName = null,
+        postcode = null,
+        buildingName = prisoner.prisonName,
+        buildingNumber = null,
+        thoroughfareName = null,
+        dependentLocality = null,
+        postTown = null,
+        county = null,
+        country = null,
+        uprn = null,
+      ),
+      status = buildAccommodationStatusDto(
+        code = "C",
+        description = "Custody",
+      ),
+      type = buildAccommodationTypeDto(
+        code = prisonAccommodationTypeCode,
+        description = prisoner.prisonName,
+      ),
+    )
+
+    val result = AccommodationTransformer.toAccommodationSummary(
+      crn = crn,
+      prisoner = prisoner,
+    )
+
+    assertThat(result).isEqualTo(expectedResult)
   }
 
   @Test

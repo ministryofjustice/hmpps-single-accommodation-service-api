@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -91,6 +92,35 @@ object AccommodationTransformer {
     type = AccommodationTypeDto(
       code = AddressUsageCode.A02.name,
       description = AddressUsageCode.A02.description,
+    ),
+  )
+
+  fun toAccommodationSummary(
+    crn: String,
+    prisoner: Prisoner,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    startDate = null,
+    endDate = prisoner.releaseDate,
+    address = AccommodationAddressDetails(
+      postcode = null,
+      subBuildingName = null,
+      buildingName = prisoner.prisonName,
+      buildingNumber = null,
+      thoroughfareName = null,
+      dependentLocality = null,
+      postTown = null,
+      county = null,
+      country = null,
+      uprn = null,
+    ),
+    status = AccommodationStatusDto(
+      code = "C",
+      description = "Custody",
+    ),
+    type = AccommodationTypeDto(
+      code = PRISON_ACCOMMODATION_TYPE_CODE,
+      description = prisoner.prisonName,
     ),
   )
 
