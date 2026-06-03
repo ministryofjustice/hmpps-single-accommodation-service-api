@@ -11,8 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import java.time.LocalDate
-
 data class DomainData(
   val crn: String,
   val tierScore: TierScore?,
@@ -24,7 +22,6 @@ data class DomainData(
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
-  val releaseDate: LocalDate? = null,
 ) {
   constructor(
     crn: String,
@@ -37,7 +34,6 @@ data class DomainData(
     dutyToRefer: DutyToReferDto?,
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
     accommodationTypes: List<AccommodationTypeEntity>,
-    releaseDate: LocalDate? = null,
   ) : this(
     crn = crn,
     tierScore = tier?.tierScore,
@@ -49,7 +45,6 @@ data class DomainData(
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = commissionedRehabilitativeServices,
-    releaseDate = releaseDate,
   )
 
   constructor(

@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import java.time.LocalDate
 
 fun buildDomainData(
   crn: String = "CR12345N",
@@ -22,7 +21,6 @@ fun buildDomainData(
   cas3Application: Cas3Application? = null,
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
-  releaseDate: LocalDate? = null,
 ) = DomainData(
   crn = crn,
   tierScore = tierScore,
@@ -34,5 +32,4 @@ fun buildDomainData(
   cas3Application = cas3Application,
   dutyToRefer = dutyToRefer,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
-  releaseDate = releaseDate,
 )
