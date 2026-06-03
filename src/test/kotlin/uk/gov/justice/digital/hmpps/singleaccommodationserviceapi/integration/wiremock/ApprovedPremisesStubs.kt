@@ -53,7 +53,7 @@ object ApprovedPremisesStubs {
     response: List<CasReferralHistory>,
   ) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/${casService.name.lowercase()}/external/referrals/$crn"))
+      get(urlPathEqualTo("/${casService.urlPath}/external/referrals/$crn"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
