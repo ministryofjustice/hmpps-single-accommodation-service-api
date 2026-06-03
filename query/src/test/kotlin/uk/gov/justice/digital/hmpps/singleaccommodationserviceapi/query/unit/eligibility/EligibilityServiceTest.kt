@@ -318,6 +318,7 @@ class EligibilityServiceTest {
           cas1Application = cas1Application,
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
+          releaseDate = null,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -364,13 +365,15 @@ class EligibilityServiceTest {
           cas1Application = null,
           cas3Application = null,
           commissionedRehabilitativeServices = null,
+          releaseDate = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
         ),
       )
 
-      every { eligibilityOrchestrationService.getData(crn) } returns orchestrationDto
+      every { caseRepository.findByCrn(crn) } returns null
+      every { eligibilityOrchestrationService.getData(crn, emptyList()) } returns orchestrationDto
 
       val result = eligibilityService.getEligibility(crn)
 

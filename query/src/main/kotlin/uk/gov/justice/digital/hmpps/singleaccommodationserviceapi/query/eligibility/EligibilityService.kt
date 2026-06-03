@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
@@ -57,7 +58,13 @@ class EligibilityService(
   fun getEligibility(crn: String): ApiResponseDto<EligibilityDto> {
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
 
-    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
+    val caseEntity = caseRepository.findByCrn(crn)
+    val prisonNumbers = caseEntity?.caseIdentifiers
+      ?.filter { it.identifierType == IdentifierType.PRISON_NUMBER }
+      ?.map { it.identifier }
+      ?: emptyList()
+
+    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn, prisonNumbers)
     val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
 
     if (upstreamFailures.isNotEmpty()) {
@@ -150,6 +157,7 @@ class EligibilityService(
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       accommodationTypes = accommodationTypes,
+      releaseDate = eligibilityOrchestrationDto.releaseDate,
     )
   }
 }
