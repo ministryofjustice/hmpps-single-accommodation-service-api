@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
@@ -60,9 +59,6 @@ class CaseQueryServiceTest {
 
   @MockK(relaxed = true)
   lateinit var eligibilityService: EligibilityService
-
-  @MockK
-  lateinit var httpAuthService: HttpAuthService
 
   @InjectMockKs
   lateinit var caseQueryService: CaseQueryService
@@ -121,12 +117,8 @@ class CaseQueryServiceTest {
   inner class CaseListFilters {
 
     @BeforeEach
-    fun setUp() {
-      every { httpAuthService.getUsername() } returns Username(username)
-    }
-
-    @BeforeEach
     fun setup() {
+      every { userService.getUsername() } returns Username(username)
       every { caseRepository.mapByCrns(any()) } returns emptyMap()
       every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
     }
@@ -427,7 +419,7 @@ class CaseQueryServiceTest {
 
     @BeforeEach
     fun setUp() {
-      every { httpAuthService.getUsername() } returns Username(username)
+      every { userService.getUsername() } returns Username(username)
     }
 
     @Test

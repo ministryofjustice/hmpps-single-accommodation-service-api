@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.limited
@@ -22,7 +21,6 @@ class CaseQueryService(
   private val caseRepository: CaseRepository,
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
-  private val httpAuthService: HttpAuthService,
 ) {
 
   fun getCaseList(): ApiResponseDto<List<PersonDto>> {
@@ -66,7 +64,7 @@ class CaseQueryService(
     val filteredPersonDtos = personDtos
       .asSequence()
       .filter {
-        it.matchesUserOrTeam(username = httpAuthService.getUsername(), teamCode = teamCode) &&
+        it.matchesUserOrTeam(username = userService.getUsername(), teamCode = teamCode) &&
           it.matchesSearch(searchTerm) &&
           it.matchesRosh(riskLevel)
       }.toList()
