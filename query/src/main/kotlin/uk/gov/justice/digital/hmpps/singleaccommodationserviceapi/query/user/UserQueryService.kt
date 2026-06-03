@@ -10,18 +10,6 @@ class UserQueryService(
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
 ) {
   fun getTeams() = approvedPremisesAndDeliusCachingService.getStaffDetail(httpAuthService.getUsername().value)?.teams?.map { team ->
-    Team(
-      code = team.code,
-      name = team.name,
-      ldu = Ldu(code = team.ldu.code, name = team.ldu.name),
-      borough = team.borough?.let {
-        Borough(
-          code = it.code,
-          description = it.description,
-        )
-      },
-      startDate = team.startDate,
-      endDate = team.endDate,
-    )
+    Team(name = team.name, code = team.code)
   }
 }
