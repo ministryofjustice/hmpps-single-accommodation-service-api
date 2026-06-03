@@ -74,10 +74,9 @@ abstract class IntegrationTestBase {
     databaseUtils.truncate()
   }
 
-  protected fun createTestDataSetupUserAndDeliusUser() {
-    userRepository.save(testDataSetupUser())
-    userRepository.save(delisUserEntityForJwtLoggedInUser())
-  }
+  protected fun createDeliusUser() = userRepository.save(delisUserEntityForJwtLoggedInUser())
+
+  protected fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()) to createDeliusUser()
 
   protected fun testDataSetupUser() = UserEntity(
     id = userIdOfTestDataSetupUser,
