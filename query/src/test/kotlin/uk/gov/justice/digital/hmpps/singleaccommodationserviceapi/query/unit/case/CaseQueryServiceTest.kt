@@ -22,12 +22,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
@@ -57,6 +60,9 @@ class CaseQueryServiceTest {
 
   @MockK(relaxed = true)
   lateinit var eligibilityService: EligibilityService
+
+  @MockK
+  lateinit var httpAuthService: HttpAuthService
 
   @InjectMockKs
   lateinit var caseQueryService: CaseQueryService
@@ -115,6 +121,11 @@ class CaseQueryServiceTest {
   inner class CaseListFilters {
 
     @BeforeEach
+    fun setUp() {
+      every { httpAuthService.getUsername() } returns Username(username)
+    }
+
+    @BeforeEach
     fun setup() {
       every { caseRepository.mapByCrns(any()) } returns emptyMap()
       every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
@@ -123,8 +134,15 @@ class CaseQueryServiceTest {
     val assignedTo = AssignedToDto(
       forename = "Firstname",
       surname = "Surname",
-      username = "Firstname.Surname",
+      username = username,
       staffCode = "5318008",
+    )
+
+    val assignedToOther = AssignedToDto(
+      forename = "Second",
+      surname = "User",
+      username = "Second.User",
+      staffCode = "12345678",
     )
 
     val personDtos = listOf(
@@ -167,6 +185,14 @@ class CaseQueryServiceTest {
         assignedTo = assignedTo,
       ),
       buildLimitedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
+      buildFullPersonDto(
+        crn = "CRN6",
+        nomsNumber = "PRI_6",
+        name = buildName(forename = "Other", middleName = "Users", surname = "Case"),
+        roshLevel = RiskLevel.VERY_HIGH,
+        teamCode = "TestTeam2",
+        assignedTo = assignedToOther,
+      ),
     )
 
     private fun toLimitedCaseDto(crn: String, prisonNumber: String?, assignedTo: AssignedToDto) = CaseDto(
@@ -198,6 +224,7 @@ class CaseQueryServiceTest {
       val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5", prisonNumber = "PRI_5", assignedTo = assignedTo)
       val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6", prisonNumber = "PRI_6", assignedTo = assignedTo)
       assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
+      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -225,6 +252,8 @@ class CaseQueryServiceTest {
         assertThat(result.first().crn).isEqualToIgnoringCase(searchTerm)
         assertThat(result.first().userAccess).isEqualTo(userAccess)
       }
+
+      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -252,6 +281,7 @@ class CaseQueryServiceTest {
         assertThat(result.first().prisonNumber).isEqualToIgnoringCase(searchTerm)
         assertThat(result.first().userAccess).isEqualTo(userAccess)
       }
+      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -286,6 +316,7 @@ class CaseQueryServiceTest {
           .allMatch { it.name!!.contains(searchTerm, ignoreCase = true) }
           .noneMatch { it.userAccess == UserAccess.LIMITED }
       }
+      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -305,18 +336,25 @@ class CaseQueryServiceTest {
       if (riskLevel != null) {
         assertThat(result.map { it.userAccess }).noneMatch { it == UserAccess.LIMITED }
       }
+      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
     }
 
     @ParameterizedTest
     @CsvSource(
       "TestTeam1, 3", // FULL / FULL & limitedAccess / LIMITED
-      "TestTeam2,2", // FULL / FULL & limitedAccess
+      "TestTeam2,3", // FULL / FULL & limitedAccess
       "TestTeam3,1", // LIMITED
       "TestTeam4,0",
     )
     fun `filters by team code`(teamCode: String, count: Int) {
       val result = caseQueryService.getCases(personDtos = personDtos, teamCode = teamCode)
       assertThat(result).hasSize(count)
+      // check we can see cases in other teams
+      if (teamCode == "TestTeam2") {
+        assertThat(result.map { it.assignedTo!!.username }.distinct()).containsExactly(username, "Second.User")
+      } else {
+        assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      }
     }
 
     @Test
@@ -387,11 +425,17 @@ class CaseQueryServiceTest {
   @Nested
   inner class GetCases {
 
+    @BeforeEach
+    fun setUp() {
+      every { httpAuthService.getUsername() } returns Username(username)
+    }
+
     @Test
     fun `should get cases as all cases from case table and populate missing data from personDtos`() {
       val crnList = listOf(crnOne, crnTwo)
-      val personDto1 = buildFullPersonDto(crn = crnOne)
-      val personDto2 = buildFullPersonDto(crn = crnTwo)
+      val staff = buildOfficer(username = username)
+      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
+      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
       val personDtos = listOf(
         personDto1,
         personDto2,

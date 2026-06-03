@@ -18,7 +18,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -44,7 +44,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -70,7 +70,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -96,7 +96,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -122,7 +122,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -148,7 +148,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -175,7 +175,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -200,7 +200,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -225,7 +225,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -250,7 +250,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -275,7 +275,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -301,7 +301,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -328,7 +328,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -355,7 +355,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -381,7 +381,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -407,7 +407,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -433,7 +433,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -459,7 +459,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -485,7 +485,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,
@@ -509,7 +509,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"user1",
+            "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
          "currentAccommodation":null,

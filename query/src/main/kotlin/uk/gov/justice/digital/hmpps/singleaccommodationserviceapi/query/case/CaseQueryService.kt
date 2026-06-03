@@ -5,7 +5,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.limited
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
@@ -20,6 +22,7 @@ class CaseQueryService(
   private val caseRepository: CaseRepository,
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
+  private val httpAuthService: HttpAuthService,
 ) {
 
   fun getCaseList(): ApiResponseDto<List<PersonDto>> {
@@ -32,9 +35,8 @@ class CaseQueryService(
     )
   }
 
-  private fun PersonDto.matchesTeam(teamCode: String?): Boolean = when {
-    // TODO this will become .matchesUserOrTeam, however it's a significant refactor to test data setup, so will be in a following PR.
-    teamCode.isNullOrBlank() -> true
+  private fun PersonDto.matchesUserOrTeam(username: Username, teamCode: String?): Boolean = when {
+    teamCode.isNullOrBlank() && username.value.equals(this.assignedTo.username, ignoreCase = true) -> true
     teamCode.equals(this.teamCode, ignoreCase = true) -> true
     else -> false
   }
@@ -64,9 +66,9 @@ class CaseQueryService(
     val filteredPersonDtos = personDtos
       .asSequence()
       .filter {
-        it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel) &&
-          it.matchesTeam(teamCode)
+        it.matchesUserOrTeam(username = httpAuthService.getUsername(), teamCode = teamCode) &&
+          it.matchesSearch(searchTerm) &&
+          it.matchesRosh(riskLevel)
       }.toList()
 
     val crns = filteredPersonDtos.map { it.crn }
