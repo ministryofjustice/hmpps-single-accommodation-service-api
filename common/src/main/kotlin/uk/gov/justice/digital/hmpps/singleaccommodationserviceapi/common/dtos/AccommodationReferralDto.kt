@@ -11,7 +11,7 @@ data class AccommodationReferralDto(
   val referralRejectionReason: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: DeliusUserDto?,
+  val referredBy: StaffDetailsDto?,
   val placementAddress: String?,
   val placementStatus: String?,
 )
