@@ -40,7 +40,7 @@ class EligibilityOrchestrationService(
       put(GET_CAS_1_APPLICATION) { approvedPremisesCachingService.getSuitableCas1Application(crn) }
       put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
       put(GET_CRS) { commissionedRehabilitativeServicesCachingService.getCrs(crn) }
-      prisonNumber?.let { num -> put("$GET_PRISONER$num") { prisonerSearchCachingService.getPrisoner(num) } }
+      prisonNumber?.let { num -> put(GET_PRISONER) { prisonerSearchCachingService.getPrisoner(num) } }
     }
     val results = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = calls,
@@ -51,7 +51,7 @@ class EligibilityOrchestrationService(
     val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
-    val releaseDate = prisonNumber?.let { results.getResult<Prisoner>("$GET_PRISONER$it")?.releaseDate }
+    val releaseDate = prisonNumber?.let { results.getResult<Prisoner>(GET_PRISONER)?.releaseDate }
 
     return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(

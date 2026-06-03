@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
@@ -122,7 +123,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonerNumber)
+    }
     caseRepository.save(entity)
 
     val existingEntity = dutyToReferRepository.save(
@@ -168,7 +172,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     TierStubs.getTierNotFoundResponse(crn = crn)
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonerNumber)
+    }
     caseRepository.save(entity)
 
     val existingEntity = dutyToReferRepository.save(
@@ -238,7 +245,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonerNumber)
+    }
     caseRepository.save(entity)
 
     val existingEntity = dutyToReferRepository.save(
