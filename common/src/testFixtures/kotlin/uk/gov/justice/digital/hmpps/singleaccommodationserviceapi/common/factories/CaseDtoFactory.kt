@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.As
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
@@ -59,6 +60,18 @@ fun buildDeliusUserDto(
   username: String? = "user1",
   staffCode: String? = "ABCD1234",
 ) = DeliusUserDto(
+  username = username,
+  staffCode = staffCode,
+)
+
+fun buildStaffDetailDto(
+  forename: String,
+  surname: String,
+  username: String? = "user1",
+  staffCode: String? = "ABCD1234",
+) = StaffDetailsDto(
+  forename = forename,
+  surname = surname,
   username = username,
   staffCode = staffCode,
 )

@@ -8,10 +8,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
@@ -23,6 +27,9 @@ class AccommodationReferralServiceTest {
 
   @MockK
   lateinit var orchestrationService: AccommodationReferralOrchestrationService
+
+  @MockK
+  lateinit var userService: UserService
 
   @InjectMockKs
   lateinit var service: AccommodationReferralService
@@ -40,16 +47,17 @@ class AccommodationReferralServiceTest {
 
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = listOf(
-          buildReferralHistory(Cas1AssessmentStatus.COMPLETED, createdAt = olderDate),
+          buildReferralHistory(Cas1AssessmentStatus.COMPLETED, createdAt = olderDate, referredBy = buildDeliusUserDto()),
         ),
         cas2Referrals = listOf(
-          buildReferralHistory(Cas2Status.PLACE_OFFERED, createdAt = newerDate),
+          buildReferralHistory(Cas2Status.PLACE_OFFERED, createdAt = newerDate, referredBy = buildDeliusUserDto()),
         ),
-        cas2v2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate)),
+        cas2v2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate, referredBy = buildDeliusUserDto())),
         cas3Referrals = emptyList(),
       )
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
+      every { userService.getExistingDeliusUserOrCreate(any(Username::class)) } returns buildUserEntity(username = "user1")
 
       val result = service.getReferralHistory(crn)
 
@@ -80,12 +88,13 @@ class AccommodationReferralServiceTest {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto()
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
+      every { userService.getExistingDeliusUserOrCreate(any(Username::class)) } returns buildUserEntity(username = "user1")
 
       val result = service.getReferralHistory(crn)
 
       assertThat(result.data).hasSize(4)
       assertThat(result.data).containsExactlyInAnyOrderElementsOf(
-        AccommodationReferralTransformer.transformReferrals(orchestrationDto),
+        AccommodationReferralTransformer.transformReferrals(orchestrationDto, mapOf(Pair("user1", buildUserEntity(username = "user1", name = "Joe Bloggs")))),
       )
     }
   }
