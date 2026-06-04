@@ -10,6 +10,8 @@ fun createDtrRequestBody(
   withdrawalReason: String? = null,
   withdrawalReasonOther: String? = null,
   outcomeReason: String? = null,
+  submissionNote: String? = null,
+  outcomeNote: String? = null,
 ): String = """
 {
   "localAuthorityAreaId": "$localAuthorityAreaId",
@@ -34,6 +36,16 @@ fun createDtrRequestBody(
   "outcomeReason": "$outcomeReason""""
 } else {
   ""
+}}${if (submissionNote != null) {
+  """,
+  "submissionNote": "$submissionNote""""
+} else {
+  ""
+}}${if (outcomeNote != null) {
+  """,
+  "outcomeNote": "$outcomeNote""""
+} else {
+  ""
 }}
 }
 """.trimIndent()
@@ -52,6 +64,8 @@ fun expectedDtrResponseBody(
   withdrawalReason: String? = null,
   withdrawalReasonOther: String? = null,
   outcomeReason: String? = null,
+  submissionNote: String? = null,
+  outcomeNote: String? = null,
 ): String = """
 {
   "caseId": "$caseId",
@@ -69,7 +83,9 @@ fun expectedDtrResponseBody(
     "createdAt": "$createdAt",
     "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"},
     "withdrawalReasonOther": ${if (withdrawalReasonOther != null) "\"$withdrawalReasonOther\"" else "null"},
-    "outcomeReason": ${if (outcomeReason != null) "\"$outcomeReason\"" else "null"}
+    "outcomeReason": ${if (outcomeReason != null) "\"$outcomeReason\"" else "null"},
+    "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"},
+    "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
   }
 }
 """.trimIndent()
@@ -88,7 +104,9 @@ fun expectedGetDtrResponseBody(
   withdrawalReason: String? = null,
   withdrawalReasonOther: String? = null,
   outcomeReason: String? = null,
-): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther, outcomeReason)}}"""
+  submissionNote: String? = null,
+  outcomeNote: String? = null,
+): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther, outcomeReason, submissionNote, outcomeNote)}}"""
 
 fun dtrNoteRequestBody(note: String): String = """
   {

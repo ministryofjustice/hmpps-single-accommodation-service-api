@@ -28,6 +28,8 @@ open class DutyToReferEntity(
   var withdrawalReasonOther: String? = null,
   @Enumerated(EnumType.STRING)
   var outcomeReason: OutcomeReason? = null,
+  var submissionNote: String? = null,
+  var outcomeNote: String? = null,
 
   @DiffIgnore
   @OneToMany(

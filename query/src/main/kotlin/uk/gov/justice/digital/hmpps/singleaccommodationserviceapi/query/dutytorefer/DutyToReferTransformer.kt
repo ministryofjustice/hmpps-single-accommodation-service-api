@@ -50,6 +50,8 @@ object DutyToReferTransformer {
     withdrawalReason = entity.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = entity.withdrawalReasonOther,
     outcomeReason = entity.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
+    submissionNote = entity.submissionNote,
+    outcomeNote = entity.outcomeNote,
   )
 
   fun toSubmission(

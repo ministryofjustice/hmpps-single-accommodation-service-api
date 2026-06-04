@@ -296,4 +296,83 @@ class DutyToReferMapperTest {
 
     assertThat(merged.outcomeReason).isEqualTo(EntityOutcomeReason.INTENTIONALLY_HOMELESS)
   }
+
+  @Test
+  fun `toEntity maps submissionNote and outcomeNote correctly`() {
+    val snapshot = buildDutyToReferSnapshot(
+      submissionNote = "My submission note",
+      outcomeNote = "My outcome note",
+    )
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.submissionNote).isEqualTo("My submission note")
+    assertThat(entity.outcomeNote).isEqualTo("My outcome note")
+  }
+
+  @Test
+  fun `toEntity maps null submissionNote and outcomeNote correctly`() {
+    val snapshot = buildDutyToReferSnapshot(submissionNote = null, outcomeNote = null)
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.submissionNote).isNull()
+    assertThat(entity.outcomeNote).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps submissionNote and outcomeNote correctly`() {
+    val entity = buildDutyToReferEntity(
+      submissionNote = "Submission note",
+      outcomeNote = "Outcome note",
+    )
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.submissionNote).isEqualTo("Submission note")
+    assertThat(snapshot.outcomeNote).isEqualTo("Outcome note")
+  }
+
+  @Test
+  fun `toDto maps submissionNote and outcomeNote onto submission`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.ACCEPTED,
+      submissionNote = "A submission note",
+      outcomeNote = "An outcome note",
+    )
+
+    val dto = DutyToReferMapper.toDto(snapshot, "X123456", "Test User", Instant.now(), "Test LA")
+
+    assertThat(dto.submission!!.submissionNote).isEqualTo("A submission note")
+    assertThat(dto.submission!!.outcomeNote).isEqualTo("An outcome note")
+  }
+
+  @Test
+  fun `merge copies submissionNote and outcomeNote from snapshot to entity`() {
+    val entity = buildDutyToReferEntity(submissionNote = null, outcomeNote = null)
+    val snapshot = buildDutyToReferSnapshot(
+      submissionNote = "Submission note",
+      outcomeNote = "Outcome note",
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.submissionNote).isEqualTo("Submission note")
+    assertThat(merged.outcomeNote).isEqualTo("Outcome note")
+  }
+
+  @Test
+  fun `merge preserves existing submissionNote when outcomeNote is set`() {
+    val entity = buildDutyToReferEntity(submissionNote = "Original submission note", outcomeNote = null)
+    val snapshot = buildDutyToReferSnapshot(
+      submissionNote = "Original submission note",
+      outcomeNote = "New outcome note",
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.submissionNote).isEqualTo("Original submission note")
+    assertThat(merged.outcomeNote).isEqualTo("New outcome note")
+  }
 }
