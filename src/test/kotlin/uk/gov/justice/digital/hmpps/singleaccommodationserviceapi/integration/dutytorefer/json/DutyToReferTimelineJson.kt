@@ -13,7 +13,7 @@ fun expectedGetDutyToReferTimelineResponse(
    "data":[
       {
          "type":"CREATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$createCommitTime",
          "changes":[
             {
@@ -65,7 +65,7 @@ fun expectedGetDutyToReferTimelineResponse(
    "data":[
       {
          "type":"UPDATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$update2CommitTime",
          "changes":[
             {
@@ -90,7 +90,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"UPDATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$update1CommitTime",
          "changes":[
             {
@@ -115,7 +115,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"NOTE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$createNoteCommitTime",
          "changes":[
             {
@@ -126,7 +126,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"CREATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$createCommitTime",
          "changes":[
             {

@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
-import java.util.UUID
 
 @ExtendWith(value = [MockKExtension::class])
 class UserServiceTest {
@@ -44,7 +43,6 @@ class UserServiceTest {
 
   @Nested
   inner class GetExistingDeliusUserOrCreate {
-    private val userUuid = UUID.randomUUID()
     private val username = Username("SOMEPERSON")
 
     @Test
@@ -77,7 +75,9 @@ class UserServiceTest {
 
       val result = userService.getExistingDeliusUserOrCreate(username)
 
-      assertThat(result.name).isEqualTo(deliusUser.name.deliusName())
+      assertThat(result.forename).isEqualTo(deliusUser.name.forename)
+      assertThat(result.middleNames).isEqualTo(deliusUser.name.middleName)
+      assertThat(result.surname).isEqualTo(deliusUser.name.surname)
       assertThat(result.email).isEqualTo(deliusUser.email)
       assertThat(result.telephoneNumber).isEqualTo(deliusUser.telephoneNumber)
       assertThat(result.deliusStaffCode).isEqualTo(deliusUser.code)
@@ -145,7 +145,9 @@ class UserServiceTest {
 
       assertThat(result.username).isUpperCase.isEqualTo(nomisUser.username)
       assertThat(result.authSource).isEqualTo(AuthSource.NOMIS)
-      assertThat(result.name).isEqualTo("${nomisUser.firstName} ${nomisUser.lastName}")
+      assertThat(result.forename).isEqualTo(nomisUser.firstName)
+      assertThat(result.middleNames).isNull()
+      assertThat(result.surname).isEqualTo(nomisUser.lastName)
       assertThat(result.email).isEqualTo(nomisUser.primaryEmail)
       assertThat(result.nomisStaffId).isEqualTo(nomisUser.staffId)
       assertThat(result.nomisAccountType).isEqualTo(nomisUser.accountType)

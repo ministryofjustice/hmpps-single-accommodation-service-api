@@ -25,7 +25,7 @@ class ProposedAccommodationQueryService(
       proposedAccommodations.map { pa ->
         val createdByUser = createdByUsers.first { it.id == pa.createdByUserId }!!
         val accommodationType = accommodationTypes.first { it.id == pa.accommodationTypeId }!!
-        ProposedAccommodationTransformer.toAccommodationDetail(pa, accommodationType, crn, createdByUser.name)
+        ProposedAccommodationTransformer.toAccommodationDetail(pa, accommodationType, crn, createdByUser.displayName())
       }
     } else {
       emptyList()
@@ -37,6 +37,6 @@ class ProposedAccommodationQueryService(
     val createdByUser = userRepository.findByIdOrNull(proposedAccommodationEntity.createdByUserId!!)
     val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
       .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
-    return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, crn, createdByUser!!.name)
+    return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, crn, createdByUser!!.displayName())
   }
 }

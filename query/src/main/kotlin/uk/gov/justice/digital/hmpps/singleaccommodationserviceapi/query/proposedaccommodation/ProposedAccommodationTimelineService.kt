@@ -85,7 +85,7 @@ class ProposedAccommodationTimelineService(
       val createdByUser = createdByUsers[it.createdByUserId]
       AuditRecordDto(
         type = AuditRecordType.NOTE,
-        author = createdByUser!!.name,
+        author = createdByUser!!.displayName(),
         commitDate = it.createdAt!!,
         changes = listOf(
           CreateFieldChangeDto(

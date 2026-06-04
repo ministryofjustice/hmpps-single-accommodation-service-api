@@ -75,7 +75,7 @@ class AuditService(
     val user = authorUsers[userId]!!
     return AuditRecordDto(
       type = eventType,
-      author = user.name,
+      author = user.displayName(),
       commitDate = commitMeta.commitDateInstant,
       changes = fieldChanges,
     )
