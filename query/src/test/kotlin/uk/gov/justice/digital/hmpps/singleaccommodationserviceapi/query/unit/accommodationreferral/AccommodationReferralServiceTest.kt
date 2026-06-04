@@ -94,7 +94,7 @@ class AccommodationReferralServiceTest {
 
       assertThat(result.data).hasSize(4)
       assertThat(result.data).containsExactlyInAnyOrderElementsOf(
-        AccommodationReferralTransformer.transformReferrals(orchestrationDto, mapOf(Pair("user1", buildUserEntity(username = "user1", name = "Joe Bloggs")))),
+        AccommodationReferralTransformer.transformReferrals(orchestrationDto),
       )
     }
   }

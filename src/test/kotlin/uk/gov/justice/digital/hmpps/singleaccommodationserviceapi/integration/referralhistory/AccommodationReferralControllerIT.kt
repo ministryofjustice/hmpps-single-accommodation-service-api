@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
@@ -33,24 +34,28 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       buildReferralHistory(
         createdAt = Instant.parse("2025-03-01T00:00:00Z"),
         status = Cas1AssessmentStatus.IN_PROGRESS,
+        referredBy = buildDeliusUserDto(),
       ),
     )
     val cas2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-01-01T00:00:00Z"),
         status = Cas2Status.AWAITING_DECISION,
+        referredBy = buildDeliusUserDto(),
       ),
     )
     val cas2v2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-04-01T00:00:00Z"),
         status = Cas2Status.PLACE_OFFERED,
+        referredBy = buildDeliusUserDto(),
       ),
     )
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
         status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
+        referredBy = buildDeliusUserDto(),
       ),
     )
 
@@ -70,6 +75,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             id2 = cas2Response.first().id,
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
+            referredBy = buildDeliusUserDto(),
           ),
         )
       }
