@@ -25,7 +25,9 @@ data class AggregatorResult(
 )
 
 @Service
-class AggregatorService {
+class AggregatorService(
+  private val upstreamFailureReporters: List<UpstreamFailureReporter> = emptyList(),
+) {
   private val maxConcurrency: Int = 100
   private val log = LoggerFactory.getLogger(AggregatorService::class.java)
 
@@ -120,7 +122,7 @@ class AggregatorService {
 
   private fun classifyAndWrap(key: String, exception: Exception, identifier: String? = null): AggregatorCallOutcome.Failure {
     val logPrefix = if (identifier != null) "'$key' [identifier=$identifier]" else "'$key'"
-    return when (exception) {
+    val failure = when (exception) {
       is RestClientResponseException -> {
         log.error("Upstream HTTP error for call {}: {} {}", logPrefix, exception.statusCode, exception.message)
         AggregatorCallOutcome.Failure(
@@ -159,5 +161,7 @@ class AggregatorService {
         )
       }
     }
+    upstreamFailureReporters.forEach { it.report(key, failure, exception) }
+    return failure
   }
 }
