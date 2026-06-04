@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 import java.util.stream.Stream
@@ -21,7 +20,7 @@ class AccommodationReferralTransformerTest {
   fun `should transform orchestration dto to list of accommodation referral dtos`() {
     val orchestrationDto = buildAccommodationReferralOrchestrationDto()
 
-    val result = AccommodationReferralTransformer.transformReferrals(orchestrationDto, mapOf(Pair("user1", buildUserEntity(name = "Joe Bloggs"))))
+    val result = AccommodationReferralTransformer.transformReferrals(orchestrationDto)
 
     assertThat(result).hasSize(4)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
@@ -35,7 +34,7 @@ class AccommodationReferralTransformerTest {
       assertThat(it.referralRejectionReason).isEqualTo("Some reason")
       assertThat(it.localAuthorityArea).isEqualTo("Some area")
       assertThat(it.pdu).isEqualTo("Some pdu")
-      assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Joe", "Bloggs"))
+      assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("First Last"))
       assertThat(it.placementAddress).isEqualTo("Some address")
       assertThat(it.placementStatus).isEqualTo("Some status")
     }

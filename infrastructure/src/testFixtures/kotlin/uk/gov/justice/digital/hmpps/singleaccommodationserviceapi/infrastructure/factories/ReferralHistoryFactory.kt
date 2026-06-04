@@ -78,3 +78,9 @@ fun buildReferralHistory(
   placementAddress = placementAddress,
   placementStatus = placementStatus,
 )
+
+fun buildDeliusUserDto(name: String = "Joe Bloggs", username: String = "user1", staffCode: String = "ABCD1234") = DeliusUserDto(
+  name = name,
+  username = username,
+  staffCode = staffCode,
+)

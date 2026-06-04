@@ -57,21 +57,21 @@ fun buildAssignedToDto(
 )
 
 fun buildDeliusUserDto(
+  name: String = "First Last",
   username: String? = "user1",
   staffCode: String? = "ABCD1234",
 ) = DeliusUserDto(
+  name = name,
   username = username,
   staffCode = staffCode,
 )
 
 fun buildStaffDetailDto(
-  forename: String,
-  surname: String,
+  name: String,
   username: String? = "user1",
   staffCode: String? = "ABCD1234",
 ) = StaffDetailsDto(
-  forename = forename,
-  surname = surname,
+  name = name,
   username = username,
   staffCode = staffCode,
 )
