@@ -102,8 +102,8 @@ class ProposedAccommodationQueryServiceTest {
       val result = service.getProposedAccommodations(crn)
 
       assertThat(result).hasSize(2)
-      assertThat(result.first()).isEqualTo(toAccommodationDetail(proposedAccommodationEntity1, accommodationTypeEntity, crn, createdByUser.name))
-      assertThat(result[1]).isEqualTo(toAccommodationDetail(proposedAccommodationEntity2, accommodationTypeEntity, crn, createdByUser.name))
+      assertThat(result.first()).isEqualTo(toAccommodationDetail(proposedAccommodationEntity1, accommodationTypeEntity, crn, createdByUser.displayName()))
+      assertThat(result[1]).isEqualTo(toAccommodationDetail(proposedAccommodationEntity2, accommodationTypeEntity, crn, createdByUser.displayName()))
     }
   }
 

@@ -99,7 +99,7 @@ class DutyToReferQueryServiceTest {
       val submission = result.submission!!
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
   }
 
@@ -144,7 +144,7 @@ class DutyToReferQueryServiceTest {
       val submission = result.submission!!
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
   }
 
@@ -183,7 +183,7 @@ class DutyToReferQueryServiceTest {
       assertThat(submission.id).isEqualTo(id)
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
 
     @Test
@@ -229,7 +229,7 @@ class DutyToReferQueryServiceTest {
       val submission = result.submission!!
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
 
     @Test
@@ -525,8 +525,8 @@ class DutyToReferQueryServiceTest {
           UpdateFieldChangeDto(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
-      val noteAuthor1 = buildUserEntity(id = user1Id, name = "First user")
-      val noteAuthor2 = buildUserEntity(id = user2Id, name = "Second user")
+      val noteAuthor1 = buildUserEntity(id = user1Id, forename = "First", surname = "user")
+      val noteAuthor2 = buildUserEntity(id = user2Id, forename = "Second", surname = "user")
 
       every { dutyToReferRepository.findByIdAndCrnWithNotes(dtrEntity.id, crn) } returns dtrEntity
       every {

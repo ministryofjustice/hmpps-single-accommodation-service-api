@@ -14,7 +14,4 @@ data class PersonName(
   val forename: String,
   val surname: String,
   val middleName: String? = null,
-) {
-  fun deliusName() = forenames() + " $surname"
-  fun forenames() = "$forename ${middleName?.takeIf { it.isNotEmpty() } ?: ""}".trim()
-}
+)

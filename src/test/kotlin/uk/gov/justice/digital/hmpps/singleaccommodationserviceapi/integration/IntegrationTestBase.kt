@@ -32,9 +32,13 @@ import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource as AuthSourceEntity
 
 const val USERNAME_OF_TEST_DATA_SETUP_USER = "TEST_DATA_SETUP_USER"
-const val NAME_OF_TEST_DATA_SETUP_USER: String = "Test Data Setup User"
+const val FORENAME_OF_TEST_DATA_SETUP_USER: String = "Test"
+const val SURNAME_OF_TEST_DATA_SETUP_USER: String = "Data Setup User"
+const val NAME_OF_TEST_DATA_SETUP_USER: String = "$FORENAME_OF_TEST_DATA_SETUP_USER $SURNAME_OF_TEST_DATA_SETUP_USER"
 const val USERNAME_OF_LOGGED_IN_DELIUS_USER = "DELIUS_USER"
-const val NAME_OF_LOGGED_IN_DELIUS_USER: String = "DeliusUser"
+const val FORENAME_OF_LOGGED_IN_DELIUS_USER: String = "Delius"
+const val SURNAME_OF_LOGGED_IN_DELIUS_USER: String = "User"
+const val NAME_OF_LOGGED_IN_DELIUS_USER: String = "$FORENAME_OF_LOGGED_IN_DELIUS_USER $SURNAME_OF_LOGGED_IN_DELIUS_USER"
 const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
 private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
@@ -82,7 +86,9 @@ abstract class IntegrationTestBase {
     id = userIdOfTestDataSetupUser,
     username = USERNAME_OF_TEST_DATA_SETUP_USER,
     authSource = AuthSourceEntity.DELIUS,
-    name = NAME_OF_TEST_DATA_SETUP_USER,
+    forename = FORENAME_OF_TEST_DATA_SETUP_USER,
+    middleNames = null,
+    surname = SURNAME_OF_TEST_DATA_SETUP_USER,
     email = USERNAME_OF_TEST_DATA_SETUP_USER,
     telephoneNumber = null,
     deliusStaffCode = null,
@@ -97,7 +103,9 @@ abstract class IntegrationTestBase {
     id = userIdOfLoggedInDeliusUser,
     username = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     authSource = AuthSourceEntity.DELIUS,
-    name = NAME_OF_LOGGED_IN_DELIUS_USER,
+    forename = FORENAME_OF_LOGGED_IN_DELIUS_USER,
+    middleNames = null,
+    surname = SURNAME_OF_LOGGED_IN_DELIUS_USER,
     email = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     telephoneNumber = null,
     deliusStaffCode = null,
