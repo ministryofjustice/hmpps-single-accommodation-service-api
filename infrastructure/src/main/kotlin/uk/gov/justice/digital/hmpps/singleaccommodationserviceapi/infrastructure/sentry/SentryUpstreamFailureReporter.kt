@@ -40,6 +40,6 @@ class SentryUpstreamFailureReporter : UpstreamFailureReporter {
   }
 
   private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(SentryUpstreamFailureReporter::class.java)
   }
 }

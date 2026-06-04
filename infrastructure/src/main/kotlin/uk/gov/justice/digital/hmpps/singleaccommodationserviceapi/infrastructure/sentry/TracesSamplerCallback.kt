@@ -29,9 +29,9 @@ class TracesSamplerCallback : SentryOptions.TracesSamplerCallback {
   }
 
   private fun removeHttpMethodPrefix(transactionName: String) = transactionName
-    .replace("GET ", "")
-    .replace("PUT ", "")
-    .replace("POST ", "")
-    .replace("PATCH ", "")
-    .replace("DELETE ", "")
+    .removePrefix("GET ")
+    .removePrefix("PUT ")
+    .removePrefix("POST ")
+    .removePrefix("PATCH ")
+    .removePrefix("DELETE ")
 }

@@ -23,6 +23,6 @@ class SentryServiceImpl : SentryService {
   }
 
   private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(SentryServiceImpl::class.java)
   }
 }

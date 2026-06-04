@@ -161,7 +161,10 @@ class AggregatorService(
         )
       }
     }
-    upstreamFailureReporters.forEach { it.report(key, failure, exception) }
+    upstreamFailureReporters.forEach { reporter ->
+      runCatching { reporter.report(key, failure, exception) }
+        .onFailure { t -> log.warn("UpstreamFailureReporter {} threw while reporting callKey={}", reporter::class.java.name, key, t) }
+    }
     return failure
   }
 }
