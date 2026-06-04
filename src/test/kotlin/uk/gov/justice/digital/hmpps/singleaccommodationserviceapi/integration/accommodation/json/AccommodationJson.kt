@@ -104,6 +104,36 @@ fun expectedGetCurrentAccommodationResponse(crn: String): String = """
 }
 """.trimIndent()
 
+fun expectedGetCurrentAccommodationPrisonResponse(crn: String): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "startDate":null,
+      "endDate":"2025-10-17",
+      "address":{
+         "postcode":null,
+         "subBuildingName":null,
+         "buildingName":"Wandsworth",
+         "buildingNumber":null,
+         "thoroughfareName":null,
+         "dependentLocality":null,
+         "postTown":null,
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "status":{
+         "code":"C",
+         "description":"Custody"
+      },
+      "type":{
+         "code":"HMP",
+         "description":"Wandsworth"
+      }
+   }
+}
+""".trimIndent()
+
 fun expectedGetNextAccommodationsResponse(
   prStartDate: String,
   prEndDate: String,
@@ -139,7 +169,7 @@ fun expectedGetNextAccommodationsResponse(
 }
 """.trimIndent()
 
-fun expectedGetCurrentAccommodationWithUpstreamFailureResponse(): String = """
+fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = """
 {
    "data":null,
    "upstreamFailures":[
@@ -147,8 +177,15 @@ fun expectedGetCurrentAccommodationWithUpstreamFailureResponse(): String = """
          "endpoint":"getCorePersonRecordByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "identifier":null,
-         "message":"500 Internal Server Error: [no body]"
+         "message":"500 Internal Server Error: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getPrisoner",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
+         "message":"500 Internal Server Error: [no body]",
+         "identifier":null
       }
    ]
 }

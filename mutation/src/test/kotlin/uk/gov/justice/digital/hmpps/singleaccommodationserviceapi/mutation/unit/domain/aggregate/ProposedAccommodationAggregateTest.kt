@@ -26,6 +26,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 class ProposedAccommodationAggregateTest {
+  private val prisonAccommodationTypeCode = "HMP"
+
   private val accommodationDetails = buildProposedAccommodationDto(
     verificationStatus = VerificationStatus.PASSED,
   )
@@ -96,7 +98,7 @@ class ProposedAccommodationAggregateTest {
   fun `should set accommodation status to PR1 when current accommodation is prison`() {
     val currentAccommodation = buildAccommodationSummaryDto(
       type = buildAccommodationTypeDto(
-        code = "HMP",
+        code = prisonAccommodationTypeCode,
         description = "Prison",
       ),
     )
