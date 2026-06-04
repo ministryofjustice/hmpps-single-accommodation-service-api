@@ -17,6 +17,7 @@ javers = "7.11.1"
 postgres = "42.7.11"
 app-insights-core = "2.6.4"
 micrometer-registry-azure = "1.16.5"
+sentry = "8.43.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -35,6 +36,7 @@ spring-restclient = { module = "org.springframework.boot:spring-boot-restclient"
 spring-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
 spring-resttestclient = { module = "org.springframework.boot:spring-boot-resttestclient" }
+sentry-spring-boot-starter-jakarta = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
 
 # Springdoc
 springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
