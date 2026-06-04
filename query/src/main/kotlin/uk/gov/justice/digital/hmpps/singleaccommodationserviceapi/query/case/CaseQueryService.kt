@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.limited
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
@@ -32,27 +33,6 @@ class CaseQueryService(
     )
   }
 
-  private fun PersonDto.matchesTeam(teamCode: String?): Boolean = when {
-    // TODO this will become .matchesUserOrTeam, however it's a significant refactor to test data setup, so will be in a following PR.
-    teamCode.isNullOrBlank() -> true
-    teamCode.equals(this.teamCode, ignoreCase = true) -> true
-    else -> false
-  }
-
-  private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
-    riskLevel == null -> true
-    this is Identifiable && roshLevel == riskLevel -> true
-    else -> false
-  }
-
-  private fun PersonDto.matchesSearch(searchTerm: String?): Boolean = when {
-    searchTerm.isNullOrBlank() -> true
-    crn.trim().equals(searchTerm, true) -> true
-    nomsNumber?.trim().equals(searchTerm, true) -> true
-    this is Identifiable && name.contains(searchTerm, true) -> true
-    else -> false
-  }
-
   fun getCases(
     personDtos: List<PersonDto>,
     searchTerm: String? = null,
@@ -64,14 +44,16 @@ class CaseQueryService(
     val filteredPersonDtos = personDtos
       .asSequence()
       .filter {
-        it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel) &&
+        if (!teamCode.isNullOrBlank()) {
           it.matchesTeam(teamCode)
+        } else {
+          it.matchesUser(userService.getUsername())
+        } &&
+          it.matchesSearch(searchTerm) &&
+          it.matchesRosh(riskLevel)
       }.toList()
 
-    val crns = filteredPersonDtos.map { it.crn }
-
-    val caseEntitiesByCrn = caseRepository.mapByCrns(crns)
+    val caseEntitiesByCrn = caseRepository.mapByCrns(filteredPersonDtos.map { it.crn })
 
     return filteredPersonDtos.map { personDto ->
 
@@ -107,5 +89,26 @@ class CaseQueryService(
       caseOrchestrationDto.tier,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
+  }
+
+  private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)
+
+  private fun PersonDto.matchesTeam(teamCode: String): Boolean = when {
+    teamCode.equals(this.teamCode, ignoreCase = true) -> true
+    else -> false
+  }
+
+  private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
+    riskLevel == null -> true
+    this is Identifiable && roshLevel == riskLevel -> true
+    else -> false
+  }
+
+  private fun PersonDto.matchesSearch(searchTerm: String?): Boolean = when {
+    searchTerm.isNullOrBlank() -> true
+    crn.trim().equals(searchTerm, true) -> true
+    nomsNumber?.trim().equals(searchTerm, true) -> true
+    this is Identifiable && name.contains(searchTerm, true) -> true
+    else -> false
   }
 }

@@ -20,8 +20,12 @@ class UserService(
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
 
+  private fun getPrincipal() = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+
+  fun getUsername() = getPrincipal().username
+
   fun authorizeAndRetrieveUser(): UserEntity {
-    val principal = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+    val principal = getPrincipal()
     return when (principal.authSource) {
       AuthSource.DELIUS -> {
         userRepository.findByUsernameAndAuthSource(
