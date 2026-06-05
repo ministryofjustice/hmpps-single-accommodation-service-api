@@ -24,7 +24,7 @@ data class UserEntity(
   var nomisStaffId: Long?,
   var nomisAccountType: String?,
   var nomisActiveCaseloadId: String?,
-  var isEnabled: Boolean,
+  var isEnabled: Boolean?,
   var isActive: Boolean,
 ) {
   fun displayName() = "$forename $surname"
