@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
@@ -40,33 +41,43 @@ class UserService(
     }
   }
 
-  fun getExistingDeliusUserOrCreate(username: Username): UserEntity {
-    val existingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)
-    if (existingUser != null) {
-      return existingUser
-    }
-    val staffUserDetails =
+  fun getAndUpsertDeliusUser(username: Username): UserEntity {
+    val staffDetail =
       approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
-    val savedUser = userRepository.save(
-      UserEntity(
-        id = UUID.randomUUID(),
-        username = username.value,
-        authSource = AuthSourceEntity.DELIUS,
-        forename = staffUserDetails.name.forename,
-        middleNames = staffUserDetails.name.middleName,
-        surname = staffUserDetails.name.surname,
-        deliusStaffCode = staffUserDetails.code,
-        email = staffUserDetails.email,
-        telephoneNumber = staffUserDetails.telephoneNumber,
-        isActive = true,
-        isEnabled = true,
-        nomisStaffId = null,
-        nomisAccountType = null,
-        nomisActiveCaseloadId = null,
-      ),
-    )
-    return savedUser
+
+    val user =
+      userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)?.update(staffDetail)
+        ?: createDeliusUser(username, staffDetail)
+
+    return userRepository.save(user)
   }
+
+  private fun UserEntity.update(staffDetail: StaffDetail) = this.apply {
+    forename = staffDetail.name.forename
+    middleNames = staffDetail.name.middleName
+    surname = staffDetail.name.surname
+    deliusStaffCode = staffDetail.code
+    email = staffDetail.email
+    telephoneNumber = staffDetail.telephoneNumber
+    isActive = staffDetail.active
+  }
+
+  private fun createDeliusUser(username: Username, staffDetail: StaffDetail) = UserEntity(
+    id = UUID.randomUUID(),
+    username = username.value,
+    authSource = AuthSourceEntity.DELIUS,
+    forename = staffDetail.name.forename,
+    middleNames = staffDetail.name.middleName,
+    surname = staffDetail.name.surname,
+    deliusStaffCode = staffDetail.code,
+    email = staffDetail.email,
+    telephoneNumber = staffDetail.telephoneNumber,
+    isActive = staffDetail.active,
+    isEnabled = null,
+    nomisStaffId = null,
+    nomisAccountType = null,
+    nomisActiveCaseloadId = null,
+  )
 
   fun getAndUpdateNomisUserOrCreate(username: Username, jwt: Jwt): UserEntity {
     val nomisUserDetails =

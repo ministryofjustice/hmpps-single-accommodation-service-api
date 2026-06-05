@@ -80,7 +80,7 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
     val username = findUsername(jwt.claims)
     val principal = when (authSource) {
       AuthSource.DELIUS -> {
-        val user = userService.getExistingDeliusUserOrCreate(username)
+        val user = userService.getAndUpsertDeliusUser(username)
         UserPrincipal(
           sasUserId = user.id,
           username = username,

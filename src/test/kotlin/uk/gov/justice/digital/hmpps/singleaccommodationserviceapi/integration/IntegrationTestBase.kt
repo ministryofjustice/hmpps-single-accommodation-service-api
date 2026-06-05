@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInstance
@@ -18,8 +20,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
@@ -72,15 +77,44 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var databaseUtils: DatabaseUtils
 
+  @BeforeAll
+  fun beforeAll() {
+    waitFor {
+      await
+        .atMost(Duration.ofSeconds(10))
+        .pollInterval(Duration.ofMillis(10))
+        .untilAsserted {
+          restTestClient.get().uri("/health/readiness")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody().jsonPath("status").isEqualTo("UP")
+        }
+    }
+  }
+
   @BeforeEach
   fun resetStubs() {
     sasWiremock.resetAll()
     databaseUtils.truncate()
   }
 
-  protected fun createDeliusUser() = userRepository.save(delisUserEntityForJwtLoggedInUser())
+  private val staffDetail = buildStaffDetail(
+    username = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+    email = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+    name = buildPersonName(
+      forename = FORENAME_OF_LOGGED_IN_DELIUS_USER,
+      surname = SURNAME_OF_LOGGED_IN_DELIUS_USER,
+    ),
+    active = true,
+  )
 
-  protected fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()) to createDeliusUser()
+  protected fun createDeliusUser() = userRepository.save(delisUserEntityForJwtLoggedInUser()).also { user ->
+    ProbationIntegrationDeliusStubs.stubGetStaffByUsername(user.username, staffDetail)
+  }
+
+  protected fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()).also { user ->
+    ProbationIntegrationDeliusStubs.stubGetStaffByUsername(user.username, staffDetail)
+  } to createDeliusUser()
 
   protected fun testDataSetupUser() = UserEntity(
     id = userIdOfTestDataSetupUser,
