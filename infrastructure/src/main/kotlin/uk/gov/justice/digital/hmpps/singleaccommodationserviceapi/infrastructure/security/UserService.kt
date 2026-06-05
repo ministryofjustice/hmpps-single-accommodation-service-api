@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
@@ -42,7 +41,6 @@ class UserService(
     }
   }
 
-  @Transactional
   fun getAndUpsertDeliusUser(username: Username): UserEntity {
     val staffDetail =
       approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
