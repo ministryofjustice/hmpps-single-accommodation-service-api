@@ -79,7 +79,7 @@ object AccommodationReferralTransformer {
         type = CasService.DTR,
         status = toCasReferralStatus(it.status),
         date = it.submission!!.submissionDate.atStartOfDay().toInstant(ZoneOffset.UTC),
-        referralRejectionReason = it.submission!!.withdrawalReason.toString(),
+        referralRejectionReason = it.submission!!.withdrawalReason?.toString(),
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
         pdu = it.submission!!.localAuthority.localAuthorityAreaName,
