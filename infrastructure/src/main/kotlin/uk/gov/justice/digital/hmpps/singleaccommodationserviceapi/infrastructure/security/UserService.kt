@@ -20,8 +20,12 @@ class UserService(
   private val nomisUserRolesService: NomisUserRolesService,
 ) {
 
+  private fun getPrincipal() = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+
+  fun getUsername() = getPrincipal().username
+
   fun authorizeAndRetrieveUser(): UserEntity {
-    val principal = httpAuthService.getPrincipalOrThrow(acceptableSources = listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source))
+    val principal = getPrincipal()
     return when (principal.authSource) {
       AuthSource.DELIUS -> {
         userRepository.findByUsernameAndAuthSource(
@@ -48,7 +52,9 @@ class UserService(
         id = UUID.randomUUID(),
         username = username.value,
         authSource = AuthSourceEntity.DELIUS,
-        name = staffUserDetails.name.deliusName(),
+        forename = staffUserDetails.name.forename,
+        middleNames = staffUserDetails.name.middleName,
+        surname = staffUserDetails.name.surname,
         deliusStaffCode = staffUserDetails.code,
         email = staffUserDetails.email,
         telephoneNumber = staffUserDetails.telephoneNumber,
@@ -76,7 +82,9 @@ class UserService(
         id = UUID.randomUUID(),
         username = username.value,
         authSource = AuthSourceEntity.NOMIS,
-        name = "${nomisUserDetails.firstName} ${nomisUserDetails.lastName}",
+        forename = nomisUserDetails.firstName,
+        middleNames = null, // not provided in API response
+        surname = nomisUserDetails.lastName,
         email = nomisUserDetails.primaryEmail,
         isActive = nomisUserDetails.active,
         isEnabled = nomisUserDetails.enabled,

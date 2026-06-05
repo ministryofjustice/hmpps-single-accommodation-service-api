@@ -17,7 +17,7 @@ interface ApprovedPremisesClient {
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
 
-  @GetExchange(value = "/cas2/external/referrals/{crn}")
+  @GetExchange(value = "/cas2-hdc/external/referrals/{crn}")
   fun getCas2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
 
   @GetExchange(value = "/cas2v2/external/referrals/{crn}")

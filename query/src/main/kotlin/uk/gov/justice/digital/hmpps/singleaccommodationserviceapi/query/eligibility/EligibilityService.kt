@@ -57,7 +57,10 @@ class EligibilityService(
   fun getEligibility(crn: String): ApiResponseDto<EligibilityDto> {
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
 
-    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
+    val caseEntity = caseRepository.findByCrn(crn)
+    val prisonNumber = caseEntity?.latestPrisonNumber()
+
+    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn, prisonNumber)
     val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
 
     if (upstreamFailures.isNotEmpty()) {
@@ -65,7 +68,7 @@ class EligibilityService(
       return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = upstreamFailures)
     }
 
-    val data = buildDomainData(crn, eligibilityOrchestrationDto.data)
+    val data = buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
     val eligibility = getEligibility(data)
     return toApiResponseDto(data = eligibility, upstreamFailures = emptyList())
   }
@@ -113,18 +116,16 @@ class EligibilityService(
     }
   }
 
-  fun buildDomainData(crn: String, eligibilityOrchestrationDto: EligibilityOrchestrationDto): DomainData {
+  fun buildDomainData(crn: String, eligibilityOrchestrationDto: EligibilityOrchestrationDto, caseEntity: CaseEntity?): DomainData {
     val accommodationTypes = accommodationTypeRepository.findAll()
-    val caseEntity = caseRepository.findByCrn(crn)
 
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
-    val currentAccommodation = eligibilityOrchestrationDto.cpr?.addresses?.let {
-      accommodationQueryService.getCurrentAccommodation(
-        crn,
-        addresses = it,
-      )
-    }
+    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(
+      crn,
+      addresses = eligibilityOrchestrationDto.cpr?.addresses,
+      prisoner = eligibilityOrchestrationDto.prisoner,
+    )
 
     val nextAccommodations = accommodationQueryService.getNextAccommodations(
       crn,

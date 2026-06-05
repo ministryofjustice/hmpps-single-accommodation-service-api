@@ -20,8 +20,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
@@ -35,6 +37,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CommissionedRehabilitativeServicesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import java.time.LocalDate
@@ -45,6 +48,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 class EligibilityControllerIT : IntegrationTestBase() {
   private val crn = "FAKECRN1"
+  private val prisonNumber = "PRI1"
   private val cas1ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111111")
   private val cas3ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f6-111111111111")
   private val dutyToReferCaseId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111112")
@@ -98,6 +102,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
 
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+    PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
@@ -118,7 +123,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
     caseRepository.save(entity)
 
     val existingEntity = dutyToReferRepository.save(
@@ -164,7 +172,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
     TierStubs.getTierNotFoundResponse(crn = crn)
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
     caseRepository.save(entity)
 
     val existingEntity = dutyToReferRepository.save(
@@ -234,7 +245,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
     caseRepository.save(entity)
 
     val existingEntity = dutyToReferRepository.save(
@@ -271,5 +285,33 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         )
       }
+  }
+
+  @Test
+  fun `should succeed when prisoner search returns 404`() {
+    PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
+    caseRepository.save(entity)
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+  }
+
+  @Test
+  fun `should succeed when case has no prison number`() {
+    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
+
+    val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
+    caseRepository.save(entity)
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
   }
 }

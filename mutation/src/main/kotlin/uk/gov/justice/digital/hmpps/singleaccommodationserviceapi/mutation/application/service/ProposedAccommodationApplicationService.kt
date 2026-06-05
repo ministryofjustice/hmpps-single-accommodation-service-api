@@ -91,7 +91,7 @@ class ProposedAccommodationApplicationService(
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
-      createdBy = user.name,
+      createdBy = user.displayName(),
       createdAt = persistedRecord.createdAt!!,
     )
   }
@@ -190,7 +190,7 @@ class ProposedAccommodationApplicationService(
     return ProposedAccommodationMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
-      createdBy = createdByUser.name,
+      createdBy = createdByUser.displayName(),
       createdAt = updatedRecord.createdAt!!,
     )
   }

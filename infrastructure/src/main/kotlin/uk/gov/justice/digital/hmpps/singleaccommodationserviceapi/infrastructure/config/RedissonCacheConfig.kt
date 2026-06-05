@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_ROSH_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_STAFF_DETAIL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
@@ -100,7 +101,7 @@ class RedissonCacheConfig {
   fun cacheManager(redissonClient: RedissonClient): CacheManager {
     val configs = mapOf(
       GET_ROSH_DETAIL to CacheConfig(60_000, 30_000),
-      GET_STAFF_DETAIL to CacheConfig(60_000, 30_000),
+      GET_STAFF_DETAIL to CacheConfig(600_000, 300_000),
       GET_CASE to CacheConfig(60_000, 30_000),
       GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(60_000, 30_000),
       GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
@@ -115,6 +116,7 @@ class RedissonCacheConfig {
       FULL_CASE_LIST to CacheConfig(600_000, 600_000),
       GET_CRS to CacheConfig(60_000, 30_000),
       GET_CASES_FROM_ORCHESTRATOR to CacheConfig(600_000, 300_000),
+      GET_PRISONER to CacheConfig(60_000, 30_000),
     )
     return RedissonSpringCacheManager(redissonClient, configs)
   }

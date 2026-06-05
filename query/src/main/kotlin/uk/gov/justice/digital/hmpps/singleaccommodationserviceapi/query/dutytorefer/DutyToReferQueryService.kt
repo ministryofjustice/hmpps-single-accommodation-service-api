@@ -38,7 +38,7 @@ class DutyToReferQueryService(
     ?.let { dtrEntity ->
       val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
       val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
-      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.name, localAuthorityArea!!.name)
+      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
     }
 
   fun getDutyToRefer(crn: String, id: UUID): DutyToReferDto {
@@ -46,7 +46,7 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.name, localAuthorityArea!!.name)
+    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
   }
 
   fun getDutyToRefer(id: UUID): DutyToReferDto {
@@ -58,7 +58,7 @@ class DutyToReferQueryService(
     return DutyToReferTransformer.toDutyToReferDto(
       dtrEntity,
       crn = caseEntity.latestCrn(),
-      createdByUser!!.name,
+      createdByUser!!.displayName(),
       localAuthorityArea!!.name,
     )
   }
@@ -116,7 +116,7 @@ class DutyToReferQueryService(
       val createdByUser = createdByUsers[it.createdByUserId]
       AuditRecordDto(
         type = AuditRecordType.NOTE,
-        author = createdByUser!!.name,
+        author = createdByUser!!.displayName(),
         commitDate = it.createdAt!!,
         changes = listOf(
           CreateFieldChangeDto(

@@ -114,8 +114,7 @@ class ProposedAccommodationTimelineServiceTest {
         name = "Living in the home of a friend, family member or partner: settled",
       )
       val expectedProposedAccommodationCreatedAuditRecord = buildAuditRecordDto()
-      val nameOfUser1 = "Joe Bloggs"
-      val nameOfUser2 = "Jane Doe"
+
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -126,8 +125,8 @@ class ProposedAccommodationTimelineServiceTest {
         auditService.fullAuditHistory(eq(proposedAccommodationEntity.id), eq(ProposedAccommodationEntity::class.java))
       } returns listOf(expectedProposedAccommodationCreatedAuditRecord)
       every { userRepository.findAllById(any()) } returns listOf(
-        buildUserEntity(id = user1Id, name = nameOfUser1),
-        buildUserEntity(id = user2Id, name = nameOfUser2),
+        buildUserEntity(id = user1Id, forename = "Joe", surname = "Bloggs"),
+        buildUserEntity(id = user2Id, forename = "Jane", surname = "Doe"),
       )
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationType)
 
@@ -138,7 +137,7 @@ class ProposedAccommodationTimelineServiceTest {
       assertThat(result[1]).isEqualTo(
         buildAuditRecordDto(
           type = AuditRecordType.NOTE,
-          author = nameOfUser1,
+          author = "Joe Bloggs",
           commitDate = noteCreatedAt,
           changes = listOf(
             buildFieldChange(
@@ -151,7 +150,7 @@ class ProposedAccommodationTimelineServiceTest {
       assertThat(result[2]).isEqualTo(
         buildAuditRecordDto(
           type = AuditRecordType.NOTE,
-          author = nameOfUser2,
+          author = "Jane Doe",
           commitDate = note2CreatedAt,
           changes = listOf(
             buildFieldChange(

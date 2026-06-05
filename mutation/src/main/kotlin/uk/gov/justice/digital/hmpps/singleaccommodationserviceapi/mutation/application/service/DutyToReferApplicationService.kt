@@ -49,7 +49,7 @@ class DutyToReferApplicationService(
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
-      createdBy = user.name,
+      createdBy = user.displayName(),
       createdAt = persistedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
     )
@@ -81,7 +81,7 @@ class DutyToReferApplicationService(
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
-      createdBy = createdByUser.name,
+      createdBy = createdByUser.displayName(),
       createdAt = updatedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
     )

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.javers.core.Javers
 import org.javers.repository.jql.QueryBuilder
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,6 +33,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDtrResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
@@ -69,18 +69,15 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     beforeTest = Instant.now()
-    dutyToReferRepository.deleteAll()
-    outboxEventRepository.deleteAll()
+    databaseUtils.truncate(
+      SasTables.INBOX_EVENT,
+      SasTables.OUTBOX_EVENT,
+      SasTables.DUTY_TO_REFER,
+    )
     case = caseRepository.save(buildCaseEntity())
     crn = case.caseIdentifiers.first().identifier
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
-  }
-
-  @AfterEach
-  fun teardown() {
-    dutyToReferRepository.deleteAll()
-    outboxEventRepository.deleteAll()
   }
 
   @Test

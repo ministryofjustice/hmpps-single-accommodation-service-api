@@ -15,7 +15,9 @@ data class UserEntity(
   val username: String,
   @Enumerated(EnumType.STRING)
   val authSource: AuthSource,
-  var name: String,
+  var forename: String,
+  var middleNames: String?,
+  var surname: String,
   var email: String?,
   var telephoneNumber: String?,
   var deliusStaffCode: String?,
@@ -24,7 +26,9 @@ data class UserEntity(
   var nomisActiveCaseloadId: String?,
   var isEnabled: Boolean,
   var isActive: Boolean,
-)
+) {
+  fun displayName() = "$forename $surname"
+}
 
 enum class AuthSource(val source: String) {
   NOMIS("nomis"),

@@ -24,14 +24,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -54,19 +55,18 @@ class CaseControllerIT : IntegrationTestBase() {
   private lateinit var pageSize: String
 
   @Autowired
-  private lateinit var dutyToReferRepository: DutyToReferRepository
-
-  @Autowired
   private lateinit var caseRepository: CaseRepository
 
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
 
+  lateinit var deliusUser: UserEntity
+
   @BeforeEach
   fun setup() {
     databaseUtils.truncate(DUTY_TO_REFER, SAS_CASE)
 
-    createTestDataSetupUserAndDeliusUser()
+    deliusUser = createTestDataSetupUserAndDeliusUser().second
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
@@ -100,10 +100,12 @@ class CaseControllerIT : IntegrationTestBase() {
 
     caseRepository.saveAllAndFlush(listOf(case1, case2))
 
+    val staff = buildOfficer(username = deliusUser.username)
+
     val cases = listOf(
-      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1),
-      buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2),
-      buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber),
+      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1, staff = staff),
+      buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2, staff = staff),
+      buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber, staff = staff),
     )
 
     // the case list returned should not match any persisted CRNs
@@ -342,8 +344,10 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   private fun stubCaseList() {
+    val staff = buildOfficer(username = deliusUser.username)
     val cases = crns.mapIndexed { i, crn ->
       buildCase(
+        staff = staff,
         crn = crn,
         nomsNumber = nomsNumbers[i],
         gender = when (i) {

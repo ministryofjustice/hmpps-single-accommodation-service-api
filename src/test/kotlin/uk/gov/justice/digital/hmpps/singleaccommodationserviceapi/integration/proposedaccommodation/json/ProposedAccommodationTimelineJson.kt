@@ -12,7 +12,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
   "data": [
    {
       "type":"CREATE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$createCommitTime",
       "changes":[
          {
@@ -117,7 +117,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
   "data": [
    {
       "type":"UPDATE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$update2CommitTime",
       "changes":[
          {
@@ -186,7 +186,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
    },
    {
       "type":"NOTE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$createNoteCommitTime",
       "changes":[
          {
@@ -197,7 +197,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
    },
    {
       "type":"CREATE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$createCommitTime",
       "changes":[
          {

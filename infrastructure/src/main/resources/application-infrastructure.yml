@@ -60,6 +60,8 @@ service:
     read-timeout: 4s
   core-person-record:
     read-timeout: 4s
+  prisoner-search:
+    read-timeout: 4s
   commissioned-rehabilitative-services-api:
     read-timeout: 8s # TODO reduce this when Interventions have fixed the response times
   tier:
