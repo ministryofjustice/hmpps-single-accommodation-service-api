@@ -2,12 +2,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 
 class NotFoundIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    createTestDataSetupUserAndDeliusUser()
+    createDeliusUser()
+    HmppsAuthStubs.stubGrantToken()
   }
 
   @Test

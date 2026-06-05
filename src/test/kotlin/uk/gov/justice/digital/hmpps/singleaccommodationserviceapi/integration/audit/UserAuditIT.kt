@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.audit
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -37,6 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -68,20 +68,13 @@ class UserAuditIT : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     beforeTest = Instant.now()
-    proposedAccommodationRepository.deleteAll()
-    userRepository.deleteAll()
+    databaseUtils.truncate(SasTables.PROPOSED_ACCOMMODATION, SasTables.SAS_USER)
     crn = UUID.randomUUID().toString()
     caseRepository.save(buildCaseEntity { withCrn(crn) })
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
     stubCurrentAccommodationIsCas1(crn)
-  }
-
-  @AfterEach
-  fun teardown() {
-    proposedAccommodationRepository.deleteAll()
-    userRepository.deleteAll()
   }
 
   private fun stubCurrentAccommodationIsCas1(crn: String) {
@@ -191,7 +184,7 @@ class UserAuditIT : IntegrationTestBase() {
     assertThat(unknownUser.nomisStaffId).isNull()
     assertThat(unknownUser.nomisAccountType).isNull()
     assertThat(unknownUser.nomisActiveCaseloadId).isNull()
-    assertThat(unknownUser.isEnabled).isTrue
+    assertThat(unknownUser.isEnabled).isNull()
     assertThat(unknownUser.isActive).isTrue
   }
 

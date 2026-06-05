@@ -78,14 +78,17 @@ fun buildStaffDetail(
   email: String = "test.user@justice.gov.uk",
   name: PersonName = buildPersonName(),
   teams: List<Team> = listOf(buildTeam()),
+  code: String = "code",
+  telephoneNumber: String? = null,
+  active: Boolean = true,
 ) = StaffDetail(
   email = email,
-  telephoneNumber = "07665111456",
+  telephoneNumber = telephoneNumber,
   teams = teams,
   username = username,
   name = name,
-  code = "code",
-  active = true,
+  code = code,
+  active = active,
 )
 
 fun buildPersonName(
