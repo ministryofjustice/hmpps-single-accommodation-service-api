@@ -4,6 +4,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -34,6 +36,9 @@ fun buildDtrSubmission(
   submissionDate = submissionDate,
   createdBy = createdBy,
   createdAt = createdAt,
+  withdrawalReason = WithdrawalReason.NOT_ELIGIBLE,
+  withdrawalReasonOther = "Some other reason",
+  outcomeReason = OutcomeReason.NO_LOCAL_CONNECTION,
 )
 
 fun buildLocalAuthorityDto(

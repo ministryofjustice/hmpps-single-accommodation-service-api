@@ -9,6 +9,7 @@ data class AccommodationReferralDto(
   val status: CasReferralStatus,
   val date: Instant,
   val referralRejectionReason: String?,
+  val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
   val referredBy: StaffDetailsDto?,
@@ -27,4 +28,5 @@ enum class CasService {
   CAS2,
   CAS2v2,
   CAS3,
+  DTR,
 }

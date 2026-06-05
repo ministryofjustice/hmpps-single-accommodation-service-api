@@ -4,11 +4,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DeliusUserDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import java.time.Instant
+import java.time.ZoneOffset
 import java.util.UUID
 
 object AccommodationReferralTransformer {
@@ -19,6 +21,7 @@ object AccommodationReferralTransformer {
       status = toCasReferralStatus(it.status),
       date = it.createdAt,
       referralRejectionReason = it.referralRejectionReason,
+      referralRejectionReasonDetail = it.referralRejectionReasonDetail,
       localAuthorityArea = it.localAuthorityArea,
       pdu = it.pdu,
       referredBy = it.referredBy!!,
@@ -33,6 +36,7 @@ object AccommodationReferralTransformer {
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,
+        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
         referredBy = it.referredBy!!,
@@ -47,6 +51,7 @@ object AccommodationReferralTransformer {
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,
+        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
         referredBy = it.referredBy!!,
@@ -61,11 +66,26 @@ object AccommodationReferralTransformer {
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,
+        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
         referredBy = it.referredBy!!,
         placementAddress = it.placementAddress,
         placementStatus = it.placementStatus,
+      )
+    } + dto.dutyToRefer.map {
+      toAccommodationReferralDto(
+        id = it.caseId,
+        type = CasService.DTR,
+        status = toCasReferralStatus(it.status),
+        date = it.submission!!.submissionDate.atStartOfDay().toInstant(ZoneOffset.UTC),
+        referralRejectionReason = it.submission!!.withdrawalReason.toString(),
+        referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
+        localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
+        pdu = it.submission!!.localAuthority.localAuthorityAreaName,
+        referredBy = DeliusUserDto(it.submission!!.createdBy, it.submission!!.createdBy, it.submission!!.createdBy),
+        placementAddress = it.submission!!.localAuthority.localAuthorityAreaName,
+        placementStatus = it.submission!!.outcomeReason.toString(),
       )
     }
 
@@ -75,6 +95,7 @@ object AccommodationReferralTransformer {
     status: CasReferralStatus,
     date: Instant,
     referralRejectionReason: String?,
+    referralRejectionReasonDetail: String?,
     localAuthorityArea: String?,
     pdu: String?,
     referredBy: DeliusUserDto,
@@ -86,6 +107,7 @@ object AccommodationReferralTransformer {
     status = status,
     date = date,
     referralRejectionReason = referralRejectionReason,
+    referralRejectionReasonDetail = referralRejectionReasonDetail,
     localAuthorityArea = localAuthorityArea,
     pdu = pdu,
     referredBy = toStaffDetailsDto(referredBy),
@@ -134,5 +156,12 @@ object AccommodationReferralTransformer {
     TemporaryAccommodationAssessmentStatus.UNALLOCATED,
     TemporaryAccommodationAssessmentStatus.IN_REVIEW,
     -> CasReferralStatus.PENDING
+  }
+
+  fun toCasReferralStatus(status: DtrStatus): CasReferralStatus = when (status) {
+    DtrStatus.SUBMITTED -> CasReferralStatus.PENDING
+    DtrStatus.ACCEPTED -> CasReferralStatus.ACCEPTED
+    DtrStatus.NOT_ACCEPTED -> CasReferralStatus.REJECTED
+    DtrStatus.WITHDRAWN -> CasReferralStatus.REJECTED
   }
 }

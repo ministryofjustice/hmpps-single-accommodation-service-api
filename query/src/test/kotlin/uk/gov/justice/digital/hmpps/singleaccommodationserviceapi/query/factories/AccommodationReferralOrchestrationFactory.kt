@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDeliusUserDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
@@ -52,9 +54,13 @@ fun buildAccommodationReferralOrchestrationDto(
       placementStatus = "Some status",
     ),
   ),
+  dutyToRefer: List<DutyToReferDto> = listOf(
+    buildDutyToReferDto(),
+  ),
 ) = AccommodationReferralOrchestrationDto(
   cas1Referrals = cas1Referrals,
   cas2Referrals = cas2Referrals,
   cas2v2Referrals = cas2v2Referrals,
   cas3Referrals = cas3Referrals,
+  dutyToRefer,
 )

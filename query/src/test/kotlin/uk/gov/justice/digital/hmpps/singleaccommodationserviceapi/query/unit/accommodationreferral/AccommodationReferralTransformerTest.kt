@@ -22,21 +22,34 @@ class AccommodationReferralTransformerTest {
 
     val result = AccommodationReferralTransformer.transformReferrals(orchestrationDto)
 
-    assertThat(result).hasSize(4)
+    assertThat(result).hasSize(5)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
       CasService.CAS1,
       CasService.CAS2,
       CasService.CAS2v2,
       CasService.CAS3,
+      CasService.DTR,
     )
 
     result.forEach {
-      assertThat(it.referralRejectionReason).isEqualTo("Some reason")
-      assertThat(it.localAuthorityArea).isEqualTo("Some area")
-      assertThat(it.pdu).isEqualTo("Some pdu")
-      assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("First Last"))
-      assertThat(it.placementAddress).isEqualTo("Some address")
-      assertThat(it.placementStatus).isEqualTo("Some status")
+      when (it.type) {
+        CasService.DTR -> {
+          assertThat(it.referralRejectionReason).isEqualTo("NOT_ELIGIBLE")
+          assertThat(it.localAuthorityArea).isEqualTo("localAuthorityAreaName")
+          assertThat(it.pdu).isEqualTo("localAuthorityAreaName")
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "Someone", "Someone"))
+          assertThat(it.placementAddress).isEqualTo("localAuthorityAreaName")
+          assertThat(it.placementStatus).isEqualTo("NO_LOCAL_CONNECTION")
+        }
+        else -> {
+          assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.localAuthorityArea).isEqualTo("Some area")
+          assertThat(it.pdu).isEqualTo("Some pdu")
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("First Last"))
+          assertThat(it.placementAddress).isEqualTo("Some address")
+          assertThat(it.placementStatus).isEqualTo("Some status")
+        }
+      }
     }
   }
 
