@@ -58,7 +58,6 @@ class AccommodationReferralServiceTest {
       )
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { userService.getExistingDeliusUserOrCreate(any(Username::class)) } returns buildUserEntity(username = "user1")
 
       val result = service.getReferralHistory(crn)
 
@@ -91,7 +90,6 @@ class AccommodationReferralServiceTest {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto()
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { userService.getExistingDeliusUserOrCreate(any(Username::class)) } returns buildUserEntity(username = "user1")
 
       val result = service.getReferralHistory(crn)
 

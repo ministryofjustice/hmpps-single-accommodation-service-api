@@ -15,6 +15,9 @@ fun expectedGetReferralHistory(
   referredBy: DeliusUserDto? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
+  dtrId: UUID? = null,
+  dtrStatus: String? = null,
+  dtrSubmissionDate: String? = null,
 ): String {
   fun referredByJson(dto: DeliusUserDto?) = if (dto == null) {
     "null"
@@ -81,7 +84,24 @@ fun expectedGetReferralHistory(
         "referredBy": ${referredByJson(referredBy)},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus
-     }
+     }${if (dtrId != null) {
+    """,
+     {
+        "id":"$dtrId",
+        "type":"DTR",
+        "status":"${dtrStatus ?: "PENDING"}",
+        "date":"${dtrSubmissionDate}T00:00:00Z",
+        "referralRejectionReason": null,
+        "referralRejectionReasonDetail": null,
+        "localAuthorityArea": null,
+        "pdu": null,
+        "referredBy": null,
+        "placementAddress": null,
+        "placementStatus": "null"
+     }"""
+  } else {
+    ""
+  }}
     ]
   }
   """.trimIndent()
