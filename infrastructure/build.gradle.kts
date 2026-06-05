@@ -19,5 +19,4 @@ dependencies {
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
-  testFixturesImplementation(project(":common"))
 }
