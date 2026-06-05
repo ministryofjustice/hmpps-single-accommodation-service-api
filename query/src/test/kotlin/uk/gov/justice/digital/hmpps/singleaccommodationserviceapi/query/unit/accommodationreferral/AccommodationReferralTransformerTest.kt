@@ -45,7 +45,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
-          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("First Last"))
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
           assertThat(it.placementAddress).isEqualTo("Some address")
           assertThat(it.placementStatus).isEqualTo("Some status")
         }

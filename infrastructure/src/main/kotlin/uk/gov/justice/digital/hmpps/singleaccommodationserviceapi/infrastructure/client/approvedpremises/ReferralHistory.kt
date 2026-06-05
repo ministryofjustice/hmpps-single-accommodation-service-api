@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DeliusUserDto
 import java.time.Instant
 import java.util.UUID
 
@@ -99,3 +98,9 @@ data class Cas3ReferralHistory(
     }
   }
 }
+
+data class DeliusUserDto(
+  val name: String,
+  val username: String,
+  val staffCode: String? = null,
+)
