@@ -8,7 +8,7 @@ class NotFoundIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    createTestDataSetupUserAndDeliusUser()
+    createDeliusUser()
     HmppsAuthStubs.stubGrantToken()
   }
 

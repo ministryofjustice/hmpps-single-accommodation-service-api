@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInstance
@@ -74,6 +76,21 @@ abstract class IntegrationTestBase {
 
   @Autowired
   protected lateinit var databaseUtils: DatabaseUtils
+
+  @BeforeAll
+  fun beforeAll() {
+    waitFor {
+      await
+        .atMost(Duration.ofSeconds(10))
+        .pollInterval(Duration.ofMillis(10))
+        .untilAsserted {
+          restTestClient.get().uri("/health/readiness")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody().jsonPath("status").isEqualTo("UP")
+        }
+    }
+  }
 
   @BeforeEach
   fun resetStubs() {
