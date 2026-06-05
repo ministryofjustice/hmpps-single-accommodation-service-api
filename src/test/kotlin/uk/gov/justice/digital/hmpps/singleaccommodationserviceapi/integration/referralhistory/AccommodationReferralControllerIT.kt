@@ -52,7 +52,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
   fun `fetchAllReferralsAggregated aggregates results and sorts them by date descending`() {
     val crn = "X12345"
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-    dutyToReferRepository.save(
+    val dutyToRefer = dutyToReferRepository.save(
       buildDutyToReferEntity(
         caseId = case.id,
         localAuthorityAreaId = localAuthorityArea.id,
@@ -108,6 +108,9 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
             referredBy = buildDeliusUserDto(),
+            dtrId = dutyToRefer.id,
+            dtrStatus = "PENDING",
+            dtrSubmissionDate = "2026-01-15",
           ),
         )
       }

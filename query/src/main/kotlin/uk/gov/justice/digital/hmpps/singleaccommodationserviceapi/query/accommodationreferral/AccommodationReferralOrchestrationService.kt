@@ -29,7 +29,7 @@ class AccommodationReferralOrchestrationService(
       GET_CAS2_REFERRAL to { approvedPremisesCachingService.getCas2Referral(crn) },
       GET_CAS2V2_REFERRAL to { approvedPremisesCachingService.getCas2v2Referral(crn) },
       GET_CAS3_REFERRAL to { approvedPremisesCachingService.getCas3Referral(crn) },
-      GET_DTR_REFERRAL to { dutyToReferQueryService.getDutyToRefer(crn) },
+      GET_DTR_REFERRAL to { listOf(dutyToReferQueryService.getDutyToRefer(crn)) },
     )
 
     val results = aggregatorService.orchestrateAsyncCalls(
