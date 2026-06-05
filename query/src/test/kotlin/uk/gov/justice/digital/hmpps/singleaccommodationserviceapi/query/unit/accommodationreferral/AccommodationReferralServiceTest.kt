@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @ExtendWith(MockKExtension::class)
 class AccommodationReferralServiceTest {
@@ -61,10 +62,11 @@ class AccommodationReferralServiceTest {
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result.data).hasSize(3)
-      assertThat(result.data[0].date).isEqualTo(newerDate)
-      assertThat(result.data[1].date).isEqualTo(middleDate)
-      assertThat(result.data[2].date).isEqualTo(olderDate)
+      assertThat(result.data).hasSize(4)
+      assertThat(result.data[0].date).isEqualTo(Instant.now().truncatedTo(ChronoUnit.DAYS))
+      assertThat(result.data[1].date).isEqualTo(newerDate)
+      assertThat(result.data[2].date).isEqualTo(middleDate)
+      assertThat(result.data[3].date).isEqualTo(olderDate)
     }
 
     @Test
@@ -74,6 +76,7 @@ class AccommodationReferralServiceTest {
         cas2Referrals = emptyList(),
         cas2v2Referrals = emptyList(),
         cas3Referrals = emptyList(),
+        dutyToRefer = emptyList(),
       )
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
@@ -92,7 +95,7 @@ class AccommodationReferralServiceTest {
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result.data).hasSize(4)
+      assertThat(result.data).hasSize(5)
       assertThat(result.data).containsExactlyInAnyOrderElementsOf(
         AccommodationReferralTransformer.transformReferrals(orchestrationDto),
       )
