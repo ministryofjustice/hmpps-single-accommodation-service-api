@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
@@ -52,16 +51,6 @@ fun buildAssignedToDto(
 ) = AssignedToDto(
   forename = forename,
   surname = surname,
-  username = username,
-  staffCode = staffCode,
-)
-
-fun buildDeliusUserDto(
-  name: String = "First Last",
-  username: String? = "user1",
-  staffCode: String? = "ABCD1234",
-) = DeliusUserDto(
-  name = name,
   username = username,
   staffCode = staffCode,
 )
