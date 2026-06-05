@@ -33,6 +33,26 @@ fun expectedGetReferralHistory(
   return """
   {
     "data": [
+    ${
+    if (dtrId != null) {
+      """
+     {
+        "id":"$dtrId",
+        "type":"DTR",
+        "status":"${dtrStatus ?: "PENDING"}",
+        "date":"${dtrSubmissionDate}T00:00:00Z",
+        "referralRejectionReason": null,
+        "referralRejectionReasonDetail": null,
+        "localAuthorityArea": "Aberdeen City",
+        "pdu": "Aberdeen City",
+        "referredBy": {"name":"Test Data Setup User","username":"Test Data Setup User","staffCode":"Test Data Setup User"},
+        "placementAddress": "Aberdeen City",
+        "placementStatus": "null"
+     },"""
+    } else {
+      ""
+    }
+  }
      {
         "id":"$id3",
         "type":"CAS2v2",
@@ -84,24 +104,7 @@ fun expectedGetReferralHistory(
         "referredBy": ${referredByJson(referredBy)},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus
-     }${if (dtrId != null) {
-    """,
-     {
-        "id":"$dtrId",
-        "type":"DTR",
-        "status":"${dtrStatus ?: "PENDING"}",
-        "date":"${dtrSubmissionDate}T00:00:00Z",
-        "referralRejectionReason": null,
-        "referralRejectionReasonDetail": null,
-        "localAuthorityArea": null,
-        "pdu": null,
-        "referredBy": null,
-        "placementAddress": null,
-        "placementStatus": "null"
-     }"""
-  } else {
-    ""
-  }}
+     }
     ]
   }
   """.trimIndent()

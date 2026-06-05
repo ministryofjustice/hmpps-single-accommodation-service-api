@@ -108,7 +108,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
             referredBy = buildDeliusUserDto(),
-            dtrId = dutyToRefer.id,
+            dtrId = case.id,
             dtrStatus = "PENDING",
             dtrSubmissionDate = "2026-01-15",
           ),
