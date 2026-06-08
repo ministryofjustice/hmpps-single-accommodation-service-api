@@ -24,7 +24,7 @@ object AccommodationReferralTransformer {
       referralRejectionReasonDetail = it.referralRejectionReasonDetail,
       localAuthorityArea = it.localAuthorityArea,
       pdu = it.pdu,
-      referredBy = it.referredBy!!,
+      referredBy = it.referredBy,
       placementAddress = it.placementAddress,
       placementStatus = it.placementStatus,
     )
@@ -39,7 +39,7 @@ object AccommodationReferralTransformer {
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
-        referredBy = it.referredBy!!,
+        referredBy = it.referredBy,
         placementAddress = it.placementAddress,
         placementStatus = it.placementStatus,
       )
@@ -54,7 +54,7 @@ object AccommodationReferralTransformer {
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
-        referredBy = it.referredBy!!,
+        referredBy = it.referredBy,
         placementAddress = it.placementAddress,
         placementStatus = it.placementStatus,
       )
@@ -69,7 +69,7 @@ object AccommodationReferralTransformer {
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
-        referredBy = it.referredBy!!,
+        referredBy = it.referredBy,
         placementAddress = it.placementAddress,
         placementStatus = it.placementStatus,
       )
@@ -98,7 +98,7 @@ object AccommodationReferralTransformer {
     referralRejectionReasonDetail: String?,
     localAuthorityArea: String?,
     pdu: String?,
-    referredBy: DeliusUserDto,
+    referredBy: DeliusUserDto?,
     placementAddress: String?,
     placementStatus: String?,
   ) = AccommodationReferralDto(
@@ -115,11 +115,13 @@ object AccommodationReferralTransformer {
     placementStatus = placementStatus,
   )
 
-  fun toStaffDetailsDto(referredBy: DeliusUserDto) = StaffDetailsDto(
-    referredBy.name,
-    referredBy.username,
-    referredBy.staffCode,
-  )
+  fun toStaffDetailsDto(referredBy: DeliusUserDto?) = referredBy?.let {
+    StaffDetailsDto(
+      it.name,
+      it.username,
+      it.staffCode,
+    )
+  }
 
   fun toCasReferralStatus(status: Cas1AssessmentStatus): CasReferralStatus = when (status) {
     Cas1AssessmentStatus.COMPLETED -> CasReferralStatus.ACCEPTED

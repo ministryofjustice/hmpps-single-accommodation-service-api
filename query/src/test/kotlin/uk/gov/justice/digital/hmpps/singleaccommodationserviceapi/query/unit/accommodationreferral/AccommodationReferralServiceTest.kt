@@ -5,11 +5,9 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
@@ -74,7 +72,7 @@ class AccommodationReferralServiceTest {
     }
 
     @Test
-    fun `should throw 404 when no DTR and no referrals exist`() {
+    fun `should return empty list when no referrals exist`() {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
         cas2Referrals = emptyList(),
@@ -83,9 +81,11 @@ class AccommodationReferralServiceTest {
       )
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToReferHistory(crn) } throws NotFoundException("duty-to-refer", mapOf())
+      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns emptyList()
 
-      assertThatThrownBy { service.getReferralHistory(crn) }.isInstanceOf(NotFoundException::class.java)
+      val result = service.getReferralHistory(crn)
+
+      assertThat(result.data).isEmpty()
     }
 
     @Test
