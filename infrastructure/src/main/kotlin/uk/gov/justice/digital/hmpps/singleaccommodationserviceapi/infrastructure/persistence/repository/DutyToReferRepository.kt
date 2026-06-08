@@ -20,6 +20,7 @@ interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
   )
   fun findByIdAndCrn(id: UUID, crn: String): DutyToReferEntity?
   fun findFirstByCaseIdOrderByCreatedAtDesc(caseId: UUID): DutyToReferEntity?
+  fun findByCaseIdOrderByCreatedAtDesc(caseId: UUID): List<DutyToReferEntity>
 
   @Query(
     """

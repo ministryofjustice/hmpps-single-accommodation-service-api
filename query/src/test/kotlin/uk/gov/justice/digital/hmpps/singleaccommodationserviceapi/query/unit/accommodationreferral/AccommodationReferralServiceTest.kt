@@ -62,7 +62,7 @@ class AccommodationReferralServiceTest {
       val dutyToReferDto = buildDutyToReferDto(crn = crn)
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToRefer(crn) } returns dutyToReferDto
+      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
 
       val result = service.getReferralHistory(crn)
 
@@ -82,10 +82,8 @@ class AccommodationReferralServiceTest {
         cas3Referrals = emptyList(),
       )
 
-      val dutyToReferDto = buildDutyToReferDto(crn = crn)
-
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToRefer(crn) } throws NotFoundException("duty-to-refer", mapOf())
+      every { dutyToReferQueryService.getDutyToReferHistory(crn) } throws NotFoundException("duty-to-refer", mapOf())
 
       assertThatThrownBy { service.getReferralHistory(crn) }.isInstanceOf(NotFoundException::class.java)
     }
@@ -104,7 +102,7 @@ class AccommodationReferralServiceTest {
       val orchestrationDtoWithDtr = buildAccommodationReferralOrchestrationDtoWithDtr(orchestrationDto, listOf(dutyToReferDto))
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToRefer(crn) } returns dutyToReferDto
+      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
 
       val result = service.getReferralHistory(crn)
 
@@ -125,7 +123,7 @@ class AccommodationReferralServiceTest {
       )
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
-      every { dutyToReferQueryService.getDutyToRefer(crn) } returns dutyToReferDto
+      every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
 
       val result = service.getReferralHistory(crn)
 

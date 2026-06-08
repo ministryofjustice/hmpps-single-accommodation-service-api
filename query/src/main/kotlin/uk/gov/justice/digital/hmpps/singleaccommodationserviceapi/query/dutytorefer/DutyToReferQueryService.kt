@@ -34,6 +34,28 @@ class DutyToReferQueryService(
     return getDutyToRefer(caseEntity, crn).orThrowNotFound("crn" to crn)
   }
 
+  fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
+    val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    return getDutyToReferHistory(caseEntity, crn).orThrowNotFound("crn" to crn)
+  }
+
+  fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
+    val dtrEntities = dutyToReferRepository.findByCaseIdOrderByCreatedAtDesc(caseEntity.id)
+    if (dtrEntities.isEmpty()) return emptyList()
+
+    val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()
+    val localAuthorityAreaIds = dtrEntities.map { it.localAuthorityAreaId }.toSet()
+
+    val users = userRepository.findAllById(createdByUserIds).associateBy { it.id }
+    val localAuthorities = localAuthorityAreaRepository.findAllById(localAuthorityAreaIds).associateBy { it.id }
+
+    return dtrEntities.map { dtrEntity ->
+      val createdByUser = users[dtrEntity.createdByUserId]
+      val localAuthorityArea = localAuthorities[dtrEntity.localAuthorityAreaId]
+      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+    }
+  }
+
   fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto? = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
     ?.let { dtrEntity ->
       val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
