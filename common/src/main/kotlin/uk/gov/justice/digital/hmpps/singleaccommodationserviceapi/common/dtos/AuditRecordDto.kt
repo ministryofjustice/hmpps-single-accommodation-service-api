@@ -12,7 +12,7 @@ data class AuditRecordDto(
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
     timezone = "UTC",
   )
-  val commitDate: Instant,
+  val commitDate: Instant?,
   val changes: List<FieldChange>,
   @field:JsonInclude(JsonInclude.Include.NON_NULL)
   val extraInformation: Map<String, String>? = null,

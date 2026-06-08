@@ -23,8 +23,8 @@ private const val PRISON_ACCOMMODATION_TYPE_CODE = "HMP"
 class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
-  private val accommodationSource: AccommodationSource,
   private var currentAccommodation: AccommodationSummaryDto?,
+  private var accommodationSource: AccommodationSource? = null,
   private var cprAddressId: UUID? = null,
   private var name: String? = null,
   private var accommodationType: AccommodationTypeDto? = null,
@@ -43,12 +43,12 @@ class ProposedAccommodationAggregate private constructor(
   companion object {
     fun hydrateNew(
       caseId: UUID,
+      cprAddressId: UUID?,
       currentAccommodation: AccommodationSummaryDto?,
-      accommodationSource: AccommodationSource,
     ) = ProposedAccommodationAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
-      accommodationSource = accommodationSource,
+      cprAddressId = cprAddressId,
       currentAccommodation = currentAccommodation,
     )
 
@@ -90,6 +90,7 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun updateProposedAccommodation(
+    newAccommodationSource: AccommodationSource,
     newName: String?,
     newAccommodationType: AccommodationTypeDto,
     newVerificationStatus: VerificationStatus,
@@ -121,6 +122,7 @@ class ProposedAccommodationAggregate private constructor(
           newVerificationStatus,
         )
 
+    accommodationSource = newAccommodationSource
     name = newName
     accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
@@ -144,7 +146,7 @@ class ProposedAccommodationAggregate private constructor(
         )
       }
 
-      shouldPublishUpdateEvent -> {
+      shouldPublishUpdateEvent && accommodationSource == AccommodationSource.SAS -> {
         domainEvents += AccommodationUpdatedDomainEvent(
           aggregateId = id,
         )
@@ -170,7 +172,7 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   private fun setTypeVerified(newTypeVerified: Boolean?) {
-    typeVerified = when (accommodationSource) {
+    typeVerified = when (accommodationSource!!) {
       AccommodationSource.SAS -> nextAccommodationStatus == NextAccommodationStatus.YES
       AccommodationSource.DELIUS -> newTypeVerified ?: false
     }
@@ -250,7 +252,7 @@ class ProposedAccommodationAggregate private constructor(
     id,
     caseId,
     cprAddressId,
-    accommodationSource,
+    accommodationSource!!,
     name,
     accommodationType!!,
     accommodationStatus,

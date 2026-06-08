@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -40,10 +39,16 @@ const val USERNAME_OF_TEST_DATA_SETUP_USER = "TEST_DATA_SETUP_USER"
 const val FORENAME_OF_TEST_DATA_SETUP_USER: String = "Test"
 const val SURNAME_OF_TEST_DATA_SETUP_USER: String = "Data Setup User"
 const val NAME_OF_TEST_DATA_SETUP_USER: String = "$FORENAME_OF_TEST_DATA_SETUP_USER $SURNAME_OF_TEST_DATA_SETUP_USER"
+
 const val USERNAME_OF_LOGGED_IN_DELIUS_USER = "DELIUS_USER"
 const val FORENAME_OF_LOGGED_IN_DELIUS_USER: String = "Delius"
 const val SURNAME_OF_LOGGED_IN_DELIUS_USER: String = "User"
 const val NAME_OF_LOGGED_IN_DELIUS_USER: String = "$FORENAME_OF_LOGGED_IN_DELIUS_USER $SURNAME_OF_LOGGED_IN_DELIUS_USER"
+
+const val USERNAME_OF_DELIUS_SYNC_USER = "DELIUS_SYNC_USER"
+const val FORENAME_OF_DELIUS_SYNC_USER: String = "nDelius"
+const val SURNAME_OF_DELIUS_SYNC_USER: String = "user"
+
 const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
 private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
@@ -61,6 +66,7 @@ abstract class IntegrationTestBase {
   @Value($$"${test-data-setup.user-id}")
   protected lateinit var userIdOfTestDataSetupUser: UUID
   protected val userIdOfLoggedInDeliusUser: UUID = UUID.fromString("a1e2345f-b847-409a-9fee-aa75659bd9f8")
+  protected val userIdOfDeliusSyncUser: UUID = UUID.fromString("dc403174-5986-4824-9783-09d33602ad9f")
 
   @Autowired
   lateinit var applicationContext: ApplicationContext
@@ -112,6 +118,8 @@ abstract class IntegrationTestBase {
     ProbationIntegrationDeliusStubs.stubGetStaffByUsername(user.username, staffDetail)
   }
 
+  protected fun createDeliusSyncUser() = userRepository.save(deliusSyncUser())
+
   protected fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()).also { user ->
     ProbationIntegrationDeliusStubs.stubGetStaffByUsername(user.username, staffDetail)
   } to createDeliusUser()
@@ -141,6 +149,23 @@ abstract class IntegrationTestBase {
     middleNames = null,
     surname = SURNAME_OF_LOGGED_IN_DELIUS_USER,
     email = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+    telephoneNumber = null,
+    deliusStaffCode = null,
+    nomisStaffId = null,
+    nomisAccountType = null,
+    nomisActiveCaseloadId = null,
+    isEnabled = true,
+    isActive = true,
+  )
+
+  protected fun deliusSyncUser() = UserEntity(
+    id = userIdOfDeliusSyncUser,
+    username = USERNAME_OF_DELIUS_SYNC_USER,
+    authSource = AuthSourceEntity.DELIUS,
+    forename = FORENAME_OF_DELIUS_SYNC_USER,
+    middleNames = null,
+    surname = SURNAME_OF_DELIUS_SYNC_USER,
+    email = USERNAME_OF_DELIUS_SYNC_USER,
     telephoneNumber = null,
     deliusStaffCode = null,
     nomisStaffId = null,
