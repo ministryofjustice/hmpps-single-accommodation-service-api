@@ -16,7 +16,7 @@ fun buildReferralHistory(
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: DeliusUserDto? = null,
+  referredBy: DeliusUserDto,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas1ReferralHistory(
@@ -42,7 +42,7 @@ fun buildReferralHistory(
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: DeliusUserDto? = null,
+  referredBy: DeliusUserDto,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas2ReferralHistory(
@@ -68,7 +68,7 @@ fun buildReferralHistory(
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: DeliusUserDto? = null,
+  referredBy: DeliusUserDto,
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas3ReferralHistory(

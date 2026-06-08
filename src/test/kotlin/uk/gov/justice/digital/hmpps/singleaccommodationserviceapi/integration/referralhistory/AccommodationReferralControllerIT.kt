@@ -61,33 +61,34 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         status = DtrStatus.SUBMITTED,
       ),
     )
+    val referredByUser = buildDeliusUserDto()
 
     val cas1Response: List<Cas1ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-03-01T00:00:00Z"),
         status = Cas1AssessmentStatus.IN_PROGRESS,
-        referredBy = buildDeliusUserDto(),
+        referredBy = referredByUser,
       ),
     )
     val cas2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-01-01T00:00:00Z"),
         status = Cas2Status.AWAITING_DECISION,
-        referredBy = buildDeliusUserDto(),
+        referredBy = referredByUser,
       ),
     )
     val cas2v2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-04-01T00:00:00Z"),
         status = Cas2Status.PLACE_OFFERED,
-        referredBy = buildDeliusUserDto(),
+        referredBy = referredByUser,
       ),
     )
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
         status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
-        referredBy = buildDeliusUserDto(),
+        referredBy = referredByUser,
       ),
     )
 
@@ -107,7 +108,6 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             id2 = cas2Response.first().id,
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
-            referredBy = buildDeliusUserDto(),
             dtrId = case.id,
             dtrStatus = "PENDING",
             dtrSubmissionDate = "2026-01-15",
