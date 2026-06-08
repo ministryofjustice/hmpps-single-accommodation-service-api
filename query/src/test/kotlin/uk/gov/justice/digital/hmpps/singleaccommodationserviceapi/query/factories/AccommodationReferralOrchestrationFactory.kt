@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationDtoWithDtr
 
 fun buildAccommodationReferralOrchestrationDto(
   cas1Referrals: List<Cas1ReferralHistory> = listOf(
@@ -54,13 +55,22 @@ fun buildAccommodationReferralOrchestrationDto(
       placementStatus = "Some status",
     ),
   ),
-  dutyToRefer: List<DutyToReferDto> = listOf(
-    buildDutyToReferDto(),
-  ),
 ) = AccommodationReferralOrchestrationDto(
   cas1Referrals = cas1Referrals,
   cas2Referrals = cas2Referrals,
   cas2v2Referrals = cas2v2Referrals,
   cas3Referrals = cas3Referrals,
-  dutyToRefer,
+)
+
+fun buildAccommodationReferralOrchestrationDtoWithDtr(
+  dto: AccommodationReferralOrchestrationDto = buildAccommodationReferralOrchestrationDto(),
+  dutyToRefer: List<DutyToReferDto> = listOf(
+    buildDutyToReferDto(),
+  ),
+): AccommodationReferralOrchestrationDtoWithDtr = AccommodationReferralOrchestrationDtoWithDtr(
+  cas1Referrals = dto.cas1Referrals,
+  cas2Referrals = dto.cas2Referrals,
+  cas2v2Referrals = dto.cas2v2Referrals,
+  cas3Referrals = dto.cas3Referrals,
+  dutyToRefer = dutyToRefer,
 )
