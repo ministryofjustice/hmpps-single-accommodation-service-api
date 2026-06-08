@@ -34,8 +34,16 @@ class ProposedAccommodationController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
-    val accommodations = proposedAccommodationQueryService.getProposedAccommodations(crn)
-    return ResponseEntity.ok(ApiResponseDto(data = accommodations))
+    val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
+    handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
+    if (currentAndAllAccommodations.data.second.isNotEmpty()) {
+      proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
+        crn,
+        currentAccommodation = currentAndAllAccommodations.data.first,
+        cprAccommodations = currentAndAllAccommodations.data.second,
+      )
+    }
+    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")

@@ -10,4 +10,5 @@ interface AccommodationTypeRepository :
   override fun findAllByActiveIsTrueOrderByName(): List<AccommodationTypeEntity>
   fun findAllByActiveIsTrueAndIsProposedIsTrueOrderByName(): List<AccommodationTypeEntity>
   fun findByCodeAndActiveIsTrue(code: String): AccommodationTypeEntity?
+  fun findByCode(code: String): AccommodationTypeEntity?
 }

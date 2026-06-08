@@ -1,54 +1,80 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import java.time.LocalDate
 import java.util.UUID
 
 fun expectedGetProposedAccommodationsResponse(
   firstId: UUID,
+  firstAccommodationTypeEntity: AccommodationTypeEntity,
+  firstVerificationStatus: VerificationStatus,
+  firstNextAccommodationStatus: NextAccommodationStatus,
+  firstStartDate: LocalDate?,
   firstCreatedAt: String,
+  firstCreatedBy: String,
+  firstBuildingNumber: String,
   secondId: UUID,
+  secondAccommodationTypeEntity: AccommodationTypeEntity,
+  secondVerificationStatus: VerificationStatus,
+  secondNextAccommodationStatus: NextAccommodationStatus,
+  secondStartDate: LocalDate?,
   secondCreatedAt: String,
+  secondCreatedBy: String,
   crn: String,
-): String = """
+): String {
+  val firstStartDateString = firstStartDate?.let {
+    """
+    "$firstStartDate"
+    """.trimIndent()
+  } ?: "null"
+  val secondStartDateString = secondStartDate?.let {
+    """
+    "$secondStartDate"
+    """.trimIndent()
+  } ?: "null"
+  return """
 {
   "data": [
   {
     "id" : "$firstId",
     "crn":"$crn",
-    "name" : "Test Accommodation",
+    "name" : null,
     "accommodationType": {
-      "code": "A07B",
-      "description": "Living in the home of a friend, family member or partner: settled"
+      "code": "${firstAccommodationTypeEntity.code}",
+      "description": "${firstAccommodationTypeEntity.name}"
     },
-    "verificationStatus" : "NOT_CHECKED_YET",
-    "nextAccommodationStatus" : "TO_BE_DECIDED",
+    "verificationStatus" : "${firstVerificationStatus.name}",
+    "nextAccommodationStatus" : "${firstNextAccommodationStatus.name}",
     "address" : {
       "postcode" : "W1 8XX",
       "subBuildingName" : null,
       "buildingName" : null,
-      "buildingNumber" : "11",
+      "buildingNumber" : "$firstBuildingNumber",
       "thoroughfareName" : "Piccadilly Circus",
       "dependentLocality" : null,
       "postTown" : "London",
       "county" : null,
-      "country" : "England",
+      "country" : null,
       "uprn" : null
     },
-    "startDate" : null,
+    "startDate" : $firstStartDateString,
     "endDate" : null,
-    "createdBy":"Test Data Setup User",
+    "createdBy":"$firstCreatedBy",
     "createdAt" : "$firstCreatedAt"
   },
   {
     "id" : "$secondId",
     "crn":"$crn",
-    "name" : "Test Accommodation",
+    "name" : null,
     "accommodationType": {
-      "code": "A07B",
-      "description": "Living in the home of a friend, family member or partner: settled"
+      "code": "${secondAccommodationTypeEntity.code}",
+      "description": "${secondAccommodationTypeEntity.name}"
     },
-    "verificationStatus" : "NOT_CHECKED_YET",
-    "nextAccommodationStatus" : "TO_BE_DECIDED",
+    "verificationStatus" : "${secondVerificationStatus.name}",
+    "nextAccommodationStatus" : "${secondNextAccommodationStatus.name}",
     "address" : {
       "postcode" : "RG26 5AG",
       "subBuildingName" : null,
@@ -61,31 +87,75 @@ fun expectedGetProposedAccommodationsResponse(
       "country" : "England",
       "uprn" : null
     },
-    "startDate" : null,
+    "startDate" : $secondStartDateString,
     "endDate" : null,
-    "createdBy":"Test Data Setup User",
+    "createdBy":"$secondCreatedBy",
     "createdAt" : "$secondCreatedAt"
   }
   ]
 }
+  """.trimIndent()
+}
+
+fun expectedGetProposedAccommodationsResponse(
+  firstId: UUID,
+  firstBuildingNumber: String,
+  firstAccommodationTypeEntity: AccommodationTypeEntity,
+  firstVerificationStatus: VerificationStatus,
+  firstNextAccommodationStatus: NextAccommodationStatus,
+  firstStartDate: LocalDate?,
+  firstCreatedAt: String,
+  firstCreatedBy: String,
+  crn: String,
+): String = """
+    {
+      "data": [{
+        "id" : "$firstId",
+        "crn":"$crn",
+        "name" : null,
+        "accommodationType": {
+          "code": "${firstAccommodationTypeEntity.code}",
+          "description": "${firstAccommodationTypeEntity.name}"
+        },
+        "verificationStatus" : "${firstVerificationStatus.name}",
+        "nextAccommodationStatus" : "${firstNextAccommodationStatus.name}",
+        "address" : {
+          "postcode" : "W1 8XX",
+          "subBuildingName" : null,
+          "buildingName" : null,
+          "buildingNumber" : "$firstBuildingNumber",
+          "thoroughfareName" : "Piccadilly Circus",
+          "dependentLocality" : null,
+          "postTown" : "London",
+          "county" : null,
+          "country" : null,
+          "uprn" : null
+        },
+        "startDate" : ${convertNullable(firstStartDate?.toString())},
+        "endDate" : null,
+        "createdBy":"$firstCreatedBy",
+        "createdAt" : "$firstCreatedAt"
+      }]
+    }
 """.trimIndent()
 
 fun expectedGetProposedAccommodationByIdResponse(
   id: UUID,
   crn: String,
   createdAt: String,
+  startDate: String,
 ): String = """
 {
   "data": {
   "id" : "$id",
   "crn": "$crn",
-  "name" : "Test Accommodation",
+  "name" : null,
   "accommodationType": {
     "code": "A07B",
     "description": "Living in the home of a friend, family member or partner: settled"
   },
-  "verificationStatus" : "NOT_CHECKED_YET",
-  "nextAccommodationStatus" : "TO_BE_DECIDED",
+  "verificationStatus" : "PASSED",
+  "nextAccommodationStatus" : "YES",
   "address" : {
     "postcode" : "W1 8XX",
     "subBuildingName" : null,
@@ -98,7 +168,7 @@ fun expectedGetProposedAccommodationByIdResponse(
     "country" : "England",
     "uprn" : null
   },
-  "startDate" : null,
+  "startDate" : "$startDate",
   "endDate" : null,
   "createdBy":"Test Data Setup User",
   "createdAt" : "$createdAt"
@@ -124,32 +194,32 @@ fun proposedAddressesRequestBody(
   endDate: String? = "2026-04-25",
 ) = """
   {
-    "name" : "Mother's caravan",
+    "name" : null,
     "accommodationTypeCode" : "$accommodationTypeCode",
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
       "postcode" : "$postcode",
-      "subBuildingName" : "$subBuildingName",
-      "buildingName" : "$buildingName",
-      "buildingNumber" : "$buildingNumber",
-      "thoroughfareName" : "$thoroughfareName",
-      "dependentLocality" : "$dependentLocality",
-      "postTown" : "$postTown",
-      "county" : "$county",
-      "country" : "$country",
-      "uprn" : "$uprn"
+      "subBuildingName" : ${convertNullable(subBuildingName)},
+      "buildingName" : ${convertNullable(buildingName)},
+      "buildingNumber" : ${convertNullable(buildingNumber)},
+      "thoroughfareName" : ${convertNullable(thoroughfareName)},
+      "dependentLocality" :${convertNullable(dependentLocality)},
+      "postTown" : ${convertNullable(postTown)},
+      "county" : ${convertNullable(county)},
+      "country" : ${convertNullable(country)},
+      "uprn" : ${convertNullable(uprn)}
     },
-    "startDate" : ${convertDate(startDate)},
-    "endDate" : ${convertDate(endDate)}
+    "startDate" : ${convertNullable(startDate)},
+    "endDate" : ${convertNullable(endDate)}
   }
 """.trimIndent()
 
-fun convertDate(date: String? = "2026-01-05") = if (date == null) {
+fun convertNullable(nullable: String?) = if (nullable == null) {
   "null"
 } else {
   """
-    "$date"
+    "$nullable"
   """.trimIndent()
 }
 
@@ -183,7 +253,7 @@ fun expectedProposedAddressesResponseBody(
 {
   "id" : "$id",
   "crn":"$crn",
-  "name" : "Mother's caravan",
+  "name" : null,
   "accommodationType" : {
     "code": "$accommodationTypeCode",
     "description": "$accommodationTypeDescription"
