@@ -15,7 +15,7 @@ data class Cas1ReferralHistory(
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: DeliusUserDto?,
+  val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val placementStatus: String?,
 ) : CasReferralHistory {
@@ -45,7 +45,7 @@ data class Cas2ReferralHistory(
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: DeliusUserDto?,
+  val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val placementStatus: String?,
 ) : CasReferralHistory {
@@ -78,7 +78,7 @@ data class Cas3ReferralHistory(
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
   val pdu: String?,
-  val referredBy: DeliusUserDto?,
+  val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val placementStatus: String?,
 ) : CasReferralHistory {

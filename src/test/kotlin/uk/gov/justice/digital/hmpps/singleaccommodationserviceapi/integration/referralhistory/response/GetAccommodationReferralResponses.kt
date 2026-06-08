@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
 import java.util.UUID
 
 fun expectedGetReferralHistory(
@@ -12,30 +11,14 @@ fun expectedGetReferralHistory(
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: DeliusUserDto? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
-  dtrId: UUID? = null,
+  dtrId: UUID,
   dtrStatus: String? = null,
   dtrSubmissionDate: String? = null,
-): String {
-  fun referredByJson(dto: DeliusUserDto?) = if (dto == null) {
-    "null"
-  } else {
-    """{
-          "name": "${dto.name}",
-          "username": "${dto.username}",
-          "staffCode": "${dto.staffCode}" 
-       }
-    """.trimIndent()
-  }
-
-  return """
+): String = """
   {
     "data": [
-    ${
-    if (dtrId != null) {
-      """
      {
         "id":"$dtrId",
         "type":"DTR",
@@ -48,11 +31,7 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Test Data Setup User","username":"Test Data Setup User","staffCode":"Test Data Setup User"},
         "placementAddress": "Aberdeen City",
         "placementStatus": "null"
-     },"""
-    } else {
-      ""
-    }
-  }
+     },
      {
         "id":"$id3",
         "type":"CAS2v2",
@@ -62,7 +41,7 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
-        "referredBy": ${referredByJson(referredBy)},
+        "referredBy":{"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus
      },
@@ -75,7 +54,7 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
-        "referredBy": ${referredByJson(referredBy)},
+        "referredBy":{"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus
      },
@@ -88,7 +67,7 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
-        "referredBy": ${referredByJson(referredBy)},
+        "referredBy":{"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus
      },
@@ -101,11 +80,10 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
-        "referredBy": ${referredByJson(referredBy)},
+        "referredBy":{"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus
      }
     ]
   }
-  """.trimIndent()
-}
+""".trimIndent()
