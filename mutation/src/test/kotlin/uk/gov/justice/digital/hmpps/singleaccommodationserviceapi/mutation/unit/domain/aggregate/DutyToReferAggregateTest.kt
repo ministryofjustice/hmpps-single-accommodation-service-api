@@ -507,6 +507,55 @@ class DutyToReferAggregateTest {
     }
   }
 
+  @Nested
+  inner class Withdraw {
+    @Test
+    fun `withdraw on SUBMITTED aggregate sets status to WITHDRAWN with NEW_REFERRAL reason and emits event`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      val snapshotBefore = aggregate.snapshot()
+
+      aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+
+      val snapshot = aggregate.snapshot()
+      assertThat(snapshot.status).isEqualTo(DtrStatus.WITHDRAWN)
+      assertThat(snapshot.withdrawalReason).isEqualTo(WithdrawalReason.NEW_REFERRAL)
+      assertThat(snapshot.withdrawalReasonOther).isNull()
+      val domainEvents = aggregate.pullDomainEvents()
+      assertThat(domainEvents).hasSize(1)
+      assertThat(domainEvents.first()).isInstanceOf(DutyToReferUpdatedDomainEvent::class.java)
+      assertThat(domainEvents.first().aggregateId).isEqualTo(snapshotBefore.id)
+    }
+
+    @Test
+    fun `withdraw preserves localAuthorityAreaId, submissionDate and referenceNumber`() {
+      val referenceNumber = "DTR-REF-001"
+      val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = referenceNumber,
+        status = DtrStatus.SUBMITTED,
+      )
+      aggregate.pullDomainEvents()
+
+      aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+
+      val snapshot = aggregate.snapshot()
+      assertThat(snapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(snapshot.submissionDate).isEqualTo(submissionDate)
+      assertThat(snapshot.referenceNumber).isEqualTo(referenceNumber)
+    }
+
+    @Test
+    fun `withdraw on already WITHDRAWN aggregate does not emit a domain event`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.WITHDRAWN)
+
+      aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+
+      assertThat(aggregate.pullDomainEvents()).isEmpty()
+    }
+  }
+
   private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
     val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(

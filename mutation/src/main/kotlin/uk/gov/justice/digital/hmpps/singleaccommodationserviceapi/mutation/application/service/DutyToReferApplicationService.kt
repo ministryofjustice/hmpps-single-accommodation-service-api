@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import java.time.Instant
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 @Service
 class DutyToReferApplicationService(
@@ -34,6 +36,7 @@ class DutyToReferApplicationService(
   fun createDutyToRefer(crn: String, command: DtrCommand): DutyToReferDto {
     val user = userService.authorizeAndRetrieveUser()
     val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
+    withdrawExistingSubmittedReferral(case.id)
     val aggregate = DutyToReferAggregate.hydrateNew(caseId = case.id)
     aggregate.updateDutyToRefer(
       localAuthorityAreaId = command.localAuthorityAreaId,
@@ -97,6 +100,16 @@ class DutyToReferApplicationService(
     aggregate.addNote(note = noteCommand.note)
     val merged = merge(aggregate.snapshot(), entity)
     dutyToReferRepository.save(merged)
+  }
+
+  private fun withdrawExistingSubmittedReferral(caseId: UUID) {
+    dutyToReferRepository.findByCaseIdAndStatus(caseId, EntityDtrStatus.SUBMITTED)
+      ?.let { entity ->
+        val aggregate = DutyToReferMapper.toAggregate(entity)
+        aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+        dutyToReferRepository.save(merge(aggregate.snapshot(), entity))
+        pullEventAndPersistToOutbox(aggregate)
+      }
   }
 
   private fun pullEventAndPersistToOutbox(aggregate: DutyToReferAggregate) = aggregate.pullDomainEvents().forEach { event ->

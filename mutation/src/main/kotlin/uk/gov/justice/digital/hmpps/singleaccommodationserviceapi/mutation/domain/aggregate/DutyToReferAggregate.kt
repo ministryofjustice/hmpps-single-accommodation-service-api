@@ -123,6 +123,20 @@ class DutyToReferAggregate private constructor(
     }
   }
 
+  fun withdrawDutyToRefer(withdrawalReason: WithdrawalReason) {
+    validateStatusTransition(DtrStatus.WITHDRAWN)
+    validateWithdrawal(DtrStatus.WITHDRAWN, withdrawalReason, null)
+
+    val previousStatus = this.status
+    this.status = DtrStatus.WITHDRAWN
+    this.withdrawalReason = withdrawalReason
+    this.withdrawalReasonOther = null
+
+    if (previousStatus != DtrStatus.WITHDRAWN) {
+      domainEvents += DutyToReferUpdatedDomainEvent(id)
+    }
+  }
+
   fun addNote(note: String) {
     validateNote(note)
     notes += DutyToReferNote(
