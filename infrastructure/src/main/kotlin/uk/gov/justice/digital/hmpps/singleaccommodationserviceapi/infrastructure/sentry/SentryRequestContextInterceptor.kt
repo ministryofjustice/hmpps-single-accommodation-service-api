@@ -17,13 +17,11 @@ class SentryRequestContextInterceptor : HandlerInterceptor {
   override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
     val requestId = UUID.randomUUID().toString()
     val endpointPattern = request.getPathPattern() ?: request.requestURI
-    val serviceName = request.getHeader("X-Service-Name") ?: "Not specified"
 
     Sentry.configureScope(ScopeType.ISOLATION) { scope: IScope ->
       scope.setTag("request.id", requestId)
       scope.setTag("request.method", request.method)
       scope.setTag("request.pathPattern", endpointPattern)
-      scope.setTag("request.serviceName", serviceName)
     }
 
     return true
