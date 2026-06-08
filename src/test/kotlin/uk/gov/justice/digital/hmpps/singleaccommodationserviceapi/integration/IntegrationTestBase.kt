@@ -85,17 +85,16 @@ abstract class IntegrationTestBase {
 
   @BeforeAll
   fun beforeAll() {
-    waitFor {
-      await
-        .atMost(Duration.ofSeconds(10))
-        .pollInterval(Duration.ofMillis(10))
-        .untilAsserted {
-          restTestClient.get().uri("/health/readiness")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody().jsonPath("status").isEqualTo("UP")
-        }
-    }
+    await
+      .atMost(Duration.ofSeconds(10))
+      .pollInterval(Duration.ofMillis(10))
+      .logging()
+      .untilAsserted {
+        restTestClient.get().uri("/health/readiness")
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().jsonPath("status").isEqualTo("UP")
+      }
   }
 
   @BeforeEach
