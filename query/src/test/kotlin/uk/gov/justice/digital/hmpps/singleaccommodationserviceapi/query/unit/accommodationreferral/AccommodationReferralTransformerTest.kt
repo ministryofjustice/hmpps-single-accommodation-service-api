@@ -13,14 +13,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDtoWithDtr
 import java.util.stream.Stream
 
 class AccommodationReferralTransformerTest {
   @Test
   fun `should transform orchestration dto to list of accommodation referral dtos`() {
     val orchestrationDto = buildAccommodationReferralOrchestrationDto()
+    val orchestrationDtoWithDtr = buildAccommodationReferralOrchestrationDtoWithDtr()
 
-    val result = AccommodationReferralTransformer.transformReferrals(orchestrationDto)
+    val result = AccommodationReferralTransformer.transformReferrals(orchestrationDtoWithDtr)
 
     assertThat(result).hasSize(5)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(

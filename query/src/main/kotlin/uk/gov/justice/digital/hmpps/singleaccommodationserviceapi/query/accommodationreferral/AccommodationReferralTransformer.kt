@@ -14,7 +14,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 object AccommodationReferralTransformer {
-  fun transformReferrals(dto: AccommodationReferralOrchestrationDto) = dto.cas1Referrals.map {
+  fun transformReferrals(dto: AccommodationReferralOrchestrationDtoWithDtr) = dto.cas1Referrals.map {
     toAccommodationReferralDto(
       id = it.id,
       type = CasService.CAS1,
