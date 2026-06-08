@@ -309,7 +309,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(withdrawnRecord.withdrawalReason).isEqualTo(WithdrawalReason.NEW_REFERRAL)
 
     // new referral is SUBMITTED
-    val newRecord = dutyToReferRepository.findAll().first { it.id != existingDtr.id }
+    val newRecord = dutyToReferRepository.findAll().single { it.id != existingDtr.id }
     assertThat(newRecord.status).isEqualTo(EntityDtrStatus.SUBMITTED)
     assertThat(newRecord.referenceNumber).isEqualTo("DTR-REF-002")
 
