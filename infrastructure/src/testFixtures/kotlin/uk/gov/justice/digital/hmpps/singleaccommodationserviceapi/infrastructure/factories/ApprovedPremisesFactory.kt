@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -18,7 +18,7 @@ fun buildCas1Application(
   applicationStatus: Cas1ApplicationStatus = Cas1ApplicationStatus.STARTED,
   placementStatus: Cas1PlacementStatus? = null,
   requestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
-  premises: Cas1SuitablePremisesDto? = null,
+  premises: Cas1PremisesSummary? = null,
 ) = Cas1Application(
   id = id,
   applicationStatus = applicationStatus,
@@ -27,14 +27,14 @@ fun buildCas1Application(
   premises = premises,
 )
 
-fun buildCas1SuitablePremisesDto(
+fun buildCas1PremisesSummary(
   startDate: LocalDate? = LocalDate.now().plusDays(1),
   endDate: LocalDate? = LocalDate.now().plusDays(10),
   addressLine1: String = "123 Test Street",
   addressLine2: String? = "Test Village",
   town: String? = "Test Town",
   postcode: String = "AB1 2CD",
-) = Cas1SuitablePremisesDto(
+) = Cas1PremisesSummary(
   startDate = startDate,
   endDate = endDate,
   addressLine1 = addressLine1,

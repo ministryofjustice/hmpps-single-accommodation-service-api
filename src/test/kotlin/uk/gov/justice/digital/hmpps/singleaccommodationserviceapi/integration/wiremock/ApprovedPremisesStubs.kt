@@ -11,6 +11,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
 object ApprovedPremisesStubs {
+  fun getCas1CurrentPremisesOKResponse(crn: String, response: Any) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun getCas1CurrentPremisesServerErrorResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
+        .willReturn(serverError()),
+    )
+  }
 
   fun getCas1SuitableApplicationOKResponse(crn: String, response: Any) {
     sasWiremock.stubFor(
