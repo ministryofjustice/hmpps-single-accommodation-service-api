@@ -20,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue
 class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
-  private val messages = LinkedBlockingQueue<HmppsDomainEvent>(1) //FIFO, waits until there is space
+  private val messages = LinkedBlockingQueue<HmppsDomainEvent>(1) // FIFO, waits until there is space
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
   lateinit var topicName: String
