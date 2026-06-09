@@ -18,7 +18,7 @@ data class DtrSubmissionDto(
   val localAuthority: LocalAuthorityDto,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
-  val createdBy: String, //TODO: this should be a user object. Refactor to make username non-nullable.
+  val createdBy: String, // TODO: this should be a user object. Refactor to make username non-nullable.
   @JsonInclude(JsonInclude.Include.NON_NULL)
   val createdByUsername: String? = null,
   @field:JsonFormat(
