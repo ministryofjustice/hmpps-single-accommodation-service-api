@@ -18,8 +18,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer.toAccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer.toAccommodationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.util.UUID
 
@@ -30,13 +32,24 @@ class AccommodationQueryService(
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val accommodationStatusRepository: AccommodationStatusRepository,
   private val caseRepository: CaseRepository,
+  private val caseOrchestrationService: CaseOrchestrationService,
+  private val userService: UserService,
 ) {
   private val excludedAddressStatuses = setOf(AddressStatusCode.PR.name, AddressStatusCode.PR1.name)
 
   fun getCurrentAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
+    val caseOrchestrationResult = caseOrchestrationService.getCaseFromDelius(
+      username = userService.getUsername().value,
+      crn,
+    )
+    if (caseOrchestrationResult.upstreamFailures.isNotEmpty()) {
+      return toApiResponseDto(
+        data = null,
+        upstreamFailures = caseOrchestrationResult.upstreamFailures,
+      )
+    }
+    val case = caseOrchestrationResult.data.case!!
+    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber = case.nomsNumber)
     return if (orchestrationResult.upstreamFailures.isNotEmpty()) {
       toApiResponseDto(
         data = null,
@@ -101,21 +114,32 @@ class AccommodationQueryService(
       ).mapNotNull { it }
   }
 
-  fun getCurrentAndAllAccommodations(crn: String): ApiResponseDto<Pair<AccommodationSummaryDto?, List<AccommodationDetailDto>>> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
+  fun getCurrentAndAllAccommodations(crn: String): ApiResponseDto<Pair<AccommodationSummaryDto?, List<AccommodationDetailDto>>?> {
+    val caseOrchestrationResult = caseOrchestrationService.getCaseFromDelius(
+      username = userService.getUsername().value,
+      crn,
+    )
+    if (caseOrchestrationResult.upstreamFailures.isNotEmpty()) {
+      return toApiResponseDto(
+        data = null,
+        upstreamFailures = caseOrchestrationResult.upstreamFailures,
+      )
+    }
+    val case = caseOrchestrationResult.data.case!!
+    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(
+      crn = crn,
+      prisonNumber = case.nomsNumber,
+    )
 
     val allAccommodations = orchestrationResult.data.cpr?.let {
-      it.addresses.map { toAccommodationDetail(crn, address = it) }
+      it.addresses.map { address -> toAccommodationDetail(crn, address) }
     } ?: emptyList()
 
     val currentAccommodation = getCurrentAccommodation(
-      crn = crn,
+      crn,
       addresses = orchestrationResult.data.cpr?.addresses,
       prisoner = orchestrationResult.data.prisoner,
     )
-
     return toApiResponseDto(
       data = Pair(currentAccommodation, allAccommodations),
       upstreamFailures = orchestrationResult.upstreamFailures,

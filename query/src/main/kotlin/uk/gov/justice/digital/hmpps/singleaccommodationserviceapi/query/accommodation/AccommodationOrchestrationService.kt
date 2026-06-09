@@ -24,8 +24,6 @@ class AccommodationOrchestrationService(
   private val approvedPremisesCachingService: ApprovedPremisesCachingService,
   private val prisonerSearchCachingService: PrisonerSearchCachingService,
 ) {
-  fun getAccommodationsOrchestration(crn: String) = getAccommodationsOrchestration(crn, prisonNumber = null)
-
   fun getAccommodationsOrchestration(crn: String, prisonNumber: String?): OrchestrationResultDto<AccommodationOrchestrationDto> {
     val calls = buildMap {
       put(GET_CORE_PERSON_RECORD_BY_CRN) { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) }

@@ -36,11 +36,13 @@ class ProposedAccommodationController(
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
     val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
     handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
-    if (currentAndAllAccommodations.data.second.isNotEmpty()) {
+    val currentAccommodation = currentAndAllAccommodations.data!!.first
+    val cprAddresses = currentAndAllAccommodations.data!!.second
+    if (cprAddresses.isNotEmpty()) {
       proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
         crn,
-        currentAccommodation = currentAndAllAccommodations.data.first,
-        cprAccommodations = currentAndAllAccommodations.data.second,
+        currentAccommodation = currentAccommodation,
+        cprAccommodations = cprAddresses,
       )
     }
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))

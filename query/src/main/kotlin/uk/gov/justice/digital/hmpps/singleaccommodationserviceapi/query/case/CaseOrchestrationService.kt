@@ -130,4 +130,26 @@ class CaseOrchestrationService(
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )
   }
+
+  fun getCaseFromDelius(username: String, crn: String): OrchestrationResultDto<CaseOrchestrationDto> {
+    val calls = mapOf(
+      ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
+    )
+    val results = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = calls,
+    )
+
+    val case = results.standardCallsNoIterationResults!!.getResult<Case>(ApiCallKeys.GET_CASE)
+
+    return OrchestrationResultDto(
+      data = CaseOrchestrationDto(
+        crn = crn,
+        cpr = null,
+        roshDetails = null,
+        tier = null,
+        case = case,
+      ),
+      upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
+    )
+  }
 }
