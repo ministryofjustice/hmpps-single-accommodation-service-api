@@ -106,9 +106,7 @@ class SingleAccommodationServiceApiExceptionHandler(
         ),
       ).also {
         log.error("{}: {}", httpStatus.name, e.message)
-        if (httpStatus.is5xxServerError) {
-          sentryService.captureException(e)
-        }
+        sentryService.captureException(e)
       }
   }
 

@@ -41,16 +41,6 @@ class SingleAccommodationServiceApiExceptionHandlerTest {
     verify(exactly = 1) { sentryService.captureException(exception) }
   }
 
-  @Test
-  fun `does not capture upstream client failures in Sentry`() {
-    val exception = upstreamFailureException(HttpStatus.NOT_FOUND)
-
-    val response = handler.handleUpstreamFailureException(exception)
-
-    assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-    verify(exactly = 0) { sentryService.captureException(any()) }
-  }
-
   private fun upstreamFailureException(status: HttpStatus) = UpstreamFailureException(
     listOf(
       UpstreamFailureDto(
