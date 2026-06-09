@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
@@ -23,7 +24,7 @@ class AccommodationReferralTransformerTest {
 
     val result = AccommodationReferralTransformer.transformReferrals(
       orchestrationDto,
-      listOf(buildDutyToReferDto()),
+      listOf(buildDutyToReferDto(submission = buildDtrSubmission(createdByUsername = "TEST_USER"))),
     )
 
     assertThat(result).hasSize(5)
@@ -41,7 +42,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.referralRejectionReason).isEqualTo("NOT_ELIGIBLE")
           assertThat(it.localAuthorityArea).isEqualTo("localAuthorityAreaName")
           assertThat(it.pdu).isEqualTo("localAuthorityAreaName")
-          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "Someone", null))
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER", null))
           assertThat(it.placementAddress).isEqualTo("localAuthorityAreaName")
           assertThat(it.placementStatus).isEqualTo("NO_LOCAL_CONNECTION")
         }

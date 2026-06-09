@@ -85,7 +85,7 @@ object AccommodationReferralTransformer {
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
         pdu = it.submission!!.localAuthority.localAuthorityAreaName,
         referredBy = DeliusUserDto(
-          name = it.submission!!.createdBy!!,
+          name = it.submission!!.createdBy,
           username = it.submission!!.createdByUsername,
           staffCode = null,
         ),

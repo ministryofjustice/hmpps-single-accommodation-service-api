@@ -28,6 +28,7 @@ fun buildDtrSubmission(
   referenceNumber: String = "REFERENCE-123",
   submissionDate: LocalDate = LocalDate.now(),
   createdBy: String = "Someone",
+  createdByUsername: String? = null,
   createdAt: Instant = Instant.now(),
 ) = DtrSubmissionDto(
   id = id,
@@ -35,6 +36,7 @@ fun buildDtrSubmission(
   referenceNumber = referenceNumber,
   submissionDate = submissionDate,
   createdBy = createdBy,
+  createdByUsername = createdByUsername,
   createdAt = createdAt,
   withdrawalReason = WithdrawalReason.NOT_ELIGIBLE,
   withdrawalReasonOther = "Some other reason",
