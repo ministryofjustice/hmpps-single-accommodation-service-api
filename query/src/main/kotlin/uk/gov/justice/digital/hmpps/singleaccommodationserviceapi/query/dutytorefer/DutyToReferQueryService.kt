@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Up
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.NOT_ACCEPTED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.WITHDRAWN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
@@ -35,12 +37,13 @@ class DutyToReferQueryService(
   }
 
   fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
-    val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
-    return getDutyToReferHistory(caseEntity, crn).orThrowNotFound("crn" to crn)
+    val caseEntity = caseRepository.findByCrn(crn) ?: return emptyList()
+    return getDutyToReferHistory(caseEntity, crn)
   }
 
   fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
-    val dtrEntities = dutyToReferRepository.findByCaseIdOrderByCreatedAtDesc(caseEntity.id)
+    // Only show not accepted and withdrawn, submitted and accepted don't appear in the history section form the prototype.
+    val dtrEntities = dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, listOf(NOT_ACCEPTED, WITHDRAWN))
     if (dtrEntities.isEmpty()) return emptyList()
 
     val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()

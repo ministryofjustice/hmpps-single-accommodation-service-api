@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
@@ -29,21 +29,21 @@ class AccommodationReferralTransformerTest {
 
     assertThat(result).hasSize(5)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
-      CasService.CAS1,
-      CasService.CAS2,
-      CasService.CAS2v2,
-      CasService.CAS3,
-      CasService.DTR,
+      AccommodationService.CAS1,
+      AccommodationService.CAS2,
+      AccommodationService.CAS2v2,
+      AccommodationService.CAS3,
+      AccommodationService.DTR,
     )
 
     result.forEach {
       when (it.type) {
-        CasService.DTR -> {
+        AccommodationService.DTR -> {
           assertThat(it.referralRejectionReason).isEqualTo("NOT_ELIGIBLE")
           assertThat(it.localAuthorityArea).isEqualTo("localAuthorityAreaName")
           assertThat(it.pdu).isEqualTo("localAuthorityAreaName")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER", null))
-          assertThat(it.placementAddress).isEqualTo("localAuthorityAreaName")
+          assertThat(it.placementAddress).isNull()
           assertThat(it.placementStatus).isEqualTo("NO_LOCAL_CONNECTION")
         }
         else -> {
@@ -62,7 +62,7 @@ class AccommodationReferralTransformerTest {
   @MethodSource("cas1StatusMappings")
   fun `should transform Cas1AssessmentStatus to CasReferralStatus`(
     input: Cas1AssessmentStatus,
-    expected: CasReferralStatus,
+    expected: AccommodationReferralStatus,
   ) {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
@@ -71,7 +71,7 @@ class AccommodationReferralTransformerTest {
   @MethodSource("cas2StatusMappings")
   fun `should transform Cas2Status to CasReferralStatus`(
     input: Cas2Status,
-    expected: CasReferralStatus,
+    expected: AccommodationReferralStatus,
   ) {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
@@ -80,7 +80,7 @@ class AccommodationReferralTransformerTest {
   @MethodSource("cas3StatusMappings")
   fun `should transform TemporaryAccommodationAssessmentStatus to CasReferralStatus`(
     input: TemporaryAccommodationAssessmentStatus,
-    expected: CasReferralStatus,
+    expected: AccommodationReferralStatus,
   ) {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
@@ -88,11 +88,11 @@ class AccommodationReferralTransformerTest {
   @Test
   fun `all Cas1AssessmentStatus values map correctly`() {
     val expectedMapping = mapOf(
-      Cas1AssessmentStatus.COMPLETED to CasReferralStatus.ACCEPTED,
-      Cas1AssessmentStatus.REALLOCATED to CasReferralStatus.REJECTED,
-      Cas1AssessmentStatus.AWAITING_RESPONSE to CasReferralStatus.PENDING,
-      Cas1AssessmentStatus.IN_PROGRESS to CasReferralStatus.PENDING,
-      Cas1AssessmentStatus.NOT_STARTED to CasReferralStatus.PENDING,
+      Cas1AssessmentStatus.COMPLETED to AccommodationReferralStatus.ACCEPTED,
+      Cas1AssessmentStatus.REALLOCATED to AccommodationReferralStatus.REJECTED,
+      Cas1AssessmentStatus.AWAITING_RESPONSE to AccommodationReferralStatus.PENDING,
+      Cas1AssessmentStatus.IN_PROGRESS to AccommodationReferralStatus.PENDING,
+      Cas1AssessmentStatus.NOT_STARTED to AccommodationReferralStatus.PENDING,
     )
 
     Cas1AssessmentStatus.entries.forEach { status ->
@@ -103,17 +103,17 @@ class AccommodationReferralTransformerTest {
   @Test
   fun `all Cas2Status values map to correct CasReferralStatus`() {
     val expectations = mapOf(
-      Cas2Status.PLACE_OFFERED to CasReferralStatus.ACCEPTED,
-      Cas2Status.OFFER_ACCEPTED to CasReferralStatus.ACCEPTED,
+      Cas2Status.PLACE_OFFERED to AccommodationReferralStatus.ACCEPTED,
+      Cas2Status.OFFER_ACCEPTED to AccommodationReferralStatus.ACCEPTED,
 
-      Cas2Status.OFFER_DECLINED_OR_WITHDRAWN to CasReferralStatus.REJECTED,
-      Cas2Status.REFERRAL_CANCELLED to CasReferralStatus.REJECTED,
-      Cas2Status.REFERRAL_WITHDRAWN to CasReferralStatus.REJECTED,
+      Cas2Status.OFFER_DECLINED_OR_WITHDRAWN to AccommodationReferralStatus.REJECTED,
+      Cas2Status.REFERRAL_CANCELLED to AccommodationReferralStatus.REJECTED,
+      Cas2Status.REFERRAL_WITHDRAWN to AccommodationReferralStatus.REJECTED,
 
-      Cas2Status.MORE_INFORMATION_REQUESTED to CasReferralStatus.PENDING,
-      Cas2Status.AWAITING_ARRIVAL to CasReferralStatus.PENDING,
-      Cas2Status.ON_WAITING_LIST to CasReferralStatus.PENDING,
-      Cas2Status.AWAITING_DECISION to CasReferralStatus.PENDING,
+      Cas2Status.MORE_INFORMATION_REQUESTED to AccommodationReferralStatus.PENDING,
+      Cas2Status.AWAITING_ARRIVAL to AccommodationReferralStatus.PENDING,
+      Cas2Status.ON_WAITING_LIST to AccommodationReferralStatus.PENDING,
+      Cas2Status.AWAITING_DECISION to AccommodationReferralStatus.PENDING,
     )
 
     Cas2Status.entries.forEach { status ->
@@ -124,13 +124,13 @@ class AccommodationReferralTransformerTest {
   @Test
   fun `TemporaryAccommodationAssessmentStatus maps to correct CasReferralStatus`() {
     val expectations = mapOf(
-      TemporaryAccommodationAssessmentStatus.READY_TO_PLACE to CasReferralStatus.ACCEPTED,
+      TemporaryAccommodationAssessmentStatus.READY_TO_PLACE to AccommodationReferralStatus.ACCEPTED,
 
-      TemporaryAccommodationAssessmentStatus.CLOSED to CasReferralStatus.REJECTED,
-      TemporaryAccommodationAssessmentStatus.REJECTED to CasReferralStatus.REJECTED,
+      TemporaryAccommodationAssessmentStatus.CLOSED to AccommodationReferralStatus.REJECTED,
+      TemporaryAccommodationAssessmentStatus.REJECTED to AccommodationReferralStatus.REJECTED,
 
-      TemporaryAccommodationAssessmentStatus.UNALLOCATED to CasReferralStatus.PENDING,
-      TemporaryAccommodationAssessmentStatus.IN_REVIEW to CasReferralStatus.PENDING,
+      TemporaryAccommodationAssessmentStatus.UNALLOCATED to AccommodationReferralStatus.PENDING,
+      TemporaryAccommodationAssessmentStatus.IN_REVIEW to AccommodationReferralStatus.PENDING,
     )
 
     TemporaryAccommodationAssessmentStatus.entries.forEach { status ->
@@ -141,33 +141,33 @@ class AccommodationReferralTransformerTest {
   private companion object {
     @JvmStatic
     fun cas1StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(Cas1AssessmentStatus.COMPLETED, CasReferralStatus.ACCEPTED),
-      Arguments.of(Cas1AssessmentStatus.REALLOCATED, CasReferralStatus.REJECTED),
-      Arguments.of(Cas1AssessmentStatus.AWAITING_RESPONSE, CasReferralStatus.PENDING),
-      Arguments.of(Cas1AssessmentStatus.IN_PROGRESS, CasReferralStatus.PENDING),
-      Arguments.of(Cas1AssessmentStatus.NOT_STARTED, CasReferralStatus.PENDING),
+      Arguments.of(Cas1AssessmentStatus.COMPLETED, AccommodationReferralStatus.ACCEPTED),
+      Arguments.of(Cas1AssessmentStatus.REALLOCATED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(Cas1AssessmentStatus.AWAITING_RESPONSE, AccommodationReferralStatus.PENDING),
+      Arguments.of(Cas1AssessmentStatus.IN_PROGRESS, AccommodationReferralStatus.PENDING),
+      Arguments.of(Cas1AssessmentStatus.NOT_STARTED, AccommodationReferralStatus.PENDING),
     )
 
     @JvmStatic
     fun cas2StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(Cas2Status.PLACE_OFFERED, CasReferralStatus.ACCEPTED),
-      Arguments.of(Cas2Status.OFFER_ACCEPTED, CasReferralStatus.ACCEPTED),
-      Arguments.of(Cas2Status.OFFER_DECLINED_OR_WITHDRAWN, CasReferralStatus.REJECTED),
-      Arguments.of(Cas2Status.REFERRAL_CANCELLED, CasReferralStatus.REJECTED),
-      Arguments.of(Cas2Status.REFERRAL_WITHDRAWN, CasReferralStatus.REJECTED),
-      Arguments.of(Cas2Status.MORE_INFORMATION_REQUESTED, CasReferralStatus.PENDING),
-      Arguments.of(Cas2Status.AWAITING_ARRIVAL, CasReferralStatus.PENDING),
-      Arguments.of(Cas2Status.ON_WAITING_LIST, CasReferralStatus.PENDING),
-      Arguments.of(Cas2Status.AWAITING_DECISION, CasReferralStatus.PENDING),
+      Arguments.of(Cas2Status.PLACE_OFFERED, AccommodationReferralStatus.ACCEPTED),
+      Arguments.of(Cas2Status.OFFER_ACCEPTED, AccommodationReferralStatus.ACCEPTED),
+      Arguments.of(Cas2Status.OFFER_DECLINED_OR_WITHDRAWN, AccommodationReferralStatus.REJECTED),
+      Arguments.of(Cas2Status.REFERRAL_CANCELLED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(Cas2Status.REFERRAL_WITHDRAWN, AccommodationReferralStatus.REJECTED),
+      Arguments.of(Cas2Status.MORE_INFORMATION_REQUESTED, AccommodationReferralStatus.PENDING),
+      Arguments.of(Cas2Status.AWAITING_ARRIVAL, AccommodationReferralStatus.PENDING),
+      Arguments.of(Cas2Status.ON_WAITING_LIST, AccommodationReferralStatus.PENDING),
+      Arguments.of(Cas2Status.AWAITING_DECISION, AccommodationReferralStatus.PENDING),
     )
 
     @JvmStatic
     fun cas3StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(TemporaryAccommodationAssessmentStatus.READY_TO_PLACE, CasReferralStatus.ACCEPTED),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.CLOSED, CasReferralStatus.REJECTED),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.REJECTED, CasReferralStatus.REJECTED),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.UNALLOCATED, CasReferralStatus.PENDING),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.IN_REVIEW, CasReferralStatus.PENDING),
+      Arguments.of(TemporaryAccommodationAssessmentStatus.READY_TO_PLACE, AccommodationReferralStatus.ACCEPTED),
+      Arguments.of(TemporaryAccommodationAssessmentStatus.CLOSED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(TemporaryAccommodationAssessmentStatus.REJECTED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(TemporaryAccommodationAssessmentStatus.UNALLOCATED, AccommodationReferralStatus.PENDING),
+      Arguments.of(TemporaryAccommodationAssessmentStatus.IN_REVIEW, AccommodationReferralStatus.PENDING),
     )
   }
 }

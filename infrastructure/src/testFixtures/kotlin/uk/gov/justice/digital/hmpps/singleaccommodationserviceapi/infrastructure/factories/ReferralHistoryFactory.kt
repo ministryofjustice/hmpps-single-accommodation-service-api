@@ -68,7 +68,7 @@ fun buildReferralHistory(
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
   pdu: String? = null,
-  referredBy: DeliusUserDto,
+  referredBy: DeliusUserDto = buildDeliusUserDto(),
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas3ReferralHistory(

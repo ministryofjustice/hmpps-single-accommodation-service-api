@@ -58,7 +58,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         localAuthorityAreaId = localAuthorityArea.id,
         referenceNumber = "DTR-REF-001",
         submissionDate = LocalDate.of(2026, 1, 15),
-        status = DtrStatus.SUBMITTED,
+        status = DtrStatus.WITHDRAWN,
       ),
     )
     val referredByUser = buildDeliusUserDto()
@@ -109,7 +109,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
             dtrId = dutyToRefer.id,
-            dtrStatus = "PENDING",
+            dtrStatus = "WITHDRAWN",
             dtrSubmissionDate = "2026-01-15",
           ),
         )

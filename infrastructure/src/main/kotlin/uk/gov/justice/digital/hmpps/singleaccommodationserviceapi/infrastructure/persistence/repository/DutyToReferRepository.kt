@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.javers.spring.annotation.JaversSpringDataAuditable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import java.util.UUID
 
@@ -20,7 +21,7 @@ interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
   )
   fun findByIdAndCrn(id: UUID, crn: String): DutyToReferEntity?
   fun findFirstByCaseIdOrderByCreatedAtDesc(caseId: UUID): DutyToReferEntity?
-  fun findByCaseIdOrderByCreatedAtDesc(caseId: UUID): List<DutyToReferEntity>
+  fun findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId: UUID, status: List<DtrStatus>): List<DutyToReferEntity>
 
   @Query(
     """

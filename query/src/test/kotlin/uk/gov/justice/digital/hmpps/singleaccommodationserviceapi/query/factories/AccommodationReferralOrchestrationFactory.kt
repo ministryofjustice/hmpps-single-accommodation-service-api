@@ -47,7 +47,6 @@ fun buildAccommodationReferralOrchestrationDto(
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
-      referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
       placementStatus = "Some status",
     ),

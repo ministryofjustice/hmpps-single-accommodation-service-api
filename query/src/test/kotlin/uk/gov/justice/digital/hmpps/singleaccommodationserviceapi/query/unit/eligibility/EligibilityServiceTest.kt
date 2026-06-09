@@ -309,7 +309,7 @@ class EligibilityServiceTest {
         ),
       )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
-      val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, null)
+      val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, submission = null)
       val crs = buildCommissionedRehabilitativeServices()
       val prisoner = buildPrisoner()
       val orchestrationDto = OrchestrationResultDto(

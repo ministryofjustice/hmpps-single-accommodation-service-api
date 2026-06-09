@@ -5,8 +5,8 @@ import java.util.UUID
 
 data class AccommodationReferralDto(
   val id: UUID,
-  val type: CasService,
-  val status: CasReferralStatus,
+  val type: AccommodationService,
+  val status: AccommodationReferralStatus,
   val date: Instant,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
@@ -17,13 +17,14 @@ data class AccommodationReferralDto(
   val placementStatus: String?,
 )
 
-enum class CasReferralStatus {
+enum class AccommodationReferralStatus {
   ACCEPTED,
   REJECTED,
   PENDING,
+  WITHDRAWN,
 }
 
-enum class CasService {
+enum class AccommodationService {
   CAS1,
   CAS2,
   CAS2v2,

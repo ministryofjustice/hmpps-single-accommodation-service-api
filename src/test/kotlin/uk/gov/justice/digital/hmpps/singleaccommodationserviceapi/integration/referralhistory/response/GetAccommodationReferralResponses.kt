@@ -30,7 +30,7 @@ fun expectedGetReferralHistory(
         "localAuthorityArea": "Aberdeen City",
         "pdu": "Aberdeen City",
         "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER","staffCode": null},
-        "placementAddress": "Aberdeen City",
+        "placementAddress": null,
         "placementStatus": null
      },
      {

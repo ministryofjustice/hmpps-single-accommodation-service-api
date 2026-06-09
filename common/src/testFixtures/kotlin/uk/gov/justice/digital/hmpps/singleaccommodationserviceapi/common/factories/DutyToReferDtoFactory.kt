@@ -14,7 +14,8 @@ fun buildDutyToReferDto(
   crn: String = "CR12345N",
   caseId: UUID = UUID.randomUUID(),
   status: DtrStatus = DtrStatus.SUBMITTED,
-  submission: DtrSubmissionDto? = buildDtrSubmission(),
+  submissionDate: LocalDate = LocalDate.now(),
+  submission: DtrSubmissionDto? = buildDtrSubmission(submissionDate = submissionDate),
 ) = DutyToReferDto(
   crn = crn,
   caseId = caseId,

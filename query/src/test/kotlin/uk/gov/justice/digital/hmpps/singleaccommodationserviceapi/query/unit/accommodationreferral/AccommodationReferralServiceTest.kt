@@ -20,7 +20,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class AccommodationReferralServiceTest {
@@ -55,7 +56,8 @@ class AccommodationReferralServiceTest {
         cas2v2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate, referredBy = buildDeliusUserDto())),
         cas3Referrals = emptyList(),
       )
-      val dutyToReferDto = buildDutyToReferDto(crn = crn)
+      val dtrSubmissionDate = LocalDate.of(2025, 5, 1)
+      val dutyToReferDto = buildDutyToReferDto(crn = crn, submissionDate = dtrSubmissionDate)
 
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
       every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
@@ -63,7 +65,7 @@ class AccommodationReferralServiceTest {
       val result = service.getReferralHistory(crn)
 
       assertThat(result.data).hasSize(4)
-      assertThat(result.data[0].date).isEqualTo(Instant.now().truncatedTo(ChronoUnit.DAYS))
+      assertThat(result.data[0].date).isEqualTo(dtrSubmissionDate.atStartOfDay().atOffset(ZoneOffset.UTC).toInstant())
       assertThat(result.data[1].date).isEqualTo(newerDate)
       assertThat(result.data[2].date).isEqualTo(middleDate)
       assertThat(result.data[3].date).isEqualTo(olderDate)
