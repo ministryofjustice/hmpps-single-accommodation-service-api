@@ -17,14 +17,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.util.UUID
 
 @RestController
 class ProposedAccommodationController(
+  private val caseQueryService: CaseQueryService,
+  private val caseApplicationService: CaseApplicationService,
   private val accommodationQueryService: AccommodationQueryService,
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
@@ -34,13 +38,21 @@ class ProposedAccommodationController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
+    if (!caseQueryService.isPersistedCase(crn)) {
+      val result = caseQueryService.getCaseFromDelius(crn)
+      handleUpstreamFailure(result.upstreamFailures)
+      caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
+    }
+
     val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
     handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
-    if (currentAndAllAccommodations.data.second.isNotEmpty()) {
+    val cprAccommodations = currentAndAllAccommodations.data.second
+    if (cprAccommodations.isNotEmpty()) {
+      val currentAccommodation = currentAndAllAccommodations.data.first
       proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
         crn,
-        currentAccommodation = currentAndAllAccommodations.data.first,
-        cprAccommodations = currentAndAllAccommodations.data.second,
+        currentAccommodation,
+        cprAccommodations,
       )
     }
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))

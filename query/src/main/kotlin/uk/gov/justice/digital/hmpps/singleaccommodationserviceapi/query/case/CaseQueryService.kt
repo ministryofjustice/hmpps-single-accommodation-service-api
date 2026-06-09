@@ -75,6 +75,8 @@ class CaseQueryService(
     }
   }
 
+  fun isPersistedCase(crn: String) = caseRepository.findByCrn(crn) != null
+
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
@@ -89,6 +91,14 @@ class CaseQueryService(
       caseOrchestrationDto.tier,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
+  }
+
+  fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
+    val user = userService.authorizeAndRetrieveUser()
+    val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
+    val case = orchestrationResult.data.case?.let { toPersonDto(it) }
+
+    return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
   private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)
