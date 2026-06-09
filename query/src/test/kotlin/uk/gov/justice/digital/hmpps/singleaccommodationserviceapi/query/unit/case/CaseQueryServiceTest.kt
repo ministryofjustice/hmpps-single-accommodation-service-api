@@ -483,6 +483,28 @@ class CaseQueryServiceTest {
   }
 
   @Nested
+  inner class IsCaseRecordInDb {
+
+    @Test
+    fun `should return true when case record exists in db`() {
+      every { caseRepository.findByCrn(crnOne) } returns buildCaseEntity { withCrn(crnOne) }
+
+      val result = caseQueryService.isCaseRecordInDb(crnOne)
+
+      assertThat(result).isTrue
+    }
+
+    @Test
+    fun `should return false when case record does not exist in db`() {
+      every { caseRepository.findByCrn(crnOne) } returns null
+
+      val result = caseQueryService.isCaseRecordInDb(crnOne)
+
+      assertThat(result).isFalse
+    }
+  }
+
+  @Nested
   inner class GetCase {
 
     @Test
@@ -526,6 +548,56 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data.riskLevel).isNull()
       assertThat(result.upstreamFailures).hasSize(2)
+    }
+  }
+
+  @Nested
+  inner class GetCaseFromDelius {
+
+    @Test
+    fun `should return case from delius with no upstream failures when all calls succeed`() {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      val caseOrchestrationDto = buildCaseOrchestrationDto(
+        crn = crnOne,
+        cpr = null,
+        roshDetails = null,
+        tier = null,
+        case = buildCase(crnOne),
+      )
+
+      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+      )
+
+      val result = caseQueryService.getCaseFromDelius(crnOne)
+
+      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!))
+      assertThat(result.upstreamFailures).isEmpty()
+    }
+
+    @Test
+    fun `should return null case from delius with upstream failures`() {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      val failures = listOf(
+        buildUpstreamFailure(callKey = "getCase"),
+      )
+      val caseOrchestrationDto = buildCaseOrchestrationDto(
+        crn = crnOne,
+        cpr = null,
+        roshDetails = null,
+        tier = null,
+        case = null,
+      )
+
+      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+        upstreamFailures = failures,
+      )
+
+      val result = caseQueryService.getCaseFromDelius(crnOne)
+
+      assertThat(result.data).isNull()
+      assertThat(result.upstreamFailures).hasSize(1)
     }
   }
 }

@@ -17,14 +17,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.util.UUID
 
 @RestController
 class ProposedAccommodationController(
+  private val caseQueryService: CaseQueryService,
+  private val caseApplicationService: CaseApplicationService,
   private val accommodationQueryService: AccommodationQueryService,
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
@@ -36,14 +41,45 @@ class ProposedAccommodationController(
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
     val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
     handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
-    if (currentAndAllAccommodations.data.second.isNotEmpty()) {
-      proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
-        crn,
-        currentAccommodation = currentAndAllAccommodations.data.first,
-        cprAccommodations = currentAndAllAccommodations.data.second,
-      )
+    val cprAccommodations = currentAndAllAccommodations.data.second
+    val isCaseRecordInDb = caseQueryService.isCaseRecordInDb(crn)
+    var isCaseInserted = false
+    var getDeliusCaseResponse = ApiResponseDto<PersonDto?>(null)
+    if (!isCaseRecordInDb) {
+      val caseInsertedResult = upsertCase(crn)
+      isCaseInserted = caseInsertedResult.first
+      getDeliusCaseResponse = caseInsertedResult.second
     }
-    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
+    if (cprAccommodations.isNotEmpty()) {
+      if (isCaseRecordInDb || isCaseInserted) {
+        val currentAccommodation = currentAndAllAccommodations.data.first
+        proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
+          crn,
+          currentAccommodation,
+          cprAccommodations,
+        )
+      }
+    }
+    return ResponseEntity.ok(
+      ApiResponseDto(
+        data = proposedAccommodationQueryService.getProposedAccommodations(crn),
+        upstreamFailures = getDeliusCaseResponse.upstreamFailures,
+      ),
+    )
+  }
+
+  private fun upsertCase(crn: String): Pair<Boolean, ApiResponseDto<PersonDto?>> {
+    val singleCaseFromSasAnsDelius = caseQueryService.getCaseFromDelius(crn)
+    if (singleCaseFromSasAnsDelius.data != null) {
+      val caseResponse = caseApplicationService.getCasesFromOrchestrator(crns = listOf(crn))
+      val prisonNumber = singleCaseFromSasAnsDelius.data!!.nomsNumber
+      caseApplicationService.upsertCases(
+        caseDtos = caseResponse.data,
+        crnToPrisonNumber = mapOf(crn to prisonNumber),
+      )
+      return true to singleCaseFromSasAnsDelius
+    }
+    return false to singleCaseFromSasAnsDelius
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
