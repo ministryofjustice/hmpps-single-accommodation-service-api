@@ -13,16 +13,13 @@ fun expectedGetReferralHistory(
   pdu: String? = null,
   placementAddress: String? = null,
   placementStatus: String? = null,
-  dtrId: UUID? = null,
+  dtrId: UUID,
   dtrStatus: String? = null,
   dtrSubmissionDate: String? = null,
 ): String =
   """
   {
     "data": [
-    ${
-    if (dtrId != null) {
-      """
      {
         "id":"$dtrId",
         "type":"DTR",
@@ -32,14 +29,10 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": null,
         "localAuthorityArea": "Aberdeen City",
         "pdu": "Aberdeen City",
-        "referredBy": {"name":"Test Data Setup User","username":"Test Data Setup User","staffCode": null},
+        "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER","staffCode": null},
         "placementAddress": "Aberdeen City",
         "placementStatus": null
-     },"""
-    } else {
-      ""
-    }
-  }
+     },
      {
         "id":"$id3",
         "type":"CAS2v2",

@@ -18,15 +18,9 @@ class AccommodationReferralService(
   fun getReferralHistory(crn: String): ApiResponseDto<List<AccommodationReferralDto>> {
     val orchestrationDto = orchestrationService.fetchAllReferralsAggregated(crn)
 
-    val dtr = dutyToReferQueryService.getDutyToReferHistory(crn)
-    val dtoDataWithDtr = AccommodationReferralOrchestrationDtoWithDtr(
-      orchestrationDto.data.cas1Referrals,
-      orchestrationDto.data.cas2Referrals,
-      orchestrationDto.data.cas2v2Referrals,
-      orchestrationDto.data.cas3Referrals,
-      dtr,
-    )
-    val allReferrals = AccommodationReferralTransformer.transformReferrals(dtoDataWithDtr).sortedByDescending { it.date }
+    val dtrs = dutyToReferQueryService.getDutyToReferHistory(crn)
+
+    val allReferrals = AccommodationReferralTransformer.transformReferrals(orchestrationDto.data, dtrs).sortedByDescending { it.date }
     return toApiResponseDto(
       data = allReferrals,
       upstreamFailures = orchestrationDto.upstreamFailures,

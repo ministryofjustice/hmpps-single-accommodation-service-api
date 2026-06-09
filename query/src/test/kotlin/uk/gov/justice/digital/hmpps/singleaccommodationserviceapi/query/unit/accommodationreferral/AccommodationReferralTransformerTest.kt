@@ -7,22 +7,24 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDtoWithDtr
 import java.util.stream.Stream
 
 class AccommodationReferralTransformerTest {
   @Test
   fun `should transform orchestration dto to list of accommodation referral dtos`() {
     val orchestrationDto = buildAccommodationReferralOrchestrationDto()
-    val orchestrationDtoWithDtr = buildAccommodationReferralOrchestrationDtoWithDtr()
 
-    val result = AccommodationReferralTransformer.transformReferrals(orchestrationDtoWithDtr)
+    val result = AccommodationReferralTransformer.transformReferrals(
+      orchestrationDto,
+      listOf(buildDutyToReferDto()),
+    )
 
     assertThat(result).hasSize(5)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(

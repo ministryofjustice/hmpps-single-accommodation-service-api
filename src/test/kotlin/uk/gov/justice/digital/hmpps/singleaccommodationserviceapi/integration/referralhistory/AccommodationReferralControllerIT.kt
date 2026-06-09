@@ -108,7 +108,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             id2 = cas2Response.first().id,
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
-            dtrId = case.id,
+            dtrId = dutyToRefer.id,
             dtrStatus = "PENDING",
             dtrSubmissionDate = "2026-01-15",
           ),

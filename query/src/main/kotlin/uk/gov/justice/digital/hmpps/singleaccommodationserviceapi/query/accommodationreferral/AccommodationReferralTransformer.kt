@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
@@ -14,7 +15,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 object AccommodationReferralTransformer {
-  fun transformReferrals(dto: AccommodationReferralOrchestrationDtoWithDtr) = dto.cas1Referrals.map {
+  fun transformReferrals(dto: AccommodationReferralOrchestrationDto, dtrs: List<DutyToReferDto>) = dto.cas1Referrals.map {
     toAccommodationReferralDto(
       id = it.id,
       type = CasService.CAS1,
@@ -73,9 +74,9 @@ object AccommodationReferralTransformer {
         placementAddress = it.placementAddress,
         placementStatus = it.placementStatus,
       )
-    } + dto.dutyToRefer.map {
+    } + dtrs.map {
       toAccommodationReferralDto(
-        id = it.caseId,
+        id = it.submission!!.id,
         type = CasService.DTR,
         status = toCasReferralStatus(it.status),
         date = it.submission!!.submissionDate.atStartOfDay().toInstant(ZoneOffset.UTC),
@@ -83,7 +84,11 @@ object AccommodationReferralTransformer {
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
         pdu = it.submission!!.localAuthority.localAuthorityAreaName,
-        referredBy = DeliusUserDto(it.submission!!.createdBy, it.submission!!.createdBy),
+        referredBy = DeliusUserDto(
+          name = it.submission!!.createdBy!!,
+          username = it.submission!!.createdByUsername,
+          staffCode = null,
+        ),
         placementAddress = it.submission!!.localAuthority.localAuthorityAreaName,
         placementStatus = it.submission!!.outcomeReason?.name,
       )

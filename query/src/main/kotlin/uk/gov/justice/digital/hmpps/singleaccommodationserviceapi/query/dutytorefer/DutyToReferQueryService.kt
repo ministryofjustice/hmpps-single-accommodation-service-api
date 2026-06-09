@@ -52,7 +52,7 @@ class DutyToReferQueryService(
     return dtrEntities.map { dtrEntity ->
       val createdByUser = users[dtrEntity.createdByUserId]
       val localAuthorityArea = localAuthorities[dtrEntity.localAuthorityAreaId]
-      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!, localAuthorityArea!!.name)
     }
   }
 

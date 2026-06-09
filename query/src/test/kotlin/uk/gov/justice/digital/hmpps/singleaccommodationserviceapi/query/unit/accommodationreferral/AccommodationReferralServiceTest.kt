@@ -14,13 +14,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationDtoWithDtr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDtoWithDtr
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -99,14 +97,17 @@ class AccommodationReferralServiceTest {
 
       val dutyToReferDto = buildDutyToReferDto(crn = crn)
 
-      val orchestrationDtoWithDtr = buildAccommodationReferralOrchestrationDtoWithDtr(orchestrationDto, listOf(dutyToReferDto))
-
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
       every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result.data).containsExactlyInAnyOrderElementsOf(AccommodationReferralTransformer.transformReferrals(orchestrationDtoWithDtr))
+      assertThat(result.data).containsExactlyInAnyOrderElementsOf(
+        AccommodationReferralTransformer.transformReferrals(
+          orchestrationDto,
+          listOf(dutyToReferDto),
+        ),
+      )
     }
 
     @Test
@@ -114,21 +115,18 @@ class AccommodationReferralServiceTest {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto()
       val dutyToReferDto = buildDutyToReferDto(crn = crn)
 
-      val dtoData = AccommodationReferralOrchestrationDtoWithDtr(
-        orchestrationDto.cas1Referrals,
-        orchestrationDto.cas2Referrals,
-        orchestrationDto.cas2v2Referrals,
-        orchestrationDto.cas3Referrals,
-        listOf(dutyToReferDto),
-      )
-
       every { orchestrationService.fetchAllReferralsAggregated(crn) } returns OrchestrationResultDto(data = orchestrationDto)
       every { dutyToReferQueryService.getDutyToReferHistory(crn) } returns listOf(dutyToReferDto)
 
       val result = service.getReferralHistory(crn)
 
       assertThat(result.data).hasSize(5)
-      assertThat(result.data).containsExactlyInAnyOrderElementsOf(AccommodationReferralTransformer.transformReferrals(dtoData))
+      assertThat(result.data).containsExactlyInAnyOrderElementsOf(
+        AccommodationReferralTransformer.transformReferrals(
+          orchestrationDto,
+          listOf(dutyToReferDto),
+        ),
+      )
     }
   }
 }
