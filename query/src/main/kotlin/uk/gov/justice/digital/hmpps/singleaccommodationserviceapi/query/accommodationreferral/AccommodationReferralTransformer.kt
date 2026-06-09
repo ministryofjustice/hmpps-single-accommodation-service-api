@@ -83,9 +83,9 @@ object AccommodationReferralTransformer {
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
         pdu = it.submission!!.localAuthority.localAuthorityAreaName,
-        referredBy = DeliusUserDto(it.submission!!.createdBy, it.submission!!.createdBy, it.submission!!.createdBy),
+        referredBy = DeliusUserDto(it.submission!!.createdBy, it.submission!!.createdBy),
         placementAddress = it.submission!!.localAuthority.localAuthorityAreaName,
-        placementStatus = it.submission!!.outcomeReason.toString(),
+        placementStatus = it.submission!!.outcomeReason?.name,
       )
     }
 

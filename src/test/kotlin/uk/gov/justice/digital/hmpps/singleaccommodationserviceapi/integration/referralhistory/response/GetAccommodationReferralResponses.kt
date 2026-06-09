@@ -32,9 +32,9 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": null,
         "localAuthorityArea": "Aberdeen City",
         "pdu": "Aberdeen City",
-        "referredBy": {"name":"Test Data Setup User","username":"Test Data Setup User","staffCode":"Test Data Setup User"},
+        "referredBy": {"name":"Test Data Setup User","username":"Test Data Setup User","staffCode": null},
         "placementAddress": "Aberdeen City",
-        "placementStatus": "null"
+        "placementStatus": null
      },"""
     } else {
       ""
