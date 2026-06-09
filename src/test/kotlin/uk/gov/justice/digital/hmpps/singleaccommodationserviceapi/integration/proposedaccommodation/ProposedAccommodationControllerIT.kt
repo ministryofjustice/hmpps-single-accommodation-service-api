@@ -1684,18 +1684,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationEntity.lastUpdatedByUserId).isEqualTo(updatedByUserId)
   }
 
-  private fun assertPublishedSNSEvent(
-    proposedAccommodationId: UUID,
-    eventType: SingleAccommodationServiceDomainEventType,
-    detailUrl: String?,
-  ) {
-    println(proposedAccommodationId)
-
-    if (eventType == SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED) {
-    } else {
-    }
-  }
-
   private fun assertThatOutboxIsAsExpected(
     proposedAccommodationId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
