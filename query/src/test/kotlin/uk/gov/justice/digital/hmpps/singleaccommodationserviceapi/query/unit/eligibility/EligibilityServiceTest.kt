@@ -72,6 +72,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
@@ -168,9 +169,11 @@ class EligibilityServiceTest {
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     CurrentAccommodationTypeRule(),
     NoNextAccommodationRule(),
+  )
+  var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
     DtrExpiredReferralRule(clock),
-    CrsSubmittedRule(),
     CrsExpiredRule(clock),
+    CrsSubmittedRule(),
   )
 
   // DTR
@@ -233,6 +236,7 @@ class EligibilityServiceTest {
     completion = cas3CompletionRuleSet,
     completionContextUpdater = cas3CompletionContextUpdater,
     eligibility = cas3EligibilityRuleSet,
+    prerequisite = cas3PrerequisiteRuleSet,
     temporaryAccommodationUiBaseUrl = cas3UiUrl,
   )
 
@@ -941,62 +945,6 @@ class EligibilityServiceTest {
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE)
-    }
-
-    @Test
-    fun `Cas3 surfaces CRS_EXPIRED when CRS submission is older than 12 weeks`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
-        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-          sentAt = today.minusWeeks(13).atStartOfDay().atOffset(ZoneOffset.UTC),
-          status = CrsReferralStatus.COMPLETED,
-        ),
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.CRS_EXPIRED)
-    }
-
-    @Test
-    fun `Cas3 surfaces CRS_NOT_SUBMITTED when CRS is in a non-submitted status`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-        cas3Application = null,
-        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
-        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(
-          sentAt = today.atStartOfDay().atOffset(ZoneOffset.UTC),
-          status = CrsReferralStatus.DRAFT,
-        ),
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED)
-    }
-
-    @Test
-    fun `Cas3 surfaces DTR_REFERRAL_EXPIRED when no DTR is present`() {
-      clock.setNow(today)
-      val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
-        cas1Application = null,
-        cas3Application = null,
-        dutyToRefer = null,
-      )
-
-      val result = eligibilityService.evaluate(cas3Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.DTR_REFERRAL_EXPIRED)
     }
 
     @Test

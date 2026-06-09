@@ -70,6 +70,7 @@ enum class ServiceStatus {
   BOOKING_CANCELLED,
   ACCEPTED,
   NOT_ACCEPTED,
+  CANNOT_START_YET,
 }
 
 enum class FailureReason {
