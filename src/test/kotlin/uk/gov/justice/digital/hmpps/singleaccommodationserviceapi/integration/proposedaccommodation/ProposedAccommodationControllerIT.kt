@@ -1064,11 +1064,19 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
-    assertPublishedSNSEvent(
-      proposedAccommodationId = proposedAccommodationPersistedResult.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
+
+    val detailUrl = "http://api-host/proposed-accommodations/${proposedAccommodationPersistedResult.id}"
+    val emittedMessage = testSqsDomainEventListener.waitForMessage(
+      typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
+      detailUrl = detailUrl,
     )
+
+    assertThat(emittedMessage.eventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName)
+    assertThat(emittedMessage.description).isEqualTo("Accommodation has been updated")
+    assertThat(emittedMessage.externalId).isNull()
+    assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
+
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
@@ -1155,11 +1163,16 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
-    assertPublishedSNSEvent(
-      proposedAccommodationId = proposedAccommodationPersistedResult.id,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
+
+    val emittedMessage = testSqsDomainEventListener.waitForMessage(
+      typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeDescription,
+      detailUrl = null,
     )
+
+    assertThat(emittedMessage.externalId).isEqualTo(existingEntity.id)
+    assertThat(emittedMessage.detailUrl).isNull()
+
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
@@ -1674,17 +1687,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     proposedAccommodationId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
-    eventDescription: String,
-    detailUrl: String = "http://api-host/proposed-accommodations",
+    detailUrl: String?,
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(eventType)
-    assertThat(emittedMessage.description).isEqualTo(eventDescription)
+    println(proposedAccommodationId)
+
     if (eventType == SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED) {
-      assertThat(emittedMessage.externalId).isNull()
-      assertThat(emittedMessage.detailUrl).isEqualTo("$detailUrl/$proposedAccommodationId")
     } else {
-      assertThat(emittedMessage.externalId).isEqualTo(proposedAccommodationId)
-      assertThat(emittedMessage.detailUrl).isNull()
     }
   }
 

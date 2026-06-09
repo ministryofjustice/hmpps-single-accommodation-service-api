@@ -160,7 +160,12 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE)
+    val emittedMessage = testSqsDomainEventListener.waitForMessage(
+      typeName = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
+      eventDescription = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription,
+      detailUrl = detailUrl,
+    )
+    assertThat(emittedMessage.eventType).isEqualTo(IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName)
     assertThat(emittedMessage.description).isEqualTo(IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription)
     assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
   }
