@@ -15,6 +15,8 @@ detekt = "2.0.0-alpha.3"
 awaitility = "4.3.0"
 javers = "7.11.1"
 postgres = "42.7.11"
+app-insights-core = "2.6.4"
+micrometer-registry-azure = "1.16.5"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -36,6 +38,10 @@ spring-resttestclient = { module = "org.springframework.boot:spring-boot-resttes
 
 # Springdoc
 springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+# App Insights
+app-insights-core = { module = "com.microsoft.azure:applicationinsights-core", version.ref = "app-insights-core" }
+micrometer-registry-azure = { module = "io.micrometer:micrometer-registry-azure-monitor", version.ref = "micrometer-registry-azure" }
 
 # Coroutines
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
