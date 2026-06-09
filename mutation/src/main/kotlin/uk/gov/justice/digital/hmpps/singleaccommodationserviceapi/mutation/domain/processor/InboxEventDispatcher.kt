@@ -19,6 +19,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -54,7 +56,7 @@ class InboxEventDispatcher(
   private val handlerMap: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
-  @Scheduled(fixedDelayString = $$"${shedlock.inbox-event-dispatcher.fixed-delay}")
+  @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
     name = "InboxDispatcherProcessor",
     lockAtMostFor = $$"${shedlock.inbox-event-dispatcher.lock-at-most-for}",

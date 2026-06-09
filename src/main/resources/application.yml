@@ -88,13 +88,12 @@ case-list:
 
 scheduling:
   enabled: true
+  fixed-delay: 5s
 
 shedlock:
   outbox-event-publisher:
-    fixed-delay: 5000
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
   inbox-event-dispatcher:
-    fixed-delay: 5000
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S

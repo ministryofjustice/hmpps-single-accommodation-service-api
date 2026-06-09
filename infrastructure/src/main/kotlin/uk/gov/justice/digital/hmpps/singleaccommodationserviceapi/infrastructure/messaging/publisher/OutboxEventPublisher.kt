@@ -37,7 +37,7 @@ class OutboxEventPublisher(
     hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
   }
 
-  @Scheduled(fixedDelayString = $$"${shedlock.outbox-event-publisher.fixed-delay}")
+  @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
     name = "OutboxEventPublisher",
     lockAtMostFor = $$"${shedlock.outbox-event-publisher.lock-at-most-for}",

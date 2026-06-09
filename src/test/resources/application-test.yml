@@ -52,12 +52,8 @@ spring:
 
 scheduling:
   enabled: false
+  fixed-delay: 100ms
 
-shedlock:
-  inbox-event-dispatcher:
-    fixed-delay: 100
-  outbox-event-dispatcher:
-    fixed-delay: 100
 
 event:
   details-url:
