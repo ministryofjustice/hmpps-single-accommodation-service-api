@@ -34,7 +34,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -43,8 +42,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
 class DutyToReferControllerIT : IntegrationTestBase() {
-  @Autowired
-  private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
@@ -1125,7 +1122,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     eventType: SingleAccommodationServiceDomainEventType,
     detailUrl: String = "http://api-host/duty-to-refers",
   ) {
-    testSqsDomainEventListener.assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
+    assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
   }
 
   @Test

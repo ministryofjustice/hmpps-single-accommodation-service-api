@@ -4,15 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
-import org.awaitility.kotlin.await
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.test.context.event.annotation.BeforeTestMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
-import java.time.Duration.ofMillis
-import java.time.Duration.ofSeconds
 import java.util.Collections
 import java.util.UUID
 
@@ -22,6 +19,13 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
   private val messages = Collections.synchronizedList(mutableListOf<HmppsDomainEvent>())
+
+  fun takeMessageOrNull(eventTypeName: String, eventDescription: String, detailUrl: String?, externalId: UUID? = null) = messages.singleOrNull {
+    it.eventType == eventTypeName &&
+      it.description == eventDescription &&
+      it.detailUrl == detailUrl &&
+      (externalId == null || it.externalId == externalId)
+  }?.also { messages.remove(it) }
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
   lateinit var topicName: String
@@ -43,31 +47,6 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
   @BeforeTestMethod
   fun clearMessages() {
     messages.clear()
-  }
-
-  fun assertMessageReceived(
-    typeName: String,
-    eventDescription: String,
-    detailUrl: String?,
-    externalId: UUID? = null,
-  ): HmppsDomainEvent {
-    var matchedMessage: HmppsDomainEvent? = null
-
-    await.logging()
-      .atMost(ofSeconds(5))
-      .pollInterval(ofMillis(100))
-      .untilAsserted {
-        matchedMessage = messages.singleOrNull { message ->
-          message.eventType == typeName &&
-            message.description == eventDescription &&
-            message.detailUrl == detailUrl &&
-            (externalId == null || message.externalId == externalId)
-        }
-        assert(matchedMessage != null)
-        messages.remove(matchedMessage)
-      }
-
-    return matchedMessage!!
   }
 }
 

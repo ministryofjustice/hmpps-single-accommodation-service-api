@@ -67,7 +67,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -85,9 +84,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var accommodationStatusRepository: AccommodationStatusRepository
-
-  @Autowired
-  private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
   private lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
@@ -1066,7 +1062,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     )
 
     val detailUrl = "http://api-host/proposed-accommodations/${proposedAccommodationPersistedResult.id}"
-    testSqsDomainEventListener.assertMessageReceived(
+    assertMessageReceived(
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
       detailUrl = detailUrl,
@@ -1160,7 +1156,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
 
-    testSqsDomainEventListener.assertMessageReceived(
+    assertMessageReceived(
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeDescription,
       detailUrl = null,
