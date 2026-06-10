@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
@@ -16,11 +17,15 @@ import java.util.UUID
 fun buildProposedAccommodationEntity(
   id: UUID = UUID.randomUUID(),
   caseId: UUID = UUID.randomUUID(),
+  cprAddressId: UUID? = null,
+  accommodationSource: AccommodationSource = AccommodationSource.SAS,
   name: String? = "Test Accommodation",
   accommodationTypeEntity: AccommodationTypeEntity = buildAccommodationTypeEntity(),
   accommodationStatusEntity: AccommodationStatusEntity? = buildAccommodationStatusEntity(),
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.TO_BE_DECIDED,
+  noFixedAbode: Boolean = false,
+  typeVerified: Boolean = false,
   startDate: LocalDate? = null,
   endDate: LocalDate? = null,
   postcode: String? = "SW1A 1AA",
@@ -40,6 +45,7 @@ fun buildProposedAccommodationEntity(
 ) = ProposedAccommodationEntity(
   id = id,
   caseId = caseId,
+  cprAddressId = cprAddressId,
   name = name,
   accommodationTypeId = accommodationTypeEntity.id,
   accommodationStatusId = accommodationStatusEntity?.id,
@@ -57,6 +63,9 @@ fun buildProposedAccommodationEntity(
   county = county,
   country = country,
   uprn = uprn,
+  accommodationSource = accommodationSource,
+  noFixedAbode = noFixedAbode,
+  typeVerified = typeVerified,
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt

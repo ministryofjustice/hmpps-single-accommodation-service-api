@@ -13,7 +13,7 @@ fun expectedGetDutyToReferTimelineResponse(
    "data":[
       {
          "type":"CREATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$createCommitTime",
          "changes":[
             {
@@ -65,7 +65,7 @@ fun expectedGetDutyToReferTimelineResponse(
    "data":[
       {
          "type":"UPDATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$update2CommitTime",
          "changes":[
             {
@@ -77,6 +77,11 @@ fun expectedGetDutyToReferTimelineResponse(
                "field":"status",
                "value":"ACCEPTED",
                "oldValue":"NOT_ACCEPTED"
+            },
+            {
+               "field":"outcomeReason",
+               "value":"PRIORITY_NEED",
+               "oldValue":"NO_LOCAL_CONNECTION"
             }
          ],
          "extraInformation":{
@@ -85,7 +90,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"UPDATE",
-         "author":"Nomis User",
+         "author":"Delius User",
          "commitDate":"$update1CommitTime",
          "changes":[
             {
@@ -97,6 +102,11 @@ fun expectedGetDutyToReferTimelineResponse(
                "field":"status",
                "value":"NOT_ACCEPTED",
                "oldValue":"SUBMITTED"
+            },
+            {
+               "field":"outcomeReason",
+               "value":"NO_LOCAL_CONNECTION",
+               "oldValue":null
             }
          ],
          "extraInformation":{
@@ -105,7 +115,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"NOTE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$createNoteCommitTime",
          "changes":[
             {
@@ -116,7 +126,7 @@ fun expectedGetDutyToReferTimelineResponse(
       },
       {
          "type":"CREATE",
-         "author":"DeliusUser",
+         "author":"Delius User",
          "commitDate":"$createCommitTime",
          "changes":[
             {

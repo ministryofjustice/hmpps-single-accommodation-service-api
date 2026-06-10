@@ -58,9 +58,9 @@ fun buildManager(team: Team = buildTeam()) = Manager(
   team = team,
 )
 
-fun buildTeam(code: String = "12345") = Team(
+fun buildTeam(code: String = "12345", name: String = "Team 1") = Team(
   code,
-  name = "Team 1",
+  name = name,
   ldu = Ldu(
     code = "TODO(code)",
     name = "TODO(name)",
@@ -76,17 +76,22 @@ fun buildTeam(code: String = "12345") = Team(
 fun buildStaffDetail(
   username: String = "test.user",
   email: String = "test.user@justice.gov.uk",
+  name: PersonName = buildPersonName(),
+  teams: List<Team> = listOf(buildTeam()),
+  code: String = "code",
+  telephoneNumber: String? = null,
+  active: Boolean = true,
 ) = StaffDetail(
   email = email,
-  telephoneNumber = "07665111456",
-  teams = listOf(buildTeam()),
+  telephoneNumber = telephoneNumber,
+  teams = teams,
   username = username,
-  name = buildPersonName(),
-  code = "code",
-  active = true,
+  name = name,
+  code = code,
+  active = active,
 )
 
-fun buildPersonName() = PersonName(
-  forename = "Test",
-  surname = "User",
-)
+fun buildPersonName(
+  forename: String = "Test",
+  surname: String = "User",
+) = PersonName(forename, surname)

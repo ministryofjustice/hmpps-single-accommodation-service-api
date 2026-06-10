@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.test.context.TestPropertySource
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
@@ -20,13 +21,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
@@ -34,18 +37,14 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
+@TestPropertySource(properties = ["scheduling.enabled=true"])
 class IncomingTierUpdatedEventIT : IntegrationTestBase() {
-  @Autowired
-  lateinit var dutyToReferRepository: DutyToReferRepository
 
   @Autowired
   lateinit var caseRepository: CaseRepository
 
   @Autowired
   lateinit var inboxEventRepository: InboxEventRepository
-
-  @Autowired
-  lateinit var outboxEventRepository: OutboxEventRepository
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
@@ -69,14 +68,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   fun setup() {
     crn = UUID.randomUUID().toString()
     HmppsAuthStubs.stubGrantToken()
-    deleteAllFromRepositories()
-  }
-
-  private fun deleteAllFromRepositories() {
-    dutyToReferRepository.deleteAll()
-    inboxEventRepository.deleteAll()
-    outboxEventRepository.deleteAll()
-    caseRepository.deleteAll()
+    databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
   }
 
   @Test
@@ -168,9 +160,11 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE)
-    assertThat(emittedMessage.description).isEqualTo(IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription)
-    assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
+    testSqsDomainEventListener.assertMessageReceived(
+      typeName = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
+      eventDescription = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription,
+      detailUrl = detailUrl,
+    )
   }
 
   private fun publishTierEvent() {

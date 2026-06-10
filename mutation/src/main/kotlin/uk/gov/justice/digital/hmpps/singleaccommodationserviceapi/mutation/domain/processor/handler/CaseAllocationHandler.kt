@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationIntegrationDeliusClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
@@ -19,7 +19,7 @@ class CaseAllocationHandler(
   private val inboxEventService: InboxEventService,
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
-  private val probationIntegrationDeliusClient: ProbationIntegrationDeliusClient,
+  private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
   @field:Value($$"${case-list.onboarded-teams}") private val onboardedTeamsCodes: List<String>,
 ) : InboxEventHandler {
 
@@ -40,9 +40,9 @@ class CaseAllocationHandler(
       val crn = checkNotNull(getPartitionKey(inboxEvent)) {
         "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
       }
-      val case = probationIntegrationDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
+      val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
       if (onboardedTeamsCodes.contains(case.manager.team.code)) {
-        caseApplicationService.upsertCase(case.crn)
+        caseApplicationService.upsertCase(case.crn, case.nomsId)
         inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.PROCESSED)
       } else {
         inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.NOT_PROCESSED)

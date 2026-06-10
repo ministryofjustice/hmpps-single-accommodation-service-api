@@ -26,6 +26,13 @@ object ApprovedPremisesStubs {
     )
   }
 
+  fun getCas3SuitableApplicationNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
+        .willReturn(notFound()),
+    )
+  }
+
   fun getCas1SuitableApplicationServerErrorResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
@@ -46,7 +53,7 @@ object ApprovedPremisesStubs {
     response: List<CasReferralHistory>,
   ) {
     sasWiremock.stubFor(
-      get(urlPathEqualTo("/${casService.name.lowercase()}/external/referrals/$crn"))
+      get(urlPathEqualTo("/${casService.urlPath}/external/referrals/$crn"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }

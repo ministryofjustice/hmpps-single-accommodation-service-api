@@ -12,6 +12,6 @@ class HasNextAccommodationRule : Rule {
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.nextAccommodation == null) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (data.nextAccommodations.isEmpty()) RuleStatus.FAIL else RuleStatus.PASS,
   )
 }

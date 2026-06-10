@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildProposedAccommodationSnapshot
@@ -26,13 +27,16 @@ class ProposedAccommodationMapperTest {
 
   @Test
   fun `toEntity maps all fields correctly`() {
-    val snapshot = buildProposedAccommodationSnapshot()
+    val snapshot = buildProposedAccommodationSnapshot(
+      cprAddressId = UUID.randomUUID(),
+    )
     val accommodationTypeEntity = buildAccommodationTypeEntity()
     val accommodationStatusEntity = buildAccommodationStatusEntity()
     val entity = ProposedAccommodationMapper.toEntity(snapshot, accommodationTypeEntity, accommodationStatusEntity)
 
     assertThat(entity.id).isEqualTo(snapshot.id)
     assertThat(entity.caseId).isEqualTo(snapshot.caseId)
+    assertThat(entity.cprAddressId).isEqualTo(snapshot.cprAddressId)
     assertThat(entity.name).isEqualTo(snapshot.name)
     assertThat(entity.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
     assertThat(entity.accommodationStatusId).isEqualTo(accommodationStatusEntity.id)
@@ -50,6 +54,28 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.county).isEqualTo(snapshot.address.county)
     assertThat(entity.country).isEqualTo(snapshot.address.country)
     assertThat(entity.uprn).isEqualTo(snapshot.address.uprn)
+    assertThat(entity.accommodationSource).isEqualTo(snapshot.accommodationSource)
+    assertThat(entity.typeVerified).isEqualTo(snapshot.typeVerified)
+    assertThat(entity.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
+  }
+
+  @Test
+  fun `toEntity maps accommodation source type verified and no fixed abode`() {
+    val snapshot = buildProposedAccommodationSnapshot(
+      accommodationSource = AccommodationSource.DELIUS,
+      typeVerified = true,
+      noFixedAbode = true,
+    )
+
+    val entity = ProposedAccommodationMapper.toEntity(
+      snapshot = snapshot,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(entity.accommodationSource).isEqualTo(snapshot.accommodationSource)
+    assertThat(entity.typeVerified).isEqualTo(snapshot.typeVerified)
+    assertThat(entity.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
   }
 
   @Test
@@ -63,6 +89,21 @@ class ProposedAccommodationMapperTest {
     )
 
     assertThat(entity.accommodationStatusId).isNull()
+  }
+
+  @Test
+  fun `toEntity maps null CPR address id`() {
+    val snapshot = buildProposedAccommodationSnapshot(
+      cprAddressId = null,
+    )
+
+    val entity = ProposedAccommodationMapper.toEntity(
+      snapshot = snapshot,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(entity.cprAddressId).isNull()
   }
 
   @ParameterizedTest
@@ -95,9 +136,11 @@ class ProposedAccommodationMapperTest {
   fun `merge should copy all fields from snapshot to entity`() {
     val entityId = UUID.randomUUID()
     val caseID = UUID.randomUUID()
+    val cprAddressId = UUID.randomUUID()
     val proposedAccommodationEntity = buildProposedAccommodationEntity(
       id = entityId,
       caseId = caseID,
+      cprAddressId = UUID.randomUUID(),
     )
     val accommodationTypeEntity = buildAccommodationTypeEntity()
     val accommodationStatusEntity = buildAccommodationStatusEntity()
@@ -113,6 +156,7 @@ class ProposedAccommodationMapperTest {
     val newNote2 = buildNote(id = UUID.randomUUID(), note = "3333")
     val preExistingNote = buildNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
     val snapshot = buildProposedAccommodationSnapshot(
+      cprAddressId = cprAddressId,
       notes = mutableListOf(newNote1, newNote2, preExistingNote),
     )
     val merged = ProposedAccommodationMapper.merge(
@@ -124,6 +168,7 @@ class ProposedAccommodationMapperTest {
 
     assertThat(merged.id).isEqualTo(entityId)
     assertThat(merged.caseId).isEqualTo(caseID)
+    assertThat(merged.cprAddressId).isEqualTo(snapshot.cprAddressId)
     assertThat(merged.name).isEqualTo(snapshot.name)
     assertThat(merged.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
     assertThat(merged.accommodationStatusId).isEqualTo(accommodationStatusEntity.id)
@@ -148,6 +193,67 @@ class ProposedAccommodationMapperTest {
   }
 
   @Test
+  fun `merge should map null accommodation status entity`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+    val snapshot = buildProposedAccommodationSnapshot()
+
+    val merged = ProposedAccommodationMapper.merge(
+      snapshot = snapshot,
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = null,
+    )
+
+    assertThat(merged.accommodationStatusId).isNull()
+  }
+
+  @Test
+  fun `merge should map null CPR address id`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      cprAddressId = UUID.randomUUID(),
+    )
+    val snapshot = buildProposedAccommodationSnapshot(
+      cprAddressId = null,
+    )
+
+    val merged = ProposedAccommodationMapper.merge(
+      snapshot = snapshot,
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(merged.cprAddressId).isNull()
+  }
+
+  @Test
+  fun `merge should copy accommodation source type verified and no fixed abode from snapshot to entity`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      accommodationSource = AccommodationSource.SAS,
+      typeVerified = false,
+      noFixedAbode = false,
+    )
+    val snapshot = buildProposedAccommodationSnapshot(
+      accommodationSource = AccommodationSource.DELIUS,
+      typeVerified = true,
+      noFixedAbode = true,
+    )
+
+    val merged = ProposedAccommodationMapper.merge(
+      snapshot = snapshot,
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(merged.accommodationSource).isEqualTo(snapshot.accommodationSource)
+    assertThat(merged.typeVerified).isEqualTo(snapshot.typeVerified)
+    assertThat(merged.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
+  }
+
+  @Test
   fun `toAggregate maps all fields correctly`() {
     val currentAccommodation = buildAccommodationSummaryDto(
       type = buildAccommodationTypeDto(
@@ -166,7 +272,9 @@ class ProposedAccommodationMapperTest {
       code = "PR",
       name = "Proposed",
     )
+    val cprAddressId = UUID.randomUUID()
     val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      cprAddressId = cprAddressId,
       name = "Test Name",
       accommodationTypeEntity = accommodationTypeEntity,
       accommodationStatusEntity = accommodationStatusEntity,
@@ -211,6 +319,7 @@ class ProposedAccommodationMapperTest {
 
     assertThat(snapshot.id).isEqualTo(proposedAccommodationEntity.id)
     assertThat(snapshot.caseId).isEqualTo(proposedAccommodationEntity.caseId)
+    assertThat(snapshot.cprAddressId).isEqualTo(proposedAccommodationEntity.cprAddressId)
     assertThat(snapshot.name).isEqualTo(proposedAccommodationEntity.name)
     assertThat(snapshot.accommodationType.code).isEqualTo(accommodationTypeEntity.code)
     assertThat(snapshot.accommodationType.description).isEqualTo(accommodationTypeEntity.name)
@@ -234,6 +343,9 @@ class ProposedAccommodationMapperTest {
     assertThat(snapshot.notes.first().note).isEqualTo(noteEntity.note)
     assertThat(snapshot.notes[1].id).isEqualTo(noteEntity2.id)
     assertThat(snapshot.notes[1].note).isEqualTo(noteEntity2.note)
+    assertThat(snapshot.accommodationSource).isEqualTo(proposedAccommodationEntity.accommodationSource)
+    assertThat(snapshot.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
+    assertThat(snapshot.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
   }
 
   @Test
@@ -246,6 +358,45 @@ class ProposedAccommodationMapperTest {
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps null CPR address id`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      cprAddressId = null,
+    )
+
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+      currentAccommodation = null,
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.cprAddressId).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps accommodation source type verified and no fixed abode`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      accommodationSource = AccommodationSource.DELIUS,
+      typeVerified = true,
+      noFixedAbode = true,
+    )
+
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+      currentAccommodation = null,
+    )
+
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.accommodationSource).isEqualTo(proposedAccommodationEntity.accommodationSource)
+    assertThat(snapshot.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
+    assertThat(snapshot.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
   }
 
   @Test

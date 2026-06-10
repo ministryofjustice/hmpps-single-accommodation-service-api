@@ -9,10 +9,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Up
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import java.util.UUID
 import kotlin.collections.get
 
@@ -24,16 +27,27 @@ class ProposedAccommodationTimelineService(
   private val userRepository: UserRepository,
 ) {
   fun getProposedAccommodationTimeline(id: UUID, crn: String): List<AuditRecordDto> {
+    val deliusSyncUser = userRepository.findByUsernameAndAuthSource(
+      username = Username("DELIUS_SYNC_USER"),
+      authSource = AuthSource.DELIUS,
+    )!!
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrnWithNotes(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val proposedAccommodationAuditHistory = auditService.fullAuditHistory(id = proposedAccommodationEntity.id, ProposedAccommodationEntity::class.java)
     val accommodationTypes = accommodationTypeRepository.findAll()
-    val transformedAuditHistory = replaceAccommodationTypeIdAuditRecord(proposedAccommodationAuditHistory, accommodationTypes)
+    val auditHistoryWithAccommodationTypesTransformed = replaceAccommodationTypeIdAuditRecord(proposedAccommodationAuditHistory, accommodationTypes)
     if (proposedAccommodationEntity.notes.isNotEmpty()) {
       val proposedAccommodationNotesAuditHistory = getProposedAccommodationNotesAuditHistory(proposedAccommodationEntity)
-      return (transformedAuditHistory + proposedAccommodationNotesAuditHistory)
+      val fullHistory = (auditHistoryWithAccommodationTypesTransformed + proposedAccommodationNotesAuditHistory)
         .sortedByDescending { it.commitDate }
+      return nullifyCommitAndUpdateDatesForDeliusSyncUserAudits(
+        proposedAccommodationAuditHistory = fullHistory,
+        deliusSyncUser,
+      )
     }
-    return transformedAuditHistory
+    return nullifyCommitAndUpdateDatesForDeliusSyncUserAudits(
+      proposedAccommodationAuditHistory = auditHistoryWithAccommodationTypesTransformed,
+      deliusSyncUser,
+    )
   }
 
   private fun replaceAccommodationTypeIdAuditRecord(
@@ -47,6 +61,19 @@ class ProposedAccommodationTimelineService(
           replaceAccommodationTypeFieldChange(change, accommodationTypeLookup)
         },
       )
+    }
+  }
+
+  private fun nullifyCommitAndUpdateDatesForDeliusSyncUserAudits(
+    proposedAccommodationAuditHistory: List<AuditRecordDto>,
+    deliusSyncUser: UserEntity,
+  ): List<AuditRecordDto> = proposedAccommodationAuditHistory.map { auditRecord ->
+    if (auditRecord.author == deliusSyncUser.displayName()) {
+      auditRecord.copy(
+        commitDate = null,
+      )
+    } else {
+      auditRecord
     }
   }
 
@@ -85,7 +112,7 @@ class ProposedAccommodationTimelineService(
       val createdByUser = createdByUsers[it.createdByUserId]
       AuditRecordDto(
         type = AuditRecordType.NOTE,
-        author = createdByUser!!.name,
+        author = createdByUser!!.displayName(),
         commitDate = it.createdAt!!,
         changes = listOf(
           CreateFieldChangeDto(

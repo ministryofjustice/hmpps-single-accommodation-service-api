@@ -37,7 +37,7 @@ class WireMockInitializer :
      */
     val services: List<String> =
       Binder.get(context.environment)
-        .bind("service", Bindable.listOf(String::class.java))
+        .bind("wiremock.service-names", Bindable.listOf(String::class.java))
         .get()
 
     TestPropertyValues.of(

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -29,7 +30,10 @@ class Cas1EligibilityTreeProvider(
   private val completion: Cas1CompletionRuleSet,
   private val completionContextUpdater: Cas1CompletionContextUpdater,
   private val eligibility: Cas1EligibilityRuleSet,
+  @Value($$"${service.approved-premises-ui.base-url}") approvedPremisesUiBaseUrl: String,
 ) : EligibilityTreeProvider {
+
+  val url = approvedPremisesUiBaseUrl
 
   private val tree: DecisionNode by lazy { build() }
 
@@ -81,5 +85,6 @@ class Cas1EligibilityTreeProvider(
   private fun serviceResult(): ServiceResult = ServiceResult(
     serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
     link = EligibilityKeys.VIEW_APPLICATION,
+    url = url,
   )
 }

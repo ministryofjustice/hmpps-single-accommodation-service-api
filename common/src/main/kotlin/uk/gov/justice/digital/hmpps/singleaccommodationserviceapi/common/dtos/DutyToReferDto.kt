@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -17,13 +18,18 @@ data class DtrSubmissionDto(
   val localAuthority: LocalAuthorityDto,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
-  val createdBy: String,
+  val createdBy: String, // TODO: this should be a user object. Refactor to make username non-nullable.
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  val createdByUsername: String? = null,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
     timezone = "UTC",
   )
   val createdAt: Instant,
+  val withdrawalReason: WithdrawalReason? = null,
+  val withdrawalReasonOther: String? = null,
+  val outcomeReason: OutcomeReason? = null,
 )
 
 data class LocalAuthorityDto(
@@ -36,11 +42,32 @@ data class DtrCommand(
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val status: DtrStatus,
+  val withdrawalReason: WithdrawalReason? = null,
+  val withdrawalReasonOther: String? = null,
+  val outcomeReason: OutcomeReason? = null,
 )
 
 enum class DtrStatus {
-  NOT_STARTED,
   SUBMITTED,
   ACCEPTED,
   NOT_ACCEPTED,
+  WITHDRAWN,
+}
+
+enum class WithdrawalReason {
+  NEW_REFERRAL,
+  INCORRECT_LOCAL_AUTHORITY,
+  NO_CONSENT,
+  DISENGAGED,
+  HOUSING_NEED_RESOLVED,
+  NOT_ELIGIBLE,
+  OTHER,
+}
+
+enum class OutcomeReason {
+  PREVENTION_AND_RELIEF_DUTY,
+  PRIORITY_NEED,
+  NO_LOCAL_CONNECTION,
+  INTENTIONALLY_HOMELESS,
+  REJECTED_FOR_ANOTHER_REASON,
 }

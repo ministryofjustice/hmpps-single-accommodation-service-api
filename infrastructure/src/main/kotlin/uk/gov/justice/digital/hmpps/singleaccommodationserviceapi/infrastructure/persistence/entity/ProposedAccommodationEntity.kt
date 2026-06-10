@@ -13,12 +13,19 @@ import org.javers.core.metamodel.annotation.DiffIgnore
 import java.time.LocalDate
 import java.util.UUID
 
+enum class AccommodationSource {
+  DELIUS,
+  SAS,
+}
+
 @Entity
 @Table(name = "proposed_accommodation")
 open class ProposedAccommodationEntity(
   @Id
   val id: UUID,
   val caseId: UUID,
+  @DiffIgnore
+  var cprAddressId: UUID?,
   var name: String?,
   @Column(name = "accommodation_type_id", nullable = false)
   var accommodationTypeId: UUID,
@@ -41,6 +48,14 @@ open class ProposedAccommodationEntity(
   var county: String?,
   var country: String?,
   var uprn: String?,
+
+  @DiffIgnore
+  @Enumerated(EnumType.STRING)
+  var accommodationSource: AccommodationSource,
+  @DiffIgnore
+  var noFixedAbode: Boolean?,
+  @DiffIgnore
+  var typeVerified: Boolean?,
 
   @DiffIgnore
   @OneToMany(

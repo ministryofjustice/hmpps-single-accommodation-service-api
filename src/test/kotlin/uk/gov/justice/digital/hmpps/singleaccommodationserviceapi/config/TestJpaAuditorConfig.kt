@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.data.domain.AuditorAware
 import org.springframework.security.core.context.SecurityContextHolder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import java.util.*
@@ -20,9 +21,14 @@ class TestJpaAuditorConfig(
   @Bean
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
     try {
-      val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-      val userPrincipal = authToken.principal as UserPrincipal
-      Optional.of(userPrincipal.sasUserId)
+      val auditOverrideId = AuditOverrideContext.currentAuditorId()
+      if (auditOverrideId != null) {
+        Optional.of(auditOverrideId)
+      } else {
+        val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+        val userPrincipal = authToken.principal as UserPrincipal
+        Optional.of(userPrincipal.sasUserId)
+      }
     } catch (_: Exception) {
       Optional.of(testDataSetupUserId)
     }

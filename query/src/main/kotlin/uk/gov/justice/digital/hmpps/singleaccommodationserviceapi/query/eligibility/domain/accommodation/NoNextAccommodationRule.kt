@@ -12,7 +12,7 @@ class NoNextAccommodationRule : Rule {
   override val description = "FAIL if candidate has next accommodation"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.nextAccommodation != null
+    val isFail = data.nextAccommodations.isNotEmpty()
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,

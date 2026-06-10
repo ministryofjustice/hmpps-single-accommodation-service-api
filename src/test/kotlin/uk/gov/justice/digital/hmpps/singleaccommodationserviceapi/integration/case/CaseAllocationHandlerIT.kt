@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.TestPropertySource
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
@@ -43,6 +44,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
+@TestPropertySource(properties = ["scheduling.enabled=true"])
 class CaseAllocationHandlerIT : IntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
@@ -222,9 +224,11 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(IncomingHmppsDomainEventType.CASE_ALLOCATED)
-    assertThat(emittedMessage.description).isEqualTo(IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription)
-    assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
+    testSqsDomainEventListener.assertMessageReceived(
+      typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
+      eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
+      detailUrl = detailUrl,
+    )
   }
 
   private fun publishCaseAllocatedEvent() {

@@ -6,9 +6,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
@@ -22,11 +24,15 @@ class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
   private var currentAccommodation: AccommodationSummaryDto?,
+  private var accommodationSource: AccommodationSource? = null,
+  private var cprAddressId: UUID? = null,
   private var name: String? = null,
   private var accommodationType: AccommodationTypeDto? = null,
   private var accommodationStatus: AccommodationStatusDto? = null,
   private var verificationStatus: VerificationStatus? = null,
   private var nextAccommodationStatus: NextAccommodationStatus? = null,
+  private var typeVerified: Boolean? = null,
+  private var noFixedAbode: Boolean? = null,
   private var address: AccommodationAddressDetails? = null,
   private var startDate: LocalDate? = null,
   private var endDate: LocalDate? = null,
@@ -35,16 +41,23 @@ class ProposedAccommodationAggregate private constructor(
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
 
   companion object {
-    fun hydrateNew(caseId: UUID, currentAccommodation: AccommodationSummaryDto?) = ProposedAccommodationAggregate(
+    fun hydrateNew(
+      caseId: UUID,
+      cprAddressId: UUID?,
+      currentAccommodation: AccommodationSummaryDto?,
+    ) = ProposedAccommodationAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
+      cprAddressId = cprAddressId,
       currentAccommodation = currentAccommodation,
     )
 
     fun hydrateExisting(
       id: UUID,
       caseId: UUID,
+      accommodationSource: AccommodationSource,
       currentAccommodation: AccommodationSummaryDto?,
+      cprAddressId: UUID?,
       name: String?,
       accommodationType: AccommodationTypeDto,
       accommodationStatus: AccommodationStatusDto?,
@@ -53,16 +66,22 @@ class ProposedAccommodationAggregate private constructor(
       address: AccommodationAddressDetails,
       startDate: LocalDate?,
       endDate: LocalDate?,
+      typeVerified: Boolean?,
+      noFixedAbode: Boolean?,
       notes: List<ProposedAccommodationNoteSnapshot>,
     ) = ProposedAccommodationAggregate(
       id = id,
       caseId = caseId,
+      accommodationSource = accommodationSource,
       currentAccommodation = currentAccommodation,
+      cprAddressId = cprAddressId,
       name = name,
       accommodationType = accommodationType,
       accommodationStatus = accommodationStatus,
       verificationStatus = verificationStatus,
       nextAccommodationStatus = nextAccommodationStatus,
+      typeVerified = typeVerified,
+      noFixedAbode = noFixedAbode,
       address = address,
       startDate = startDate,
       endDate = endDate,
@@ -71,6 +90,7 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun updateProposedAccommodation(
+    newAccommodationSource: AccommodationSource,
     newName: String?,
     newAccommodationType: AccommodationTypeDto,
     newVerificationStatus: VerificationStatus,
@@ -78,7 +98,31 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
+    newTypeVerified: Boolean?,
+    newNoFixedAbode: Boolean?,
   ) {
+    val previousNextAccommodationStatus = nextAccommodationStatus
+    val previousVerificationStatus = verificationStatus
+    val existingIsKnownToCpr = isRegisteredWithCpr()
+    val shouldPublishUpdateEvent =
+      existingIsKnownToCpr &&
+        wasNextAccommodation(previousNextAccommodationStatus) &&
+        newNextAccommodationStatus == NextAccommodationStatus.YES &&
+        hasRelevantCprChanges(
+          newAddress,
+          newStartDate,
+          newEndDate,
+        )
+    val shouldPublishDeleteEvent =
+      existingIsKnownToCpr &&
+        shouldDeleteFromCpr(
+          previousNextAccommodationStatus,
+          previousVerificationStatus,
+          newNextAccommodationStatus,
+          newVerificationStatus,
+        )
+
+    accommodationSource = newAccommodationSource
     name = newName
     accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
@@ -86,12 +130,27 @@ class ProposedAccommodationAggregate private constructor(
     address = newAddress
     startDate = newStartDate
     endDate = newEndDate
+    noFixedAbode = newNoFixedAbode
+
+    downgradeNextAccommodationStatusIfVerificationFailed()
     accommodationStatus = getAccommodationStatus()
+    setTypeVerified(newTypeVerified)
 
     validateProposedAccommodation()
 
-    if (nextAccommodationStatus == NextAccommodationStatus.YES) {
-      domainEvents += AccommodationUpdatedDomainEvent(id)
+    when {
+      shouldPublishDeleteEvent -> {
+        cprAddressId = null
+        domainEvents += AccommodationDeletedDomainEvent(
+          aggregateId = id,
+        )
+      }
+
+      shouldPublishUpdateEvent && accommodationSource == AccommodationSource.SAS -> {
+        domainEvents += AccommodationUpdatedDomainEvent(
+          aggregateId = id,
+        )
+      }
     }
   }
 
@@ -112,6 +171,13 @@ class ProposedAccommodationAggregate private constructor(
     }
   }
 
+  private fun setTypeVerified(newTypeVerified: Boolean?) {
+    typeVerified = when (accommodationSource!!) {
+      AccommodationSource.SAS -> nextAccommodationStatus == NextAccommodationStatus.YES
+      AccommodationSource.DELIUS -> newTypeVerified ?: false
+    }
+  }
+
   private fun validateProposedAccommodation() {
     validateStatuses()
   }
@@ -127,22 +193,66 @@ class ProposedAccommodationAggregate private constructor(
   private fun getAccommodationStatus(): AccommodationStatusDto? = if (nextAccommodationStatus == NextAccommodationStatus.YES) {
     if (PRISON_ACCOMMODATION_TYPE_CODE == currentAccommodation?.type?.code) {
       AccommodationStatusDto(
-        code = AddressStatus.PR1.name,
-        description = AddressStatus.PR1.description,
+        code = AddressStatusCode.PR1.name,
+        description = AddressStatusCode.PR1.description,
       )
     } else {
       AccommodationStatusDto(
-        code = AddressStatus.PR.name,
-        description = AddressStatus.PR.description,
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
       )
     }
   } else {
     null
   }
 
+  fun requiresCprRegistration() = nextAccommodationStatus == NextAccommodationStatus.YES && !isRegisteredWithCpr()
+
+  private fun isRegisteredWithCpr() = cprAddressId != null
+
+  private fun wasNextAccommodation(
+    status: NextAccommodationStatus?,
+  ) = status == NextAccommodationStatus.YES
+
+  private fun hasRelevantCprChanges(
+    newAddress: AccommodationAddressDetails,
+    newStartDate: LocalDate?,
+    newEndDate: LocalDate?,
+  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate
+
+  private fun shouldDeleteFromCpr(
+    previousNextAccommodationStatus: NextAccommodationStatus?,
+    previousVerificationStatus: VerificationStatus?,
+    newNextAccommodationStatus: NextAccommodationStatus,
+    newVerificationStatus: VerificationStatus,
+  ): Boolean = (
+    wasNextAccommodation(previousNextAccommodationStatus) &&
+      newNextAccommodationStatus != NextAccommodationStatus.YES
+    ) ||
+    (
+      wasNextAccommodation(previousNextAccommodationStatus) &&
+        previousVerificationStatus == VerificationStatus.PASSED &&
+        newVerificationStatus == VerificationStatus.FAILED
+      )
+
+  private fun downgradeNextAccommodationStatusIfVerificationFailed() {
+    if (
+      verificationStatus == VerificationStatus.FAILED &&
+      nextAccommodationStatus == NextAccommodationStatus.YES
+    ) {
+      nextAccommodationStatus = NextAccommodationStatus.NO
+    }
+  }
+
+  fun markRegisteredWithCpr(cprAddressId: UUID) {
+    this.cprAddressId = cprAddressId
+  }
+
   fun snapshot() = ProposedAccommodationSnapshot(
     id,
     caseId,
+    cprAddressId,
+    accommodationSource!!,
     name,
     accommodationType!!,
     accommodationStatus,
@@ -151,12 +261,16 @@ class ProposedAccommodationAggregate private constructor(
     address!!,
     startDate,
     endDate,
+    typeVerified!!,
+    noFixedAbode!!,
     notes = notes.toList(),
   )
 
   data class ProposedAccommodationSnapshot(
     val id: UUID,
     val caseId: UUID,
+    val cprAddressId: UUID?,
+    val accommodationSource: AccommodationSource,
     val name: String?,
     val accommodationType: AccommodationTypeDto,
     val accommodationStatus: AccommodationStatusDto?,
@@ -165,6 +279,8 @@ class ProposedAccommodationAggregate private constructor(
     val address: AccommodationAddressDetails,
     val startDate: LocalDate?,
     val endDate: LocalDate?,
+    val typeVerified: Boolean?,
+    val noFixedAbode: Boolean?,
     val notes: List<ProposedAccommodationNoteSnapshot>,
   )
 

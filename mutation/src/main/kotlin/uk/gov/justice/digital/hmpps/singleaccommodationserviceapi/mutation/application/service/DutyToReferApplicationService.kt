@@ -49,7 +49,7 @@ class DutyToReferApplicationService(
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
-      createdBy = user.name,
+      createdBy = user.displayName(),
       createdAt = persistedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
     )
@@ -70,6 +70,9 @@ class DutyToReferApplicationService(
         submissionDate = command.submissionDate,
         referenceNumber = command.referenceNumber,
         status = command.status,
+        withdrawalReason = command.withdrawalReason,
+        withdrawalReasonOther = command.withdrawalReasonOther,
+        outcomeReason = command.outcomeReason,
       )
     }
     val updatedRecord = dutyToReferRepository.save(merge(aggregate.snapshot(), dtr))
@@ -78,7 +81,7 @@ class DutyToReferApplicationService(
     return DutyToReferMapper.toDto(
       snapshot = aggregate.snapshot(),
       crn = crn,
-      createdBy = createdByUser.name,
+      createdBy = createdByUser.displayName(),
       createdAt = updatedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
     )

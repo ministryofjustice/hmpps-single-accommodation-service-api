@@ -44,4 +44,4 @@ fun Map<String, Any>.getFailures(): List<UpstreamFailure> = this.mapNotNull { (k
     errorDetail = failure.errorDetail,
     identifier = failure.identifier,
   )
-}
+}.filter { it.errorDetail.httpStatus != HttpStatus.NOT_FOUND }

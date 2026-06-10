@@ -13,6 +13,12 @@ spring:
     date-format: "yyyy-MM-dd HH:mm:ss"
   jpa:
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+        order_updates: true
   security:
     oauth2:
       resourceserver:
@@ -24,7 +30,8 @@ spring:
   web:
     error:
       include-message: always
-
+springdoc:
+  paths-to-exclude: "/queue-admin/**"
 server:
   port: 8080
   servlet:
@@ -61,5 +68,32 @@ management:
 javers:
   springDataAuditableRepositoryAspectEnabled: true
 
+hmpps:
+  sqs:
+    dispatcher:
+      max-events-per-batch: 10
+      max-concurrent-events: 4
+
+service:
+  approved-premises-ui:
+    base-url: https://approved-premises-dev.hmpps.service.justice.gov.uk
+  temporary-accommodation-ui:
+    base-url: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
+  commissioned-rehabilitative-services-ui:
+    base-url: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
+
 case-list:
+  page-size: 200
   onboarded-teams: []
+
+scheduling:
+  enabled: true
+  fixed-delay: 5s
+
+shedlock:
+  outbox-event-publisher:
+    lock-at-most-for: PT2M
+    lock-at-least-for: PT1S
+  inbox-event-dispatcher:
+    lock-at-most-for: PT2M
+    lock-at-least-for: PT1S

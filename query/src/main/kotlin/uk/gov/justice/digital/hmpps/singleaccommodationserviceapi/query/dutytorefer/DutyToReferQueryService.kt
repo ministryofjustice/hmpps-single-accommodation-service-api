@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Up
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.NOT_ACCEPTED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.WITHDRAWN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
@@ -31,25 +33,45 @@ class DutyToReferQueryService(
 ) {
   fun getDutyToRefer(crn: String): DutyToReferDto {
     val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
-    return getDutyToRefer(caseEntity, crn)
+    return getDutyToRefer(caseEntity, crn).orThrowNotFound("crn" to crn)
   }
 
-  fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto {
-    val dtrEntity = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
-      ?: return DutyToReferTransformer.toNotStartedDto(caseEntity.id, crn)
-
-    val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
-    val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
-
-    return DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.name, localAuthorityArea!!.name)
+  fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
+    val caseEntity = caseRepository.findByCrn(crn) ?: return emptyList()
+    return getDutyToReferHistory(caseEntity, crn)
   }
+
+  fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
+    // Only show not accepted and withdrawn, submitted and accepted don't appear in the history section form the prototype.
+    val dtrEntities = dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, listOf(NOT_ACCEPTED, WITHDRAWN))
+    if (dtrEntities.isEmpty()) return emptyList()
+
+    val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()
+    val localAuthorityAreaIds = dtrEntities.map { it.localAuthorityAreaId }.toSet()
+
+    val users = userRepository.findAllById(createdByUserIds).associateBy { it.id }
+    val localAuthorities = localAuthorityAreaRepository.findAllById(localAuthorityAreaIds).associateBy { it.id }
+
+    return dtrEntities.map { dtrEntity ->
+      val createdByUser = users[dtrEntity.createdByUserId]
+      val localAuthorityArea = localAuthorities[dtrEntity.localAuthorityAreaId]
+      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!, localAuthorityArea!!.name)
+    }
+  }
+
+  fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto? = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
+    ?.let { dtrEntity ->
+      val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
+      val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
+      DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+    }
 
   fun getDutyToRefer(crn: String, id: UUID): DutyToReferDto {
     val entity = dutyToReferRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.name, localAuthorityArea!!.name)
+    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
   }
 
   fun getDutyToRefer(id: UUID): DutyToReferDto {
@@ -61,7 +83,7 @@ class DutyToReferQueryService(
     return DutyToReferTransformer.toDutyToReferDto(
       dtrEntity,
       crn = caseEntity.latestCrn(),
-      createdByUser!!.name,
+      createdByUser!!.displayName(),
       localAuthorityArea!!.name,
     )
   }
@@ -109,7 +131,7 @@ class DutyToReferQueryService(
 
   private fun createDutyToReferTimelineRecordWithLAName(record: AuditRecordDto, localAuthorityAreaName: String?): AuditRecordDto {
     if (localAuthorityAreaName == null) return record
-    return record.copy(extraInformation = record.extraInformation + (LOCAL_AUTHORITY_AREA_NAME to localAuthorityAreaName))
+    return record.copy(extraInformation = record.extraInformation.orEmpty() + (LOCAL_AUTHORITY_AREA_NAME to localAuthorityAreaName))
   }
 
   private fun getDutyToReferNotesTimeline(dtrEntity: DutyToReferEntity): List<AuditRecordDto> {
@@ -119,7 +141,7 @@ class DutyToReferQueryService(
       val createdByUser = createdByUsers[it.createdByUserId]
       AuditRecordDto(
         type = AuditRecordType.NOTE,
-        author = createdByUser!!.name,
+        author = createdByUser!!.displayName(),
         commitDate = it.createdAt!!,
         changes = listOf(
           CreateFieldChangeDto(

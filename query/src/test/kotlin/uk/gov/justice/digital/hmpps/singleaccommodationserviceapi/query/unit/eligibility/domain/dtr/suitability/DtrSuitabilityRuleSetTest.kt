@@ -8,16 +8,16 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrNotWithdrawnRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrPresentRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrStatusRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.suitability.DtrSuitabilityRuleSet
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     DtrSuitabilityRuleSet::class,
-    DtrStatusRule::class,
     DtrPresentRule::class,
+    DtrNotWithdrawnRule::class,
     DtrExpiredReferralRule::class,
     ClockConfig::class,
   ],
@@ -28,8 +28,8 @@ class DtrSuitabilityRuleSetTest {
   lateinit var dtrSuitabilityRuleSet: DtrSuitabilityRuleSet
 
   private val expectedDtrSuitabilityRuleNames = listOf(
-    DtrStatusRule::class.simpleName,
     DtrPresentRule::class.simpleName,
+    DtrNotWithdrawnRule::class.simpleName,
     DtrExpiredReferralRule::class.simpleName,
   )
 

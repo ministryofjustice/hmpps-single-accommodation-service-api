@@ -29,8 +29,8 @@ class ResourceSecurityIT : IntegrationTestBase() {
   fun `@PreAuthorise smoke test()`() {
     restTestClient
       .get()
-      .uri("/cases/FAKECRN1")
-      .withClientCredentialsJwt(emptyList())
+      .uri("/case-list")
+      .withClientCredentialsJwt(roles = emptyList())
       .exchange()
       .expectStatus()
       .isForbidden
@@ -112,66 +112,54 @@ class ResourceSecurityIT : IntegrationTestBase() {
     }
 }
 
+private val defaultRoles = setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER")
+
+private val userControllerMap: Map<String, Set<String>> = mapOf("GET /user/teams" to defaultRoles)
+
 private val dutyToReferControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /cases/{crn}/dtr/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "GET /cases/{crn}/dtr/{id}/timeline" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /cases/{crn}/dtr/{id}" to defaultRoles,
+    "GET /cases/{crn}/dtr/{id}/timeline" to defaultRoles,
     "GET /duty-to-refers/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
-    "GET /cases/{crn}/dtr" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "PUT /cases/{crn}/dtr/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "POST /cases/{crn}/dtr" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "POST /cases/{crn}/dtr/{id}/notes" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /cases/{crn}/dtr" to defaultRoles,
+    "PUT /cases/{crn}/dtr/{id}" to defaultRoles,
+    "POST /cases/{crn}/dtr" to defaultRoles,
+    "POST /cases/{crn}/dtr/{id}/notes" to defaultRoles,
   )
 
 private val eligibilityControllerMap: Map<String, Set<String>> =
-  mapOf(
-    "GET /cases/{crn}/eligibility" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-  )
+  mapOf("GET /cases/{crn}/eligibility" to defaultRoles)
 
 private val proposedAccommodationControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /cases/{crn}/proposed-accommodations/{id}" to setOf(
-      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
-      "POM",
-    ),
-    "GET /proposed-accommodations/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
-    "GET /cases/{crn}/proposed-accommodations" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "GET /cases/{crn}/proposed-accommodations/{id}/timeline" to setOf(
-      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
-      "POM",
-    ),
-    "POST /cases/{crn}/proposed-accommodations" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "PUT /cases/{crn}/proposed-accommodations/{id}" to setOf(
-      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
-      "POM",
-    ),
-    "POST /cases/{crn}/proposed-accommodations/{id}/notes" to setOf(
-      "SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER",
-      "POM",
-    ),
+    "GET /cases/{crn}/proposed-accommodations/{id}" to defaultRoles,
+    "GET /cases/{crn}/proposed-accommodations" to defaultRoles,
+    "GET /cases/{crn}/proposed-accommodations/{id}/timeline" to defaultRoles,
+    "POST /cases/{crn}/proposed-accommodations" to defaultRoles,
+    "PUT /cases/{crn}/proposed-accommodations/{id}" to defaultRoles,
+    "POST /cases/{crn}/proposed-accommodations/{id}/notes" to defaultRoles,
   )
 
 private val accommodationControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /cases/{crn}/accommodations/current" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
-    "GET /cases/{crn}/accommodations/next" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
+    "GET /cases/{crn}/accommodations/current" to defaultRoles,
+    "GET /cases/{crn}/accommodations/next" to defaultRoles,
+    "GET /accommodations/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD"),
   )
 
 private val accommodationReferralControllerMap: Map<String, Set<String>> =
-  mapOf(
-    "GET /cases/{crn}/applications" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-  )
+  mapOf("GET /cases/{crn}/applications" to defaultRoles)
 
 private val accommodationHistoryControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /cases/{crn}/accommodation-history" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "GET /v2/cases/{crn}/accommodation-history" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /cases/{crn}/accommodation-history" to defaultRoles,
+    "GET /v2/cases/{crn}/accommodation-history" to defaultRoles,
   )
 
 private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /case-list" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
-    "GET /cases/{crn}" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /case-list" to defaultRoles,
+    "GET /cases/{crn}" to defaultRoles,
   )
 
 private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
@@ -184,11 +172,12 @@ private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
 
 private val referenceDataControllerMap: Map<String, Set<String>> =
   mapOf(
-    "GET /reference-data" to setOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER", "POM"),
+    "GET /reference-data" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =
   mapOf(
+    "UserController" to userControllerMap,
     "DutyToReferController" to dutyToReferControllerMap,
     "EligibilityController" to eligibilityControllerMap,
     "ProposedAccommodationController" to proposedAccommodationControllerMap,

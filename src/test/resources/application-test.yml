@@ -5,16 +5,40 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
+wiremock:
+  service-names:
+    - sas-and-delius
+    - approved-premises-and-delius
+    - approved-premises-and-oasys
+    - approved-premises-api
+    - core-person-record
+    - commissioned-rehabilitative-services-api
+    - tier
+    - accommodation-data-domain
+    - nomis-user-roles
+    - prisoner-search
+
 service:
-  - sas-and-delius
-  - approved-premises-and-delius
-  - approved-premises-and-oasys
-  - approved-premises-api
-  - core-person-record
-  - commissioned-rehabilitative-services
-  - tier
-  - accommodation-data-domain
-  - nomis-user-roles
+  sas-and-delius:
+    read-timeout: 150ms
+  approved-premises-and-delius:
+    read-timeout: 150ms
+  approved-premises-and-oasys:
+    read-timeout: 150ms
+  approved-premises-api:
+    read-timeout: 300ms # 300 required
+  core-person-record:
+    read-timeout: 300ms # 300 required
+  commissioned-rehabilitative-services-api:
+    read-timeout: 150ms
+  tier:
+    read-timeout: 300ms # 300 required
+  accommodation-data-domain:
+    read-timeout: 150ms
+  nomis-user-roles:
+    read-timeout: 150ms
+  prisoner-search:
+    read-timeout: 150ms
 
 spring:
   cache:
@@ -23,6 +47,13 @@ spring:
     url: jdbc:postgresql://localhost:5432/sas_db
     username: sas_user
     password: sas_psw
+    hikari:
+      maximum-pool-size: 10
+
+scheduling:
+  enabled: false
+  fixed-delay: 100ms
+
 
 event:
   details-url:
@@ -51,8 +82,9 @@ test-data-setup:
   user-id: 48785d6e-19f2-49e6-9530-d48423f95e66
 
 case-list:
+  page-size: 1
   onboarded-teams: 12345
 logging:
   level:
     root: WARN
-    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: WARN
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: INFO

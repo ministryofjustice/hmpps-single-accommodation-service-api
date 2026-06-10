@@ -14,7 +14,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas1CompletionContextUpdaterTest {
-  private val updater = Cas1CompletionContextUpdater()
+  val cas1UiUrl = "CAS1_UI_URL"
+  private val updater = Cas1CompletionContextUpdater(cas1UiUrl)
 
   @Nested
   inner class UpdateTests {
@@ -35,8 +36,9 @@ class Cas1CompletionContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.WAIT_FOR_ASSESSMENT_RESULT)
+      assertThat(result.currentResult.action).isNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
+      assertThat(result.currentResult.url).isEqualTo(cas1UiUrl)
     }
   }
 }

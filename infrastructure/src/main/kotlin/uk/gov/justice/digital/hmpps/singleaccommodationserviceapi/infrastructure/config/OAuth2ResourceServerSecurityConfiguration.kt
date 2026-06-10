@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -66,13 +67,12 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
   private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> =
     JwtGrantedAuthoritiesConverter()
 
-  override fun convert(jwt: Jwt): AbstractAuthenticationToken {
-    val claims = jwt.claims
-    val grantType = GrantType.findByType(claims[CLAIM_GRANT_TYPE] as String) ?: throw RuntimeException("JWT grant_type failure")
-    return when (grantType) {
-      GrantType.AUTHORIZATION_CODE -> convertForAuthorizationCodeFlow(jwt)
-      GrantType.CLIENT_CREDENTIALS -> convertForClientCredentialsFlow(jwt)
-    }
+  override fun convert(jwt: Jwt): AbstractAuthenticationToken = if (jwt.claims.containsKey(CLAIM_USERNAME)) {
+    convertForAuthorizationCodeFlow(jwt)
+  } else if (jwt.claims.containsKey(CLAIM_CLIENT_ID)) {
+    convertForClientCredentialsFlow(jwt)
+  } else {
+    throw AccessDeniedException("Invalid Token")
   }
 
   private fun convertForAuthorizationCodeFlow(jwt: Jwt): AuthAwareAuthenticationToken {
@@ -80,7 +80,7 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
     val username = findUsername(jwt.claims)
     val principal = when (authSource) {
       AuthSource.DELIUS -> {
-        val user = userService.getExistingDeliusUserOrCreate(username)
+        val user = userService.getAndUpsertDeliusUser(username)
         UserPrincipal(
           sasUserId = user.id,
           username = username,

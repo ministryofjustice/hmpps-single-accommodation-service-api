@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.audit
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
@@ -10,12 +10,15 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.AddressUsageCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecordAddresses
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -33,6 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.NomisUserRolesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -64,8 +68,7 @@ class UserAuditIT : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     beforeTest = Instant.now()
-    proposedAccommodationRepository.deleteAll()
-    userRepository.deleteAll()
+    databaseUtils.truncate(SasTables.PROPOSED_ACCOMMODATION, SasTables.SAS_USER)
     crn = UUID.randomUUID().toString()
     caseRepository.save(buildCaseEntity { withCrn(crn) })
 
@@ -74,17 +77,11 @@ class UserAuditIT : IntegrationTestBase() {
     stubCurrentAccommodationIsCas1(crn)
   }
 
-  @AfterEach
-  fun teardown() {
-    proposedAccommodationRepository.deleteAll()
-    userRepository.deleteAll()
-  }
-
   private fun stubCurrentAccommodationIsCas1(crn: String) {
-    val corePersonRecordAddresses = buildCorePersonRecordAddresses(
-      crn = crn,
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
-        buildAddress(
+        buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = "SW1A 1AA",
@@ -92,17 +89,23 @@ class UserAuditIT : IntegrationTestBase() {
           postTown = "London",
           startDate = LocalDate.of(2026, 1, 11),
           endDate = null,
-          addressStatus = AddressStatus.M,
-          addressUsage = buildAddressUsage(
-            addressUsageCode = AddressUsageCode.A02,
-            addressUsageDescription = "Approved Premises",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A02.name,
+              description = AddressUsageCode.A02.description,
+            ),
+            isActive = true,
           ),
         ),
       ),
     )
-    CorePersonRecordStubs.getCorePersonRecordAddressesOKResponse(
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
       crn = crn,
-      response = corePersonRecordAddresses,
+      response = corePersonRecord,
     )
   }
 
@@ -129,6 +132,8 @@ class UserAuditIT : IntegrationTestBase() {
     )
   }
 
+  // TODO: re-enable this test
+  @Disabled(value = "POM roles have been removed for MVP. Re-enable when re-added.")
   @Test
   fun `should audit data properly for Nomis User`() {
     NomisUserRolesStubs.stubMe(
@@ -171,13 +176,15 @@ class UserAuditIT : IntegrationTestBase() {
     assertThat(unknownUser.authSource).isEqualTo(AuthSource.DELIUS)
     assertThat(unknownUser.username).isEqualTo(staffDetail.username!!.uppercase())
     assertThat(unknownUser.email).isEqualTo(staffDetail.email)
-    assertThat(unknownUser.name).isEqualTo(staffDetail.name.deliusName())
+    assertThat(unknownUser.forename).isEqualTo(staffDetail.name.forename)
+    assertThat(unknownUser.middleNames).isEqualTo(staffDetail.name.middleName)
+    assertThat(unknownUser.surname).isEqualTo(staffDetail.name.surname)
     assertThat(unknownUser.telephoneNumber).isEqualTo(staffDetail.telephoneNumber)
     assertThat(unknownUser.deliusStaffCode).isEqualTo(staffDetail.code)
     assertThat(unknownUser.nomisStaffId).isNull()
     assertThat(unknownUser.nomisAccountType).isNull()
     assertThat(unknownUser.nomisActiveCaseloadId).isNull()
-    assertThat(unknownUser.isEnabled).isTrue
+    assertThat(unknownUser.isEnabled).isNull()
     assertThat(unknownUser.isActive).isTrue
   }
 
@@ -186,7 +193,9 @@ class UserAuditIT : IntegrationTestBase() {
   ) {
     assertThat(unknownUser.authSource).isEqualTo(AuthSource.NOMIS)
     assertThat(unknownUser.username).isEqualTo(nomisUserDetail.username)
-    assertThat(unknownUser.name).isEqualTo("${nomisUserDetail.firstName} ${nomisUserDetail.lastName}")
+    assertThat(unknownUser.email).isEqualTo(staffDetail.email)
+    assertThat(unknownUser.forename).isNull()
+    assertThat(unknownUser.middleNames).isEqualTo(staffDetail.name.middleName)
     assertThat(unknownUser.email).isEqualTo(nomisUserDetail.primaryEmail)
     assertThat(unknownUser.nomisStaffId).isEqualTo(nomisUserDetail.staffId)
     assertThat(unknownUser.nomisAccountType).isEqualTo(nomisUserDetail.accountType)
@@ -208,7 +217,7 @@ class UserAuditIT : IntegrationTestBase() {
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
           verificationStatus = VerificationStatus.PASSED.name,
-          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+          nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
       )
       .withJwt()

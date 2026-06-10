@@ -19,7 +19,6 @@ hmpps.sqs:
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
       subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
-
 spring:
   jpa:
     properties:
@@ -29,6 +28,9 @@ spring:
 logging:
   level:
     root: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE # TRACE - shows what parameters are bound to queries
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO # TRACE - shows what parameters are bound to queries
     org.hibernate.session.metrics: INFO
+
+scheduling:
+  enabled: true

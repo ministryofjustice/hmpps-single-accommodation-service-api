@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
@@ -50,6 +51,16 @@ fun buildAssignedToDto(
 ) = AssignedToDto(
   forename = forename,
   surname = surname,
+  username = username,
+  staffCode = staffCode,
+)
+
+fun buildStaffDetailDto(
+  name: String,
+  username: String? = "user1",
+  staffCode: String? = "ABCD1234",
+) = StaffDetailsDto(
+  name = name,
   username = username,
   staffCode = staffCode,
 )
