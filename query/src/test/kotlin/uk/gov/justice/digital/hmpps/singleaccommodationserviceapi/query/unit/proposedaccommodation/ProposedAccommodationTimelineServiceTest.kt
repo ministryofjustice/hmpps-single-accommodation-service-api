@@ -10,8 +10,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildFieldChange
@@ -213,7 +212,7 @@ class ProposedAccommodationTimelineServiceTest {
       val auditRecord = buildAuditRecordDto(
         type = AuditRecordType.CREATE,
         changes = listOf(
-          CreateFieldChangeDto(
+          FieldChange(
             field = "accommodationTypeId",
             value = accommodationType.id.toString(),
           ),
@@ -241,7 +240,7 @@ class ProposedAccommodationTimelineServiceTest {
 
       val result = service.getProposedAccommodationTimeline(proposedAccommodationEntity.id, crn)
 
-      val change = result.single().changes.single() as CreateFieldChangeDto
+      val change = result.single().changes.single()
 
       assertThat(change.field).isEqualTo("accommodationTypeDescription")
       assertThat(change.value).isEqualTo("Living in the home of a friend, family member or partner: settled")
@@ -265,7 +264,7 @@ class ProposedAccommodationTimelineServiceTest {
       val auditRecord = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "accommodationTypeId",
             value = newType.id.toString(),
             oldValue = oldType.id.toString(),
@@ -296,7 +295,7 @@ class ProposedAccommodationTimelineServiceTest {
 
       val result = service.getProposedAccommodationTimeline(id, crn)
 
-      val change = result.single().changes.single() as UpdateFieldChangeDto
+      val change = result.single().changes.single()
 
       assertThat(change.field).isEqualTo("accommodationTypeDescription")
       assertThat(change.oldValue).isEqualTo("Living in the home of a friend, family member or partner: settled")
@@ -314,7 +313,7 @@ class ProposedAccommodationTimelineServiceTest {
       val auditRecord = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "nextAccommodationStatus",
             value = "YES",
             oldValue = "NO",
@@ -343,7 +342,7 @@ class ProposedAccommodationTimelineServiceTest {
 
       val result = service.getProposedAccommodationTimeline(id, crn)
 
-      val change = result.single().changes.single() as UpdateFieldChangeDto
+      val change = result.single().changes.single()
 
       assertThat(change.field).isEqualTo("nextAccommodationStatus")
       assertThat(change.oldValue).isEqualTo("NO")
