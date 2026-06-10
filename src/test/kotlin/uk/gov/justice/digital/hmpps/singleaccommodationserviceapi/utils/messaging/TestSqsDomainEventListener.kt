@@ -13,6 +13,7 @@ import org.springframework.test.context.event.annotation.BeforeTestMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
+import java.util.Collections
 import java.util.UUID
 
 @Profile("test")
@@ -20,7 +21,7 @@ import java.util.UUID
 class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
-  private val messages = mutableListOf<HmppsDomainEvent>()
+  private val messages = Collections.synchronizedList(mutableListOf<HmppsDomainEvent>())
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
   lateinit var topicName: String
