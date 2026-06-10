@@ -54,7 +54,7 @@ class InboxEventDispatcher(
   private val handlerMap: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
-  @Scheduled(fixedDelayString = $$"${shedlock.inbox-event-dispatcher.fixed-delay}")
+  @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
     name = "InboxDispatcherProcessor",
     lockAtMostFor = $$"${shedlock.inbox-event-dispatcher.lock-at-most-for}",

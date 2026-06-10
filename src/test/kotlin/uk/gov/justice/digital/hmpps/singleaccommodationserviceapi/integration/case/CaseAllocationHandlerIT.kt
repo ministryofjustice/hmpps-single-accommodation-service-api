@@ -224,9 +224,11 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(IncomingHmppsDomainEventType.CASE_ALLOCATED)
-    assertThat(emittedMessage.description).isEqualTo(IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription)
-    assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
+    testSqsDomainEventListener.assertMessageReceived(
+      typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
+      eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
+      detailUrl = detailUrl,
+    )
   }
 
   private fun publishCaseAllocatedEvent() {

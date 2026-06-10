@@ -270,7 +270,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertPublishedSNSEvent(
       dutyToReferId = persistedRecord.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(persistedRecord.id)
   }
@@ -325,7 +324,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertPublishedSNSEvent(
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(existingEntity.id)
   }
@@ -415,7 +413,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertPublishedSNSEvent(
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(existingEntity.id)
   }
@@ -465,7 +462,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertPublishedSNSEvent(
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(existingEntity.id)
   }
@@ -670,7 +666,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertPublishedSNSEvent(
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.typeDescription,
     )
     assertThatOutboxIsAsExpected(existingEntity.id)
   }
@@ -1074,12 +1069,9 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     dutyToReferId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
-    eventDescription: String,
     detailUrl: String = "http://api-host/duty-to-refers",
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(eventType)
-    assertThat(emittedMessage.description).isEqualTo(eventDescription)
-    assertThat(emittedMessage.detailUrl).isEqualTo("$detailUrl/$dutyToReferId")
+    testSqsDomainEventListener.assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
   }
 
   private fun assertThatOutboxIsAsExpected(dutyToReferId: UUID) {
