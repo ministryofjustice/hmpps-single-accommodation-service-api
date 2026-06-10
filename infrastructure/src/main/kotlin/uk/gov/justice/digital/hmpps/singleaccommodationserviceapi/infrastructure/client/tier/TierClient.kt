@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier
 
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.DefaultRetry
 import java.net.URI
 
 interface TierClient {
@@ -17,7 +17,7 @@ interface TierClient {
   fun getTier(uri: URI): Tier
 }
 
-@Retryable(interceptor = "retryInterceptor")
+@DefaultRetry
 @Service
 class TierCachingService(
   val tierClient: TierClient,

@@ -1,9 +1,9 @@
 spring:
   retry:
     max-attempts: 3
-    initial-interval: 25ms
+    initial-interval: 25
     multiplier: 2.0
-    max-interval: 2s
+    max-interval: 2000
   jpa:
     show-sql: false
     generate-ddl: false

@@ -86,6 +86,7 @@ tasks.named("check") {
 
 allprojects {
   tasks.register<Test>("integrationTest") {
+    failFast = true
     group = "verification"
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath

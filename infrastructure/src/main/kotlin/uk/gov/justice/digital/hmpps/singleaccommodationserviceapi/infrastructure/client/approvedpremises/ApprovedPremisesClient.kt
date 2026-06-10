@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.DefaultRetry
 
 interface ApprovedPremisesClient {
 
@@ -28,7 +28,7 @@ interface ApprovedPremisesClient {
   fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
 }
 
-@Retryable(interceptor = "retryInterceptor")
+@DefaultRetry
 @Service
 class ApprovedPremisesCachingService(
   private val approvedPremisesClient: ApprovedPremisesClient,
