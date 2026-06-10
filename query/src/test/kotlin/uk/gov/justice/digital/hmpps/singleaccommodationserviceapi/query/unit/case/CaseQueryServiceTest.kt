@@ -489,7 +489,7 @@ class CaseQueryServiceTest {
     fun `should return true when case record exists in db`() {
       every { caseRepository.findByCrn(crnOne) } returns buildCaseEntity { withCrn(crnOne) }
 
-      val result = caseQueryService.isCaseRecordInDb(crnOne)
+      val result = caseQueryService.isPersistedCase(crnOne)
 
       assertThat(result).isTrue
     }
@@ -498,7 +498,7 @@ class CaseQueryServiceTest {
     fun `should return false when case record does not exist in db`() {
       every { caseRepository.findByCrn(crnOne) } returns null
 
-      val result = caseQueryService.isCaseRecordInDb(crnOne)
+      val result = caseQueryService.isPersistedCase(crnOne)
 
       assertThat(result).isFalse
     }
