@@ -80,7 +80,7 @@ class DomainDataTest {
 
     val expected = buildDomainData(
       crn = crn,
-      tierScore = tier.tierScore,
+      tierScore = tier.tierScore.name,
       sex = cpr.sex?.code,
       currentAccommodation = currentAccommodation,
       nextAccommodations = nextAccommodations,
@@ -121,7 +121,7 @@ class DomainDataTest {
     ) { withCrn(crn) }
     val expected = buildDomainData(
       crn = crn,
-      tierScore = tierScore,
+      tierScore = tierScore.name,
       sex = SexCode.M,
       cas1Application = null,
       cas3Application = null,

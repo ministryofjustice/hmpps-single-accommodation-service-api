@@ -8,12 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+
 data class DomainData(
   val crn: String,
-  val tierScore: TierScore?,
+  val tierScore: String?,
   val sex: SexCode?,
   val currentAccommodation: AccommodationSummaryDto?,
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
@@ -36,7 +36,7 @@ data class DomainData(
     accommodationTypes: List<AccommodationTypeEntity>,
   ) : this(
     crn = crn,
-    tierScore = tier?.tierScore,
+    tierScore = tier?.tierScore?.name,
     sex = cpr?.sex?.code,
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
@@ -54,7 +54,7 @@ data class DomainData(
     dutyToRefer: DutyToReferDto?,
   ) : this(
     crn = crn,
-    tierScore = caseEntity?.tierScore,
+    tierScore = caseEntity?.tierScore?.name,
     sex = sexCode,
     currentAccommodation = null,
     currentAccommodationTypeEntity = null,

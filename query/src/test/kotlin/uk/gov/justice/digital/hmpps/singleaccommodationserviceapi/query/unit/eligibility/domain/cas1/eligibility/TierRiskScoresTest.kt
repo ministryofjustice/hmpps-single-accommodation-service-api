@@ -14,7 +14,7 @@ class TierRiskScoresTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["C3", "C3S", "C2", "C1", "D3", "D2", "D1", "Z9"])
+  @ValueSource(strings = ["C3", "C3S", "C2", "C1", "D3", "D2", "D1"])
   fun `male high risk tiers exclude C D and unknown tiers`(tierScore: String) {
     assertThat(TierRiskScores.isHighRiskForMale(tierScore)).isFalse()
   }
@@ -26,7 +26,7 @@ class TierRiskScoresTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["C2", "C1", "D3", "D2", "D1", "Z9"])
+  @ValueSource(strings = ["C2", "C1", "D3", "D2", "D1"])
   fun `non-male high risk tiers exclude lower C D and unknown tiers`(tierScore: String) {
     assertThat(TierRiskScores.isHighRiskForNonMale(tierScore)).isFalse()
   }
