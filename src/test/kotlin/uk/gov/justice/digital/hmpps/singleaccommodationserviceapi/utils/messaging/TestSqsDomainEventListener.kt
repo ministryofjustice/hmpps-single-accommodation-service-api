@@ -13,14 +13,13 @@ import org.springframework.test.context.event.annotation.BeforeTestMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
-import java.util.concurrent.LinkedBlockingQueue
 
 @Profile("test")
 @Service
 class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
-  private val messages = LinkedBlockingQueue<HmppsDomainEvent>(1) // FIFO, waits until there is space
+  private val messages = mutableListOf<HmppsDomainEvent>()
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
   lateinit var topicName: String
@@ -36,7 +35,7 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
 
     log.info("Received Domain Event: $event")
 
-    messages.put(event)
+    messages.add(event)
   }
 
   @BeforeTestMethod
@@ -44,7 +43,7 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
     messages.clear()
   }
 
-  fun waitForMessage(
+  fun assertMessageReceived(
     typeName: String,
     eventDescription: String,
     detailUrl: String?,
@@ -55,12 +54,11 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
       .atMost(ofSeconds(5))
       .pollInterval(ofMillis(100))
       .untilAsserted {
-        val message = messages.poll()
-        assert(message != null)
-        assert(message.eventType == typeName)
-        assert(message.description == eventDescription)
-        assert(message.detailUrl == detailUrl)
-        matchedMessage = message
+        matchedMessage = messages.singleOrNull {
+          it.eventType == typeName && it.description == eventDescription && it.detailUrl == detailUrl
+        }
+        assert(matchedMessage != null)
+        messages.remove(matchedMessage)
       }
 
     return matchedMessage!!

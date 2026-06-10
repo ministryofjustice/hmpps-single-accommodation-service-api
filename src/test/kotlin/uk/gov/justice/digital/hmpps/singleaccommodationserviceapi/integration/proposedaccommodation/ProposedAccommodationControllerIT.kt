@@ -1066,16 +1066,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     )
 
     val detailUrl = "http://api-host/proposed-accommodations/${proposedAccommodationPersistedResult.id}"
-    val emittedMessage = testSqsDomainEventListener.waitForMessage(
+    val emittedMessage = testSqsDomainEventListener.assertMessageReceived(
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
       detailUrl = detailUrl,
     )
-
-    assertThat(emittedMessage.eventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName)
-    assertThat(emittedMessage.description).isEqualTo("Accommodation has been updated")
     assertThat(emittedMessage.externalId).isNull()
-    assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
 
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
@@ -1164,14 +1160,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val emittedMessage = testSqsDomainEventListener.waitForMessage(
+    val emittedMessage = testSqsDomainEventListener.assertMessageReceived(
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeDescription,
       detailUrl = null,
     )
-
     assertThat(emittedMessage.externalId).isEqualTo(existingEntity.id)
-    assertThat(emittedMessage.detailUrl).isNull()
 
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,

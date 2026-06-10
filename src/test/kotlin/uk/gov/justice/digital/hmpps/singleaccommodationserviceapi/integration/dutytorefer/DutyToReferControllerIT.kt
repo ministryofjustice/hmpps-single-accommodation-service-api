@@ -1071,10 +1071,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     eventType: SingleAccommodationServiceDomainEventType,
     detailUrl: String = "http://api-host/duty-to-refers",
   ) {
-    val emittedMessage = testSqsDomainEventListener.waitForMessage(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
-    assertThat(emittedMessage.eventType).isEqualTo(eventType.typeName)
-    assertThat(emittedMessage.description).isEqualTo(eventType.typeDescription)
-    assertThat(emittedMessage.detailUrl).isEqualTo("$detailUrl/$dutyToReferId")
+    testSqsDomainEventListener.assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
   }
 
   private fun assertThatOutboxIsAsExpected(dutyToReferId: UUID) {
