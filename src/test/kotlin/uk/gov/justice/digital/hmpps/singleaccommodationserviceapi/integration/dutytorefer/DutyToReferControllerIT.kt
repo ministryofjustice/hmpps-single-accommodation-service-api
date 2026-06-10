@@ -275,6 +275,60 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should auto-withdraw existing SUBMITTED referral when creating a new DTR`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingDtr = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 10),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.post().uri("/cases/$crn/dtr")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-002",
+          status = "SUBMITTED",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    // existing referral is now WITHDRAWN with reason NEW_REFERRAL
+    val withdrawnRecord = dutyToReferRepository.findById(existingDtr.id).get()
+    assertThat(withdrawnRecord.status).isEqualTo(EntityDtrStatus.WITHDRAWN)
+    assertThat(withdrawnRecord.withdrawalReason).isEqualTo(WithdrawalReason.NEW_REFERRAL)
+
+    // new referral is SUBMITTED
+    val newRecord = dutyToReferRepository.findAll().single { it.id != existingDtr.id }
+    assertThat(newRecord.status).isEqualTo(EntityDtrStatus.SUBMITTED)
+    assertThat(newRecord.referenceNumber).isEqualTo("DTR-REF-002")
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingDtr.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    )
+    assertPublishedSNSEvent(
+      dutyToReferId = newRecord.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    )
+
+    val outboxRecords = outboxEventRepository.findAll()
+    assertThat(outboxRecords).hasSize(2)
+    assertThat(outboxRecords).allMatch { it.processedStatus == ProcessedStatus.PROCESSED }
+    assertThat(outboxRecords.map { it.aggregateId }).containsExactlyInAnyOrder(existingDtr.id, newRecord.id)
+  }
+
+  @Test
   fun `should update duty to refer and return 200 with updated data`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()

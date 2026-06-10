@@ -11,6 +11,7 @@ import java.util.UUID
 interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
 
   fun findByCaseId(caseId: UUID): DutyToReferEntity?
+  fun findByCaseIdAndStatus(caseId: UUID, status: DtrStatus): DutyToReferEntity?
 
   @Query(
     """
