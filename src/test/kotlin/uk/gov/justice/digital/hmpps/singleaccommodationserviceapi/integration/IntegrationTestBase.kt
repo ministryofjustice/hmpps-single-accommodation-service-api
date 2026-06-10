@@ -87,12 +87,12 @@ abstract class IntegrationTestBase {
   fun beforeAll() {
     await
       .atMost(Duration.ofSeconds(10))
-      .pollInterval(Duration.ofMillis(10))
+      .pollInterval(Duration.ofMillis(100))
       .logging()
       .untilAsserted {
         restTestClient.get().uri("/health/readiness")
           .exchange()
-          .expectStatus().isOk
+          .expectStatus().isEqualTo(200)
           .expectBody().jsonPath("status").isEqualTo("UP")
       }
   }
