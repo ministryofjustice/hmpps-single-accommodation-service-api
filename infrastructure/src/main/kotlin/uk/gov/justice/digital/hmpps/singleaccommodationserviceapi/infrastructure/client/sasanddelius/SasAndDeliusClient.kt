@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
@@ -16,6 +17,7 @@ interface SasAndDeliusClient {
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
 }
 
+@Retryable(interceptor = "retryInterceptor")
 @Service
 class SasAndDeliusCachingService(
   val sasAndDeliusClient: SasAndDeliusClient,

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord
 
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -21,6 +22,7 @@ interface CorePersonRecordClient {
   fun createProbationAddress(@PathVariable crn: String, @RequestBody address: ProbationCreateAddress): ProbationCreateAddressResponse
 }
 
+@Retryable(interceptor = "retryInterceptor")
 @Service
 class CorePersonRecordCachingService(
   private val corePersonRecordClient: CorePersonRecordClient,

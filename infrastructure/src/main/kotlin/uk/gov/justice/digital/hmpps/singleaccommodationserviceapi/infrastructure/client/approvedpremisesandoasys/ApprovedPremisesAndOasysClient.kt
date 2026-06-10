@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys
 
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
@@ -11,6 +12,7 @@ interface ApprovedPremisesAndOasysClient {
   fun getRoshDetails(@PathVariable crn: String): RoshDetails
 }
 
+@Retryable(interceptor = "retryInterceptor")
 @Service
 class ApprovedPremisesAndOasysCachingService(
   val approvedPremisesAndOasysClient: ApprovedPremisesAndOasysClient,
