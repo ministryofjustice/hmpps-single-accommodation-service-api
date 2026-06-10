@@ -29,7 +29,7 @@ class RestClientConfig(
 
 ) {
 
-  private val connectionTimeoutMillis = 1000L
+  private val connectionTimeout = Duration.ofSeconds(1)
 
   @Bean
   fun probationIntegrationSasDeliusClient(
@@ -127,7 +127,7 @@ class RestClientConfig(
     readTimeout: Duration,
   ): T {
     val client = restClientBuilder
-      .requestFactory(withTimeouts(Duration.ofSeconds(connectionTimeoutMillis), readTimeout))
+      .requestFactory(withTimeouts(connectionTimeout, readTimeout))
       .requestInterceptor(HmppsAuthInterceptor(clientManager, "default"))
       .baseUrl(baseUrl)
       .build()
