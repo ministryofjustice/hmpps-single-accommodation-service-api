@@ -13,6 +13,7 @@ import org.springframework.test.context.event.annotation.BeforeTestMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
+import java.util.UUID
 
 @Profile("test")
 @Service
@@ -47,6 +48,7 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
     typeName: String,
     eventDescription: String,
     detailUrl: String?,
+    externalId: UUID? = null,
   ): HmppsDomainEvent {
     var matchedMessage: HmppsDomainEvent? = null
 
@@ -54,8 +56,11 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
       .atMost(ofSeconds(5))
       .pollInterval(ofMillis(100))
       .untilAsserted {
-        matchedMessage = messages.singleOrNull {
-          it.eventType == typeName && it.description == eventDescription && it.detailUrl == detailUrl
+        matchedMessage = messages.singleOrNull { message ->
+          message.eventType == typeName &&
+            message.description == eventDescription &&
+            message.detailUrl == detailUrl &&
+            (externalId == null || message.externalId == externalId)
         }
         assert(matchedMessage != null)
         messages.remove(matchedMessage)
