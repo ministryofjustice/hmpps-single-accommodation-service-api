@@ -27,7 +27,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"ARRIVED",
             "action":null,
             "link":"View application",
-            "url":"$cas1Url",
+            "url":"$cas1Url/applications/$cas1ApplicationId",
             "failureReasons":[]
          },
          "cas1Application":{
@@ -205,7 +205,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"ARRIVED",
             "action":null,
             "link":"View application",
-            "url":"$cas1Url",
+            "url":"$cas1Url/applications/$cas1ApplicationId",
             "failureReasons":[]
          },
          "cas1Application":{
