@@ -26,10 +26,8 @@ import kotlin.reflect.KClass
 class RestClientConfig(
   private val restClientBuilder: RestClient.Builder,
   private val clientManager: OAuth2AuthorizedClientManager,
-
+  @Value($$"${service.connection-timeout:1s}") private val connectionTimeout: Duration,
 ) {
-
-  private val connectionTimeoutMillis = 1000L
 
   @Bean
   fun probationIntegrationSasDeliusClient(
@@ -127,7 +125,7 @@ class RestClientConfig(
     readTimeout: Duration,
   ): T {
     val client = restClientBuilder
-      .requestFactory(withTimeouts(Duration.ofSeconds(connectionTimeoutMillis), readTimeout))
+      .requestFactory(withTimeouts(connectionTimeout, readTimeout))
       .requestInterceptor(HmppsAuthInterceptor(clientManager, "default"))
       .baseUrl(baseUrl)
       .build()
