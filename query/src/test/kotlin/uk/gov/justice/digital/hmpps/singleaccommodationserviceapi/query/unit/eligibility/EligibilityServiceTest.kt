@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
@@ -293,6 +294,7 @@ class EligibilityServiceTest {
       val expectedTier = TierScore.A1
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1Application()
+      val cas1CurrentPremises = buildCas1PremisesSummary()
       val cas3Application = buildCas3Application()
       val cpr = buildCorePersonRecord(
         addresses = listOf(
@@ -325,6 +327,7 @@ class EligibilityServiceTest {
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
           prisoner = prisoner,
+          cas1CurrentPremises = cas1CurrentPremises,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -334,12 +337,12 @@ class EligibilityServiceTest {
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
       every { accommodationQueryService.getNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner) } returns currentAccommodation
+      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises) } returns currentAccommodation
       val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
 
       val expected = buildDomainData(
         crn = crn,
-        tierScore = expectedTier,
+        tierScore = expectedTier.name,
         sex = cpr.sex!!.code,
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
@@ -370,6 +373,7 @@ class EligibilityServiceTest {
           cas3Application = null,
           commissionedRehabilitativeServices = null,
           prisoner = null,
+          cas1CurrentPremises = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
@@ -402,7 +406,7 @@ class EligibilityServiceTest {
             description = row["description"]!!,
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             sex = SexCode.valueOf(row["sex"]!!),
-            tierScore = TierScore.valueOf(row["tierScore"]!!),
+            tierScore = row["tierScore"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
             cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
@@ -874,7 +878,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.M,
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -890,7 +894,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.M,
-        tierScore = TierScore.C3,
+        tierScore = "C3",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -906,7 +910,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.F,
-        tierScore = TierScore.D3,
+        tierScore = "D3",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -1007,7 +1011,7 @@ data class Cas1Scenario(
   val description: String,
   val referenceDate: LocalDate,
   val sex: SexCode,
-  val tierScore: TierScore,
+  val tierScore: String,
   val currentAccommodationEndDate: LocalDate?,
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,

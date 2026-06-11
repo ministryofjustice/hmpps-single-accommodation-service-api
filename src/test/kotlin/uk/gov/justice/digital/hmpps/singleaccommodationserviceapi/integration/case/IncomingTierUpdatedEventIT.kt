@@ -30,8 +30,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
-import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
@@ -45,12 +43,6 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var inboxEventRepository: InboxEventRepository
-
-  @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
   lateinit var jsonMapper: JsonMapper
@@ -160,7 +152,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    testSqsDomainEventListener.assertMessageReceived(
+    assertMessageReceived(
       typeName = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
       eventDescription = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription,
       detailUrl = detailUrl,

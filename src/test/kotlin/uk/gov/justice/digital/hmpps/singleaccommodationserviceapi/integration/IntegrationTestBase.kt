@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -28,9 +30,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
+import java.time.Duration.ofMillis
+import java.time.Duration.ofSeconds
 import java.time.Instant
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource as AuthSourceEntity
@@ -83,11 +89,17 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var databaseUtils: DatabaseUtils
 
+  @Autowired
+  lateinit var hmppsQueueService: HmppsQueueService
+
+  @Autowired
+  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
+
   @BeforeAll
   fun beforeAll() {
     await
-      .atMost(Duration.ofSeconds(10))
-      .pollInterval(Duration.ofMillis(100))
+      .atMost(ofSeconds(10))
+      .pollInterval(ofMillis(100))
       .logging()
       .untilAsserted {
         restTestClient.get().uri("/health/readiness")
@@ -228,5 +240,23 @@ abstract class IntegrationTestBase {
         authSource = AuthSource.NONE.source,
       ),
     )
+  }
+
+  fun assertMessageReceived(
+    typeName: String,
+    eventDescription: String,
+    detailUrl: String?,
+    externalId: UUID? = null,
+  ): HmppsDomainEvent {
+    var matchedMessage: HmppsDomainEvent? = null
+
+    await.logging()
+      .atMost(ofSeconds(5))
+      .pollInterval(ofMillis(100))
+      .untilAsserted {
+        matchedMessage = testSqsDomainEventListener.takeMessageOrNull(typeName, eventDescription, detailUrl, externalId)
+        assertThat(matchedMessage).isNotNull()
+      }
+    return matchedMessage!!
   }
 }

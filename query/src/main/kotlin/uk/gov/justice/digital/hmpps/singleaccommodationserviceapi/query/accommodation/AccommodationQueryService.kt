@@ -6,8 +6,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
@@ -33,17 +35,27 @@ class AccommodationQueryService(
 ) {
   private val excludedAddressStatuses = setOf(AddressStatusCode.PR.name, AddressStatusCode.PR1.name)
 
+  private fun getPrisonNumber(crn: String): String? = caseRepository.findByCrn(crn)?.latestPrisonNumber()
+
+  private fun getOrchestrationResult(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
+    val prisonNumber = getPrisonNumber(crn)
+    return accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber)
+  }
+
   fun getCurrentAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
+    val orchestrationResult = getOrchestrationResult(crn)
     return if (orchestrationResult.upstreamFailures.isNotEmpty()) {
       toApiResponseDto(
         data = null,
         upstreamFailures = orchestrationResult.upstreamFailures,
       )
     } else {
-      val currentAccommodation = getCurrentAccommodation(crn = crn, addresses = orchestrationResult.data.cpr?.addresses, prisoner = orchestrationResult.data.prisoner)
+      val currentAccommodation = getCurrentAccommodation(
+        crn = crn,
+        addresses = orchestrationResult.data.cpr?.addresses,
+        prisoner = orchestrationResult.data.prisoner,
+        cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
+      )
       toApiResponseDto(
         data = currentAccommodation,
       )
@@ -51,8 +63,15 @@ class AccommodationQueryService(
   }
 
   fun getNextAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
-    val orchestrationResult = accommodationOrchestrationService.getNextAccommodationData(crn)
-    val currentAccommodation = getCurrentAccommodation(crn = crn, addresses = orchestrationResult.data.cpr?.addresses, prisoner = orchestrationResult.data.prisoner)
+    val prisonNumber = getPrisonNumber(crn)
+    val orchestrationResult = accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber)
+    val currentAccommodation = getCurrentAccommodation(
+      crn = crn,
+      addresses = orchestrationResult.data.cpr?.addresses,
+      prisoner = orchestrationResult.data.prisoner,
+      cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
+    )
+
     val nextAccommodations = getNextAccommodations(
       crn,
       addresses = orchestrationResult.data.cpr?.addresses,
@@ -67,8 +86,10 @@ class AccommodationQueryService(
     )
   }
 
-  fun getCurrentAccommodation(crn: String, addresses: List<CanonicalAddress>?, prisoner: Prisoner?): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
+  fun getCurrentAccommodation(crn: String, addresses: List<CanonicalAddress>?, prisoner: Prisoner?, cas1CurrentPremises: Cas1PremisesSummary?): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
     toAccommodationSummary(crn, prisoner)
+  } else if (cas1CurrentPremises != null) {
+    toAccommodationSummary(crn, cas1CurrentPremises)
   } else {
     addresses
       ?.firstOrNull { it.status.code == AddressStatusCode.M.name }
@@ -102,10 +123,7 @@ class AccommodationQueryService(
   }
 
   fun getCurrentAndAllAccommodations(crn: String): ApiResponseDto<Pair<AccommodationSummaryDto?, List<AccommodationDetailDto>>> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
-
+    val orchestrationResult = getOrchestrationResult(crn)
     val allAccommodations = orchestrationResult.data.cpr?.let {
       it.addresses.map { toAccommodationDetail(crn, address = it) }
     } ?: emptyList()
@@ -114,6 +132,7 @@ class AccommodationQueryService(
       crn = crn,
       addresses = orchestrationResult.data.cpr?.addresses,
       prisoner = orchestrationResult.data.prisoner,
+      cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
     )
 
     return toApiResponseDto(
@@ -123,16 +142,10 @@ class AccommodationQueryService(
   }
 
   fun getAccommodationHistory(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-
-    val orchestrationResult =
-      accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
-
+    val orchestrationResult = getOrchestrationResult(crn)
     val data = orchestrationResult.data
-    val prisoner = data.prisoner
 
-    val prisonAddress = prisoner
+    val prisonAddress = data.prisoner
       ?.takeIf { it.inOutStatus == InOutStatus.IN }
       ?.let { toAccommodationSummary(crn, prisoner = it) }
 

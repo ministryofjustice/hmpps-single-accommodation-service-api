@@ -122,9 +122,10 @@ class EligibilityService(
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
     val currentAccommodation = accommodationQueryService.getCurrentAccommodation(
-      crn,
+      crn = crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       prisoner = eligibilityOrchestrationDto.prisoner,
+      cas1CurrentPremises = eligibilityOrchestrationDto.cas1CurrentPremises,
     )
 
     val nextAccommodations = accommodationQueryService.getNextAccommodations(
