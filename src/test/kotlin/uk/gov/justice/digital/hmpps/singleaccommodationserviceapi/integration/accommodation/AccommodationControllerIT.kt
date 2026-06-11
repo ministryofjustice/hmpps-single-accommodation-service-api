@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationByIdResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationCas1PlacementResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationPrisonResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationWithAllUpstreamFailureResponse
@@ -144,6 +145,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get current accommodation for crn when it is a prison`() {
+    val cas1CurrentPremises = buildCas1PremisesSummary()
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -193,6 +195,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
+    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
     PrisonerSearchStubs.getPrisonerOKResponse(
       prisonNumber = prisonNumber,
       response = buildPrisoner(
@@ -213,9 +216,92 @@ class AccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `get current accommodation should return partial success when CPR Addresses call returns server error`() {
+  fun `should get current accommodation for crn when it is a cas1 placement`() {
+    val cas1CurrentPremises = buildCas1PremisesSummary()
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
+      addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "W5 2AB",
+          thoroughfareName = "Another Street",
+          postTown = "London",
+          startDate = LocalDate.of(2025, 10, 17),
+          endDate = LocalDate.of(2026, 1, 10),
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.P.name,
+            description = AddressStatusCode.P.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usage = CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07B.name,
+              description = AddressUsageCode.A07B.description,
+            ),
+            isActive = true,
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = corePersonRecord,
+    )
+    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = prisonNumber,
+      response = buildPrisoner(
+        prisonNumber = prisonNumber,
+        prisonId = "WWI",
+        prisonName = "Wandsworth",
+        inOutStatus = InOutStatus.OUT,
+        releaseDate = LocalDate.of(2025, 10, 17),
+      ),
+    )
+    restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetCurrentAccommodationCas1PlacementResponse(
+            crn = crn,
+            startDate = cas1CurrentPremises.startDate.toString(),
+            endDate = cas1CurrentPremises.endDate.toString(),
+            postcode = cas1CurrentPremises.postcode,
+            dependentLocality = cas1CurrentPremises.addressLine2!!,
+            thoroughfareName = cas1CurrentPremises.addressLine1,
+            postTown = cas1CurrentPremises.town!!,
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `get current accommodation should return no success when CPR Addresses call returns server error`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     PrisonerSearchStubs.getPrisonerServerErrorResponse(prisonNumber)
+    ApprovedPremisesStubs.getCas1CurrentPremisesServerErrorResponse(crn)
 
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -259,9 +345,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 403 when get accommodation by id with Delius JWT`() {
-    val entity = createAndSaveProposedAccommodation()
-
-    restTestClient.get().uri("/accommodations/{id}", entity.id)
+    restTestClient.get().uri("/accommodations/{id}", UUID.randomUUID())
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isForbidden
@@ -346,7 +430,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     )
     val cas1Application = buildCas1Application(
       placementStatus = Cas1PlacementStatus.UPCOMING,
-      premises = buildCas1SuitablePremisesDto(
+      premises = buildCas1PremisesSummary(
         postcode = "SW1A 1AB",
       ),
     )
