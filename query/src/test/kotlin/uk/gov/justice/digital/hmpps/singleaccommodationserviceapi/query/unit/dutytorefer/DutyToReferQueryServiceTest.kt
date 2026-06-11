@@ -57,52 +57,6 @@ class DutyToReferQueryServiceTest {
   private val crn = UUID.randomUUID().toString()
 
   @Nested
-  inner class GetDutyToRefer {
-
-    @Test
-    fun `should throw NotFoundException when no DTR exists`() {
-      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
-      every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
-
-      assertThatThrownBy { service.getDutyToRefer(crn) }
-        .isInstanceOf(NotFoundException::class.java)
-    }
-
-    @Test
-    fun `should return DTR with submission and localAuthorityAreaName when DTR exists`() {
-      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
-      val createdByUserId = UUID.randomUUID()
-      val localAuthorityAreaId = UUID.randomUUID()
-      val dtrEntity = buildDutyToReferEntity(
-        caseId = caseId,
-        localAuthorityAreaId = localAuthorityAreaId,
-        createdByUserId = createdByUserId,
-      )
-      val userEntity = buildUserEntity()
-      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
-        id = localAuthorityAreaId,
-        name = "Test Local Authority",
-      )
-      every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
-      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
-      every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
-
-      val result = service.getDutyToRefer(crn)
-
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
-      assertThat(result.submission).isNotNull()
-      val submission = result.submission!!
-      assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
-    }
-  }
-
-  @Nested
   inner class GetDutyToReferByCrnAndCaseEntity {
 
     @Test
