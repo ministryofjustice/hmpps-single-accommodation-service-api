@@ -32,7 +32,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -86,7 +86,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
+      every { accommodationOrchestrationService.getCprAndPrisonOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
             identifiers = buildIdentifiers(crns = listOf(crn)),
@@ -171,7 +171,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
+      every { accommodationOrchestrationService.getCprAndPrisonOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           prisoner = prisoner,
           cpr = buildCorePersonRecord(
@@ -258,7 +258,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
+      every { accommodationOrchestrationService.getCprAndPrisonOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = null,
         ),
@@ -288,6 +288,8 @@ class AccommodationQueryServiceTest {
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
       val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN, prisonName = "A Prison")
+      val cas1CurrentPremises = buildCas1PremisesSummary()
+      val cas3CurrentPremises = buildCas3PremisesSummary()
       val cpr = buildCorePersonRecord(
         identifiers = buildIdentifiers(prisonNumbers = listOf(prisonNumber)),
         addresses = listOf(
@@ -355,7 +357,7 @@ class AccommodationQueryServiceTest {
         ),
       )
 
-      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, null)
+      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises)
 
       assertThat(result).isEqualTo(expectedResult)
     }
@@ -368,6 +370,7 @@ class AccommodationQueryServiceTest {
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
       val cas1CurrentPremises = buildCas1PremisesSummary()
+      val cas3CurrentPremises = buildCas3PremisesSummary()
       val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
       val cpr = buildCorePersonRecord(
         identifiers = buildIdentifiers(prisonNumbers = listOf(prisonNumber)),
@@ -437,13 +440,70 @@ class AccommodationQueryServiceTest {
         ),
       )
 
-      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises)
+      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises)
 
       assertThat(result).isEqualTo(expectedResult)
     }
 
     @Test
-    fun `getCurrentAccommodation should get the current accommodation when not in prison or cas1`() {
+    fun `getCurrentAccommodation should get the current accommodation when in cas3`() {
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      val cas3CurrentPremises = buildCas3PremisesSummary(postcode = "HELLO WORLD")
+      val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
+      val cpr = buildCorePersonRecord(
+        identifiers = buildIdentifiers(prisonNumbers = listOf(prisonNumber)),
+        addresses = listOf(
+          buildCanonicalAddress(
+            cprAddressId = null,
+            noFixedAbode = false,
+            postcode = "SW1A 1AA",
+            thoroughfareName = "Some Street",
+            postTown = "London",
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.M.name,
+              description = AddressStatusCode.M.description,
+            ),
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+          buildCanonicalAddress(
+            cprAddressId = null,
+            noFixedAbode = false,
+            postcode = "GL53 8GH",
+            thoroughfareName = "",
+            postTown = "Cheltenham",
+            status = CanonicalAddressStatus(
+              code = AddressStatusCode.P.name,
+              description = AddressStatusCode.P.description,
+            ),
+            usage = CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      )
+
+      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, null, cas3CurrentPremises)
+
+      assertThat(result?.address?.postcode).isEqualTo(cas3CurrentPremises.postcode)
+      assertThat(result?.status!!.code).isEqualTo("M")
+    }
+
+    @Test
+    fun `getCurrentAccommodation should get the current accommodation when not in prison or cas1 or cas3`() {
       val caseEntity = buildCaseEntity {
         withCrn(crn)
         withPrisonNumber(prisonNumber)
@@ -492,7 +552,7 @@ class AccommodationQueryServiceTest {
         ),
       )
 
-      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, null)
+      val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, null, null)
 
       assertThat(result?.address?.postcode).isEqualTo("SW1A 1AA")
       assertThat(result?.status!!.code).isEqualTo("M")
@@ -783,7 +843,7 @@ class AccommodationQueryServiceTest {
           ),
           cas3Application = buildCas3Application(
             bookingStatus = Cas3BookingStatus.CONFIRMED,
-            premises = buildCas3SuitablePremisesDto(
+            premises = buildCas3PremisesSummary(
               postcode = "SW1A 1A4",
             ),
           ),
@@ -836,7 +896,7 @@ class AccommodationQueryServiceTest {
           ),
           cas3Application = buildCas3Application(
             bookingStatus = Cas3BookingStatus.CONFIRMED,
-            premises = buildCas3SuitablePremisesDto(
+            premises = buildCas3PremisesSummary(
               postcode = "SW1A 1A4",
             ),
           ),
@@ -997,7 +1057,7 @@ class AccommodationQueryServiceTest {
       )
       val cas3Application = buildCas3Application(
         bookingStatus = Cas3BookingStatus.CONFIRMED,
-        premises = buildCas3SuitablePremisesDto(
+        premises = buildCas3PremisesSummary(
           postcode = "SW1A 1A4",
         ),
       )
@@ -1062,7 +1122,7 @@ class AccommodationQueryServiceTest {
       )
       val cas3Application = buildCas3Application(
         bookingStatus = Cas3BookingStatus.CONFIRMED,
-        premises = buildCas3SuitablePremisesDto(
+        premises = buildCas3PremisesSummary(
           postcode = "SW1A 1A4",
         ),
       )
@@ -1124,7 +1184,7 @@ class AccommodationQueryServiceTest {
       )
       val cas3Application = buildCas3Application(
         bookingStatus = Cas3BookingStatus.ARRIVED,
-        premises = buildCas3SuitablePremisesDto(
+        premises = buildCas3PremisesSummary(
           postcode = "SW1A 1A4",
         ),
       )

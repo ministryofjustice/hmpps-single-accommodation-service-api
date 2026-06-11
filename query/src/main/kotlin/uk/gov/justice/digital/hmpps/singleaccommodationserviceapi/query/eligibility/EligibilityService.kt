@@ -126,6 +126,7 @@ class EligibilityService(
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       prisoner = eligibilityOrchestrationDto.prisoner,
       cas1CurrentPremises = eligibilityOrchestrationDto.cas1CurrentPremises,
+      cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 
     val nextAccommodations = accommodationQueryService.getNextAccommodations(

@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CRS
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -43,6 +45,7 @@ class EligibilityOrchestrationService(
       put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
       put(GET_CRS) { commissionedRehabilitativeServicesCachingService.getCrs(crn) }
       put(GET_CAS_1_CURRENT_PREMISES) { approvedPremisesCachingService.getCas1CurrentPremises(crn) }
+      put(GET_CAS_3_CURRENT_PREMISES) { approvedPremisesCachingService.getCas3CurrentPremises(crn) }
       prisonNumber?.let { num -> put(GET_PRISONER) { prisonerSearchCachingService.getPrisoner(num) } }
     }
     val results = aggregatorService.orchestrateAsyncCalls(
@@ -56,6 +59,7 @@ class EligibilityOrchestrationService(
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES)
+    val cas3CurrentPremises = results.getResult<Cas3PremisesSummary>(GET_CAS_3_CURRENT_PREMISES)
 
     return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(
@@ -67,6 +71,7 @@ class EligibilityOrchestrationService(
         commissionedRehabilitativeServices = crs,
         prisoner = prisoner,
         cas1CurrentPremises = cas1CurrentPremises,
+        cas3CurrentPremises = cas3CurrentPremises,
       ),
       upstreamFailures = results.getFailures(),
     )

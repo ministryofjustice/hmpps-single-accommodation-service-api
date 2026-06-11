@@ -9,10 +9,10 @@ data class Cas3Application(
   val applicationStatus: Cas3ApplicationStatus,
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
-  val premises: Cas3SuitablePremisesDto?,
+  val premises: Cas3PremisesSummary?,
 )
 
-data class Cas3SuitablePremisesDto(
+data class Cas3PremisesSummary(
   val name: String?,
   val startDate: LocalDate?,
   val endDate: LocalDate?,

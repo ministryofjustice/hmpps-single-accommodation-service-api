@@ -18,9 +18,23 @@ object ApprovedPremisesStubs {
     )
   }
 
+  fun getCas3CurrentPremisesOKResponse(crn: String, response: Any) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
   fun getCas1CurrentPremisesServerErrorResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
+        .willReturn(serverError()),
+    )
+  }
+
+  fun getCas3CurrentPremisesServerErrorResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
         .willReturn(serverError()),
     )
   }

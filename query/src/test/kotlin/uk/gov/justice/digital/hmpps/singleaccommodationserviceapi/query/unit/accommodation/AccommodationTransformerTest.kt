@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer
@@ -137,7 +137,7 @@ class AccommodationTransformerTest {
   inner class ToAccommodationSummaryForCas3Premises {
     @Test
     fun `should map all fields`() {
-      val cas3Premises = buildCas3SuitablePremisesDto(
+      val cas3Premises = buildCas3PremisesSummary(
         startDate = LocalDate.of(2023, 1, 1),
         endDate = LocalDate.of(2024, 1, 1),
         postcode = "NW1 6XE",
@@ -290,7 +290,7 @@ class AccommodationTransformerTest {
   }
 
   @Test
-  fun `toAccommodationSummary() should map all fields when it is a cas 1 placement`() {
+  fun `toAccommodationSummary() should map all fields when it is a cas 1 current premises`() {
     val crn = "X92123"
 
     val cas1CurrentPremises = buildCas1PremisesSummary()
@@ -324,6 +324,46 @@ class AccommodationTransformerTest {
     val result = AccommodationTransformer.toAccommodationSummary(
       crn = crn,
       premises = cas1CurrentPremises,
+    )
+
+    assertThat(result).isEqualTo(expectedResult)
+  }
+
+  @Test
+  fun `toAccommodationSummary() should map all fields when it is a cas 3 current premises`() {
+    val crn = "X92123"
+
+    val cas3CurrentPremises = buildCas3PremisesSummary()
+
+    val expectedResult = buildAccommodationSummaryDto(
+      crn = crn,
+      startDate = cas3CurrentPremises.startDate,
+      endDate = cas3CurrentPremises.endDate,
+      address = buildAccommodationAddressDetails(
+        subBuildingName = null,
+        postcode = cas3CurrentPremises.postcode,
+        buildingName = null,
+        buildingNumber = null,
+        thoroughfareName = cas3CurrentPremises.addressLine1,
+        dependentLocality = cas3CurrentPremises.addressLine2,
+        postTown = cas3CurrentPremises.town,
+        county = null,
+        country = null,
+        uprn = null,
+      ),
+      status = buildAccommodationStatusDto(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+      type = buildAccommodationTypeDto(
+        code = AddressUsageCode.A17.name,
+        description = AddressUsageCode.A17.description,
+      ),
+    )
+
+    val result = AccommodationTransformer.toAccommodationSummary(
+      crn = crn,
+      premises = cas3CurrentPremises,
     )
 
     assertThat(result).isEqualTo(expectedResult)

@@ -7,9 +7,11 @@ import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 
 interface ApprovedPremisesClient {
-
   @GetExchange(value = "/cas1/external/cases/{crn}/premises/current")
   fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary
+
+  @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
+  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3PremisesSummary
 
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
@@ -48,6 +50,9 @@ open class ApprovedPremisesCachingService(
 
   @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_PREMISES, key = "#crn", sync = true)
   open fun getCas1CurrentPremises(crn: String) = approvedPremisesClient.getCas1CurrentPremises(crn)
+
+  @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_PREMISES, key = "#crn", sync = true)
+  open fun getCas3CurrentPremises(crn: String) = approvedPremisesClient.getCas3CurrentPremises(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas1Application(crn: String) = approvedPremisesClient.getSuitableCas1ApplicationInternal(crn)

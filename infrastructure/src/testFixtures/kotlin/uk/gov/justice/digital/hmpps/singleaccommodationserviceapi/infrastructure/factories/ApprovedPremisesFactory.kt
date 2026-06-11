@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import java.time.LocalDate
 import java.util.UUID
 
@@ -48,7 +48,7 @@ fun buildCas3Application(
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
   assessmentStatus: Cas3AssessmentStatus? = null,
   bookingStatus: Cas3BookingStatus? = null,
-  premises: Cas3SuitablePremisesDto? = null,
+  premises: Cas3PremisesSummary? = null,
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
@@ -57,7 +57,7 @@ fun buildCas3Application(
   premises = premises,
 )
 
-fun buildCas3SuitablePremisesDto(
+fun buildCas3PremisesSummary(
   startDate: LocalDate? = LocalDate.now().plusDays(1),
   endDate: LocalDate? = LocalDate.now().plusDays(10),
   addressLine1: String = "123 Test Street",
@@ -65,7 +65,7 @@ fun buildCas3SuitablePremisesDto(
   town: String? = "Test Town",
   postcode: String = "AB1 2CD",
   name: String? = "Test Premises",
-) = Cas3SuitablePremisesDto(
+) = Cas3PremisesSummary(
   startDate = startDate,
   endDate = endDate,
   addressLine1 = addressLine1,
