@@ -134,6 +134,44 @@ fun expectedGetCurrentAccommodationPrisonResponse(crn: String): String = """
 }
 """.trimIndent()
 
+fun expectedGetCurrentAccommodationCas1PlacementResponse(
+  crn: String,
+  startDate: String,
+  endDate: String,
+  postcode: String,
+  dependentLocality: String,
+  thoroughfareName: String,
+  postTown: String,
+): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "startDate":"$startDate",
+      "endDate":"$endDate",
+      "address":{
+         "postcode":"$postcode",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":null,
+         "thoroughfareName":"$thoroughfareName",
+         "dependentLocality":"$dependentLocality",
+         "postTown":"$postTown",
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "status":{
+         "code":"M",
+         "description":"Main"
+      },
+      "type":{
+         "code":"A02",
+         "description":"Approved Premises"
+      }
+   }
+}
+""".trimIndent()
+
 fun expectedGetNextAccommodationsResponse(
   prStartDate: String,
   prEndDate: String,
@@ -175,6 +213,13 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = ""
    "upstreamFailures":[
       {
          "endpoint":"getCorePersonRecordByCrn",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
+         "message":"500 Internal Server Error: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas1CurrentPremises",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "message":"500 Internal Server Error: [no body]",

@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
@@ -84,7 +84,7 @@ class AccommodationTransformerTest {
   inner class ToAccommodationSummaryForCas1Premises {
     @Test
     fun `should map all fields`() {
-      val cas1Premises = buildCas1SuitablePremisesDto(
+      val cas1Premises = buildCas1PremisesSummary(
         startDate = LocalDate.of(2023, 1, 1),
         endDate = LocalDate.of(2024, 1, 1),
         postcode = "NW1 6XE",
@@ -284,6 +284,46 @@ class AccommodationTransformerTest {
     val result = AccommodationTransformer.toAccommodationSummary(
       crn = crn,
       prisoner = prisoner,
+    )
+
+    assertThat(result).isEqualTo(expectedResult)
+  }
+
+  @Test
+  fun `toAccommodationSummary() should map all fields when it is a cas 1 placement`() {
+    val crn = "X92123"
+
+    val cas1CurrentPremises = buildCas1PremisesSummary()
+
+    val expectedResult = buildAccommodationSummaryDto(
+      crn = crn,
+      startDate = cas1CurrentPremises.startDate,
+      endDate = cas1CurrentPremises.endDate,
+      address = buildAccommodationAddressDetails(
+        subBuildingName = null,
+        postcode = cas1CurrentPremises.postcode,
+        buildingName = null,
+        buildingNumber = null,
+        thoroughfareName = cas1CurrentPremises.addressLine1,
+        dependentLocality = cas1CurrentPremises.addressLine2,
+        postTown = cas1CurrentPremises.town,
+        county = null,
+        country = null,
+        uprn = null,
+      ),
+      status = buildAccommodationStatusDto(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+      type = buildAccommodationTypeDto(
+        code = AddressUsageCode.A02.name,
+        description = AddressUsageCode.A02.description,
+      ),
+    )
+
+    val result = AccommodationTransformer.toAccommodationSummary(
+      crn = crn,
+      premises = cas1CurrentPremises,
     )
 
     assertThat(result).isEqualTo(expectedResult)

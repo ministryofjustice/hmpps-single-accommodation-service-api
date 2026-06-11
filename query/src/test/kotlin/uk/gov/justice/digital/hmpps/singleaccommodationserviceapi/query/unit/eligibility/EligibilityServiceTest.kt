@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
@@ -293,6 +294,7 @@ class EligibilityServiceTest {
       val expectedTier = TierScore.A1
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1Application()
+      val cas1CurrentPremises = buildCas1PremisesSummary()
       val cas3Application = buildCas3Application()
       val cpr = buildCorePersonRecord(
         addresses = listOf(
@@ -325,6 +327,7 @@ class EligibilityServiceTest {
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
           prisoner = prisoner,
+          cas1CurrentPremises = cas1CurrentPremises,
         ),
       )
       val caseEntity = buildCaseEntity(id = caseId)
@@ -334,7 +337,7 @@ class EligibilityServiceTest {
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
       every { accommodationQueryService.getNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner) } returns currentAccommodation
+      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises) } returns currentAccommodation
       val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
 
       val expected = buildDomainData(
@@ -370,6 +373,7 @@ class EligibilityServiceTest {
           cas3Application = null,
           commissionedRehabilitativeServices = null,
           prisoner = null,
+          cas1CurrentPremises = null,
         ),
         upstreamFailures = listOf(
           upstreamFailure,
