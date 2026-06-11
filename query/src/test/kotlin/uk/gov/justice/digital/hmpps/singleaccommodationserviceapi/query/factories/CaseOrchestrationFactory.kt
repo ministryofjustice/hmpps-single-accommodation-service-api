@@ -16,11 +16,11 @@ fun buildCaseOrchestrationDto(
   cpr: CorePersonRecord? = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
   roshDetails: RoshDetails? = buildRoshDetails(),
   tier: Tier? = buildTier(),
-  cases: Case = buildCase(crn = crn),
+  case: Case? = buildCase(crn = crn),
 ) = CaseOrchestrationDto(
   crn,
   cpr,
   roshDetails,
   tier,
-  cases,
+  case,
 )

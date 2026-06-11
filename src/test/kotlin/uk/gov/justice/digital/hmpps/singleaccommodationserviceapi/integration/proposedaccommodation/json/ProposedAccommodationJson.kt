@@ -139,6 +139,21 @@ fun expectedGetProposedAccommodationsResponse(
     }
 """.trimIndent()
 
+fun expectedGetProposedAccommodationsEmptyResponseWithGetDeliusCaseFailure(): String = """
+    {
+       "data":[],
+       "upstreamFailures":[
+          {
+             "endpoint":"getCaseByCrn",
+             "failureType":"UPSTREAM_HTTP_ERROR",
+             "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
+             "message":"500 Internal Server Error: [no body]",
+             "identifier":null
+          }
+       ]
+    }
+""".trimIndent()
+
 fun expectedGetProposedAccommodationByIdResponse(
   id: UUID,
   crn: String,
