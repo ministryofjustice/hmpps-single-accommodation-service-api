@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.e
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -55,9 +56,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   private val crsSubmissionDate = LocalDate.now()
 
-  val cas1Url = "https://approved-premises-dev.hmpps.service.justice.gov.uk"
-  val cas3Url = "https://transitional-accommodation-dev.hmpps.service.justice.gov.uk"
-  val crsUrl = "https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk"
+  @Value($$"${service.approved-premises-ui.base-url}")
+  private lateinit var cas1Url: String
+
+  @Value($$"${service.temporary-accommodation-ui.base-url}")
+  private lateinit var cas3Url: String
+
+  @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}")
+  private lateinit var crsUrl: String
 
   @Autowired
   private lateinit var caseRepository: CaseRepository
