@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.util.UUID
 
 data class EligibilityDto(
@@ -17,6 +18,7 @@ data class ServiceResult(
   val action: String? = null,
   val link: String? = null,
   val url: String? = null,
+  @get:JsonIgnore val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 )
 
@@ -71,6 +73,11 @@ enum class ServiceStatus {
   ACCEPTED,
   NOT_ACCEPTED,
   CANNOT_START_YET,
+}
+
+enum class LinkType {
+  CAS1_START_APPLICATION,
+  CAS1_VIEW_APPLICATION,
 }
 
 enum class FailureReason {
