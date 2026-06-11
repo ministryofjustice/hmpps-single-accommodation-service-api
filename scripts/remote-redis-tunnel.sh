@@ -2,8 +2,6 @@
 
 trap "pkill -f 'port-forward'" EXIT
 
-NAMESPACE=
-REMOTE_PORT=6379
 LOCAL_PORT=6380
 REDIS_SECRET_NAME="sas-elasticache-redis"
 PORT_FORWARD_CONTAINER_NAME="redis-port-forward-${USER//.}"
@@ -38,7 +36,7 @@ NAMESPACE="hmpps-community-accommodation-$ENV"
 
 echo "---------------------------------------------------------------"
 echo "* Namespace: $NAMESPACE"
-echo "* Remote Port: $REMOTE_PORT"
+echo "* Remote Port: 6379"
 echo "* Local Port: $LOCAL_PORT"
 echo "* Redis Secret Name: $REDIS_SECRET_NAME"
 echo "* Pod Name: $PORT_FORWARD_CONTAINER_NAME"
@@ -67,16 +65,16 @@ if [ $? -ne 0 ]; then
 
   kubectl -n "$NAMESPACE" run "$PORT_FORWARD_CONTAINER_NAME" \
     --image="$IMAGE" \
-    --port="$REMOTE_PORT" \
+    --port="6379" \
     --env="REMOTE_HOST=$REDIS_HOST" \
-    --env="REMOTE_PORT=$REMOTE_PORT" \
-    --env="LOCAL_PORT=$LOCAL_PORT"
+    --env="REMOTE_PORT=6379" \
+    --env="LOCAL_PORT=6379"
 
   kubectl wait --for=condition=ready pod/"$PORT_FORWARD_CONTAINER_NAME" -n "$NAMESPACE"
 fi
 
 echo "Starting port forward..."
-kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:$REMOTE_PORT" &
+kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379" &
 
 PF_PID=$!
 sleep 2
