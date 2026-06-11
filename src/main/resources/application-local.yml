@@ -20,6 +20,8 @@ hmpps.sqs:
       subscribeTopicId: hmpps-domain-event-topic
       subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
 spring:
+  config:
+    import: classpath:application-infrastructure-local.yml
   jpa:
     properties:
       hibernate:
@@ -34,3 +36,11 @@ logging:
 
 scheduling:
   enabled: true
+
+service:
+  approved-premises-ui:
+    base-url: https://approved-premises-dev.hmpps.service.justice.gov.uk
+  temporary-accommodation-ui:
+    base-url: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
+  commissioned-rehabilitative-services-ui:
+    base-url: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk

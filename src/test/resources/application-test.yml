@@ -19,26 +19,27 @@ wiremock:
     - prisoner-search
 
 service:
+  connection-timeout: 1000ms
   sas-and-delius:
-    read-timeout: 150ms
+    read-timeout: 300ms
   approved-premises-and-delius:
-    read-timeout: 150ms
+    read-timeout: 300ms
   approved-premises-and-oasys:
-    read-timeout: 150ms
+    read-timeout: 300ms
   approved-premises-api:
-    read-timeout: 300ms # 300 required
+    read-timeout: 300ms
   core-person-record:
-    read-timeout: 300ms # 300 required
+    read-timeout: 300ms
   commissioned-rehabilitative-services-api:
-    read-timeout: 150ms
+    read-timeout: 300ms
   tier:
-    read-timeout: 300ms # 300 required
+    read-timeout: 300ms
   accommodation-data-domain:
-    read-timeout: 150ms
+    read-timeout: 300ms
   nomis-user-roles:
-    read-timeout: 150ms
+    read-timeout: 300ms
   prisoner-search:
-    read-timeout: 150ms
+    read-timeout: 300ms
 
 spring:
   cache:
