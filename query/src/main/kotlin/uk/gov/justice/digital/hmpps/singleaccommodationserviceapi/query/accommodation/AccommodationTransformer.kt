@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
@@ -100,6 +100,35 @@ object AccommodationTransformer {
 
   fun toAccommodationSummary(
     crn: String,
+    premises: Cas3PremisesSummary,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    startDate = premises.startDate,
+    endDate = premises.endDate,
+    address = AccommodationAddressDetails(
+      postcode = premises.postcode,
+      subBuildingName = null,
+      buildingName = null,
+      buildingNumber = null,
+      thoroughfareName = premises.addressLine1,
+      dependentLocality = premises.addressLine2,
+      postTown = premises.town,
+      county = null,
+      country = null,
+      uprn = null,
+    ),
+    status = AccommodationStatusDto(
+      code = AddressStatusCode.M.name,
+      description = AddressStatusCode.M.description,
+    ),
+    type = AccommodationTypeDto(
+      code = AddressUsageCode.A17.name,
+      description = AddressUsageCode.A17.description,
+    ),
+  )
+
+  fun toAccommodationSummary(
+    crn: String,
     premises: Cas1PremisesSummary,
     currentAccommodation: AccommodationSummaryDto?,
   ) = AccommodationSummaryDto(
@@ -156,7 +185,7 @@ object AccommodationTransformer {
 
   fun toAccommodationSummary(
     crn: String,
-    premises: Cas3SuitablePremisesDto,
+    premises: Cas3PremisesSummary,
     currentAccommodation: AccommodationSummaryDto?,
   ) = AccommodationSummaryDto(
     crn = crn,
