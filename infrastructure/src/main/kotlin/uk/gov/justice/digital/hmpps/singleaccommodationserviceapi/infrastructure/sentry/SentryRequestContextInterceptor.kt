@@ -5,6 +5,8 @@ import io.sentry.ScopeType
 import io.sentry.Sentry
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.HandlerMapping
@@ -30,7 +32,8 @@ class SentryRequestContextInterceptor : HandlerInterceptor {
   private fun HttpServletRequest.getPathPattern() = getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
 }
 
-@Component
+@Profile("!local & !test")
+@Configuration
 class SentryRequestContextInterceptorConfig(
   private val interceptor: SentryRequestContextInterceptor,
 ) : WebMvcConfigurer {
