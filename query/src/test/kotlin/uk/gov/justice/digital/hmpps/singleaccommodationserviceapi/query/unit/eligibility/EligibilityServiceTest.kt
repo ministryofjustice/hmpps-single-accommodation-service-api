@@ -342,7 +342,7 @@ class EligibilityServiceTest {
 
       val expected = buildDomainData(
         crn = crn,
-        tierScore = expectedTier,
+        tierScore = expectedTier.name,
         sex = cpr.sex!!.code,
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
@@ -406,7 +406,7 @@ class EligibilityServiceTest {
             description = row["description"]!!,
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             sex = SexCode.valueOf(row["sex"]!!),
-            tierScore = TierScore.valueOf(row["tierScore"]!!),
+            tierScore = row["tierScore"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
             cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
@@ -878,7 +878,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.M,
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -894,7 +894,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.M,
-        tierScore = TierScore.C3,
+        tierScore = "C3",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -910,7 +910,7 @@ class EligibilityServiceTest {
       clock.setNow(today)
       val data = buildDomainData(
         sex = SexCode.F,
-        tierScore = TierScore.D3,
+        tierScore = "D3",
         currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
         cas1Application = null,
       )
@@ -1011,7 +1011,7 @@ data class Cas1Scenario(
   val description: String,
   val referenceDate: LocalDate,
   val sex: SexCode,
-  val tierScore: TierScore,
+  val tierScore: String,
   val currentAccommodationEndDate: LocalDate?,
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
