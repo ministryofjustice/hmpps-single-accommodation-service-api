@@ -77,7 +77,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         referredBy = referredByUser,
       ),
     )
-    val cas2v2Response: List<Cas2ReferralHistory> = listOf(
+    val cas2Response: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-04-01T00:00:00Z"),
         status = Cas2Status.PLACE_OFFERED,
@@ -94,7 +94,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2HDC, crn, cas2HdcResponse)
-    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2v2Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
@@ -106,7 +106,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
           expectedGetReferralHistory(
             id1 = cas1Response.first().id,
             id2 = cas2HdcResponse.first().id,
-            id3 = cas2v2Response.first().id,
+            id3 = cas2Response.first().id,
             id4 = cas3Response.first().id,
             dtrId = dutyToRefer.id,
             dtrStatus = "WITHDRAWN",
