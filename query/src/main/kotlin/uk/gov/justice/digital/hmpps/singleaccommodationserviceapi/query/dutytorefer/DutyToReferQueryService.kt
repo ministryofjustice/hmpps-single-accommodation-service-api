@@ -30,11 +30,6 @@ class DutyToReferQueryService(
   private val caseRepository: CaseRepository,
   private val auditService: AuditService,
 ) {
-  fun getDutyToRefer(crn: String): DutyToReferDto {
-    val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
-    return getDutyToRefer(caseEntity, crn).orThrowNotFound("crn" to crn)
-  }
-
   fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
     val caseEntity = caseRepository.findByCrn(crn) ?: return emptyList()
     return getDutyToReferHistory(caseEntity, crn)

@@ -78,49 +78,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return 404 when no DTR exists`() {
-    restTestClient.get().uri("/cases/{crn}/dtr", crn)
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isNotFound
-  }
-
-  @Test
-  fun `should return DTR with submission and localAuthorityAreaName`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    restTestClient.get().uri("/cases/{crn}/dtr", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetDtrResponseBody(
-            id = existingEntity.id,
-            caseId = case.id,
-            crn = crn,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = "2026-01-15",
-            referenceNumber = "DTR-REF-001",
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          ),
-        )
-      }
-  }
-
-  @Test
   fun `should get duty to refer by id with ADDA role`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
