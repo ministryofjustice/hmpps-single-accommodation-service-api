@@ -3,19 +3,22 @@
 trap "pkill -f 'port-forward'" EXIT
 
 LOCAL_PORT=6380
-REDIS_SECRET_NAME="sas-elasticache-redis"
+REDIS_SECRET_NAME=
 PORT_FORWARD_CONTAINER_NAME="redis-port-forward-${USER//.}"
 IMAGE="ministryofjustice/port-forward"
 DISPLAY_CREDS=0
 START_CLI=0
 
-while getopts "dc" flag; do
+while getopts "dcs:" flag; do
   case "$flag" in
     d)
       DISPLAY_CREDS=1
       ;;
     c)
       START_CLI=1
+      ;;
+    s)
+      REDIS_SECRET_NAME=${OPTARG}
       ;;
     \?)
       echo "ERROR: Invalid option -$OPTARG"
@@ -33,6 +36,7 @@ if [ -z "$ENV" ] || [[ ! "$ENV" =~ ^(dev|preprod|prod)$ ]]; then
 fi
 
 NAMESPACE="hmpps-community-accommodation-$ENV"
+[ -z "${REDIS_SECRET_NAME}" ] && REDIS_SECRET_NAME='sas-elasticache-redis'
 
 echo "---------------------------------------------------------------"
 echo "* Namespace: $NAMESPACE"
@@ -74,17 +78,18 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Starting port forward..."
-kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379" &
-
-PF_PID=$!
-sleep 2
-
-echo "Port Forwarding established."
 
 if [ "$START_CLI" -eq 1 ]; then
+  kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379" &
+  PF_PID=$!
+  sleep 2
+
   echo "Launching redis-cli..."
   redis-cli -h 127.0.0.1 -p "$LOCAL_PORT" --tls -a "$REDIS_AUTH_TOKEN"
 else
+  kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379"
+  PF_PID=$!
+
   echo
   echo "Connect with:"
   echo "redis-cli -h 127.0.0.1 -p $LOCAL_PORT --tls -a <REDIS_AUTH_TOKEN>"
