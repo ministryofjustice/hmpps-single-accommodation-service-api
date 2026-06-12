@@ -35,7 +35,7 @@ object ApiCallKeys {
   // approved-premises service - referrals
   const val GET_CAS1_REFERRAL = "getCas1ReferralByCrn"
   const val GET_CAS2HDC_REFERRAL = "getCas2HdcReferralByCrn"
-  const val GET_CAS2V2_REFERRAL = "getCas2v2ReferralByCrn"
+  const val GET_CAS2_REFERRAL = "getCas2ReferralByCrn"
   const val GET_CAS3_REFERRAL = "getCas3ReferralByCrn"
 
   // other
