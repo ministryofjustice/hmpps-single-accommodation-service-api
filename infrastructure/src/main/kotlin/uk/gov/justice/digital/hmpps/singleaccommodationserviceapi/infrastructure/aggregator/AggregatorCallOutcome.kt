@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator
 
 import org.springframework.http.HttpStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.listOf404sThatAreNotBreaking
 
 data class UpstreamFailure(
   val callKey: String,
@@ -44,4 +45,6 @@ fun Map<String, Any>.getFailures(): List<UpstreamFailure> = this.mapNotNull { (k
     errorDetail = failure.errorDetail,
     identifier = failure.identifier,
   )
-}.filter { it.errorDetail.httpStatus != HttpStatus.NOT_FOUND }
+}.filterNot {
+  it.errorDetail.httpStatus == HttpStatus.NOT_FOUND && listOf404sThatAreNotBreaking.contains(it.callKey)
+}
