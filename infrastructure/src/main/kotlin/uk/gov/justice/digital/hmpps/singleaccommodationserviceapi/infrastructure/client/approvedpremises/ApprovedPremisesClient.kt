@@ -26,7 +26,7 @@ interface ApprovedPremisesClient {
   fun getCas2HdcReferral(@PathVariable crn: String): List<Cas2ReferralHistory>
 
   @GetExchange(value = "/cas2/external/referrals/{crn}")
-  fun getCas2v2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
+  fun getCas2Referral(@PathVariable crn: String): List<Cas2ReferralHistory>
 
   @GetExchange(value = "/cas3/external/referrals/{crn}")
   fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
@@ -43,7 +43,7 @@ open class ApprovedPremisesCachingService(
   open fun getCas2HdcReferral(crn: String) = approvedPremisesClient.getCas2HdcReferral(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS2V2_REFERRAL, key = "#crn")
-  open fun getCas2v2Referral(crn: String) = approvedPremisesClient.getCas2v2Referral(crn)
+  open fun getCas2v2Referral(crn: String) = approvedPremisesClient.getCas2Referral(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL, key = "#crn")
   open fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn)
