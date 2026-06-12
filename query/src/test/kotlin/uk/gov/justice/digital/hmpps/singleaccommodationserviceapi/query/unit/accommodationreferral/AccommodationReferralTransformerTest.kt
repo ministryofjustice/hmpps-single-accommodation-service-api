@@ -31,7 +31,7 @@ class AccommodationReferralTransformerTest {
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
       AccommodationService.CAS1,
       AccommodationService.CAS2HDC,
-      AccommodationService.CAS2v2,
+      AccommodationService.CAS2,
       AccommodationService.CAS3,
       AccommodationService.DTR,
     )

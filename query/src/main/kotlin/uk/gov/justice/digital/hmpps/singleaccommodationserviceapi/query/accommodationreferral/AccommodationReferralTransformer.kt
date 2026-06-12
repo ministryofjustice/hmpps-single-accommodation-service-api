@@ -48,7 +48,7 @@ object AccommodationReferralTransformer {
     dto.cas2Referrals.map {
       toAccommodationReferralDto(
         id = it.id,
-        type = AccommodationService.CAS2v2,
+        type = AccommodationService.CAS2,
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,

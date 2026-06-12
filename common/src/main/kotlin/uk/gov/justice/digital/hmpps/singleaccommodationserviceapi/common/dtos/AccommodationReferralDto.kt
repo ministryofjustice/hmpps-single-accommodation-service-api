@@ -27,7 +27,7 @@ enum class AccommodationReferralStatus {
 enum class AccommodationService {
   CAS1,
   CAS2HDC,
-  CAS2v2,
+  CAS2,
   CAS3,
   DTR,
 }
