@@ -70,7 +70,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         referredBy = referredByUser,
       ),
     )
-    val cas2Response: List<Cas2ReferralHistory> = listOf(
+    val cas2HdcResponse: List<Cas2ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-01-01T00:00:00Z"),
         status = Cas2Status.AWAITING_DECISION,
@@ -93,7 +93,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     )
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
-    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2HDC, crn, cas2Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2HDC, crn, cas2HdcResponse)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2v2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
@@ -105,7 +105,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetReferralHistory(
             id1 = cas1Response.first().id,
-            id2 = cas2Response.first().id,
+            id2 = cas2HdcResponse.first().id,
             id3 = cas2v2Response.first().id,
             id4 = cas3Response.first().id,
             dtrId = dutyToRefer.id,
