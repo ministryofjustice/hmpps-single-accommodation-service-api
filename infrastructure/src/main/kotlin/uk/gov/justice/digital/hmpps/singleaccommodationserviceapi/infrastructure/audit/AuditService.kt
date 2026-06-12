@@ -10,8 +10,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import java.util.UUID
@@ -59,17 +58,11 @@ class AuditService(
     val fieldChanges = commitChanges
       .filterIsInstance<ValueChange>()
       .map {
-        when (eventType) {
-          AuditRecordType.CREATE -> CreateFieldChangeDto(
-            field = it.propertyName,
-            value = convertJaversValue(javersValue = it.right),
-          )
-          else -> UpdateFieldChangeDto(
-            field = it.propertyName,
-            value = convertJaversValue(javersValue = it.right),
-            oldValue = convertJaversValue(javersValue = it.left),
-          )
-        }
+        FieldChange(
+          field = it.propertyName,
+          value = convertJaversValue(javersValue = it.right),
+          oldValue = if (eventType == AuditRecordType.CREATE) null else convertJaversValue(javersValue = it.left),
+        )
       }
     val userId = UUID.fromString(commitMeta.author)
     val user = authorUsers[userId]!!

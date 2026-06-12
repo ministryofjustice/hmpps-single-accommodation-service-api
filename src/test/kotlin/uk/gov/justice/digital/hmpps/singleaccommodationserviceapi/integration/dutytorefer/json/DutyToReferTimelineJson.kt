@@ -18,27 +18,33 @@ fun expectedGetDutyToReferTimelineResponse(
          "changes":[
             {
                "field":"id",
-               "value":"$dutyToReferId"
+               "value":"$dutyToReferId",
+               "oldValue":null
             },
             {
                "field":"caseId",
-               "value":"$caseId"
+               "value":"$caseId",
+               "oldValue":null
             },
             {
                "field":"localAuthorityAreaId",
-               "value":"$localAuthorityAreaId"
+               "value":"$localAuthorityAreaId",
+               "oldValue":null
             },
             {
                "field":"referenceNumber",
-               "value":"DTR-REF-001"
+               "value":"DTR-REF-001",
+               "oldValue":null
             },
             {
                "field":"submissionDate",
-               "value":"2026-01-15"
+               "value":"2026-01-15",
+               "oldValue":null
             },
             {
                "field":"status",
-               "value":"SUBMITTED"
+               "value":"SUBMITTED",
+               "oldValue":null
             }
          ],
          "extraInformation":{
@@ -120,7 +126,8 @@ fun expectedGetDutyToReferTimelineResponse(
          "changes":[
             {
                "field":"note",
-               "value":"Test note"
+               "value":"Test note",
+               "oldValue":null
             }
          ]
       },
@@ -131,27 +138,33 @@ fun expectedGetDutyToReferTimelineResponse(
          "changes":[
             {
                "field":"id",
-               "value":"$dutyToReferId"
+               "value":"$dutyToReferId",
+               "oldValue":null
             },
             {
                "field":"caseId",
-               "value":"$caseId"
+               "value":"$caseId",
+               "oldValue":null
             },
             {
                "field":"localAuthorityAreaId",
-               "value":"$initialLocalAuthorityAreaId"
+               "value":"$initialLocalAuthorityAreaId",
+               "oldValue":null
             },
             {
                "field":"referenceNumber",
-               "value":"DTR-REF-001"
+               "value":"DTR-REF-001",
+               "oldValue":null
             },
             {
                "field":"submissionDate",
-               "value":"2026-01-15"
+               "value":"2026-01-15",
+               "oldValue":null
             },
             {
                "field":"status",
-               "value":"SUBMITTED"
+               "value":"SUBMITTED",
+               "oldValue":null
             }
          ],
          "extraInformation":{

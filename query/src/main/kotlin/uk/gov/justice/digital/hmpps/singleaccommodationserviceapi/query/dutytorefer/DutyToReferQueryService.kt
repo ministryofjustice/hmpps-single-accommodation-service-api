@@ -5,9 +5,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -113,7 +112,7 @@ class DutyToReferQueryService(
 
     val laIdPerRecord = sorted.map { record ->
       val atCommit = effectiveLaId
-      val laIdChange = record.changes.filterIsInstance<UpdateFieldChangeDto>().firstOrNull { it.field == "localAuthorityAreaId" }
+      val laIdChange = record.changes.firstOrNull { it.field == "localAuthorityAreaId" && it.oldValue != null }
       if (laIdChange != null) {
         effectiveLaId = laIdChange.oldValue?.let(UUID::fromString)
       }
@@ -144,7 +143,7 @@ class DutyToReferQueryService(
         author = createdByUser!!.displayName(),
         commitDate = it.createdAt!!,
         changes = listOf(
-          CreateFieldChangeDto(
+          FieldChange(
             field = "note",
             value = it.note,
           ),

@@ -11,9 +11,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
@@ -266,15 +265,15 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
-          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+          FieldChange(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
+          FieldChange(field = "status", value = "SUBMITTED"),
         ),
       )
       val updateRecord = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-12T10:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
+          FieldChange(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
 
@@ -305,8 +304,8 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = initialLaId.toString()),
-          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+          FieldChange(field = "localAuthorityAreaId", value = initialLaId.toString()),
+          FieldChange(field = "status", value = "SUBMITTED"),
         ),
       )
       val laChangeRecord = laChange(
@@ -355,16 +354,16 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "referenceNumber", value = initialReference),
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = initialLa.id.toString()),
-          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+          FieldChange(field = "referenceNumber", value = initialReference),
+          FieldChange(field = "localAuthorityAreaId", value = initialLa.id.toString()),
+          FieldChange(field = "status", value = "SUBMITTED"),
         ),
       )
       val firstRefUpdate = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-11T13:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = firstRef,
             oldValue = initialReference,
@@ -380,7 +379,7 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-12T15:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = secondRef,
             oldValue = firstRef,
@@ -401,7 +400,7 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-13T18:00:01Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = thirdRef,
             oldValue = secondRef,
@@ -412,7 +411,7 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-13T23:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = fourthRef,
             oldValue = thirdRef,
@@ -515,14 +514,14 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
+          FieldChange(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
         ),
       )
       val updateRecord = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-12T10:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
+          FieldChange(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
       val noteAuthor1 = buildUserEntity(id = user1Id, forename = "First", surname = "user")
@@ -568,7 +567,7 @@ class DutyToReferQueryServiceTest {
       type = AuditRecordType.UPDATE,
       commitDate = Instant.parse(at),
       changes = listOf(
-        UpdateFieldChangeDto(
+        FieldChange(
           field = "localAuthorityAreaId",
           value = to.toString(),
           oldValue = from.toString(),
