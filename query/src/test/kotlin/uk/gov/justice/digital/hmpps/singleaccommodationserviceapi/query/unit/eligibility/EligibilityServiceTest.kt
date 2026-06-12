@@ -582,7 +582,7 @@ class EligibilityServiceTest {
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             hasNextAccommodation = row["hasNextAccommodation"]!!,
-            isPrisonCas1Cas2OrCas2v2CurrentAccommodation = row["isPrisonCas1Cas2OrCas2v2CurrentAccommodation"]!!,
+            isPrisonCas1Cas2HdcOrCas2CurrentAccommodation = row["isPrisonCas1Cas2OrCas2v2CurrentAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
             cas3ApplicationStatus = row["cas3ApplicationStatus"]?.let { Cas3ApplicationStatus.valueOf(it) },
@@ -631,7 +631,7 @@ class EligibilityServiceTest {
           buildAccommodationSummaryDto(
             endDate = it,
             type = buildAccommodationTypeDto(
-              code = if (s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean()) {
+              code = if (s.isPrisonCas1Cas2HdcOrCas2CurrentAccommodation.toBoolean()) {
                 "A02"
               } else {
                 "A03"
@@ -641,7 +641,7 @@ class EligibilityServiceTest {
         } ?: buildAccommodationSummaryDto(
           endDate = null,
           type = buildAccommodationTypeDto(
-            code = if (s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean()) {
+            code = if (s.isPrisonCas1Cas2HdcOrCas2CurrentAccommodation.toBoolean()) {
               "A02"
             } else {
               "A03"
@@ -652,7 +652,7 @@ class EligibilityServiceTest {
         val currentAccommodationTypeEntity = currentAccommodation.type?.code?.let {
           buildAccommodationTypeEntity(
             code = it,
-            isCas1 = s.isPrisonCas1Cas2OrCas2v2CurrentAccommodation.toBoolean(),
+            isCas1 = s.isPrisonCas1Cas2HdcOrCas2CurrentAccommodation.toBoolean(),
           )
         }
 
@@ -1045,7 +1045,7 @@ data class Cas3Scenario(
   val description: String?,
   val referenceDate: LocalDate,
   val hasNextAccommodation: String,
-  val isPrisonCas1Cas2OrCas2v2CurrentAccommodation: String,
+  val isPrisonCas1Cas2HdcOrCas2CurrentAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
   val dtrSubmissionDate: LocalDate?,
   val crsSubmissionDate: LocalDate?,
