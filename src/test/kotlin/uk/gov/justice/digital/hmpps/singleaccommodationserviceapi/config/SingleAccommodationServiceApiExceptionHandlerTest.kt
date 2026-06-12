@@ -42,13 +42,11 @@ class SingleAccommodationServiceApiExceptionHandlerTest {
   }
 
   private fun upstreamFailureException(status: HttpStatus) = UpstreamFailureException(
-    listOf(
-      UpstreamFailureDto(
-        endpoint = "test-endpoint",
-        failureType = UpstreamFailureType.UPSTREAM_HTTP_ERROR,
-        httpResponseStatus = status,
-        message = "Upstream failed",
-      ),
+    UpstreamFailureDto(
+      endpoint = "test-endpoint",
+      failureType = UpstreamFailureType.UPSTREAM_HTTP_ERROR,
+      httpResponseStatus = status,
+      message = "Upstream failed",
     ),
   )
 }

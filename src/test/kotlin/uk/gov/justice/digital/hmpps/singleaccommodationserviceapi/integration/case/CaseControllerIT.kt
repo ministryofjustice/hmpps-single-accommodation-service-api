@@ -37,7 +37,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseUnknownResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
@@ -305,12 +304,51 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `returns UserAccess UNKOWN when delius doesn't return a result`() {
+  fun `returns ServerError when delius returns ServerError`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    getCaseResponse(crn).value {
-      assertThatJson(it!!).matchesExpectedJson(expectedGetCaseUnknownResponse())
-    }
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
+  }
+
+  @Test
+  fun `returns NotFound error when delius returns NotFound error`() {
+    val crn = crns[0]
+    SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isNotFound
+  }
+
+  @Test
+  fun `returns ServerError when CPR returns ServerError`() {
+    val crn = "12345"
+    val case = buildCase(crn = crn)
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
+  }
+
+  @Test
+  fun `returns NotFound error when CPR returns NotFound error`() {
+    val crn = "12345"
+    val case = buildCase(crn = crn)
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isNotFound
   }
 
   private fun stubInitialCorePersonRecords() {

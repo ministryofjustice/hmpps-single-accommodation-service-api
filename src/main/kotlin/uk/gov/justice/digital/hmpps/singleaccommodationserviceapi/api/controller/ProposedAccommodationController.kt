@@ -15,8 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SingleAccommodationServiceApiExceptionHandler.Companion.handleUpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
@@ -110,11 +109,5 @@ class ProposedAccommodationController(
     handleUpstreamFailure(currentAccommodation.upstreamFailures)
     val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(id, crn, request, currentAccommodation.data)
     return ResponseEntity.ok(updatedProposedAccommodation)
-  }
-
-  private fun handleUpstreamFailure(upstreamFailures: List<UpstreamFailureDto>) {
-    if (upstreamFailures.isNotEmpty()) {
-      throw UpstreamFailureException(upstreamFailures)
-    }
   }
 }
