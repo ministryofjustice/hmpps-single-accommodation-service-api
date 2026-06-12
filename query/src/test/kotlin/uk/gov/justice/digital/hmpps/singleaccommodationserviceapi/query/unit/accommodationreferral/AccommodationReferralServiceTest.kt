@@ -50,7 +50,7 @@ class AccommodationReferralServiceTest {
         cas1Referrals = listOf(
           buildReferralHistory(Cas1AssessmentStatus.COMPLETED, createdAt = olderDate, referredBy = buildDeliusUserDto()),
         ),
-        cas2Referrals = listOf(
+        cas2HdcReferrals = listOf(
           buildReferralHistory(Cas2Status.PLACE_OFFERED, createdAt = newerDate, referredBy = buildDeliusUserDto()),
         ),
         cas2v2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate, referredBy = buildDeliusUserDto())),
@@ -75,7 +75,7 @@ class AccommodationReferralServiceTest {
     fun `should return empty list when no referrals exist`() {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
-        cas2Referrals = emptyList(),
+        cas2HdcReferrals = emptyList(),
         cas2v2Referrals = emptyList(),
         cas3Referrals = emptyList(),
       )
@@ -92,7 +92,7 @@ class AccommodationReferralServiceTest {
     fun `should return only DTR when no referrals exist`() {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
-        cas2Referrals = emptyList(),
+        cas2HdcReferrals = emptyList(),
         cas2v2Referrals = emptyList(),
         cas3Referrals = emptyList(),
       )
