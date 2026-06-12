@@ -102,7 +102,10 @@ class EligibilityService(
     ).also { log.debug("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
-  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult = provider.tree().eval(provider.initialContext(data))
+  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult {
+    val result = provider.tree().eval(provider.initialContext(data))
+    return provider.resolveDeeplink(result, data)
+  }
 
   private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {
     log.debug("Calculating {} eligibility for CRN: {}}", line, data.crn)
