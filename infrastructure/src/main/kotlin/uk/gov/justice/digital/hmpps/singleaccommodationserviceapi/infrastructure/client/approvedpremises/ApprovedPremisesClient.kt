@@ -43,7 +43,7 @@ open class ApprovedPremisesCachingService(
   open fun getCas2HdcReferral(crn: String) = approvedPremisesClient.getCas2HdcReferral(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS2V2_REFERRAL, key = "#crn")
-  open fun getCas2v2Referral(crn: String) = approvedPremisesClient.getCas2Referral(crn)
+  open fun getCas2Referral(crn: String) = approvedPremisesClient.getCas2Referral(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL, key = "#crn")
   open fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn)

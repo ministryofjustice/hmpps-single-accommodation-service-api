@@ -23,7 +23,7 @@ class AccommodationReferralOrchestrationService(
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },
       GET_CAS2HDC_REFERRAL to { approvedPremisesCachingService.getCas2HdcReferral(crn) },
-      GET_CAS2V2_REFERRAL to { approvedPremisesCachingService.getCas2v2Referral(crn) },
+      GET_CAS2V2_REFERRAL to { approvedPremisesCachingService.getCas2Referral(crn) },
       GET_CAS3_REFERRAL to { approvedPremisesCachingService.getCas3Referral(crn) },
     )
 
