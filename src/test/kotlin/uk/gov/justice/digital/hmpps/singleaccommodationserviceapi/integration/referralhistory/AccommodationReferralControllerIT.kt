@@ -94,7 +94,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2HDC, crn, cas2Response)
-    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2v2, crn, cas2v2Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2v2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
