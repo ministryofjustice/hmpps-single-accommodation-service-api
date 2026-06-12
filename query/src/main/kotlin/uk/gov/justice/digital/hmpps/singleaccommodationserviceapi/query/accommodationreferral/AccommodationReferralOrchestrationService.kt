@@ -33,10 +33,10 @@ class AccommodationReferralOrchestrationService(
     val cas1 =
       results.standardCallsNoIterationResults!!.getResult<List<Cas1ReferralHistory>>(GET_CAS1_REFERRAL)
         ?: emptyList()
-    val cas2 =
+    val cas2Hdc =
       results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2HDC_REFERRAL)
         ?: emptyList()
-    val cas2v2 =
+    val cas2 =
       results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2_REFERRAL)
         ?: emptyList()
     val cas3 =
@@ -44,7 +44,7 @@ class AccommodationReferralOrchestrationService(
         ?: emptyList()
 
     return OrchestrationResultDto(
-      data = AccommodationReferralOrchestrationDto(cas1, cas2, cas2v2, cas3),
+      data = AccommodationReferralOrchestrationDto(cas1, cas2Hdc, cas2, cas3),
       upstreamFailures = results.standardCallsNoIterationResults!!.getFailures(),
     )
   }
