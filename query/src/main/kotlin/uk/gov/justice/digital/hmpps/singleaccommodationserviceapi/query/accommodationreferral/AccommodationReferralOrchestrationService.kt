@@ -6,8 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2HDC_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2V2_REFERRAL
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
@@ -22,7 +22,7 @@ class AccommodationReferralOrchestrationService(
   fun fetchAllReferralsAggregated(crn: String): OrchestrationResultDto<AccommodationReferralOrchestrationDto> {
     val calls = mapOf(
       GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },
-      GET_CAS2_REFERRAL to { approvedPremisesCachingService.getCas2HdcReferral(crn) },
+      GET_CAS2HDC_REFERRAL to { approvedPremisesCachingService.getCas2HdcReferral(crn) },
       GET_CAS2V2_REFERRAL to { approvedPremisesCachingService.getCas2v2Referral(crn) },
       GET_CAS3_REFERRAL to { approvedPremisesCachingService.getCas3Referral(crn) },
     )
@@ -34,7 +34,7 @@ class AccommodationReferralOrchestrationService(
       results.standardCallsNoIterationResults!!.getResult<List<Cas1ReferralHistory>>(GET_CAS1_REFERRAL)
         ?: emptyList()
     val cas2 =
-      results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2_REFERRAL)
+      results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2HDC_REFERRAL)
         ?: emptyList()
     val cas2v2 =
       results.standardCallsNoIterationResults!!.getResult<List<Cas2ReferralHistory>>(GET_CAS2V2_REFERRAL)
