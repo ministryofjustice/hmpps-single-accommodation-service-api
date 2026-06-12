@@ -45,7 +45,7 @@ object AccommodationReferralTransformer {
         placementStatus = it.placementStatus,
       )
     } +
-    dto.cas2v2Referrals.map {
+    dto.cas2Referrals.map {
       toAccommodationReferralDto(
         id = it.id,
         type = AccommodationService.CAS2v2,
