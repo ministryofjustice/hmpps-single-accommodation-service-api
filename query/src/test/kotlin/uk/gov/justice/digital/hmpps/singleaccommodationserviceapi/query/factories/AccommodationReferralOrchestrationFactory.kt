@@ -53,7 +53,7 @@ fun buildAccommodationReferralOrchestrationDto(
   ),
 ) = AccommodationReferralOrchestrationDto(
   cas1Referrals = cas1Referrals,
-  cas2Referrals = cas2Referrals,
+  cas2HdcReferrals = cas2Referrals,
   cas2v2Referrals = cas2v2Referrals,
   cas3Referrals = cas3Referrals,
 )
