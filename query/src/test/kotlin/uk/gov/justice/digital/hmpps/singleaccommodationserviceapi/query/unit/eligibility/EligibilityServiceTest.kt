@@ -582,7 +582,7 @@ class EligibilityServiceTest {
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
             hasNextAccommodation = row["hasNextAccommodation"]!!,
-            isPrisonCas1Cas2HdcOrCas2CurrentAccommodation = row["isPrisonCas1Cas2OrCas2v2CurrentAccommodation"]!!,
+            isPrisonCas1Cas2HdcOrCas2CurrentAccommodation = row["isPrisonCas1Cas2HdcOrCas2CurrentAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
             cas3ApplicationStatus = row["cas3ApplicationStatus"]?.let { Cas3ApplicationStatus.valueOf(it) },
