@@ -44,3 +44,7 @@ logging:
 
 scheduling:
   enabled: true
+
+sentry:
+  sample-rate: 1
+  traces-sample-rate: 0.01

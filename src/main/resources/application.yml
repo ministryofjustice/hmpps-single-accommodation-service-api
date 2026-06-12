@@ -35,6 +35,8 @@ spring:
       include-message: always
 springdoc:
   paths-to-exclude: "/queue-admin/**"
+sentry:
+  send-default-pii: false
 server:
   port: 8080
   servlet:
