@@ -53,7 +53,7 @@ class AccommodationReferralServiceTest {
         cas2HdcReferrals = listOf(
           buildReferralHistory(Cas2Status.PLACE_OFFERED, createdAt = newerDate, referredBy = buildDeliusUserDto()),
         ),
-        cas2v2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate, referredBy = buildDeliusUserDto())),
+        cas2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate, referredBy = buildDeliusUserDto())),
         cas3Referrals = emptyList(),
       )
       val dtrSubmissionDate = LocalDate.of(2025, 5, 1)
@@ -76,7 +76,7 @@ class AccommodationReferralServiceTest {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
         cas2HdcReferrals = emptyList(),
-        cas2v2Referrals = emptyList(),
+        cas2Referrals = emptyList(),
         cas3Referrals = emptyList(),
       )
 
@@ -93,7 +93,7 @@ class AccommodationReferralServiceTest {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
         cas2HdcReferrals = emptyList(),
-        cas2v2Referrals = emptyList(),
+        cas2Referrals = emptyList(),
         cas3Referrals = emptyList(),
       )
 
