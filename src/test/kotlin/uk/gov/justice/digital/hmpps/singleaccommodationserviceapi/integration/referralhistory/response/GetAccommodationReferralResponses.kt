@@ -35,7 +35,7 @@ fun expectedGetReferralHistory(
      },
      {
         "id":"$id3",
-        "type":"CAS2v2",
+        "type":"CAS2",
         "status":"ACCEPTED",
         "date":"2025-04-01T00:00:00Z",
         "referralRejectionReason": $referralRejectionReason,
@@ -74,7 +74,7 @@ fun expectedGetReferralHistory(
      },
      {
         "id":"$id2",
-        "type":"CAS2",
+        "type":"CAS2HDC",
         "status":"PENDING",
         "date":"2025-01-01T00:00:00Z",
         "referralRejectionReason": $referralRejectionReason,

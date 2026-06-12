@@ -30,10 +30,10 @@ object AccommodationReferralTransformer {
       placementStatus = it.placementStatus,
     )
   } +
-    dto.cas2Referrals.map {
+    dto.cas2HdcReferrals.map {
       toAccommodationReferralDto(
         id = it.id,
-        type = AccommodationService.CAS2,
+        type = AccommodationService.CAS2HDC,
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,
@@ -45,10 +45,10 @@ object AccommodationReferralTransformer {
         placementStatus = it.placementStatus,
       )
     } +
-    dto.cas2v2Referrals.map {
+    dto.cas2Referrals.map {
       toAccommodationReferralDto(
         id = it.id,
-        type = AccommodationService.CAS2v2,
+        type = AccommodationService.CAS2,
         status = toCasReferralStatus(it.status),
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,

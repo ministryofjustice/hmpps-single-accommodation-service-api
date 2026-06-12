@@ -19,7 +19,7 @@ fun buildAccommodationReferralOrchestrationDto(
       placementStatus = "Some status",
     ),
   ),
-  cas2Referrals: List<Cas2ReferralHistory> = listOf(
+  cas2HdcReferrals: List<Cas2ReferralHistory> = listOf(
     buildReferralHistory(
       Cas2ReferralHistory.Cas2Status.PLACE_OFFERED,
       referralRejectionReason = "Some reason",
@@ -30,7 +30,7 @@ fun buildAccommodationReferralOrchestrationDto(
       placementStatus = "Some status",
     ),
   ),
-  cas2v2Referrals: List<Cas2ReferralHistory> = listOf(
+  cas2Referrals: List<Cas2ReferralHistory> = listOf(
     buildReferralHistory(
       Cas2ReferralHistory.Cas2Status.AWAITING_DECISION,
       referralRejectionReason = "Some reason",
@@ -53,7 +53,7 @@ fun buildAccommodationReferralOrchestrationDto(
   ),
 ) = AccommodationReferralOrchestrationDto(
   cas1Referrals = cas1Referrals,
+  cas2HdcReferrals = cas2HdcReferrals,
   cas2Referrals = cas2Referrals,
-  cas2v2Referrals = cas2v2Referrals,
   cas3Referrals = cas3Referrals,
 )
