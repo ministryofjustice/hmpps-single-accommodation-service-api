@@ -14,8 +14,6 @@ import org.springframework.context.annotation.Profile
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_ACCOMMODATION_RESPONSE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS1_REFERRAL
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2HDC_REFERRAL
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS2_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS3_REFERRAL
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASES_FROM_ORCHESTRATOR
@@ -110,8 +108,6 @@ class RedissonCacheConfig {
       GET_TIER to CacheConfig(60_000, 30_000),
       GET_ACCOMMODATION_RESPONSE to CacheConfig(60_000, 30_000),
       GET_CAS1_REFERRAL to CacheConfig(60_000, 30_000),
-      GET_CAS2HDC_REFERRAL to CacheConfig(60_000, 30_000),
-      GET_CAS2_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_1_CURRENT_PREMISES to CacheConfig(60_000, 30_000),
