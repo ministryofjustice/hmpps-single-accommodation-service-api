@@ -10,7 +10,7 @@ data class CaseDto(
   val crn: String,
   val prisonNumber: String? = null,
   val photoUrl: String? = null,
-  val tierScore: TierScore? = null,
+  val tierScore: String? = null,
   val riskLevel: RiskLevel? = null,
   val pncReference: String? = null,
   val assignedTo: AssignedToDto? = null,
@@ -39,34 +39,6 @@ enum class RiskLevel(val code: String) {
   companion object {
     fun findByCode(code: String) = RiskLevel.entries.firstOrNull { it.code == code }
   }
-}
-
-enum class TierScore {
-  A3,
-  A2,
-  A1,
-  B3,
-  B2,
-  B1,
-  C3,
-  C2,
-  C1,
-  D3,
-  D2,
-  D1,
-  D0,
-  A3S,
-  A2S,
-  A1S,
-  B3S,
-  B2S,
-  B1S,
-  C3S,
-  C2S,
-  C1S,
-  D3S,
-  D2S,
-  D1S,
 }
 
 enum class Status {

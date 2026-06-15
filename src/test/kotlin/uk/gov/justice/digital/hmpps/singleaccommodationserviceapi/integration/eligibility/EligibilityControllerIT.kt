@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -123,7 +122,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get eligibility for crn`() {
-    val tier = buildTier(TierScore.A1)
+    val tier = buildTier("A1")
 
     TierStubs.getTierOKResponse(crn = crn, tier)
 
@@ -242,7 +241,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   fun `should include S_TIER failureReason in CAS1 eligibility JSON for an S tier candidate`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1S))
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1S"))
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
       crn = crn,
       response = buildCas1Application(
@@ -296,7 +295,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
   @Test
   fun `should succeed when prisoner search returns 404`() {
     PrisonerSearchStubs.getPrisonerNotFoundResponse(prisonNumber = prisonNumber)
-    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) {
       withCrn(crn)
@@ -311,7 +310,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should succeed when case has no prison number`() {
-    TierStubs.getTierOKResponse(crn = crn, buildTier(TierScore.A1))
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
 
     val entity = buildCaseEntity(id = dutyToReferCaseId) { withCrn(crn) }
     caseRepository.save(entity)

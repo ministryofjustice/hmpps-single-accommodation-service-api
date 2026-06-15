@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -422,39 +421,39 @@ class CaseControllerIT : IntegrationTestBase() {
     val entities = listOf(
       buildCaseEntity { withCrn(crns[5]) },
       buildCaseEntity(
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crns[6]) },
       buildCaseEntity(
-        tierScore = TierScore.C1,
+        tierScore = "C1",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
       ) { withCrn(crns[7]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
       ) { withCrn(crns[8]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
         cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
       ) { withCrn(crns[9]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
       ) { withCrn(crns[10]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REJECTED,
       ) { withCrn(crns[11]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.STARTED,
       ) { withCrn(crns[12]) },
@@ -464,7 +463,7 @@ class CaseControllerIT : IntegrationTestBase() {
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.WITHDRAWN,
       ) { withCrn(crns[13]) },
       buildCaseEntity(
-        tierScore = TierScore.D3,
+        tierScore = "D3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.INAPPLICABLE,
       ) { withCrn(crns[14]) },

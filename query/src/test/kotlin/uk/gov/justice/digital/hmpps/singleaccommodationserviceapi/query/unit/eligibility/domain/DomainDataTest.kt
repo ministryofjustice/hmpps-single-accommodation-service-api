@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -59,7 +58,7 @@ class DomainDataTest {
     val cpr = buildCorePersonRecord()
 
     val tier = Tier(
-      tierScore = TierScore.A1,
+      tierScore = "A1",
       calculationId = UUID.randomUUID(),
       calculationDate = LocalDateTime.now(),
       changeReason = null,
@@ -80,7 +79,7 @@ class DomainDataTest {
 
     val expected = buildDomainData(
       crn = crn,
-      tierScore = tier.tierScore.name,
+      tierScore = tier.tierScore,
       sex = cpr.sex?.code,
       currentAccommodation = currentAccommodation,
       nextAccommodations = nextAccommodations,
@@ -111,7 +110,7 @@ class DomainDataTest {
   fun `Create DomainData from internal data`() {
     val dutyToRefer = buildDutyToReferDto()
     val crn = "ABC1234"
-    val tierScore = TierScore.A1
+    val tierScore = "A1"
     val personDto = buildFullPersonDto(
       crn = crn,
       gender = "Male",
@@ -121,7 +120,7 @@ class DomainDataTest {
     ) { withCrn(crn) }
     val expected = buildDomainData(
       crn = crn,
-      tierScore = tierScore.name,
+      tierScore = tierScore,
       sex = SexCode.M,
       cas1Application = null,
       cas3Application = null,
