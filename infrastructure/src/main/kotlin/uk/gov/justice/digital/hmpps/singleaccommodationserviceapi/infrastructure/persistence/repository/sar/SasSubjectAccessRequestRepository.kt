@@ -123,8 +123,8 @@ class SasSubjectAccessRequestRepository(
       from (
         select
           pa.name,
-          pa.arrangement_type,
-          pa.status,
+          at.name as arrangement_type,
+          ast.name as status,
           pa.start_date,
           pa.end_date,
           pa.postcode,
@@ -142,6 +142,8 @@ class SasSubjectAccessRequestRepository(
         from proposed_accommodation pa
         join sas_case sc on sc.id = pa.case_id
         join sas_case_identifier sci on sci.case_id = sc.id
+        left join accommodation_type at on at.id = pa.accommodation_type_id
+        left join accommodation_status ast on ast.id = pa.accommodation_status_id
         where
           (:crn::text is null or (sci.identifier = :crn and sci.identifier_type = 'CRN'))
           and (:noms_number::text is null or (sci.identifier = :noms_number and sci.identifier_type = 'NOMS'))

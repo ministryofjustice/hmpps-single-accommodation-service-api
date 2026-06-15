@@ -1,0 +1,32 @@
+{
+  "Cases": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "tier_score": "A1",
+      "cas1_application_id": "550e8400-e29b-41d4-a716-446655440001",
+      "cas1_application_application_status": "SUBMITTED",
+      "cas1_application_placement_status": "AWAITING_PLACEMENT",
+      "cas1_application_request_for_placement_status": "REQUESTED"
+    }
+  ],
+  "CaseIdentifiers": [
+    {
+      "identifier": "X123456",
+      "identifier_type": "CRN",
+      "created_at": "2023-01-01T10:00:00Z"
+    }
+  ],
+  "DutyToRefers": [],
+  "DutyToReferNotes": [],
+  "ProposedAccommodations": [
+    {
+      "name": "Sample Accommodation",
+      "arrangement_type": "CAS2 accommodation of 13 weeks or more",
+      "status": "Proposed",
+      "start_date": "2023-02-01",
+      "end_date": "2023-05-01",
+      "postcode": "SW1A 1AA"
+    }
+  ],
+  "ProposedAccommodationNotes": []
+}
