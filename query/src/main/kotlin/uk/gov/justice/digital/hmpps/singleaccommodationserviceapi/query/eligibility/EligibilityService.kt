@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
@@ -30,6 +31,7 @@ class EligibilityService(
   private val caseRepository: CaseRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
+  private val deeplinkResolver: DeeplinkResolver,
   private val cas1Tree: Cas1EligibilityTreeProvider,
   private val cas3Tree: Cas3EligibilityTreeProvider,
   private val dtrTree: DtrEligibilityTreeProvider,
@@ -104,7 +106,7 @@ class EligibilityService(
 
   internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult {
     val result = provider.tree().eval(provider.initialContext(data))
-    return provider.resolveDeeplink(result, data)
+    return deeplinkResolver.resolve(result, data)
   }
 
   private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {
