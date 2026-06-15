@@ -10,8 +10,7 @@ import java.time.LocalDateTime
 open class SubjectAccessRequestRepositoryBase(
   protected val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-  protected fun toJsonString(result: Map<String, Any?>) =
-    (result["json"] as PGobject?)?.value
+  protected fun toJsonString(result: Map<String, Any?>) = (result["json"] as PGobject?)?.value
 
   protected fun MapSqlParameterSource.addSarParameters(
     crn: String?,

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
 
 import jakarta.persistence.EntityManager
-import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +8,7 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
+import javax.sql.DataSource
 
 class SarIntegrationTest : IntegrationTestBase() {
   // TODO: Implement SarFlywaySchemaTest and SarJpaEntitiesTest interfaces once they are available in the test-support library

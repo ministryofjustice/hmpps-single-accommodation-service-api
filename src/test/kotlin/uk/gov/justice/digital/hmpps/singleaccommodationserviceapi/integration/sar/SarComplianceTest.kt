@@ -28,7 +28,7 @@ class SarComplianceTest : IntegrationTestBase() {
 
     // In a real scenario, we would use a Mustache renderer here to render the template with the result
     // To generate the actual HTML for the guide's workflow, we'd need the rendered content here.
-    // val actualHtml = render(result) 
+    // val actualHtml = render(result)
     // asserter.assertHtml(actualHtml, expectedHtml ?: "")
 
     val expectedHtml = this::class.java.getResource("/sar/expected_report.html")?.readText()
