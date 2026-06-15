@@ -28,6 +28,7 @@ fun expectedGetEligibilityResponse(
             "action":null,
             "link":"View application",
             "url":"$cas1Url/applications/$cas1ApplicationId",
+            "linkType":"CAS1_VIEW_APPLICATION",
             "failureReasons":[]
          },
          "cas1Application":{
@@ -43,6 +44,7 @@ fun expectedGetEligibilityResponse(
             "action":null,
             "link":"View referral",
             "url":"$cas3Url",
+            "linkType":null,
             "failureReasons":[]
          },
          "cas3Application":{
@@ -58,6 +60,7 @@ fun expectedGetEligibilityResponse(
             "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
@@ -84,6 +87,7 @@ fun expectedGetEligibilityResponse(
             "action":null,
             "link":"View refer and monitor",
             "url":"$crsUrl",
+            "linkType":null,
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -97,6 +101,7 @@ fun expectedGetEligibilityResponse(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[
                "SUITABLE_CAS1_APPLICATION",
                "SUITABLE_CAS3_APPLICATION"
@@ -122,6 +127,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "cas1Application":null
@@ -132,6 +138,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "cas3Application":null
@@ -142,6 +149,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "caseId":null,
@@ -153,6 +161,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":null
@@ -163,6 +172,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          }
       },
@@ -206,6 +216,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "action":null,
             "link":"View application",
             "url":"$cas1Url/applications/$cas1ApplicationId",
+            "linkType":"CAS1_VIEW_APPLICATION",
             "failureReasons":[]
          },
          "cas1Application":{
@@ -221,6 +232,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "action":null,
             "link":"View referral",
             "url":"$cas3Url",
+            "linkType":null,
             "failureReasons":[]
          },
          "cas3Application":{
@@ -236,6 +248,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
@@ -262,6 +275,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "action":null,
             "link":"View refer and monitor",
             "url":"$crsUrl",
+            "linkType":null,
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -275,6 +289,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[
                "SUITABLE_CAS1_APPLICATION",
                "SUITABLE_CAS3_APPLICATION"
@@ -313,6 +328,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[
                "S_TIER"
             ]
@@ -330,6 +346,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "action":null,
             "link":"View referral",
             "url":"$cas3Url",
+            "linkType":null,
             "failureReasons":[]
          },
          "cas3Application":{
@@ -345,6 +362,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "action":"Add DTR referral outcome",
             "link":"Add outcome",
             "url":null,
+            "linkType":null,
             "failureReasons":[]
          },
          "caseId":"$dutyToReferCaseId",
@@ -371,6 +389,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "action":null,
             "link":"View refer and monitor",
             "url":"$crsUrl",
+            "linkType":null,
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -384,6 +403,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "action":null,
             "link":null,
             "url":null,
+            "linkType":null,
             "failureReasons":[
                "SUITABLE_CAS3_APPLICATION"
             ]

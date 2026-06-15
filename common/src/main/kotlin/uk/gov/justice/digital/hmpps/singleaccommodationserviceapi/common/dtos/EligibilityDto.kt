@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import java.util.UUID
 
 data class EligibilityDto(
@@ -18,7 +17,7 @@ data class ServiceResult(
   val action: String? = null,
   val link: String? = null,
   val url: String? = null,
-  @get:JsonIgnore val linkType: LinkType? = null,
+  val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 )
 
