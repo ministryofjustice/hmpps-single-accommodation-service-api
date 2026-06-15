@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
@@ -140,7 +141,7 @@ class EligibilityServiceTest {
 
   // CAS1
   var cas1UiUrl = "CAS1_UI_URL"
-  var cas1CompletionContextUpdater = Cas1CompletionContextUpdater(cas1UiUrl)
+  var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
   var cas1ValidationRuleSet = Cas1ValidationRuleSet(
     Cas1SexValidationRule(),
   )
@@ -153,7 +154,7 @@ class EligibilityServiceTest {
   )
   val cas1UpcomingContextUpdater = Cas1UpcomingContextUpdater(clock)
   var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
-  val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater(cas1UiUrl)
+  val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
   // CAS3
   var cas3UiUrl = "CAS3_UI_URL"
@@ -226,7 +227,7 @@ class EligibilityServiceTest {
     completion = cas1CompletionRuleSet,
     completionContextUpdater = cas1CompletionContextUpdater,
     eligibility = cas1EligibilityRuleSet,
-    approvedPremisesUiBaseUrl = cas1UiUrl,
+    deeplinkResolver = Cas1DeeplinkResolver(cas1UiUrl),
   )
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
@@ -422,6 +423,7 @@ class EligibilityServiceTest {
             expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatus.valueOf(it) },
             expectedCas1Action = row["expectedCas1Action"],
             expectedCas1Link = row["expectedCas1Link"],
+            expectedCas1Url = row["expectedCas1Url"],
             expectedFailureReasons = row["expectedFailureReasons"]
               ?.takeIf { it.isNotBlank() }
               ?.split(",")
@@ -468,11 +470,12 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCas1Action)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
-        if (s.expectedCas1Link == null) {
-          assertThat(result.url).isNull()
-        } else {
-          assertThat(result.url).isEqualTo(cas1UiUrl)
+
+        val expectedUrl = s.expectedCas1Url?.let {
+          cas1UiUrl + it.replace("{applicationId}", cas1Application?.id.toString())
         }
+        assertThat(result.url).isEqualTo(expectedUrl)
+
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
@@ -1023,6 +1026,7 @@ data class Cas1Scenario(
   val expectedCas1Status: ServiceStatus?,
   val expectedCas1Action: String?,
   val expectedCas1Link: String?,
+  val expectedCas1Url: String?,
   val expectedFailureReasons: List<FailureReason>,
 )
 

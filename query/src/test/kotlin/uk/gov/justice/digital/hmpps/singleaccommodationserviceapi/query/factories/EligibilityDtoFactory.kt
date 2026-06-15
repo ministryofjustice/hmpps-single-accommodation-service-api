@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -38,13 +39,15 @@ fun buildServiceResult(
   action: String? = null,
   link: String? = null,
   url: String? = null,
+  linkType: LinkType? = null,
   failureReasons: List<FailureReason> = emptyList(),
 ) = ServiceResult(
   serviceStatus = serviceStatus,
   action = action,
   link = link,
-  failureReasons = failureReasons,
   url = url,
+  linkType = linkType,
+  failureReasons = failureReasons,
 )
 
 fun buildCas1ServiceResult(

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -30,10 +30,8 @@ class Cas1EligibilityTreeProvider(
   private val completion: Cas1CompletionRuleSet,
   private val completionContextUpdater: Cas1CompletionContextUpdater,
   private val eligibility: Cas1EligibilityRuleSet,
-  @Value($$"${service.approved-premises-ui.base-url}") approvedPremisesUiBaseUrl: String,
+  private val deeplinkResolver: Cas1DeeplinkResolver,
 ) : EligibilityTreeProvider {
-
-  val url = approvedPremisesUiBaseUrl
 
   private val tree: DecisionNode by lazy { build() }
 
@@ -43,6 +41,8 @@ class Cas1EligibilityTreeProvider(
     data = data,
     currentResult = serviceResult(),
   )
+
+  override fun resolveDeeplink(result: ServiceResult, data: DomainData): ServiceResult = deeplinkResolver.resolve(result, data)
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
@@ -85,6 +85,6 @@ class Cas1EligibilityTreeProvider(
   private fun serviceResult(): ServiceResult = ServiceResult(
     serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
     link = EligibilityKeys.VIEW_APPLICATION,
-    url = url,
+    linkType = LinkType.CAS1_VIEW_APPLICATION,
   )
 }
