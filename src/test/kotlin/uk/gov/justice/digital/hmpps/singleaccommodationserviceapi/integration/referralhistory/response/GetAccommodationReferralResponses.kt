@@ -4,8 +4,6 @@ import java.util.UUID
 
 fun expectedGetReferralHistory(
   id1: UUID,
-  id2: UUID,
-  id3: UUID,
   id4: UUID,
   referralRejectionReason: String? = null,
   referralRejectionReasonDetail: String? = null,
@@ -34,19 +32,6 @@ fun expectedGetReferralHistory(
         "placementStatus": null
      },
      {
-        "id":"$id3",
-        "type":"CAS2",
-        "status":"ACCEPTED",
-        "date":"2025-04-01T00:00:00Z",
-        "referralRejectionReason": $referralRejectionReason,
-        "referralRejectionReasonDetail": $referralRejectionReasonDetail,
-        "localAuthorityArea": $localAuthorityArea,
-        "pdu": $pdu,
-        "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
-        "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus
-     },
-     {
         "id":"$id1",
         "type":"CAS1",
         "status":"PENDING",
@@ -64,19 +49,6 @@ fun expectedGetReferralHistory(
         "type":"CAS3",
         "status":"PENDING",
         "date":"2025-02-01T00:00:00Z",
-        "referralRejectionReason": $referralRejectionReason,
-        "referralRejectionReasonDetail": $referralRejectionReasonDetail,
-        "localAuthorityArea": $localAuthorityArea,
-        "pdu": $pdu,
-        "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
-        "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus
-     },
-     {
-        "id":"$id2",
-        "type":"CAS2HDC",
-        "status":"PENDING",
-        "date":"2025-01-01T00:00:00Z",
         "referralRejectionReason": $referralRejectionReason,
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,

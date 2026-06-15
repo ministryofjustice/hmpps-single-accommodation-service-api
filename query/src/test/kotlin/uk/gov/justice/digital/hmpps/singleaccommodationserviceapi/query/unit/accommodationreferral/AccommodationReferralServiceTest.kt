@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
@@ -43,17 +42,11 @@ class AccommodationReferralServiceTest {
     @Test
     fun `should get referral history sorted by date descending`() {
       val olderDate = Instant.parse("2024-01-01T10:00:00Z")
-      val middleDate = Instant.parse("2024-03-01T10:00:00Z")
-      val newerDate = Instant.parse("2024-06-01T10:00:00Z")
 
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = listOf(
           buildReferralHistory(Cas1AssessmentStatus.COMPLETED, createdAt = olderDate, referredBy = buildDeliusUserDto()),
         ),
-        cas2HdcReferrals = listOf(
-          buildReferralHistory(Cas2Status.PLACE_OFFERED, createdAt = newerDate, referredBy = buildDeliusUserDto()),
-        ),
-        cas2Referrals = listOf(buildReferralHistory(Cas2Status.AWAITING_DECISION, createdAt = middleDate, referredBy = buildDeliusUserDto())),
         cas3Referrals = emptyList(),
       )
       val dtrSubmissionDate = LocalDate.of(2025, 5, 1)
@@ -64,19 +57,15 @@ class AccommodationReferralServiceTest {
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result.data).hasSize(4)
+      assertThat(result.data).hasSize(2)
       assertThat(result.data[0].date).isEqualTo(dtrSubmissionDate.atStartOfDay().atOffset(ZoneOffset.UTC).toInstant())
-      assertThat(result.data[1].date).isEqualTo(newerDate)
-      assertThat(result.data[2].date).isEqualTo(middleDate)
-      assertThat(result.data[3].date).isEqualTo(olderDate)
+      assertThat(result.data[1].date).isEqualTo(olderDate)
     }
 
     @Test
     fun `should return empty list when no referrals exist`() {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
-        cas2HdcReferrals = emptyList(),
-        cas2Referrals = emptyList(),
         cas3Referrals = emptyList(),
       )
 
@@ -92,8 +81,6 @@ class AccommodationReferralServiceTest {
     fun `should return only DTR when no referrals exist`() {
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = emptyList(),
-        cas2HdcReferrals = emptyList(),
-        cas2Referrals = emptyList(),
         cas3Referrals = emptyList(),
       )
 
@@ -122,7 +109,7 @@ class AccommodationReferralServiceTest {
 
       val result = service.getReferralHistory(crn)
 
-      assertThat(result.data).hasSize(5)
+      assertThat(result.data).hasSize(3)
       assertThat(result.data).containsExactlyInAnyOrderElementsOf(
         AccommodationReferralTransformer.transformReferrals(
           orchestrationDto,

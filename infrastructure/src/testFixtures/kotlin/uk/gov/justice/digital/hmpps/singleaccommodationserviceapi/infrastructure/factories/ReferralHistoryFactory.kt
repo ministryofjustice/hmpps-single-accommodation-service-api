@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
 import java.time.Instant
@@ -20,32 +19,6 @@ fun buildReferralHistory(
   placementAddress: String? = null,
   placementStatus: String? = null,
 ) = Cas1ReferralHistory(
-  id = id,
-  applicationId = applicationId,
-  status = status,
-  createdAt = createdAt,
-  referralRejectionReason = referralRejectionReason,
-  referralRejectionReasonDetail = referralRejectionReasonDetail,
-  localAuthorityArea = localAuthorityArea,
-  pdu = pdu,
-  referredBy = referredBy,
-  placementAddress = placementAddress,
-  placementStatus = placementStatus,
-)
-
-fun buildReferralHistory(
-  status: Cas2ReferralHistory.Cas2Status,
-  id: UUID = UUID.randomUUID(),
-  applicationId: UUID = UUID.randomUUID(),
-  createdAt: Instant = Instant.now(),
-  referralRejectionReason: String? = null,
-  referralRejectionReasonDetail: String? = null,
-  localAuthorityArea: String? = null,
-  pdu: String? = null,
-  referredBy: DeliusUserDto,
-  placementAddress: String? = null,
-  placementStatus: String? = null,
-) = Cas2ReferralHistory(
   id = id,
   applicationId = applicationId,
   status = status,
