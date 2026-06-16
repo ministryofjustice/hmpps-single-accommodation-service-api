@@ -524,6 +524,13 @@ fun expectedGetCaseListResponse(): String = """
    ],
    "upstreamFailures":[
       {
+        "endpoint": "getCorePersonRecordByCrn",
+        "failureType": "UPSTREAM_HTTP_ERROR",
+        "httpResponseStatus": "404 NOT_FOUND",
+        "message": "404 Not Found: [no body]",
+        "identifier": { "type": "CRN", "value": "FAKECRN16" }
+      },
+      {
          "endpoint":"getCorePersonRecordByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",

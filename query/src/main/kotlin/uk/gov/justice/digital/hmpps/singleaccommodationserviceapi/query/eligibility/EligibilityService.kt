@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
@@ -63,11 +64,12 @@ class EligibilityService(
     val prisonNumber = caseEntity?.latestPrisonNumber()
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn, prisonNumber)
-    val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
 
-    if (upstreamFailures.isNotEmpty()) {
-      log.error("Eligibility upstream failures for CRN {}: {}", crn, upstreamFailures)
-      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = upstreamFailures)
+    val failuresRelevantToRulesEngine = eligibilityOrchestrationDto.upstreamFailures
+      .filter { it.errorDetail.httpStatus != HttpStatus.NOT_FOUND }
+    if (failuresRelevantToRulesEngine.isNotEmpty()) {
+      log.error("Eligibility upstream failures for CRN {}: {}", crn, failuresRelevantToRulesEngine)
+      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = failuresRelevantToRulesEngine)
     }
 
     val data = buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
