@@ -6,6 +6,4 @@ class UpstreamFailureException(
   val failure: UpstreamFailureDto,
 ) : RuntimeException(failure.toFailMessage())
 
-private fun UpstreamFailureDto.toFailMessage() = """failureType: ${
-  this.let { "[${it.failureType}] - [${it.endpoint}] - [${it.message}]" }
-}"""
+private fun UpstreamFailureDto.toFailMessage() = "failureType: [$failureType] - [$endpoint] - [$message]"
