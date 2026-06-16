@@ -162,7 +162,7 @@ class CaseMapperTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["A1", "A3S"])
-  fun `toAggregate maps tier enum values correctly`(
+  fun `toAggregate maps tier score values correctly`(
     tierScore: String,
   ) {
     val caseEntity = buildCaseEntity(tierScore = tierScore)
