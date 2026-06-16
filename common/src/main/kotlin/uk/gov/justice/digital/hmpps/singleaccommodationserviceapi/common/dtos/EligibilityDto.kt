@@ -77,6 +77,8 @@ enum class ServiceStatus {
 enum class LinkType {
   CAS1_START_APPLICATION,
   CAS1_VIEW_APPLICATION,
+  CAS3_START_REFERRAL,
+  CAS3_VIEW_REFERRAL,
 }
 
 enum class FailureReason {

@@ -51,8 +51,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
@@ -158,8 +158,8 @@ class EligibilityServiceTest {
 
   // CAS3
   var cas3UiUrl = "CAS3_UI_URL"
-  var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater(cas3UiUrl)
-  var cas3CompletionContextUpdater = Cas3CompletionContextUpdater(cas3UiUrl)
+  var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
+  var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
   val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater(clock)
   var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(ReleaseWithinFourWeeksRule(clock))
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
@@ -227,7 +227,6 @@ class EligibilityServiceTest {
     completion = cas1CompletionRuleSet,
     completionContextUpdater = cas1CompletionContextUpdater,
     eligibility = cas1EligibilityRuleSet,
-    deeplinkResolver = Cas1DeeplinkResolver(cas1UiUrl),
   )
 
   private val cas3Tree = Cas3EligibilityTreeProvider(
@@ -240,7 +239,6 @@ class EligibilityServiceTest {
     completionContextUpdater = cas3CompletionContextUpdater,
     eligibility = cas3EligibilityRuleSet,
     prerequisite = cas3PrerequisiteRuleSet,
-    temporaryAccommodationUiBaseUrl = cas3UiUrl,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(
@@ -275,6 +273,7 @@ class EligibilityServiceTest {
     caseRepository = caseRepository,
     dutyToReferQueryService = dutyToReferQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
+    deeplinkResolver = DeeplinkResolver(cas1UiUrl, cas3UiUrl),
     cas1Tree = cas1Tree,
     cas3Tree = cas3Tree,
     dtrTree = dtrTree,
@@ -594,6 +593,7 @@ class EligibilityServiceTest {
             expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatus.valueOf(it) },
             expectedCas3Action = row["expectedCas3Action"],
             expectedCas3Link = row["expectedCas3Link"],
+            expectedCas3Url = row["expectedCas3Url"]?.takeIf { it.isNotBlank() },
             crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
             isCrsStatusTerminated = row["isCrsStatusTerminated"]!!,
             expectedFailureReasons = row["expectedFailureReasons"]
@@ -694,11 +694,11 @@ class EligibilityServiceTest {
 
         assertThat(result.action).isEqualTo(s.expectedCas3Action)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
-        if (s.expectedCas3Link == null) {
-          assertThat(result.url).isNull()
-        } else {
-          assertThat(result.url).isEqualTo(cas3UiUrl)
+
+        val expectedUrl = s.expectedCas3Url?.let {
+          cas3UiUrl + it.replace("{referralId}", cas3Application?.id.toString())
         }
+        assertThat(result.url).isEqualTo(expectedUrl)
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
           .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
@@ -1060,6 +1060,7 @@ data class Cas3Scenario(
   val expectedCas3Status: ServiceStatus?,
   val expectedCas3Action: String?,
   val expectedCas3Link: String?,
+  val expectedCas3Url: String?,
   val expectedFailureReasons: List<FailureReason>,
 )
 

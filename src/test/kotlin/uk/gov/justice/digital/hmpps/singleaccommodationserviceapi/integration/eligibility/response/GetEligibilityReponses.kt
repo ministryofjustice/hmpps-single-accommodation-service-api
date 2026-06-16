@@ -43,8 +43,8 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url",
-            "linkType":null,
+            "url":"$cas3Url/referrals/$cas3ApplicationId",
+            "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "cas3Application":{
@@ -231,8 +231,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url",
-            "linkType":null,
+            "url":"$cas3Url/referrals/$cas3ApplicationId",
+            "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "cas3Application":{
@@ -345,8 +345,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url",
-            "linkType":null,
+            "url":"$cas3Url/referrals/$cas3ApplicationId",
+            "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "cas3Application":{

@@ -30,7 +30,6 @@ class Cas1EligibilityTreeProvider(
   private val completion: Cas1CompletionRuleSet,
   private val completionContextUpdater: Cas1CompletionContextUpdater,
   private val eligibility: Cas1EligibilityRuleSet,
-  private val deeplinkResolver: Cas1DeeplinkResolver,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -41,8 +40,6 @@ class Cas1EligibilityTreeProvider(
     data = data,
     currentResult = serviceResult(),
   )
-
-  override fun resolveDeeplink(result: ServiceResult, data: DomainData): ServiceResult = deeplinkResolver.resolve(result, data)
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
