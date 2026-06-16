@@ -99,7 +99,7 @@ class EligibilityService(
       crs = crs,
       pa = pa,
       data = data,
-    ).also { log.debug("Finished calculating eligibility for CRN: ${data.crn}") }
+    ).also { log.info("Eligibility result for CRN {}: {}", data.crn, it) }
   }
 
   internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult {
