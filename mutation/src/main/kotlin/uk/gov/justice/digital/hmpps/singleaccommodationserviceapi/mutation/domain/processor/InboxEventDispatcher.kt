@@ -116,18 +116,12 @@ class InboxEventDispatcher(
    */
   private fun partitionByKey(
     inboxEvents: List<InboxEventEntity>,
-  ): PartitionByKey {
-    val (withHandler, withoutHandler) =
-      inboxEvents.partition { event ->
-        IncomingHmppsDomainEventType.from(event.eventType)?.let { eventTypeToHandlers[it] } != null
-      }
-    val partitions =
-      withHandler.groupBy { event ->
-        val handler =
-          IncomingHmppsDomainEventType.from(event.eventType)!!.let { eventTypeToHandlers[it] }!!
-        handler.getPartitionKey(event) ?: event.id.toString()
-      }
-    return PartitionByKey(partitions, withoutHandler)
+  ): PartitioningResult {
+    val (withHandler, withoutHandler) = inboxEvents.partition { it.resolveHandler() != null }
+    val partitions = withHandler.groupBy { event ->
+      event.resolveHandler()!!.getPartitionKey(event) ?: event.id.toString()
+    }
+    return PartitioningResult(partitions, withoutHandler)
   }
 
   private fun dispatchEvent(
@@ -138,7 +132,7 @@ class InboxEventDispatcher(
     skippedCount: AtomicInteger,
   ) {
     val handler =
-      IncomingHmppsDomainEventType.from(inboxEvent.eventType)?.let { eventTypeToHandlers[it] }
+      inboxEvent.resolveHandler()
         ?: run {
           log.debug("Registered handlers support: {}", eventTypeToHandlers.keys.map { it.typeName })
           skippedCount.incrementAndGet()
@@ -160,8 +154,12 @@ class InboxEventDispatcher(
     }
   }
 
-  data class PartitionByKey(
+  data class PartitioningResult(
     val partitions: Map<String, List<InboxEventEntity>>,
-    val noHandlers: List<InboxEventEntity>,
+    val withoutHandlers: List<InboxEventEntity>,
   )
+
+  private fun InboxEventEntity.resolveEventType() = IncomingHmppsDomainEventType.forEventType(eventType)
+
+  private fun InboxEventEntity.resolveHandler() = resolveEventType()?.let { eventTypeToHandlers[it] }
 }
