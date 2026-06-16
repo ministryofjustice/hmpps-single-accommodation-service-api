@@ -112,6 +112,7 @@ class ProposedAccommodationAggregate private constructor(
           newAddress,
           newStartDate,
           newEndDate,
+          newAccommodationType,
         )
     val shouldPublishDeleteEvent =
       existingIsKnownToCpr &&
@@ -218,7 +219,8 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
-  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate
+    newAccommodationType: AccommodationTypeDto,
+  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate || accommodationType?.code != newAccommodationType.code
 
   private fun shouldDeleteFromCpr(
     previousNextAccommodationStatus: NextAccommodationStatus?,

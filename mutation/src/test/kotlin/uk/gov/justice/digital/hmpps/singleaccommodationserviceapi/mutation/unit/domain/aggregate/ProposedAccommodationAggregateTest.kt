@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -311,6 +312,48 @@ class ProposedAccommodationAggregateTest {
         uprn = accommodationDetails.address.uprn,
       ),
       newStartDate = newStartDate,
+      newEndDate = accommodationDetails.endDate,
+      newTypeVerified = null,
+      newNoFixedAbode = false,
+      newAccommodationSource = AccommodationSource.SAS,
+    )
+
+    val domainEventsToPublish = aggregate.pullDomainEvents()
+    assertThat(domainEventsToPublish).hasSize(1)
+    assertThat(domainEventsToPublish.first()).isInstanceOf(AccommodationUpdatedDomainEvent::class.java)
+    assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregate.snapshot().id)
+  }
+
+  @Test
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and accommodationType changes`() {
+    val aggregate = hydrateAggregate(
+      cprAddressId = UUID.randomUUID(),
+      accommodationType = buildAccommodationTypeDto(
+        code = "A02",
+      ),
+    )
+    val newAccommodationType = buildAccommodationTypeDto(
+      code = "A07B",
+    )
+
+    aggregate.updateProposedAccommodation(
+      newName = accommodationDetails.name,
+      newAccommodationType = newAccommodationType,
+      newVerificationStatus = VerificationStatus.PASSED,
+      newNextAccommodationStatus = NextAccommodationStatus.YES,
+      newAddress = AccommodationAddressDetails(
+        postcode = accommodationDetails.address.postcode,
+        subBuildingName = accommodationDetails.address.subBuildingName,
+        buildingName = accommodationDetails.address.buildingName,
+        buildingNumber = accommodationDetails.address.buildingNumber,
+        thoroughfareName = accommodationDetails.address.thoroughfareName,
+        dependentLocality = accommodationDetails.address.dependentLocality,
+        postTown = accommodationDetails.address.postTown,
+        county = accommodationDetails.address.county,
+        country = accommodationDetails.address.country,
+        uprn = accommodationDetails.address.uprn,
+      ),
+      newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
@@ -749,6 +792,7 @@ class ProposedAccommodationAggregateTest {
     cprAddressId: UUID? = null,
     accommodationSource: AccommodationSource = AccommodationSource.SAS,
     noFixedAbode: Boolean? = false,
+    accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(),
   ) = ProposedAccommodationAggregate.hydrateExisting(
     id = UUID.randomUUID(),
     caseId = UUID.randomUUID(),
@@ -756,7 +800,7 @@ class ProposedAccommodationAggregateTest {
     currentAccommodation = currentAccommodation,
     cprAddressId = cprAddressId,
     name = accommodationDetails.name,
-    accommodationType = accommodationDetails.accommodationType,
+    accommodationType = accommodationType,
     accommodationStatus = accommodationStatus,
     verificationStatus = accommodationDetails.verificationStatus!!,
     nextAccommodationStatus = accommodationDetails.nextAccommodationStatus!!,
