@@ -67,16 +67,16 @@ class InboxEventDispatcher(
       Sort.by("eventOccurredAt").ascending(),
     )
 
+    val progressTracker = ProgressTracker()
+
     val inboxEvents = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
     if (inboxEvents.isEmpty()) {
-      return@runBlocking
+      return@runBlocking progressTracker.toStats()
     }
 
     val concurrencyLimit = Semaphore(dispatcherConfig.maxConcurrentEvents)
 
     log.info("Processing inbox batch [count={}, eventIds={}]", inboxEvents.size, inboxEvents.map { it.id })
-
-    val progressTracker = ProgressTracker()
 
     val (partitions, eventsWithoutHandlers) = partitionByKey(inboxEvents)
     eventsWithoutHandlers.forEach {
@@ -103,6 +103,8 @@ class InboxEventDispatcher(
       progressTracker.failedCount.get(),
       progressTracker.skippedCount.get(),
     )
+
+    progressTracker.toStats()
   }
 
   /**
@@ -123,13 +125,7 @@ class InboxEventDispatcher(
     inboxEvent: InboxEventEntity,
     progressTracker: ProgressTracker,
   ) {
-    val handler =
-      inboxEvent.resolveHandler()
-        ?: run {
-          log.debug("Registered handlers support: {}", eventTypeToHandlers.keys.map { it.typeName })
-          progressTracker.eventSkipped()
-          return
-        }
+    val handler = inboxEvent.resolveHandler()!!
 
     try {
       handler.handle(inboxEvent)
@@ -155,8 +151,16 @@ class InboxEventDispatcher(
     fun eventSkipped() = skippedCount.incrementAndGet()
     fun eventFailed() = failedCount.incrementAndGet()
     fun eventProcessed() = processedCount.incrementAndGet()
-    fun eventNotProcessed() = processedCount.incrementAndGet()
+    fun eventNotProcessed() = notProcessedCount.incrementAndGet()
+    fun toStats() = EventDispatcherStats(processedCount.get(), notProcessedCount.get(), failedCount.get(), skippedCount.get())
   }
+
+  data class EventDispatcherStats(
+    val processedCount: Int,
+    val notProcessedCount: Int,
+    val failedCount: Int,
+    val skippedCount: Int,
+  )
 
   private data class PartitioningResult(
     val partitions: Map<String, List<InboxEventEntity>>,
