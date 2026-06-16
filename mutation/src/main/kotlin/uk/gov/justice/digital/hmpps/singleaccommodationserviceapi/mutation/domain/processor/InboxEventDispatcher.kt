@@ -51,7 +51,7 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val handlerMap: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
+  private val eventTypeToHandlers: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
@@ -117,17 +117,17 @@ class InboxEventDispatcher(
   private fun partitionByKey(
     inboxEvents: List<InboxEventEntity>,
   ): PartitionByKey {
-    val (withHandler, noHandler) =
+    val (withHandler, withoutHandler) =
       inboxEvents.partition { event ->
-        IncomingHmppsDomainEventType.from(event.eventType)?.let { handlerMap[it] } != null
+        IncomingHmppsDomainEventType.from(event.eventType)?.let { eventTypeToHandlers[it] } != null
       }
     val partitions =
       withHandler.groupBy { event ->
         val handler =
-          IncomingHmppsDomainEventType.from(event.eventType)!!.let { handlerMap[it] }!!
+          IncomingHmppsDomainEventType.from(event.eventType)!!.let { eventTypeToHandlers[it] }!!
         handler.getPartitionKey(event) ?: event.id.toString()
       }
-    return PartitionByKey(partitions, noHandler)
+    return PartitionByKey(partitions, withoutHandler)
   }
 
   private fun dispatchEvent(
@@ -138,9 +138,9 @@ class InboxEventDispatcher(
     skippedCount: AtomicInteger,
   ) {
     val handler =
-      IncomingHmppsDomainEventType.from(inboxEvent.eventType)?.let { handlerMap[it] }
+      IncomingHmppsDomainEventType.from(inboxEvent.eventType)?.let { eventTypeToHandlers[it] }
         ?: run {
-          log.debug("Registered handlers support: {}", handlerMap.keys.map { it.typeName })
+          log.debug("Registered handlers support: {}", eventTypeToHandlers.keys.map { it.typeName })
           skippedCount.incrementAndGet()
           return
         }
