@@ -81,8 +81,8 @@ class InboxEventDispatcher(
     val failedCount = AtomicInteger(0)
     val skippedCount = AtomicInteger(0)
 
-    val (partitions, noHandlerEvents) = partitionByKey(inboxEvents)
-    noHandlerEvents.forEach {
+    val (partitions, eventsWithoutHandlers) = partitionByKey(inboxEvents)
+    eventsWithoutHandlers.forEach {
       log.error("No handler registered for event type [inboxEventId={}, eventType={}]", it.id, it.eventType)
       skippedCount.incrementAndGet()
     }
@@ -109,16 +109,14 @@ class InboxEventDispatcher(
   }
 
   /**
-   * Groups events by partition key. Events with the same key are processed sequentially. Order
-   * within each partition preserves eventOccurredAt.
-   *
-   * Returns partitions and events with no registered handler.
+   * Groups events by partition key. The given event order is retained with-in the partition
+   * (i.e. by eventOccurredAt asc)
    */
   private fun partitionByKey(
     inboxEvents: List<InboxEventEntity>,
   ): PartitioningResult {
     val (withHandler, withoutHandler) = inboxEvents.partition { it.resolveHandler() != null }
-    val partitions = withHandler.groupBy { event ->
+    val partitions: Map<String, List<InboxEventEntity>> = withHandler.groupBy { event ->
       event.resolveHandler()!!.getPartitionKey(event) ?: event.id.toString()
     }
     return PartitioningResult(partitions, withoutHandler)
