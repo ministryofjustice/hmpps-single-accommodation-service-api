@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
@@ -29,7 +30,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER
-import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -298,14 +298,10 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
           identifiers = listOf(PersonIdentifier("CRN", crn)),
         ),
       )
-    return InboxEventEntity(
-      id = UUID.randomUUID(),
+    return buildPendingInboxEventEntity(
       eventType = "tier.calculation.complete",
       eventDetailUrl = detailUrl,
       eventOccurredAt = eventOccurredAt,
-      createdAt = Instant.now(),
-      processedStatus = ProcessedStatus.PENDING,
-      processedAt = null,
       payload = jsonMapper.writeValueAsString(payload),
     )
   }
