@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -103,8 +102,8 @@ class ProposedAccommodationQueryServiceTest {
       val result = service.getProposedAccommodations(crn)
 
       assertThat(result).hasSize(2)
-      assertThat(result.first()).isEqualTo(toAccommodationDetail(proposedAccommodationEntity1, accommodationTypeEntity, crn, createdByUser.name))
-      assertThat(result[1]).isEqualTo(toAccommodationDetail(proposedAccommodationEntity2, accommodationTypeEntity, crn, createdByUser.name))
+      assertThat(result.first()).isEqualTo(toAccommodationDetail(proposedAccommodationEntity1, accommodationTypeEntity, crn, createdByUser.displayName()))
+      assertThat(result[1]).isEqualTo(toAccommodationDetail(proposedAccommodationEntity2, accommodationTypeEntity, crn, createdByUser.displayName()))
     }
   }
 
@@ -141,45 +140,6 @@ class ProposedAccommodationQueryServiceTest {
       assertThatThrownBy { service.getProposedAccommodation(crn, id) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessage("ProposedAccommodationEntity not found for [id=$id, crn=$crn]")
-    }
-  }
-
-  @Nested
-  inner class GetProposedAccommodationById {
-
-    private val id = UUID.randomUUID()
-
-    @Test
-    fun `should return accommodation when found by id`() {
-      val createdByUserId = UUID.randomUUID()
-      val accommodationTypeEntity = buildAccommodationTypeEntity()
-      val proposedAccommodationEntity = buildProposedAccommodationEntity(
-        id = id,
-        caseId = caseId,
-        accommodationTypeEntity = accommodationTypeEntity,
-        createdByUserId = createdByUserId,
-      )
-      val userEntity = buildUserEntity()
-      every { proposedAccommodationRepository.findByIdOrNull(id) } returns proposedAccommodationEntity
-      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
-      every { caseRepository.findWithIdentifiersById(caseId) } returns buildCaseEntity()
-      every { accommodationTypeRepository.findByIdOrNull(accommodationTypeEntity.id) } returns accommodationTypeEntity
-
-      val result = service.getProposedAccommodation(id)
-
-      assertThat(result.id).isEqualTo(proposedAccommodationEntity.id)
-      assertThat(result.name).isEqualTo(proposedAccommodationEntity.name)
-      assertThat(result.accommodationType.code).isEqualTo(accommodationTypeEntity.code)
-      assertThat(result.createdAt).isEqualTo(proposedAccommodationEntity.createdAt)
-    }
-
-    @Test
-    fun `should throw NotFoundException when not found`() {
-      every { proposedAccommodationRepository.findByIdOrNull(id) } returns null
-
-      assertThatThrownBy { service.getProposedAccommodation(id) }
-        .isInstanceOf(NotFoundException::class.java)
-        .hasMessage("ProposedAccommodationEntity not found for [id=$id]")
     }
   }
 }

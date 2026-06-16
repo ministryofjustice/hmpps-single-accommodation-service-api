@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -15,22 +18,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -41,13 +43,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import java.util.UUID
 
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Autowired
-  private lateinit var dutyToReferRepository: DutyToReferRepository
+  @Value("\${case-list.page-size:1}")
+  private lateinit var pageSize: String
 
   @Autowired
   private lateinit var caseRepository: CaseRepository
@@ -55,12 +60,13 @@ class CaseControllerIT : IntegrationTestBase() {
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
 
+  lateinit var deliusUser: UserEntity
+
   @BeforeEach
   fun setup() {
-    dutyToReferRepository.deleteAll()
-    caseRepository.deleteAll()
+    databaseUtils.truncate(DUTY_TO_REFER, SAS_CASE)
 
-    createTestDataSetupUserAndDeliusUser()
+    deliusUser = createTestDataSetupUserAndDeliusUser().second
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
@@ -68,95 +74,151 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `matches a case by all identifiers from CorePersonRecord and adds missing ones`() {
+  fun `matches a case by all identifiers from CorePersonRecord and adds the latest ones`() {
     // case 1 identifiers
-    val knownCrnForCase1 = UUID.randomUUID().toString()
-    val unknownCrnForCase1 = UUID.randomUUID().toString()
-    val unknownPrisonNumberForCase1 = UUID.randomUUID().toString()
+    val knownCrnForCase1 = "knownCrnForCase1"
+    val unkownCrnCase1 = "crnToAddForCase1"
+    val unkownPrisonNumberCase1 = "prisonNumberToAddForCase1"
 
     // case 2 identifiers
-    val knownPrisonNumberForCase2 = UUID.randomUUID().toString()
-    val unknownCrnForCase2 = UUID.randomUUID().toString()
+    val knownCrnForCase2 = "knownCrnForCase2"
+    val knownPrisonNumberCase2 = "knownPrisonNumberForCase2"
+    val unknownCrnCase2 = "crnToAddForCase2"
+    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase2"
 
-    val case1 = buildCaseEntity { withCrn(knownCrnForCase1) }
-    val case2 = buildCaseEntity {
-      withCrn(unknownCrnForCase2)
-      withPrisonNumber(knownPrisonNumberForCase2)
+    // cas3 3 identifiers
+    val unknownCaseCrn = "unknownCRN"
+    val unknownCasePrisonNumber = "unknownPrisonNumber"
+
+    val case1 = buildCaseEntity {
+      withCrn(knownCrnForCase1)
     }
-    val cases = listOf(case1, case2)
+    val case2 = buildCaseEntity {
+      withCrn(knownCrnForCase2)
+      withPrisonNumber(knownPrisonNumberCase2)
+    }
 
-    caseRepository.saveAllAndFlush(cases)
+    caseRepository.saveAllAndFlush(listOf(case1, case2))
 
-    // currently crn is not nullable in dtos, so doing this way to avoid refactoring but add coverage
-    caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!
-      .also { entity ->
-        entity.caseIdentifiers.removeIf {
-          it.identifierType == IdentifierType.CRN
-        }
-        caseRepository.saveAndFlush(entity)
-      }
+    val staff = buildOfficer(username = deliusUser.username)
 
-    // case list return should not match any persisted CRNs
-    val caseList = CaseList(
-      listOf(
-        buildCase(crn = unknownCrnForCase1, nomsNumber = null),
-        buildCase(crn = unknownCrnForCase2, nomsNumber = knownPrisonNumberForCase2),
-      ),
+    val cases = listOf(
+      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1, staff = staff),
+      buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2, staff = staff),
+      buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber, staff = staff),
     )
+
+    // the case list returned should not match any persisted CRNs
+    assertThat(
+      caseRepository.findAllByIdentifiers(
+        crns = cases.map { it.crn },
+        prisonNumbers = cases.map { it.nomsNumber!! },
+      ),
+    ).hasSize(0)
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      response = caseList,
+      cases = cases,
+      pageSize = pageSize.toInt(),
     )
 
     // returns the unknown CRN from the caselist, and the persisted CRN for the case
     stubCorePersonRecord(
-      crn = unknownCrnForCase1,
-      prisonNumber = unknownPrisonNumberForCase1,
+      crn = unkownCrnCase1,
+      prisonNumber = unkownPrisonNumberCase1,
       additionalCrns = listOf(knownCrnForCase1),
     )
 
     // returns the CRN from the case list, and the persisted Prison Number for the case
     stubCorePersonRecord(
-      crn = unknownCrnForCase2,
-      prisonNumber = knownPrisonNumberForCase2,
+      crn = unknownCrnCase2,
+      prisonNumber = knownPrisonNumberCase2,
+      additionalCrns = listOf(knownCrnForCase2),
+      additionalPrisonNumbers = listOf(unknownPrisonNumberCase2),
     )
+
+    // returns the data for the unknown case
+    stubCorePersonRecord(
+      crn = unknownCaseCrn,
+      prisonNumber = unknownCasePrisonNumber,
+    )
+
+    assertThat(caseRepository.findAll()).hasSize(2)
 
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
-      .jsonPath("$.data.length()").isEqualTo(2)
+      .jsonPath("$.data.length()").isEqualTo(3)
 
-    assertThat(caseRepository.findByCrn(unknownCrnForCase1)!!.caseIdentifiers)
-      .extracting<String> { it.identifier }
-      .containsExactlyInAnyOrder(
-        knownCrnForCase1,
-        unknownCrnForCase1,
-        unknownPrisonNumberForCase1,
-      )
+    assertThat(caseRepository.findAll()).hasSize(3)
 
-    assertThat(caseRepository.findByPrisonNumber(knownPrisonNumberForCase2)!!.caseIdentifiers)
+    assertCaseIdentifiers(
+      crn = unkownCrnCase1,
+      expectedIdentifiers = listOf(knownCrnForCase1, unkownCrnCase1, unkownPrisonNumberCase1),
+    )
+
+    assertCaseIdentifiers(
+      crn = unknownCrnCase2,
+      expectedIdentifiers = listOf(
+        knownCrnForCase2,
+        knownPrisonNumberCase2,
+        unknownCrnCase2,
+        unknownPrisonNumberCase2,
+      ),
+    )
+
+    assertCaseIdentifiers(
+      crn = unknownCaseCrn,
+      expectedIdentifiers = listOf(unknownCaseCrn, unknownCasePrisonNumber),
+    )
+  }
+
+  private fun assertCaseIdentifiers(
+    crn: String,
+    expectedIdentifiers: List<String?>,
+  ) {
+    val case = caseRepository.findByCrn(crn)!!
+
+    assertThat(case.latestCrn()).isEqualTo(crn)
+
+    assertThat(case.caseIdentifiers)
       .extracting<String> { it.identifier }
-      .containsExactlyInAnyOrder(
-        knownPrisonNumberForCase2,
-        unknownCrnForCase2,
-      )
+      .hasSize(expectedIdentifiers.size)
+      .containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
   @Test
-  fun `should get successful response from case-list`() {
+  fun `should update existing, create new and return expected case list`() {
+    // there are 20 crns created and stubbed for the case list.
     stubCaseList()
+    // there are 10 added to the SAS database
     seedCaseEntities()
+    // and 10 we will need to call CPR for. 2 of these are errors.
     stubAdditionalCorePersonRecords()
 
-    restTestClient.get().uri { it.path("/case-list").build() }
+    assertThat(caseRepository.findAll().size).isEqualTo(10)
+
+    val result = restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+
+    result.expectBody().jsonPath("$.data.length()").isEqualTo(20)
+
+    // TODO this returns 18 (instead of 20) because we currently do not persist case-list results from delius that fail CPR calls,
+    // but still return them in the case list...
+    assertThat(caseRepository.findAll().size).isEqualTo(18)
+
+    result.expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
+
+    // verify we call case-list endpoint 20 times (once per CRN)
+    sasWiremock.verify(
+      20,
+      getRequestedFor(WireMock.urlPathMatching("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")),
+    )
   }
 
   @Test
@@ -282,38 +344,39 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   private fun stubCaseList() {
-    val caseList = CaseList(
-      crns.mapIndexed { i, crn ->
-        buildCase(
-          crn = crn,
-          nomsNumber = nomsNumbers[i],
-          gender = when (i) {
-            3, 6 -> "Female"
-            4, 7 -> "Non-Specified"
-            5, 8 -> "Not Known / Not Recorded"
-            else -> "Male"
-          },
-          name = if (i == 1) buildName("Zack", "Smith") else buildName(),
-          roshLevel = if (i == 1) {
-            buildRoshLevel("RMRH", "Medium")
-          } else {
-            buildRoshLevel()
-          },
-          userRestricted = when (i) {
-            crns.size - 1 -> true
-            else -> false
-          },
-          userExcluded = when (i) {
-            crns.size - 2 -> true
-            else -> false
-          },
-        )
-      },
-    )
+    val staff = buildOfficer(username = deliusUser.username)
+    val cases = crns.mapIndexed { i, crn ->
+      buildCase(
+        staff = staff,
+        crn = crn,
+        nomsNumber = nomsNumbers[i],
+        gender = when (i) {
+          3, 6 -> "Female"
+          4, 7 -> "Non-Specified"
+          5, 8 -> "Not Known / Not Recorded"
+          else -> "Male"
+        },
+        name = if (i == 1) buildName("Zack", "Smith") else buildName(),
+        roshLevel = if (i == 1) {
+          buildRoshLevel("RMRH", "Medium")
+        } else {
+          buildRoshLevel()
+        },
+        userRestricted = when (i) {
+          crns.size - 1 -> true
+          else -> false
+        },
+        userExcluded = when (i) {
+          crns.size - 2 -> true
+          else -> false
+        },
+      )
+    }
 
     SasAndDeliusStubs.stubGetCaseListByUsername(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-      response = caseList,
+      cases = cases,
+      pageSize = pageSize.toInt(),
     )
   }
 

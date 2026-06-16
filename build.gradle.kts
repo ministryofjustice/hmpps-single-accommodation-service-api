@@ -13,6 +13,7 @@ detekt {
 
 dependencies {
   implementation(project(":common"))
+  implementation(project(":infrastructure"))
   implementation(project(":query"))
   implementation(project(":mutation"))
 
@@ -23,6 +24,11 @@ dependencies {
 
   implementation(libs.springdoc)
   implementation(libs.javers)
+
+  // Due to use of a spring bom in hmpps-starter we have to force some versions to override them locally
+  implementation(enforcedPlatform(libs.postgres))
+  implementation(enforcedPlatform(libs.app.insights.core))
+  implementation(enforcedPlatform(libs.micrometer.registry.azure))
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
@@ -66,8 +72,18 @@ tasks.register<Copy>("copyGitHooks") {
   }
 }
 
+tasks.register<Exec>("validateFlywayFilenames") {
+  description = "Validate Flyway migration filenames"
+  group = "verification"
+  commandLine("sh", "$rootDir/scripts/validate_flyway_filenames.sh")
+}
+
 tasks.compileKotlin {
   dependsOn("copyGitHooks")
+}
+
+tasks.named("check") {
+  dependsOn("validateFlywayFilenames")
 }
 
 allprojects {

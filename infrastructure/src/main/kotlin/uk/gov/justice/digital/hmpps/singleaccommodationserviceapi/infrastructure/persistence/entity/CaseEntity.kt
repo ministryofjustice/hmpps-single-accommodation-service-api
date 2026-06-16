@@ -40,10 +40,8 @@ class CaseEntity(
   var cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
 
 ) {
-
-  // TODO we need a better and more reliable way to work out the latest CRN.
-  //  This won't work reliably, and will vary depending on the order that known CRNs are received from CPR.
-
   fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }
     .identifier
+  fun latestPrisonNumber() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.PRISON_NUMBER }.maxByOrNull { it.createdAt }
+    ?.identifier
 }

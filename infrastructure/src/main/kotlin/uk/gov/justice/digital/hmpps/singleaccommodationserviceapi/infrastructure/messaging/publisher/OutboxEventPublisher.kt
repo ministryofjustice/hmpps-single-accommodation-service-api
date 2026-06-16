@@ -37,11 +37,11 @@ class OutboxEventPublisher(
     hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
   }
 
-  @Scheduled(fixedDelay = 5000)
+  @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
     name = "OutboxEventPublisher",
-    lockAtMostFor = "PT2M",
-    lockAtLeastFor = "PT1S",
+    lockAtMostFor = $$"${shedlock.outbox-event-publisher.lock-at-most-for}",
+    lockAtLeastFor = $$"${shedlock.outbox-event-publisher.lock-at-least-for}",
   )
   @Transactional
   fun publish() {
@@ -64,9 +64,14 @@ class OutboxEventPublisher(
     eventType: SingleAccommodationServiceDomainEventType,
   ): PublishResponse {
     val detailUrl = hmppsDomainEventUrlConfig.getUrlForDomainEventId(eventType, outboxEventEntity.aggregateId)
+    val externalId = if (eventType == SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED) {
+      outboxEventEntity.aggregateId
+    } else {
+      null
+    }
     val snsEvent = HmppsDomainEvent(
       eventType = eventType.typeName,
-      externalId = outboxEventEntity.aggregateId,
+      externalId = externalId,
       detailUrl = detailUrl,
       version = 1,
       description = eventType.typeDescription,

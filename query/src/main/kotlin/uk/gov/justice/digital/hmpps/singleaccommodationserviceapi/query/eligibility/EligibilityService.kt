@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
@@ -58,35 +57,32 @@ class EligibilityService(
   fun getEligibility(crn: String): ApiResponseDto<EligibilityDto> {
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
 
-    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn)
-    val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
-    val blockingFailures = upstreamFailures.filterNot { it.errorDetail.httpStatus == HttpStatus.NOT_FOUND }
+    val caseEntity = caseRepository.findByCrn(crn)
+    val prisonNumber = caseEntity?.latestPrisonNumber()
 
-    if (blockingFailures.isNotEmpty()) {
-      log.error("Eligibility upstream failures for CRN {}: {}", crn, blockingFailures)
+    val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn, prisonNumber)
+    val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
+
+    if (upstreamFailures.isNotEmpty()) {
+      log.error("Eligibility upstream failures for CRN {}: {}", crn, upstreamFailures)
       return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = upstreamFailures)
     }
-    if (upstreamFailures.isNotEmpty()) {
-      log.warn("Eligibility upstream 404s for CRN {}: {}", crn, upstreamFailures)
-    }
 
-    val data = buildDomainData(crn, eligibilityOrchestrationDto.data)
+    val data = buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
     val eligibility = getEligibility(data)
-    return toApiResponseDto(data = eligibility, upstreamFailures = upstreamFailures)
+    return toApiResponseDto(data = eligibility, upstreamFailures = emptyList())
   }
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationStartDate={}, nextAccommodationStatus={}, nextAccommodationType={}",
+      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationsSize={}",
       data.crn,
       data.tierScore,
       data.sex,
       data.currentAccommodation?.endDate,
       data.currentAccommodation?.status?.description,
       data.currentAccommodation?.type?.description,
-      data.nextAccommodation?.startDate,
-      data.nextAccommodation?.status?.description,
-      data.nextAccommodation?.type?.description,
+      data.nextAccommodations.size,
     )
 
     val cas1 = evaluate("CAS1", data, cas1Tree)
@@ -103,15 +99,18 @@ class EligibilityService(
       crs = crs,
       pa = pa,
       data = data,
-    ).also { log.info("Finished calculating eligibility for CRN: ${data.crn}") }
+    ).also { log.debug("Finished calculating eligibility for CRN: ${data.crn}") }
   }
 
-  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult = provider.tree().eval(provider.initialContext(data))
+  internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult {
+    val result = provider.tree().eval(provider.initialContext(data))
+    return provider.resolveDeeplink(result, data)
+  }
 
   private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {
     log.debug("Calculating {} eligibility for CRN: {}}", line, data.crn)
     return evaluate(provider, data).also {
-      log.info(
+      log.debug(
         "$line Service Result for CRN ${data.crn}: serviceStatus={}, action={}, link={}",
         it.serviceStatus,
         it.action,
@@ -120,25 +119,26 @@ class EligibilityService(
     }
   }
 
-  fun buildDomainData(crn: String, eligibilityOrchestrationDto: EligibilityOrchestrationDto): DomainData {
+  fun buildDomainData(crn: String, eligibilityOrchestrationDto: EligibilityOrchestrationDto, caseEntity: CaseEntity?): DomainData {
     val accommodationTypes = accommodationTypeRepository.findAll()
-    val caseEntity = caseRepository.findByCrn(crn)
 
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
-    val currentAccommodation = eligibilityOrchestrationDto.cpr?.addresses?.let {
-      accommodationQueryService.getCurrentAccommodation(
-        crn,
-        addresses = it,
-      )
-    }
+    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(
+      crn = crn,
+      addresses = eligibilityOrchestrationDto.cpr?.addresses,
+      prisoner = eligibilityOrchestrationDto.prisoner,
+      cas1CurrentPremises = eligibilityOrchestrationDto.cas1CurrentPremises,
+      cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
+    )
 
-    val nextAccommodation = eligibilityOrchestrationDto.cpr?.addresses?.let {
-      accommodationQueryService.getNextAccommodation(
-        crn,
-        addresses = it,
-      )
-    }
+    val nextAccommodations = accommodationQueryService.getNextAccommodations(
+      crn,
+      addresses = eligibilityOrchestrationDto.cpr?.addresses,
+      cas1Application = eligibilityOrchestrationDto.cas1Application,
+      cas3Application = eligibilityOrchestrationDto.cas3Application,
+      currentAccommodation = currentAccommodation,
+    )
 
     val suitableCrsReferral = eligibilityOrchestrationDto.commissionedRehabilitativeServices
       ?.filter { it.status == CrsReferralStatus.LIVE || it.status == CrsReferralStatus.COMPLETED }
@@ -152,7 +152,7 @@ class EligibilityService(
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
-      nextAccommodation = nextAccommodation,
+      nextAccommodations = nextAccommodations,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       accommodationTypes = accommodationTypes,

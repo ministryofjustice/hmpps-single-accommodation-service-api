@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class AddressUsage(
   val usageCode: AddressUsageCode,
+  @get:JsonProperty("isActive")
   val isActive: Boolean,
 )
 

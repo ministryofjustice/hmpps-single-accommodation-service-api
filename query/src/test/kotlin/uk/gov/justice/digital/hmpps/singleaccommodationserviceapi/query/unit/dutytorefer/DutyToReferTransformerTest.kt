@@ -16,22 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class DutyToReferTransformerTest {
 
   @Nested
-  inner class ToNotStartedDto {
-
-    @Test
-    fun `should return NOT_STARTED status with null submission`() {
-      val caseId = UUID.randomUUID()
-      val crn = UUID.randomUUID().toString()
-      val dto = DutyToReferTransformer.toNotStartedDto(caseId = caseId, crn = crn)
-
-      assertThat(dto.crn).isEqualTo(crn)
-      assertThat(dto.caseId).isEqualTo(caseId)
-      assertThat(dto.status).isEqualTo(DtrStatus.NOT_STARTED)
-      assertThat(dto.submission).isNull()
-    }
-  }
-
-  @Nested
   inner class ToDutyToReferDto {
     private val createdByName = "Joe Bloggs"
 
@@ -90,6 +74,23 @@ class DutyToReferTransformerTest {
 
       assertThat(result.localAuthority.localAuthorityAreaName).isNull()
       assertThat(result.referenceNumber).isNull()
+      assertThat(result.withdrawalReason).isNull()
+      assertThat(result.withdrawalReasonOther).isNull()
+      assertThat(result.submissionNote).isNull()
+      assertThat(result.outcomeNote).isNull()
+    }
+
+    @Test
+    fun `should map submissionNote and outcomeNote correctly`() {
+      val entity = buildDutyToReferEntity(
+        submissionNote = "A submission note",
+        outcomeNote = "An outcome note",
+      )
+
+      val result = DutyToReferTransformer.toSubmission(entity, createdByName, "Test LA")
+
+      assertThat(result.submissionNote).isEqualTo("A submission note")
+      assertThat(result.outcomeNote).isEqualTo("An outcome note")
     }
   }
 

@@ -6,17 +6,17 @@ testCaseId,description,referenceDate,sex,hasNextAccommodation,currentAccommodati
 5,submitted COMPLETED,01/01/2025,,FALSE,01/01/2025,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
 6,withdrawn,01/01/2025,,FALSE,01/01/2025,09/10/2024,WITHDRAWN,NOT_STARTED,Submit a CRS referral,View refer and monitor,
 7,no CRS,01/01/2025,,FALSE,01/01/2025,,,NOT_STARTED,Submit a CRS referral,View refer and monitor,
-8,no end date not submitted,01/01/2025,,FALSE,,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
-9,no end date submitted but expired,01/01/2025,,FALSE,,08/10/2024,LIVE,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+8,no end date not submitted,01/01/2025,,FALSE,,09/10/2024,DRAFT,NOT_STARTED,Submit a CRS referral,View refer and monitor,,
+9,no end date submitted but expired,01/01/2025,,FALSE,,08/10/2024,LIVE,NOT_STARTED,Submit a CRS referral,View refer and monitor,,
 10,no end date submitted LIVE,01/01/2025,,FALSE,,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
 11,no end date submitted COMPLETED,01/01/2025,,FALSE,,09/10/2024,COMPLETED,SUBMITTED,,View refer and monitor,
-12,no end date withdrawn,01/01/2025,,FALSE,,09/10/2024,WITHDRAWN,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
-13,no end date no CRS,01/01/2025,,FALSE,,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE"
+12,no end date withdrawn,01/01/2025,,FALSE,,09/10/2024,WITHDRAWN,NOT_STARTED,Submit a CRS referral,View refer and monitor,,
+13,no end date no CRS,01/01/2025,,FALSE,,,,NOT_STARTED,Submit a CRS referral,View refer and monitor,,
 14,has next accommodation submitted LIVE,01/01/2025,,TRUE,01/01/2025,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
 15,has next accommodation not submitted,01/01/2025,,TRUE,01/01/2025,09/10/2024,DRAFT,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
 16,has next accommodation no CRS,01/01/2025,,TRUE,01/01/2025,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
 17,has next accommodation no end date submitted LIVE,01/01/2025,,TRUE,,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-18,has next accommodation no end date no CRS,01/01/2025,,TRUE,,,,NOT_ELIGIBLE,,,"NO_CURRENT_ACCOMMODATION_END_DATE, HAS_NEXT_ACCOMMODATION"
+18,has next accommodation no end date no CRS,01/01/2025,,TRUE,,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
 19,outside 12 weeks no CRS,01/01/2025,,FALSE,01/07/2025,,,UPCOMING,Submit a CRS referral in 97 days,,
 20,outside 12 weeks CRS submitted LIVE,01/01/2025,,FALSE,01/07/2025,09/10/2024,LIVE,UPCOMING,Submit a CRS referral in 97 days,,
 21,outside 12 weeks has next accommodation,01/01/2025,,TRUE,01/07/2025,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"

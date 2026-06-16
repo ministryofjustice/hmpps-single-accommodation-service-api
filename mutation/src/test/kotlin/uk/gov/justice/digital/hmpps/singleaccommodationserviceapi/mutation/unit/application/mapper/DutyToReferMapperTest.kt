@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.DutyToReferMapper
@@ -14,6 +16,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason as EntityOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.WithdrawalReason as EntityWithdrawalReason
 
 class DutyToReferMapperTest {
 
@@ -32,7 +36,7 @@ class DutyToReferMapperTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = DtrStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"])
+  @EnumSource(value = DtrStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED", "WITHDRAWN"])
   fun `toEntity maps status enum values correctly`(
     status: DtrStatus,
   ) {
@@ -152,5 +156,223 @@ class DutyToReferMapperTest {
     val snapshot = aggregate.snapshot()
 
     assertThat(snapshot.status).isEqualTo(DtrStatus.valueOf(status.name))
+  }
+
+  @Test
+  fun `toEntity maps withdrawal fields correctly`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+      withdrawalReasonOther = null,
+    )
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.withdrawalReason).isEqualTo(EntityWithdrawalReason.NEW_REFERRAL)
+    assertThat(entity.withdrawalReasonOther).isNull()
+  }
+
+  @Test
+  fun `toEntity maps OTHER withdrawal reason with text correctly`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.OTHER,
+      withdrawalReasonOther = "custom reason",
+    )
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.withdrawalReason).isEqualTo(EntityWithdrawalReason.OTHER)
+    assertThat(entity.withdrawalReasonOther).isEqualTo("custom reason")
+  }
+
+  @Test
+  fun `toAggregate maps withdrawal fields correctly`() {
+    val entity = buildDutyToReferEntity(
+      status = EntityDtrStatus.WITHDRAWN,
+      withdrawalReason = EntityWithdrawalReason.DISENGAGED,
+      withdrawalReasonOther = null,
+    )
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.withdrawalReason).isEqualTo(WithdrawalReason.DISENGAGED)
+    assertThat(snapshot.withdrawalReasonOther).isNull()
+  }
+
+  @Test
+  fun `toDto maps withdrawal fields onto submission when status is WITHDRAWN`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.NO_CONSENT,
+      withdrawalReasonOther = null,
+    )
+
+    val dto = DutyToReferMapper.toDto(snapshot, "X123456", "Test User", Instant.now(), "Test LA")
+
+    assertThat(dto.submission!!.withdrawalReason).isEqualTo(WithdrawalReason.NO_CONSENT)
+    assertThat(dto.submission!!.withdrawalReasonOther).isNull()
+  }
+
+  @Test
+  fun `toDto sets null withdrawal fields on submission when status is not WITHDRAWN`() {
+    val snapshot = buildDutyToReferSnapshot(status = DtrStatus.ACCEPTED)
+
+    val dto = DutyToReferMapper.toDto(snapshot, "X123456", "Test User", Instant.now(), "Test LA")
+
+    assertThat(dto.submission!!.withdrawalReason).isNull()
+    assertThat(dto.submission!!.withdrawalReasonOther).isNull()
+  }
+
+  @Test
+  fun `merge copies withdrawal fields from snapshot to entity`() {
+    val entity = buildDutyToReferEntity(
+      status = EntityDtrStatus.SUBMITTED,
+      withdrawalReason = null,
+      withdrawalReasonOther = null,
+    )
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.HOUSING_NEED_RESOLVED,
+      withdrawalReasonOther = null,
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.withdrawalReason).isEqualTo(EntityWithdrawalReason.HOUSING_NEED_RESOLVED)
+    assertThat(merged.withdrawalReasonOther).isNull()
+  }
+
+  @Test
+  fun `toEntity maps outcome reason correctly`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+    )
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.outcomeReason).isEqualTo(EntityOutcomeReason.PRIORITY_NEED)
+  }
+
+  @Test
+  fun `toAggregate maps outcome reason correctly`() {
+    val entity = buildDutyToReferEntity(
+      status = EntityDtrStatus.NOT_ACCEPTED,
+      outcomeReason = EntityOutcomeReason.NO_LOCAL_CONNECTION,
+    )
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.outcomeReason).isEqualTo(OutcomeReason.NO_LOCAL_CONNECTION)
+  }
+
+  @Test
+  fun `toDto maps outcome reason onto submission`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PREVENTION_AND_RELIEF_DUTY,
+    )
+
+    val dto = DutyToReferMapper.toDto(snapshot, "X123456", "Test User", Instant.now(), "Test LA")
+
+    assertThat(dto.submission!!.outcomeReason).isEqualTo(OutcomeReason.PREVENTION_AND_RELIEF_DUTY)
+  }
+
+  @Test
+  fun `merge copies outcome reason from snapshot to entity`() {
+    val entity = buildDutyToReferEntity(
+      status = EntityDtrStatus.SUBMITTED,
+      outcomeReason = null,
+    )
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.NOT_ACCEPTED,
+      outcomeReason = OutcomeReason.INTENTIONALLY_HOMELESS,
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.outcomeReason).isEqualTo(EntityOutcomeReason.INTENTIONALLY_HOMELESS)
+  }
+
+  @Test
+  fun `toEntity maps submissionNote and outcomeNote correctly`() {
+    val snapshot = buildDutyToReferSnapshot(
+      submissionNote = "My submission note",
+      outcomeNote = "My outcome note",
+    )
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.submissionNote).isEqualTo("My submission note")
+    assertThat(entity.outcomeNote).isEqualTo("My outcome note")
+  }
+
+  @Test
+  fun `toEntity maps null submissionNote and outcomeNote correctly`() {
+    val snapshot = buildDutyToReferSnapshot(submissionNote = null, outcomeNote = null)
+
+    val entity = DutyToReferMapper.toEntity(snapshot)
+
+    assertThat(entity.submissionNote).isNull()
+    assertThat(entity.outcomeNote).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps submissionNote and outcomeNote correctly`() {
+    val entity = buildDutyToReferEntity(
+      submissionNote = "Submission note",
+      outcomeNote = "Outcome note",
+    )
+
+    val aggregate = DutyToReferMapper.toAggregate(entity)
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.submissionNote).isEqualTo("Submission note")
+    assertThat(snapshot.outcomeNote).isEqualTo("Outcome note")
+  }
+
+  @Test
+  fun `toDto maps submissionNote and outcomeNote onto submission`() {
+    val snapshot = buildDutyToReferSnapshot(
+      status = DtrStatus.ACCEPTED,
+      submissionNote = "A submission note",
+      outcomeNote = "An outcome note",
+    )
+
+    val dto = DutyToReferMapper.toDto(snapshot, "X123456", "Test User", Instant.now(), "Test LA")
+
+    assertThat(dto.submission!!.submissionNote).isEqualTo("A submission note")
+    assertThat(dto.submission!!.outcomeNote).isEqualTo("An outcome note")
+  }
+
+  @Test
+  fun `merge copies submissionNote and outcomeNote from snapshot to entity`() {
+    val entity = buildDutyToReferEntity(submissionNote = null, outcomeNote = null)
+    val snapshot = buildDutyToReferSnapshot(
+      submissionNote = "Submission note",
+      outcomeNote = "Outcome note",
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.submissionNote).isEqualTo("Submission note")
+    assertThat(merged.outcomeNote).isEqualTo("Outcome note")
+  }
+
+  @Test
+  fun `merge preserves existing submissionNote when outcomeNote is set`() {
+    val entity = buildDutyToReferEntity(submissionNote = "Original submission note", outcomeNote = null)
+    val snapshot = buildDutyToReferSnapshot(
+      submissionNote = "Original submission note",
+      outcomeNote = "New outcome note",
+    )
+
+    val merged = DutyToReferMapper.merge(snapshot, entity)
+
+    assertThat(merged.submissionNote).isEqualTo("Original submission note")
+    assertThat(merged.outcomeNote).isEqualTo("New outcome note")
   }
 }

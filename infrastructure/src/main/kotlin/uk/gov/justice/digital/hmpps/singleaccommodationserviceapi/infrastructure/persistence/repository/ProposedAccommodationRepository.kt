@@ -48,4 +48,6 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     """,
   )
   fun findByIdAndCrnWithNotes(id: UUID, crn: String): ProposedAccommodationEntity?
+
+  fun findByCprAddressId(cprAddressId: UUID?): ProposedAccommodationEntity?
 }

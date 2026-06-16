@@ -26,6 +26,8 @@ object ProposedAccommodationMapper {
   ) = ProposedAccommodationEntity(
     id = snapshot.id,
     caseId = snapshot.caseId,
+    cprAddressId = snapshot.cprAddressId,
+    accommodationSource = snapshot.accommodationSource,
     name = snapshot.name,
     accommodationTypeId = accommodationTypeEntity.id,
     accommodationStatusId = accommodationStatusEntity?.id,
@@ -33,6 +35,8 @@ object ProposedAccommodationMapper {
     nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
     startDate = snapshot.startDate,
     endDate = snapshot.endDate,
+    typeVerified = snapshot.typeVerified,
+    noFixedAbode = snapshot.noFixedAbode,
     postcode = snapshot.address.postcode,
     subBuildingName = snapshot.address.subBuildingName,
     buildingName = snapshot.address.buildingName,
@@ -51,6 +55,8 @@ object ProposedAccommodationMapper {
     accommodationTypeEntity: AccommodationTypeEntity,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ): ProposedAccommodationEntity {
+    proposedAccommodationEntity.cprAddressId = snapshot.cprAddressId
+    proposedAccommodationEntity.accommodationSource = snapshot.accommodationSource
     proposedAccommodationEntity.name = snapshot.name
     proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity.id
     proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
@@ -58,6 +64,8 @@ object ProposedAccommodationMapper {
     proposedAccommodationEntity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
     proposedAccommodationEntity.startDate = snapshot.startDate
     proposedAccommodationEntity.endDate = snapshot.endDate
+    proposedAccommodationEntity.typeVerified = snapshot.typeVerified
+    proposedAccommodationEntity.noFixedAbode = snapshot.noFixedAbode
     proposedAccommodationEntity.postcode = snapshot.address.postcode
     proposedAccommodationEntity.subBuildingName = snapshot.address.subBuildingName
     proposedAccommodationEntity.buildingName = snapshot.address.buildingName
@@ -94,6 +102,8 @@ object ProposedAccommodationMapper {
   ): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
     id = proposedAccommodationEntity.id,
     caseId = proposedAccommodationEntity.caseId,
+    accommodationSource = proposedAccommodationEntity.accommodationSource,
+    cprAddressId = proposedAccommodationEntity.cprAddressId,
     currentAccommodation = currentAccommodation,
     name = proposedAccommodationEntity.name,
     accommodationType = AccommodationTypeDto(
@@ -122,6 +132,8 @@ object ProposedAccommodationMapper {
     ),
     startDate = proposedAccommodationEntity.startDate,
     endDate = proposedAccommodationEntity.endDate,
+    typeVerified = proposedAccommodationEntity.typeVerified,
+    noFixedAbode = proposedAccommodationEntity.noFixedAbode,
     notes = proposedAccommodationEntity.notes.map {
       ProposedAccommodationAggregate.ProposedAccommodationNoteSnapshot(
         id = it.id,

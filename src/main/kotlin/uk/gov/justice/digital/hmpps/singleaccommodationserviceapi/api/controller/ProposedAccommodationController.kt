@@ -17,42 +17,62 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.util.UUID
 
 @RestController
 class ProposedAccommodationController(
+  private val caseQueryService: CaseQueryService,
+  private val caseApplicationService: CaseApplicationService,
   private val accommodationQueryService: AccommodationQueryService,
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
 ) {
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
-    val accommodations = proposedAccommodationQueryService.getProposedAccommodations(crn)
-    return ResponseEntity.ok(ApiResponseDto(data = accommodations))
+    if (!caseQueryService.isPersistedCase(crn)) {
+      val result = caseQueryService.getCaseFromDelius(crn)
+      handleUpstreamFailure(result.upstreamFailures)
+      caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
+    }
+
+    val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
+    handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
+    val cprAccommodations = currentAndAllAccommodations.data.second
+    if (cprAccommodations.isNotEmpty()) {
+      val currentAccommodation = currentAndAllAccommodations.data.first
+      proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
+        crn,
+        currentAccommodation,
+        cprAccommodations,
+      )
+    }
+    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun getById(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<ProposedAccommodationDto>> {
     val accommodation = proposedAccommodationQueryService.getProposedAccommodation(crn, id)
     return ResponseEntity.ok(ApiResponseDto(data = accommodation))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations/{id}/timeline")
   fun getTimeline(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<List<AuditRecordDto>>> {
     val timelineEntries = proposedAccommodationTimelineService.getProposedAccommodationTimeline(id, crn)
     return ResponseEntity.ok(ApiResponseDto(data = timelineEntries))
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/proposed-accommodations")
   @ResponseStatus(HttpStatus.CREATED)
   fun create(
@@ -65,7 +85,7 @@ class ProposedAccommodationController(
     return ResponseEntity(createdProposedAccommodation, HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/proposed-accommodations/{id}/notes")
   @ResponseStatus(HttpStatus.CREATED)
   fun createNote(
@@ -79,14 +99,7 @@ class ProposedAccommodationController(
     return ResponseEntity(HttpStatus.CREATED)
   }
 
-  @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN')")
-  @GetMapping("/proposed-accommodations/{id}")
-  fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponseDto<ProposedAccommodationDto>> {
-    val accommodation = proposedAccommodationQueryService.getProposedAccommodation(id)
-    return ResponseEntity.ok(ApiResponseDto(data = accommodation))
-  }
-
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PutMapping("/cases/{crn}/proposed-accommodations/{id}")
   fun update(
     @PathVariable crn: String,

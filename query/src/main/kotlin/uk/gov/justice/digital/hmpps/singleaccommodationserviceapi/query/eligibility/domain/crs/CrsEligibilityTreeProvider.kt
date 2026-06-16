@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -23,7 +24,10 @@ class CrsEligibilityTreeProvider(
   private val completionContextUpdater: CrsCompletionContextUpdater,
   private val upcoming: CrsUpcomingRuleSet,
   private val upcomingContextUpdater: CrsUpcomingContextUpdater,
+  @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}") crsUiBaseUrl: String,
 ) : EligibilityTreeProvider {
+
+  val url = crsUiBaseUrl
 
   private val tree: DecisionNode by lazy { build() }
 
@@ -34,6 +38,7 @@ class CrsEligibilityTreeProvider(
     currentResult = ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+      url = url,
     ),
   )
 

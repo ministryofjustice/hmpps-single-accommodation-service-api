@@ -12,9 +12,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.oauth2.jwt.Jwt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationIntegrationDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
@@ -23,7 +24,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.HttpAuthService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
-import java.util.UUID
 
 @ExtendWith(value = [MockKExtension::class])
 class UserServiceTest {
@@ -34,7 +34,7 @@ class UserServiceTest {
   lateinit var userRepository: UserRepository
 
   @MockK
-  lateinit var probationIntegrationDeliusCachingService: ProbationIntegrationDeliusCachingService
+  lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
   @MockK
   lateinit var nomisUserRolesService: NomisUserRolesService
@@ -43,45 +43,67 @@ class UserServiceTest {
   lateinit var userService: UserService
 
   @Nested
-  inner class GetExistingDeliusUserOrCreate {
-    private val userUuid = UUID.randomUUID()
+  inner class GetAndUpsertDeliusUser {
     private val username = Username("SOMEPERSON")
 
     @Test
-    fun `getExistingDeliusUserOrCreate should throw NotFoundException when staff-detail not found`() {
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
-      every { probationIntegrationDeliusCachingService.getStaffDetail(username.value) } returns null
+    fun `getAndUpsertDeliusUser should throw NotFoundException when staff-detail not found`() {
+      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns null
 
-      assertThatThrownBy { userService.getExistingDeliusUserOrCreate(username) }
+      assertThatThrownBy { userService.getAndUpsertDeliusUser(username) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessage("StaffDetail not found for [username=$username]")
     }
 
     @Test
-    fun `getExistingDeliusUserOrCreate returns existing user`() {
-      val user = buildUserEntity()
-      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns user
+    fun `getAndUpsertDeliusUser updates and returns existing user`() {
+      val existingUser = buildUserEntity()
+      val staffDetail = buildStaffDetail(
+        username = existingUser.username,
+        name = buildPersonName(forename = "updated", surname = "updated"),
+        code = "updated",
+        email = "updated",
+        telephoneNumber = "updated",
+        active = false,
+      )
+      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns staffDetail
+      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns existingUser
 
-      val result = userService.getExistingDeliusUserOrCreate(username)
+      val expectedUpdatedUser = existingUser.copy(
+        forename = "updated",
+        middleNames = null,
+        surname = "updated",
+        deliusStaffCode = "updated",
+        email = "updated",
+        telephoneNumber = "updated",
+        isActive = false,
+      )
 
-      assertThat(result).isEqualTo(user)
-      verify(exactly = 0) { userRepository.save(any()) }
+      every { userRepository.save(expectedUpdatedUser) } returnsArgument 0
+
+      val result = userService.getAndUpsertDeliusUser(username)
+
+      assertThat(result).isEqualTo(expectedUpdatedUser)
+
+      verify(exactly = 1) { userRepository.save(expectedUpdatedUser) }
     }
 
     @Test
-    fun `getExistingDeliusUserOrCreate creates new user`() {
+    fun `getAndUpsertDeliusUser creates new user`() {
       val deliusUser = buildStaffDetail()
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
       every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
-      every { probationIntegrationDeliusCachingService.getStaffDetail(username.value) } returns deliusUser
+      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns deliusUser
 
-      val result = userService.getExistingDeliusUserOrCreate(username)
+      val result = userService.getAndUpsertDeliusUser(username)
 
-      assertThat(result.name).isEqualTo(deliusUser.name.deliusName())
+      assertThat(result.forename).isEqualTo(deliusUser.name.forename)
+      assertThat(result.middleNames).isEqualTo(deliusUser.name.middleName)
+      assertThat(result.surname).isEqualTo(deliusUser.name.surname)
       assertThat(result.email).isEqualTo(deliusUser.email)
       assertThat(result.telephoneNumber).isEqualTo(deliusUser.telephoneNumber)
       assertThat(result.deliusStaffCode).isEqualTo(deliusUser.code)
-      assertThat(result.isEnabled).isTrue()
+      assertThat(result.isEnabled).isNull()
       assertThat(result.isActive).isTrue()
       assertThat(result.nomisStaffId).isNull()
       assertThat(result.nomisAccountType).isNull()
@@ -145,7 +167,9 @@ class UserServiceTest {
 
       assertThat(result.username).isUpperCase.isEqualTo(nomisUser.username)
       assertThat(result.authSource).isEqualTo(AuthSource.NOMIS)
-      assertThat(result.name).isEqualTo("${nomisUser.firstName} ${nomisUser.lastName}")
+      assertThat(result.forename).isEqualTo(nomisUser.firstName)
+      assertThat(result.middleNames).isNull()
+      assertThat(result.surname).isEqualTo(nomisUser.lastName)
       assertThat(result.email).isEqualTo(nomisUser.primaryEmail)
       assertThat(result.nomisStaffId).isEqualTo(nomisUser.staffId)
       assertThat(result.nomisAccountType).isEqualTo(nomisUser.accountType)

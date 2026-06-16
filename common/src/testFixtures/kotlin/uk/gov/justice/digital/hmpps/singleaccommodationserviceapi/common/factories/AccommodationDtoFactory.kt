@@ -36,15 +36,15 @@ fun buildProposedAccommodationDto(
 )
 
 fun buildAccommodationAddressDetails(
-  postcode: String = "SW1A 1AA",
+  postcode: String? = "SW1A 1AA",
   subBuildingName: String? = "The Sub-Building",
   buildingName: String? = "The Building",
   buildingNumber: String? = "123",
   thoroughfareName: String? = "The Road",
   dependentLocality: String? = "The Area",
-  postTown: String = "London",
+  postTown: String? = "London",
   county: String? = "London",
-  country: String = "England",
+  country: String? = "England",
   uprn: String? = "1234567890",
 ) = AccommodationAddressDetails(
   postcode = postcode,

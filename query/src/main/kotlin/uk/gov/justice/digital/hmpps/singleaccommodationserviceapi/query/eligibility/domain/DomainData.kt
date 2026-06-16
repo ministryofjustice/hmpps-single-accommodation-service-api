@@ -8,17 +8,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 
 data class DomainData(
   val crn: String,
-  val tierScore: TierScore?,
+  val tierScore: String?,
   val sex: SexCode?,
   val currentAccommodation: AccommodationSummaryDto?,
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
-  val nextAccommodation: AccommodationSummaryDto?,
+  val nextAccommodations: List<AccommodationSummaryDto>,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
@@ -29,7 +28,7 @@ data class DomainData(
     cpr: CorePersonRecord?,
     tier: Tier?,
     currentAccommodation: AccommodationSummaryDto?,
-    nextAccommodation: AccommodationSummaryDto?,
+    nextAccommodations: List<AccommodationSummaryDto>,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
@@ -37,11 +36,11 @@ data class DomainData(
     accommodationTypes: List<AccommodationTypeEntity>,
   ) : this(
     crn = crn,
-    tierScore = tier?.tierScore,
+    tierScore = tier?.tierScore?.name,
     sex = cpr?.sex?.code,
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
-    nextAccommodation = nextAccommodation,
+    nextAccommodations = nextAccommodations,
     cas1Application = cas1Application,
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
@@ -55,17 +54,18 @@ data class DomainData(
     dutyToRefer: DutyToReferDto?,
   ) : this(
     crn = crn,
-    tierScore = caseEntity?.tierScore,
+    tierScore = caseEntity?.tierScore?.name,
     sex = sexCode,
     currentAccommodation = null,
     currentAccommodationTypeEntity = null,
-    nextAccommodation = null,
+    nextAccommodations = emptyList(),
     cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {
       Cas1Application(
         id = caseEntity.cas1ApplicationId!!,
         applicationStatus = caseEntity.cas1ApplicationApplicationStatus!!,
         requestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
         placementStatus = caseEntity.cas1ApplicationPlacementStatus,
+        premises = null,
       )
     } else {
       null

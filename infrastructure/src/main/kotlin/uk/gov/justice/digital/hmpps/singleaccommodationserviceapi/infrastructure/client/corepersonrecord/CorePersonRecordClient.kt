@@ -3,8 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
+import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
 
 interface CorePersonRecordClient {
   @GetExchange(value = "/person/probation/{crn}")
@@ -12,6 +16,9 @@ interface CorePersonRecordClient {
 
   @GetExchange(value = "/person/prison/{prisonNumber}")
   fun getByPrisonNumber(@PathVariable prisonNumber: String): CorePersonRecord
+
+  @PostExchange(value = "/person/probation/{crn}/address")
+  fun createProbationAddress(@PathVariable crn: String, @RequestBody address: ProbationCreateAddress): ProbationCreateAddressResponse
 }
 
 @Service

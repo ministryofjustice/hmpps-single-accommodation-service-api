@@ -14,6 +14,10 @@ dependencies {
   implementation(libs.shedlock.spring)
   implementation(libs.shedlock.jdbc)
   implementation(libs.javers)
+  implementation(libs.app.insights.core)
+  implementation(libs.micrometer.registry.azure)
+
+  implementation(libs.sentry.spring.boot.starter.jakarta)
 
   testRuntimeOnly(libs.junit.platform.launcher)
   testImplementation(libs.hmpps.starter.test)

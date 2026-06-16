@@ -24,7 +24,7 @@ fun buildAccommodationSummaryDto(
 
 fun buildAccommodationTypeDto(
   code: String = "A02",
-  description: String = "Approved Premises",
+  description: String? = "Approved Premises",
 ) = AccommodationTypeDto(
   code = code,
   description = description,

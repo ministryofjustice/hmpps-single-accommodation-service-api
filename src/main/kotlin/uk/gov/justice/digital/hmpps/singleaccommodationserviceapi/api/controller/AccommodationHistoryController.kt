@@ -13,7 +13,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 class AccommodationHistoryController(
   private val accommodationQueryService: AccommodationQueryService,
 ) {
-  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER', 'POM')")
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/accommodation-history")
   fun getAccommodationHistory(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<AccommodationSummaryDto>>> = ResponseEntity.ok(accommodationQueryService.getAccommodationHistory(crn))
 }

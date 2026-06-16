@@ -8,11 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class DtrStatusRule : Rule {
-  override val description = "FAIL if DTR status is not started"
+class DtrNotWithdrawnRule : Rule {
+  override val description = "FAIL if DTR referral has been withdrawn"
 
   override fun evaluate(data: DomainData) = RuleResult(
     description = description,
-    ruleStatus = if (data.dutyToRefer?.status == DtrStatus.NOT_STARTED) RuleStatus.FAIL else RuleStatus.PASS,
+    ruleStatus = if (data.dutyToRefer?.status == DtrStatus.WITHDRAWN) RuleStatus.FAIL else RuleStatus.PASS,
   )
 }

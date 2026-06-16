@@ -4,6 +4,7 @@ import org.javers.spring.auditable.AuthorProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.security.core.context.SecurityContextHolder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import java.util.UUID
@@ -15,9 +16,14 @@ class TestJaversAuthProvider(
 ) : AuthorProvider {
   override fun provide(): String {
     try {
-      val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-      val userPrincipal = authToken.principal as UserPrincipal
-      return userPrincipal.sasUserId.toString()
+      val auditOverrideId = AuditOverrideContext.currentAuditorId()
+      return if (auditOverrideId != null) {
+        auditOverrideId.toString()
+      } else {
+        val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+        val userPrincipal = authToken.principal as UserPrincipal
+        userPrincipal.sasUserId.toString()
+      }
     } catch (_: Exception) {
       return testDataSetupUserId.toString()
     }

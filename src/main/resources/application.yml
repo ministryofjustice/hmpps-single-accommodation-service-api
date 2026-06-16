@@ -2,6 +2,9 @@ info.app:
   name: HMPPS Single Accommodation Service Api
   version: 1.0
 spring:
+  threads:
+    virtual:
+      enabled: true
   autoconfigure:
     exclude:
       - org.redisson.spring.starter.RedissonAutoConfigurationV4
@@ -13,6 +16,12 @@ spring:
     date-format: "yyyy-MM-dd HH:mm:ss"
   jpa:
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+        order_updates: true
   security:
     oauth2:
       resourceserver:
@@ -24,7 +33,10 @@ spring:
   web:
     error:
       include-message: always
-
+springdoc:
+  paths-to-exclude: "/queue-admin/**"
+sentry:
+  send-default-pii: false
 server:
   port: 8080
   servlet:
@@ -61,5 +73,24 @@ management:
 javers:
   springDataAuditableRepositoryAspectEnabled: true
 
+hmpps:
+  sqs:
+    dispatcher:
+      max-events-per-batch: 10
+      max-concurrent-events: 4
+
 case-list:
+  page-size: 200
   onboarded-teams: []
+
+scheduling:
+  enabled: true
+  fixed-delay: 5s
+
+shedlock:
+  outbox-event-publisher:
+    lock-at-most-for: PT2M
+    lock-at-least-for: PT1S
+  inbox-event-dispatcher:
+    lock-at-most-for: PT2M
+    lock-at-least-for: PT1S

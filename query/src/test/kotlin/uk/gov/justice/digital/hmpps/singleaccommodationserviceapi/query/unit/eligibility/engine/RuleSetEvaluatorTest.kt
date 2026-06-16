@@ -10,7 +10,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -75,7 +74,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator everything passes (male)`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.A1,
+        tierScore = "A1",
         sex = SexCode.M,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
       )
@@ -95,7 +94,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator nearly everything fails (female)`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.C2S,
+        tierScore = "C2S",
         sex = SexCode.F,
         currentAccommodation = null,
       )
@@ -114,7 +113,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator first fails, second passes`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         sex = SexCode.M,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
       )
@@ -133,7 +132,7 @@ class RuleSetEvaluatorTest {
     fun `default rule set evaluator first passes, second fails`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.C1,
+        tierScore = "C1",
         sex = SexCode.F,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(3)),
       )
@@ -156,7 +155,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set evaluator everything passes`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.A1,
+        tierScore = "A1",
         sex = SexCode.M,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
       )
@@ -172,7 +171,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set nearly evaluator everything fails`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         sex = SexCode.F,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
       )
@@ -189,7 +188,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set evaluator first fails, second passes`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         sex = SexCode.M,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
       )
@@ -206,7 +205,7 @@ class RuleSetEvaluatorTest {
     fun `circuit breaker rule set evaluator first passes, second fails`() {
       val data = buildDomainData(
         crn = crn,
-        tierScore = TierScore.C1,
+        tierScore = "C1",
         sex = SexCode.F,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
       )

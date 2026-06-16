@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -37,6 +38,8 @@ class Cas1SuitabilityContextUpdaterTest {
       assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.CONTINUE_APPLICATION)
+      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS1_VIEW_APPLICATION)
+      assertThat(result.currentResult.url).isNull()
     }
   }
 }

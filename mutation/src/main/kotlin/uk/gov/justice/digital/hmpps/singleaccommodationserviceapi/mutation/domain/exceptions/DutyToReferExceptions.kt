@@ -2,7 +2,28 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 const val DTR_INVALID_STATUS_ERROR_KEY = "dtrInvalidStatus"
 const val DTR_INVALID_STATUS_TRANSITION_ERROR_KEY = "dtrInvalidStatusTransition"
+const val DTR_WITHDRAWAL_REASON_REQUIRED_KEY = "dtrWithdrawalReasonRequired"
+const val DTR_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY = "dtrWithdrawalReasonOtherGreaterThanMaxLength"
+const val DTR_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY = "dtrWithdrawalReasonNotApplicable"
+const val DTR_OUTCOME_REASON_REQUIRED_KEY = "dtrOutcomeReasonRequired"
+const val DTR_OUTCOME_REASON_NOT_APPLICABLE_KEY = "dtrOutcomeReasonNotApplicable"
+const val DTR_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "dtrOutcomeNoteNotApplicable"
+const val DTR_SUBMISSION_NOTE_NOT_APPLICABLE_KEY = "dtrSubmissionNoteNotApplicable"
 
 class DutyToReferInvalidStatusException : DomainException(DTR_INVALID_STATUS_ERROR_KEY)
 
 class DutyToReferInvalidStatusTransitionException : DomainException(DTR_INVALID_STATUS_TRANSITION_ERROR_KEY)
+
+class DutyToReferWithdrawalReasonRequiredException : DomainException(DTR_WITHDRAWAL_REASON_REQUIRED_KEY)
+
+class DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException : DomainException(DTR_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY)
+
+class DutyToReferWithdrawalReasonNotApplicableException : DomainException(DTR_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY)
+
+class DutyToReferOutcomeReasonRequiredException : DomainException(DTR_OUTCOME_REASON_REQUIRED_KEY)
+
+class DutyToReferOutcomeReasonNotApplicableException : DomainException(DTR_OUTCOME_REASON_NOT_APPLICABLE_KEY)
+
+class DutyToReferOutcomeNoteNotApplicableException : DomainException(DTR_OUTCOME_NOTE_NOT_APPLICABLE_KEY)
+
+class DutyToReferSubmissionNoteNotApplicableException : DomainException(DTR_SUBMISSION_NOTE_NOT_APPLICABLE_KEY)

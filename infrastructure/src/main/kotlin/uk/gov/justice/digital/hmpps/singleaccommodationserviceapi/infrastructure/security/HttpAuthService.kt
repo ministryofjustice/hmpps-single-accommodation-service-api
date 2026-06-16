@@ -4,6 +4,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
 @Service
 class HttpAuthService {
@@ -14,6 +15,8 @@ class HttpAuthService {
     }
     return authToken.principal as UserPrincipal
   }
+
+  fun getUsername() = getPrincipalOrThrow(listOf(AuthSource.DELIUS.source, AuthSource.NOMIS.source)).username
 
   fun getJwt(): Jwt {
     val principal = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken

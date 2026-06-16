@@ -16,6 +16,8 @@ data class ServiceResult(
   val serviceStatus: ServiceStatus,
   val action: String? = null,
   val link: String? = null,
+  val url: String? = null,
+  val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 )
 
@@ -69,6 +71,12 @@ enum class ServiceStatus {
   BOOKING_CANCELLED,
   ACCEPTED,
   NOT_ACCEPTED,
+  CANNOT_START_YET,
+}
+
+enum class LinkType {
+  CAS1_START_APPLICATION,
+  CAS1_VIEW_APPLICATION,
 }
 
 enum class FailureReason {
@@ -76,9 +84,7 @@ enum class FailureReason {
   MALE_NOT_HIGH_RISK_TIER,
   NON_MALE_NOT_HIGH_RISK_TIER,
   SEX_DATA_NOT_AVAILABLE,
-  NO_CURRENT_ACCOMMODATION_END_DATE,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
-  CONFLICTING_CAS1_BOOKING,
   CRS_EXPIRED,
   CRS_NOT_SUBMITTED,
   HAS_NEXT_ACCOMMODATION,

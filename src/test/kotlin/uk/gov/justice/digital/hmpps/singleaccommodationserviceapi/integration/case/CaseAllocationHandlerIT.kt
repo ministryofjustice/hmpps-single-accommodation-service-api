@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.TestPropertySource
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
@@ -36,13 +37,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
-import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
+@TestPropertySource(properties = ["scheduling.enabled=true"])
 class CaseAllocationHandlerIT : IntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
@@ -55,12 +55,6 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var outboxEventRepository: OutboxEventRepository
-
-  @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
   lateinit var jsonMapper: JsonMapper
@@ -222,9 +216,11 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    val emittedMessage = testSqsDomainEventListener.blockForMessage(IncomingHmppsDomainEventType.CASE_ALLOCATED)
-    assertThat(emittedMessage.description).isEqualTo(IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription)
-    assertThat(emittedMessage.detailUrl).isEqualTo(detailUrl)
+    assertMessageReceived(
+      typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
+      eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
+      detailUrl = detailUrl,
+    )
   }
 
   private fun publishCaseAllocatedEvent() {

@@ -4,6 +4,7 @@ import org.javers.spring.auditable.AuthorProvider
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.security.core.context.SecurityContextHolder
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 
@@ -11,8 +12,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 @Profile("local", "dev", "preprod", "prod")
 class JaversAuthProvider : AuthorProvider {
   override fun provide(): String {
-    val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
-    val userPrincipal = authToken.principal as UserPrincipal
-    return userPrincipal.sasUserId.toString()
+    val auditOverrideId = AuditOverrideContext.currentAuditorId()
+    return if (auditOverrideId != null) {
+      auditOverrideId.toString()
+    } else {
+      val authToken = SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken
+      val userPrincipal = authToken.principal as UserPrincipal
+      userPrincipal.sasUserId.toString()
+    }
   }
 }

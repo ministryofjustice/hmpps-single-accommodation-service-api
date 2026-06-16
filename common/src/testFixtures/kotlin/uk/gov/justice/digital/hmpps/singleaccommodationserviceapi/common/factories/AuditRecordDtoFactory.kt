@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import java.time.Instant
 import kotlin.String
@@ -22,7 +21,7 @@ fun buildAuditRecordDto(
 fun buildFieldChange(
   field: String = "nextAccommodationStatus",
   value: String? = "YES",
-) = CreateFieldChangeDto(
+) = FieldChange(
   field = field,
   value = value,
 )

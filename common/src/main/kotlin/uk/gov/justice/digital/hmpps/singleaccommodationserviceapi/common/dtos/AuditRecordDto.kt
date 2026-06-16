@@ -12,10 +12,10 @@ data class AuditRecordDto(
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
     timezone = "UTC",
   )
-  val commitDate: Instant,
+  val commitDate: Instant?,
   val changes: List<FieldChange>,
-  @field:JsonInclude(JsonInclude.Include.NON_EMPTY)
-  val extraInformation: Map<String, String> = emptyMap(),
+  @field:JsonInclude(JsonInclude.Include.NON_NULL)
+  val extraInformation: Map<String, String>? = null,
 )
 
 enum class AuditRecordType {
@@ -24,18 +24,8 @@ enum class AuditRecordType {
   NOTE,
 }
 
-interface FieldChange {
-  var field: String
-  var value: String?
-}
-
-data class UpdateFieldChangeDto(
-  override var field: String,
-  override var value: String?,
-  var oldValue: String?,
-) : FieldChange
-
-data class CreateFieldChangeDto(
-  override var field: String,
-  override var value: String?,
-) : FieldChange
+data class FieldChange(
+  var field: String,
+  var value: String?,
+  var oldValue: String? = null,
+)

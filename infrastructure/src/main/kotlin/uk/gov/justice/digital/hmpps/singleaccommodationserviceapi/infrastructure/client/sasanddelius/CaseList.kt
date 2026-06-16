@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import java.time.LocalDate
 
 data class CaseList(
   val cases: List<Case>,
+  val page: PageMetadata,
 )
 
 data class Case(

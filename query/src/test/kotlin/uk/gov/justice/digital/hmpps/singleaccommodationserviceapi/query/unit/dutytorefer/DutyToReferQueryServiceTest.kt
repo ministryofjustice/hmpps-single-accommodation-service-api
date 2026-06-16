@@ -11,9 +11,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
@@ -58,69 +57,16 @@ class DutyToReferQueryServiceTest {
   private val crn = UUID.randomUUID().toString()
 
   @Nested
-  inner class GetDutyToRefer {
-
-    @Test
-    fun `should return NOT_STARTED with null submission when no DTR exists`() {
-      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
-      every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
-
-      val result = service.getDutyToRefer(crn)
-
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.status).isEqualTo(DtrStatus.NOT_STARTED)
-      assertThat(result.submission).isNull()
-    }
-
-    @Test
-    fun `should return DTR with submission and localAuthorityAreaName when DTR exists`() {
-      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
-      val createdByUserId = UUID.randomUUID()
-      val localAuthorityAreaId = UUID.randomUUID()
-      val dtrEntity = buildDutyToReferEntity(
-        caseId = caseId,
-        localAuthorityAreaId = localAuthorityAreaId,
-        createdByUserId = createdByUserId,
-      )
-      val userEntity = buildUserEntity()
-      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
-        id = localAuthorityAreaId,
-        name = "Test Local Authority",
-      )
-      every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
-      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
-      every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
-
-      val result = service.getDutyToRefer(crn)
-
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
-      assertThat(result.submission).isNotNull()
-      val submission = result.submission!!
-      assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
-    }
-  }
-
-  @Nested
   inner class GetDutyToReferByCrnAndCaseEntity {
 
     @Test
-    fun `should return NOT_STARTED with null submission when no DTR exists`() {
+    fun `should return null when no DTR exists`() {
       val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
       every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
 
       val result = service.getDutyToRefer(caseEntity, crn)
 
-      assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.status).isEqualTo(DtrStatus.NOT_STARTED)
-      assertThat(result.submission).isNull()
+      assertThat(result).isNull()
     }
 
     @Test
@@ -142,7 +88,7 @@ class DutyToReferQueryServiceTest {
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
       every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
 
-      val result = service.getDutyToRefer(caseEntity, crn)
+      val result = service.getDutyToRefer(caseEntity, crn)!!
 
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.caseId).isEqualTo(caseId)
@@ -151,7 +97,7 @@ class DutyToReferQueryServiceTest {
       val submission = result.submission!!
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
   }
 
@@ -190,7 +136,7 @@ class DutyToReferQueryServiceTest {
       assertThat(submission.id).isEqualTo(id)
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
 
     @Test
@@ -236,7 +182,7 @@ class DutyToReferQueryServiceTest {
       val submission = result.submission!!
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
-      assertThat(submission.createdBy).isEqualTo(userEntity.name)
+      assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
     }
 
     @Test
@@ -273,15 +219,15 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
-          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+          FieldChange(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
+          FieldChange(field = "status", value = "SUBMITTED"),
         ),
       )
       val updateRecord = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-12T10:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
+          FieldChange(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
 
@@ -295,9 +241,9 @@ class DutyToReferQueryServiceTest {
 
       assertThat(result.data).hasSize(2)
       assertThat(result.data[0].commitDate).isEqualTo(updateRecord.commitDate)
-      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
+      assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isEqualTo("Cherwell")
       assertThat(result.data[1].commitDate).isEqualTo(createRecord.commitDate)
-      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
+      assertThat(result.data[1].extraInformation?.get("localAuthorityAreaName")).isEqualTo("Cherwell")
     }
 
     @Test
@@ -312,8 +258,8 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = initialLaId.toString()),
-          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+          FieldChange(field = "localAuthorityAreaId", value = initialLaId.toString()),
+          FieldChange(field = "status", value = "SUBMITTED"),
         ),
       )
       val laChangeRecord = laChange(
@@ -334,9 +280,9 @@ class DutyToReferQueryServiceTest {
 
       assertThat(result.data).hasSize(2)
       assertThat(result.data[0].commitDate).isEqualTo(laChangeRecord.commitDate)
-      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isEqualTo("Oxford")
+      assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isEqualTo("Oxford")
       assertThat(result.data[1].commitDate).isEqualTo(createRecord.commitDate)
-      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
+      assertThat(result.data[1].extraInformation?.get("localAuthorityAreaName")).isEqualTo("Cherwell")
     }
 
     @Test
@@ -362,16 +308,16 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "referenceNumber", value = initialReference),
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = initialLa.id.toString()),
-          CreateFieldChangeDto(field = "status", value = "SUBMITTED"),
+          FieldChange(field = "referenceNumber", value = initialReference),
+          FieldChange(field = "localAuthorityAreaId", value = initialLa.id.toString()),
+          FieldChange(field = "status", value = "SUBMITTED"),
         ),
       )
       val firstRefUpdate = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-11T13:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = firstRef,
             oldValue = initialReference,
@@ -387,7 +333,7 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-12T15:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = secondRef,
             oldValue = firstRef,
@@ -408,7 +354,7 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-13T18:00:01Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = thirdRef,
             oldValue = secondRef,
@@ -419,7 +365,7 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-13T23:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(
+          FieldChange(
             field = "referenceNumber",
             value = fourthRef,
             oldValue = thirdRef,
@@ -457,39 +403,39 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data).hasSize(9)
 
       // 9. Final state: Cambridge → Stroud
-      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isEqualTo(fourthLa.name)
+      assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isEqualTo(fourthLa.name)
       assertThat(result.data[0].commitDate).isEqualTo(fourthLaUpdate.commitDate)
 
       // 8. Reference update (LA still Cambridge)
-      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo(thirdLa.name)
+      assertThat(result.data[1].extraInformation?.get("localAuthorityAreaName")).isEqualTo(thirdLa.name)
       assertThat(result.data[1].commitDate).isEqualTo(fourthRefUpdate.commitDate)
 
       // 7. Reference update (LA still Cambridge)
-      assertThat(result.data[2].extraInformation["localAuthorityAreaName"]).isEqualTo(thirdLa.name)
+      assertThat(result.data[2].extraInformation?.get("localAuthorityAreaName")).isEqualTo(thirdLa.name)
       assertThat(result.data[2].commitDate).isEqualTo(thirdRefUpdate.commitDate)
 
       // 6. LA change: Gloucester → Cambridge
-      assertThat(result.data[3].extraInformation["localAuthorityAreaName"]).isEqualTo(thirdLa.name)
+      assertThat(result.data[3].extraInformation?.get("localAuthorityAreaName")).isEqualTo(thirdLa.name)
       assertThat(result.data[3].commitDate).isEqualTo(thirdLaUpdate.commitDate)
 
       // 5. LA change: Oxford → Gloucester
-      assertThat(result.data[4].extraInformation["localAuthorityAreaName"]).isEqualTo(secondLa.name)
+      assertThat(result.data[4].extraInformation?.get("localAuthorityAreaName")).isEqualTo(secondLa.name)
       assertThat(result.data[4].commitDate).isEqualTo(secondLaUpdate.commitDate)
 
       // 4. Reference update (LA still Oxford)
-      assertThat(result.data[5].extraInformation["localAuthorityAreaName"]).isEqualTo(firstLa.name)
+      assertThat(result.data[5].extraInformation?.get("localAuthorityAreaName")).isEqualTo(firstLa.name)
       assertThat(result.data[5].commitDate).isEqualTo(secondRefUpdate.commitDate)
 
       // 3. LA change: Cherwell → Oxford
-      assertThat(result.data[6].extraInformation["localAuthorityAreaName"]).isEqualTo(firstLa.name)
+      assertThat(result.data[6].extraInformation?.get("localAuthorityAreaName")).isEqualTo(firstLa.name)
       assertThat(result.data[6].commitDate).isEqualTo(firstLaUpdate.commitDate)
 
       // 2. Reference update (LA still Cherwell)
-      assertThat(result.data[7].extraInformation["localAuthorityAreaName"]).isEqualTo(initialLa.name)
+      assertThat(result.data[7].extraInformation?.get("localAuthorityAreaName")).isEqualTo(initialLa.name)
       assertThat(result.data[7].commitDate).isEqualTo(firstRefUpdate.commitDate)
 
       // 1. Create event LA set to Cherwell
-      assertThat(result.data[8].extraInformation["localAuthorityAreaName"]).isEqualTo(initialLa.name)
+      assertThat(result.data[8].extraInformation?.get("localAuthorityAreaName")).isEqualTo(initialLa.name)
       assertThat(result.data[8].commitDate).isEqualTo(createRecord.commitDate)
     }
 
@@ -522,18 +468,18 @@ class DutyToReferQueryServiceTest {
         type = AuditRecordType.CREATE,
         commitDate = Instant.parse("2026-01-10T10:00:00Z"),
         changes = listOf(
-          CreateFieldChangeDto(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
+          FieldChange(field = "localAuthorityAreaId", value = localAuthorityAreaId.toString()),
         ),
       )
       val updateRecord = buildAuditRecordDto(
         type = AuditRecordType.UPDATE,
         commitDate = Instant.parse("2026-01-12T10:00:00Z"),
         changes = listOf(
-          UpdateFieldChangeDto(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
+          FieldChange(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
-      val noteAuthor1 = buildUserEntity(id = user1Id, name = "First user")
-      val noteAuthor2 = buildUserEntity(id = user2Id, name = "Second user")
+      val noteAuthor1 = buildUserEntity(id = user1Id, forename = "First", surname = "user")
+      val noteAuthor2 = buildUserEntity(id = user2Id, forename = "Second", surname = "user")
 
       every { dutyToReferRepository.findByIdAndCrnWithNotes(dtrEntity.id, crn) } returns dtrEntity
       every {
@@ -548,17 +494,17 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[0].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[0].commitDate).isEqualTo(note2CreatedAt)
       assertThat(result.data[0].author).isEqualTo("Second user")
-      assertThat(result.data[0].extraInformation["localAuthorityAreaName"]).isNull()
+      assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[1].type).isEqualTo(AuditRecordType.UPDATE)
       assertThat(result.data[1].commitDate).isEqualTo(updateRecord.commitDate)
-      assertThat(result.data[1].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
+      assertThat(result.data[1].extraInformation?.get("localAuthorityAreaName")).isEqualTo("Cherwell")
       assertThat(result.data[2].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[2].commitDate).isEqualTo(note1CreatedAt)
       assertThat(result.data[2].author).isEqualTo("First user")
-      assertThat(result.data[2].extraInformation["localAuthorityAreaName"]).isNull()
+      assertThat(result.data[2].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[3].type).isEqualTo(AuditRecordType.CREATE)
       assertThat(result.data[3].commitDate).isEqualTo(createRecord.commitDate)
-      assertThat(result.data[3].extraInformation["localAuthorityAreaName"]).isEqualTo("Cherwell")
+      assertThat(result.data[3].extraInformation?.get("localAuthorityAreaName")).isEqualTo("Cherwell")
     }
 
     @Test
@@ -575,7 +521,7 @@ class DutyToReferQueryServiceTest {
       type = AuditRecordType.UPDATE,
       commitDate = Instant.parse(at),
       changes = listOf(
-        UpdateFieldChangeDto(
+        FieldChange(
           field = "localAuthorityAreaId",
           value = to.toString(),
           oldValue = from.toString(),

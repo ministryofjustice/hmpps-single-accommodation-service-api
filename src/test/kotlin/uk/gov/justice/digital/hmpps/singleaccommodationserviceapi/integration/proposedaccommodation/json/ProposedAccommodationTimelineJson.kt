@@ -12,80 +12,88 @@ fun expectedGetProposedAccommodationTimelineResponse(
   "data": [
    {
       "type":"CREATE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$createCommitTime",
       "changes":[
          {
             "field":"id",
-            "value":"$proposedAccommodationId"
+            "value":"$proposedAccommodationId",
+            "oldValue":null
          },
          {
             "field":"caseId",
-            "value":"$caseId"
-         },
-         {
-            "field":"name",
-            "value":"Mother's caravan"
+            "value":"$caseId",
+            "oldValue":null
          },
          {
             "field":"accommodationTypeDescription",
-            "value":"$accommodationDescription"
+            "value":"$accommodationDescription",
+            "oldValue":null
          },
          {
             "field":"verificationStatus",
-            "value":"PASSED"
+            "value":"PASSED",
+            "oldValue":null
          },
          {
             "field":"nextAccommodationStatus",
-            "value":"NO"
+            "value":"NO",
+            "oldValue":null
          },
          {
             "field":"startDate",
-            "value":"2026-01-05"
+            "value":"2026-01-05",
+            "oldValue":null
          },
          {
             "field":"endDate",
-            "value":"2026-04-25"
+            "value":"2026-04-25",
+            "oldValue":null
          },
          {
             "field":"postcode",
-            "value":"test postcode"
-         },
-         {
-            "field":"subBuildingName",
-            "value":null
+            "value":"test postcode",
+            "oldValue":null
          },
          {
             "field":"buildingName",
-            "value":"test building name"
+            "value":"test building name",
+            "oldValue":null
          },
          {
             "field":"buildingNumber",
-            "value":"4"
+            "value":"4",
+            "oldValue":null
          },
          {
             "field":"throughfareName",
-            "value":"test thoroughfareName"
+            "value":"test thoroughfare",
+            "oldValue":null
          },
          {
             "field":"dependentLocality",
-            "value":"test dependent locality"
+            "value":"test dependent locality",
+            "oldValue":null
          },
          {
             "field":"postTown",
-            "value":"test post town"
+            "value":"test post town",
+            "oldValue":null
          },
          {
             "field":"county",
-            "value":"test county"
+            "value":"test county",
+            "oldValue":null
          },
          {
             "field":"country",
-            "value":"test country"
+            "value":"England",
+            "oldValue":null
          },
          {
             "field":"uprn",
-            "value":"UP123454"
+            "value": "test uprn",
+            "oldValue":null
          }
       ]
    }
@@ -96,29 +104,34 @@ fun expectedGetProposedAccommodationTimelineResponse(
 fun expectedGetProposedAccommodationTimelineResponse(
   proposedAccommodationId: UUID,
   caseId: UUID,
+  buildingName: String? = "test building name",
+  buildingNumber: String? = "4",
+  thoroughfareName: String? = "test thoroughfare",
+  dependentLocality: String? = "test dependent locality",
+  postTown: String? = "test post town",
+  county: String? = "test county",
+  country: String? = "England",
+  postcode: String = "test postcode",
+  uprn: String? = "test uprn",
   initialAccommodationTypeDescription: String,
   updatedAccommodationTypeDescription: String,
   createCommitTime: String,
   createNoteCommitTime: String,
+  update1Author: String,
   update1CommitTime: String,
   update2CommitTime: String,
-): String = """
+) = """
 {
   "data": [
    {
       "type":"UPDATE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$update2CommitTime",
       "changes":[
          {
             "field":"verificationStatus",
             "value":"PASSED",
             "oldValue":"FAILED"
-         },
-         {
-            "field":"nextAccommodationStatus",
-            "value":"YES",
-            "oldValue":"NO"
          },
          {
             "field":"startDate",
@@ -144,7 +157,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
    },
    {
       "type":"UPDATE",
-      "author":"Nomis User",
+      "author":"$update1Author",
       "commitDate":"$update1CommitTime",
       "changes":[
          {
@@ -156,6 +169,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"verificationStatus",
             "value":"FAILED",
             "oldValue":"PASSED"
+         },
+         {
+            "field": "nextAccommodationStatus",
+            "oldValue": "YES",
+            "value": "NO"
          },
          {
             "field":"startDate",
@@ -170,100 +188,194 @@ fun expectedGetProposedAccommodationTimelineResponse(
          {
             "field":"subBuildingName",
             "value":"another sub building name",
-            "oldValue":null
+            "oldValue":"test sub building name"
          }
       ]
    },
    {
       "type":"NOTE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$createNoteCommitTime",
       "changes":[
          {
             "field":"note",
-            "value":"Test note"
+            "value":"Test note",
+            "oldValue":null
          }
       ]
    },
    {
       "type":"CREATE",
-      "author":"DeliusUser",
+      "author":"Delius User",
       "commitDate":"$createCommitTime",
       "changes":[
          {
             "field":"id",
-            "value":"$proposedAccommodationId"
+            "value":"$proposedAccommodationId",
+            "oldValue":null
          },
          {
             "field":"caseId",
-            "value":"$caseId"
-         },
-         {
-            "field":"name",
-            "value":"Mother's caravan"
+            "value":"$caseId",
+            "oldValue":null
          },
          {
             "field":"accommodationTypeDescription",
-            "value":"$initialAccommodationTypeDescription"
+            "value":"$initialAccommodationTypeDescription",
+            "oldValue":null
          },
          {
             "field":"verificationStatus",
-            "value":"PASSED"
+            "value":"PASSED",
+            "oldValue":null
          },
          {
             "field":"nextAccommodationStatus",
-            "value":"NO"
+            "value":"YES",
+            "oldValue":null
          },
          {
             "field":"startDate",
-            "value":"2026-01-05"
+            "value":"2026-01-05",
+            "oldValue":null
          },
          {
             "field":"endDate",
-            "value":"2026-04-25"
+            "value":"2026-04-25",
+            "oldValue":null
          },
          {
             "field":"postcode",
-            "value":"test postcode"
+            "value":"$postcode",
+            "oldValue":null
          },
          {
             "field":"subBuildingName",
-            "value":null
+            "value":"test sub building name",
+            "oldValue":null
          },
          {
             "field":"buildingName",
-            "value":"test building name"
+            "value":"$buildingName",
+            "oldValue":null
          },
          {
             "field":"buildingNumber",
-            "value":"4"
+            "value":"$buildingNumber",
+            "oldValue":null
          },
          {
             "field":"throughfareName",
-            "value":"test thoroughfareName"
+            "value":"$thoroughfareName",
+            "oldValue":null
          },
          {
             "field":"dependentLocality",
-            "value":"test dependent locality"
+            "value":"$dependentLocality",
+            "oldValue":null
          },
          {
             "field":"postTown",
-            "value":"test post town"
+            "value":"$postTown",
+            "oldValue":null
          },
          {
             "field":"county",
-            "value":"test county"
+            "value":"$county",
+            "oldValue":null
          },
          {
             "field":"country",
-            "value":"test country"
+            "value":"$country",
+            "oldValue":null
          },
          {
             "field":"uprn",
-            "value":"UP123454"
+            "value":"$uprn",
+            "oldValue":null
          }
       ]
    }
   ]
+}
+""".trimIndent()
+
+fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
+  proposedAccommodationId: UUID,
+  caseId: UUID,
+  startDate: String,
+) = """
+{
+   "data":[
+      {
+         "type":"UPDATE",
+         "author":"nDelius user",
+         "commitDate":null,
+         "changes":[
+            {
+               "field":"buildingNumber",
+               "value":"15",
+               "oldValue":"11"
+            }
+         ]
+      },
+      {
+         "type":"CREATE",
+         "author":"nDelius user",
+         "commitDate":null,
+         "changes":[
+            {
+               "field":"id",
+               "value":"$proposedAccommodationId",
+               "oldValue":null
+            },
+            {
+               "field":"caseId",
+               "value":"$caseId",
+               "oldValue":null
+            },
+            {
+               "field":"accommodationTypeDescription",
+               "value":"Living in the home of a friend, family member or partner: transient",
+               "oldValue":null
+            },
+            {
+               "field":"verificationStatus",
+               "value":"PASSED",
+               "oldValue":null
+            },
+            {
+               "field":"nextAccommodationStatus",
+               "value":"YES",
+               "oldValue":null
+            },
+            {
+               "field":"startDate",
+               "value":"$startDate",
+               "oldValue":null
+            },
+            {
+               "field":"postcode",
+               "value":"W1 8XX",
+               "oldValue":null
+            },
+            {
+               "field":"buildingNumber",
+               "value":"11",
+               "oldValue":null
+            },
+            {
+               "field":"throughfareName",
+               "value":"Piccadilly Circus",
+               "oldValue":null
+            },
+            {
+               "field":"postTown",
+               "value":"London",
+               "oldValue":null
+            }
+         ]
+      }
+   ]
 }
 """.trimIndent()
