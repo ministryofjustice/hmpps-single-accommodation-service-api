@@ -76,15 +76,12 @@ class InboxEventDispatcher(
 
     log.info("Processing inbox batch [count={}, eventIds={}]", inboxEvents.size, inboxEvents.map { it.id })
 
-    val processedCount = AtomicInteger(0)
-    val notProcessedCount = AtomicInteger(0)
-    val failedCount = AtomicInteger(0)
-    val skippedCount = AtomicInteger(0)
+    val progressTracker = ProgressTracker()
 
     val (partitions, eventsWithoutHandlers) = partitionByKey(inboxEvents)
     eventsWithoutHandlers.forEach {
       log.error("No handler registered for event type [inboxEventId={}, eventType={}]", it.id, it.eventType)
-      skippedCount.incrementAndGet()
+      progressTracker.eventSkipped()
     }
     log.debug("Partitioned into {} groups", partitions.size)
 
@@ -92,7 +89,7 @@ class InboxEventDispatcher(
       partitions.map { (_, events) ->
         async(Dispatchers.IO) {
           concurrencyLimit.withPermit {
-            events.forEach { dispatchEvent(it, processedCount, notProcessedCount, failedCount, skippedCount) }
+            events.forEach { dispatchEvent(it, progressTracker) }
           }
         }
       }.awaitAll()
@@ -101,10 +98,10 @@ class InboxEventDispatcher(
     log.info(
       "Inbox batch complete [total={}, processed={}, notProcessed={}, failed={}, skipped={}]",
       inboxEvents.size,
-      processedCount.get(),
-      notProcessedCount.get(),
-      failedCount.get(),
-      skippedCount.get(),
+      progressTracker.processedCount.get(),
+      progressTracker.notProcessedCount.get(),
+      progressTracker.failedCount.get(),
+      progressTracker.skippedCount.get(),
     )
   }
 
@@ -124,35 +121,44 @@ class InboxEventDispatcher(
 
   private fun dispatchEvent(
     inboxEvent: InboxEventEntity,
-    processedCount: AtomicInteger,
-    notProcessedCount: AtomicInteger,
-    failedCount: AtomicInteger,
-    skippedCount: AtomicInteger,
+    progressTracker: ProgressTracker,
   ) {
     val handler =
       inboxEvent.resolveHandler()
         ?: run {
           log.debug("Registered handlers support: {}", eventTypeToHandlers.keys.map { it.typeName })
-          skippedCount.incrementAndGet()
+          progressTracker.eventSkipped()
           return
         }
 
     try {
       handler.handle(inboxEvent)
       when (inboxEvent.processedStatus) {
-        ProcessedStatus.PROCESSED -> processedCount.incrementAndGet()
-        ProcessedStatus.NOT_PROCESSED -> notProcessedCount.incrementAndGet()
-        ProcessedStatus.FAILED -> failedCount.incrementAndGet()
-        else -> skippedCount.incrementAndGet()
+        ProcessedStatus.PROCESSED -> progressTracker.eventProcessed()
+        ProcessedStatus.NOT_PROCESSED -> progressTracker.eventNotProcessed()
+        ProcessedStatus.FAILED -> progressTracker.eventFailed()
+        else -> progressTracker.eventSkipped()
       }
     } catch (e: Exception) {
       log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
       log.debug("Dispatch failure details", e)
-      failedCount.incrementAndGet()
+      progressTracker.eventFailed()
     }
   }
 
-  data class PartitioningResult(
+  private data class ProgressTracker(
+    val processedCount: AtomicInteger = AtomicInteger(0),
+    val notProcessedCount: AtomicInteger = AtomicInteger(0),
+    val failedCount: AtomicInteger = AtomicInteger(0),
+    val skippedCount: AtomicInteger = AtomicInteger(0),
+  ) {
+    fun eventSkipped() = skippedCount.incrementAndGet()
+    fun eventFailed() = failedCount.incrementAndGet()
+    fun eventProcessed() = processedCount.incrementAndGet()
+    fun eventNotProcessed() = processedCount.incrementAndGet()
+  }
+
+  private data class PartitioningResult(
     val partitions: Map<String, List<InboxEventEntity>>,
     val withoutHandlers: List<InboxEventEntity>,
   )
