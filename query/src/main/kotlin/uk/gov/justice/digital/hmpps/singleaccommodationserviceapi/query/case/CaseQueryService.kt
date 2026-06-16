@@ -100,17 +100,10 @@ class CaseQueryService(
   }
 
   private fun hasMandatoryCaseData(orchestrationResult: OrchestrationResultDto<CaseOrchestrationDto>) {
-    val getCaseFailure = orchestrationResult.upstreamFailures.firstOrNull { it.callKey == GET_CASE }
-    if (getCaseFailure != null) {
-      throw UpstreamFailureException(
-        failure = UpstreamFailureTransformer.toUpstreamFailureDto(failure = getCaseFailure),
-      )
-    }
-    val getCprFailure = orchestrationResult.upstreamFailures.firstOrNull { it.callKey == GET_CORE_PERSON_RECORD_BY_CRN }
-    if (getCprFailure != null) {
-      throw UpstreamFailureException(
-        failure = UpstreamFailureTransformer.toUpstreamFailureDto(failure = getCprFailure),
-      )
+    listOf(GET_CASE, GET_CORE_PERSON_RECORD_BY_CRN).forEach { key ->
+      orchestrationResult.upstreamFailures.firstOrNull { it.callKey == key }?.let {
+        throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
+      }
     }
   }
 
