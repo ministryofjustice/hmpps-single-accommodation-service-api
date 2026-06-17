@@ -20,11 +20,11 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
   private val log = LoggerFactory.getLogger(this::class.java)
   private val messages = Collections.synchronizedList(mutableListOf<HmppsDomainEvent>())
 
-  fun takeMessageOrNull(eventTypeName: String, eventDescription: String, detailUrl: String?, externalId: UUID? = null) = messages.singleOrNull {
+  fun takeMessageOrNull(eventTypeName: String, eventDescription: String, detailUrl: String?, cprAddressId: UUID? = null) = messages.singleOrNull {
     it.eventType == eventTypeName &&
       it.description == eventDescription &&
       it.detailUrl == detailUrl &&
-      (externalId == null || it.externalId == externalId)
+      (cprAddressId == null || it.additionalInformation["corePersonAddressId"] == cprAddressId.toString())
   }?.also { messages.remove(it) }
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
