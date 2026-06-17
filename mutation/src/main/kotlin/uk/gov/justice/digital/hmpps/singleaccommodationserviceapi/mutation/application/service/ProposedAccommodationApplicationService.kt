@@ -183,18 +183,20 @@ class ProposedAccommodationApplicationService(
     currentAccommodation: AccommodationSummaryDto?,
   ): ProposedAccommodationDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
-      .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
-    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
+    val currentAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)!!
+    val currentAccommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
       ?.let {
         accommodationStatusRepository.findByIdOrNull(it)
           .orThrowNotFound("id" to it)
       }
+    val accommodationTypeEntityToUpdate = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
+      .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
     val (aggregate, updatedRecord) = updateProposedAccommodationAndPersistToDatabase(
       accommodationSource = AccommodationSource.SAS,
       proposedAccommodationEntity = proposedAccommodationEntity,
-      accommodationTypeEntityToUpdate = accommodationTypeEntity,
-      currentAccommodationStatusEntity = accommodationStatusEntity,
+      currentAccommodationTypeEntity = currentAccommodationTypeEntity,
+      accommodationTypeEntityToUpdate = accommodationTypeEntityToUpdate,
+      currentAccommodationStatusEntity = currentAccommodationStatusEntity,
       proposedAccommodationDetailCommand,
       currentAccommodation,
     )
@@ -213,6 +215,7 @@ class ProposedAccommodationApplicationService(
   private fun updateProposedAccommodationAndPersistToDatabase(
     accommodationSource: AccommodationSource,
     proposedAccommodationEntity: ProposedAccommodationEntity,
+    currentAccommodationTypeEntity: AccommodationTypeEntity,
     accommodationTypeEntityToUpdate: AccommodationTypeEntity,
     currentAccommodationStatusEntity: AccommodationStatusEntity?,
     proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand,
@@ -220,8 +223,8 @@ class ProposedAccommodationApplicationService(
   ): Pair<ProposedAccommodationAggregate, ProposedAccommodationEntity> {
     val aggregate = ProposedAccommodationMapper.toAggregate(
       proposedAccommodationEntity,
-      accommodationTypeEntityToUpdate,
-      currentAccommodationStatusEntity,
+      accommodationTypeEntity = currentAccommodationTypeEntity,
+      accommodationStatusEntity = currentAccommodationStatusEntity,
       currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
@@ -378,11 +381,13 @@ class ProposedAccommodationApplicationService(
     deliusProposedAccommodationRecord: AccommodationDetailDto,
     currentAccommodation: AccommodationSummaryDto?,
   ) {
+    val currentAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(sasProposedAccommodationRecord.accommodationTypeId)!!
     val (isAccommodationTypeNullOrNonProbation, accommodationTypeEntity) = isAccommodationTypeNullOrNonProbation(deliusProposedAccommodationRecord)
     if (!isAccommodationTypeNullOrNonProbation) {
       updateProposedAccommodationAndPersistToDatabase(
         accommodationSource = sasProposedAccommodationRecord.accommodationSource,
         proposedAccommodationEntity = sasProposedAccommodationRecord,
+        currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         accommodationTypeEntityToUpdate = accommodationTypeEntity!!,
         currentAccommodationStatusEntity = sasProposedAccommodationRecord.accommodationStatusId?.let { accommodationStatusRepository.findByIdOrNull(it) },
         proposedAccommodationDetailCommand = ProposedAccommodationDetailCommand(

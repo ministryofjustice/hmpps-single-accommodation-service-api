@@ -1037,14 +1037,40 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should update 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
+  fun `should update address details on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
+    val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
+      existingBuildingName = "test building name",
+      newBuildingName = "NEW BUILDING NAME",
+      existingAccommodationTypeCode = AddressUsageCode.A07B,
+      newAccommodationTypeCode = AddressUsageCode.A07B,
+    )
+    shouldPublishUpdatedEvent(proposedAccommodationId = proposedAccommodationPersistedResult.id)
+  }
+
+  @Test
+  fun `should update accommodation type on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
+    val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
+      existingBuildingName = "test building name",
+      newBuildingName = "test building name",
+      existingAccommodationTypeCode = AddressUsageCode.A07B,
+      newAccommodationTypeCode = AddressUsageCode.A07A,
+    )
+    shouldPublishUpdatedEvent(proposedAccommodationId = proposedAccommodationPersistedResult.id)
+  }
+
+  private fun shouldUpdateConfirmedProposedAccommodation(
+    existingBuildingName: String,
+    newBuildingName: String,
+    existingAccommodationTypeCode: AddressUsageCode,
+    newAccommodationTypeCode: AddressUsageCode,
+  ): ProposedAccommodationEntity {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         cprAddressId = cprAddressId,
-        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
+        accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(existingAccommodationTypeCode.name)!!,
         accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!,
         subBuildingName = "test sub building name",
-        buildingName = "test building name",
+        buildingName = existingBuildingName,
         buildingNumber = "4",
         throughfareName = "test thoroughfare",
         dependentLocality = "test dependent locality",
@@ -1058,16 +1084,15 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         nextAccommodationStatus = EntityNextAccommodationStatus.YES,
       ),
     )
-    val addressUsageCode = AddressUsageCode.A01A
     val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          accommodationTypeCode = addressUsageCode.name,
+          accommodationTypeCode = newAccommodationTypeCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = "test sub building name",
-          buildingName = "NEW BUILDING NAME",
+          buildingName = newBuildingName,
           buildingNumber = "4",
           thoroughfareName = "test thoroughfare",
           dependentLocality = "test dependent locality",
@@ -1084,10 +1109,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .returnResult().responseBody!!
 
     val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
-    val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
+    val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(newAccommodationTypeCode.name)!!
     val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
 
-    assertThat(proposedAccommodationPersistedResult.buildingName).isEqualTo("NEW BUILDING NAME")
+    assertThat(proposedAccommodationPersistedResult.buildingName).isEqualTo(newBuildingName)
     assertThat(proposedAccommodationPersistedResult.postcode).isEqualTo("test postcode")
     assertThat(proposedAccommodationPersistedResult.cprAddressId).isEqualTo(cprAddressId)
     assertThat(proposedAccommodationPersistedResult.accommodationTypeId).isEqualTo(expectedAccommodationTypeEntity.id)
@@ -1101,12 +1126,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThatJson(result).matchesExpectedJson(
       expectedJson = expectedProposedAddressesResponseBody(
         id = existingEntity.id,
-        accommodationTypeCode = "A01A",
-        accommodationTypeDescription = "Owner of the property",
+        accommodationTypeCode = expectedAccommodationTypeEntity.code,
+        accommodationTypeDescription = expectedAccommodationTypeEntity.name,
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         subBuildingName = "test sub building name",
-        buildingName = "NEW BUILDING NAME",
+        buildingName = newBuildingName,
         buildingNumber = "4",
         thoroughfareName = "test thoroughfare",
         dependentLocality = "test dependent locality",
@@ -1119,8 +1144,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
+    return proposedAccommodationPersistedResult
+  }
 
-    val detailUrl = "http://api-host/proposed-accommodations/${proposedAccommodationPersistedResult.id}"
+  private fun shouldPublishUpdatedEvent(proposedAccommodationId: UUID) {
+    val detailUrl = "http://api-host/proposed-accommodations/$proposedAccommodationId"
     assertMessageReceived(
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
@@ -1129,7 +1157,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     )
 
     assertThatOutboxIsAsExpected(
-      proposedAccommodationId = proposedAccommodationPersistedResult.id,
+      proposedAccommodationId = proposedAccommodationId,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
     )
   }
