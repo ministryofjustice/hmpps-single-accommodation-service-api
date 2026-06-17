@@ -148,6 +148,29 @@ class EligibilityTransformerTest {
   }
 
   @Test
+  fun `does not surface the CRS referral data when the CRS result is NOT_STARTED`() {
+    val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
+    val crs = buildServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = EligibilityKeys.SUBMIT_CRS_REFERRAL,
+      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+    )
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(),
+      dtr = buildServiceResult(),
+      crs = crs,
+      pa = buildServiceResult(),
+      data = data,
+    )
+
+    assertThat(actualEligibility.crs.commissionedRehabilitativeServices).isNull()
+  }
+
+  @Test
   fun `should transform to failed eligibility`() {
     val crn = "FAKECRN1"
     val expectedEligibility = buildEligibilityDto(crn)
