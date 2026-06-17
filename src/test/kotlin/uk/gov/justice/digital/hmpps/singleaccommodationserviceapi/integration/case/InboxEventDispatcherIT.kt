@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -109,7 +108,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     crns.forEach {
       TierStubs.getTierOKResponse(
         it,
-        buildTier(tierScore = TierScore.A3),
+        buildTier(tierScore = "A3"),
       )
     }
 
@@ -148,7 +147,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     crns.forEach {
       TierStubs.getTierOKResponse(
         it,
-        buildTier(tierScore = TierScore.A3),
+        buildTier(tierScore = "A3"),
       )
     }
 
@@ -206,7 +205,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
 
     TierStubs.getTierOKResponse(
       sharedCrn,
-      buildTier(tierScore = TierScore.A3),
+      buildTier(tierScore = "A3"),
     )
 
     val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
@@ -230,8 +229,8 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
       caseRepository.findByIdentifier(
         sharedCrn,
         IdentifierType.CRN,
-      )?.tierScore?.name,
-    ).isEqualTo(TierScore.A3.name)
+      )?.tierScore,
+    ).isEqualTo("A3")
   }
 
   @Autowired
@@ -248,7 +247,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     crns.forEach {
       TierStubs.getTierOKResponse(
         it,
-        buildTier(tierScore = TierScore.A3),
+        buildTier(tierScore = "A3"),
       )
     }
 
@@ -282,7 +281,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     crns.forEach {
       TierStubs.getTierOKResponse(
         it,
-        buildTier(tierScore = TierScore.A3),
+        buildTier(tierScore = "A3"),
         delayMs = delayMs,
       )
     }

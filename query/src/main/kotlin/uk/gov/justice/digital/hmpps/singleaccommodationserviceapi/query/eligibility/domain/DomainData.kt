@@ -36,7 +36,7 @@ data class DomainData(
     accommodationTypes: List<AccommodationTypeEntity>,
   ) : this(
     crn = crn,
-    tierScore = tier?.tierScore?.name,
+    tierScore = tier?.tierScore,
     sex = cpr?.sex?.code,
     currentAccommodation = currentAccommodation,
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
@@ -54,7 +54,7 @@ data class DomainData(
     dutyToRefer: DutyToReferDto?,
   ) : this(
     crn = crn,
-    tierScore = caseEntity?.tierScore?.name,
+    tierScore = caseEntity?.tierScore,
     sex = sexCode,
     currentAccommodation = null,
     currentAccommodationTypeEntity = null,

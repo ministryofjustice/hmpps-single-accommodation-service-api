@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -292,7 +291,7 @@ class EligibilityServiceTest {
     @Test
     fun `getDomainData returns correct DomainData`() {
       val endDate = LocalDate.now().plusDays(1)
-      val expectedTier = TierScore.A1
+      val expectedTier = "A1"
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1Application()
       val cas1CurrentPremises = buildCas1PremisesSummary()
@@ -345,7 +344,7 @@ class EligibilityServiceTest {
 
       val expected = buildDomainData(
         crn = crn,
-        tierScore = expectedTier.name,
+        tierScore = expectedTier,
         sex = cpr.sex!!.code,
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
