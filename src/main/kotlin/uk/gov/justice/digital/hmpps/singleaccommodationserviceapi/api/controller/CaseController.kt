@@ -28,12 +28,13 @@ class CaseController(
     val personDtos = caseQueryService.getCaseList()
     val upstreamFailures = personDtos.upstreamFailures.toMutableList()
 
-    val crnsOnCaselist = personDtos.data.associate { it.crn to it.nomsNumber }
-    val unpersistedCrns = caseApplicationService.findUnpersistedCrns(crnsOnCaselist.keys.toList())
+    val crnsToPrisonNumbers = personDtos.data.associate { it.crn to it.nomsNumber }
+    val caseListCrns = personDtos.data.map { it.crn }
+    val unpersistedCrns = caseApplicationService.findUnpersistedCrns(caseListCrns)
     if (unpersistedCrns.isNotEmpty()) {
       val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
       upstreamFailures += casesToAdd.upstreamFailures
-      caseApplicationService.upsertCases(casesToAdd.data, crnsOnCaselist)
+      caseApplicationService.upsertCases(casesToAdd.data, crnsToPrisonNumbers)
     }
     val result =
       caseQueryService.getCases(personDtos.data, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode)

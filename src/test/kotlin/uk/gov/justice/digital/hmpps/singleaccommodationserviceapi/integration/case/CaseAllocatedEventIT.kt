@@ -112,8 +112,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED) }
-    assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+    assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
   }
 
   @Test

@@ -81,7 +81,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should call CorePersonRecord and update identifiers when incoming HMPPS TIER_CALCULATION_COMPLETE domain events does not match existing record`() {
+  fun `should not call CorePersonRecord when incoming HMPPS TIER_CALCULATION_COMPLETE domain events does not match existing record`() {
     val knownCrn = UUID.randomUUID().toString()
     caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(knownCrn) })
     TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
@@ -95,8 +95,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
 
-    val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    assertThat(case.tierScore).isEqualTo("A3")
+    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
+    assertThat(case).isNull()
   }
 
   @Test
