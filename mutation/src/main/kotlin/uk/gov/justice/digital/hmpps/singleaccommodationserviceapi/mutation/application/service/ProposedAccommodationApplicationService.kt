@@ -318,7 +318,7 @@ class ProposedAccommodationApplicationService(
   }
 
   @Transactional
-  fun upsertDeliusOriginProposedAccommodation(
+  fun syncProposedAccommodationFromDelius(
     crn: String,
     currentAccommodation: AccommodationSummaryDto?,
     cprAccommodations: List<AccommodationDetailDto>,
@@ -337,7 +337,7 @@ class ProposedAccommodationApplicationService(
             deliusProposedAccommodationRecord = cprProposedAccommodation,
             currentAccommodation = currentAccommodation,
           )
-        } else if (AccommodationSource.DELIUS == sasProposedAccommodationRecord.accommodationSource) {
+        } else {
           updateDeliusOriginProposedAccommodationRecord(
             sasProposedAccommodationRecord = sasProposedAccommodationRecord,
             deliusProposedAccommodationRecord = cprProposedAccommodation,

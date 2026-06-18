@@ -48,7 +48,7 @@ class ProposedAccommodationController(
     val cprAccommodations = currentAndAllAccommodations.data.second
     if (cprAccommodations.isNotEmpty()) {
       val currentAccommodation = currentAndAllAccommodations.data.first
-      proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
+      proposedAccommodationApplicationService.syncProposedAccommodationFromDelius(
         crn,
         currentAccommodation,
         cprAccommodations,
