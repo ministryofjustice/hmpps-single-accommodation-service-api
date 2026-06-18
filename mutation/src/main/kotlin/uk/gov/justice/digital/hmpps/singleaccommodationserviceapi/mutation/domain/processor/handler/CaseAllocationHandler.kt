@@ -33,7 +33,7 @@ class CaseAllocationHandler(
   }
 
   @Transactional
-  override fun handle(inboxEvent: InboxEventEntity) {
+  override fun handle(inboxEvent: InboxEventEntity): InboxEventHandler.Result {
     log.info("Processing CaseAllocation event [inboxEventId={}]", inboxEvent.id)
 
     try {
@@ -41,13 +41,20 @@ class CaseAllocationHandler(
         "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
       }
       val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
-      if (onboardedTeamsCodes.contains(case.manager.team.code)) {
+      val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
+      if (shouldProcess) {
         caseApplicationService.upsertCase(case.crn, case.nomsId)
         inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.PROCESSED)
       } else {
         inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.NOT_PROCESSED)
       }
       log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+
+      return if (shouldProcess) {
+        InboxEventHandler.Result.PROCESSED
+      } else {
+        InboxEventHandler.Result.NOT_PROCESSED
+      }
     } catch (e: Exception) {
       log.error(
         "Failed to process CaseAllocation event [inboxEventId={}, error={}]",
@@ -56,6 +63,7 @@ class CaseAllocationHandler(
       )
       log.debug("CaseAllocation processing failure details", e)
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.FAILED)
+      return InboxEventHandler.Result.FAILED
     }
   }
 }

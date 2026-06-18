@@ -30,5 +30,11 @@ interface InboxEventHandler {
    * Do not rethrow - persist FAILED status and allow dispatcher to continue with next event
    *
    */
-  fun handle(inboxEvent: InboxEventEntity)
+  fun handle(inboxEvent: InboxEventEntity): Result
+
+  enum class Result {
+    PROCESSED,
+    NOT_PROCESSED,
+    FAILED,
+  }
 }

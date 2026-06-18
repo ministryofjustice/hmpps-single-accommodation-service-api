@@ -80,7 +80,7 @@ class InboxEventDispatcherTest {
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.PROCESSED,
+      result = InboxEventHandler.Result.PROCESSED,
     )
 
     val stats = inboxEventDispatcher(
@@ -105,7 +105,7 @@ class InboxEventDispatcherTest {
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.NOT_PROCESSED,
+      result = InboxEventHandler.Result.NOT_PROCESSED,
     )
 
     val stats = inboxEventDispatcher(
@@ -130,7 +130,7 @@ class InboxEventDispatcherTest {
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.FAILED,
+      result = InboxEventHandler.Result.FAILED,
     )
 
     val stats = inboxEventDispatcher(
@@ -146,31 +146,6 @@ class InboxEventDispatcherTest {
   }
 
   @Test
-  fun `handler returns PENDING, skip`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-    )
-
-    mockFindAllPending(listOf(event))
-
-    val handler = MockEventHandler(
-      supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.PENDING,
-    )
-
-    val stats = inboxEventDispatcher(
-      handlers = listOf(handler),
-    ).process()
-
-    assertThat(handler.processedEvents).containsExactly(event)
-
-    assertThat(stats.processedCount).isEqualTo(0)
-    assertThat(stats.notProcessedCount).isEqualTo(0)
-    assertThat(stats.skippedCount).isEqualTo(1)
-    assertThat(stats.failedCount).isEqualTo(0)
-  }
-
-  @Test
   fun `handler throws Exception, failed`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
@@ -181,6 +156,7 @@ class InboxEventDispatcherTest {
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
       responseException = Exception("error message"),
+      result = InboxEventHandler.Result.FAILED,
     )
 
     val stats = inboxEventDispatcher(
@@ -208,19 +184,19 @@ class InboxEventDispatcherTest {
 
   private data class MockEventHandler(
     val supportedEventType: IncomingHmppsDomainEventType,
-    val response: ProcessedStatus = ProcessedStatus.PENDING,
+    val result: InboxEventHandler.Result,
     val responseException: Throwable? = null,
     val processedEvents: MutableList<InboxEventEntity> = mutableListOf(),
   ) : InboxEventHandler {
     override fun supportedEventType() = supportedEventType
-    override fun handle(inboxEvent: InboxEventEntity) {
+    override fun handle(inboxEvent: InboxEventEntity): InboxEventHandler.Result {
       processedEvents.add(inboxEvent)
 
       if (responseException != null) {
         throw responseException
       }
 
-      inboxEvent.processedStatus = response
+      return result
     }
   }
 

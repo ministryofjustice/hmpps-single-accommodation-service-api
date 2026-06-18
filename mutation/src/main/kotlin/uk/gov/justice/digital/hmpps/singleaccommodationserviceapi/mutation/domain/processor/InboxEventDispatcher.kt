@@ -128,12 +128,10 @@ class InboxEventDispatcher(
     val handler = inboxEvent.resolveHandler()!!
 
     try {
-      handler.handle(inboxEvent)
-      when (inboxEvent.processedStatus) {
-        ProcessedStatus.PROCESSED -> progressTracker.eventProcessed()
-        ProcessedStatus.NOT_PROCESSED -> progressTracker.eventNotProcessed()
-        ProcessedStatus.FAILED -> progressTracker.eventFailed()
-        else -> progressTracker.eventSkipped()
+      when (handler.handle(inboxEvent)) {
+        InboxEventHandler.Result.PROCESSED -> progressTracker.eventProcessed()
+        InboxEventHandler.Result.NOT_PROCESSED -> progressTracker.eventNotProcessed()
+        InboxEventHandler.Result.FAILED -> progressTracker.eventFailed()
       }
     } catch (e: Exception) {
       log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)

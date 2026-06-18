@@ -32,7 +32,7 @@ class TierCalculationCompletionHandler(
   }
 
   @Transactional
-  override fun handle(inboxEvent: InboxEventEntity) {
+  override fun handle(inboxEvent: InboxEventEntity): InboxEventHandler.Result {
     log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
     log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
 
@@ -49,6 +49,8 @@ class TierCalculationCompletionHandler(
       caseApplicationService.updateTier(tier = tier, crn = crn)
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
       log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+
+      return InboxEventHandler.Result.PROCESSED
     } catch (e: Exception) {
       log.error(
         "Failed to process tier event [inboxEventId={}, error={}]",
@@ -57,6 +59,7 @@ class TierCalculationCompletionHandler(
       )
       log.debug("Tier processing failure details", e)
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
+      return InboxEventHandler.Result.FAILED
     }
   }
 }
