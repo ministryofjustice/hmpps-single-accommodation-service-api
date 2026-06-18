@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.domain.processor
 
-import io.mockk.Called
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -8,13 +7,10 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
@@ -27,14 +23,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 class InboxEventDispatcherTest {
 
   @RelaxedMockK
-  lateinit var inboxEventRepository: InboxEventRepository
-
-  @RelaxedMockK
   lateinit var inboxEventService: InboxEventService
 
   @Test
   fun `no events, do nothing`() {
-    mockFindAllPending(emptyList())
+    every { inboxEventService.findPendingOldestFirst(10) } returns emptyList()
 
     val stats = inboxEventDispatcher().process()
 
@@ -43,12 +36,12 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
 
-    verify { inboxEventService wasNot Called }
+    verifyNoEventUpdatesMade()
   }
 
   @Test
   fun `single event, no handler, skip`() {
-    mockFindAllPending(listOf(buildPendingInboxEventEntity()))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(buildPendingInboxEventEntity())
 
     val stats = inboxEventDispatcher(
       handlers = emptyList(),
@@ -59,7 +52,7 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
 
-    verify { inboxEventService wasNot Called }
+    verifyNoEventUpdatesMade()
   }
 
   @Test
@@ -68,7 +61,7 @@ class InboxEventDispatcherTest {
       eventType = "non.existent.eventType",
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val stats = inboxEventDispatcher(
       handlers = emptyList(),
@@ -79,7 +72,7 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
 
-    verify { inboxEventService wasNot Called }
+    verifyNoEventUpdatesMade()
   }
 
   @Test
@@ -88,7 +81,7 @@ class InboxEventDispatcherTest {
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
@@ -115,7 +108,7 @@ class InboxEventDispatcherTest {
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
@@ -142,7 +135,7 @@ class InboxEventDispatcherTest {
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
@@ -169,7 +162,7 @@ class InboxEventDispatcherTest {
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
@@ -194,7 +187,6 @@ class InboxEventDispatcherTest {
   private fun inboxEventDispatcher(
     handlers: List<InboxEventHandler> = emptyList(),
   ) = InboxEventDispatcher(
-    inboxEventRepository = inboxEventRepository,
     handlers = handlers,
     dispatcherConfig = DispatcherConfig(
       maxEventsPerBatch = 10,
@@ -225,13 +217,7 @@ class InboxEventDispatcherTest {
     }
   }
 
-  private fun mockFindAllPending(pending: List<InboxEventEntity>) {
-    val pageable = PageRequest.of(
-      0,
-      10,
-      Sort.by("eventOccurredAt").ascending(),
-    )
-
-    every { inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable) } returns pending
+  private fun verifyNoEventUpdatesMade() {
+    verify(exactly = 0) { inboxEventService.updateInboxEventStatusAndSave(any(), any()) }
   }
 }

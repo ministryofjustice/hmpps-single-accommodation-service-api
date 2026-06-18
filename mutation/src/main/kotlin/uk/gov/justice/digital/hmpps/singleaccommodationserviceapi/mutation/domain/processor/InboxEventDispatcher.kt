@@ -11,14 +11,11 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -46,7 +43,6 @@ class DispatcherConfig(
 )
 @Component
 class InboxEventDispatcher(
-  private val inboxEventRepository: InboxEventRepository,
   handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
   private val inboxEventService: InboxEventService,
@@ -63,15 +59,9 @@ class InboxEventDispatcher(
     lockAtLeastFor = $$"${shedlock.inbox-event-dispatcher.lock-at-least-for}",
   )
   fun process() = runBlocking {
-    val pageable = PageRequest.of(
-      0,
-      dispatcherConfig.maxEventsPerBatch,
-      Sort.by("eventOccurredAt").ascending(),
-    )
-
     val progressTracker = ProgressTracker()
 
-    val inboxEvents = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
+    val inboxEvents = inboxEventService.findPendingOldestFirst(dispatcherConfig.maxEventsPerBatch)
     if (inboxEvents.isEmpty()) {
       return@runBlocking progressTracker.toStats()
     }
