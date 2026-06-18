@@ -29,6 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * never processed concurrently. This avoids race conditions when updating the same resource. Events
  * with different keys run in parallel using coroutines. Events are fetched ordered by
  * [eventOccurredAt] ascending; within each partition, this order is preserved.
+ *
+ * If processing of an event fails (either with a FAILED response or from it throwing an exception)
+ * it will be recorded as FAILED and a sentry alert raised
  */
 
 @Component
@@ -137,7 +140,7 @@ class InboxEventDispatcher(
           progressTracker.eventFailed()
         }
       }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
       sentryService.captureException(
         InboxEventDispatcherFailureException("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]", e),
       )

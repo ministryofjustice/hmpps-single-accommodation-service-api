@@ -25,11 +25,12 @@ interface InboxEventHandler {
 
   /**
    * Process the inbox event. Should run in its own transaction to make success or failure isolated per
-   * event.
+   * event. This function should be idempotent.
    *
-   * If an exception occurs do not rethrow, instead return [Result.FAILED], allowing the dispatcher to continue with
-   * the next event
+   * If [Result.FAILED] is returned an alert will be raised by the caller
    *
+   * Exceptions can be rethrown to the caller, in which case an alert will be raised and the event will
+   * be treated as if [Result.FAILED] has been returned
    */
   fun handle(inboxEvent: InboxEvent): Result
 

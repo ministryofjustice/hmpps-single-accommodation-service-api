@@ -82,7 +82,7 @@ class InboxEventDispatcherTest {
   }
 
   @Test
-  fun `handler returns PROCESSED`() {
+  fun `handler returns PROCESSED, update event processed state to PROCESSED`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
@@ -109,7 +109,7 @@ class InboxEventDispatcherTest {
   }
 
   @Test
-  fun `handler returns NOT PROCESSED`() {
+  fun `handler returns NOT PROCESSED, update event processed state to NOT_PROCESSED`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
@@ -136,7 +136,7 @@ class InboxEventDispatcherTest {
   }
 
   @Test
-  fun `handler returns FAILED`() {
+  fun `handler returns FAILED, update event processed state to FAILED and raise alert`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
@@ -164,7 +164,7 @@ class InboxEventDispatcherTest {
   }
 
   @Test
-  fun `handler throws Exception, failed`() {
+  fun `handler throws Exception, ,update event processed state to FAILED and raise alert`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
