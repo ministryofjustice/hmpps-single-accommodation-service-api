@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -12,8 +13,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher.InboxEventDispatcherFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 /**
@@ -24,6 +27,9 @@ class InboxEventDispatcherTest {
 
   @RelaxedMockK
   lateinit var inboxEventService: InboxEventService
+
+  @RelaxedMockK
+  lateinit var sentryService: SentryService
 
   @Test
   fun `no events, do nothing`() {
@@ -164,9 +170,11 @@ class InboxEventDispatcherTest {
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
+    val exception = Exception("error message")
+
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      responseException = Exception("error message"),
+      responseException = exception,
       result = InboxEventHandler.Result.FAILED,
     )
 
@@ -182,6 +190,12 @@ class InboxEventDispatcherTest {
     assertThat(stats.failedCount).isEqualTo(1)
 
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
+
+    val raisedExceptionSlot = slot<InboxEventDispatcherFailureException>()
+    verify { sentryService.captureException(capture(raisedExceptionSlot)) }
+
+    assertThat(raisedExceptionSlot.captured.message).isEqualTo("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]")
+    assertThat(raisedExceptionSlot.captured.cause).isEqualTo(exception)
   }
 
   private fun inboxEventDispatcher(
@@ -193,6 +207,7 @@ class InboxEventDispatcherTest {
       maxConcurrentEvents = 4,
     ),
     inboxEventService = inboxEventService,
+    sentryService = sentryService,
   )
 
   private data class MockEventHandler(

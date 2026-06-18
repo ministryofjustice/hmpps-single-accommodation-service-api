@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -46,6 +47,7 @@ class InboxEventDispatcher(
   handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
   private val inboxEventService: InboxEventService,
+  private val sentryService: SentryService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -135,12 +137,18 @@ class InboxEventDispatcher(
         }
       }
     } catch (e: Exception) {
-      log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
-      log.debug("Dispatch failure details", e)
+      sentryService.captureException(
+        InboxEventDispatcherFailureException("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]", e),
+      )
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
       progressTracker.eventFailed()
     }
   }
+
+  class InboxEventDispatcherFailureException(
+    override val message: String,
+    override val cause: Throwable,
+  ) : Exception()
 
   private data class ProgressTracker(
     val processedCount: AtomicInteger = AtomicInteger(0),
