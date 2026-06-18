@@ -28,10 +28,10 @@ persistence,duty_to_refer,DutyToReferEntity,last_updated_at,TIMESTAMPTZ,Instant,
 persistence,duty_to_refer_note,DutyToReferNoteEntity,id,UUID,UUID,false,PK,,,,
 persistence,duty_to_refer_note,DutyToReferNoteEntity,duty_to_refer_id,UUID,UUID,false,"FK -> duty_to_refer.id",,,
 persistence,duty_to_refer_note,DutyToReferNoteEntity,note,TEXT,String,false,,,,
-persistence,duty_to_refer_note,DutyToReferNoteEntity,created_by_user_id,UUID,UUID,false,,,,"Inherited from BaseAuditedEntity"
-persistence,duty_to_refer_note,DutyToReferNoteEntity,created_at,TIMESTAMPTZ,Instant,false,,,,"Inherited from BaseAuditedEntity"
-persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_by_user_id,UUID,UUID,false,,,,"Inherited from BaseAuditedEntity"
-persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,false,,,,"Inherited from BaseAuditedEntity"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,created_by_user_id,UUID,UUID,true,,,"","Inherited from BaseAuditedEntity (Kotlin UUID?); migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,"","Inherited from BaseAuditedEntity (Kotlin Instant?); migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,"","Inherited from BaseAuditedEntity (Kotlin UUID?); migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,"","Inherited from BaseAuditedEntity (Kotlin Instant?); migration sets NOT NULL"
 persistence,proposed_accommodation,ProposedAccommodationEntity,id,UUID,UUID,false,PK,,,,
 persistence,proposed_accommodation,ProposedAccommodationEntity,case_id,UUID,UUID,false,"FK -> sas_case.id",,,
 persistence,proposed_accommodation,ProposedAccommodationEntity,cpr_address_id,UUID,UUID,true,,,,
