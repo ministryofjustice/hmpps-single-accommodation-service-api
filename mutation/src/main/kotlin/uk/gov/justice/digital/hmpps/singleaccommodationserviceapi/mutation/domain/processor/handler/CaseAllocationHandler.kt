@@ -9,14 +9,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
 class CaseAllocationHandler(
-  private val inboxEventService: InboxEventService,
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
@@ -44,9 +41,6 @@ class CaseAllocationHandler(
       val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
       if (shouldProcess) {
         caseApplicationService.upsertCase(case.crn, case.nomsId)
-        inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.PROCESSED)
-      } else {
-        inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.NOT_PROCESSED)
       }
       log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
 
@@ -62,7 +56,6 @@ class CaseAllocationHandler(
         e.message,
       )
       log.debug("CaseAllocation processing failure details", e)
-      inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.FAILED)
       return InboxEventHandler.Result.FAILED
     }
   }

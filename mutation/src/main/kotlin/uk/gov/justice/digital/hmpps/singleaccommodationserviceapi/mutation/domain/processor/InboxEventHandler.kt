@@ -24,10 +24,10 @@ interface InboxEventHandler {
 
   /**
    * Process the inbox event. Should run in its own transaction to make success or failure isolated per
-   * event. Handler must update inboxEvent.processedStatus and inboxEvent.processedAt before
-   * returning.
+   * event.
    *
-   * Do not rethrow - persist FAILED status and allow dispatcher to continue with next event
+   * If an exception occurs do not rethrow, instead return [Result.FAILED], allowing the dispatcher to continue with
+   * the next event
    *
    */
   fun handle(inboxEvent: InboxEventEntity): Result

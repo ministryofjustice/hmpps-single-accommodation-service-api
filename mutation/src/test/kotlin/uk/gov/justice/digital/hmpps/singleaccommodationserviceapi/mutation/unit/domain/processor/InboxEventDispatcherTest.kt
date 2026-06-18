@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.domain.processor
 
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -13,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
@@ -26,6 +29,9 @@ class InboxEventDispatcherTest {
   @RelaxedMockK
   lateinit var inboxEventRepository: InboxEventRepository
 
+  @RelaxedMockK
+  lateinit var inboxEventService: InboxEventService
+
   @Test
   fun `no events, do nothing`() {
     mockFindAllPending(emptyList())
@@ -36,6 +42,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService wasNot Called }
   }
 
   @Test
@@ -50,6 +58,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService wasNot Called }
   }
 
   @Test
@@ -68,6 +78,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService wasNot Called }
   }
 
   @Test
@@ -93,6 +105,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.PROCESSED) }
   }
 
   @Test
@@ -118,6 +132,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(1)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.NOT_PROCESSED) }
   }
 
   @Test
@@ -143,6 +159,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(1)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
   }
 
   @Test
@@ -169,6 +187,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(1)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
   }
 
   private fun inboxEventDispatcher(
@@ -180,6 +200,7 @@ class InboxEventDispatcherTest {
       maxEventsPerBatch = 10,
       maxConcurrentEvents = 4,
     ),
+    inboxEventService = inboxEventService,
   )
 
   private data class MockEventHandler(

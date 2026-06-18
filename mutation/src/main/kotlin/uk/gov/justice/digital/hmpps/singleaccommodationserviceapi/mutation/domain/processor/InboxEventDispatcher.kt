@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -48,6 +49,7 @@ class InboxEventDispatcher(
   private val inboxEventRepository: InboxEventRepository,
   handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
+  private val inboxEventService: InboxEventService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -129,13 +131,23 @@ class InboxEventDispatcher(
 
     try {
       when (handler.handle(inboxEvent)) {
-        InboxEventHandler.Result.PROCESSED -> progressTracker.eventProcessed()
-        InboxEventHandler.Result.NOT_PROCESSED -> progressTracker.eventNotProcessed()
-        InboxEventHandler.Result.FAILED -> progressTracker.eventFailed()
+        InboxEventHandler.Result.PROCESSED -> {
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
+          progressTracker.eventProcessed()
+        }
+        InboxEventHandler.Result.NOT_PROCESSED -> {
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.NOT_PROCESSED)
+          progressTracker.eventNotProcessed()
+        }
+        InboxEventHandler.Result.FAILED -> {
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
+          progressTracker.eventFailed()
+        }
       }
     } catch (e: Exception) {
       log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
       log.debug("Dispatch failure details", e)
+      inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
       progressTracker.eventFailed()
     }
   }

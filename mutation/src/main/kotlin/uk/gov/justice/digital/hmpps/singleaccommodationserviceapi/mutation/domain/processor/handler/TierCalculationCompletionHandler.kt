@@ -8,15 +8,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
 class TierCalculationCompletionHandler(
-  private val inboxEventService: InboxEventService,
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val tierClient: TierClient,
@@ -47,7 +44,6 @@ class TierCalculationCompletionHandler(
 
       log.debug("Updating case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
       caseApplicationService.updateTier(tier = tier, crn = crn)
-      inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
       log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
 
       return InboxEventHandler.Result.PROCESSED
@@ -58,7 +54,6 @@ class TierCalculationCompletionHandler(
         e.message,
       )
       log.debug("Tier processing failure details", e)
-      inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
       return InboxEventHandler.Result.FAILED
     }
   }
