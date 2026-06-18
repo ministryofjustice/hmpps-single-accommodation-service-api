@@ -1,9 +1,9 @@
 domain,table,entity,column,sql_type,kotlin_type,nullable,key,enum_values,relationship,notes
 persistence,sas_case,CaseEntity,id,UUID,UUID,false,PK,,,"Renamed from cases in V0007"
 persistence,sas_case,CaseEntity,tier_score,TEXT,String,true,,,,"Originally column tier in V0006; renamed in V0014"
-persistence,sas_case,CaseEntity,cas1_application_placement_status,TEXT,Cas1PlacementStatus,true,,"SELECTED_FROM_UPSTREAM",,"Enum stored as string"
-persistence,sas_case,CaseEntity,cas1_application_request_for_placement_status,TEXT,Cas1RequestForPlacementStatus,true,,"SELECTED_FROM_UPSTREAM",,"Enum stored as string"
-persistence,sas_case,CaseEntity,cas1_application_application_status,TEXT,Cas1ApplicationStatus,true,,"SELECTED_FROM_UPSTREAM",,"Enum stored as string"
+persistence,sas_case,CaseEntity,cas1_application_placement_status,TEXT,Cas1PlacementStatus,true,,"ARRIVED|UPCOMING|DEPARTED|NOT_ARRIVED|CANCELLED",,"Enum stored as string"
+persistence,sas_case,CaseEntity,cas1_application_request_for_placement_status,TEXT,Cas1RequestForPlacementStatus,true,,"REQUEST_UNSUBMITTED|REQUEST_REJECTED|REQUEST_SUBMITTED|AWAITING_MATCH|REQUEST_WITHDRAWN|PLACEMENT_BOOKED",,"Enum stored as string"
+persistence,sas_case,CaseEntity,cas1_application_application_status,TEXT,Cas1ApplicationStatus,true,,"AWAITING_ASSESSMENT|UNALLOCATED_ASSESSMENT|ASSESSMENT_IN_PROGRESS|AWAITING_PLACEMENT|PLACEMENT_ALLOCATED|REQUEST_FOR_FURTHER_INFORMATION|PENDING_PLACEMENT_REQUEST|STARTED|REJECTED|INAPPLICABLE|WITHDRAWN|EXPIRED",,"Enum stored as string"
 persistence,sas_case,CaseEntity,cas1_application_id,UUID,UUID,true,,,,
 persistence,sas_case_identifier,CaseIdentifierEntity,id,UUID,UUID,false,PK,,,,
 persistence,sas_case_identifier,CaseIdentifierEntity,case_id,UUID,UUID,false,"FK -> sas_case.id",,,"Many identifiers to one case"
@@ -22,16 +22,16 @@ persistence,duty_to_refer,DutyToReferEntity,outcome_reason,VARCHAR(80),OutcomeRe
 persistence,duty_to_refer,DutyToReferEntity,submission_note,TEXT,String,true,,,,
 persistence,duty_to_refer,DutyToReferEntity,outcome_note,TEXT,String,true,,,,
 persistence,duty_to_refer,DutyToReferEntity,created_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
-persistence,duty_to_refer,DutyToReferEntity,created_at,TIMESTAMPTZ,Instant,false,,, ,"Inherited from BaseAuditedEntity; default now()"
+persistence,duty_to_refer,DutyToReferEntity,created_at,TIMESTAMPTZ,Instant,true,,, ,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL/default now()"
 persistence,duty_to_refer,DutyToReferEntity,last_updated_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
 persistence,duty_to_refer,DutyToReferEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity"
 persistence,duty_to_refer_note,DutyToReferNoteEntity,id,UUID,UUID,false,PK,,,,
 persistence,duty_to_refer_note,DutyToReferNoteEntity,duty_to_refer_id,UUID,UUID,false,"FK -> duty_to_refer.id",,,
 persistence,duty_to_refer_note,DutyToReferNoteEntity,note,TEXT,String,false,,,,
-persistence,duty_to_refer_note,DutyToReferNoteEntity,created_by_user_id,UUID,UUID,true,,,"","Inherited from BaseAuditedEntity (Kotlin UUID?); migration sets NOT NULL"
-persistence,duty_to_refer_note,DutyToReferNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,"","Inherited from BaseAuditedEntity (Kotlin Instant?); migration sets NOT NULL"
-persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,"","Inherited from BaseAuditedEntity (Kotlin UUID?); migration sets NOT NULL"
-persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,"","Inherited from BaseAuditedEntity (Kotlin Instant?); migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,created_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
 persistence,proposed_accommodation,ProposedAccommodationEntity,id,UUID,UUID,false,PK,,,,
 persistence,proposed_accommodation,ProposedAccommodationEntity,case_id,UUID,UUID,false,"FK -> sas_case.id",,,
 persistence,proposed_accommodation,ProposedAccommodationEntity,cpr_address_id,UUID,UUID,true,,,,
@@ -56,16 +56,16 @@ persistence,proposed_accommodation,ProposedAccommodationEntity,accommodation_sou
 persistence,proposed_accommodation,ProposedAccommodationEntity,no_fixed_abode,BOOLEAN,Boolean,true,,,,
 persistence,proposed_accommodation,ProposedAccommodationEntity,type_verified,BOOLEAN,Boolean,true,,,,
 persistence,proposed_accommodation,ProposedAccommodationEntity,created_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
-persistence,proposed_accommodation,ProposedAccommodationEntity,created_at,TIMESTAMPTZ,Instant,false,,,,"Inherited from BaseAuditedEntity; default now()"
+persistence,proposed_accommodation,ProposedAccommodationEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL/default now()"
 persistence,proposed_accommodation,ProposedAccommodationEntity,last_updated_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
 persistence,proposed_accommodation,ProposedAccommodationEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity"
 persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,id,UUID,UUID,false,PK,,,,
 persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,proposed_accommodation_id,UUID,UUID,false,"FK -> proposed_accommodation.id",,,
 persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,note,TEXT,String,false,,,,
-persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,created_by_user_id,UUID,UUID,true,,,"","Inherited from BaseAuditedEntity (Kotlin UUID?); migration sets NOT NULL"
-persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,"","Inherited from BaseAuditedEntity (Kotlin Instant?); migration sets NOT NULL"
-persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,"","Inherited from BaseAuditedEntity (Kotlin UUID?); migration sets NOT NULL"
-persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,"","Inherited from BaseAuditedEntity (Kotlin Instant?); migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,created_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
 persistence,accommodation_type,AccommodationTypeEntity,id,UUID,UUID,false,PK,,,,"Default gen_random_uuid()"
 persistence,accommodation_type,AccommodationTypeEntity,type_code,TEXT,String,false,UNIQUE,,,,
 persistence,accommodation_type,AccommodationTypeEntity,name,TEXT,String,false,UNIQUE,,,,

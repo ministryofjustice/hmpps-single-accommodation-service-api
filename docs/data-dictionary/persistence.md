@@ -21,9 +21,9 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 |---|---|---|---|---|---|---|
 | id | UUID | UUID | No | PK |  |  |
 | tier_score | TEXT | String | Yes |  |  | Renamed from `tier` in V0014 |
-| cas1_application_placement_status | TEXT | Cas1PlacementStatus | Yes |  | Upstream enum | Stored as string |
-| cas1_application_request_for_placement_status | TEXT | Cas1RequestForPlacementStatus | Yes |  | Upstream enum | Stored as string |
-| cas1_application_application_status | TEXT | Cas1ApplicationStatus | Yes |  | Upstream enum | Stored as string |
+| cas1_application_placement_status | TEXT | Cas1PlacementStatus | Yes |  | `ARRIVED`, `UPCOMING`, `DEPARTED`, `NOT_ARRIVED`, `CANCELLED` | Stored as string |
+| cas1_application_request_for_placement_status | TEXT | Cas1RequestForPlacementStatus | Yes |  | `REQUEST_UNSUBMITTED`, `REQUEST_REJECTED`, `REQUEST_SUBMITTED`, `AWAITING_MATCH`, `REQUEST_WITHDRAWN`, `PLACEMENT_BOOKED` | Stored as string |
+| cas1_application_application_status | TEXT | Cas1ApplicationStatus | Yes |  | `AWAITING_ASSESSMENT`, `UNALLOCATED_ASSESSMENT`, `ASSESSMENT_IN_PROGRESS`, `AWAITING_PLACEMENT`, `PLACEMENT_ALLOCATED`, `REQUEST_FOR_FURTHER_INFORMATION`, `PENDING_PLACEMENT_REQUEST`, `STARTED`, `REJECTED`, `INAPPLICABLE`, `WITHDRAWN`, `EXPIRED` | Stored as string |
 | cas1_application_id | UUID | UUID | Yes |  |  |  |
 
 ### CaseIdentifierEntity (`sas_case_identifier`)
@@ -52,7 +52,7 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | submission_note | TEXT | String | Yes |  |  |  |
 | outcome_note | TEXT | String | Yes |  |  |  |
 | created_by_user_id | UUID | UUID | Yes | FK -> `sas_user.id` |  | inherited from `BaseAuditedEntity` |
-|| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL/default `now()`) |
+| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL/default `now()` |
 | last_updated_by_user_id | UUID | UUID | Yes | FK -> `sas_user.id` |  | inherited from `BaseAuditedEntity` |
 | last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` |
 
@@ -63,10 +63,10 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | id | UUID | UUID | No | PK |  |  |
 | duty_to_refer_id | UUID | UUID | No | FK -> `duty_to_refer.id` |  |  |
 | note | TEXT | String | No |  |  |  |
-|| created_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `UUID?`; migration sets NOT NULL) |
-|| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL) |
-|| last_updated_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `UUID?`; migration sets NOT NULL) |
-|| last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL) |
+| created_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
+| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
+| last_updated_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
+| last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
 
 ### ProposedAccommodationEntity (`proposed_accommodation`)
 
@@ -96,7 +96,7 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | no_fixed_abode | BOOLEAN | Boolean | Yes |  |  |  |
 | type_verified | BOOLEAN | Boolean | Yes |  |  |  |
 | created_by_user_id | UUID | UUID | Yes | FK -> `sas_user.id` |  | inherited from `BaseAuditedEntity` |
-|| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL/default `now()`) |
+| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL/default `now()` |
 | last_updated_by_user_id | UUID | UUID | Yes | FK -> `sas_user.id` |  | inherited from `BaseAuditedEntity` |
 | last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` |
 
@@ -107,10 +107,10 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | id | UUID | UUID | No | PK |  |  |
 | proposed_accommodation_id | UUID | UUID | No | FK -> `proposed_accommodation.id` |  |  |
 | note | TEXT | String | No |  |  |  |
-| created_by_user_id | UUID | UUID | No |  |  | inherited from `BaseAuditedEntity` |
-| created_at | TIMESTAMPTZ | Instant | No |  |  | inherited from `BaseAuditedEntity` |
-| last_updated_by_user_id | UUID | UUID | No |  |  | inherited from `BaseAuditedEntity` |
-| last_updated_at | TIMESTAMPTZ | Instant | No |  |  | inherited from `BaseAuditedEntity` |
+| created_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
+| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
+| last_updated_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
+| last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
 
 ### AccommodationTypeEntity (`accommodation_type`)
 

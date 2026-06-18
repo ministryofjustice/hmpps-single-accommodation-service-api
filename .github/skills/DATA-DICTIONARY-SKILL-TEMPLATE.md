@@ -110,6 +110,7 @@ Produce, per domain in scope, under `[DOC_OUTPUT_PATH]`, the artefact(s) selecte
 
 1. **`<domain>.csv`** (when `format` is `csv` or `both`) — the machine-readable dictionary, one row per column. Standard columns:
    `domain,table,entity,column,sql_type,[LANGUAGE]_type,nullable,key,enum_values,relationship,notes`
+   Use `enum_values` for the actual persisted values. For enums stored as strings, list the exact string literals written to the database, not just the enum type name.
    See the [CSV template](./references/template.md) for exact formatting and quoting rules.
 
 2. **`<domain>.md`** (when `format` is `markdown` or `both`) — a **wiki-ready** (Confluence-friendly) document containing, subject to the `diagram` and `tables` options:
@@ -155,12 +156,14 @@ When `index = on` (default), also maintain `[DOC_OUTPUT_PATH]README.md` as an in
    - Column name from `[COLUMN_ANNOTATIONS]`, else the property name.
    - [LANGUAGE] type and nullability.
    - Key/constraint markers: PK, FK, UNIQUE, defaults.
-   - Enum columns — record the enum type and its allowed values.
+   - Enum columns — record the enum type and its allowed values, including the exact persisted string values when the enum is stored as a string.
    - Audit fields (created_at, updated_at, version, etc.).
+   - If the entity inherits fields from a mapped superclass or base class, resolve the inherited declaration first and use that source-level nullability/type in the output, even if the DDL later tightens the constraint.
 
 6. **Extract relationships.** Record each relationship (one-to-many, many-to-one, one-to-one, many-to-many) from `[RELATIONSHIP_ANNOTATIONS]` with its target entity, join column / join table, and cardinality. Note inheritance hierarchies.
+   - If a table has multiple audit foreign keys to the same user table, represent each FK explicitly by its column name (for example, `created_by_user_id` and `last_updated_by_user_id`) instead of collapsing them into a generic `audit_fields` relationship.
 
-7. **Cross-check against migrations and extract queries.** Search `[MIGRATION_PATH]` for the table's `CREATE TABLE` / `ALTER TABLE` / `CREATE VIEW` statements. Reconcile entity and migration; flag mismatches. For projections and views, extract and record the **native SQL query** (e.g., from code or migration). If an entity has **no** `CREATE TABLE`/`CREATE VIEW`, classify it as a query-backed projection (see step 4).
+7. **Cross-check against migrations and extract queries.** Search `[MIGRATION_PATH]` for the table's `CREATE TABLE` / `ALTER TABLE` / `CREATE VIEW` statements. Reconcile entity and migration; flag mismatches. If the DDL and entity disagree on nullability or type, document both sides explicitly in the row notes, for example: `Migration defines NOT NULL, Kotlin field is nullable` or `DDL uses JSONB, Kotlin type is String`. Do not silently normalize the mismatch to one side only. For projections and views, extract and record the **native SQL query** (e.g., from code or migration). If an entity has **no** `CREATE TABLE`/`CREATE VIEW`, classify it as a query-backed projection (see step 4).
 
 8. **Write the CSV** (when `format` is `csv` or `both`). Emit one row per column following the [CSV template](./references/template.md). Sort by `table`, then by column order in the entity. Quote any field containing commas.
 
@@ -173,7 +176,7 @@ When `index = on` (default), also maintain `[DOC_OUTPUT_PATH]README.md` as an in
 
    **Link paths:** the files live in `[DOC_OUTPUT_PATH]`, so links to repo sources are relative to that folder. Use the conventions of your project (e.g., `../../src/`, `../`, `./`).
 
-10. **Create the separate diagram file** `erd-<domain>.[EXT]` (when `format` is `markdown` or `both` and `diagram = on`). Generate an entity–relationship diagram showing each physical table and its relationships. Query-backed projections and view-backed entities are excluded from the diagram. The markdown document links to this file.
+10. **Create the separate diagram file** `erd-<domain>.[EXT]` (when `format` is `markdown` or `both` and `diagram = on`). Generate an entity–relationship diagram showing each physical table and its relationships. Query-backed projections and view-backed entities are excluded from the diagram. When a table has multiple audit FKs to the same user table, draw separate edges for each FK column instead of a single generic audit edge. The markdown document links to this file.
 
 11. **Update the index** `[DOC_OUTPUT_PATH]README.md` (when `index = on`) to link the new/updated artefact(s) for each domain.
 
@@ -186,8 +189,11 @@ Apply the checks relevant to the produced artefact(s):
 - Table name in the CSV matches the entity `[TABLE_NAME_SOURCE]` **and** the migration `CREATE TABLE` — unless the entity is a query-backed projection or view-backed entity, which by definition has no `CREATE TABLE`.
 - Deprecated entities are flagged clearly so consumers know not to use them.
 - Nullability and types reflect the source code; `sql_type` reflects the migration.
+- When DDL and entity metadata differ, the row notes must state both values and the nature of the mismatch, especially for nullability and type drift.
+- Inherited fields from mapped superclasses must be treated as entity fields for nullability/type extraction; do not infer their Kotlin nullability from the migration alone.
 - Every relationship names a concrete target entity and join mechanism.
-- Enum columns list all values in `enum_values`, not just the type name.
+- Audit relationships are shown per FK column; do not collapse multiple user audit FKs into a generic `audit_fields` edge.
+- Enum columns list all values in `enum_values`, not just the type name, and use the exact persisted string values for string-backed enums.
 - When the markdown is produced: column counts match the CSV.
 - All source links in `<domain>.md` resolve.
 - No entity in scope is silently skipped.
