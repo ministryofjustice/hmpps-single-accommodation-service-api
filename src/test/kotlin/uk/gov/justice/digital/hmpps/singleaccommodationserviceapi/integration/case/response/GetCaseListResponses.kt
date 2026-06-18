@@ -25,9 +25,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -51,9 +51,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -77,9 +77,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -103,9 +103,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -129,9 +129,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -155,10 +155,10 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral",
-            "Start an approved premises (CAS1) application",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_REFERRAL","startDate":null},
+            {"type":"START_APPROVED_PREMISE_APPLICATION","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -182,8 +182,8 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_REFERRAL","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -207,8 +207,8 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_REFERRAL","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -232,8 +232,8 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_REFERRAL","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -257,8 +257,8 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -282,9 +282,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Provide further information on an approved premises (CAS1) application"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"PROVIDE_INFORMATION","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -308,10 +308,10 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Start an approved premises (CAS1) application",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"START_APPROVED_PREMISE_APPLICATION","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -335,10 +335,10 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Continue an approved premises (CAS1) application",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"CONTINUE_APPROVED_PREMISE_APPLICATION","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -362,9 +362,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -388,9 +388,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -414,9 +414,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -440,9 +440,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false
@@ -466,9 +466,9 @@ fun expectedGetCaseListResponse(): String = """
          "nextAccommodation":null,
          "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
+            {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
          ],
          "userAccess":"FULL",
          "limitedAccess":false

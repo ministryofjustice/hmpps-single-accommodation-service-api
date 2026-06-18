@@ -57,7 +57,7 @@ fun expectedGetEligibilityResponse(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR referral outcome",
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -109,7 +109,7 @@ fun expectedGetEligibilityResponse(
          }
       },
       "caseActions":[
-         "Add DTR referral outcome"
+         {"type":"ADD_DTR_OUTCOME","startDate":null}
       ]
    }
 }
@@ -245,7 +245,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR referral outcome",
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -297,7 +297,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         "Add DTR referral outcome"
+         {"type":"ADD_DTR_OUTCOME","startDate":null}
       ]
    }
 }
@@ -359,7 +359,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR referral outcome",
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -410,7 +410,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         "Add DTR referral outcome"
+         {"type":"ADD_DTR_OUTCOME","startDate":null}
       ]
    }
 }
