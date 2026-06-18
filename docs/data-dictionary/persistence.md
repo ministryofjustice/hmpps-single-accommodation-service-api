@@ -96,7 +96,7 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | no_fixed_abode | BOOLEAN | Boolean | Yes |  |  |  |
 | type_verified | BOOLEAN | Boolean | Yes |  |  |  |
 | created_by_user_id | UUID | UUID | Yes | FK -> `sas_user.id` |  | inherited from `BaseAuditedEntity` |
-| created_at | TIMESTAMPTZ | Instant | No |  |  | inherited from `BaseAuditedEntity` |
+|| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL/default `now()`) |
 | last_updated_by_user_id | UUID | UUID | Yes | FK -> `sas_user.id` |  | inherited from `BaseAuditedEntity` |
 | last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` |
 
