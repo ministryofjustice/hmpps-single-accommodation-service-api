@@ -1,0 +1,152 @@
+erDiagram
+    SAS_CASE ||--o{ SAS_CASE_IDENTIFIER : case_id
+    SAS_CASE ||--o{ DUTY_TO_REFER : case_id
+    SAS_CASE ||--o{ PROPOSED_ACCOMMODATION : case_id
+    LOCAL_AUTHORITY_AREA ||--o{ DUTY_TO_REFER : local_authority_area_id
+    DUTY_TO_REFER ||--o{ DUTY_TO_REFER_NOTE : duty_to_refer_id
+    PROPOSED_ACCOMMODATION ||--o{ PROPOSED_ACCOMMODATION_NOTE : proposed_accommodation_id
+    ACCOMMODATION_TYPE ||--o{ PROPOSED_ACCOMMODATION : accommodation_type_id
+    ACCOMMODATION_STATUS ||--o{ PROPOSED_ACCOMMODATION : accommodation_status_id
+    SAS_USER ||--o{ DUTY_TO_REFER : audit_fields
+    SAS_USER ||--o{ PROPOSED_ACCOMMODATION : audit_fields
+
+    SAS_CASE {
+        uuid id PK
+        text tier_score
+        text cas1_application_placement_status
+        text cas1_application_request_for_placement_status
+        text cas1_application_application_status
+        uuid cas1_application_id
+    }
+    SAS_CASE_IDENTIFIER {
+        uuid id PK
+        uuid case_id FK
+        text identifier
+        text identifier_type
+        timestamptz created_at
+    }
+    DUTY_TO_REFER {
+        uuid id PK
+        uuid case_id FK
+        uuid local_authority_area_id FK
+        text reference_number
+        date submission_date
+        varchar status
+        varchar withdrawal_reason
+        text withdrawal_reason_other
+        varchar outcome_reason
+        text submission_note
+        text outcome_note
+        uuid created_by_user_id FK
+        timestamptz created_at
+        uuid last_updated_by_user_id FK
+        timestamptz last_updated_at
+    }
+    DUTY_TO_REFER_NOTE {
+        uuid id PK
+        uuid duty_to_refer_id FK
+        text note
+        uuid created_by_user_id
+        timestamptz created_at
+        uuid last_updated_by_user_id
+        timestamptz last_updated_at
+    }
+    PROPOSED_ACCOMMODATION {
+        uuid id PK
+        uuid case_id FK
+        uuid cpr_address_id
+        varchar name
+        uuid accommodation_type_id FK
+        uuid accommodation_status_id FK
+        varchar verification_status
+        varchar next_accommodation_status
+        date start_date
+        date end_date
+        text postcode
+        text sub_building_name
+        text building_name
+        text building_number
+        text throughfare_name
+        text dependent_locality
+        text post_town
+        text county
+        text country
+        text uprn
+        varchar accommodation_source
+        boolean no_fixed_abode
+        boolean type_verified
+        uuid created_by_user_id FK
+        timestamptz created_at
+        uuid last_updated_by_user_id FK
+        timestamptz last_updated_at
+    }
+    PROPOSED_ACCOMMODATION_NOTE {
+        uuid id PK
+        uuid proposed_accommodation_id FK
+        text note
+        uuid created_by_user_id
+        timestamptz created_at
+        uuid last_updated_by_user_id
+        timestamptz last_updated_at
+    }
+    ACCOMMODATION_TYPE {
+        uuid id PK
+        text type_code
+        text name
+        varchar settled_type
+        boolean active
+        boolean is_proposed
+        boolean is_private
+        boolean is_prison
+        boolean is_cas1
+        boolean is_cas2
+    }
+    ACCOMMODATION_STATUS {
+        uuid id PK
+        text status_code
+        text name
+        boolean active
+    }
+    LOCAL_AUTHORITY_AREA {
+        uuid id PK
+        text identifier
+        text name
+        boolean active
+    }
+    OUTBOX_EVENT {
+        uuid id PK
+        uuid aggregate_id
+        text aggregate_type
+        text domain_event_type
+        text payload
+        timestamptz created_at
+        varchar processed_status
+        timestamptz processed_at
+    }
+    INBOX_EVENT {
+        uuid id PK
+        text event_type
+        text event_detail_url
+        timestamptz event_occurred_at
+        timestamptz created_at
+        varchar processed_status
+        timestamptz processed_at
+        jsonb payload
+    }
+    SAS_USER {
+        uuid id PK
+        text username
+        varchar auth_source
+        text forename
+        text middle_names
+        text surname
+        text email
+        text telephone_number
+        text delius_staff_code
+        bigint nomis_staff_id
+        text nomis_account_type
+        text nomis_active_caseload_id
+        boolean is_enabled
+        boolean is_active
+        timestamptz created_at
+    }
