@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 
 @RestController
@@ -27,15 +28,13 @@ class CaseController(
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val personDtos = caseQueryService.getCaseList()
     val upstreamFailures = personDtos.upstreamFailures.toMutableList()
-
-    val crnsToPrisonNumbers = personDtos.data.associate { it.crn to it.nomsNumber }
-    val caseListCrns = personDtos.data.map { it.crn }
-    val unpersistedCrns = caseApplicationService.findUnpersistedCrns(caseListCrns)
+    val unpersistedCrns = caseQueryService.findUnpersistedCrns(personDtos.data.map { it.crn })
     if (unpersistedCrns.isNotEmpty()) {
-      val casesToAdd = caseApplicationService.getCasesFromOrchestrator(unpersistedCrns)
-      upstreamFailures += casesToAdd.upstreamFailures
-      caseApplicationService.upsertCases(casesToAdd.data, crnsToPrisonNumbers)
+      val crnsToPrisonNumbers =
+        personDtos.data.filter { it.crn in unpersistedCrns }.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
+      caseApplicationService.createCases(crnsToPrisonNumbers)
     }
+    // TODO: Add caseApplicationService.upsertCases() in here after MVP
     val result =
       caseQueryService.getCases(personDtos.data, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode)
 

@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
@@ -19,25 +17,14 @@ class CaseApplicationService(
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
 
-  fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
-
-  fun getCasesFromOrchestrator(crns: List<String>): ApiResponseDto<List<CaseMutationOrchestrationDto>> {
-    val casesOrchestrationResult = caseOrchestrationService.getCases(crns)
-    return ApiResponseDto(
-      casesOrchestrationResult.data,
-      upstreamFailures = casesOrchestrationResult.upstreamFailures.map { UpstreamFailureTransformer.toUpstreamFailureDto(it) },
-    )
-  }
-
   @Transactional
-  fun upsertCases(caseDtos: List<CaseMutationOrchestrationDto>, crnsToPrisonNumbers: Map<String, String?>) {
-    val casesToPersist = caseDtos.map { caseDto ->
-      val identifiersFromDelius = buildIdentifiers(crn = caseDto.crn, prisonNumber = crnsToPrisonNumbers[caseDto.crn])
-      CaseMapper.create(CaseAggregate.hydrateNew().snapshot(), identifiersFromDelius)
-    }
-    caseRepository.saveAll(casesToPersist)
-      .also { log.debug("Creating new Cases with identifiers: {}", casesToPersist.map { it.caseIdentifiers }) }
-  }
+  fun createCases(crns: List<CrnToPrisonNumber>) = crns.map {
+    CaseMapper.create(
+      CaseAggregate.hydrateNew().snapshot(),
+      buildIdentifiers(crn = it.crn, prisonNumber = it.prisonNumber),
+    )
+  }.also { caseRepository.saveAll(it) }
+    .also { log.debug("Creating {} new Cases for: {}", crns.size, crns.map { it.crn }) }
 
   @Transactional
   fun upsertCase(crn: String, prisonNumber: String?) = caseRepository.findByIdentifiers(crns = listOf(crn), prisonNumbers = prisonNumber?.let { listOf(it) })
@@ -93,3 +80,5 @@ class CaseApplicationService(
     prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
   }
 }
+
+data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)
