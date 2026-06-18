@@ -32,28 +32,18 @@ class TierCalculationCompletionHandler(
     log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
     log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
 
-    try {
-      val tier = tierClient.getTier(uri = inboxEvent.uri())
-      log.info("Tier fetched successfully [inboxEventId={}, tierScore={}]", inboxEvent.id, tier.tierScore)
-      log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, tier)
+    val tier = tierClient.getTier(uri = inboxEvent.uri())
+    log.info("Tier fetched successfully [inboxEventId={}, tierScore={}]", inboxEvent.id, tier.tierScore)
+    log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, tier)
 
-      val crn = checkNotNull(getPartitionKey(inboxEvent)) {
-        "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
-      }
-
-      log.debug("Updating case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-      caseApplicationService.updateTier(tier = tier, crn = crn)
-      log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-
-      return InboxEventHandler.Result.PROCESSED
-    } catch (e: Exception) {
-      log.error(
-        "Failed to process tier event [inboxEventId={}, error={}]",
-        inboxEvent.id,
-        e.message,
-      )
-      log.debug("Tier processing failure details", e)
-      return InboxEventHandler.Result.FAILED
+    val crn = checkNotNull(getPartitionKey(inboxEvent)) {
+      "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
+
+    log.debug("Updating case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+    caseApplicationService.updateTier(tier = tier, crn = crn)
+    log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+
+    return InboxEventHandler.Result.PROCESSED
   }
 }
