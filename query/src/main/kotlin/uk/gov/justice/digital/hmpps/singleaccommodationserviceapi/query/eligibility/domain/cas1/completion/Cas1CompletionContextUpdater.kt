@@ -109,7 +109,9 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
       else -> toNotEligibleServiceStatus(failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
     }
 
-    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> when (requestForPlacementStatus) {
+    Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+    -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
         action = EligibilityKeys.CREATE_PLACEMENT,

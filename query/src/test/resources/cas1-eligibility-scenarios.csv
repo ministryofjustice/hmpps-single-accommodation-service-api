@@ -197,8 +197,8 @@ TC423,Application without current accommodation end date created and assessed as
 TC115,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,AWAITING_MATCH,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
 TC250,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,AWAITING_MATCH,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
 TC385,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,AWAITING_MATCH,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
-TC31,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,AWAITING_MATCH,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
-TC166,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,AWAITING_MATCH,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
+TC31,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,AWAITING_MATCH,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
+TC166,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,AWAITING_MATCH,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
 TC301,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,AWAITING_MATCH,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
 TC288,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,ASSESSMENT_IN_PROGRESS,,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
 TC18,eligible,01/01/2025,M,A1,01/03/2025,ASSESSMENT_IN_PROGRESS,,,SUBMITTED,,View application,/applications/{applicationId},
@@ -267,8 +267,8 @@ TC121,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJE
 TC256,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,,PLACEMENT_REQUEST_REJECTED,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC424,Application without current accommodation end date created and assessed as suitable. Placement request created. Placement Assessment - Rejected,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,,PLACEMENT_REQUEST_REJECTED,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC391,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,REQUEST_REJECTED,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
-TC37,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_REJECTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
-TC172,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_REJECTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
+TC37,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_REJECTED,,PLACEMENT_REQUEST_REJECTED,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
+TC172,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_REJECTED,,PLACEMENT_REQUEST_REJECTED,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC307,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,REQUEST_REJECTED,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
 TC85,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,REQUEST_SUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
 TC220,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,REQUEST_SUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
@@ -277,8 +277,8 @@ TC397,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_R
 TC127,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
 TC262,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
 TC425,Application without current accommodation end date created and assessed as suitable. Placement request created & submitted,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_SUBMITTED,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
-TC43,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
-TC178,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
+TC43,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
+TC178,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,,PLACEMENT_REQUEST_SUBMITTED,,View application,/applications/{applicationId},
 TC313,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,REQUEST_SUBMITTED,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
 TC91,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,REQUEST_UNSUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
 TC226,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,REQUEST_UNSUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
@@ -287,8 +287,8 @@ TC133,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSU
 TC268,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,,PLACEMENT_REQUEST_NOT_STARTED,Create an approved premises (CAS1) placement request,Create placement request,/applications/{applicationId},
 TC426,Application without current accommodation end date created and assessed as suitable. No placement request created,01/01/2025,M,A1,02/01/2025,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,,PLACEMENT_REQUEST_NOT_STARTED,Create an approved premises (CAS1) placement request,Create placement request,/applications/{applicationId},
 TC403,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,REQUEST_UNSUBMITTED,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
-TC49,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
-TC184,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
+TC49,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,,PLACEMENT_REQUEST_NOT_STARTED,Create an approved premises (CAS1) placement request,Create placement request,/applications/{applicationId},
+TC184,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,,PLACEMENT_REQUEST_NOT_STARTED,Create an approved premises (CAS1) placement request,Create placement request,/applications/{applicationId},
 TC319,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,REQUEST_UNSUBMITTED,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
 TC97,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,,PLACEMENT_REQUEST_WITHDRAWN,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC232,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,REQUEST_WITHDRAWN,,PLACEMENT_REQUEST_WITHDRAWN,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
@@ -297,8 +297,8 @@ TC367,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,AWAITING_PLACEMENT,
 TC139,eligible,01/01/2025,M,A1,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_WITHDRAWN,,PLACEMENT_REQUEST_WITHDRAWN,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC274,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PENDING_PLACEMENT_REQUEST,REQUEST_WITHDRAWN,,PLACEMENT_REQUEST_WITHDRAWN,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC409,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PENDING_PLACEMENT_REQUEST,REQUEST_WITHDRAWN,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
-TC55,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_WITHDRAWN,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
-TC190,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_WITHDRAWN,,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
+TC55,eligible,01/01/2025,M,A1,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_WITHDRAWN,,PLACEMENT_REQUEST_WITHDRAWN,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
+TC190,ineligible but with application,01/01/2025,M,A1S,01/03/2025,PLACEMENT_ALLOCATED,REQUEST_WITHDRAWN,,PLACEMENT_REQUEST_WITHDRAWN,Create an approved premises (CAS1) placement request,Create new placement request,/applications/{applicationId},
 TC325,eligible but outside 1 year,01/01/2025,M,A1,01/03/2026,PLACEMENT_ALLOCATED,REQUEST_WITHDRAWN,,UPCOMING,Start an approved premises (CAS1) application in 59 days,,,
 TC76,eligible,01/01/2025,M,A1,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,NOT_ARRIVED,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
 TC211,ineligible but with application,01/01/2025,M,A1S,01/03/2025,AWAITING_PLACEMENT,AWAITING_MATCH,NOT_ARRIVED,NOT_ELIGIBLE,,,,"INVALID_APPLICATION_STATE"
