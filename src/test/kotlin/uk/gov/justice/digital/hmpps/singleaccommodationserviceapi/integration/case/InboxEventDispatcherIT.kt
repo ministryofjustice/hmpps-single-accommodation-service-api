@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
@@ -29,7 +30,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER
-import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -58,6 +58,9 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
   @Autowired
   lateinit var dispatcherConfig: DispatcherConfig
 
+  @Autowired
+  lateinit var concurrencyCounter: ConcurrencyCounter
+
   private val crn = UUID.randomUUID().toString()
 
   @BeforeEach
@@ -66,36 +69,6 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     databaseUtils.truncate(SAS_CASE, SAS_USER, DUTY_TO_REFER, INBOX_EVENT)
     dispatcherConfig.maxConcurrentEvents = 4
     dispatcherConfig.maxEventsPerBatch = 10
-  }
-
-  fun createInboxEvent(
-    eventOccurredAt: OffsetDateTime,
-    crn: String = this.crn,
-  ): InboxEventEntity {
-    val baseUrl = applicationContext.environment.getProperty("service.tier.base-url")
-    val detailUrl = "$baseUrl/crn/$crn/tier"
-    val payload =
-      SnsDomainEvent(
-        eventType = "tier.calculation.complete",
-        version = 1,
-        description = "Tier calculation complete",
-        detailUrl = detailUrl,
-        occurredAt = eventOccurredAt,
-        personReference =
-        PersonReference(
-          identifiers = listOf(PersonIdentifier("CRN", crn)),
-        ),
-      )
-    return InboxEventEntity(
-      id = UUID.randomUUID(),
-      eventType = "tier.calculation.complete",
-      eventDetailUrl = detailUrl,
-      eventOccurredAt = eventOccurredAt,
-      createdAt = Instant.now(),
-      processedStatus = ProcessedStatus.PENDING,
-      processedAt = null,
-      payload = jsonMapper.writeValueAsString(payload),
-    )
   }
 
   @Test
@@ -233,9 +206,6 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     ).isEqualTo("A3")
   }
 
-  @Autowired
-  lateinit var concurrencyCounter: ConcurrencyCounter
-
   @Test
   fun `processes at most 4 events concurrently due to semaphore limit`() {
     dispatcherConfig.maxEventsPerBatch = 5
@@ -308,5 +278,31 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     // With 4 events and semaphore(4), parallel execution: ~delayMs. Sequential would be
     // 4*delayMs.
     assertThat(elapsed).isLessThan((delayMs * 3).toLong())
+  }
+
+  private fun createInboxEvent(
+    eventOccurredAt: OffsetDateTime,
+    crn: String = this.crn,
+  ): InboxEventEntity {
+    val baseUrl = applicationContext.environment.getProperty("service.tier.base-url")
+    val detailUrl = "$baseUrl/crn/$crn/tier"
+    val payload =
+      SnsDomainEvent(
+        eventType = "tier.calculation.complete",
+        version = 1,
+        description = "Tier calculation complete",
+        detailUrl = detailUrl,
+        occurredAt = eventOccurredAt,
+        personReference =
+        PersonReference(
+          identifiers = listOf(PersonIdentifier("CRN", crn)),
+        ),
+      )
+    return buildPendingInboxEventEntity(
+      eventType = "tier.calculation.complete",
+      eventDetailUrl = detailUrl,
+      eventOccurredAt = eventOccurredAt,
+      payload = jsonMapper.writeValueAsString(payload),
+    )
   }
 }

@@ -42,7 +42,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class CaseAllocationHandlerIT : IntegrationTestBase() {
+class CaseAllocatedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
 

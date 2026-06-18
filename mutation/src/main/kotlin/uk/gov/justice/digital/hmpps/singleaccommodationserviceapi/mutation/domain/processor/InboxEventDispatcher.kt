@@ -51,7 +51,7 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val handlerMap: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
+  private val eventTypeToHandlers: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
@@ -67,24 +67,21 @@ class InboxEventDispatcher(
       Sort.by("eventOccurredAt").ascending(),
     )
 
+    val progressTracker = ProgressTracker()
+
     val inboxEvents = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
     if (inboxEvents.isEmpty()) {
-      return@runBlocking
+      return@runBlocking progressTracker.toStats()
     }
 
     val concurrencyLimit = Semaphore(dispatcherConfig.maxConcurrentEvents)
 
     log.info("Processing inbox batch [count={}, eventIds={}]", inboxEvents.size, inboxEvents.map { it.id })
 
-    val processedCount = AtomicInteger(0)
-    val notProcessedCount = AtomicInteger(0)
-    val failedCount = AtomicInteger(0)
-    val skippedCount = AtomicInteger(0)
-
-    val (partitions, noHandlerEvents) = partitionByKey(inboxEvents)
-    noHandlerEvents.forEach {
+    val (partitions, eventsWithoutHandlers) = partitionByKey(inboxEvents)
+    eventsWithoutHandlers.forEach {
       log.error("No handler registered for event type [inboxEventId={}, eventType={}]", it.id, it.eventType)
-      skippedCount.incrementAndGet()
+      progressTracker.eventSkipped()
     }
     log.debug("Partitioned into {} groups", partitions.size)
 
@@ -92,7 +89,7 @@ class InboxEventDispatcher(
       partitions.map { (_, events) ->
         async(Dispatchers.IO) {
           concurrencyLimit.withPermit {
-            events.forEach { dispatchEvent(it, processedCount, notProcessedCount, failedCount, skippedCount) }
+            events.forEach { dispatchEvent(it, progressTracker) }
           }
         }
       }.awaitAll()
@@ -101,67 +98,76 @@ class InboxEventDispatcher(
     log.info(
       "Inbox batch complete [total={}, processed={}, notProcessed={}, failed={}, skipped={}]",
       inboxEvents.size,
-      processedCount.get(),
-      notProcessedCount.get(),
-      failedCount.get(),
-      skippedCount.get(),
+      progressTracker.processedCount.get(),
+      progressTracker.notProcessedCount.get(),
+      progressTracker.failedCount.get(),
+      progressTracker.skippedCount.get(),
     )
+
+    progressTracker.toStats()
   }
 
   /**
-   * Groups events by partition key. Events with the same key are processed sequentially. Order
-   * within each partition preserves eventOccurredAt.
-   *
-   * Returns partitions and events with no registered handler.
+   * Groups events by partition key. The given event order is retained with-in the partition
+   * (i.e. by eventOccurredAt asc)
    */
   private fun partitionByKey(
     inboxEvents: List<InboxEventEntity>,
-  ): PartitionByKey {
-    val (withHandler, noHandler) =
-      inboxEvents.partition { event ->
-        IncomingHmppsDomainEventType.from(event.eventType)?.let { handlerMap[it] } != null
-      }
-    val partitions =
-      withHandler.groupBy { event ->
-        val handler =
-          IncomingHmppsDomainEventType.from(event.eventType)!!.let { handlerMap[it] }!!
-        handler.getPartitionKey(event) ?: event.id.toString()
-      }
-    return PartitionByKey(partitions, noHandler)
+  ): PartitioningResult {
+    val (withHandler, withoutHandler) = inboxEvents.partition { it.resolveHandler() != null }
+    val partitions: Map<String, List<InboxEventEntity>> = withHandler.groupBy { event ->
+      event.resolveHandler()!!.getPartitionKey(event) ?: event.id.toString()
+    }
+    return PartitioningResult(partitions, withoutHandler)
   }
 
   private fun dispatchEvent(
     inboxEvent: InboxEventEntity,
-    processedCount: AtomicInteger,
-    notProcessedCount: AtomicInteger,
-    failedCount: AtomicInteger,
-    skippedCount: AtomicInteger,
+    progressTracker: ProgressTracker,
   ) {
-    val handler =
-      IncomingHmppsDomainEventType.from(inboxEvent.eventType)?.let { handlerMap[it] }
-        ?: run {
-          log.debug("Registered handlers support: {}", handlerMap.keys.map { it.typeName })
-          skippedCount.incrementAndGet()
-          return
-        }
+    val handler = inboxEvent.resolveHandler()!!
 
     try {
       handler.handle(inboxEvent)
       when (inboxEvent.processedStatus) {
-        ProcessedStatus.PROCESSED -> processedCount.incrementAndGet()
-        ProcessedStatus.NOT_PROCESSED -> notProcessedCount.incrementAndGet()
-        ProcessedStatus.FAILED -> failedCount.incrementAndGet()
-        else -> skippedCount.incrementAndGet()
+        ProcessedStatus.PROCESSED -> progressTracker.eventProcessed()
+        ProcessedStatus.NOT_PROCESSED -> progressTracker.eventNotProcessed()
+        ProcessedStatus.FAILED -> progressTracker.eventFailed()
+        else -> progressTracker.eventSkipped()
       }
     } catch (e: Exception) {
       log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
       log.debug("Dispatch failure details", e)
-      failedCount.incrementAndGet()
+      progressTracker.eventFailed()
     }
   }
 
-  data class PartitionByKey(
-    val partitions: Map<String, List<InboxEventEntity>>,
-    val noHandlers: List<InboxEventEntity>,
+  private data class ProgressTracker(
+    val processedCount: AtomicInteger = AtomicInteger(0),
+    val notProcessedCount: AtomicInteger = AtomicInteger(0),
+    val failedCount: AtomicInteger = AtomicInteger(0),
+    val skippedCount: AtomicInteger = AtomicInteger(0),
+  ) {
+    fun eventSkipped() = skippedCount.incrementAndGet()
+    fun eventFailed() = failedCount.incrementAndGet()
+    fun eventProcessed() = processedCount.incrementAndGet()
+    fun eventNotProcessed() = notProcessedCount.incrementAndGet()
+    fun toStats() = EventDispatcherStats(processedCount.get(), notProcessedCount.get(), failedCount.get(), skippedCount.get())
+  }
+
+  data class EventDispatcherStats(
+    val processedCount: Int,
+    val notProcessedCount: Int,
+    val failedCount: Int,
+    val skippedCount: Int,
   )
+
+  private data class PartitioningResult(
+    val partitions: Map<String, List<InboxEventEntity>>,
+    val withoutHandlers: List<InboxEventEntity>,
+  )
+
+  private fun InboxEventEntity.resolveEventType() = IncomingHmppsDomainEventType.forEventType(eventType)
+
+  private fun InboxEventEntity.resolveHandler() = resolveEventType()?.let { eventTypeToHandlers[it] }
 }
