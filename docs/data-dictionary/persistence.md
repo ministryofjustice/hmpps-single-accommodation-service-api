@@ -63,10 +63,10 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | id | UUID | UUID | No | PK |  |  |
 | duty_to_refer_id | UUID | UUID | No | FK -> `duty_to_refer.id` |  |  |
 | note | TEXT | String | No |  |  |  |
-| created_by_user_id | UUID | UUID | No |  |  | inherited from `BaseAuditedEntity` |
-| created_at | TIMESTAMPTZ | Instant | No |  |  | inherited from `BaseAuditedEntity` |
-| last_updated_by_user_id | UUID | UUID | No |  |  | inherited from `BaseAuditedEntity` |
-| last_updated_at | TIMESTAMPTZ | Instant | No |  |  | inherited from `BaseAuditedEntity` |
+|| created_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `UUID?`; migration sets NOT NULL) |
+|| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL) |
+|| last_updated_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `UUID?`; migration sets NOT NULL) |
+|| last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity` (Kotlin `Instant?`; migration sets NOT NULL) |
 
 ### ProposedAccommodationEntity (`proposed_accommodation`)
 
