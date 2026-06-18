@@ -114,4 +114,4 @@ persistence,sas_user,UserEntity,nomis_account_type,TEXT,String,true,,,,
 persistence,sas_user,UserEntity,nomis_active_caseload_id,TEXT,String,true,,,,
 persistence,sas_user,UserEntity,is_enabled,BOOLEAN,Boolean,true,,,,
 persistence,sas_user,UserEntity,is_active,BOOLEAN,Boolean,false,,,,
-persistence,sas_user,UserEntity,created_at,TIMESTAMPTZ,Instant,false,,,,"Default now()"
+persistence,sas_user,UserEntity,created_at,TIMESTAMPTZ,(not mapped),true,,,"","Column exists in DB; not mapped in UserEntity (default now())"
