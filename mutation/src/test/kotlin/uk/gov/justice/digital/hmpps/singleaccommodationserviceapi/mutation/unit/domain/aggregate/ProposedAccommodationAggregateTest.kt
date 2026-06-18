@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.UpdateSourceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
@@ -252,7 +253,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and address changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to address data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -278,7 +279,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -288,7 +289,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and start date changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to address startDate`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -315,7 +316,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -325,7 +326,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and accommodationType changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to accommodationType data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationType = buildAccommodationTypeDto(
@@ -357,7 +358,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -367,7 +368,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and end date changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to endDate data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -394,7 +395,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = newEndDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -404,7 +405,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should not add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and no relevant CPR fields change`() {
+  fun `should not add AccommodationUpdatedDomainEvent when registered with CPR and SAS update but no relevant CPR fields change`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -430,7 +431,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -438,7 +439,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should not add AccommodationUpdatedDomainEvent when not registered with CPR and SAS source record and relevant CPR fields change`() {
+  fun `should not add AccommodationUpdatedDomainEvent when not registered with CPR and SAS update to relevant CPR fields`() {
     val aggregate = hydrateAggregate()
 
     aggregate.updateProposedAccommodation(
@@ -462,7 +463,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -470,7 +471,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should not add AccommodationUpdatedDomainEvent when accommodation source is DELIUS and address changes`() {
+  fun `should not add AccommodationUpdatedDomainEvent when DELIUS update to address data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationSource = AccommodationSource.DELIUS,
@@ -497,7 +498,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = true,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.DELIUS,
+      updateSourceType = UpdateSourceType.DELIUS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -505,7 +506,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when accommodation source is DELIUS but changes to SAS and has address changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when accommodation source is DELIUS and SAS updates the address data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationSource = AccommodationSource.DELIUS,
@@ -532,7 +533,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = true,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -569,7 +570,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -606,7 +607,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val aggregateSnapshot = aggregate.snapshot()
@@ -645,7 +646,7 @@ class ProposedAccommodationAggregateTest {
       newEndDate = accommodationDetails.endDate,
       newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
+      updateSourceType = UpdateSourceType.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -827,6 +828,7 @@ class ProposedAccommodationAggregateTest {
     cprAddressId: UUID? = null,
     currentAccommodation: AccommodationSummaryDto? = null,
     accommodationSource: AccommodationSource = AccommodationSource.SAS,
+    updateSourceType: UpdateSourceType = UpdateSourceType.SAS,
     verificationStatus: VerificationStatus,
     nextAccommodationStatus: NextAccommodationStatus,
     typeVerified: Boolean? = true,
@@ -836,9 +838,10 @@ class ProposedAccommodationAggregateTest {
       caseId = UUID.randomUUID(),
       cprAddressId = cprAddressId,
       currentAccommodation = currentAccommodation,
+      accommodationSource = accommodationSource,
     )
     aggregate.updateProposedAccommodation(
-      newAccommodationSource = accommodationSource,
+      updateSourceType = updateSourceType,
       newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = verificationStatus,

@@ -648,7 +648,7 @@ class AccommodationQueryServiceTest {
   @Nested
   inner class GetCurrentAndAllAccommodations {
     @Test
-    fun `getCurrentAndAllAccommodations should orchestrate calls and return current accommodation and all accommodations`() {
+    fun `getAllAccommodations should orchestrate call and return all accommodations`() {
       val caseEntity = buildCaseEntity {
         withCrn(crn)
         withPrisonNumber(prisonNumber)
@@ -706,72 +706,18 @@ class AccommodationQueryServiceTest {
         upstreamFailures = emptyList(),
       )
 
-      val result = accommodationQueryService.getCurrentAndAllAccommodations(crn)
+      val result = accommodationQueryService.getAllAccommodations(crn)
 
-      assertThat(result.data.first!!.address.postcode).isEqualTo("SW1A 1AA")
-      assertThat(result.data.first!!.status!!.code).isEqualTo(AddressStatusCode.M.name)
-      assertThat(result.data.second.size).isEqualTo(2)
-      assertThat(result.data.second[0].address.postcode).isEqualTo("SW1A 1AA")
-      assertThat(result.data.second[0].status!!.code).isEqualTo(AddressStatusCode.M.name)
-      assertThat(result.data.second[1].address.postcode).isEqualTo("GL53 8GH")
-      assertThat(result.data.second[1].status!!.code).isEqualTo(AddressStatusCode.P.name)
+      assertThat(result.data.size).isEqualTo(2)
+      assertThat(result.data[0].address.postcode).isEqualTo("SW1A 1AA")
+      assertThat(result.data[0].status!!.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(result.data[1].address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.data[1].status!!.code).isEqualTo(AddressStatusCode.P.name)
       assertThat(result.upstreamFailures.size).isEqualTo(0)
     }
 
     @Test
-    fun `getCurrentAndAllAccommodations should include prison as current accommodation when in prison and return all cpr accommodations`() {
-      val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN, prisonName = "A Prison")
-      val caseEntity = buildCaseEntity {
-        withCrn(crn)
-        withPrisonNumber(prisonNumber)
-      }
-      every { caseRepository.findByCrn(crn) } returns caseEntity
-      every {
-        accommodationOrchestrationService.getAccommodationOrchestration(
-          crn,
-          prisonNumber,
-        )
-      } returns OrchestrationResultDto(
-        data = buildAccommodationOrchestrationDto(
-          prisoner = prisoner,
-          cpr = buildCorePersonRecord(
-            addresses = listOf(
-              buildCanonicalAddress(
-                cprAddressId = UUID.randomUUID(),
-                noFixedAbode = false,
-                postcode = "SW1A 1AA",
-                thoroughfareName = "Some Street",
-                postTown = "London",
-                status = CanonicalAddressStatus(
-                  code = AddressStatusCode.M.name,
-                  description = AddressStatusCode.M.description,
-                ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A01A.name,
-                    description = AddressUsageCode.A01A.description,
-                  ),
-                  isActive = true,
-                ),
-              ),
-            ),
-          ),
-        ),
-        upstreamFailures = emptyList(),
-      )
-
-      val result = accommodationQueryService.getCurrentAndAllAccommodations(crn)
-
-      assertThat(result.data.first!!.address.buildingName).isEqualTo(prisoner.prisonName)
-      assertThat(result.data.first!!.status!!.code).isEqualTo("C")
-      assertThat(result.data.second.size).isEqualTo(1)
-      assertThat(result.data.second[0].address.postcode).isEqualTo("SW1A 1AA")
-      assertThat(result.data.second[0].status!!.code).isEqualTo(AddressStatusCode.M.name)
-      assertThat(result.upstreamFailures.size).isEqualTo(0)
-    }
-
-    @Test
-    fun `getCurrentAndAllAccommodations should return null current accommodation and empty all accommodations when cpr is null`() {
+    fun `getCurrentAndAllAccommodations should return empty all accommodations when cpr is null`() {
       val caseEntity = buildCaseEntity {
         withCrn(crn)
         withPrisonNumber(prisonNumber)
@@ -794,10 +740,9 @@ class AccommodationQueryServiceTest {
         ),
       )
 
-      val result = accommodationQueryService.getCurrentAndAllAccommodations(crn)
+      val result = accommodationQueryService.getAllAccommodations(crn)
 
-      assertThat(result.data.first).isNull()
-      assertThat(result.data.second).isEmpty()
+      assertThat(result.data).isEmpty()
       assertThat(result.upstreamFailures.first().endpoint).isEqualTo(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
     }
   }

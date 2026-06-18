@@ -5,14 +5,14 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
@@ -38,7 +38,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
+
+enum class UpdateSourceType {
+  DELIUS,
+  SAS,
+}
 
 @Service
 class ProposedAccommodationApplicationService(
@@ -93,10 +99,10 @@ class ProposedAccommodationApplicationService(
     val aggregate = ProposedAccommodationAggregate.hydrateNew(
       caseId = caseId,
       cprAddressId = cprAddressId,
+      accommodationSource = accommodationSource,
       currentAccommodation = currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
-      newAccommodationSource = accommodationSource,
       newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
         code = accommodationTypeEntity.code,
@@ -107,7 +113,6 @@ class ProposedAccommodationApplicationService(
       newAddress = proposedAccommodationDetailCommand.address,
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
     )
     val accommodationStatusEntity = aggregate.snapshot().accommodationStatus
@@ -192,7 +197,6 @@ class ProposedAccommodationApplicationService(
     val accommodationTypeEntityToUpdate = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
       .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
     val (aggregate, updatedRecord) = updateProposedAccommodationAndPersistToDatabase(
-      accommodationSource = AccommodationSource.SAS,
       proposedAccommodationEntity = proposedAccommodationEntity,
       currentAccommodationTypeEntity = currentAccommodationTypeEntity,
       accommodationTypeEntityToUpdate = accommodationTypeEntityToUpdate,
@@ -213,7 +217,6 @@ class ProposedAccommodationApplicationService(
   }
 
   private fun updateProposedAccommodationAndPersistToDatabase(
-    accommodationSource: AccommodationSource,
     proposedAccommodationEntity: ProposedAccommodationEntity,
     currentAccommodationTypeEntity: AccommodationTypeEntity,
     accommodationTypeEntityToUpdate: AccommodationTypeEntity,
@@ -228,7 +231,6 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
-      newAccommodationSource = accommodationSource,
       newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
         code = accommodationTypeEntityToUpdate.code,
@@ -239,7 +241,6 @@ class ProposedAccommodationApplicationService(
       newAddress = proposedAccommodationDetailCommand.address,
       newStartDate = proposedAccommodationDetailCommand.startDate,
       newEndDate = proposedAccommodationDetailCommand.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
     )
     val mergedRecord = merge(
@@ -320,11 +321,17 @@ class ProposedAccommodationApplicationService(
   @Transactional
   fun syncProposedAccommodationFromDelius(
     crn: String,
-    currentAccommodation: AccommodationSummaryDto?,
     cprAccommodations: List<AccommodationDetailDto>,
   ) {
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
+    syncProposedAccommodationRecords(case, cprAccommodations)
+  }
+
+  private fun syncProposedAccommodationRecords(
+    case: CaseEntity,
+    cprAccommodations: List<AccommodationDetailDto>,
+  ) {
     cprAccommodations
       .filter { isProposedAccommodation(accommodation = it) }
       .forEach { cprProposedAccommodation ->
@@ -335,13 +342,11 @@ class ProposedAccommodationApplicationService(
           insertDeliusOriginProposedAccommodationRecord(
             case = case,
             deliusProposedAccommodationRecord = cprProposedAccommodation,
-            currentAccommodation = currentAccommodation,
           )
         } else {
-          updateDeliusOriginProposedAccommodationRecord(
+          updateProposedAccommodationRecordWithDeliusUpdate(
             sasProposedAccommodationRecord = sasProposedAccommodationRecord,
             deliusProposedAccommodationRecord = cprProposedAccommodation,
-            currentAccommodation = currentAccommodation,
           )
         }
       }
@@ -353,58 +358,114 @@ class ProposedAccommodationApplicationService(
   private fun insertDeliusOriginProposedAccommodationRecord(
     case: CaseEntity,
     deliusProposedAccommodationRecord: AccommodationDetailDto,
-    currentAccommodation: AccommodationSummaryDto?,
   ) {
-    val (isAccommodationTypeNullOrNonProbation, accommodationTypeEntity) = isAccommodationTypeNullOrNonProbation(deliusProposedAccommodationRecord)
-    if (!isAccommodationTypeNullOrNonProbation) {
-      createProposedAccommodationAndPersistToDatabase(
+    val (isAccommodationTypeNullOrNonProbation, accommodationTypeEntityToUpdate) = accommodationTypeIsNullOrNonProbation(deliusProposedAccommodationRecord)
+    val (isAccommodationStatusNullOrExists, accommodationStatusEntityToUpdate) = accommodationStatusIsNullOrExists(deliusProposedAccommodationRecord)
+    if (!isAccommodationTypeNullOrNonProbation && isAccommodationStatusNullOrExists) {
+      val aggregate = ProposedAccommodationAggregate.hydrateNew(
         caseId = case.id,
         cprAddressId = deliusProposedAccommodationRecord.cprAddressId,
         accommodationSource = AccommodationSource.DELIUS,
-        currentAccommodation = currentAccommodation,
-        proposedAccommodationDetailCommand = ProposedAccommodationDetailCommand(
-          name = null,
-          accommodationTypeCode = accommodationTypeEntity!!.code,
-          verificationStatus = VerificationStatus.PASSED,
-          nextAccommodationStatus = NextAccommodationStatus.YES,
-          address = deliusProposedAccommodationRecord.address,
-          startDate = deliusProposedAccommodationRecord.startDate,
-          endDate = deliusProposedAccommodationRecord.endDate,
-        ),
-        accommodationTypeEntity = accommodationTypeEntity,
+        currentAccommodation = null,
       )
+      aggregate.syncProposedAccommodation(
+        newAccommodationType = AccommodationTypeDto(
+          code = accommodationTypeEntityToUpdate!!.code,
+          description = accommodationTypeEntityToUpdate.name,
+        ),
+        newAccommodationStatus = accommodationStatusEntityToUpdate?.let {
+          AccommodationStatusDto(
+            code = it.code,
+            description = it.name,
+          )
+        },
+        newAddress = deliusProposedAccommodationRecord.address,
+        newStartDate = deliusProposedAccommodationRecord.startDate,
+        newEndDate = deliusProposedAccommodationRecord.endDate,
+        newTypeVerified = deliusProposedAccommodationRecord.typeVerified,
+        newNoFixedAbode = deliusProposedAccommodationRecord.noFixedAbode,
+      )
+      val proposedAccommodationEntityToCreate = ProposedAccommodationMapper.toEntity(
+        aggregate.snapshot(),
+        accommodationTypeEntityToUpdate,
+        accommodationStatusEntityToUpdate,
+      )
+      saveProposedAccommodation(proposedAccommodationEntityToCreate)
     }
   }
 
-  private fun updateDeliusOriginProposedAccommodationRecord(
+  private fun updateProposedAccommodationRecordWithDeliusUpdate(
     sasProposedAccommodationRecord: ProposedAccommodationEntity,
     deliusProposedAccommodationRecord: AccommodationDetailDto,
-    currentAccommodation: AccommodationSummaryDto?,
   ) {
     val currentAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(sasProposedAccommodationRecord.accommodationTypeId)!!
-    val (isAccommodationTypeNullOrNonProbation, accommodationTypeEntity) = isAccommodationTypeNullOrNonProbation(deliusProposedAccommodationRecord)
-    if (!isAccommodationTypeNullOrNonProbation) {
-      updateProposedAccommodationAndPersistToDatabase(
-        accommodationSource = sasProposedAccommodationRecord.accommodationSource,
+    val (isAccommodationTypeNullOrNonProbation, accommodationTypeToUpdateEntity) = accommodationTypeIsNullOrNonProbation(deliusProposedAccommodationRecord)
+    val (isAccommodationStatusNullOrExists, accommodationStatusEntityToUpdate) = accommodationStatusIsNullOrExists(deliusProposedAccommodationRecord)
+    if (!isAccommodationTypeNullOrNonProbation && isAccommodationStatusNullOrExists) {
+      syncProposedAccommodationFromDeliusAndPersistToDatabase(
         proposedAccommodationEntity = sasProposedAccommodationRecord,
         currentAccommodationTypeEntity = currentAccommodationTypeEntity,
-        accommodationTypeEntityToUpdate = accommodationTypeEntity!!,
+        accommodationTypeEntityToUpdate = accommodationTypeToUpdateEntity!!,
         currentAccommodationStatusEntity = sasProposedAccommodationRecord.accommodationStatusId?.let { accommodationStatusRepository.findByIdOrNull(it) },
-        proposedAccommodationDetailCommand = ProposedAccommodationDetailCommand(
-          name = null,
-          accommodationTypeCode = accommodationTypeEntity.code,
-          verificationStatus = VerificationStatus.valueOf(sasProposedAccommodationRecord.verificationStatus!!.name),
-          nextAccommodationStatus = NextAccommodationStatus.valueOf(sasProposedAccommodationRecord.nextAccommodationStatus!!.name),
-          address = deliusProposedAccommodationRecord.address,
-          startDate = deliusProposedAccommodationRecord.startDate,
-          endDate = deliusProposedAccommodationRecord.endDate,
-        ),
-        currentAccommodation = currentAccommodation,
+        accommodationStatusEntityToUpdate = accommodationStatusEntityToUpdate,
+        address = deliusProposedAccommodationRecord.address,
+        startDate = deliusProposedAccommodationRecord.startDate,
+        endDate = deliusProposedAccommodationRecord.endDate,
+        typeVerified = deliusProposedAccommodationRecord.typeVerified,
+        noFixedAbode = deliusProposedAccommodationRecord.noFixedAbode,
       )
     }
   }
 
-  private fun isAccommodationTypeNullOrNonProbation(
+  private fun syncProposedAccommodationFromDeliusAndPersistToDatabase(
+    proposedAccommodationEntity: ProposedAccommodationEntity,
+    currentAccommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntityToUpdate: AccommodationTypeEntity,
+    currentAccommodationStatusEntity: AccommodationStatusEntity?,
+    accommodationStatusEntityToUpdate: AccommodationStatusEntity?,
+    address: AccommodationAddressDetails,
+    startDate: LocalDate?,
+    endDate: LocalDate?,
+    typeVerified: Boolean?,
+    noFixedAbode: Boolean?,
+  ): Pair<ProposedAccommodationAggregate, ProposedAccommodationEntity> {
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity,
+      accommodationTypeEntity = currentAccommodationTypeEntity,
+      accommodationStatusEntity = currentAccommodationStatusEntity,
+      currentAccommodation = null,
+    )
+    aggregate.syncProposedAccommodation(
+      newAccommodationType = AccommodationTypeDto(
+        code = accommodationTypeEntityToUpdate.code,
+        description = accommodationTypeEntityToUpdate.name,
+      ),
+      newAccommodationStatus = accommodationStatusEntityToUpdate?.let {
+        AccommodationStatusDto(
+          code = it.code,
+          description = it.name,
+        )
+      },
+      newAddress = address,
+      newStartDate = startDate,
+      newEndDate = endDate,
+      newTypeVerified = typeVerified,
+      newNoFixedAbode = noFixedAbode,
+    )
+    val mergedRecord = merge(
+      snapshot = aggregate.snapshot(),
+      proposedAccommodationEntity,
+      accommodationTypeEntityToUpdate,
+      accommodationStatusEntity = getAccommodationStatusEntity(
+        preUpdateAccommodationStatusEntity = currentAccommodationStatusEntity,
+        aggregate,
+      ),
+    )
+    val updatedRecord = saveProposedAccommodation(proposedAccommodationEntity = mergedRecord)
+    return aggregate to updatedRecord
+  }
+
+  private fun accommodationTypeIsNullOrNonProbation(
     deliusProposedAccommodationRecord: AccommodationDetailDto,
   ): Pair<Boolean, AccommodationTypeEntity?> {
     if (deliusProposedAccommodationRecord.type == null) {
@@ -430,5 +491,25 @@ class ProposedAccommodationApplicationService(
         return false to accommodationTypeEntity
       }
     }
+  }
+
+  private fun accommodationStatusIsNullOrExists(
+    deliusProposedAccommodationRecord: AccommodationDetailDto,
+  ): Pair<Boolean, AccommodationStatusEntity?> {
+    if (deliusProposedAccommodationRecord.status != null) {
+      val accommodationStatusEntity = accommodationStatusRepository.findByCode(deliusProposedAccommodationRecord.status!!.code)
+      if (accommodationStatusEntity != null) {
+        return true to accommodationStatusEntity
+      } else {
+        log.error(
+          """
+            "A Delius origin proposed accommodation record with CPR address ID ${deliusProposedAccommodationRecord.cprAddressId} has accommodation status code of ${deliusProposedAccommodationRecord.status!!.code}.
+            This accommodation status code does not exist in our accommodation_status table so this record cannot be mapped and synced to our proposed_accommodation table
+          """.trimIndent(),
+        )
+        return false to null
+      }
+    }
+    return true to null
   }
 }

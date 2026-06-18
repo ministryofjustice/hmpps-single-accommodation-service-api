@@ -44,11 +44,13 @@ class ProposedAccommodationAggregate private constructor(
     fun hydrateNew(
       caseId: UUID,
       cprAddressId: UUID?,
+      accommodationSource: AccommodationSource?,
       currentAccommodation: AccommodationSummaryDto?,
     ) = ProposedAccommodationAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
       cprAddressId = cprAddressId,
+      accommodationSource = accommodationSource,
       currentAccommodation = currentAccommodation,
     )
 
@@ -90,7 +92,6 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun updateProposedAccommodation(
-    newAccommodationSource: AccommodationSource,
     newName: String?,
     newAccommodationType: AccommodationTypeDto,
     newVerificationStatus: VerificationStatus,
@@ -98,7 +99,6 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
-    newTypeVerified: Boolean?,
     newNoFixedAbode: Boolean?,
   ) {
     val previousNextAccommodationStatus = nextAccommodationStatus
@@ -123,7 +123,6 @@ class ProposedAccommodationAggregate private constructor(
           newVerificationStatus,
         )
 
-    accommodationSource = newAccommodationSource
     name = newName
     accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
@@ -135,7 +134,7 @@ class ProposedAccommodationAggregate private constructor(
 
     downgradeNextAccommodationStatusIfVerificationFailed()
     accommodationStatus = getAccommodationStatus()
-    setTypeVerified(newTypeVerified)
+    typeVerified = false
 
     validateProposedAccommodation()
 
@@ -148,13 +147,34 @@ class ProposedAccommodationAggregate private constructor(
         unregisterWithCpr()
       }
 
-      shouldPublishUpdateEvent && accommodationSource == AccommodationSource.SAS -> {
+      shouldPublishUpdateEvent -> {
         domainEvents += AccommodationUpdatedDomainEvent(
           aggregateId = id,
           cprAddressId = cprAddressId!!,
         )
       }
     }
+  }
+
+  fun syncProposedAccommodation(
+    newAccommodationType: AccommodationTypeDto,
+    newAccommodationStatus: AccommodationStatusDto?,
+    newAddress: AccommodationAddressDetails,
+    newStartDate: LocalDate?,
+    newEndDate: LocalDate?,
+    newTypeVerified: Boolean?,
+    newNoFixedAbode: Boolean?,
+  ) {
+    name = null
+    accommodationType = newAccommodationType
+    accommodationStatus = newAccommodationStatus
+    typeVerified = newTypeVerified
+    noFixedAbode = newNoFixedAbode
+    address = newAddress
+    startDate = newStartDate
+    endDate = newEndDate
+
+    validateProposedAccommodation()
   }
 
   fun addNote(note: String) {
@@ -171,13 +191,6 @@ class ProposedAccommodationAggregate private constructor(
     }
     if (note.length > NOTE_MAX_LENGTH) {
       throw NoteIsGreaterThanMaxLengthException()
-    }
-  }
-
-  private fun setTypeVerified(newTypeVerified: Boolean?) {
-    typeVerified = when (accommodationSource!!) {
-      AccommodationSource.SAS -> nextAccommodationStatus == NextAccommodationStatus.YES
-      AccommodationSource.DELIUS -> newTypeVerified ?: false
     }
   }
 

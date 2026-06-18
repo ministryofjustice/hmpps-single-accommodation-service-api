@@ -43,14 +43,12 @@ class ProposedAccommodationController(
       caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
     }
 
-    val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
+    val currentAndAllAccommodations = accommodationQueryService.getAllAccommodations(crn)
     handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
-    val cprAccommodations = currentAndAllAccommodations.data.second
+    val cprAccommodations = currentAndAllAccommodations.data
     if (cprAccommodations.isNotEmpty()) {
-      val currentAccommodation = currentAndAllAccommodations.data.first
       proposedAccommodationApplicationService.syncProposedAccommodationFromDelius(
         crn,
-        currentAccommodation,
         cprAccommodations,
       )
     }

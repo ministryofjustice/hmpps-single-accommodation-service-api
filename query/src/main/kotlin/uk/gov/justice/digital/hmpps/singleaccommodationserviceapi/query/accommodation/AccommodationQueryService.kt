@@ -133,22 +133,14 @@ class AccommodationQueryService(
       ).mapNotNull { it }
   }
 
-  fun getCurrentAndAllAccommodations(crn: String): ApiResponseDto<Pair<AccommodationSummaryDto?, List<AccommodationDetailDto>>> {
+  fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {
     val orchestrationResult = getOrchestrationResult(crn)
     val allAccommodations = orchestrationResult.data.cpr?.let {
       it.addresses.map { toAccommodationDetail(crn, address = it) }
     } ?: emptyList()
 
-    val currentAccommodation = getCurrentAccommodation(
-      crn = crn,
-      addresses = orchestrationResult.data.cpr?.addresses,
-      prisoner = orchestrationResult.data.prisoner,
-      cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
-      cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
-    )
-
     return toApiResponseDto(
-      data = Pair(currentAccommodation, allAccommodations),
+      data = allAccommodations,
       upstreamFailures = orchestrationResult.upstreamFailures,
     )
   }
