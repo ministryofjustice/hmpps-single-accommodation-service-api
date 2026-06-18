@@ -139,18 +139,54 @@ fun expectedGetProposedAccommodationsResponse(
     }
 """.trimIndent()
 
-fun expectedGetProposedAccommodationsEmptyResponseWithGetDeliusCaseFailure(): String = """
+fun expectedGetProposedAccommodationsResponse(
+  expectedId: UUID,
+  expectedPostcode: String,
+  expectedSubBuildingName: String,
+  expectedBuildingName: String,
+  expectedBuildingNumber: String,
+  expectedThoroughfareName: String,
+  expectedDependentLocality: String,
+  expectedPostTown: String,
+  expectedCounty: String,
+  expectedUprn: String,
+  expectedAccommodationTypeEntity: AccommodationTypeEntity,
+  expectedVerificationStatus: VerificationStatus,
+  expectedNextAccommodationStatus: NextAccommodationStatus,
+  expectedStartDate: LocalDate,
+  expectedEndDate: LocalDate,
+  expectedCreatedAt: String,
+  expectedCreatedBy: String,
+  crn: String,
+): String = """
     {
-       "data":[],
-       "upstreamFailures":[
-          {
-             "endpoint":"getCaseByCrn",
-             "failureType":"UPSTREAM_HTTP_ERROR",
-             "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-             "message":"500 Internal Server Error: [no body]",
-             "identifier":null
-          }
-       ]
+      "data": [{
+        "id" : "$expectedId",
+        "crn":"$crn",
+        "name" : null,
+        "accommodationType": {
+          "code": "${expectedAccommodationTypeEntity.code}",
+          "description": "${expectedAccommodationTypeEntity.name}"
+        },
+        "verificationStatus" : "${expectedVerificationStatus.name}",
+        "nextAccommodationStatus" : "${expectedNextAccommodationStatus.name}",
+        "address" : {
+          "postcode" : "$expectedPostcode",
+          "subBuildingName" : "$expectedSubBuildingName",
+          "buildingName" : "$expectedBuildingName",
+          "buildingNumber" : "$expectedBuildingNumber",
+          "thoroughfareName" : "$expectedThoroughfareName",
+          "dependentLocality" : "$expectedDependentLocality",
+          "postTown" : "$expectedPostTown",
+          "county" : "$expectedCounty",
+          "country" : null,
+          "uprn" : "$expectedUprn"
+        },
+        "startDate" : ${convertNullable(expectedStartDate.toString())},
+        "endDate" : ${convertNullable(expectedEndDate.toString())},
+        "createdBy":"$expectedCreatedBy",
+        "createdAt" : "$expectedCreatedAt"
+      }]
     }
 """.trimIndent()
 

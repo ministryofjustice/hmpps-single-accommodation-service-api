@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.No
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SingleAccommodationServiceApiExceptionHandler.Companion.handleUpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
@@ -32,6 +33,7 @@ class ProposedAccommodationController(
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
+  private val accommodationSyncService: AccommodationSyncService,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -43,15 +45,12 @@ class ProposedAccommodationController(
       caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
     }
 
-    val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
-    handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
-    val cprAccommodations = currentAndAllAccommodations.data.second
-    if (cprAccommodations.isNotEmpty()) {
-      val currentAccommodation = currentAndAllAccommodations.data.first
-      proposedAccommodationApplicationService.syncProposedAccommodationFromDelius(
+    val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
+    handleUpstreamFailure(cprAccommodations.upstreamFailures)
+    if (cprAccommodations.data.isNotEmpty()) {
+      accommodationSyncService.syncAccommodationFromDelius(
         crn,
-        currentAccommodation,
-        cprAccommodations,
+        cprAccommodations.data,
       )
     }
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
