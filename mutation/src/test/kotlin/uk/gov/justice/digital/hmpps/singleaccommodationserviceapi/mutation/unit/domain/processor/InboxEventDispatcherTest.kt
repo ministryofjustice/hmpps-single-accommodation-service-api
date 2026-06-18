@@ -160,6 +160,7 @@ class InboxEventDispatcherTest {
     assertThat(stats.failedCount).isEqualTo(1)
 
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
+    verify { sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]") }
   }
 
   @Test
