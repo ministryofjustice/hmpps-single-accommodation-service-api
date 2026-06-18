@@ -99,7 +99,7 @@ class InboxEventDispatcherTest {
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(1)
     assertThat(stats.notProcessedCount).isEqualTo(0)
@@ -126,7 +126,7 @@ class InboxEventDispatcherTest {
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(1)
@@ -153,7 +153,7 @@ class InboxEventDispatcherTest {
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(0)
@@ -181,7 +181,7 @@ class InboxEventDispatcherTest {
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(0)
@@ -207,10 +207,10 @@ class InboxEventDispatcherTest {
     val supportedEventType: IncomingHmppsDomainEventType,
     val result: InboxEventHandler.Result,
     val responseException: Throwable? = null,
-    val processedEvents: MutableList<InboxEventEntity> = mutableListOf(),
+    val processedEvents: MutableList<InboxEventHandler.InboxEvent> = mutableListOf(),
   ) : InboxEventHandler {
     override fun supportedEventType() = supportedEventType
-    override fun handle(inboxEvent: InboxEventEntity): InboxEventHandler.Result {
+    override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
       processedEvents.add(inboxEvent)
 
       if (responseException != null) {
@@ -218,6 +218,10 @@ class InboxEventDispatcherTest {
       }
 
       return result
+    }
+
+    fun assertThatHasProcessedEvent(event: InboxEventEntity) {
+      assertThat(processedEvents.map { it.id }).contains(event.id)
     }
   }
 

@@ -118,7 +118,7 @@ class InboxEventDispatcher(
   ): PartitioningResult {
     val (withHandler, withoutHandler) = inboxEvents.partition { it.resolveHandler() != null }
     val partitions: Map<String, List<InboxEventEntity>> = withHandler.groupBy { event ->
-      event.resolveHandler()!!.getPartitionKey(event) ?: event.id.toString()
+      event.resolveHandler()!!.getPartitionKey(event.toInboxEvent()) ?: event.id.toString()
     }
     return PartitioningResult(partitions, withoutHandler)
   }
@@ -130,7 +130,7 @@ class InboxEventDispatcher(
     val handler = inboxEvent.resolveHandler()!!
 
     try {
-      when (handler.handle(inboxEvent)) {
+      when (handler.handle(inboxEvent.toInboxEvent())) {
         InboxEventHandler.Result.PROCESSED -> {
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
           progressTracker.eventProcessed()
@@ -180,4 +180,10 @@ class InboxEventDispatcher(
   private fun InboxEventEntity.resolveEventType() = IncomingHmppsDomainEventType.forEventType(eventType)
 
   private fun InboxEventEntity.resolveHandler() = resolveEventType()?.let { eventTypeToHandlers[it] }
+
+  private fun InboxEventEntity.toInboxEvent() = InboxEventHandler.InboxEvent(
+    id = this.id,
+    eventDetailUrl = this.eventDetailUrl,
+    payload = this.payload,
+  )
 }

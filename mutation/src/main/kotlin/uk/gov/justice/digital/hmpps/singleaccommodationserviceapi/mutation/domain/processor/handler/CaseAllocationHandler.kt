@@ -8,7 +8,6 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
@@ -24,13 +23,13 @@ class CaseAllocationHandler(
 
   override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED
 
-  override fun getPartitionKey(inboxEvent: InboxEventEntity): String? {
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
     return caseAllocationEvent.personReference.findCrn()
   }
 
   @Transactional
-  override fun handle(inboxEvent: InboxEventEntity): InboxEventHandler.Result {
+  override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     log.info("Processing CaseAllocation event [inboxEventId={}]", inboxEvent.id)
 
     try {

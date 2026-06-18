@@ -7,7 +7,6 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
@@ -23,13 +22,13 @@ class TierCalculationCompletionHandler(
 
   override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE
 
-  override fun getPartitionKey(inboxEvent: InboxEventEntity): String? {
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
     return tierDomainEvent.personReference.findCrn()
   }
 
   @Transactional
-  override fun handle(inboxEvent: InboxEventEntity): InboxEventHandler.Result {
+  override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
     log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
 
