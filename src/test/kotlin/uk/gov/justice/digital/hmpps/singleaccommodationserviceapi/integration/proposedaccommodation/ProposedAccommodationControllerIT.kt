@@ -1044,7 +1044,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       existingAccommodationTypeCode = AddressUsageCode.A07B,
       newAccommodationTypeCode = AddressUsageCode.A07B,
     )
-    shouldPublishUpdatedEvent(proposedAccommodationId = proposedAccommodationPersistedResult.id)
+    shouldPublishUpdatedEvent(
+      proposedAccommodationId = proposedAccommodationPersistedResult.id,
+    )
   }
 
   @Test
@@ -1153,11 +1155,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
       detailUrl = detailUrl,
-      externalId = null,
+      cprAddressId = cprAddressId,
     )
 
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationId,
+      cprAddressId = cprAddressId,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
     )
   }
@@ -1247,11 +1250,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeDescription,
       detailUrl = null,
-      externalId = existingEntity.id,
+      cprAddressId = existingEntity.cprAddressId,
     )
 
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
+      cprAddressId = cprAddressId,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
     )
   }
@@ -1764,13 +1768,20 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   private fun assertThatOutboxIsAsExpected(
     proposedAccommodationId: UUID,
+    cprAddressId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
   ) {
     val outboxRecord = outboxEventRepository.findAll().first()
     assertThat(outboxRecord.aggregateId).isEqualTo(proposedAccommodationId)
     assertThat(outboxRecord.aggregateType).isEqualTo("ProposedAccommodation")
     assertThat(outboxRecord.domainEventType).isEqualTo(eventType.name)
-    assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId, eventType))
+    assertThatJson(outboxRecord.payload).matchesExpectedJson(
+      expectedSasAddressUpdatedDomainEventJson(
+        proposedAccommodationId,
+        cprAddressId,
+        eventType,
+      ),
+    )
     assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
   }
 }

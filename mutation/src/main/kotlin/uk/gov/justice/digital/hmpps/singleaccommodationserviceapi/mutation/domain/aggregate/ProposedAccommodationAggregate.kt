@@ -141,15 +141,17 @@ class ProposedAccommodationAggregate private constructor(
 
     when {
       shouldPublishDeleteEvent -> {
-        cprAddressId = null
         domainEvents += AccommodationDeletedDomainEvent(
           aggregateId = id,
+          cprAddressId = cprAddressId!!,
         )
+        unregisterWithCpr()
       }
 
       shouldPublishUpdateEvent && accommodationSource == AccommodationSource.SAS -> {
         domainEvents += AccommodationUpdatedDomainEvent(
           aggregateId = id,
+          cprAddressId = cprAddressId!!,
         )
       }
     }
@@ -210,6 +212,10 @@ class ProposedAccommodationAggregate private constructor(
   fun requiresCprRegistration() = nextAccommodationStatus == NextAccommodationStatus.YES && !isRegisteredWithCpr()
 
   private fun isRegisteredWithCpr() = cprAddressId != null
+
+  private fun unregisterWithCpr() {
+    cprAddressId = null
+  }
 
   private fun wasNextAccommodation(
     status: NextAccommodationStatus?,
