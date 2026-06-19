@@ -107,10 +107,10 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | id | UUID | UUID | No | PK |  |  |
 | proposed_accommodation_id | UUID | UUID | No | FK -> `proposed_accommodation.id` |  |  |
 | note | TEXT | String | No |  |  |  |
-| created_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
-| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
-| last_updated_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
-| last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable |
+| created_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
+| created_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
+| last_updated_by_user_id | UUID | UUID | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
+| last_updated_at | TIMESTAMPTZ | Instant | Yes |  |  | inherited from `BaseAuditedEntity`; Kotlin property is nullable; migration sets NOT NULL |
 
 ### AccommodationTypeEntity (`accommodation_type`)
 
