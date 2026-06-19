@@ -6,11 +6,11 @@ erDiagram
     DUTY_TO_REFER ||--o{ DUTY_TO_REFER_NOTE : duty_to_refer_id
     PROPOSED_ACCOMMODATION ||--o{ PROPOSED_ACCOMMODATION_NOTE : proposed_accommodation_id
     ACCOMMODATION_TYPE ||--o{ PROPOSED_ACCOMMODATION : accommodation_type_id
-    ACCOMMODATION_STATUS ||--o{ PROPOSED_ACCOMMODATION : accommodation_status_id
-    SAS_USER ||--o{ DUTY_TO_REFER : created_by_user_id
-    SAS_USER ||--o{ DUTY_TO_REFER : last_updated_by_user_id
-    SAS_USER ||--o{ PROPOSED_ACCOMMODATION : created_by_user_id
-    SAS_USER ||--o{ PROPOSED_ACCOMMODATION : last_updated_by_user_id
+    ACCOMMODATION_STATUS o|--o{ PROPOSED_ACCOMMODATION : accommodation_status_id
+    SAS_USER o|--o{ DUTY_TO_REFER : created_by_user_id
+    SAS_USER o|--o{ DUTY_TO_REFER : last_updated_by_user_id
+    SAS_USER o|--o{ PROPOSED_ACCOMMODATION : created_by_user_id
+    SAS_USER o|--o{ PROPOSED_ACCOMMODATION : last_updated_by_user_id
 
     SAS_CASE {
         uuid id PK

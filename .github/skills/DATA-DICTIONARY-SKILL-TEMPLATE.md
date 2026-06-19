@@ -177,6 +177,7 @@ When `index = on` (default), also maintain `[DOC_OUTPUT_PATH]README.md` as an in
    **Link paths:** the files live in `[DOC_OUTPUT_PATH]`, so links to repo sources are relative to that folder. Use the conventions of your project (e.g., `../../src/`, `../`, `./`).
 
 10. **Create the separate diagram file** `erd-<domain>.[EXT]` (when `format` is `markdown` or `both` and `diagram = on`). Generate an entity–relationship diagram showing each physical table and its relationships. Query-backed projections and view-backed entities are excluded from the diagram. When a table has multiple audit FKs to the same user table, draw separate edges for each FK column instead of a single generic audit edge. The markdown document links to this file.
+   - Cardinality must reflect FK nullability. For Mermaid ER diagrams, use `o|` on the parent side when the FK column is nullable (child may reference zero-or-one parent), and `||` when the FK is non-nullable (child must reference exactly one parent).
 
 11. **Update the index** `[DOC_OUTPUT_PATH]README.md` (when `index = on`) to link the new/updated artefact(s) for each domain.
 
@@ -193,6 +194,7 @@ Apply the checks relevant to the produced artefact(s):
 - Inherited fields from mapped superclasses must be treated as entity fields for nullability/type extraction; do not infer their Kotlin nullability from the migration alone.
 - Every relationship names a concrete target entity and join mechanism.
 - Audit relationships are shown per FK column; do not collapse multiple user audit FKs into a generic `audit_fields` edge.
+- Diagram relationship cardinality must match FK nullability. In Mermaid, nullable FK relationships use `o|` at the parent end; non-nullable FK relationships use `||`.
 - Enum columns list all values in `enum_values`, not just the type name, and use the exact persisted string values for string-backed enums.
 - When the markdown is produced: column counts match the CSV.
 - All source links in `<domain>.md` resolve.
