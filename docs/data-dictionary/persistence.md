@@ -165,7 +165,7 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | id | UUID | UUID | No | PK |  |  |
 | event_type | TEXT | String | No |  |  |  |
 | event_detail_url | TEXT | String | Yes |  |  | Migration defines NOT NULL, Kotlin field is nullable |
-| event_occurred_at | TIMESTAMPTZ | OffsetDateTime | No | index with processed status |  |  |
+| event_occurred_at | TIMESTAMPTZ | OffsetDateTime | No |  |  |  |
 | created_at | TIMESTAMPTZ | Instant | No |  |  | default `now()` |
 | processed_status | VARCHAR(20) | ProcessedStatus | No | index `idx_inbox_event_processed_status` | `PENDING`, `PROCESSED`, `NOT_PROCESSED`, `FAILED` |  |
 | processed_at | TIMESTAMPTZ | Instant | Yes |  |  |  |
