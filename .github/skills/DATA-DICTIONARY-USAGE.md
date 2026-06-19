@@ -6,7 +6,7 @@ This skill can be used as a template for generating data dictionaries in any pro
 
 1. **Copy the template** to your project:
    ```bash
-   cp DATA-DICTIONARY-SKILL-TEMPLATE.md YOUR_PROJECT/.github/skills/data-dictionary/SKILL.md
+   cp .github/skills/DATA-DICTIONARY-SKILL-TEMPLATE.md YOUR_PROJECT/.github/skills/data-dictionary/SKILL.md
    ```
 
 2. **Replace all placeholder tokens** with your project's specifics. See the table in the template for what each placeholder means.
