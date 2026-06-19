@@ -22,7 +22,7 @@ persistence,duty_to_refer,DutyToReferEntity,outcome_reason,VARCHAR(80),OutcomeRe
 persistence,duty_to_refer,DutyToReferEntity,submission_note,TEXT,String,true,,,,
 persistence,duty_to_refer,DutyToReferEntity,outcome_note,TEXT,String,true,,,,
 persistence,duty_to_refer,DutyToReferEntity,created_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
-persistence,duty_to_refer,DutyToReferEntity,created_at,TIMESTAMPTZ,Instant,true,,, ,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL/default now()"
+persistence,duty_to_refer,DutyToReferEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL/default now()"
 persistence,duty_to_refer,DutyToReferEntity,last_updated_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
 persistence,duty_to_refer,DutyToReferEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity"
 persistence,duty_to_refer_note,DutyToReferNoteEntity,id,UUID,UUID,false,PK,,,,
