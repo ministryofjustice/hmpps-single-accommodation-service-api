@@ -189,7 +189,7 @@ It is generated from Kotlin JPA entities and Flyway SQL migrations.
 | nomis_active_caseload_id | TEXT | String | Yes |  |  |  |
 | is_enabled | BOOLEAN | Boolean | Yes |  |  |  |
 | is_active | BOOLEAN | Boolean | No |  |  |  |
-| created_at | TIMESTAMPTZ | Instant | No |  |  | default `now()` |
+| created_at | TIMESTAMPTZ | (not mapped) | Yes |  |  | Column exists in DB; not mapped in `UserEntity` (default `now()`) |
 
 ## Query-backed projections (not physical tables)
 
