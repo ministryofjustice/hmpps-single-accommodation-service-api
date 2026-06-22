@@ -75,8 +75,6 @@ object CaseTransformer {
 
   fun PersonDto.limited() = CaseDto(
     crn = crn,
-    prisonNumber = nomsNumber,
-    assignedTo = assignedTo,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
   )
