@@ -72,22 +72,27 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `matches a case by all identifiers from CorePersonRecord and adds the latest ones`() {
+  fun `does not add identifiers from CorePersonRecord`() {
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
-    val unkownCrnCase1 = "crnToAddForCase1"
-    val unkownPrisonNumberCase1 = "prisonNumberToAddForCase1"
 
     // case 2 identifiers
     val knownCrnForCase2 = "knownCrnForCase2"
     val knownPrisonNumberCase2 = "knownPrisonNumberForCase2"
-    val unknownCrnCase2 = "crnToAddForCase2"
-    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase2"
 
-    // cas3 3 identifiers
+    // case 3 identifiers
     val unknownCaseCrn = "unknownCRN"
     val unknownCasePrisonNumber = "unknownPrisonNumber"
 
+    // case 4 identifiers
+    val unkownCrnCase4 = "crnToAddForCase4"
+    val unkownPrisonNumberCase4 = "prisonNumberToAddForCase4"
+
+    // case 5 identifiers
+    val unknownCrnCase2 = "crnToAddForCase5"
+    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase5"
+
+    // save some known about cases
     val case1 = buildCaseEntity {
       withCrn(knownCrnForCase1)
     }
@@ -100,8 +105,9 @@ class CaseControllerIT : IntegrationTestBase() {
 
     val staff = buildOfficer(username = deliusUser.username)
 
+    // build a case-list for the 3 unknown cases
     val cases = listOf(
-      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1, staff = staff),
+      buildCase(crn = unkownCrnCase4, nomsNumber = unkownPrisonNumberCase4, staff = staff),
       buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2, staff = staff),
       buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber, staff = staff),
     )
@@ -120,27 +126,7 @@ class CaseControllerIT : IntegrationTestBase() {
       pageSize = pageSize.toInt(),
     )
 
-    // returns the unknown CRN from the caselist, and the persisted CRN for the case
-    stubCorePersonRecord(
-      crn = unkownCrnCase1,
-      prisonNumber = unkownPrisonNumberCase1,
-      additionalCrns = listOf(knownCrnForCase1),
-    )
-
-    // returns the CRN from the case list, and the persisted Prison Number for the case
-    stubCorePersonRecord(
-      crn = unknownCrnCase2,
-      prisonNumber = knownPrisonNumberCase2,
-      additionalCrns = listOf(knownCrnForCase2),
-      additionalPrisonNumbers = listOf(unknownPrisonNumberCase2),
-    )
-
-    // returns the data for the unknown case
-    stubCorePersonRecord(
-      crn = unknownCaseCrn,
-      prisonNumber = unknownCasePrisonNumber,
-    )
-
+    // SAS knows about 2 cases
     assertThat(caseRepository.findAll()).hasSize(2)
 
     restTestClient.get().uri { it.path("/case-list").build() }
@@ -149,21 +135,17 @@ class CaseControllerIT : IntegrationTestBase() {
       .expectBody()
       .jsonPath("$.data.length()").isEqualTo(3)
 
-    assertThat(caseRepository.findAll()).hasSize(3)
+    // the 3 unknown ones should be added
+    assertThat(caseRepository.findAll()).hasSize(5)
 
     assertCaseIdentifiers(
-      crn = unkownCrnCase1,
-      expectedIdentifiers = listOf(knownCrnForCase1, unkownCrnCase1, unkownPrisonNumberCase1),
+      crn = unkownCrnCase4,
+      expectedIdentifiers = listOf(unkownCrnCase4, unkownPrisonNumberCase4),
     )
 
     assertCaseIdentifiers(
       crn = unknownCrnCase2,
-      expectedIdentifiers = listOf(
-        knownCrnForCase2,
-        knownPrisonNumberCase2,
-        unknownCrnCase2,
-        unknownPrisonNumberCase2,
-      ),
+      expectedIdentifiers = listOf(unknownCrnCase2, unknownPrisonNumberCase2),
     )
 
     assertCaseIdentifiers(
@@ -203,9 +185,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     result.expectBody().jsonPath("$.data.length()").isEqualTo(20)
 
-    // TODO this returns 18 (instead of 20) because we currently do not persist case-list results from delius that fail CPR calls,
-    // but still return them in the case list...
-    assertThat(caseRepository.findAll().size).isEqualTo(18)
+    assertThat(caseRepository.findAll().size).isEqualTo(20)
 
     result.expectBody(String::class.java)
       .value {

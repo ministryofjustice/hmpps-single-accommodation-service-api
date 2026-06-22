@@ -331,14 +331,16 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
     shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherUpdate(crn)
+    assertThat(outboxEventRepository.findAll()).isEmpty()
   }
 
   @Test
-  fun `should NOT sync Delius origin record once SAS updates the record as SAS becomes the owner at this stage`() {
+  fun `should sync Delius origin record even after SAS updates the record`() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
     val (deliusSyncedRecord, deliusOriginProposedAccommodation) = shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherUpdate(crn)
-    assertThat(deliusSyncedRecord.buildingNumber).isEqualTo("15")
+    val originalDeliusSyncBuildingNumber = "15"
+    assertThat(deliusSyncedRecord.buildingNumber).isEqualTo(originalDeliusSyncBuildingNumber)
 
     val sasUpdatedBuildingNumber = "100"
     restTestClient.put().uri("/cases/$crn/proposed-accommodations/${deliusSyncedRecord.id}")
@@ -390,7 +392,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       response = cprAccommodations,
     )
 
-    // get proposed-accommodations and ensure the latest Delius updated record has the house number from the SAS PUT and not the most recent Delius update
+    // get proposed-accommodations and ensure we get the latest Delius update
     val response: String = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -403,12 +405,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     sasOwnedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.SAS }
     assertThat(sasOwnedRecord).isNotNull
-    assertThat(sasOwnedRecord!!.buildingNumber).isEqualTo(sasUpdatedBuildingNumber)
+    assertThat(sasOwnedRecord!!.buildingNumber).isEqualTo(deliusUpdatedBuildingNumber)
 
     assertThatJson(response).matchesExpectedJson(
       expectedGetProposedAccommodationsResponse(
         firstId = deliusSyncedRecord.id,
-        firstBuildingNumber = sasUpdatedBuildingNumber,
+        firstBuildingNumber = deliusUpdatedBuildingNumber,
         firstCreatedBy = "nDelius user",
         firstCreatedAt = sasOwnedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         firstAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(sasOwnedRecord.accommodationTypeId)!!,
@@ -418,10 +420,11 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
+    assertThat(outboxEventRepository.findAll().size).isEqualTo(1)
   }
 
   @Test
-  fun `should NOT sync SAS origin records when someone has changed the data in Delius - as SAS is the master of that record`() {
+  fun `should sync SAS origin records when someone has changed the data in Delius`() {
     val startDate = LocalDate.now().minusDays(10)
     val originalHouseNumberOfSasOriginProposedAccommodation = "5"
     val updatedHouseNumberOfSasOriginProposedAccommodationInDeliusOnly = "2"
@@ -430,10 +433,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       cprAddressId = commonCprAddressId,
       noFixedAbode = false,
       typeVerified = false,
-      postcode = "RG26 5AG",
+      postcode = "W1 8XX",
       buildingNumber = updatedHouseNumberOfSasOriginProposedAccommodationInDeliusOnly,
-      thoroughfareName = "Dollis Green",
-      postTown = "Bramley",
+      thoroughfareName = "Piccadilly Circus",
+      postTown = "London",
       country = null,
       startDate = startDate,
       endDate = null,
@@ -463,10 +466,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       caseEntity = caseEntity,
       cprAddressId = commonCprAddressId,
       accommodationSource = AccommodationSource.SAS,
-      postcode = "W1 8XX",
+      postcode = "RG26 5AG",
       buildingNumber = originalHouseNumberOfSasOriginProposedAccommodation,
-      thoroughfareName = "Piccadilly Circus",
-      postTown = "London",
+      thoroughfareName = "Dollis Green",
+      postTown = "Bramley",
       country = null,
       verificationStatus = EntityVerificationStatus.PASSED,
       nextAccommodationStatus = EntityNextAccommodationStatus.YES,
@@ -487,12 +490,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val sasOriginRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.SAS }
     assertThat(sasOriginRecord).isNotNull
-    assertThat(sasOriginRecord!!.buildingNumber).isEqualTo(originalHouseNumberOfSasOriginProposedAccommodation)
+    assertThat(sasOriginRecord!!.buildingNumber).isEqualTo(updatedHouseNumberOfSasOriginProposedAccommodationInDeliusOnly)
 
     assertThatJson(response).matchesExpectedJson(
       expectedGetProposedAccommodationsResponse(
         firstId = sasOriginProposedAccommodationEntity.id,
-        firstBuildingNumber = originalHouseNumberOfSasOriginProposedAccommodation,
+        firstBuildingNumber = updatedHouseNumberOfSasOriginProposedAccommodationInDeliusOnly,
         firstCreatedBy = "Test Data Setup User",
         firstCreatedAt = sasOriginProposedAccommodationEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         firstAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(sasOriginProposedAccommodationEntity.accommodationTypeId)!!,
@@ -502,6 +505,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
+    assertThat(outboxEventRepository.findAll()).isEmpty()
   }
 
   private fun shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
@@ -681,6 +685,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
+    assertThat(outboxEventRepository.findAll()).isEmpty()
     return Pair(deliusSyncedRecord, deliusOriginProposedAccommodation)
   }
 
@@ -1044,7 +1049,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       existingAccommodationTypeCode = AddressUsageCode.A07B,
       newAccommodationTypeCode = AddressUsageCode.A07B,
     )
-    shouldPublishUpdatedEvent(proposedAccommodationId = proposedAccommodationPersistedResult.id)
+    shouldPublishUpdatedEvent(
+      proposedAccommodationId = proposedAccommodationPersistedResult.id,
+    )
   }
 
   @Test
@@ -1153,11 +1160,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
       detailUrl = detailUrl,
-      externalId = null,
+      cprAddressId = cprAddressId,
     )
 
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationId,
+      cprAddressId = cprAddressId,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
     )
   }
@@ -1247,11 +1255,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeDescription,
       detailUrl = null,
-      externalId = existingEntity.id,
+      cprAddressId = existingEntity.cprAddressId,
     )
 
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
+      cprAddressId = cprAddressId,
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
     )
   }
@@ -1764,13 +1773,20 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   private fun assertThatOutboxIsAsExpected(
     proposedAccommodationId: UUID,
+    cprAddressId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
   ) {
     val outboxRecord = outboxEventRepository.findAll().first()
     assertThat(outboxRecord.aggregateId).isEqualTo(proposedAccommodationId)
     assertThat(outboxRecord.aggregateType).isEqualTo("ProposedAccommodation")
     assertThat(outboxRecord.domainEventType).isEqualTo(eventType.name)
-    assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedSasAddressUpdatedDomainEventJson(proposedAccommodationId, eventType))
+    assertThatJson(outboxRecord.payload).matchesExpectedJson(
+      expectedSasAddressUpdatedDomainEventJson(
+        proposedAccommodationId,
+        cprAddressId,
+        eventType,
+      ),
+    )
     assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
   }
 }

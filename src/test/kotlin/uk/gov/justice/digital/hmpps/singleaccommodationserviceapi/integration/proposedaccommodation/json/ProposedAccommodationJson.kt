@@ -296,10 +296,12 @@ fun expectedProposedAddressesResponseBody(
 
 fun expectedSasAddressUpdatedDomainEventJson(
   proposedAccommodationId: UUID,
+  cprAddressId: UUID,
   eventType: SingleAccommodationServiceDomainEventType,
 ) = """
   {
     "aggregateId" : "$proposedAccommodationId",
+    "cprAddressId":"$cprAddressId",
     "type" : "${eventType.name}"
   }
 """.trimIndent()

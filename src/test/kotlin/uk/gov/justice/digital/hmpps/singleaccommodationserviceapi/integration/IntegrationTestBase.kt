@@ -246,7 +246,7 @@ abstract class IntegrationTestBase {
     typeName: String,
     eventDescription: String,
     detailUrl: String?,
-    externalId: UUID? = null,
+    cprAddressId: UUID? = null,
   ): HmppsDomainEvent {
     var matchedMessage: HmppsDomainEvent? = null
 
@@ -254,7 +254,7 @@ abstract class IntegrationTestBase {
       .atMost(ofSeconds(5))
       .pollInterval(ofMillis(100))
       .untilAsserted {
-        matchedMessage = testSqsDomainEventListener.takeMessageOrNull(typeName, eventDescription, detailUrl, externalId)
+        matchedMessage = testSqsDomainEventListener.takeMessageOrNull(typeName, eventDescription, detailUrl, cprAddressId)
         assertThat(matchedMessage).isNotNull()
       }
     return matchedMessage!!

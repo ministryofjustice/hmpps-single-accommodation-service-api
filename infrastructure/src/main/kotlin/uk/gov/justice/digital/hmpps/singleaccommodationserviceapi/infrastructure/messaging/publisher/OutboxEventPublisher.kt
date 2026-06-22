@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.publisher
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -11,6 +12,8 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.HmppsDomainEventUrlConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
@@ -30,6 +33,7 @@ class OutboxEventPublisher(
   private val hmppsDomainEventUrlConfig: HmppsDomainEventUrlConfig,
   private val outboxEventRepository: OutboxEventRepository,
   private val hmppsQueueService: HmppsQueueService,
+  private val objectMapper: ObjectMapper,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -64,18 +68,16 @@ class OutboxEventPublisher(
     eventType: SingleAccommodationServiceDomainEventType,
   ): PublishResponse {
     val detailUrl = hmppsDomainEventUrlConfig.getUrlForDomainEventId(eventType, outboxEventEntity.aggregateId)
-    val externalId = if (eventType == SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED) {
-      outboxEventEntity.aggregateId
-    } else {
-      null
-    }
+    val corePersonAddressId = getCprAddressIdFromOutboxEventPayload(outboxEventEntity, eventType)
     val snsEvent = HmppsDomainEvent(
       eventType = eventType.typeName,
-      externalId = externalId,
       detailUrl = detailUrl,
       version = 1,
       description = eventType.typeDescription,
       occurredAt = outboxEventEntity.createdAt.atOffset(ZoneOffset.UTC),
+      additionalInformation = corePersonAddressId?.let {
+        mapOf("corePersonAddressId" to corePersonAddressId.toString())
+      } ?: emptyMap(),
     )
 
     return domainTopic.snsClient.publish(
@@ -88,5 +90,20 @@ class OutboxEventPublisher(
           ),
         ).build(),
     ).get()
+  }
+
+  private fun getCprAddressIdFromOutboxEventPayload(
+    outboxEventEntity: OutboxEventEntity,
+    eventType: SingleAccommodationServiceDomainEventType,
+  ) = when (eventType) {
+    SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED -> {
+      val event = objectMapper.readValue(outboxEventEntity.payload, AccommodationUpdatedDomainEvent::class.java)
+      event.cprAddressId
+    }
+    SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED -> {
+      val event = objectMapper.readValue(outboxEventEntity.payload, AccommodationDeletedDomainEvent::class.java)
+      event.cprAddressId
+    }
+    else -> null
   }
 }
