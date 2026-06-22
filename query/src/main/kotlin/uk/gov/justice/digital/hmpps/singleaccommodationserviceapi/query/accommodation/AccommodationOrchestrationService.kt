@@ -53,6 +53,28 @@ class AccommodationOrchestrationService(
     )
   }
 
+  fun getAccommodationOrchestration(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
+    val results = aggregatorService.orchestrateAsyncCalls(
+      standardCallsNoIteration = buildMap {
+        put(GET_CORE_PERSON_RECORD_BY_CRN) { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) }
+      },
+    ).standardCallsNoIterationResults!!
+
+    val cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
+
+    return OrchestrationResultDto(
+      data = AccommodationOrchestrationDto(
+        cpr = cpr,
+        cas1Application = null,
+        cas3Application = null,
+        prisoner = null,
+        cas1CurrentPremises = null,
+        cas3CurrentPremises = null,
+      ),
+      upstreamFailures = results.getFailures(),
+    )
+  }
+
   fun getAccommodationOrchestration(crn: String, prisonNumber: String?): OrchestrationResultDto<AccommodationOrchestrationDto> {
     val calls = buildMap {
       put(GET_CORE_PERSON_RECORD_BY_CRN) { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) }
