@@ -176,7 +176,32 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should insert Delius origin record with all data when does not exist in SAS database`() {
+  fun `should NOT insert Delius origin 'Main' accommodation record as should only insert Delius origin 'Proposed' accommodation records`() {
+    val crn = "ABCDEFG"
+    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+
+    mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
+      crn,
+      deliusOriginAddressStatusCode = AddressStatusCode.M,
+      deliusProposedAccommodationBuildingNumber = "Delius buildingName",
+      deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
+      deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
+      deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult()
+      .responseBody!!
+
+    val results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    assertThat(results).hasSize(0)
+  }
+
+  @Test
+  fun `should insert Delius origin 'Proposed' accommodation record with all data when does not exist in SAS database`() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
     shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
@@ -189,7 +214,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should insert Delius origin record with all data when record does not exist in SAS database and SAS case record does not exist in database either`() {
+  fun `should insert Delius origin 'Proposed' accommodation record with all data when record does not exist in SAS database and SAS case record does not exist in database either`() {
     val crn = "ABCDEFG"
     val prisonNumber = "PRI1"
     val case = buildCase(crn, nomsNumber = prisonNumber)
@@ -217,11 +242,12 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return Server error and NOT insert Delius origin record when retrieving the case from Delius fails`() {
+  fun `should return Server error and NOT insert Delius origin 'Proposed' accommodation record when retrieving the case from Delius fails`() {
     val crn = "ABCDEFG"
     SasAndDeliusStubs.stubGetCaseFailure(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    mockCurrentPrisonAccommodationAndDeliusOriginProposedAccommodation(
+    mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
+      deliusOriginAddressStatusCode = AddressStatusCode.PR1,
       deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
       deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
@@ -238,11 +264,12 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should NOT insert Delius origin record when the accommodation type is a non-Probation type`() {
+  fun `should NOT insert Delius origin 'Proposed' accommodation record when the accommodation type is a non-Probation type`() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
-    mockCurrentPrisonAccommodationAndDeliusOriginProposedAccommodation(
+    mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
+      deliusOriginAddressStatusCode = AddressStatusCode.PR1,
       deliusOriginProposedAccommodationTypeCode = AddressUsageCode.HOSP,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
       deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
@@ -259,11 +286,12 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should NOT insert Delius origin record when record does not have an accommodation type`() {
+  fun `should NOT insert Delius origin 'Proposed' accommodation record when record does not have an accommodation type`() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
-    mockCurrentPrisonAccommodationAndDeliusOriginProposedAccommodation(
+    mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
+      deliusOriginAddressStatusCode = AddressStatusCode.PR1,
       deliusOriginProposedAccommodationTypeCode = null,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
       deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
@@ -280,7 +308,22 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should sync all data on SAS record when someone has changed all the data on the record in nDelius`() {
+  fun `should sync all data on SAS 'Proposed' accommodation record when someone has changed all the data on the 'Proposed' accommodation record in nDelius`() {
+    shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
+      deliusRecordAddressStatusCode = AddressStatusCode.PR1,
+    )
+  }
+
+  @Test
+  fun `should sync all data on SAS 'Proposed' accommodation record when someone has transitioned the 'Proposed' accommodation record in nDelius to be the 'Main' accommodation record`() {
+    shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
+      deliusRecordAddressStatusCode = AddressStatusCode.M,
+    )
+  }
+
+  private fun shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
+    deliusRecordAddressStatusCode: AddressStatusCode,
+  ) {
     val startDate = LocalDate.now().minusDays(10)
     val commonCprAddressId = UUID.randomUUID()
     val sasOriginProposedAccommodationEntity = buildProposedAccommodationEntity(
@@ -328,8 +371,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       country = "Updated country",
       uprn = "Updated uprn",
       status = CanonicalAddressStatus(
-        code = AddressStatusCode.PR1.name,
-        description = AddressStatusCode.PR1.description,
+        code = deliusRecordAddressStatusCode.name,
+        description = deliusRecordAddressStatusCode.description,
       ),
       usage = CanonicalAddressUsage(
         usageCode = CanonicalAddressUsageCode(
@@ -361,7 +404,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     assertThat(results).hasSize(1)
 
     val updatedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.SAS }
-    val updatedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR1.name)!!
+    val updatedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(deliusRecordAddressStatusCode.name)!!
     val updatedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07A.name)!!
 
     assertThat(updatedRecord).isNotNull
@@ -523,8 +566,9 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     deliusOriginProposedAccommodationStartDate: LocalDate,
     deliusOriginProposedAccommodationEndDate: LocalDate,
   ): Pair<CanonicalAddress, CanonicalAddress> {
-    val (currentPrisonAccommodation, deliusOriginProposedAccommodation) = mockCurrentPrisonAccommodationAndDeliusOriginProposedAccommodation(
+    val (currentPrisonAccommodation, deliusOriginProposedAccommodation) = mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
+      deliusOriginAddressStatusCode = AddressStatusCode.PR1,
       deliusOriginProposedAccommodationTypeCode,
       deliusOriginProposedAccommodationStartDate,
       deliusOriginProposedAccommodationEndDate,
@@ -569,8 +613,9 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     return currentPrisonAccommodation to deliusOriginProposedAccommodation
   }
 
-  private fun mockCurrentPrisonAccommodationAndDeliusOriginProposedAccommodation(
+  private fun mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
     crn: String,
+    deliusOriginAddressStatusCode: AddressStatusCode,
     deliusOriginProposedAccommodationTypeCode: AddressUsageCode?,
     deliusOriginProposedAccommodationStartDate: LocalDate,
     deliusOriginProposedAccommodationEndDate: LocalDate,
@@ -593,8 +638,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       startDate = deliusOriginProposedAccommodationStartDate,
       endDate = deliusOriginProposedAccommodationEndDate,
       status = CanonicalAddressStatus(
-        code = AddressStatusCode.PR1.name,
-        description = AddressStatusCode.PR1.description,
+        code = deliusOriginAddressStatusCode.name,
+        description = deliusOriginAddressStatusCode.description,
       ),
       usage = CanonicalAddressUsage(
         usageCode = CanonicalAddressUsageCode(
