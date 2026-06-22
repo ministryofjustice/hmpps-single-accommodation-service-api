@@ -104,8 +104,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   fun setup() {
     clock.freezeAt(fixedInstant)
     beforeTest = Instant.now()
-    proposedAccommodationRepository.deleteAll()
-    outboxEventRepository.deleteAll()
     crn = UUID.randomUUID().toString()
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
 
