@@ -91,3 +91,4 @@ logging:
   level:
     root: WARN
     uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: INFO
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry: DEBUG

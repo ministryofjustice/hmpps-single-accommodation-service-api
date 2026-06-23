@@ -14,7 +14,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
@@ -56,7 +55,7 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val eventTypeToHandlers: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
+  private val eventTypeToHandlers: Map<String, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
@@ -181,9 +180,7 @@ class InboxEventDispatcher(
     val withoutHandlers: List<InboxEventEntity>,
   )
 
-  private fun InboxEventEntity.resolveEventType() = IncomingHmppsDomainEventType.forEventType(eventType)
-
-  private fun InboxEventEntity.resolveHandler() = resolveEventType()?.let { eventTypeToHandlers[it] }
+  private fun InboxEventEntity.resolveHandler() = eventTypeToHandlers[this.eventType]
 
   private fun InboxEventEntity.toInboxEvent() = InboxEventHandler.InboxEvent(
     id = this.id,

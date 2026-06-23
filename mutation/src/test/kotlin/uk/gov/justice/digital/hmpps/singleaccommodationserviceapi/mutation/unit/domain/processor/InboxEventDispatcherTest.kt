@@ -9,7 +9,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
@@ -35,7 +34,9 @@ class InboxEventDispatcherTest {
   fun `no events, do nothing`() {
     every { inboxEventService.findPendingOldestFirst(10) } returns emptyList()
 
-    val stats = inboxEventDispatcher().process()
+    val stats = inboxEventDispatcher(
+      maxEventsPerBatch = 10,
+    ).process()
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(0)
@@ -47,30 +48,13 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `single event, no handler, skip`() {
-    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(buildPendingInboxEventEntity())
-
-    val stats = inboxEventDispatcher(
-      handlers = emptyList(),
-    ).process()
-
-    assertThat(stats.processedCount).isEqualTo(0)
-    assertThat(stats.notProcessedCount).isEqualTo(0)
-    assertThat(stats.skippedCount).isEqualTo(1)
-    assertThat(stats.failedCount).isEqualTo(0)
-
-    verifyNoEventUpdatesMade()
-  }
-
-  @Test
-  fun `single event, can't resolve event type, skip`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = "non.existent.eventType",
-    )
+    val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val stats = inboxEventDispatcher(
       handlers = emptyList(),
+      maxEventsPerBatch = 10,
     ).process()
 
     assertThat(stats.processedCount).isEqualTo(0)
@@ -83,19 +67,18 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `handler returns PROCESSED, update event processed state to PROCESSED`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-    )
+    val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
+      supportedEventType = "test.event",
       result = InboxEventHandler.Result.PROCESSED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
+      maxEventsPerBatch = 10,
     ).process()
 
     handler.assertThatHasProcessedEvent(event)
@@ -110,19 +93,18 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `handler returns NOT PROCESSED, update event processed state to NOT_PROCESSED`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-    )
+    val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
+      supportedEventType = "test.event",
       result = InboxEventHandler.Result.NOT_PROCESSED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
+      maxEventsPerBatch = 10,
     ).process()
 
     handler.assertThatHasProcessedEvent(event)
@@ -137,19 +119,18 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `handler returns FAILED, update event processed state to FAILED and raise alert`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-    )
+    val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
+      supportedEventType = "test.event",
       result = InboxEventHandler.Result.FAILED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
+      maxEventsPerBatch = 10,
     ).process()
 
     handler.assertThatHasProcessedEvent(event)
@@ -165,22 +146,21 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `handler throws Exception, ,update event processed state to FAILED and raise alert`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-    )
+    val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val exception = Exception("error message")
 
     val handler = MockEventHandler(
-      supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
+      supportedEventType = "test.event",
       responseException = exception,
       result = InboxEventHandler.Result.FAILED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
+      maxEventsPerBatch = 10,
     ).process()
 
     handler.assertThatHasProcessedEvent(event)
@@ -201,18 +181,17 @@ class InboxEventDispatcherTest {
 
   private fun inboxEventDispatcher(
     handlers: List<InboxEventHandler> = emptyList(),
+    maxEventsPerBatch: Int = 1,
+    maxConcurrentEvents: Int = 1,
   ) = InboxEventDispatcher(
     handlers = handlers,
-    dispatcherConfig = DispatcherConfig(
-      maxEventsPerBatch = 10,
-      maxConcurrentEvents = 4,
-    ),
+    dispatcherConfig = DispatcherConfig(maxEventsPerBatch, maxConcurrentEvents),
     inboxEventService = inboxEventService,
     sentryService = sentryService,
   )
 
   private data class MockEventHandler(
-    val supportedEventType: IncomingHmppsDomainEventType,
+    val supportedEventType: String,
     val result: InboxEventHandler.Result,
     val responseException: Throwable? = null,
     val processedEvents: MutableList<InboxEventHandler.InboxEvent> = mutableListOf(),
