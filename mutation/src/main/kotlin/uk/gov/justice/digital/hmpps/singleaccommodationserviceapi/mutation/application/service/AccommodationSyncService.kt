@@ -43,29 +43,30 @@ class AccommodationSyncService(
   ) {
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
-    syncProposedAccommodationRecords(case, cprAccommodations)
+    syncAccommodationRecords(case, cprAccommodations)
   }
 
-  private fun syncProposedAccommodationRecords(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
+  private fun syncAccommodationRecords(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
     cprAccommodations
-      .filter { isProposedAccommodation(accommodation = it) }
-      .forEach { cprProposedAccommodation ->
+      .forEach { cprAccommodation ->
         val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
-          cprAddressId = cprProposedAccommodation.cprAddressId,
+          cprAddressId = cprAccommodation.cprAddressId,
         )
-        if (sasProposedAccommodationRecord == null) {
+        if (!sasAccommodationRecordExists(sasProposedAccommodationRecord) && isProposedAccommodation(accommodation = cprAccommodation)) {
           insertDeliusOriginProposedAccommodationRecord(
             case = case,
-            deliusProposedAccommodationRecord = cprProposedAccommodation,
+            deliusProposedAccommodationRecord = cprAccommodation,
           )
-        } else {
-          updateProposedAccommodationRecordWithDeliusUpdate(
-            sasProposedAccommodationRecord = sasProposedAccommodationRecord,
-            deliusProposedAccommodationRecord = cprProposedAccommodation,
+        } else if (sasAccommodationRecordExists(sasProposedAccommodationRecord)) {
+          updateAccommodationRecordWithDeliusUpdate(
+            sasProposedAccommodationRecord = sasProposedAccommodationRecord!!,
+            deliusProposedAccommodationRecord = cprAccommodation,
           )
         }
       }
   }
+
+  private fun sasAccommodationRecordExists(sasProposedAccommodationRecord: ProposedAccommodationEntity?) = sasProposedAccommodationRecord != null
 
   private fun isProposedAccommodation(accommodation: AccommodationDetailDto): Boolean = AddressStatusCode.PR.name == accommodation.status?.code ||
     AddressStatusCode.PR1.name == accommodation.status?.code
@@ -119,7 +120,7 @@ class AccommodationSyncService(
     }
   }
 
-  private fun updateProposedAccommodationRecordWithDeliusUpdate(
+  private fun updateAccommodationRecordWithDeliusUpdate(
     sasProposedAccommodationRecord: ProposedAccommodationEntity,
     deliusProposedAccommodationRecord: AccommodationDetailDto,
   ) {
