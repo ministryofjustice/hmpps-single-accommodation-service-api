@@ -190,6 +190,12 @@ fun expectedGetProposedAccommodationsResponse(
     }
 """.trimIndent()
 
+fun expectedGetProposedAccommodationsEmptyResponse() = """
+    {
+      "data": []
+    }
+""".trimIndent()
+
 fun expectedGetProposedAccommodationByIdResponse(
   id: UUID,
   crn: String,

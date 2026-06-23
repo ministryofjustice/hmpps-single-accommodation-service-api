@@ -21,11 +21,17 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     """
     select pa from ProposedAccommodationEntity pa 
     join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId 
+    left join AccommodationStatusEntity status on status.id = pa.accommodationStatusId 
     where ci.identifier = :crn and ci.identifierType = 'CRN'
+    and (
+        status is null or
+        status.code = 'PR' or 
+        status.code = 'PR1'
+    )
     order by pa.createdAt desc 
   """,
   )
-  fun findAllByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
+  fun findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
 
   @Query(
     """

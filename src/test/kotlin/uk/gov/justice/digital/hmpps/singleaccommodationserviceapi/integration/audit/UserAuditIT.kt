@@ -223,7 +223,7 @@ class UserAuditIT : IntegrationTestBase() {
       .withJwt()
       .exchangeSuccessfully()
 
-    val persistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val persistedResult = proposedAccommodationRepository.findAll().first()
     assertThat(persistedResult).isNotNull
     assertPersistedProposedAccommodationAuditFields(
       persistedProposedAccommodationEntity = persistedResult,
