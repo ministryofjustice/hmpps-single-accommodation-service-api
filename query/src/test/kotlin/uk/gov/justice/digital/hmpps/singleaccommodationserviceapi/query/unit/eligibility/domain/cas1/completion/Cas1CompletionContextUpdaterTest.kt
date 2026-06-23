@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -53,7 +55,7 @@ class Cas1CompletionContextUpdaterTest {
   fun `PLACEMENT_ALLOCATED with no live placement maps on the next placement request`(
     requestForPlacementStatus: Cas1RequestForPlacementStatus,
     expectedServiceStatus: ServiceStatus,
-    expectedAction: String?,
+    expectedAction: CaseAction?,
     expectedLink: String,
   ) {
     val data = buildDomainData(
@@ -83,19 +85,19 @@ class Cas1CompletionContextUpdaterTest {
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_REJECTED,
         ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-        EligibilityKeys.CREATE_PLACEMENT,
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
         ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        EligibilityKeys.CREATE_PLACEMENT,
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
         ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-        EligibilityKeys.CREATE_PLACEMENT,
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       ),
       Arguments.of(

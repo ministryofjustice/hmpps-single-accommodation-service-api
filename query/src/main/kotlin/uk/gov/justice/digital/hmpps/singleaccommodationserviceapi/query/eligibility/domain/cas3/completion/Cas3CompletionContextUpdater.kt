@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -19,7 +21,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
     return when (bookingStatus) {
       Cas3BookingStatus.PROVISIONAL -> ServiceResult(
         serviceStatus = ServiceStatus.BEDSPACE_OFFERED,
-        action = EligibilityKeys.REPLY_TO_CAS3_BEDSPACE_OFFER,
+        action = CaseAction(type = CaseActionType.REPLY_TO_CAS3_BEDSPACE_OFFER),
         link = EligibilityKeys.VIEW_REFERRAL,
         linkType = LinkType.CAS3_VIEW_REFERRAL,
       )

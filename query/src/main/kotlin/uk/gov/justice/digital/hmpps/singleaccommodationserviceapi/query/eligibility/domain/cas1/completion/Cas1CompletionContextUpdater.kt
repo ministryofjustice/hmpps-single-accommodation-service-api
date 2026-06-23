@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -49,7 +51,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
       ) {
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_CANCELLED,
-          action = EligibilityKeys.CREATE_PLACEMENT,
+          action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
           linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
@@ -70,14 +72,14 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
         Cas1PlacementStatus.DEPARTED -> ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-          action = EligibilityKeys.CREATE_PLACEMENT,
+          action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
           linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
 
         Cas1PlacementStatus.NOT_ARRIVED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_ARRIVED,
-          action = EligibilityKeys.CREATE_PLACEMENT,
+          action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
           linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
@@ -101,7 +103,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
@@ -114,14 +116,14 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
     -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
         linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_REJECTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
@@ -136,7 +138,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
         linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
@@ -159,7 +161,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
     Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
-      action = EligibilityKeys.PROVIDE_INFORMATION,
+      action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION),
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )

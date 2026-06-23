@@ -17,7 +17,7 @@ data class CaseDto(
   val currentAccommodation: AccommodationSummaryDto? = null,
   val nextAccommodation: AccommodationSummaryDto? = null,
   val status: Status? = null,
-  val actions: List<String> = emptyList(),
+  val actions: List<CaseAction> = emptyList(),
   val userAccess: UserAccess,
   val limitedAccess: Boolean?,
 )

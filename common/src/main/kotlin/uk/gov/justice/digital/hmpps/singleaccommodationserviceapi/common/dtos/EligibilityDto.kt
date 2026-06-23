@@ -9,12 +9,12 @@ data class EligibilityDto(
   val dtr: DtrServiceResult,
   val crs: CrsServiceResult,
   val pa: PaServiceResult,
-  val caseActions: List<String>,
+  val caseActions: List<CaseAction>,
 )
 
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
-  val action: String? = null,
+  val action: CaseAction? = null,
   val link: String? = null,
   val url: String? = null,
   val linkType: LinkType? = null,
