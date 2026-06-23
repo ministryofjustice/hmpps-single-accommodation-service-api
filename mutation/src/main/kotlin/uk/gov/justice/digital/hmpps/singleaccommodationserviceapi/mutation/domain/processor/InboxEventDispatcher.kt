@@ -11,14 +11,13 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -30,6 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * never processed concurrently. This avoids race conditions when updating the same resource. Events
  * with different keys run in parallel using coroutines. Events are fetched ordered by
  * [eventOccurredAt] ascending; within each partition, this order is preserved.
+ *
+ * If processing of an event fails (either with a FAILED response or from it throwing an exception)
+ * it will be recorded as FAILED and a sentry alert raised
  */
 
 @Component
@@ -45,9 +47,10 @@ class DispatcherConfig(
 )
 @Component
 class InboxEventDispatcher(
-  private val inboxEventRepository: InboxEventRepository,
   handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
+  private val inboxEventService: InboxEventService,
+  private val sentryService: SentryService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -61,15 +64,9 @@ class InboxEventDispatcher(
     lockAtLeastFor = $$"${shedlock.inbox-event-dispatcher.lock-at-least-for}",
   )
   fun process() = runBlocking {
-    val pageable = PageRequest.of(
-      0,
-      dispatcherConfig.maxEventsPerBatch,
-      Sort.by("eventOccurredAt").ascending(),
-    )
-
     val progressTracker = ProgressTracker()
 
-    val inboxEvents = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
+    val inboxEvents = inboxEventService.findPendingOldestFirst(dispatcherConfig.maxEventsPerBatch)
     if (inboxEvents.isEmpty()) {
       return@runBlocking progressTracker.toStats()
     }
@@ -116,7 +113,7 @@ class InboxEventDispatcher(
   ): PartitioningResult {
     val (withHandler, withoutHandler) = inboxEvents.partition { it.resolveHandler() != null }
     val partitions: Map<String, List<InboxEventEntity>> = withHandler.groupBy { event ->
-      event.resolveHandler()!!.getPartitionKey(event) ?: event.id.toString()
+      event.resolveHandler()!!.getPartitionKey(event.toInboxEvent()) ?: event.id.toString()
     }
     return PartitioningResult(partitions, withoutHandler)
   }
@@ -128,19 +125,34 @@ class InboxEventDispatcher(
     val handler = inboxEvent.resolveHandler()!!
 
     try {
-      handler.handle(inboxEvent)
-      when (inboxEvent.processedStatus) {
-        ProcessedStatus.PROCESSED -> progressTracker.eventProcessed()
-        ProcessedStatus.NOT_PROCESSED -> progressTracker.eventNotProcessed()
-        ProcessedStatus.FAILED -> progressTracker.eventFailed()
-        else -> progressTracker.eventSkipped()
+      when (handler.handle(inboxEvent.toInboxEvent())) {
+        InboxEventHandler.Result.PROCESSED -> {
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
+          progressTracker.eventProcessed()
+        }
+        InboxEventHandler.Result.NOT_PROCESSED -> {
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.NOT_PROCESSED)
+          progressTracker.eventNotProcessed()
+        }
+        InboxEventHandler.Result.FAILED -> {
+          sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
+          progressTracker.eventFailed()
+        }
       }
-    } catch (e: Exception) {
-      log.error("Unexpected error dispatching to handler [inboxEventId={}, eventType={}, error={}]", inboxEvent.id, inboxEvent.eventType, e.message)
-      log.debug("Dispatch failure details", e)
+    } catch (e: Throwable) {
+      sentryService.captureException(
+        InboxEventDispatcherFailureException("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]", e),
+      )
+      inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
       progressTracker.eventFailed()
     }
   }
+
+  class InboxEventDispatcherFailureException(
+    override val message: String,
+    override val cause: Throwable,
+  ) : Exception()
 
   private data class ProgressTracker(
     val processedCount: AtomicInteger = AtomicInteger(0),
@@ -170,4 +182,10 @@ class InboxEventDispatcher(
   private fun InboxEventEntity.resolveEventType() = IncomingHmppsDomainEventType.forEventType(eventType)
 
   private fun InboxEventEntity.resolveHandler() = resolveEventType()?.let { eventTypeToHandlers[it] }
+
+  private fun InboxEventEntity.toInboxEvent() = InboxEventHandler.InboxEvent(
+    id = this.id,
+    eventDetailUrl = this.eventDetailUrl,
+    payload = this.payload,
+  )
 }

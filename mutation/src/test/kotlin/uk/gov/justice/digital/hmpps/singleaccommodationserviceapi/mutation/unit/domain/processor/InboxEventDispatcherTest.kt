@@ -3,18 +3,20 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher.InboxEventDispatcherFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 /**
@@ -24,11 +26,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 class InboxEventDispatcherTest {
 
   @RelaxedMockK
-  lateinit var inboxEventRepository: InboxEventRepository
+  lateinit var inboxEventService: InboxEventService
+
+  @RelaxedMockK
+  lateinit var sentryService: SentryService
 
   @Test
   fun `no events, do nothing`() {
-    mockFindAllPending(emptyList())
+    every { inboxEventService.findPendingOldestFirst(10) } returns emptyList()
 
     val stats = inboxEventDispatcher().process()
 
@@ -36,11 +41,13 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verifyNoEventUpdatesMade()
   }
 
   @Test
   fun `single event, no handler, skip`() {
-    mockFindAllPending(listOf(buildPendingInboxEventEntity()))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(buildPendingInboxEventEntity())
 
     val stats = inboxEventDispatcher(
       handlers = emptyList(),
@@ -50,6 +57,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verifyNoEventUpdatesMade()
   }
 
   @Test
@@ -58,7 +67,7 @@ class InboxEventDispatcherTest {
       eventType = "non.existent.eventType",
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val stats = inboxEventDispatcher(
       handlers = emptyList(),
@@ -68,169 +77,163 @@ class InboxEventDispatcherTest {
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verifyNoEventUpdatesMade()
   }
 
   @Test
-  fun `handler returns PROCESSED`() {
+  fun `handler returns PROCESSED, update event processed state to PROCESSED`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.PROCESSED,
+      result = InboxEventHandler.Result.PROCESSED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(1)
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.PROCESSED) }
   }
 
   @Test
-  fun `handler returns NOT PROCESSED`() {
+  fun `handler returns NOT PROCESSED, update event processed state to NOT_PROCESSED`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.NOT_PROCESSED,
+      result = InboxEventHandler.Result.NOT_PROCESSED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(1)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.NOT_PROCESSED) }
   }
 
   @Test
-  fun `handler returns FAILED`() {
+  fun `handler returns FAILED, update event processed state to FAILED and raise alert`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.FAILED,
+      result = InboxEventHandler.Result.FAILED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(1)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
+    verify { sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]") }
   }
 
   @Test
-  fun `handler returns PENDING, skip`() {
+  fun `handler throws Exception, ,update event processed state to FAILED and raise alert`() {
     val event = buildPendingInboxEventEntity(
       eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
     )
 
-    mockFindAllPending(listOf(event))
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
+
+    val exception = Exception("error message")
 
     val handler = MockEventHandler(
       supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      response = ProcessedStatus.PENDING,
+      responseException = exception,
+      result = InboxEventHandler.Result.FAILED,
     )
 
     val stats = inboxEventDispatcher(
       handlers = listOf(handler),
     ).process()
 
-    assertThat(handler.processedEvents).containsExactly(event)
-
-    assertThat(stats.processedCount).isEqualTo(0)
-    assertThat(stats.notProcessedCount).isEqualTo(0)
-    assertThat(stats.skippedCount).isEqualTo(1)
-    assertThat(stats.failedCount).isEqualTo(0)
-  }
-
-  @Test
-  fun `handler throws Exception, failed`() {
-    val event = buildPendingInboxEventEntity(
-      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-    )
-
-    mockFindAllPending(listOf(event))
-
-    val handler = MockEventHandler(
-      supportedEventType = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE,
-      responseException = Exception("error message"),
-    )
-
-    val stats = inboxEventDispatcher(
-      handlers = listOf(handler),
-    ).process()
-
-    assertThat(handler.processedEvents).containsExactly(event)
+    handler.assertThatHasProcessedEvent(event)
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.notProcessedCount).isEqualTo(0)
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(1)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
+
+    val raisedExceptionSlot = slot<InboxEventDispatcherFailureException>()
+    verify { sentryService.captureException(capture(raisedExceptionSlot)) }
+
+    assertThat(raisedExceptionSlot.captured.message).isEqualTo("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]")
+    assertThat(raisedExceptionSlot.captured.cause).isEqualTo(exception)
   }
 
   private fun inboxEventDispatcher(
     handlers: List<InboxEventHandler> = emptyList(),
   ) = InboxEventDispatcher(
-    inboxEventRepository = inboxEventRepository,
     handlers = handlers,
     dispatcherConfig = DispatcherConfig(
       maxEventsPerBatch = 10,
       maxConcurrentEvents = 4,
     ),
+    inboxEventService = inboxEventService,
+    sentryService = sentryService,
   )
 
   private data class MockEventHandler(
     val supportedEventType: IncomingHmppsDomainEventType,
-    val response: ProcessedStatus = ProcessedStatus.PENDING,
+    val result: InboxEventHandler.Result,
     val responseException: Throwable? = null,
-    val processedEvents: MutableList<InboxEventEntity> = mutableListOf(),
+    val processedEvents: MutableList<InboxEventHandler.InboxEvent> = mutableListOf(),
   ) : InboxEventHandler {
     override fun supportedEventType() = supportedEventType
-    override fun handle(inboxEvent: InboxEventEntity) {
+    override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
       processedEvents.add(inboxEvent)
 
       if (responseException != null) {
         throw responseException
       }
 
-      inboxEvent.processedStatus = response
+      return result
+    }
+
+    fun assertThatHasProcessedEvent(event: InboxEventEntity) {
+      assertThat(processedEvents.map { it.id }).contains(event.id)
     }
   }
 
-  private fun mockFindAllPending(pending: List<InboxEventEntity>) {
-    val pageable = PageRequest.of(
-      0,
-      10,
-      Sort.by("eventOccurredAt").ascending(),
-    )
-
-    every { inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable) } returns pending
+  private fun verifyNoEventUpdatesMade() {
+    verify(exactly = 0) { inboxEventService.updateInboxEventStatusAndSave(any(), any()) }
   }
 }
