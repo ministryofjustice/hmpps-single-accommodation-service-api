@@ -201,7 +201,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val (expectedCprRequestBody, createProposedAccommodationResponseBody) = createConfirmedProposedAccommodation(
       addressUsageCode,
     )
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
     val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
     val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
     assertPersistedProposedAccommodationIncludingValidCprAddressIdAndAccommodationStatus(
@@ -318,7 +318,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody<String>()
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
     val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
 
     assertThat(proposedAccommodationPersistedResult.cprAddressId).isNull()
@@ -468,7 +468,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody<String>()
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
     val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
     val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
     assertPersistedProposedAccommodationIncludingValidCprAddressIdAndAccommodationStatus(
@@ -577,7 +577,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody<String>()
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
     val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(newAccommodationTypeCode.name)!!
     val expectedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")!!
 
@@ -681,7 +681,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectBody<String>()
       .returnResult().responseBody!!
 
-    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
 
     assertThat(proposedAccommodationPersistedResult.cprAddressId).isEqualTo(null)
     assertThat(proposedAccommodationPersistedResult.accommodationStatusId).isEqualTo(null)
