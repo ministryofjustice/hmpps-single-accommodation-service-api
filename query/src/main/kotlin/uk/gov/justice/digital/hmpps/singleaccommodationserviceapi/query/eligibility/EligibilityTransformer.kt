@@ -70,7 +70,8 @@ object EligibilityTransformer {
       cas1.action,
       cas3.action,
       pa.action,
-    ).mapNotNull { it },
+    ).mapNotNull { it }
+      .sortedWith(compareBy(nullsLast()) { it.startDate }),
   )
 
   fun toFailedEligibilityDto(
