@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -43,10 +44,11 @@ class AccommodationSyncService(
   ) {
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
-    syncAccommodationRecords(case, cprAccommodations)
+    syncAccommodationRecordsWithCpr(case, cprAccommodations)
+    deleteAccommodationRecordsNoLongerInCpr(case, cprAccommodations)
   }
 
-  private fun syncAccommodationRecords(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
+  private fun syncAccommodationRecordsWithCpr(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
     cprAccommodations
       .forEach { cprAccommodation ->
         val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
@@ -208,5 +210,24 @@ class AccommodationSyncService(
       }
     }
     return true to null
+  }
+
+  private fun deleteAccommodationRecordsNoLongerInCpr(
+    case: CaseEntity,
+    cprAccommodations: List<AccommodationDetailDto>,
+  ) {
+    val cprAddressIds = cprAccommodations.mapNotNull { it.cprAddressId }.toSet()
+    val accommodationsToDelete = proposedAccommodationRepository.findByCaseId(case.id)
+      .filter { NextAccommodationStatus.YES == it.nextAccommodationStatus }
+      .filter { accommodation ->
+        accommodation.cprAddressId !in cprAddressIds
+      }
+    accommodationsToDelete.forEach { accommodation ->
+      accommodation.deleted = true
+    }
+    val deliusSystemUser = userService.getNationalDeliusSystemUser()
+    AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
+      proposedAccommodationRepository.saveAll(accommodationsToDelete)
+    }
   }
 }
