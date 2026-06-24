@@ -225,9 +225,11 @@ class AccommodationSyncService(
     accommodationsToDelete.forEach { accommodation ->
       accommodation.deleted = true
     }
-    val deliusSystemUser = userService.getNationalDeliusSystemUser()
-    AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
-      proposedAccommodationRepository.saveAll(accommodationsToDelete)
+    if (accommodationsToDelete.isNotEmpty()) {
+      val deliusSystemUser = userService.getNationalDeliusSystemUser()
+      AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
+        proposedAccommodationRepository.saveAll(accommodationsToDelete)
+      }
     }
   }
 }
