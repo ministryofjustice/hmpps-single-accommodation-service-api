@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as InfraCas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus as InfraCas3ApplicationStatus
 
@@ -127,6 +128,27 @@ class EligibilityTransformerTest {
     )
 
     assertThat(actualEligibility).isEqualTo(expectedEligibility)
+  }
+
+  @Test
+  fun `sorts case actions by soonest start date first, with undated actions last`() {
+    val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1))
+    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8))
+    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3))
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null)
+    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null)
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(action = cas1Action),
+      cas3 = buildServiceResult(action = cas3Action),
+      dtr = buildServiceResult(action = dtrAction),
+      crs = buildServiceResult(action = crsAction),
+      pa = buildServiceResult(action = paAction),
+      data = buildDomainData(),
+    )
+
+    assertThat(actualEligibility.caseActions).containsExactly(cas1Action, crsAction, cas3Action, dtrAction, paAction)
   }
 
   @ParameterizedTest(name = "{0}")
