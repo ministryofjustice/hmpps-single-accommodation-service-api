@@ -11,7 +11,6 @@ import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import javax.sql.DataSource
 
 class SarIntegrationTest : IntegrationTestBase() {
-  // TODO: Implement SarFlywaySchemaTest and SarJpaEntitiesTest interfaces once they are available in the test-support library
 
   @Autowired
   lateinit var dataSource: DataSource
@@ -21,9 +20,9 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   private fun sarToken() = jwtAuthHelper.createJwtAccessToken(
     grantType = GrantType.CLIENT_CREDENTIALS.type,
-    clientId = "sar-client",
+    clientId = "test-client-id",
     username = null,
-    roles = listOf("SAR_DATA_ACCESS"),
+    roles = listOf("ROLE_SAR_DATA_ACCESS"),
     authSource = AuthSource.NONE.source,
   )
 
