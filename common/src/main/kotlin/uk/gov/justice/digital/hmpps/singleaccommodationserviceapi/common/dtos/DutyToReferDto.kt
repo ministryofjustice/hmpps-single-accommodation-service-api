@@ -30,6 +30,8 @@ data class DtrSubmissionDto(
   val withdrawalReason: WithdrawalReason? = null,
   val withdrawalReasonOther: String? = null,
   val outcomeReason: OutcomeReason? = null,
+  val submissionNote: String? = null,
+  val outcomeNote: String? = null,
 )
 
 data class LocalAuthorityDto(
@@ -45,6 +47,8 @@ data class DtrCommand(
   val withdrawalReason: WithdrawalReason? = null,
   val withdrawalReasonOther: String? = null,
   val outcomeReason: OutcomeReason? = null,
+  val submissionNote: String? = null,
+  val outcomeNote: String? = null,
 )
 
 enum class DtrStatus {

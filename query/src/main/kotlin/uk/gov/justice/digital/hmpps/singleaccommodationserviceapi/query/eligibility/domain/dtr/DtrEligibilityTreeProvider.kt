@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -59,7 +61,7 @@ class DtrEligibilityTreeProvider(
         suitability,
         onFailResult = ServiceResult(
           serviceStatus = ServiceStatus.NOT_STARTED,
-          action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+          action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS),
           link = EligibilityKeys.ADD_REFERRAL_DETAILS,
         ),
       )

@@ -7,6 +7,7 @@ const val DTR_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY = "dtrWithdraw
 const val DTR_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY = "dtrWithdrawalReasonNotApplicable"
 const val DTR_OUTCOME_REASON_REQUIRED_KEY = "dtrOutcomeReasonRequired"
 const val DTR_OUTCOME_REASON_NOT_APPLICABLE_KEY = "dtrOutcomeReasonNotApplicable"
+const val DTR_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "dtrOutcomeNoteNotApplicable"
 
 class DutyToReferInvalidStatusException : DomainException(DTR_INVALID_STATUS_ERROR_KEY)
 
@@ -21,3 +22,5 @@ class DutyToReferWithdrawalReasonNotApplicableException : DomainException(DTR_WI
 class DutyToReferOutcomeReasonRequiredException : DomainException(DTR_OUTCOME_REASON_REQUIRED_KEY)
 
 class DutyToReferOutcomeReasonNotApplicableException : DomainException(DTR_OUTCOME_REASON_NOT_APPLICABLE_KEY)
+
+class DutyToReferOutcomeNoteNotApplicableException : DomainException(DTR_OUTCOME_NOTE_NOT_APPLICABLE_KEY)

@@ -20,6 +20,11 @@ import java.util.UUID
 private const val NOTE_MAX_LENGTH = 4000
 private const val PRISON_ACCOMMODATION_TYPE_CODE = "HMP"
 
+enum class SyncType {
+  CREATE,
+  UPDATE,
+}
+
 class ProposedAccommodationAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
@@ -44,11 +49,13 @@ class ProposedAccommodationAggregate private constructor(
     fun hydrateNew(
       caseId: UUID,
       cprAddressId: UUID?,
+      accommodationSource: AccommodationSource?,
       currentAccommodation: AccommodationSummaryDto?,
     ) = ProposedAccommodationAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
       cprAddressId = cprAddressId,
+      accommodationSource = accommodationSource,
       currentAccommodation = currentAccommodation,
     )
 
@@ -90,7 +97,6 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun updateProposedAccommodation(
-    newAccommodationSource: AccommodationSource,
     newName: String?,
     newAccommodationType: AccommodationTypeDto,
     newVerificationStatus: VerificationStatus,
@@ -98,7 +104,6 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
-    newTypeVerified: Boolean?,
     newNoFixedAbode: Boolean?,
   ) {
     val previousNextAccommodationStatus = nextAccommodationStatus
@@ -112,6 +117,7 @@ class ProposedAccommodationAggregate private constructor(
           newAddress,
           newStartDate,
           newEndDate,
+          newAccommodationType,
         )
     val shouldPublishDeleteEvent =
       existingIsKnownToCpr &&
@@ -122,7 +128,6 @@ class ProposedAccommodationAggregate private constructor(
           newVerificationStatus,
         )
 
-    accommodationSource = newAccommodationSource
     name = newName
     accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
@@ -134,23 +139,50 @@ class ProposedAccommodationAggregate private constructor(
 
     downgradeNextAccommodationStatusIfVerificationFailed()
     accommodationStatus = getAccommodationStatus()
-    setTypeVerified(newTypeVerified)
+    typeVerified = false
 
     validateProposedAccommodation()
 
     when {
       shouldPublishDeleteEvent -> {
-        cprAddressId = null
         domainEvents += AccommodationDeletedDomainEvent(
           aggregateId = id,
+          cprAddressId = cprAddressId!!,
         )
+        unregisterWithCpr()
       }
 
-      shouldPublishUpdateEvent && accommodationSource == AccommodationSource.SAS -> {
+      shouldPublishUpdateEvent -> {
         domainEvents += AccommodationUpdatedDomainEvent(
           aggregateId = id,
+          cprAddressId = cprAddressId!!,
         )
       }
+    }
+  }
+
+  fun syncProposedAccommodation(
+    newAccommodationType: AccommodationTypeDto,
+    newAccommodationStatus: AccommodationStatusDto?,
+    newAddress: AccommodationAddressDetails,
+    newStartDate: LocalDate?,
+    newEndDate: LocalDate?,
+    newTypeVerified: Boolean?,
+    newNoFixedAbode: Boolean?,
+    syncType: SyncType,
+  ) {
+    name = null
+    accommodationType = newAccommodationType
+    accommodationStatus = newAccommodationStatus
+    typeVerified = newTypeVerified
+    noFixedAbode = newNoFixedAbode
+    address = newAddress
+    startDate = newStartDate
+    endDate = newEndDate
+
+    if (SyncType.CREATE == syncType) {
+      verificationStatus = VerificationStatus.PASSED
+      nextAccommodationStatus = NextAccommodationStatus.YES
     }
   }
 
@@ -168,13 +200,6 @@ class ProposedAccommodationAggregate private constructor(
     }
     if (note.length > NOTE_MAX_LENGTH) {
       throw NoteIsGreaterThanMaxLengthException()
-    }
-  }
-
-  private fun setTypeVerified(newTypeVerified: Boolean?) {
-    typeVerified = when (accommodationSource!!) {
-      AccommodationSource.SAS -> nextAccommodationStatus == NextAccommodationStatus.YES
-      AccommodationSource.DELIUS -> newTypeVerified ?: false
     }
   }
 
@@ -210,6 +235,10 @@ class ProposedAccommodationAggregate private constructor(
 
   private fun isRegisteredWithCpr() = cprAddressId != null
 
+  private fun unregisterWithCpr() {
+    cprAddressId = null
+  }
+
   private fun wasNextAccommodation(
     status: NextAccommodationStatus?,
   ) = status == NextAccommodationStatus.YES
@@ -218,7 +247,8 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
-  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate
+    newAccommodationType: AccommodationTypeDto,
+  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate || accommodationType?.code != newAccommodationType.code
 
   private fun shouldDeleteFromCpr(
     previousNextAccommodationStatus: NextAccommodationStatus?,
@@ -261,8 +291,8 @@ class ProposedAccommodationAggregate private constructor(
     address!!,
     startDate,
     endDate,
-    typeVerified!!,
-    noFixedAbode!!,
+    typeVerified,
+    noFixedAbode,
     notes = notes.toList(),
   )
 

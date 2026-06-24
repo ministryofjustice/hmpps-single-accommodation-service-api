@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
 import java.time.Instant
@@ -30,36 +29,6 @@ object AccommodationReferralTransformer {
       placementStatus = it.placementStatus,
     )
   } +
-    dto.cas2Referrals.map {
-      toAccommodationReferralDto(
-        id = it.id,
-        type = AccommodationService.CAS2,
-        status = toCasReferralStatus(it.status),
-        date = it.createdAt,
-        referralRejectionReason = it.referralRejectionReason,
-        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
-        localAuthorityArea = it.localAuthorityArea,
-        pdu = it.pdu,
-        referredBy = it.referredBy,
-        placementAddress = it.placementAddress,
-        placementStatus = it.placementStatus,
-      )
-    } +
-    dto.cas2v2Referrals.map {
-      toAccommodationReferralDto(
-        id = it.id,
-        type = AccommodationService.CAS2v2,
-        status = toCasReferralStatus(it.status),
-        date = it.createdAt,
-        referralRejectionReason = it.referralRejectionReason,
-        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
-        localAuthorityArea = it.localAuthorityArea,
-        pdu = it.pdu,
-        referredBy = it.referredBy,
-        placementAddress = it.placementAddress,
-        placementStatus = it.placementStatus,
-      )
-    } +
     dto.cas3Referrals.map {
       toAccommodationReferralDto(
         id = it.id,
@@ -134,23 +103,6 @@ object AccommodationReferralTransformer {
     Cas1AssessmentStatus.AWAITING_RESPONSE,
     Cas1AssessmentStatus.IN_PROGRESS,
     Cas1AssessmentStatus.NOT_STARTED,
-    -> AccommodationReferralStatus.PENDING
-  }
-
-  fun toCasReferralStatus(status: Cas2Status): AccommodationReferralStatus = when (status) {
-    Cas2Status.PLACE_OFFERED,
-    Cas2Status.OFFER_ACCEPTED,
-    -> AccommodationReferralStatus.ACCEPTED
-
-    Cas2Status.OFFER_DECLINED_OR_WITHDRAWN,
-    Cas2Status.REFERRAL_CANCELLED,
-    Cas2Status.REFERRAL_WITHDRAWN,
-    -> AccommodationReferralStatus.REJECTED
-
-    Cas2Status.MORE_INFORMATION_REQUESTED,
-    Cas2Status.AWAITING_ARRIVAL,
-    Cas2Status.ON_WAITING_LIST,
-    Cas2Status.AWAITING_DECISION,
     -> AccommodationReferralStatus.PENDING
   }
 

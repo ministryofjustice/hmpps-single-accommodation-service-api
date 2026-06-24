@@ -15,32 +15,42 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SingleAccommodationServiceApiExceptionHandler.Companion.handleUpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.util.UUID
 
 @RestController
 class ProposedAccommodationController(
+  private val caseQueryService: CaseQueryService,
+  private val caseApplicationService: CaseApplicationService,
   private val accommodationQueryService: AccommodationQueryService,
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
+  private val accommodationSyncService: AccommodationSyncService,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
-    val currentAndAllAccommodations = accommodationQueryService.getCurrentAndAllAccommodations(crn)
-    handleUpstreamFailure(currentAndAllAccommodations.upstreamFailures)
-    if (currentAndAllAccommodations.data.second.isNotEmpty()) {
-      proposedAccommodationApplicationService.upsertDeliusOriginProposedAccommodation(
+    if (!caseQueryService.isPersistedCase(crn)) {
+      val result = caseQueryService.getCaseFromDelius(crn)
+      handleUpstreamFailure(result.upstreamFailures)
+      caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
+    }
+
+    val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
+    handleUpstreamFailure(cprAccommodations.upstreamFailures)
+    if (cprAccommodations.data.isNotEmpty()) {
+      accommodationSyncService.syncAccommodationFromDelius(
         crn,
-        currentAccommodation = currentAndAllAccommodations.data.first,
-        cprAccommodations = currentAndAllAccommodations.data.second,
+        cprAccommodations.data,
       )
     }
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
@@ -98,11 +108,5 @@ class ProposedAccommodationController(
     handleUpstreamFailure(currentAccommodation.upstreamFailures)
     val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(id, crn, request, currentAccommodation.data)
     return ResponseEntity.ok(updatedProposedAccommodation)
-  }
-
-  private fun handleUpstreamFailure(upstreamFailures: List<UpstreamFailureDto>) {
-    if (upstreamFailures.isNotEmpty()) {
-      throw UpstreamFailureException(upstreamFailures)
-    }
   }
 }

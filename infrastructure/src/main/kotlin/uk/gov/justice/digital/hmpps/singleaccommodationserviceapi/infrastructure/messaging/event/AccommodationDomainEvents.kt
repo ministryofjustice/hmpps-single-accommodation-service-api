@@ -4,10 +4,12 @@ import java.util.UUID
 
 data class AccommodationUpdatedDomainEvent(
   override val aggregateId: UUID,
+  val cprAddressId: UUID,
   override val type: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
 ) : SingleAccommodationServiceDomainEvent
 
 data class AccommodationDeletedDomainEvent(
   override val aggregateId: UUID,
+  val cprAddressId: UUID,
   override val type: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
 ) : SingleAccommodationServiceDomainEvent

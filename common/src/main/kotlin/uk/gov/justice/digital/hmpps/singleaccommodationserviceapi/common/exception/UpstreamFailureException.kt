@@ -3,10 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.except
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 
 class UpstreamFailureException(
-  val upstreamFailures: List<UpstreamFailureDto>,
-) : RuntimeException(upstreamFailures.toFailMessage())
+  val failure: UpstreamFailureDto,
+) : RuntimeException(failure.toFailMessage())
 
-private fun List<UpstreamFailureDto>.toFailMessage() = """failureTypes: ${
-  this.map { "[${it.failureType}] - [${it.endpoint}] - [${it.message}]" }
-    .joinToString { "\n" }
-}"""
+private fun UpstreamFailureDto.toFailMessage() = "failureType: [$failureType] - [$endpoint] - [$message]"

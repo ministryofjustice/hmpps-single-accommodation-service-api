@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.DutyToReferAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeNoteNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
@@ -505,6 +506,55 @@ class DutyToReferAggregateTest {
     }
   }
 
+  @Nested
+  inner class Withdraw {
+    @Test
+    fun `withdraw on SUBMITTED aggregate sets status to WITHDRAWN with NEW_REFERRAL reason and emits event`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+      val snapshotBefore = aggregate.snapshot()
+
+      aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+
+      val snapshot = aggregate.snapshot()
+      assertThat(snapshot.status).isEqualTo(DtrStatus.WITHDRAWN)
+      assertThat(snapshot.withdrawalReason).isEqualTo(WithdrawalReason.NEW_REFERRAL)
+      assertThat(snapshot.withdrawalReasonOther).isNull()
+      val domainEvents = aggregate.pullDomainEvents()
+      assertThat(domainEvents).hasSize(1)
+      assertThat(domainEvents.first()).isInstanceOf(DutyToReferUpdatedDomainEvent::class.java)
+      assertThat(domainEvents.first().aggregateId).isEqualTo(snapshotBefore.id)
+    }
+
+    @Test
+    fun `withdraw preserves localAuthorityAreaId, submissionDate and referenceNumber`() {
+      val referenceNumber = "DTR-REF-001"
+      val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = referenceNumber,
+        status = DtrStatus.SUBMITTED,
+      )
+      aggregate.pullDomainEvents()
+
+      aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+
+      val snapshot = aggregate.snapshot()
+      assertThat(snapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(snapshot.submissionDate).isEqualTo(submissionDate)
+      assertThat(snapshot.referenceNumber).isEqualTo(referenceNumber)
+    }
+
+    @Test
+    fun `withdraw on already WITHDRAWN aggregate does not emit a domain event`() {
+      val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.WITHDRAWN)
+
+      aggregate.withdrawDutyToRefer(WithdrawalReason.NEW_REFERRAL)
+
+      assertThat(aggregate.pullDomainEvents()).isEmpty()
+    }
+  }
+
   private fun hydrateAndCreateDutyToRefer(status: DtrStatus): DutyToReferAggregate {
     val aggregate = DutyToReferAggregate.hydrateNew(caseId)
     aggregate.updateDutyToRefer(
@@ -528,6 +578,277 @@ class DutyToReferAggregateTest {
     }
 
     return aggregate
+  }
+
+  @Test
+  fun `create with submission note should set submissionNote on snapshot`() {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "A submission note",
+    )
+
+    assertThat(aggregate.snapshot().submissionNote).isEqualTo("A submission note")
+  }
+
+  @Test
+  fun `update with outcome note should set outcomeNote on snapshot`() {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+      outcomeNote = "An outcome note",
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.outcomeNote).isEqualTo("An outcome note")
+  }
+
+  @Test
+  fun `update on an outcome status should set both submissionNote and outcomeNote`() {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PREVENTION_AND_RELIEF_DUTY,
+      submissionNote = "A submission note",
+      outcomeNote = "An outcome note",
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.submissionNote).isEqualTo("A submission note")
+    assertThat(snapshot.outcomeNote).isEqualTo("An outcome note")
+  }
+
+  @Test
+  fun `updateDutyToRefer should throw NoteIsGreaterThanMaxLengthException when submissionNote exceeds 4000 chars`() {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+
+    assertThrows<NoteIsGreaterThanMaxLengthException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.SUBMITTED,
+        submissionNote = "a".repeat(4001),
+      )
+    }
+  }
+
+  @Test
+  fun `updateDutyToRefer should throw NoteIsGreaterThanMaxLengthException when outcomeNote exceeds 4000 chars`() {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+
+    assertThrows<NoteIsGreaterThanMaxLengthException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.ACCEPTED,
+        outcomeReason = OutcomeReason.PRIORITY_NEED,
+        outcomeNote = "a".repeat(4001),
+      )
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateDutyToRefer should ignore blank submissionNote`(note: String) {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = note,
+    )
+
+    assertThat(aggregate.snapshot().submissionNote).isNull()
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateDutyToRefer should ignore blank outcomeNote`(note: String) {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+      outcomeNote = note,
+    )
+
+    assertThat(aggregate.snapshot().outcomeNote).isNull()
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateDutyToRefer should clear an existing submissionNote when a blank submissionNote is provided on SUBMITTED`(note: String) {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "Original submission note",
+    )
+    assertThat(aggregate.snapshot().submissionNote).isEqualTo("Original submission note")
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = note,
+    )
+
+    assertThat(aggregate.snapshot().submissionNote).isNull()
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateDutyToRefer should clear an existing outcomeNote when a blank outcomeNote is provided on an outcome status`(note: String) {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+      outcomeNote = "Original outcome note",
+    )
+    assertThat(aggregate.snapshot().outcomeNote).isEqualTo("Original outcome note")
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+      outcomeNote = note,
+    )
+
+    assertThat(aggregate.snapshot().outcomeNote).isNull()
+  }
+
+  @Test
+  fun `updateDutyToRefer should replace an existing submissionNote with a new submissionNote on SUBMITTED`() {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "Original submission note",
+    )
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "Updated submission note",
+    )
+
+    assertThat(aggregate.snapshot().submissionNote).isEqualTo("Updated submission note")
+  }
+
+  @Test
+  fun `updateDutyToRefer should update an existing submissionNote on an outcome status`() {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "Original submission note",
+    )
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+      submissionNote = "Updated submission note",
+    )
+
+    assertThat(aggregate.snapshot().submissionNote).isEqualTo("Updated submission note")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
+  fun `updateDutyToRefer should clear an existing submissionNote when a blank submissionNote is provided on an outcome status`(note: String) {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "Original submission note",
+    )
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.ACCEPTED,
+      outcomeReason = OutcomeReason.PRIORITY_NEED,
+      submissionNote = note,
+    )
+
+    assertThat(aggregate.snapshot().submissionNote).isNull()
+  }
+
+  @Test
+  fun `updateDutyToRefer should allow withdrawing while a submissionNote is provided and keep it`() {
+    val aggregate = DutyToReferAggregate.hydrateNew(caseId)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.SUBMITTED,
+      submissionNote = "Original submission note",
+    )
+
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+      submissionNote = "Original submission note",
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(DtrStatus.WITHDRAWN)
+    assertThat(snapshot.submissionNote).isEqualTo("Original submission note")
+  }
+
+  @ParameterizedTest
+  @EnumSource(DtrStatus::class, names = ["SUBMITTED", "WITHDRAWN"])
+  fun `updateDutyToRefer should throw DutyToReferOutcomeNoteNotApplicableException when outcomeNote provided for non-outcome status`(status: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(DtrStatus.SUBMITTED)
+    assertThrows<DutyToReferOutcomeNoteNotApplicableException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = status,
+        withdrawalReason = if (status == DtrStatus.WITHDRAWN) WithdrawalReason.DISENGAGED else null,
+        outcomeNote = "should not be here",
+      )
+    }
   }
 
   private fun outcomeReasonFor(status: DtrStatus): OutcomeReason? = when (status) {

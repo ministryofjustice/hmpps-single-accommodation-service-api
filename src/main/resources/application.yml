@@ -2,6 +2,9 @@ info.app:
   name: HMPPS Single Accommodation Service Api
   version: 1.0
 spring:
+  threads:
+    virtual:
+      enabled: true
   autoconfigure:
     exclude:
       - org.redisson.spring.starter.RedissonAutoConfigurationV4
@@ -32,6 +35,8 @@ spring:
       include-message: always
 springdoc:
   paths-to-exclude: "/queue-admin/**"
+sentry:
+  send-default-pii: false
 server:
   port: 8080
   servlet:
@@ -74,14 +79,6 @@ hmpps:
       max-events-per-batch: 10
       max-concurrent-events: 4
 
-service:
-  approved-premises-ui:
-    base-url: https://approved-premises-dev.hmpps.service.justice.gov.uk
-  temporary-accommodation-ui:
-    base-url: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
-  commissioned-rehabilitative-services-ui:
-    base-url: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
-
 case-list:
   page-size: 200
   onboarded-teams: []
@@ -91,6 +88,7 @@ scheduling:
   fixed-delay: 5s
 
 shedlock:
+  default-lock-at-most-for: PT2M
   outbox-event-publisher:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S

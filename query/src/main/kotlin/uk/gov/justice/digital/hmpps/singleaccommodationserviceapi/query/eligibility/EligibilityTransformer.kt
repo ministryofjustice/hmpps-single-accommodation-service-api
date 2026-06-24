@@ -53,12 +53,12 @@ object EligibilityTransformer {
     dtr = DtrServiceResult(
       serviceResult = dtr,
       caseId = data.dutyToRefer?.caseId,
-      // suppresses withdrawn or expired referral data as service is NOT_STARTED and data is not required
-      submission = data.dutyToRefer?.submission?.takeUnless { dtr.serviceStatus == ServiceStatus.NOT_STARTED },
+      submission = data.dutyToRefer?.submission?.takeIf { surfacesReferralData(dtr) },
     ),
     crs = CrsServiceResult(
       serviceResult = crs,
-      commissionedRehabilitativeServices = toCommissionedRehabilitativeServicesDto(data.commissionedRehabilitativeServices),
+      commissionedRehabilitativeServices = toCommissionedRehabilitativeServicesDto(data.commissionedRehabilitativeServices)
+        ?.takeIf { surfacesReferralData(crs) },
     ),
     pa = PaServiceResult(
       serviceResult = pa,
@@ -70,7 +70,8 @@ object EligibilityTransformer {
       cas1.action,
       cas3.action,
       pa.action,
-    ).mapNotNull { it },
+    ).mapNotNull { it }
+      .sortedWith(compareBy(nullsLast()) { it.startDate }),
   )
 
   fun toFailedEligibilityDto(
@@ -104,6 +105,9 @@ object EligibilityTransformer {
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     failureReasons = failureReasons,
   )
+
+  // Helper function to determine if referral data (DTR/CRS) should be surfaced in EligibilityDto
+  private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus != ServiceStatus.NOT_STARTED && result.serviceStatus != ServiceStatus.NOT_ELIGIBLE
 
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,

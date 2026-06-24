@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
@@ -27,11 +26,9 @@ class AccommodationReferralTransformerTest {
       listOf(buildDutyToReferDto(submission = buildDtrSubmission(createdByUsername = "TEST_USER"))),
     )
 
-    assertThat(result).hasSize(5)
+    assertThat(result).hasSize(3)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
       AccommodationService.CAS1,
-      AccommodationService.CAS2,
-      AccommodationService.CAS2v2,
       AccommodationService.CAS3,
       AccommodationService.DTR,
     )
@@ -68,15 +65,6 @@ class AccommodationReferralTransformerTest {
   }
 
   @ParameterizedTest
-  @MethodSource("cas2StatusMappings")
-  fun `should transform Cas2Status to CasReferralStatus`(
-    input: Cas2Status,
-    expected: AccommodationReferralStatus,
-  ) {
-    assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
-  }
-
-  @ParameterizedTest
   @MethodSource("cas3StatusMappings")
   fun `should transform TemporaryAccommodationAssessmentStatus to CasReferralStatus`(
     input: TemporaryAccommodationAssessmentStatus,
@@ -97,27 +85,6 @@ class AccommodationReferralTransformerTest {
 
     Cas1AssessmentStatus.entries.forEach { status ->
       assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectedMapping[status])
-    }
-  }
-
-  @Test
-  fun `all Cas2Status values map to correct CasReferralStatus`() {
-    val expectations = mapOf(
-      Cas2Status.PLACE_OFFERED to AccommodationReferralStatus.ACCEPTED,
-      Cas2Status.OFFER_ACCEPTED to AccommodationReferralStatus.ACCEPTED,
-
-      Cas2Status.OFFER_DECLINED_OR_WITHDRAWN to AccommodationReferralStatus.REJECTED,
-      Cas2Status.REFERRAL_CANCELLED to AccommodationReferralStatus.REJECTED,
-      Cas2Status.REFERRAL_WITHDRAWN to AccommodationReferralStatus.REJECTED,
-
-      Cas2Status.MORE_INFORMATION_REQUESTED to AccommodationReferralStatus.PENDING,
-      Cas2Status.AWAITING_ARRIVAL to AccommodationReferralStatus.PENDING,
-      Cas2Status.ON_WAITING_LIST to AccommodationReferralStatus.PENDING,
-      Cas2Status.AWAITING_DECISION to AccommodationReferralStatus.PENDING,
-    )
-
-    Cas2Status.entries.forEach { status ->
-      assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectations[status])
     }
   }
 
@@ -146,19 +113,6 @@ class AccommodationReferralTransformerTest {
       Arguments.of(Cas1AssessmentStatus.AWAITING_RESPONSE, AccommodationReferralStatus.PENDING),
       Arguments.of(Cas1AssessmentStatus.IN_PROGRESS, AccommodationReferralStatus.PENDING),
       Arguments.of(Cas1AssessmentStatus.NOT_STARTED, AccommodationReferralStatus.PENDING),
-    )
-
-    @JvmStatic
-    fun cas2StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(Cas2Status.PLACE_OFFERED, AccommodationReferralStatus.ACCEPTED),
-      Arguments.of(Cas2Status.OFFER_ACCEPTED, AccommodationReferralStatus.ACCEPTED),
-      Arguments.of(Cas2Status.OFFER_DECLINED_OR_WITHDRAWN, AccommodationReferralStatus.REJECTED),
-      Arguments.of(Cas2Status.REFERRAL_CANCELLED, AccommodationReferralStatus.REJECTED),
-      Arguments.of(Cas2Status.REFERRAL_WITHDRAWN, AccommodationReferralStatus.REJECTED),
-      Arguments.of(Cas2Status.MORE_INFORMATION_REQUESTED, AccommodationReferralStatus.PENDING),
-      Arguments.of(Cas2Status.AWAITING_ARRIVAL, AccommodationReferralStatus.PENDING),
-      Arguments.of(Cas2Status.ON_WAITING_LIST, AccommodationReferralStatus.PENDING),
-      Arguments.of(Cas2Status.AWAITING_DECISION, AccommodationReferralStatus.PENDING),
     )
 
     @JvmStatic

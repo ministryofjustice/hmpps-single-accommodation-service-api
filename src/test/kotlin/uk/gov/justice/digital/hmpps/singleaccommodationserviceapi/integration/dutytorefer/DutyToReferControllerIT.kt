@@ -34,17 +34,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.du
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.dutytorefer.json.expectedGetDutyToReferTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutcomeReason as EntityOutcomeReason
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
 class DutyToReferControllerIT : IntegrationTestBase() {
-  @Autowired
-  private lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
   private lateinit var dutyToReferRepository: DutyToReferRepository
@@ -78,49 +76,6 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     crn = case.caseIdentifiers.first().identifier
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
-  }
-
-  @Test
-  fun `should return 404 when no DTR exists`() {
-    restTestClient.get().uri("/cases/{crn}/dtr", crn)
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isNotFound
-  }
-
-  @Test
-  fun `should return DTR with submission and localAuthorityAreaName`() {
-    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
-
-    restTestClient.get().uri("/cases/{crn}/dtr", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(
-          expectedGetDtrResponseBody(
-            id = existingEntity.id,
-            caseId = case.id,
-            crn = crn,
-            localAuthorityAreaId = localAuthorityArea.id,
-            localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = "2026-01-15",
-            referenceNumber = "DTR-REF-001",
-            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          ),
-        )
-      }
   }
 
   @Test
@@ -275,6 +230,60 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should auto-withdraw existing SUBMITTED referral when creating a new DTR`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingDtr = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 10),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.post().uri("/cases/$crn/dtr")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-002",
+          status = "SUBMITTED",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    // existing referral is now WITHDRAWN with reason NEW_REFERRAL
+    val withdrawnRecord = dutyToReferRepository.findById(existingDtr.id).get()
+    assertThat(withdrawnRecord.status).isEqualTo(EntityDtrStatus.WITHDRAWN)
+    assertThat(withdrawnRecord.withdrawalReason).isEqualTo(WithdrawalReason.NEW_REFERRAL)
+
+    // new referral is SUBMITTED
+    val newRecord = dutyToReferRepository.findAll().single { it.id != existingDtr.id }
+    assertThat(newRecord.status).isEqualTo(EntityDtrStatus.SUBMITTED)
+    assertThat(newRecord.referenceNumber).isEqualTo("DTR-REF-002")
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingDtr.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    )
+    assertPublishedSNSEvent(
+      dutyToReferId = newRecord.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    )
+
+    val outboxRecords = outboxEventRepository.findAll()
+    assertThat(outboxRecords).hasSize(2)
+    assertThat(outboxRecords).allMatch { it.processedStatus == ProcessedStatus.PROCESSED }
+    assertThat(outboxRecords.map { it.aggregateId }).containsExactlyInAnyOrder(existingDtr.id, newRecord.id)
+  }
+
+  @Test
   fun `should update duty to refer and return 200 with updated data`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
     val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
@@ -415,6 +424,38 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
     assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
+  fun `should withdraw duty to refer that has a submission note and keep the note`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val submissionNoteText = "Original submission note"
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+        submissionNote = submissionNoteText,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.WITHDRAWN.name,
+          withdrawalReason = "NEW_REFERRAL",
+          submissionNote = submissionNoteText,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(updatedRecord.status).isEqualTo(EntityDtrStatus.WITHDRAWN)
+    assertThat(updatedRecord.submissionNote).isEqualTo(submissionNoteText)
   }
 
   @Test
@@ -1071,7 +1112,231 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     eventType: SingleAccommodationServiceDomainEventType,
     detailUrl: String = "http://api-host/duty-to-refers",
   ) {
-    testSqsDomainEventListener.assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
+    assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
+  }
+
+  @Test
+  fun `should create duty to refer with submission note and return it in the response`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val noteText = "This is a submission note"
+
+    val result = restTestClient.post().uri("/cases/$crn/dtr")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          submissionDate = "2026-01-15",
+          referenceNumber = "DTR-REF-001",
+          status = "SUBMITTED",
+          submissionNote = noteText,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val persistedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(persistedRecord.submissionNote).isEqualTo(noteText)
+    assertThat(persistedRecord.outcomeNote).isNull()
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = persistedRecord.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
+        submissionDate = "2026-01-15",
+        referenceNumber = "DTR-REF-001",
+        createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
+        createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        submissionNote = noteText,
+      ),
+    )
+  }
+
+  @Test
+  fun `should create duty to refer with blank note and not persist the note`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    restTestClient.post().uri("/cases/$crn/dtr")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = "SUBMITTED",
+          submissionNote = "   ",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    val persistedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(persistedRecord.submissionNote).isNull()
+  }
+
+  @Test
+  fun `should update duty to refer with both submission and outcome notes and return them in the response`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val submissionNoteText = "Original submission note"
+    val outcomeNoteText = "This is an outcome note"
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+        submissionNote = submissionNoteText,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.ACCEPTED.name,
+          outcomeReason = "PRIORITY_NEED",
+          submissionNote = submissionNoteText,
+          outcomeNote = outcomeNoteText,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(updatedRecord.submissionNote).isEqualTo(submissionNoteText)
+    assertThat(updatedRecord.outcomeNote).isEqualTo(outcomeNoteText)
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
+        status = "ACCEPTED",
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        outcomeReason = "PRIORITY_NEED",
+        submissionNote = submissionNoteText,
+        outcomeNote = outcomeNoteText,
+      ),
+    )
+  }
+
+  @Test
+  fun `should update duty to refer with blank note and not overwrite existing outcome note`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.ACCEPTED.name,
+          outcomeReason = "PRIORITY_NEED",
+          outcomeNote = "  ",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(updatedRecord.outcomeNote).isNull()
+  }
+
+  @Test
+  fun `should update submission note on an existing SUBMITTED duty to refer`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val originalNote = "Original submission note"
+    val updatedNote = "Updated submission note"
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.SUBMITTED,
+        submissionNote = originalNote,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.SUBMITTED.name,
+          submissionNote = updatedNote,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(updatedRecord.submissionNote).isEqualTo(updatedNote)
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityArea.id,
+        localAuthorityAreaName = localAuthorityArea.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        submissionNote = updatedNote,
+      ),
+    )
+  }
+
+  @Test
+  fun `should update submission note on a duty to refer that already has an outcome`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+    val outcomeNoteText = "This is an outcome note"
+    val updatedNote = "Updated submission note"
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        status = EntityDtrStatus.ACCEPTED,
+        outcomeReason = EntityOutcomeReason.PREVENTION_AND_RELIEF_DUTY,
+        submissionNote = "Original submission note",
+        outcomeNote = outcomeNoteText,
+      ),
+    )
+
+    restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = localAuthorityArea.id,
+          status = EntityDtrStatus.ACCEPTED.name,
+          outcomeReason = "PREVENTION_AND_RELIEF_DUTY",
+          submissionNote = updatedNote,
+          outcomeNote = outcomeNoteText,
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
+    assertThat(updatedRecord.submissionNote).isEqualTo(updatedNote)
+    assertThat(updatedRecord.outcomeNote).isEqualTo(outcomeNoteText)
   }
 
   private fun assertThatOutboxIsAsExpected(dutyToReferId: UUID) {

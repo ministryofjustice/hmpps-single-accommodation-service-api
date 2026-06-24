@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
@@ -37,15 +36,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
-import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class CaseAllocationHandlerIT : IntegrationTestBase() {
+class CaseAllocatedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
 
@@ -57,12 +54,6 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var outboxEventRepository: OutboxEventRepository
-
-  @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
   lateinit var jsonMapper: JsonMapper
@@ -98,7 +89,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
 
   @Test
   fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when case already exists - this is duplicate event scenario to prove idempotency`() {
-    caseRepository.save(buildCaseEntity(tierScore = TierScore.A3) { withCrn(crn) })
+    caseRepository.save(buildCaseEntity(tierScore = "A3") { withCrn(crn) })
     shouldProcessCaseAllocationEventSuccessfully()
   }
 
@@ -106,7 +97,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   fun `should process incoming CASE_ALLOCATED domain event as FAILED when CPR call fails (as we need CPR identifiers to ensure not creating duplicates)`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = TierScore.A3))
+    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
 
     val cas1Application = buildCas1Application(
       id = UUID.randomUUID(),
@@ -121,8 +112,8 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED) }
-    assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
+    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+    assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
   }
 
   @Test
@@ -168,7 +159,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     assertSuccessful(
       expectedCas1Application = null,
-      expectedTierScore = null,
+      expectedTier = null,
     )
   }
 
@@ -178,7 +169,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
       buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
     )
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = TierScore.A3))
+    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
 
     val cas1Application = buildCas1Application(
       id = UUID.randomUUID(),
@@ -199,12 +190,12 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
 
   private fun assertSuccessful(
     expectedCas1Application: Cas1Application?,
-    expectedTierScore: TierScore? = TierScore.A3,
+    expectedTier: String? = "A3",
   ) {
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     if (expectedCas1Application != null) {
-      assertThat(case.tierScore).isEqualTo(expectedTierScore)
+      assertThat(case.tierScore).isEqualTo(expectedTier)
     } else {
       assertThat(case.tierScore).isNull()
     }
@@ -224,7 +215,7 @@ class CaseAllocationHandlerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    testSqsDomainEventListener.assertMessageReceived(
+    assertMessageReceived(
       typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
       eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
       detailUrl = detailUrl,

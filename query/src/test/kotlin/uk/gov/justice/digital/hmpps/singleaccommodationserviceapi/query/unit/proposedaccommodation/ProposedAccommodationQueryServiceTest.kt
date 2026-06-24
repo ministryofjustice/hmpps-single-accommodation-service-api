@@ -49,7 +49,7 @@ class ProposedAccommodationQueryServiceTest {
 
     @Test
     fun `should return empty list when no accommodations exist`() {
-      every { proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn) } returns emptyList()
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns emptyList()
 
       val result = service.getProposedAccommodations(crn)
 
@@ -71,7 +71,7 @@ class ProposedAccommodationQueryServiceTest {
         buildProposedAccommodationEntity(caseId = caseId, accommodationTypeEntity = accommodationTypeEntity, createdAt = olderDate, createdByUserId = createdByUserId),
       )
 
-      every { proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn) } returns entitiesInDbOrder
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns entitiesInDbOrder
       every { userRepository.findAllById(any()) } returns listOf(createdByUser)
       every { accommodationTypeRepository.findAllById(any()) } returns listOf(accommodationTypeEntity)
 
@@ -95,7 +95,7 @@ class ProposedAccommodationQueryServiceTest {
         buildProposedAccommodationEntity(caseId = caseId2, accommodationTypeEntity = accommodationTypeEntity, createdByUserId = createdByUserId, createdAt = Instant.now())
       val entities = listOf(proposedAccommodationEntity1, proposedAccommodationEntity2)
 
-      every { proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn) } returns entities
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns entities
       every { userRepository.findAllById(any()) } returns listOf(createdByUser)
       every { accommodationTypeRepository.findAllById(any()) } returns listOf(accommodationTypeEntity)
 

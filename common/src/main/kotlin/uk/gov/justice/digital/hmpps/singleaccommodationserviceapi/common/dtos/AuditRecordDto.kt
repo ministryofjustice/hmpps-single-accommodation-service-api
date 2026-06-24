@@ -24,18 +24,8 @@ enum class AuditRecordType {
   NOTE,
 }
 
-interface FieldChange {
-  var field: String
-  var value: String?
-}
-
-data class UpdateFieldChangeDto(
-  override var field: String,
-  override var value: String?,
-  var oldValue: String?,
-) : FieldChange
-
-data class CreateFieldChangeDto(
-  override var field: String,
-  override var value: String?,
-) : FieldChange
+data class FieldChange(
+  var field: String,
+  var value: String?,
+  var oldValue: String? = null,
+)

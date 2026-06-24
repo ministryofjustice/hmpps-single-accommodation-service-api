@@ -4,6 +4,11 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
@@ -22,6 +27,7 @@ class CaseQueryService(
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
+  fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
 
   fun getCaseList(): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
@@ -75,9 +81,12 @@ class CaseQueryService(
     }
   }
 
+  fun isPersistedCase(crn: String) = caseRepository.findByCrn(crn) != null
+
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCase(user.username, crn)
+    hasMandatoryCaseData(orchestrationResult)
     val case = orchestrationResult.data.case?.let { toPersonDto(it) }
 
     val caseOrchestrationDto = orchestrationResult.data
@@ -89,6 +98,22 @@ class CaseQueryService(
       caseOrchestrationDto.tier,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
+  }
+
+  private fun hasMandatoryCaseData(orchestrationResult: OrchestrationResultDto<CaseOrchestrationDto>) {
+    listOf(GET_CASE, GET_CORE_PERSON_RECORD_BY_CRN).forEach { key ->
+      orchestrationResult.upstreamFailures.firstOrNull { it.callKey == key }?.let {
+        throw UpstreamFailureException(UpstreamFailureTransformer.toUpstreamFailureDto(it))
+      }
+    }
+  }
+
+  fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
+    val user = userService.authorizeAndRetrieveUser()
+    val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
+    val case = orchestrationResult.data.case?.let { toPersonDto(it) }
+
+    return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 
   private fun PersonDto.matchesUser(username: Username) = username.value.equals(this.assignedTo.username, ignoreCase = true)

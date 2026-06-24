@@ -3,6 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -14,8 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.util.UUID
 
 class Cas1SuitabilityContextUpdaterTest {
-  val cas1UiUrl = "CAS1_UI_URL"
-  private val updater = Cas1SuitabilityContextUpdater(cas1UiUrl)
+  private val updater = Cas1SuitabilityContextUpdater()
 
   @Nested
   inner class UpdateTests {
@@ -35,10 +37,11 @@ class Cas1SuitabilityContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isEqualTo(EligibilityKeys.CONTINUE_APPROVED_PREMISE_APPLICATION)
+      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.CONTINUE_APPROVED_PREMISE_APPLICATION))
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.CONTINUE_APPLICATION)
-      assertThat(result.currentResult.url).isEqualTo(cas1UiUrl)
+      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS1_VIEW_APPLICATION)
+      assertThat(result.currentResult.url).isNull()
     }
   }
 }

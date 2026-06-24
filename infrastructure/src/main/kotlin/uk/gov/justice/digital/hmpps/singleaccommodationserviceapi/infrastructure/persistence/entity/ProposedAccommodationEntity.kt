@@ -66,6 +66,9 @@ open class ProposedAccommodationEntity(
   )
   var notes: MutableList<ProposedAccommodationNoteEntity> = mutableListOf(),
 
+  @Column(nullable = false)
+  var deleted: Boolean = false,
+
 ) : BaseAuditedEntity()
 
 enum class VerificationStatus {

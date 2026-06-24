@@ -9,16 +9,20 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
@@ -57,41 +61,7 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
     assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
     assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.SAS)
-    assertThat(aggregateSnapshot.typeVerified).isTrue
-    assertThat(aggregateSnapshot.noFixedAbode).isFalse
-
-    val domainEventsToPublish = aggregate.pullDomainEvents()
-    assertThat(domainEventsToPublish).hasSize(0)
-  }
-
-  @Test
-  fun `should hydrate and createProposedAccommodation for Delius use case where we have CPR address ID`() {
-    val cprAddressId = UUID.randomUUID()
-    val aggregate = hydrateAndCreateProposedAccommodation(
-      cprAddressId = cprAddressId,
-      verificationStatus = VerificationStatus.PASSED,
-      nextAccommodationStatus = NextAccommodationStatus.YES,
-    )
-    val aggregateSnapshot = aggregate.snapshot()
-    assertThat(aggregateSnapshot.cprAddressId).isEqualTo(cprAddressId)
-    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
-    assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
-    assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
-    assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
-    assertThat(aggregateSnapshot.address.postcode).isEqualTo(accommodationDetails.address.postcode)
-    assertThat(aggregateSnapshot.address.subBuildingName).isEqualTo(accommodationDetails.address.subBuildingName)
-    assertThat(aggregateSnapshot.address.buildingName).isEqualTo(accommodationDetails.address.buildingName)
-    assertThat(aggregateSnapshot.address.buildingNumber).isEqualTo(accommodationDetails.address.buildingNumber)
-    assertThat(aggregateSnapshot.address.thoroughfareName).isEqualTo(accommodationDetails.address.thoroughfareName)
-    assertThat(aggregateSnapshot.address.dependentLocality).isEqualTo(accommodationDetails.address.dependentLocality)
-    assertThat(aggregateSnapshot.address.postTown).isEqualTo(accommodationDetails.address.postTown)
-    assertThat(aggregateSnapshot.address.county).isEqualTo(accommodationDetails.address.county)
-    assertThat(aggregateSnapshot.address.country).isEqualTo(accommodationDetails.address.country)
-    assertThat(aggregateSnapshot.address.uprn).isEqualTo(accommodationDetails.address.uprn)
-    assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
-    assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
-    assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.SAS)
-    assertThat(aggregateSnapshot.typeVerified).isTrue
+    assertThat(aggregateSnapshot.typeVerified).isFalse
     assertThat(aggregateSnapshot.noFixedAbode).isFalse
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -251,7 +221,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and address changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to address data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -275,9 +245,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -287,7 +255,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and start date changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to address startDate`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -312,9 +280,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = newStartDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -324,7 +290,47 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and end date changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to accommodationType data`() {
+    val aggregate = hydrateAggregate(
+      cprAddressId = UUID.randomUUID(),
+      accommodationType = buildAccommodationTypeDto(
+        code = "A02",
+      ),
+    )
+    val newAccommodationType = buildAccommodationTypeDto(
+      code = "A07B",
+    )
+
+    aggregate.updateProposedAccommodation(
+      newName = accommodationDetails.name,
+      newAccommodationType = newAccommodationType,
+      newVerificationStatus = VerificationStatus.PASSED,
+      newNextAccommodationStatus = NextAccommodationStatus.YES,
+      newAddress = AccommodationAddressDetails(
+        postcode = accommodationDetails.address.postcode,
+        subBuildingName = accommodationDetails.address.subBuildingName,
+        buildingName = accommodationDetails.address.buildingName,
+        buildingNumber = accommodationDetails.address.buildingNumber,
+        thoroughfareName = accommodationDetails.address.thoroughfareName,
+        dependentLocality = accommodationDetails.address.dependentLocality,
+        postTown = accommodationDetails.address.postTown,
+        county = accommodationDetails.address.county,
+        country = accommodationDetails.address.country,
+        uprn = accommodationDetails.address.uprn,
+      ),
+      newStartDate = accommodationDetails.startDate,
+      newEndDate = accommodationDetails.endDate,
+      newNoFixedAbode = false,
+    )
+
+    val domainEventsToPublish = aggregate.pullDomainEvents()
+    assertThat(domainEventsToPublish).hasSize(1)
+    assertThat(domainEventsToPublish.first()).isInstanceOf(AccommodationUpdatedDomainEvent::class.java)
+    assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregate.snapshot().id)
+  }
+
+  @Test
+  fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to endDate data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -349,9 +355,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = newEndDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -361,7 +365,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should not add AccommodationUpdatedDomainEvent when registered with CPR and SAS source record and no relevant CPR fields change`() {
+  fun `should not add AccommodationUpdatedDomainEvent when registered with CPR and SAS update but no relevant CPR fields change`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
     )
@@ -385,9 +389,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -395,7 +397,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should not add AccommodationUpdatedDomainEvent when not registered with CPR and SAS source record and relevant CPR fields change`() {
+  fun `should not add AccommodationUpdatedDomainEvent when not registered with CPR and SAS update to relevant CPR fields`() {
     val aggregate = hydrateAggregate()
 
     aggregate.updateProposedAccommodation(
@@ -417,9 +419,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -427,7 +427,7 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should not add AccommodationUpdatedDomainEvent when accommodation source is DELIUS and address changes`() {
+  fun `should add AccommodationUpdatedDomainEvent when accommodation source is DELIUS and SAS updates the address data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationSource = AccommodationSource.DELIUS,
@@ -452,44 +452,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = true,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.DELIUS,
-    )
-
-    val domainEventsToPublish = aggregate.pullDomainEvents()
-    assertThat(domainEventsToPublish).isEmpty()
-  }
-
-  @Test
-  fun `should add AccommodationUpdatedDomainEvent when accommodation source is DELIUS but changes to SAS and has address changes`() {
-    val aggregate = hydrateAggregate(
-      cprAddressId = UUID.randomUUID(),
-      accommodationSource = AccommodationSource.DELIUS,
-    )
-
-    aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
-      newAccommodationType = accommodationDetails.accommodationType,
-      newVerificationStatus = VerificationStatus.PASSED,
-      newNextAccommodationStatus = NextAccommodationStatus.YES,
-      newAddress = AccommodationAddressDetails(
-        postcode = "NEW POSTCODE",
-        subBuildingName = accommodationDetails.address.subBuildingName,
-        buildingName = accommodationDetails.address.buildingName,
-        buildingNumber = accommodationDetails.address.buildingNumber,
-        thoroughfareName = accommodationDetails.address.thoroughfareName,
-        dependentLocality = accommodationDetails.address.dependentLocality,
-        postTown = accommodationDetails.address.postTown,
-        county = accommodationDetails.address.county,
-        country = accommodationDetails.address.country,
-        uprn = accommodationDetails.address.uprn,
-      ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
-      newTypeVerified = true,
-      newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -524,9 +487,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -561,9 +522,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val aggregateSnapshot = aggregate.snapshot()
@@ -600,9 +559,7 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = null,
       newNoFixedAbode = false,
-      newAccommodationSource = AccommodationSource.SAS,
     )
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
@@ -669,72 +626,165 @@ class ProposedAccommodationAggregateTest {
   }
 
   @Test
-  fun `should set typeVerified to true when accommodation source is SAS and next accommodation is YES`() {
+  fun `should set typeVerified to false always for Proposed Accommodation as represents them living in the property`() {
     val aggregate = hydrateAndCreateProposedAccommodation(
       accommodationSource = AccommodationSource.SAS,
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+    )
+
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.typeVerified).isFalse
+  }
+
+  @Test
+  fun `should syncProposedAccommodation for create scenario (where exists in nDelius and not SAS) and not add AccommodationUpdatedDomainEvent domain event to list`() {
+    val caseId = UUID.randomUUID()
+    val cprAddressId = UUID.randomUUID()
+    val aggregate = ProposedAccommodationAggregate.hydrateNew(
+      caseId = caseId,
+      cprAddressId = cprAddressId,
+      currentAccommodation = null,
+      accommodationSource = AccommodationSource.DELIUS,
+    )
+    aggregate.syncProposedAccommodation(
+      newAccommodationType = accommodationDetails.accommodationType,
+      newAddress = AccommodationAddressDetails(
+        postcode = accommodationDetails.address.postcode,
+        subBuildingName = accommodationDetails.address.subBuildingName,
+        buildingName = accommodationDetails.address.buildingName,
+        buildingNumber = accommodationDetails.address.buildingNumber,
+        thoroughfareName = accommodationDetails.address.thoroughfareName,
+        dependentLocality = accommodationDetails.address.dependentLocality,
+        postTown = accommodationDetails.address.postTown,
+        county = accommodationDetails.address.county,
+        country = accommodationDetails.address.country,
+        uprn = accommodationDetails.address.uprn,
+      ),
+      newStartDate = accommodationDetails.startDate,
+      newEndDate = accommodationDetails.endDate,
+      newNoFixedAbode = true,
+      newTypeVerified = true,
+      newAccommodationStatus = AccommodationStatusDto(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      syncType = SyncType.CREATE,
+    )
+
+    val aggregateSnapshot = aggregate.snapshot()
+    assertThat(aggregateSnapshot.caseId).isEqualTo(caseId)
+    assertThat(aggregateSnapshot.cprAddressId).isEqualTo(cprAddressId)
+    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
+    assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
+    assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
+    assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
+    assertThat(aggregateSnapshot.address.postcode).isEqualTo(accommodationDetails.address.postcode)
+    assertThat(aggregateSnapshot.address.subBuildingName).isEqualTo(accommodationDetails.address.subBuildingName)
+    assertThat(aggregateSnapshot.address.buildingName).isEqualTo(accommodationDetails.address.buildingName)
+    assertThat(aggregateSnapshot.address.buildingNumber).isEqualTo(accommodationDetails.address.buildingNumber)
+    assertThat(aggregateSnapshot.address.thoroughfareName).isEqualTo(accommodationDetails.address.thoroughfareName)
+    assertThat(aggregateSnapshot.address.dependentLocality).isEqualTo(accommodationDetails.address.dependentLocality)
+    assertThat(aggregateSnapshot.address.postTown).isEqualTo(accommodationDetails.address.postTown)
+    assertThat(aggregateSnapshot.address.county).isEqualTo(accommodationDetails.address.county)
+    assertThat(aggregateSnapshot.address.country).isEqualTo(accommodationDetails.address.country)
+    assertThat(aggregateSnapshot.address.uprn).isEqualTo(accommodationDetails.address.uprn)
+    assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
+    assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
+    assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.DELIUS)
+    assertThat(aggregateSnapshot.typeVerified).isTrue
+    assertThat(aggregateSnapshot.noFixedAbode).isTrue
+
+    val domainEventsToPublish = aggregate.pullDomainEvents()
+    assertThat(domainEventsToPublish).hasSize(0)
+  }
+
+  @Test
+  fun `should syncProposedAccommodation for update scenario (where exists in both nDelius and SAS) and not add AccommodationUpdatedDomainEvent domain event to list`() {
+    val caseId = UUID.randomUUID()
+    val commonCprAddressId = UUID.randomUUID()
+    val aggregate = ProposedAccommodationAggregate.hydrateExisting(
+      id = UUID.randomUUID(),
+      caseId = caseId,
+      accommodationSource = AccommodationSource.SAS,
+      currentAccommodation = null,
+      cprAddressId = commonCprAddressId,
+      name = null,
+      accommodationType = buildAccommodationTypeDto(
+        code = AddressUsageCode.A07B.name,
+      ),
+      accommodationStatus = buildAccommodationStatusDto(
+        code = AddressStatusCode.PR1.name,
+      ),
+      verificationStatus = VerificationStatus.PASSED,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+      address = AccommodationAddressDetails(
+        postcode = "initial postcode",
+        subBuildingName = "initial subBuildingName",
+        buildingName = "initial buildingName",
+        buildingNumber = "initial buildingNumber",
+        thoroughfareName = "initial thoroughfareName",
+        dependentLocality = "initial dependentLocality",
+        postTown = "initial postTown",
+        county = "initial county",
+        country = "initial country",
+        uprn = "initial uprn",
+      ),
+      startDate = LocalDate.now().minusDays(10),
+      endDate = null,
       typeVerified = false,
+      noFixedAbode = false,
+      notes = emptyList(),
+    )
+    val newAccommodationType = buildAccommodationTypeDto(
+      code = AddressUsageCode.A07A.name,
+    )
+    val newAccommodationStatus = buildAccommodationStatusDto(
+      code = AddressStatusCode.PR1.name,
+    )
+    val newStartDate = LocalDate.now().minusDays(5)
+    val newEndDate = LocalDate.now()
+    val newAddress = AccommodationAddressDetails(
+      postcode = "new postcode",
+      subBuildingName = "new subBuildingName",
+      buildingName = "new buildingName",
+      buildingNumber = "new buildingNumber",
+      thoroughfareName = "new thoroughfareName",
+      dependentLocality = "new dependentLocality",
+      postTown = "new postTown",
+      county = "new county",
+      country = "new country",
+      uprn = "new uprn",
+    )
+    aggregate.syncProposedAccommodation(
+      newAccommodationType = newAccommodationType,
+      newAccommodationStatus = newAccommodationStatus,
+      newAddress = newAddress,
+      newStartDate = newStartDate,
+      newEndDate = newEndDate,
+      newTypeVerified = true,
+      newNoFixedAbode = true,
+      syncType = SyncType.UPDATE,
     )
 
-    val snapshot = aggregate.snapshot()
+    val aggregateSnapshot = aggregate.snapshot()
+    assertThat(aggregateSnapshot.caseId).isEqualTo(caseId)
+    assertThat(aggregateSnapshot.cprAddressId).isEqualTo(commonCprAddressId)
+    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
+    assertThat(aggregateSnapshot.accommodationType).isEqualTo(newAccommodationType)
+    assertThat(aggregateSnapshot.accommodationStatus).isEqualTo(newAccommodationStatus)
+    assertThat(aggregateSnapshot.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+    assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+    assertThat(aggregateSnapshot.address).isEqualTo(newAddress)
+    assertThat(aggregateSnapshot.startDate).isEqualTo(newStartDate)
+    assertThat(aggregateSnapshot.endDate).isEqualTo(newEndDate)
+    assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.SAS)
+    assertThat(aggregateSnapshot.typeVerified).isTrue
+    assertThat(aggregateSnapshot.noFixedAbode).isTrue
 
-    assertThat(snapshot.typeVerified).isTrue
-  }
-
-  @Test
-  fun `should set typeVerified to false when accommodation source is SAS and next accommodation is NO`() {
-    val aggregate = hydrateAndCreateProposedAccommodation(
-      accommodationSource = AccommodationSource.SAS,
-      verificationStatus = VerificationStatus.NOT_CHECKED_YET,
-      nextAccommodationStatus = NextAccommodationStatus.NO,
-      typeVerified = true,
-    )
-
-    val snapshot = aggregate.snapshot()
-
-    assertThat(snapshot.typeVerified).isFalse
-  }
-
-  @Test
-  fun `should set typeVerified to provided value when accommodation source is DELIUS`() {
-    val aggregate = hydrateAndCreateProposedAccommodation(
-      accommodationSource = AccommodationSource.DELIUS,
-      verificationStatus = VerificationStatus.PASSED,
-      nextAccommodationStatus = NextAccommodationStatus.YES,
-      typeVerified = true,
-    )
-
-    val snapshot = aggregate.snapshot()
-
-    assertThat(snapshot.typeVerified).isTrue
-  }
-
-  @Test
-  fun `should set typeVerified to false when accommodation source is DELIUS and provided value is null`() {
-    val aggregate = hydrateAndCreateProposedAccommodation(
-      accommodationSource = AccommodationSource.DELIUS,
-      verificationStatus = VerificationStatus.PASSED,
-      nextAccommodationStatus = NextAccommodationStatus.YES,
-      typeVerified = null,
-    )
-
-    val snapshot = aggregate.snapshot()
-
-    assertThat(snapshot.typeVerified).isFalse
-  }
-
-  @Test
-  fun `should set noFixedAbode in snapshot`() {
-    val aggregate = hydrateAndCreateProposedAccommodation(
-      verificationStatus = VerificationStatus.PASSED,
-      nextAccommodationStatus = NextAccommodationStatus.YES,
-      noFixedAbode = true,
-    )
-
-    val snapshot = aggregate.snapshot()
-
-    assertThat(snapshot.noFixedAbode).isTrue
+    val domainEventsToPublish = aggregate.pullDomainEvents()
+    assertThat(domainEventsToPublish).hasSize(0)
   }
 
   private fun shouldSuccessfullyAddNote(note: String) {
@@ -749,6 +799,7 @@ class ProposedAccommodationAggregateTest {
     cprAddressId: UUID? = null,
     accommodationSource: AccommodationSource = AccommodationSource.SAS,
     noFixedAbode: Boolean? = false,
+    accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(),
   ) = ProposedAccommodationAggregate.hydrateExisting(
     id = UUID.randomUUID(),
     caseId = UUID.randomUUID(),
@@ -756,7 +807,7 @@ class ProposedAccommodationAggregateTest {
     currentAccommodation = currentAccommodation,
     cprAddressId = cprAddressId,
     name = accommodationDetails.name,
-    accommodationType = accommodationDetails.accommodationType,
+    accommodationType = accommodationType,
     accommodationStatus = accommodationStatus,
     verificationStatus = accommodationDetails.verificationStatus!!,
     nextAccommodationStatus = accommodationDetails.nextAccommodationStatus!!,
@@ -785,16 +836,15 @@ class ProposedAccommodationAggregateTest {
     accommodationSource: AccommodationSource = AccommodationSource.SAS,
     verificationStatus: VerificationStatus,
     nextAccommodationStatus: NextAccommodationStatus,
-    typeVerified: Boolean? = true,
     noFixedAbode: Boolean = false,
   ): ProposedAccommodationAggregate {
     val aggregate = ProposedAccommodationAggregate.hydrateNew(
       caseId = UUID.randomUUID(),
       cprAddressId = cprAddressId,
       currentAccommodation = currentAccommodation,
+      accommodationSource = accommodationSource,
     )
     aggregate.updateProposedAccommodation(
-      newAccommodationSource = accommodationSource,
       newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = verificationStatus,
@@ -813,7 +863,6 @@ class ProposedAccommodationAggregateTest {
       ),
       newStartDate = accommodationDetails.startDate,
       newEndDate = accommodationDetails.endDate,
-      newTypeVerified = typeVerified,
       newNoFixedAbode = noFixedAbode,
     )
     return aggregate

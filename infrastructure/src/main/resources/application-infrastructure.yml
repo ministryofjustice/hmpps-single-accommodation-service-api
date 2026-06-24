@@ -25,9 +25,6 @@ spring:
         provider:
           hmpps-auth:
             token-uri: ${hmpps-auth.url}/oauth/token
-  threads:
-    virtual:
-      enabled: true
 
 redisson:
   timeout: 3000
@@ -49,6 +46,7 @@ redis:
     token:
 
 service:
+  connection-timeout: 1s
   # seconds must be whole numbers :)
   sas-and-delius:
     read-timeout: 15s

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -30,10 +30,7 @@ class Cas3EligibilityTreeProvider(
   private val completionContextUpdater: Cas3CompletionContextUpdater,
   private val eligibility: Cas3EligibilityRuleSet,
   private val prerequisite: Cas3PrerequisiteRuleSet,
-  @Value($$"${service.temporary-accommodation-ui.base-url}") temporaryAccommodationUiBaseUrl: String,
 ) : EligibilityTreeProvider {
-
-  val url = temporaryAccommodationUiBaseUrl
 
   private val tree: DecisionNode by lazy { build() }
 
@@ -94,6 +91,6 @@ class Cas3EligibilityTreeProvider(
   private fun serviceResult(): ServiceResult = ServiceResult(
     serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
     link = EligibilityKeys.VIEW_REFERRAL,
-    url = url,
+    linkType = LinkType.CAS3_VIEW_REFERRAL,
   )
 }

@@ -2,8 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
@@ -25,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as InfraCas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus as InfraCas3ApplicationStatus
 
@@ -60,9 +65,11 @@ class EligibilityTransformerTest {
       serviceStatus = ServiceStatus.SUBMITTED,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
+    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION)
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME)
     val cas1 = buildServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
-      action = EligibilityKeys.PROVIDE_INFORMATION,
+      action = cas1Action,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas3 = buildServiceResult(
@@ -71,7 +78,7 @@ class EligibilityTransformerTest {
     )
     val dtr = buildServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
-      action = EligibilityKeys.ADD_DTR_OUTCOME,
+      action = dtrAction,
       link = EligibilityKeys.ADD_OUTCOME,
     )
     val pa = buildServiceResult(
@@ -98,7 +105,7 @@ class EligibilityTransformerTest {
     val paServiceResult = buildPaServiceResult(
       serviceResult = pa,
     )
-    val caseActions = listOfNotNull(dtr.action, crs.action, cas1.action, cas3.action, pa.action)
+    val caseActions = listOf(dtrAction, cas1Action)
 
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
@@ -124,12 +131,34 @@ class EligibilityTransformerTest {
   }
 
   @Test
-  fun `does not surface the DTR submission when the DTR result is NOT_STARTED`() {
+  fun `sorts case actions by soonest start date first, with undated actions last`() {
+    val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1))
+    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8))
+    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3))
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null)
+    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null)
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(action = cas1Action),
+      cas3 = buildServiceResult(action = cas3Action),
+      dtr = buildServiceResult(action = dtrAction),
+      crs = buildServiceResult(action = crsAction),
+      pa = buildServiceResult(action = paAction),
+      data = buildDomainData(),
+    )
+
+    assertThat(actualEligibility.caseActions).containsExactly(cas1Action, crsAction, cas3Action, dtrAction, paAction)
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE"])
+  fun `does not surface the DTR submission when the DTR result is NOT STARTED or NOT ELIGIBLE`(serviceStatus: ServiceStatus) {
     val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
-      action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+      serviceStatus = serviceStatus,
+      action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS),
       link = EligibilityKeys.ADD_REFERRAL_DETAILS,
     )
 
@@ -145,6 +174,30 @@ class EligibilityTransformerTest {
 
     assertThat(actualEligibility.dtr.submission).isNull()
     assertThat(actualEligibility.dtr.caseId).isEqualTo(dutyToReferDto.caseId)
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE"])
+  fun `does not surface the CRS referral data when the CRS result is NOT STARTED or NOT ELIGIBLE`(serviceStatus: ServiceStatus) {
+    val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
+    val crs = buildServiceResult(
+      serviceStatus = serviceStatus,
+      action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL),
+      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+    )
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(),
+      dtr = buildServiceResult(),
+      crs = crs,
+      pa = buildServiceResult(),
+      data = data,
+    )
+
+    assertThat(actualEligibility.crs.commissionedRehabilitativeServices).isNull()
   }
 
   @Test

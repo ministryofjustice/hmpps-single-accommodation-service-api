@@ -2,11 +2,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Status
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import java.time.LocalDate
 
@@ -15,14 +15,14 @@ fun buildCaseDto(
   name: String = "First Middle Last",
   dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
   prisonNumber: String? = "PRI1",
-  tierScore: TierScore? = TierScore.A1,
+  tierScore: String? = "A1",
   riskLevel: RiskLevel? = RiskLevel.VERY_HIGH,
   pncReference: String? = "Some PNC Reference",
   assignedTo: AssignedToDto? = buildAssignedToDto(),
   currentAccommodation: AccommodationSummaryDto? = null,
   nextAccommodation: AccommodationSummaryDto? = null,
   status: Status? = null,
-  actions: List<String> = emptyList(),
+  actions: List<CaseAction> = emptyList(),
   userAccess: UserAccess = UserAccess.FULL,
   limitedAccess: Boolean = false,
 ) = CaseDto(

@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -14,11 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
 @Component
-class Cas1CompletionContextUpdater(
-  @Value($$"${service.approved-premises-ui.base-url}") approvedPremisesUiBaseUrl: String,
-) : ContextUpdater() {
-
-  val url = approvedPremisesUiBaseUrl
+class Cas1CompletionContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext): ServiceResult {
     val applicationStatus = context.data.cas1Application?.applicationStatus
@@ -53,9 +51,9 @@ class Cas1CompletionContextUpdater(
       ) {
         ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_CANCELLED,
-          action = EligibilityKeys.CREATE_PLACEMENT,
+          action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-          url = url,
+          linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
       } else {
         toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
@@ -69,21 +67,21 @@ class Cas1CompletionContextUpdater(
           serviceStatus = ServiceStatus.ARRIVED,
           action = null,
           link = EligibilityKeys.VIEW_APPLICATION,
-          url = url,
+          linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
 
         Cas1PlacementStatus.DEPARTED -> ServiceResult(
           serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-          action = EligibilityKeys.CREATE_PLACEMENT,
+          action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-          url = url,
+          linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
 
         Cas1PlacementStatus.NOT_ARRIVED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_ARRIVED,
-          action = EligibilityKeys.CREATE_PLACEMENT,
+          action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
           link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-          url = url,
+          linkType = LinkType.CAS1_VIEW_APPLICATION,
         )
 
         else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
@@ -100,32 +98,34 @@ class Cas1CompletionContextUpdater(
       Cas1RequestForPlacementStatus.AWAITING_MATCH -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
         link = EligibilityKeys.VIEW_APPLICATION,
-        url = url,
+        linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-        url = url,
+        linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       else -> toNotEligibleServiceStatus(failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE))
     }
 
-    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST -> when (requestForPlacementStatus) {
+    Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+    Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+    -> when (requestForPlacementStatus) {
       Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
-        url = url,
+        linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_REJECTED -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-        url = url,
+        linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.AWAITING_MATCH,
@@ -133,14 +133,14 @@ class Cas1CompletionContextUpdater(
       -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
         link = EligibilityKeys.VIEW_APPLICATION,
-        url = url,
+        linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
         serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        action = EligibilityKeys.CREATE_PLACEMENT,
+        action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
         link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
-        url = url,
+        linkType = LinkType.CAS1_VIEW_APPLICATION,
       )
 
       else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
@@ -156,14 +156,14 @@ class Cas1CompletionContextUpdater(
     -> ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       link = EligibilityKeys.VIEW_APPLICATION,
-      url = url,
+      linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
 
     Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
-      action = EligibilityKeys.PROVIDE_INFORMATION,
+      action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION),
       link = EligibilityKeys.VIEW_APPLICATION,
-      url = url,
+      linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
 
     else -> toNotEligibleServiceStatus(listOf(FailureReason.INVALID_APPLICATION_STATE))
