@@ -222,61 +222,45 @@ class CaseQueryServiceTest {
     @ParameterizedTest
     @CsvSource(
       value = [
-        "crn1,1,FULL",
-        "CRN3,1,FULL",
-        "cRn5,1,LIMITED",
-        "crn,0,null", // attempted partial match
-        "null,6,null",
-        "'',6,null",
+        "crn1,1",
+        "CRN3,1",
+        "cRn5,1",
+        "crn,0", // attempted partial match
+        "null,6",
+        "'',6",
       ],
       nullValues = ["null"],
     )
     fun `filters by match on FULL CRN search, ignoring case`(
       searchTerm: String?,
       count: Int,
-      userAccess: UserAccess?,
     ) {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
 
-      if (userAccess != null) {
-        assertThat(result.size).isEqualTo(1)
-        assertThat(result.first().crn).isEqualToIgnoringCase(searchTerm)
-        assertThat(result.first().userAccess).isEqualTo(userAccess)
-      }
-
-      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
     @CsvSource(
       value = [
-        "pri_2,1,FULL",
-        "PRI_4,1,FULL",
-        "pRi_6,1,LIMITED",
-        "pri_,0,null", // attempted partial match
-        "null,6,null",
-        "'',6,null",
+        "pri_2,1",
+        "PRI_4,1",
+        "pRi_6,1",
+        "pri_,0", // attempted partial match
+        "null,6",
+        "'',6",
       ],
       nullValues = ["null"],
     )
     fun `filters by match on FULL prisonNumber search, ignoring case`(
       searchTerm: String?,
       count: Int,
-      userAccess: UserAccess?,
     ) {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
 
-      if (userAccess == UserAccess.LIMITED) {
-        assertThat(result.first().prisonNumber).isNull()
-      }
-
-      if (userAccess != null) {
-        assertThat(result.size).isEqualTo(1)
-        assertThat(result.first().userAccess).isEqualTo(userAccess)
-      }
-      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -304,14 +288,9 @@ class CaseQueryServiceTest {
       searchTerm: String?,
       count: Int,
     ) {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
-      if (!searchTerm.isNullOrEmpty()) {
-        assertThat(result)
-          .allMatch { it.name!!.contains(searchTerm, ignoreCase = true) }
-          .noneMatch { it.userAccess == UserAccess.LIMITED }
-      }
-      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -326,12 +305,9 @@ class CaseQueryServiceTest {
       nullValues = ["null"],
     )
     fun `filters by risk level`(riskLevel: RiskLevel?, count: Int) {
-      val result = caseQueryService.getCases(personDtos = personDtos, riskLevel = riskLevel)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, riskLevel = riskLevel)
       assertThat(result).hasSize(count)
-      if (riskLevel != null) {
-        assertThat(result.map { it.userAccess }).noneMatch { it == UserAccess.LIMITED }
-      }
-      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -342,13 +318,13 @@ class CaseQueryServiceTest {
       "TestTeam4,0",
     )
     fun `filters by team code`(teamCode: String, count: Int) {
-      val result = caseQueryService.getCases(personDtos = personDtos, teamCode = teamCode)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, teamCode = teamCode)
       assertThat(result).hasSize(count)
       // check we can see cases in other teams
       if (teamCode == "TestTeam2") {
-        assertThat(result.mapNotNull { it.assignedTo?.username }.distinct()).containsExactly(username, "Second.User")
+        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactly(username, "Second.User")
       } else {
-        assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
+        assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
       }
     }
 
@@ -427,17 +403,21 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should get cases as all cases from case table and populate missing data from personDtos`() {
-      val crnList = listOf(crnOne, crnTwo)
+      val limitedCrn = "limitedCrn"
+      val crnList = listOf(crnOne, crnTwo, limitedCrn)
       val staff = buildOfficer(username = username)
       val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
       val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildLimitedPersonDto(crn = limitedCrn, staff = staff)
       val personDtos = listOf(
         personDto1,
         personDto2,
+        personDto3,
       )
       val caseEntity1 = buildCaseEntity { withCrn(crnOne) }
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
-      val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2)
+      val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
+      val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
 
       val dutyToReferDto1 = buildDutyToReferDto(crn = crnOne)
       val dutyToReferDto2 = buildDutyToReferDto(crn = crnTwo)
@@ -473,15 +453,15 @@ class CaseQueryServiceTest {
       } returns eligibilityDto2
 
       val result = caseQueryService.getCases(personDtos = personDtos)
-      assertThat(result).hasSize(2)
 
-      assertThat(result.first()).isEqualTo(
-        caseDto1,
-      )
+      assertThat(result).hasSize(3)
 
-      assertThat(result.last()).isEqualTo(
-        caseDto2,
-      )
+      assertThat(result[0]).isEqualTo(caseDto1)
+      assertThat(result[1]).isEqualTo(caseDto2)
+
+      assertThat(result[2])
+        .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
+        .containsExactly(limitedCrn, true, UserAccess.LIMITED)
     }
   }
 

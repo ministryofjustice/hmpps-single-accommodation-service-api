@@ -28,17 +28,19 @@ class CaseController(
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val personDtos = caseQueryService.getCaseList()
     val upstreamFailures = personDtos.upstreamFailures.toMutableList()
-    val unpersistedCrns = caseQueryService.findUnpersistedCrns(personDtos.data.map { it.crn })
+
+    val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, teamCode)
+
+    val unpersistedCrns = caseQueryService.findUnpersistedCrns(filteredCaseList.map { it.crn })
     if (unpersistedCrns.isNotEmpty()) {
       val crnsToPrisonNumbers =
-        personDtos.data.filter { it.crn in unpersistedCrns }.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
+        filteredCaseList.filter { it.crn in unpersistedCrns }.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
       caseApplicationService.createCases(crnsToPrisonNumbers)
     }
-    // TODO: Add caseApplicationService.upsertCases() in here after MVP
-    val result =
-      caseQueryService.getCases(personDtos.data, searchTerm = searchTerm, riskLevel = riskLevel, teamCode = teamCode)
 
-    return ResponseEntity.ok(ApiResponseDto(data = result, upstreamFailures = upstreamFailures))
+    // TODO: Add caseApplicationService.upsertCases() in here after MVP
+    val caseDtos = caseQueryService.getCases(filteredCaseList)
+    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
