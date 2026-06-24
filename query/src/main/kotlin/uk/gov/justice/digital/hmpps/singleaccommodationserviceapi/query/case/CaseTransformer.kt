@@ -2,13 +2,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore as TierScoreInfra
 
 object CaseTransformer {
   fun toCaseDto(
@@ -35,7 +33,7 @@ object CaseTransformer {
     dateOfBirth = cpr?.dateOfBirth,
     crn = person.crn,
     prisonNumber = cpr?.identifiers?.prisonNumbers?.firstOrNull(),
-    tierScore = tier?.let { toTierScore(tier.tierScore) },
+    tierScore = tier?.tierScore,
     riskLevel = roshDetails?.let { RiskLevelTransformer.determineOverallRiskLevel(roshDetails.rosh) },
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
     assignedTo = person.assignedTo,
@@ -64,7 +62,7 @@ object CaseTransformer {
         photoUrl = null,
         currentAccommodation = null,
         nextAccommodation = null,
-        tierScore = caseEntity?.tierScore?.let { toTierScore(it) },
+        tierScore = caseEntity?.tierScore,
         status = null,
         actions = eligibility?.caseActions.orEmpty(),
         userAccess = UserAccess.FULL,
@@ -77,11 +75,7 @@ object CaseTransformer {
 
   fun PersonDto.limited() = CaseDto(
     crn = crn,
-    prisonNumber = nomsNumber,
-    assignedTo = assignedTo,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
   )
-
-  fun toTierScore(tierScoreInfra: TierScoreInfra) = TierScore.valueOf(tierScoreInfra.name)
 }

@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -139,7 +138,7 @@ class CaseTransformerTest {
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",
-      tierScore = TierScore.A1,
+      tierScore = "A1",
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(

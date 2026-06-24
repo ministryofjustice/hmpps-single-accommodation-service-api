@@ -8,15 +8,11 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
 class CaseAllocationHandler(
-  private val inboxEventService: InboxEventService,
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
@@ -27,35 +23,29 @@ class CaseAllocationHandler(
 
   override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED
 
-  override fun getPartitionKey(inboxEvent: InboxEventEntity): String? {
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
     return caseAllocationEvent.personReference.findCrn()
   }
 
   @Transactional
-  override fun handle(inboxEvent: InboxEventEntity) {
+  override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     log.info("Processing CaseAllocation event [inboxEventId={}]", inboxEvent.id)
 
-    try {
-      val crn = checkNotNull(getPartitionKey(inboxEvent)) {
-        "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
-      }
-      val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
-      if (onboardedTeamsCodes.contains(case.manager.team.code)) {
-        caseApplicationService.upsertCase(case.crn, case.nomsId)
-        inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.PROCESSED)
-      } else {
-        inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.NOT_PROCESSED)
-      }
-      log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-    } catch (e: Exception) {
-      log.error(
-        "Failed to process CaseAllocation event [inboxEventId={}, error={}]",
-        inboxEvent.id,
-        e.message,
-      )
-      log.debug("CaseAllocation processing failure details", e)
-      inboxEventService.updateInboxEventStatusAndSave(inboxEvent, status = ProcessedStatus.FAILED)
+    val crn = checkNotNull(getPartitionKey(inboxEvent)) {
+      "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
+    }
+    val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
+    val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
+    if (shouldProcess) {
+      caseApplicationService.upsertCase(case.crn, case.nomsId)
+    }
+    log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+
+    return if (shouldProcess) {
+      InboxEventHandler.Result.PROCESSED
+    } else {
+      InboxEventHandler.Result.NOT_PROCESSED
     }
   }
 }

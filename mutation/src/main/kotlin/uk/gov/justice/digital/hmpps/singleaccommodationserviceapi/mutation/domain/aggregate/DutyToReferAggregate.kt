@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeNoteNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonRequiredException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferSubmissionNoteNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonOtherGreaterThanMaxLengthException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonRequiredException
@@ -97,7 +96,6 @@ class DutyToReferAggregate private constructor(
     validateStatusTransition(status)
     validateWithdrawal(status, withdrawalReason, withdrawalReasonOther)
     validateOutcome(status, outcomeReason, outcomeNote)
-    if (!submissionNote.isNullOrBlank() && status != DtrStatus.SUBMITTED) throw DutyToReferSubmissionNoteNotApplicableException()
 
     val previousStatus = this.status
 
@@ -109,13 +107,11 @@ class DutyToReferAggregate private constructor(
     this.withdrawalReasonOther = withdrawalReasonOther
     this.outcomeReason = outcomeReason
 
-    if (!submissionNote.isNullOrBlank()) {
-      validateNoteLength(submissionNote)
-      this.submissionNote = submissionNote
-    }
-    if (!outcomeNote.isNullOrBlank()) {
-      validateNoteLength(outcomeNote)
-      this.outcomeNote = outcomeNote
+    // submission note can be changed when updating with any status (user can go back and edit after adding outcome)
+    this.submissionNote = submissionNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
+    // outcome note can only change when updating with an outcome status
+    if (status == DtrStatus.ACCEPTED || status == DtrStatus.NOT_ACCEPTED) {
+      this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
     }
 
     if (previousStatus != status) {

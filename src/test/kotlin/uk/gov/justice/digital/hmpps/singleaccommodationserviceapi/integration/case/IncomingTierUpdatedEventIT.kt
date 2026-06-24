@@ -10,7 +10,6 @@ import org.springframework.test.context.TestPropertySource
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -65,8 +64,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
-    caseRepository.save(buildCaseEntity(tierScore = TierScore.A1) { withCrn(crn) })
-    val tier = buildTier(tierScore = TierScore.A3)
+    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val tier = buildTier(tierScore = "A3")
     TierStubs.getTierOKResponse(crn, response = tier)
 
     // when
@@ -78,14 +77,14 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    assertThat(case.tierScore).isEqualTo(TierScore.A3)
+    assertThat(case.tierScore).isEqualTo("A3")
   }
 
   @Test
-  fun `should call CorePersonRecord and update identifiers when incoming HMPPS TIER_CALCULATION_COMPLETE domain events does not match existing record`() {
+  fun `should not call CorePersonRecord when incoming HMPPS TIER_CALCULATION_COMPLETE domain events does not match existing record`() {
     val knownCrn = UUID.randomUUID().toString()
-    caseRepository.save(buildCaseEntity(tierScore = TierScore.A1) { withCrn(knownCrn) })
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = TierScore.A3))
+    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(knownCrn) })
+    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
     CorePersonRecordStubs.getCorePersonRecordOKResponse(
       crn,
       buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn, knownCrn))),
@@ -96,13 +95,13 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
 
-    val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    assertThat(case.tierScore).isEqualTo(TierScore.A3)
+    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
+    assertThat(case).isNull()
   }
 
   @Test
   fun `should not process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on unknown record`() {
-    val tier = buildTier(tierScore = TierScore.A3)
+    val tier = buildTier(tierScore = "A3")
     TierStubs.getTierOKResponse(crn, response = tier)
     val cpr = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)

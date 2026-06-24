@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
@@ -30,6 +32,7 @@ class EligibilityService(
   private val caseRepository: CaseRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
+  private val deeplinkResolver: DeeplinkResolver,
   private val cas1Tree: Cas1EligibilityTreeProvider,
   private val cas3Tree: Cas3EligibilityTreeProvider,
   private val dtrTree: DtrEligibilityTreeProvider,
@@ -61,11 +64,12 @@ class EligibilityService(
     val prisonNumber = caseEntity?.latestPrisonNumber()
 
     val eligibilityOrchestrationDto = eligibilityOrchestrationService.getData(crn, prisonNumber)
-    val upstreamFailures = eligibilityOrchestrationDto.upstreamFailures
 
-    if (upstreamFailures.isNotEmpty()) {
-      log.error("Eligibility upstream failures for CRN {}: {}", crn, upstreamFailures)
-      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = upstreamFailures)
+    val failuresRelevantToRulesEngine = eligibilityOrchestrationDto.upstreamFailures
+      .filter { it.errorDetail.httpStatus != HttpStatus.NOT_FOUND }
+    if (failuresRelevantToRulesEngine.isNotEmpty()) {
+      log.error("Eligibility upstream failures for CRN {}: {}", crn, failuresRelevantToRulesEngine)
+      return toApiResponseDto(data = toFailedEligibilityDto(crn), upstreamFailures = failuresRelevantToRulesEngine)
     }
 
     val data = buildDomainData(crn, eligibilityOrchestrationDto.data, caseEntity)
@@ -99,12 +103,12 @@ class EligibilityService(
       crs = crs,
       pa = pa,
       data = data,
-    ).also { log.debug("Finished calculating eligibility for CRN: ${data.crn}") }
+    ).also { log.info("Eligibility result for CRN {}: {}", data.crn, it) }
   }
 
   internal fun evaluate(provider: EligibilityTreeProvider, data: DomainData): ServiceResult {
     val result = provider.tree().eval(provider.initialContext(data))
-    return provider.resolveDeeplink(result, data)
+    return deeplinkResolver.resolve(result, data)
   }
 
   private fun evaluate(line: String, data: DomainData, provider: EligibilityTreeProvider): ServiceResult {

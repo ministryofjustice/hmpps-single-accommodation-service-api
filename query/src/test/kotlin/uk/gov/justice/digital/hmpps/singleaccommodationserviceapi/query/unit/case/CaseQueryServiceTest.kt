@@ -187,16 +187,16 @@ class CaseQueryServiceTest {
       ),
     )
 
-    private fun toLimitedCaseDto(crn: String, prisonNumber: String?, assignedTo: AssignedToDto) = CaseDto(
+    private fun toLimitedCaseDto(crn: String) = CaseDto(
       name = null,
       dateOfBirth = null,
       crn = crn,
-      prisonNumber = prisonNumber,
+      prisonNumber = null,
       photoUrl = null,
       tierScore = null,
       riskLevel = null,
       pncReference = null,
-      assignedTo = assignedTo,
+      assignedTo = null,
       currentAccommodation = null,
       nextAccommodation = null,
       status = null,
@@ -213,10 +213,10 @@ class CaseQueryServiceTest {
       val limitedCases = result.filter { it.userAccess == UserAccess.LIMITED }
       assertThat(limitedCases).hasSize(2)
 
-      val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5", prisonNumber = "PRI_5", assignedTo = assignedTo)
-      val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6", prisonNumber = "PRI_6", assignedTo = assignedTo)
+      val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5")
+      val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6")
       assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -245,7 +245,7 @@ class CaseQueryServiceTest {
         assertThat(result.first().userAccess).isEqualTo(userAccess)
       }
 
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -268,12 +268,15 @@ class CaseQueryServiceTest {
       val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
 
+      if (userAccess == UserAccess.LIMITED) {
+        assertThat(result.first().prisonNumber).isNull()
+      }
+
       if (userAccess != null) {
         assertThat(result.size).isEqualTo(1)
-        assertThat(result.first().prisonNumber).isEqualToIgnoringCase(searchTerm)
         assertThat(result.first().userAccess).isEqualTo(userAccess)
       }
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -308,7 +311,7 @@ class CaseQueryServiceTest {
           .allMatch { it.name!!.contains(searchTerm, ignoreCase = true) }
           .noneMatch { it.userAccess == UserAccess.LIMITED }
       }
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -328,7 +331,7 @@ class CaseQueryServiceTest {
       if (riskLevel != null) {
         assertThat(result.map { it.userAccess }).noneMatch { it == UserAccess.LIMITED }
       }
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -343,9 +346,9 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(count)
       // check we can see cases in other teams
       if (teamCode == "TestTeam2") {
-        assertThat(result.map { it.assignedTo!!.username }.distinct()).containsExactly(username, "Second.User")
+        assertThat(result.mapNotNull { it.assignedTo?.username }.distinct()).containsExactly(username, "Second.User")
       } else {
-        assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+        assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
       }
     }
 

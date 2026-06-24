@@ -43,8 +43,8 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url",
-            "linkType":null,
+            "url":"$cas3Url/referrals/$cas3ApplicationId",
+            "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "cas3Application":{
@@ -57,7 +57,7 @@ fun expectedGetEligibilityResponse(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR referral outcome",
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -109,7 +109,7 @@ fun expectedGetEligibilityResponse(
          }
       },
       "caseActions":[
-         "Add DTR referral outcome"
+         {"type":"ADD_DTR_OUTCOME","startDate":null}
       ]
    }
 }
@@ -231,8 +231,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url",
-            "linkType":null,
+            "url":"$cas3Url/referrals/$cas3ApplicationId",
+            "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "cas3Application":{
@@ -245,7 +245,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR referral outcome",
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -297,7 +297,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         "Add DTR referral outcome"
+         {"type":"ADD_DTR_OUTCOME","startDate":null}
       ]
    }
 }
@@ -345,8 +345,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url",
-            "linkType":null,
+            "url":"$cas3Url/referrals/$cas3ApplicationId",
+            "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "cas3Application":{
@@ -359,7 +359,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":"Add DTR referral outcome",
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -410,7 +410,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         "Add DTR referral outcome"
+         {"type":"ADD_DTR_OUTCOME","startDate":null}
       ]
    }
 }

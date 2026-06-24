@@ -3,12 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.util.UUID
 
 class CaseAggregate private constructor(
   private val id: UUID,
-  private var tierScore: TierScore? = null,
+  private var tierScore: String? = null,
   private var cas1ApplicationId: UUID? = null,
   private var cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
   private var cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
@@ -16,7 +15,7 @@ class CaseAggregate private constructor(
 ) {
 
   fun upsertCase(
-    tierScore: TierScore?,
+    tierScore: String?,
     cas1ApplicationId: UUID?,
     cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
     cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,
@@ -46,7 +45,7 @@ class CaseAggregate private constructor(
   companion object {
     fun hydrate(
       id: UUID,
-      tierScore: TierScore?,
+      tierScore: String?,
       cas1ApplicationId: UUID?,
       cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
       cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,
@@ -66,14 +65,14 @@ class CaseAggregate private constructor(
   }
 
   fun updateTier(
-    tierScore: TierScore?,
+    tierScore: String?,
   ) {
     this.tierScore = tierScore
   }
 
   data class CaseSnapshot(
     val id: UUID,
-    val tierScore: TierScore?,
+    val tierScore: String?,
     val cas1ApplicationId: UUID?,
     val cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
     val cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,

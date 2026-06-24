@@ -12,9 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnAllUpstreamFailures
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnCprServerError
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnCprTimeout
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnRoshServerError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnRoshTimeout
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnTierServerError
@@ -51,29 +48,23 @@ class UpstreamFailureIT : IntegrationTestBase() {
     .replace(Regex("""(I/O error on GET request for \\?"http://localhost:PORT/[^"\\]+\\??": )[^"]+"""), "$1Request cancelled")
 
   @Test
-  fun `getCase should return partial success when CPR call returns server error`() {
+  fun `getCase should return ServerError when CPR returns server error`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-
     restTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnCprServerError())
-      }
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
   }
 
   @Test
-  fun `getCase should return partial success when CPR call times out`() {
+  fun `getCase should return ServerError when CPR call times out`() {
     CorePersonRecordStubs.getCorePersonRecordTimeoutResponse(crn)
-
     restTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(normalizeResponse(it!!)).matchesExpectedJson(expectedSingleCrnCprTimeout())
-      }
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
   }
 
   @Test
@@ -129,17 +120,15 @@ class UpstreamFailureIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `getCase should return partial success when all upstream calls fail`() {
+  fun `getCase should return failure when all upstream calls fail`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     ProbationIntegrationOasysStubs.getRoshServerErrorResponse(crn)
     TierStubs.getTierServerErrorResponse(crn)
 
     restTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnAllUpstreamFailures())
-      }
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
   }
 }

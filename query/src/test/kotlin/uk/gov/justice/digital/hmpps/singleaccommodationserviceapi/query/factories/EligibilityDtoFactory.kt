@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
@@ -20,7 +21,7 @@ fun buildEligibilityDto(
   crn: String,
   cas1: Cas1ServiceResult = buildCas1ServiceResult(),
   cas3: Cas3ServiceResult = buildCas3ServiceResult(),
-  caseActions: List<String> = emptyList(),
+  caseActions: List<CaseAction> = emptyList(),
   dtr: DtrServiceResult = buildDtrServiceResult(),
   crs: CrsServiceResult = buildCrsServiceResult(),
   pa: PaServiceResult = buildPaServiceResult(),
@@ -36,7 +37,7 @@ fun buildEligibilityDto(
 
 fun buildServiceResult(
   serviceStatus: ServiceStatus = ServiceStatus.NOT_ELIGIBLE,
-  action: String? = null,
+  action: CaseAction? = null,
   link: String? = null,
   url: String? = null,
   linkType: LinkType? = null,

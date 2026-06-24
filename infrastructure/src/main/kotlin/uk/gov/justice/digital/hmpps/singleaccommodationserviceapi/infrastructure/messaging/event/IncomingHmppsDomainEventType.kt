@@ -15,6 +15,6 @@ enum class IncomingHmppsDomainEventType(
   ;
 
   companion object {
-    fun from(eventType: String): IncomingHmppsDomainEventType? = entries.find { it.typeName == eventType }
+    fun forEventType(eventType: String): IncomingHmppsDomainEventType? = entries.find { it.typeName == eventType }
   }
 }

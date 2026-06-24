@@ -88,6 +88,7 @@ scheduling:
   fixed-delay: 5s
 
 shedlock:
+  default-lock-at-most-for: PT2M
   outbox-event-publisher:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S

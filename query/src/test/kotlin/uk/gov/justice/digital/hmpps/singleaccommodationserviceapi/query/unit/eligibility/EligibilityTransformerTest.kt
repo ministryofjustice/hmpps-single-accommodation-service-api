@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
@@ -60,9 +62,11 @@ class EligibilityTransformerTest {
       serviceStatus = ServiceStatus.SUBMITTED,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
+    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION)
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME)
     val cas1 = buildServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
-      action = EligibilityKeys.PROVIDE_INFORMATION,
+      action = cas1Action,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas3 = buildServiceResult(
@@ -71,7 +75,7 @@ class EligibilityTransformerTest {
     )
     val dtr = buildServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
-      action = EligibilityKeys.ADD_DTR_OUTCOME,
+      action = dtrAction,
       link = EligibilityKeys.ADD_OUTCOME,
     )
     val pa = buildServiceResult(
@@ -98,7 +102,7 @@ class EligibilityTransformerTest {
     val paServiceResult = buildPaServiceResult(
       serviceResult = pa,
     )
-    val caseActions = listOfNotNull(dtr.action, crs.action, cas1.action, cas3.action, pa.action)
+    val caseActions = listOf(dtrAction, cas1Action)
 
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
@@ -129,7 +133,7 @@ class EligibilityTransformerTest {
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
-      action = EligibilityKeys.ADD_DTR_REFERRAL_DETAILS,
+      action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS),
       link = EligibilityKeys.ADD_REFERRAL_DETAILS,
     )
 
@@ -145,6 +149,29 @@ class EligibilityTransformerTest {
 
     assertThat(actualEligibility.dtr.submission).isNull()
     assertThat(actualEligibility.dtr.caseId).isEqualTo(dutyToReferDto.caseId)
+  }
+
+  @Test
+  fun `does not surface the CRS referral data when the CRS result is NOT_STARTED`() {
+    val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
+    val crs = buildServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL),
+      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+    )
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(),
+      dtr = buildServiceResult(),
+      crs = crs,
+      pa = buildServiceResult(),
+      data = data,
+    )
+
+    assertThat(actualEligibility.crs.commissionedRehabilitativeServices).isNull()
   }
 
   @Test
