@@ -64,7 +64,9 @@ class CaseControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
-    stubInitialRoshAndTier()
+    val tier = buildTier()
+    TierStubs.getTierOKResponse(crns[0], tier)
+    TierStubs.getTierOKResponse(crns[1], tier)
   }
 
   @Test
@@ -339,12 +341,6 @@ class CaseControllerIT : IntegrationTestBase() {
       firstName = "Zack",
       lastName = "Smith",
     )
-  }
-
-  private fun stubInitialRoshAndTier() {
-    val tier = buildTier()
-    TierStubs.getTierOKResponse(crns[0], tier)
-    TierStubs.getTierOKResponse(crns[1], tier)
   }
 
   private fun stubCaseList() {
