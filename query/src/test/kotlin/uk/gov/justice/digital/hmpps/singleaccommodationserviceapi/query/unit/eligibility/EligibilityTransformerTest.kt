@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
@@ -127,12 +129,13 @@ class EligibilityTransformerTest {
     assertThat(actualEligibility).isEqualTo(expectedEligibility)
   }
 
-  @Test
-  fun `does not surface the DTR submission when the DTR result is NOT_STARTED`() {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE"])
+  fun `does not surface the DTR submission when the DTR result is NOT STARTED or NOT ELIGIBLE`(serviceStatus: ServiceStatus) {
     val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
+      serviceStatus = serviceStatus,
       action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS),
       link = EligibilityKeys.ADD_REFERRAL_DETAILS,
     )
@@ -151,12 +154,13 @@ class EligibilityTransformerTest {
     assertThat(actualEligibility.dtr.caseId).isEqualTo(dutyToReferDto.caseId)
   }
 
-  @Test
-  fun `does not surface the CRS referral data when the CRS result is NOT_STARTED`() {
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE"])
+  fun `does not surface the CRS referral data when the CRS result is NOT STARTED or NOT ELIGIBLE`(serviceStatus: ServiceStatus) {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
+      serviceStatus = serviceStatus,
       action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL),
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
