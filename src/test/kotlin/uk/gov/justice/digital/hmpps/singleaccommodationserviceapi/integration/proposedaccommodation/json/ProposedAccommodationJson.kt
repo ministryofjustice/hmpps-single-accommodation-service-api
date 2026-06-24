@@ -84,7 +84,7 @@ fun expectedGetProposedAccommodationsResponse(
       "dependentLocality" : null,
       "postTown" : "Bramley",
       "county" : null,
-      "country" : "England",
+      "country" : null,
       "uprn" : null
     },
     "startDate" : $secondStartDateString,
