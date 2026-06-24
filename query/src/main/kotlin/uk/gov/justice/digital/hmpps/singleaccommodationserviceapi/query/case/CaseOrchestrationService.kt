@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ApprovedPremisesAndOasysCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
@@ -26,7 +25,6 @@ class CaseOrchestrationService(
   val aggregatorService: AggregatorService,
   val sasAndDeliusCachingService: SasAndDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
-  val approvedPremisesAndOasysCachingService: ApprovedPremisesAndOasysCachingService,
   val tierCachingService: TierCachingService,
   @param:Value($$"${case-list.page-size:100}") val pageSize: Long,
 ) {

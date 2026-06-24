@@ -56,7 +56,7 @@ class CaseQueryService(
           it.matchesUser(userService.getUsername())
         } &&
           it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel)
+          it.matchesRiskLevel(riskLevel)
       }.toList()
 
     val caseEntitiesByCrn = caseRepository.mapByCrns(filteredPersonDtos.map { it.crn })
@@ -122,9 +122,9 @@ class CaseQueryService(
     else -> false
   }
 
-  private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
+  private fun PersonDto.matchesRiskLevel(riskLevel: RiskLevel?): Boolean = when {
     riskLevel == null -> true
-    this is Identifiable && this@matchesRosh.riskLevel == riskLevel -> true
+    this is Identifiable && this.riskLevel == riskLevel -> true
     else -> false
   }
 
