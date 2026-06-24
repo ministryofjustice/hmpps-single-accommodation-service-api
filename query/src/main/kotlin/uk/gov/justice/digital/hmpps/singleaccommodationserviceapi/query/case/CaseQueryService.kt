@@ -94,7 +94,6 @@ class CaseQueryService(
       crn,
       case,
       caseOrchestrationDto.cpr,
-      caseOrchestrationDto.roshDetails,
       caseOrchestrationDto.tier,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
@@ -125,7 +124,7 @@ class CaseQueryService(
 
   private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
     riskLevel == null -> true
-    this is Identifiable && roshLevel == riskLevel -> true
+    this is Identifiable && this@matchesRosh.riskLevel == riskLevel -> true
     else -> false
   }
 

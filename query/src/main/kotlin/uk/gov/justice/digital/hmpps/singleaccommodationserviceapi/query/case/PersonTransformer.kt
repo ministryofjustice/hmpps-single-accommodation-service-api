@@ -22,7 +22,7 @@ object PersonTransformer {
       pncNumber = case.pncNumber,
       dateOfBirth = case.dateOfBirth,
       gender = case.gender,
-      roshLevel = case.getRosh(),
+      riskLevel = case.getRosh(),
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
       limitedAccess = case.limitedAccess,
