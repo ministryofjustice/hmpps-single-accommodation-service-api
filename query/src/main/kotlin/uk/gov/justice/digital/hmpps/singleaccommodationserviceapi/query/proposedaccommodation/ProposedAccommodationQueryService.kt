@@ -16,7 +16,7 @@ class ProposedAccommodationQueryService(
   private val accommodationTypeRepository: AccommodationTypeRepository,
 ) {
   fun getProposedAccommodations(crn: String): List<ProposedAccommodationDto> {
-    val proposedAccommodations = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    val proposedAccommodations = proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn)
     return if (proposedAccommodations.isNotEmpty()) {
       val deduplicatedUserIds = proposedAccommodations.mapNotNull { it.createdByUserId }.toSet()
       val accommodationTypeIds = proposedAccommodations.map { it.accommodationTypeId }.toSet()

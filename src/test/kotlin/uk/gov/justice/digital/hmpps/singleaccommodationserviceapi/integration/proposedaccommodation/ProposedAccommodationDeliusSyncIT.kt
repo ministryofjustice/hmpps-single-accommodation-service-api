@@ -41,6 +41,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsEmptyResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAccommodationTimeResponseForDeliusAndSasAudits
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAccommodationTimeResponseForDeliusOriginAudits
@@ -196,7 +197,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    val results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    val results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(0)
   }
 
@@ -260,7 +261,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .is5xxServerError
 
     assertThat(caseRepository.findByCrn(crn)).isNull()
-    assertThat(proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)).isEmpty()
+    assertThat(proposedAccommodationRepository.findAll().isEmpty())
   }
 
   @Test
@@ -281,7 +282,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    val results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    val results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(0)
   }
 
@@ -303,27 +304,52 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    val results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    val results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(0)
   }
 
   @Test
   fun `should sync all data on SAS 'Proposed' accommodation record when someone has changed all the data on the 'Proposed' accommodation record in nDelius`() {
-    shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
+    val (response, updatedRecord, updatedAccommodationTypeEntity) = shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
       deliusRecordAddressStatusCode = AddressStatusCode.PR1,
+    )
+    assertThatJson(response).matchesExpectedJson(
+      expectedGetProposedAccommodationsResponse(
+        expectedId = updatedRecord.id,
+        expectedPostcode = updatedRecord.postcode!!,
+        expectedSubBuildingName = updatedRecord.subBuildingName!!,
+        expectedBuildingName = updatedRecord.buildingName!!,
+        expectedBuildingNumber = updatedRecord.buildingNumber!!,
+        expectedThoroughfareName = updatedRecord.throughfareName!!,
+        expectedDependentLocality = updatedRecord.dependentLocality!!,
+        expectedPostTown = updatedRecord.postTown!!,
+        expectedCounty = updatedRecord.county!!,
+        expectedUprn = updatedRecord.uprn!!,
+        expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedAccommodationTypeEntity.id)!!,
+        expectedVerificationStatus = VerificationStatus.PASSED,
+        expectedNextAccommodationStatus = NextAccommodationStatus.YES,
+        expectedStartDate = updatedRecord.startDate!!,
+        expectedEndDate = updatedRecord.endDate!!,
+        expectedCreatedAt = updatedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        expectedCreatedBy = "Test Data Setup User",
+        crn = crn,
+      ),
     )
   }
 
   @Test
   fun `should sync all data on SAS 'Proposed' accommodation record when someone has transitioned the 'Proposed' accommodation record in nDelius to be the 'Main' accommodation record`() {
-    shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
+    val (response, _, _) = shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
       deliusRecordAddressStatusCode = AddressStatusCode.M,
+    )
+    assertThatJson(response).matchesExpectedJson(
+      expectedGetProposedAccommodationsEmptyResponse(),
     )
   }
 
   private fun shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
     deliusRecordAddressStatusCode: AddressStatusCode,
-  ) {
+  ): Triple<String, ProposedAccommodationEntity, AccommodationTypeEntity> {
     val startDate = LocalDate.now().minusDays(10)
     val commonCprAddressId = UUID.randomUUID()
     val sasOriginProposedAccommodationEntity = buildProposedAccommodationEntity(
@@ -400,7 +426,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    val results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    val results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(1)
 
     val updatedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.SAS }
@@ -434,30 +460,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       beforeTest.minusSeconds(1),
       Instant.now().plusSeconds(1),
     )
-
-    assertThatJson(response).matchesExpectedJson(
-      expectedGetProposedAccommodationsResponse(
-        expectedId = sasOriginProposedAccommodationEntity.id,
-        expectedPostcode = equivalentRecordInDeliusWithUpdatesOnAllFields.postcode!!,
-        expectedSubBuildingName = equivalentRecordInDeliusWithUpdatesOnAllFields.subBuildingName!!,
-        expectedBuildingName = equivalentRecordInDeliusWithUpdatesOnAllFields.buildingName!!,
-        expectedBuildingNumber = equivalentRecordInDeliusWithUpdatesOnAllFields.buildingNumber!!,
-        expectedThoroughfareName = equivalentRecordInDeliusWithUpdatesOnAllFields.thoroughfareName!!,
-        expectedDependentLocality = equivalentRecordInDeliusWithUpdatesOnAllFields.dependentLocality!!,
-        expectedPostTown = equivalentRecordInDeliusWithUpdatesOnAllFields.postTown!!,
-        expectedCounty = equivalentRecordInDeliusWithUpdatesOnAllFields.county!!,
-        expectedUprn = equivalentRecordInDeliusWithUpdatesOnAllFields.uprn!!,
-        expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedAccommodationTypeEntity.id)!!,
-        expectedVerificationStatus = VerificationStatus.PASSED,
-        expectedNextAccommodationStatus = NextAccommodationStatus.YES,
-        expectedStartDate = updatedStartDate,
-        expectedEndDate = updatedEndDate,
-        expectedCreatedAt = sasOriginProposedAccommodationEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-        expectedCreatedBy = "Test Data Setup User",
-        crn = crn,
-      ),
-    )
     assertThat(outboxEventRepository.findAll()).isEmpty()
+    return Triple(response, updatedRecord, updatedAccommodationTypeEntity)
   }
 
   @Test
@@ -495,7 +499,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .expectBody<String>()
       .returnResult().responseBody!!
 
-    var results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    var results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(1)
 
     var updatedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.DELIUS }
@@ -527,7 +531,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(1)
 
     updatedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.DELIUS }
@@ -582,7 +586,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    val results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    val results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(1)
 
     val deliusSyncedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.DELIUS }
@@ -707,7 +711,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       deliusOriginProposedAccommodationEndDate = deliusOriginProposedAccommodationEndDate,
     )
 
-    var results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    var results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(1)
 
     var deliusSyncedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.DELIUS }
@@ -738,7 +742,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .returnResult()
       .responseBody!!
 
-    results = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn)
+    results = proposedAccommodationRepository.findAll()
     assertThat(results).hasSize(1)
 
     deliusSyncedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.DELIUS }
