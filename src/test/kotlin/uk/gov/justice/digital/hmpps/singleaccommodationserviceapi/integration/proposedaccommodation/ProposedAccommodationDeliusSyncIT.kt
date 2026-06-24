@@ -124,7 +124,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       buildingNumber = "4",
       thoroughfareName = "Dollis Green",
       postTown = "Bramley",
-      country = "England",
+      country = null,
       startDate = null,
       verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
       nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
@@ -773,6 +773,137 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     )
     assertThat(outboxEventRepository.findAll()).isEmpty()
     return Pair(deliusSyncedRecord, deliusOriginProposedAccommodation)
+  }
+
+  @Test
+  fun `should delete SAS accommodation record when it is deleted in nDelius`() {
+    val crn = "ABCDEFG"
+    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+
+    val commonCprAddressId = UUID.randomUUID()
+    val addressForRecordInSasAndInDelius = buildCanonicalAddress(
+      postcode = "RG26 5AG",
+      buildingNumber = "4",
+      thoroughfareName = "Dollis Green",
+      postTown = "Bramley",
+      country = null,
+    )
+    val firstPreExistingConfirmedProposedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07A.name)!!
+    val firstPreExistingConfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
+      caseEntity = caseEntity,
+      cprAddressId = commonCprAddressId,
+      accommodationSource = AccommodationSource.SAS,
+      postcode = addressForRecordInSasAndInDelius.postcode!!,
+      buildingNumber = addressForRecordInSasAndInDelius.buildingNumber!!,
+      thoroughfareName = addressForRecordInSasAndInDelius.thoroughfareName!!,
+      postTown = addressForRecordInSasAndInDelius.postTown!!,
+      country = null,
+      startDate = LocalDate.now().minusDays(1),
+      verificationStatus = EntityVerificationStatus.PASSED,
+      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
+      accommodationTypeEntity = firstPreExistingConfirmedProposedAccommodationType,
+    )
+
+    val secondPreExistingConfirmedProposedAccommodationType = createAndSaveProposedAccommodation(
+      caseEntity = caseEntity,
+      cprAddressId = UUID.randomUUID(),
+      accommodationSource = AccommodationSource.SAS,
+      postcode = "W3 9XE",
+      buildingNumber = "511",
+      thoroughfareName = "Test street",
+      postTown = "London",
+      country = "England",
+      startDate = null,
+      verificationStatus = EntityVerificationStatus.PASSED,
+      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
+      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
+    )
+
+    val preExistingUnconfirmedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A01A.name)!!
+    val preExistingUnconfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
+      caseEntity = caseEntity,
+      cprAddressId = null,
+      accommodationSource = AccommodationSource.SAS,
+      postcode = "W1 8XX",
+      buildingNumber = "11",
+      thoroughfareName = "Piccadilly Circus",
+      postTown = "London",
+      country = null,
+      verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+      nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+      startDate = LocalDate.now(),
+      accommodationStatusEntity = null,
+      accommodationTypeEntity = preExistingUnconfirmedAccommodationType,
+    )
+
+    val deliusOriginProposedAccommodation = buildCanonicalAddress(
+      cprAddressId = commonCprAddressId,
+      noFixedAbode = false,
+      typeVerified = false,
+
+      postcode = addressForRecordInSasAndInDelius.postcode!!,
+      buildingNumber = addressForRecordInSasAndInDelius.buildingNumber!!,
+      thoroughfareName = addressForRecordInSasAndInDelius.thoroughfareName!!,
+      postTown = addressForRecordInSasAndInDelius.postTown!!,
+      startDate = LocalDate.now().minusDays(1),
+      endDate = null,
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      usage = CanonicalAddressUsage(
+        usageCode = CanonicalAddressUsageCode(
+          code = AddressUsageCode.A07A.name,
+          description = AddressUsageCode.A07A.description,
+        ),
+        isActive = true,
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
+        addresses = listOf(deliusOriginProposedAccommodation),
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetProposedAccommodationsResponse(
+            firstId = preExistingUnconfirmedProposedAccommodationEntity.id,
+            firstBuildingNumber = preExistingUnconfirmedProposedAccommodationEntity.buildingNumber!!,
+            firstCreatedBy = "Test Data Setup User",
+            firstCreatedAt = preExistingUnconfirmedProposedAccommodationEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            firstAccommodationTypeEntity = preExistingUnconfirmedAccommodationType,
+            firstVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
+            firstNextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
+            firstStartDate = preExistingUnconfirmedProposedAccommodationEntity.startDate,
+            secondId = firstPreExistingConfirmedProposedAccommodationEntity.id,
+            secondCreatedBy = "Test Data Setup User",
+            secondCreatedAt = firstPreExistingConfirmedProposedAccommodationEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            secondAccommodationTypeEntity = firstPreExistingConfirmedProposedAccommodationType,
+            secondVerificationStatus = VerificationStatus.PASSED,
+            secondNextAccommodationStatus = NextAccommodationStatus.YES,
+            secondStartDate = firstPreExistingConfirmedProposedAccommodationEntity.startDate,
+            crn = crn,
+          ),
+        )
+      }
+
+    val results = proposedAccommodationRepository.findAll()
+    assertThat(results).hasSize(3)
+
+    val softDeletedRecords = results.filter { it.deleted }
+    assertThat(softDeletedRecords).hasSize(1)
+    assertThat(softDeletedRecords.first().id).isEqualTo(secondPreExistingConfirmedProposedAccommodationType.id)
+
+    assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
   }
 
   @Test
