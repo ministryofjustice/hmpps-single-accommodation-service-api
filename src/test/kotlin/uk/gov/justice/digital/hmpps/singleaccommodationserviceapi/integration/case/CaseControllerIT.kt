@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
@@ -197,6 +198,34 @@ class CaseControllerIT : IntegrationTestBase() {
       20,
       getRequestedFor(WireMock.urlPathMatching("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")),
     )
+  }
+
+  @Test
+  fun `should only save cases that match the filtered response`() {
+    val team = buildCaseTeam("TestTeam")
+    val staff = buildOfficer(username = deliusUser.username)
+    val otherStaff = buildOfficer(username = "otherStaff")
+    val cases = listOf(
+      buildCase(crn = "crn1", staff = staff, team = team),
+      buildCase(crn = "crn2", nomsNumber = "noms2", staff = otherStaff, team = team),
+    )
+    SasAndDeliusStubs.stubGetCaseListByUsername(
+      deliusUsername = deliusUser.username,
+      cases = cases,
+      pageSize = pageSize.toInt(),
+    )
+    assertThat(caseRepository.findAll()).hasSize(0)
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    assertThat(caseRepository.findAll()).hasSize(1)
+
+    restTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    assertThat(caseRepository.findAll()).hasSize(2)
   }
 
   @Test
