@@ -160,7 +160,7 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
       assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
-      assertThat(firstPerson.roshLevel).isEqualTo(RiskLevel.VERY_HIGH)
+      assertThat(firstPerson.riskLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
       val lastPerson = result.data.last() as FullPersonDto
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
@@ -173,7 +173,7 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
       assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
-      assertThat(lastPerson.roshLevel).isEqualTo(RiskLevel.MEDIUM)
+      assertThat(lastPerson.riskLevel).isEqualTo(RiskLevel.MEDIUM)
     }
   }
 
@@ -518,7 +518,6 @@ class CaseQueryServiceTest {
           crn = crnOne,
           person = person,
           cpr = caseOrchestrationDto.cpr,
-          roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
         ),
       )
@@ -529,10 +528,9 @@ class CaseQueryServiceTest {
     fun `should return case with upstream failures on partial success`() {
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       val failures = listOf(
-        buildUpstreamFailure(callKey = "getRoshDetail"),
         buildUpstreamFailure(callKey = "getTierByCrn"),
       )
-      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, roshDetails = null, tier = null)
+      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, tier = null)
 
       every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
         data = caseOrchestrationDto,
@@ -540,8 +538,8 @@ class CaseQueryServiceTest {
       )
 
       val result = caseQueryService.getCase(crnOne)
-      assertThat(result.data.riskLevel).isNull()
-      assertThat(result.upstreamFailures).hasSize(2)
+      assertThat(result.data.tierScore).isNull()
+      assertThat(result.upstreamFailures).hasSize(1)
     }
   }
 
@@ -554,7 +552,6 @@ class CaseQueryServiceTest {
       val caseOrchestrationDto = buildCaseOrchestrationDto(
         crn = crnOne,
         cpr = null,
-        roshDetails = null,
         tier = null,
         case = buildCase(crnOne),
       )
@@ -578,7 +575,6 @@ class CaseQueryServiceTest {
       val caseOrchestrationDto = buildCaseOrchestrationDto(
         crn = crnOne,
         cpr = null,
-        roshDetails = null,
         tier = null,
         case = null,
       )

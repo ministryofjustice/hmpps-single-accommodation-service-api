@@ -12,8 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.FULL_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.ApprovedPremisesAndOasysCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
@@ -27,7 +25,6 @@ class CaseOrchestrationService(
   val aggregatorService: AggregatorService,
   val sasAndDeliusCachingService: SasAndDeliusCachingService,
   val corePersonRecordCachingService: CorePersonRecordCachingService,
-  val approvedPremisesAndOasysCachingService: ApprovedPremisesAndOasysCachingService,
   val tierCachingService: TierCachingService,
   @param:Value($$"${case-list.page-size:100}") val pageSize: Long,
 ) {
@@ -107,7 +104,6 @@ class CaseOrchestrationService(
     val calls = mapOf(
       ApiCallKeys.GET_CASE to { sasAndDeliusCachingService.getCase(username, crn) },
       ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN to { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
-      ApiCallKeys.GET_ROSH_DETAIL to { approvedPremisesAndOasysCachingService.getRoshDetails(crn) },
       ApiCallKeys.GET_TIER to { tierCachingService.getTier(crn) },
     )
     val results = aggregatorService.orchestrateAsyncCalls(
@@ -116,14 +112,12 @@ class CaseOrchestrationService(
 
     val case = results.standardCallsNoIterationResults!!.getResult<Case>(ApiCallKeys.GET_CASE)
     val cpr = results.standardCallsNoIterationResults!!.getResult<CorePersonRecord>(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)
-    val roshDetails = results.standardCallsNoIterationResults!!.getResult<RoshDetails>(ApiCallKeys.GET_ROSH_DETAIL)
     val tier = results.standardCallsNoIterationResults!!.getResult<Tier>(ApiCallKeys.GET_TIER)
 
     return OrchestrationResultDto(
       data = CaseOrchestrationDto(
         crn = crn,
         cpr = cpr,
-        roshDetails = roshDetails,
         tier = tier,
         case = case,
       ),
@@ -145,7 +139,6 @@ class CaseOrchestrationService(
       data = CaseOrchestrationDto(
         crn = crn,
         cpr = null,
-        roshDetails = null,
         tier = null,
         case = case,
       ),

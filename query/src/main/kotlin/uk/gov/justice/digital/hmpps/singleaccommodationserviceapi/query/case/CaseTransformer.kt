@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -13,18 +12,16 @@ object CaseTransformer {
     crn: String,
     person: PersonDto?,
     cpr: CorePersonRecord?,
-    roshDetails: RoshDetails?,
     tier: Tier?,
   ) = when (person) {
     is LimitedPersonDto -> person.toLimitedCaseDto()
-    is FullPersonDto -> toOrchestratedCaseDto(person, cpr, roshDetails, tier, UserAccess.FULL, person.limitedAccess)
+    is FullPersonDto -> toOrchestratedCaseDto(person, cpr, tier, UserAccess.FULL, person.limitedAccess)
     null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
   }
 
   private fun toOrchestratedCaseDto(
-    person: PersonDto,
+    person: FullPersonDto,
     cpr: CorePersonRecord?,
-    roshDetails: RoshDetails?,
     tier: Tier?,
     userAccess: UserAccess,
     limitedAccess: Boolean,
@@ -34,7 +31,7 @@ object CaseTransformer {
     crn = person.crn,
     prisonNumber = cpr?.identifiers?.prisonNumbers?.firstOrNull(),
     tierScore = tier?.tierScore,
-    riskLevel = roshDetails?.let { RiskLevelTransformer.determineOverallRiskLevel(roshDetails.rosh) },
+    riskLevel = person.riskLevel,
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
     assignedTo = person.assignedTo,
     photoUrl = null,
@@ -56,7 +53,7 @@ object CaseTransformer {
         dateOfBirth = dateOfBirth,
         crn = crn,
         prisonNumber = nomsNumber,
-        riskLevel = roshLevel,
+        riskLevel = riskLevel,
         pncReference = pncNumber,
         assignedTo = assignedTo,
         photoUrl = null,

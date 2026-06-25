@@ -55,28 +55,6 @@ private fun cprServerErrorFailure(identifierCrn: String? = null) = failureJson(
   identifierCrn = identifierCrn,
 )
 
-private fun cprTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
-  endpoint = "getCorePersonRecordByCrn",
-  failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/person/probation/$crn\\\": Request cancelled",
-  identifierCrn = identifierCrn,
-)
-
-private fun roshServerErrorFailure(identifierCrn: String? = null) = failureJson(
-  endpoint = "getRoshSummaryByCrn",
-  failureType = "UPSTREAM_HTTP_ERROR",
-  httpResponseStatus = "500 INTERNAL_SERVER_ERROR",
-  message = "500 Internal Server Error: [no body]",
-  identifierCrn = identifierCrn,
-)
-
-private fun roshTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
-  endpoint = "getRoshSummaryByCrn",
-  failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/rosh/$crn\\\": Request cancelled",
-  identifierCrn = identifierCrn,
-)
-
 private fun tierServerErrorFailure(identifierCrn: String? = null) = failureJson(
   endpoint = "getTierByCrn",
   failureType = "UPSTREAM_HTTP_ERROR",
@@ -99,12 +77,6 @@ private fun tierNotFoundFailure(identifierCrn: String? = null) = failureJson(
   message = "404 Not Found: [no body]",
   identifierCrn = identifierCrn,
 )
-
-@TestData
-fun expectedSingleCrnRoshServerError() = """{ "data": ${caseJson(riskLevel = null)}, "upstreamFailures": [${roshServerErrorFailure()}] }"""
-
-@TestData
-fun expectedSingleCrnRoshTimeout() = """{ "data": ${caseJson(riskLevel = null)}, "upstreamFailures": [${roshTimeoutFailure("FAKECRN1")}] }"""
 
 @TestData
 fun expectedSingleCrnTierServerError() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierServerErrorFailure()}] }"""
