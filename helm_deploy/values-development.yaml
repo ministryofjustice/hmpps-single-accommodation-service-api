@@ -15,7 +15,6 @@ generic-service:
     HMPPS_AUTH_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-AND-OASYS_BASE-URL: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-dev.hmpps.service.justice.gov.uk
     SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk

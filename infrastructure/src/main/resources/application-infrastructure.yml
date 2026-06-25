@@ -52,8 +52,6 @@ service:
     read-timeout: 15s
   approved-premises-and-delius:
     read-timeout: 4s
-  approved-premises-and-oasys:
-    read-timeout: 4s
   approved-premises-api:
     read-timeout: 4s
   core-person-record:
