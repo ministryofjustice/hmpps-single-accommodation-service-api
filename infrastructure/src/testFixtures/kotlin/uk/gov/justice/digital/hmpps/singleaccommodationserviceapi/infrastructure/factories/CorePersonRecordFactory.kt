@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.CountryCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
@@ -92,6 +91,7 @@ fun buildCanonicalAddress(
 @TestData
 fun buildProbationCreateAddress(
   noFixedAbode: Boolean = false,
+  typeVerified: Boolean = false,
   startDate: Instant = Instant.now(),
   endDate: Instant? = null,
   postcode: String? = "SW1A 1AA",
@@ -102,7 +102,6 @@ fun buildProbationCreateAddress(
   dependentLocality: String? = null,
   postTown: String? = "London",
   county: String? = null,
-  countryCode: CountryCode? = null,
   comment: String? = null,
   statusCode: AddressStatusCode = AddressStatusCode.PR1,
   usage: AddressUsage = AddressUsage(
@@ -113,6 +112,7 @@ fun buildProbationCreateAddress(
   contacts: List<AddressContact> = emptyList(),
 ) = ProbationCreateAddress(
   noFixedAbode = noFixedAbode,
+  typeVerified = typeVerified,
   startDate = startDate,
   endDate = endDate,
   postcode = postcode,
@@ -123,7 +123,6 @@ fun buildProbationCreateAddress(
   dependentLocality = dependentLocality,
   postTown = postTown,
   county = county,
-  countryCode = countryCode,
   comment = comment,
   statusCode = statusCode,
   usages = listOf(usage),

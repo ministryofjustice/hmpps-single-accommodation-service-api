@@ -776,7 +776,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should delete SAS accommodation record when it is deleted in nDelius`() {
+  fun `should delete the correct SAS accommodation record when it has been deleted in nDelius`() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
 
@@ -907,6 +907,73 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should delete the correct SAS accommodation record when no accommodation records in nDelius`() {
+    val crn = "ABCDEFG"
+    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+
+    val preExistingConfirmedProposedAccommodationType = createAndSaveProposedAccommodation(
+      caseEntity = caseEntity,
+      cprAddressId = UUID.randomUUID(),
+      accommodationSource = AccommodationSource.SAS,
+      postcode = "W3 9XE",
+      buildingNumber = "511",
+      thoroughfareName = "Test street",
+      postTown = "London",
+      country = "England",
+      startDate = null,
+      verificationStatus = EntityVerificationStatus.PASSED,
+      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
+      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
+    )
+
+    val preExistingUnconfirmedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A01A.name)!!
+    val preExistingUnconfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
+      caseEntity = caseEntity,
+      cprAddressId = null,
+      accommodationSource = AccommodationSource.SAS,
+      postcode = "W1 8XX",
+      buildingNumber = "11",
+      thoroughfareName = "Piccadilly Circus",
+      postTown = "London",
+      country = null,
+      verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+      nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+      startDate = LocalDate.now(),
+      accommodationStatusEntity = null,
+      accommodationTypeEntity = preExistingUnconfirmedAccommodationType,
+    )
+
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
+        addresses = emptyList(),
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult()
+      .responseBody!!
+
+    val results = proposedAccommodationRepository.findAll()
+    assertThat(results).hasSize(2)
+
+    val softDeletedRecord = results.filter { it.deleted }
+    assertThat(softDeletedRecord).hasSize(1)
+    assertThat(softDeletedRecord.first().id).isEqualTo(preExistingConfirmedProposedAccommodationType.id)
+
+    val notDeletedRecord = results.filter { !it.deleted }
+    assertThat(notDeletedRecord).hasSize(1)
+    assertThat(notDeletedRecord.first().id).isEqualTo(preExistingUnconfirmedProposedAccommodationEntity.id)
+
+    assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
+  }
+
+  @Test
   fun `should return expected proposed accommodation timeline for Delius Origin records and show further Delius update`() {
     val crn = "X12345"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
@@ -920,8 +987,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
             proposedAccommodationId = deliusSyncedRecord.id,
             caseId = caseEntity.id,
-            startDate = deliusSyncedRecord.startDate.toString(),
-            endDate = deliusSyncedRecord.endDate.toString(),
           ),
         )
       }
@@ -977,8 +1042,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             proposedAccommodationId = deliusSyncedRecord.id,
             caseId = caseEntity.id,
-            startDate = deliusSyncedRecord.startDate.toString(),
-            endDate = deliusSyncedRecord.endDate.toString(),
             sasCommitDateTime = commitTimesAsc[2].truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )

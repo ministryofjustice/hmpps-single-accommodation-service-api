@@ -252,6 +252,7 @@ fun proposedAddressesRequestBody(
 ) = """
   {
     "name" : null,
+    "typeVerified" : false,
     "accommodationTypeCode" : "$accommodationTypeCode",
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",

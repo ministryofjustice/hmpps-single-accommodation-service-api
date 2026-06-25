@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
@@ -24,6 +25,7 @@ fun buildProposedAccommodationSnapshot(
   nextAccommodationStatus: NextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
   typeVerified: Boolean = false,
   noFixedAbode: Boolean = false,
+  address: AccommodationAddressDetails = buildAccommodationAddressDetails(),
   notes: List<ProposedAccommodationNoteSnapshot> = mutableListOf(buildNote()),
 ) = ProposedAccommodationSnapshot(
   id = UUID.randomUUID(),
@@ -39,7 +41,7 @@ fun buildProposedAccommodationSnapshot(
   endDate = LocalDate.now().plusDays(7),
   typeVerified = typeVerified,
   noFixedAbode = noFixedAbode,
-  address = buildAccommodationAddressDetails(),
+  address = address,
   notes = notes,
 )
 
