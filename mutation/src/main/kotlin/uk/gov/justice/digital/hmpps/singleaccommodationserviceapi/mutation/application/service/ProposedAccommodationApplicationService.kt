@@ -123,6 +123,7 @@ class ProposedAccommodationApplicationService(
         crn = crn,
         address = ProbationCreateAddress(
           noFixedAbode = false,
+          typeVerified = false,
           startDate = Instant.now(clock),
           endDate = null,
           postcode = aggregateSnapshot.address.postcode,
@@ -133,7 +134,6 @@ class ProposedAccommodationApplicationService(
           dependentLocality = aggregateSnapshot.address.dependentLocality,
           postTown = aggregateSnapshot.address.postTown,
           county = aggregateSnapshot.address.county,
-          countryCode = null, // todo: might need to send this as an extra if the FE can get it from the lookup integration for us
           uprn = aggregateSnapshot.address.uprn,
           comment = null,
           statusCode = AddressStatusCode.valueOf(aggregateSnapshot.accommodationStatus!!.code),

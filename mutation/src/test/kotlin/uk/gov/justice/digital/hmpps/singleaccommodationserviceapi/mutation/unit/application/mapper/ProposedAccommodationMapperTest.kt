@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
@@ -52,11 +53,45 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.dependentLocality).isEqualTo(snapshot.address.dependentLocality)
     assertThat(entity.postTown).isEqualTo(snapshot.address.postTown)
     assertThat(entity.county).isEqualTo(snapshot.address.county)
-    assertThat(entity.country).isEqualTo(snapshot.address.country)
+    assertThat(entity.country).isNull()
     assertThat(entity.uprn).isEqualTo(snapshot.address.uprn)
     assertThat(entity.accommodationSource).isEqualTo(snapshot.accommodationSource)
     assertThat(entity.typeVerified).isEqualTo(snapshot.typeVerified)
     assertThat(entity.noFixedAbode).isEqualTo(snapshot.noFixedAbode)
+  }
+
+  @Test
+  fun `toEntity maps all empty address fields to null`() {
+    val snapshot = buildProposedAccommodationSnapshot(
+      cprAddressId = UUID.randomUUID(),
+      address = buildAccommodationAddressDetails(
+        postcode = "SW1A 1AA",
+        subBuildingName = "",
+        buildingName = "",
+        buildingNumber = "",
+        thoroughfareName = "",
+        dependentLocality = "",
+        postTown = "",
+        county = "",
+        country = "",
+        uprn = "",
+      ),
+    )
+    val entity = ProposedAccommodationMapper.toEntity(
+      snapshot,
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+    assertThat(entity.postcode).isEqualTo(snapshot.address.postcode)
+    assertThat(entity.subBuildingName).isNull()
+    assertThat(entity.buildingName).isNull()
+    assertThat(entity.buildingNumber).isNull()
+    assertThat(entity.throughfareName).isNull()
+    assertThat(entity.dependentLocality).isNull()
+    assertThat(entity.postTown).isNull()
+    assertThat(entity.county).isNull()
+    assertThat(entity.country).isNull()
+    assertThat(entity.uprn).isNull()
   }
 
   @Test
@@ -184,12 +219,51 @@ class ProposedAccommodationMapperTest {
     assertThat(merged.dependentLocality).isEqualTo(snapshot.address.dependentLocality)
     assertThat(merged.postTown).isEqualTo(snapshot.address.postTown)
     assertThat(merged.county).isEqualTo(snapshot.address.county)
-    assertThat(merged.country).isEqualTo(snapshot.address.country)
+    assertThat(merged.country).isNull()
     assertThat(merged.uprn).isEqualTo(snapshot.address.uprn)
     assertThat(merged.notes).hasSize(3)
     assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
     assertThat(merged.notes[1].note).isEqualTo(newNote1.note)
     assertThat(merged.notes[2].note).isEqualTo(newNote2.note)
+  }
+
+  @Test
+  fun `merge should map all empty address fields to null`() {
+    val snapshot = buildProposedAccommodationSnapshot(
+      cprAddressId = UUID.randomUUID(),
+      address = buildAccommodationAddressDetails(
+        postcode = "SW1A 1AA",
+        subBuildingName = "",
+        buildingName = "",
+        buildingNumber = "",
+        thoroughfareName = "",
+        dependentLocality = "",
+        postTown = "",
+        county = "",
+        country = "",
+        uprn = "",
+      ),
+    )
+    val merged = ProposedAccommodationMapper.merge(
+      snapshot,
+      proposedAccommodationEntity = buildProposedAccommodationEntity(
+        id = UUID.randomUUID(),
+        caseId = UUID.randomUUID(),
+        cprAddressId = UUID.randomUUID(),
+      ),
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+    assertThat(merged.postcode).isEqualTo(snapshot.address.postcode)
+    assertThat(merged.subBuildingName).isNull()
+    assertThat(merged.buildingName).isNull()
+    assertThat(merged.buildingNumber).isNull()
+    assertThat(merged.throughfareName).isNull()
+    assertThat(merged.dependentLocality).isNull()
+    assertThat(merged.postTown).isNull()
+    assertThat(merged.county).isNull()
+    assertThat(merged.country).isNull()
+    assertThat(merged.uprn).isNull()
   }
 
   @Test
