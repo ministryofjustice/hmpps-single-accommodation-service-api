@@ -242,6 +242,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   ): Pair<ProbationCreateAddress, String> {
     val expectedCprRequestBody = buildProbationCreateAddress(
       noFixedAbode = false,
+      typeVerified = false,
       subBuildingName = "test sub building name",
       buildingName = "test building name",
       buildingNumber = "4",
@@ -249,7 +250,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       dependentLocality = "test dependent locality",
       postTown = "test post town",
       county = "test county",
-      countryCode = null,
       postcode = "test postcode",
       uprn = "test uprn",
       startDate = fixedInstant,
@@ -423,6 +423,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val addressUsageCode = AddressUsageCode.A01A
     val expectedCprRequestBody = buildProbationCreateAddress(
       noFixedAbode = false,
+      typeVerified = false,
       subBuildingName = "test sub building name",
       buildingName = "test building name",
       buildingNumber = "4",
@@ -430,7 +431,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       dependentLocality = "test dependent locality",
       postTown = "test post town",
       county = "test county",
-      countryCode = null,
       postcode = "test postcode",
       uprn = "test uprn",
       startDate = fixedInstant,

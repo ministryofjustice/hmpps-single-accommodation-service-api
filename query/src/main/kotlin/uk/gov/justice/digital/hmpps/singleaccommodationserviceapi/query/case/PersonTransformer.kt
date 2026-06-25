@@ -22,14 +22,14 @@ object PersonTransformer {
       pncNumber = case.pncNumber,
       dateOfBirth = case.dateOfBirth,
       gender = case.gender,
-      roshLevel = case.getRosh(),
+      riskLevel = case.getRiskLevel(),
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
       limitedAccess = case.limitedAccess,
     )
   }
 
-  fun Case.getRosh() = roshLevel?.code?.let { RiskLevel.findByCode(it) }
+  fun Case.getRiskLevel() = roshLevel?.code?.let { RiskLevel.findByCode(it) }
   fun Case.getAssignedTo() = AssignedToDto(
     forename = staff.name.forename,
     surname = staff.name.surname,

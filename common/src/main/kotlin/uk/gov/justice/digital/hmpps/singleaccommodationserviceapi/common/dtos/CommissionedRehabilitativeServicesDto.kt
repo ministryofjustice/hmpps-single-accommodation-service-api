@@ -8,7 +8,6 @@ data class CommissionedRehabilitativeServicesDto(
 )
 
 enum class CrsStatus {
-  DRAFT,
   LIVE,
   COMPLETED,
   WITHDRAWN,

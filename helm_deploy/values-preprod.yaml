@@ -11,11 +11,10 @@ generic-service:
     JAVA_OPTS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: preprod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.nonprod.json"
-    HMPPS_SQS_ENABLED: false
+    HMPPS_SQS_ENABLED: true
     HMPPS_AUTH_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius-preprod.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-preprod.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-AND-OASYS_BASE-URL: https://approved-premises-and-oasys-preprod.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-preprod.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-preprod.hmpps.service.justice.gov.uk
     SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-preprod.hmpps.service.justice.gov.uk

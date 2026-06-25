@@ -30,7 +30,7 @@ fun buildFullPersonDto(
   pncNumber = pncNumber,
   dateOfBirth = dateOfBirth,
   gender = gender,
-  roshLevel = roshLevel,
+  riskLevel = roshLevel,
   teamCode = teamCode,
   assignedTo = assignedTo,
   limitedAccess = limitedAccess,
