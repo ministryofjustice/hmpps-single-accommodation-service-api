@@ -305,8 +305,6 @@ class CaseQueryServiceTest {
         assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
       }
     }
-
-
   }
 
   @Nested
