@@ -143,7 +143,6 @@ object EligibilityTransformer {
   private fun toCrsStatus(
     crsStatus: CrsReferralStatus,
   ) = when (crsStatus) {
-    CrsReferralStatus.DRAFT -> CrsStatus.DRAFT
     CrsReferralStatus.LIVE -> CrsStatus.LIVE
     CrsReferralStatus.COMPLETED -> CrsStatus.COMPLETED
     CrsReferralStatus.WITHDRAWN -> CrsStatus.WITHDRAWN
