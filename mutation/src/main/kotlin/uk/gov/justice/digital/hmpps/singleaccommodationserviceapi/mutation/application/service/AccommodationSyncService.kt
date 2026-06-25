@@ -49,7 +49,7 @@ class AccommodationSyncService(
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
     syncAccommodationRecordsWithCpr(case, cprAccommodations)
-    deleteAccommodationRecordsNoLongerInCpr(case, cprAccommodations)
+    // deleteAccommodationRecordsNoLongerInCpr(case, cprAccommodations)
   }
 
   private fun syncAccommodationRecordsWithCpr(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
