@@ -67,6 +67,70 @@ class CaseQueryServiceTest {
   private val crnTwo = "X12346"
   private val username = "user1"
 
+  val assignedTo = AssignedToDto(
+    forename = "Firstname",
+    surname = "Surname",
+    username = username,
+    staffCode = "5318008",
+  )
+
+  val assignedToOther = AssignedToDto(
+    forename = "Second",
+    surname = "User",
+    username = "Second.User",
+    staffCode = "12345678",
+  )
+
+  val personDtos = listOf(
+    buildFullPersonDto(
+      crn = "CRN1",
+      nomsNumber = "PRI_1",
+      name = buildName(surname = "MultiCaseSurname"),
+      roshLevel = null,
+      teamCode = "TestTeam1",
+      assignedTo = assignedTo,
+    ),
+    buildFullPersonDto(
+      crn = "CRN2",
+      nomsNumber = "PRI_2",
+      name = buildName(forename = "QQQQQ"),
+      roshLevel = RiskLevel.LOW,
+      teamCode = "TestTeam2",
+      assignedTo = assignedTo,
+    ),
+    buildFullPersonDto(
+      crn = "CRN3",
+      nomsNumber = "PRI_3",
+      roshLevel = RiskLevel.MEDIUM,
+      teamCode = "TestTeam1",
+      assignedTo = assignedTo,
+      limitedAccess = true,
+    ),
+    buildFullPersonDto(
+      crn = "CRN4",
+      nomsNumber = "PRI_4",
+      roshLevel = RiskLevel.VERY_HIGH,
+      teamCode = "TestTeam2",
+      assignedTo = assignedTo,
+      limitedAccess = true,
+    ),
+    buildLimitedPersonDto(
+      crn = "CRN5",
+      nomsNumber = "PRI_5",
+      teamCode = "TestTeam1",
+      assignedTo = assignedTo,
+    ),
+    buildLimitedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
+    buildFullPersonDto(
+      crn = "CRN6",
+      nomsNumber = "PRI_6",
+      name = buildName(forename = "Other", middleName = "Users", surname = "Case"),
+      roshLevel = RiskLevel.VERY_HIGH,
+      teamCode = "TestTeam2",
+      assignedTo = assignedToOther,
+    ),
+  )
+
   @Nested
   inner class GetCaseList {
 
@@ -119,104 +183,18 @@ class CaseQueryServiceTest {
     @BeforeEach
     fun setup() {
       every { userService.getUsername() } returns Username(username)
-      every { caseRepository.mapByCrns(any()) } returns emptyMap()
-      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
     }
 
-    val assignedTo = AssignedToDto(
-      forename = "Firstname",
-      surname = "Surname",
-      username = username,
-      staffCode = "5318008",
-    )
-
-    val assignedToOther = AssignedToDto(
-      forename = "Second",
-      surname = "User",
-      username = "Second.User",
-      staffCode = "12345678",
-    )
-
-    val personDtos = listOf(
-      buildFullPersonDto(
-        crn = "CRN1",
-        nomsNumber = "PRI_1",
-        name = buildName(surname = "MultiCaseSurname"),
-        roshLevel = null,
-        teamCode = "TestTeam1",
-        assignedTo = assignedTo,
-      ),
-      buildFullPersonDto(
-        crn = "CRN2",
-        nomsNumber = "PRI_2",
-        name = buildName(forename = "QQQQQ"),
-        roshLevel = RiskLevel.LOW,
-        teamCode = "TestTeam2",
-        assignedTo = assignedTo,
-      ),
-      buildFullPersonDto(
-        crn = "CRN3",
-        nomsNumber = "PRI_3",
-        roshLevel = RiskLevel.MEDIUM,
-        teamCode = "TestTeam1",
-        assignedTo = assignedTo,
-        limitedAccess = true,
-      ),
-      buildFullPersonDto(
-        crn = "CRN4",
-        nomsNumber = "PRI_4",
-        roshLevel = RiskLevel.VERY_HIGH,
-        teamCode = "TestTeam2",
-        assignedTo = assignedTo,
-        limitedAccess = true,
-      ),
-      buildLimitedPersonDto(
-        crn = "CRN5",
-        nomsNumber = "PRI_5",
-        teamCode = "TestTeam1",
-        assignedTo = assignedTo,
-      ),
-      buildLimitedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
-      buildFullPersonDto(
-        crn = "CRN6",
-        nomsNumber = "PRI_6",
-        name = buildName(forename = "Other", middleName = "Users", surname = "Case"),
-        roshLevel = RiskLevel.VERY_HIGH,
-        teamCode = "TestTeam2",
-        assignedTo = assignedToOther,
-      ),
-    )
-
-    private fun toLimitedCaseDto(crn: String) = CaseDto(
-      name = null,
-      dateOfBirth = null,
-      crn = crn,
-      prisonNumber = null,
-      photoUrl = null,
-      tierScore = null,
-      riskLevel = null,
-      pncReference = null,
-      assignedTo = null,
-      currentAccommodation = null,
-      nextAccommodation = null,
-      status = null,
-      actions = emptyList(),
-      userAccess = UserAccess.LIMITED,
-      limitedAccess = true,
-    )
-
     @Test
-    fun `returns full list when no filters provided, CaseDto is redacted when UserAccess is Limited`() {
-      val result = caseQueryService.getCases(personDtos = personDtos)
+    fun `returns only cases for the current user when no filters provided`() {
+      val result = caseQueryService.applyCaseListFilters(
+        personDtos = personDtos,
+        searchTerm = null,
+        riskLevel = null,
+        teamCode = null,
+      )
       assertThat(result).hasSize(6)
-
-      val limitedCases = result.filter { it.userAccess == UserAccess.LIMITED }
-      assertThat(limitedCases).hasSize(2)
-
-      val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5")
-      val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6")
-      assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
-      assertThat(result).noneMatch { it.assignedTo?.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -328,6 +306,35 @@ class CaseQueryServiceTest {
       }
     }
 
+
+  }
+
+  @Nested
+  inner class GetCases {
+
+    private fun toLimitedCaseDto(crn: String) = CaseDto(
+      name = null,
+      dateOfBirth = null,
+      crn = crn,
+      prisonNumber = null,
+      photoUrl = null,
+      tierScore = null,
+      riskLevel = null,
+      pncReference = null,
+      assignedTo = null,
+      currentAccommodation = null,
+      nextAccommodation = null,
+      status = null,
+      actions = emptyList(),
+      userAccess = UserAccess.LIMITED,
+      limitedAccess = true,
+    )
+
+    @BeforeEach
+    fun setUp() {
+      every { userService.getUsername() } returns Username(username)
+    }
+
     @Test
     fun `does not call eligibility service when UserAccess is LIMITED`() {
       val limited = listOf(buildLimitedPersonDto(crn = "limited"))
@@ -391,14 +398,20 @@ class CaseQueryServiceTest {
         )
       }
     }
-  }
 
-  @Nested
-  inner class GetCases {
+    @Test
+    fun `CaseDto is redacted when UserAccess is Limited`() {
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
 
-    @BeforeEach
-    fun setUp() {
-      every { userService.getUsername() } returns Username(username)
+      val result = caseQueryService.getCases(personDtos = personDtos)
+      assertThat(result).hasSize(personDtos.size)
+
+      val limitedCases = result.filter { it.userAccess == UserAccess.LIMITED }
+      assertThat(limitedCases).hasSize(2)
+
+      val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5")
+      val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6")
+      assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
     }
 
     @Test
