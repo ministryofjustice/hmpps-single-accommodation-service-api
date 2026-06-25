@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.p
 import org.assertj.core.api.Assertions.assertThat
 import org.javers.core.Javers
 import org.javers.repository.jql.QueryBuilder
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,7 +13,6 @@ import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
@@ -53,6 +51,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
@@ -60,9 +59,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
 class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
-
-  @Autowired
-  private lateinit var clock: MutableTestClock
 
   @Autowired
   private lateinit var accommodationTypeRepository: AccommodationTypeRepository
@@ -89,7 +85,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    clock.freezeAt(fixedInstant)
     beforeTest = Instant.now()
     crn = UUID.randomUUID().toString()
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
@@ -98,11 +93,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
     createDeliusSyncUser()
     databaseUtils.truncate(PROPOSED_ACCOMMODATION, OUTBOX_EVENT)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clock.reset()
   }
 
   @Test
@@ -804,6 +794,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
       accommodationTypeEntity = firstPreExistingConfirmedProposedAccommodationType,
     )
+    firstPreExistingConfirmedProposedAccommodationEntity.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
+    proposedAccommodationRepository.save(firstPreExistingConfirmedProposedAccommodationEntity)
 
     val secondPreExistingConfirmedProposedAccommodationType = createAndSaveProposedAccommodation(
       caseEntity = caseEntity,
@@ -820,6 +812,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
       accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
     )
+    secondPreExistingConfirmedProposedAccommodationType.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
+    proposedAccommodationRepository.save(secondPreExistingConfirmedProposedAccommodationType)
 
     val preExistingUnconfirmedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A01A.name)!!
     val preExistingUnconfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
@@ -837,6 +831,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       accommodationStatusEntity = null,
       accommodationTypeEntity = preExistingUnconfirmedAccommodationType,
     )
+    preExistingUnconfirmedProposedAccommodationEntity.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
+    proposedAccommodationRepository.save(preExistingUnconfirmedProposedAccommodationEntity)
 
     val deliusOriginProposedAccommodation = buildCanonicalAddress(
       cprAddressId = commonCprAddressId,
@@ -926,6 +922,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
       accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
     )
+    preExistingConfirmedProposedAccommodationType.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
+    proposedAccommodationRepository.save(preExistingConfirmedProposedAccommodationType)
 
     val preExistingUnconfirmedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A01A.name)!!
     val preExistingUnconfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
@@ -969,6 +967,56 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     val notDeletedRecord = results.filter { !it.deleted }
     assertThat(notDeletedRecord).hasSize(1)
     assertThat(notDeletedRecord.first().id).isEqualTo(preExistingUnconfirmedProposedAccommodationEntity.id)
+
+    assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
+  }
+
+  @Test
+  fun `should NOT delete records that are not in nDelius if they were created in the last 10 seconds - mitigates race condition`() {
+    // simulates creating "Confirmed" Proposed Accommodation right now
+    val confirmedProposedAccommodationCreatedRightNow = createAndSaveProposedAccommodation(
+      caseEntity = caseEntity,
+      cprAddressId = UUID.randomUUID(),
+      accommodationSource = AccommodationSource.SAS,
+      postcode = "W3 9XE",
+      buildingNumber = "511",
+      thoroughfareName = "Test street",
+      postTown = "London",
+      country = "England",
+      startDate = null,
+      verificationStatus = EntityVerificationStatus.PASSED,
+      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
+      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
+    )
+    confirmedProposedAccommodationCreatedRightNow.createdAt = ZonedDateTime.now().toInstant()
+    proposedAccommodationRepository.save(confirmedProposedAccommodationCreatedRightNow)
+
+    // addresses comes back empty - not yet arrived as just created
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
+        addresses = emptyList(),
+      ),
+    )
+    // get and sync with CPR / nDelius
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult()
+      .responseBody!!
+
+    val results = proposedAccommodationRepository.findAll()
+    assertThat(results).hasSize(1)
+
+    val softDeletedRecords = results.filter { it.deleted }
+    assertThat(softDeletedRecords).hasSize(0)
+
+    val notDeletedRecords = results.filter { !it.deleted }
+    assertThat(notDeletedRecords).hasSize(1)
+    assertThat(notDeletedRecords.first().id).isEqualTo(confirmedProposedAccommodationCreatedRightNow.id)
 
     assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
   }

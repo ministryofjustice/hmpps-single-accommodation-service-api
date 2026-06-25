@@ -25,9 +25,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Service
 class AccommodationSyncService(
+  private val clock: Clock,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val accommodationStatusRepository: AccommodationStatusRepository,
@@ -216,8 +220,10 @@ class AccommodationSyncService(
     case: CaseEntity,
     cprAccommodations: List<AccommodationDetailDto>,
   ) {
+    val tenSecondsAgo = LocalDateTime.now(clock).minusSeconds(10).toInstant(ZoneOffset.UTC)
     val cprAddressIds = cprAccommodations.mapNotNull { it.cprAddressId }.toSet()
     val accommodationsToDelete = proposedAccommodationRepository.findByCaseId(case.id)
+      .filter { it.createdAt!!.isBefore(tenSecondsAgo) }
       .filter { NextAccommodationStatus.YES == it.nextAccommodationStatus }
       .filter { accommodation ->
         accommodation.cprAddressId !in cprAddressIds
