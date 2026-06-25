@@ -14,7 +14,7 @@ object CaseTransformer {
     cpr: CorePersonRecord?,
     tier: Tier?,
   ) = when (person) {
-    is LimitedPersonDto -> person.limited()
+    is LimitedPersonDto -> person.toLimitedCaseDto()
     is FullPersonDto -> toOrchestratedCaseDto(person, cpr, tier, UserAccess.FULL, person.limitedAccess)
     null -> CaseDto(crn = crn, userAccess = UserAccess.UNKNOWN, limitedAccess = null)
   }
@@ -67,10 +67,10 @@ object CaseTransformer {
       )
     }
 
-    is LimitedPersonDto -> limited()
+    is LimitedPersonDto -> toLimitedCaseDto()
   }
 
-  fun PersonDto.limited() = CaseDto(
+  fun PersonDto.toLimitedCaseDto() = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,
