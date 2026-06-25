@@ -9,7 +9,6 @@ wiremock:
   service-names:
     - sas-and-delius
     - approved-premises-and-delius
-    - approved-premises-and-oasys
     - approved-premises-api
     - core-person-record
     - commissioned-rehabilitative-services-api
@@ -22,8 +21,6 @@ service:
   sas-and-delius:
     read-timeout: 300ms
   approved-premises-and-delius:
-    read-timeout: 300ms
-  approved-premises-and-oasys:
     read-timeout: 300ms
   approved-premises-api:
     read-timeout: 300ms
