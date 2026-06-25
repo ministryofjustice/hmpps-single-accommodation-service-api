@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import java.time.Instant
 import java.util.UUID
 
@@ -18,6 +19,7 @@ import java.util.UUID
 class HmppsDomainEventListener(
   private val jsonMapper: JsonMapper,
   private val inboxEventService: InboxEventService,
+  private val sentryService: SentryService,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -40,6 +42,7 @@ class HmppsDomainEventListener(
       )
     } catch (e: Exception) {
       log.error("Exception caught in HmppsDomainEventListener", e)
+      sentryService.captureException(e)
       throw e
     }
   }
