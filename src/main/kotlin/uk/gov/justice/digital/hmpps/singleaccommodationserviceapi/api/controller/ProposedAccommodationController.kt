@@ -47,12 +47,10 @@ class ProposedAccommodationController(
 
     val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
     handleUpstreamFailure(cprAccommodations.upstreamFailures)
-    if (cprAccommodations.data.isNotEmpty()) {
-      accommodationSyncService.syncAccommodationFromDelius(
-        crn,
-        cprAccommodations.data,
-      )
-    }
+    accommodationSyncService.syncAccommodationFromDelius(
+      crn,
+      cprAccommodations.data,
+    )
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
   }
 
