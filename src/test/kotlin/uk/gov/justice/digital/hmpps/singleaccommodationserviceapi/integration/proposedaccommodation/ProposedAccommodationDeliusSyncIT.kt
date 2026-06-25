@@ -987,8 +987,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
             proposedAccommodationId = deliusSyncedRecord.id,
             caseId = caseEntity.id,
-            startDate = deliusSyncedRecord.startDate.toString(),
-            endDate = deliusSyncedRecord.endDate.toString(),
           ),
         )
       }
@@ -1044,8 +1042,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             proposedAccommodationId = deliusSyncedRecord.id,
             caseId = caseEntity.id,
-            startDate = deliusSyncedRecord.startDate.toString(),
-            endDate = deliusSyncedRecord.endDate.toString(),
             sasCommitDateTime = commitTimesAsc[2].truncatedTo(ChronoUnit.SECONDS).toString(),
           ),
         )
