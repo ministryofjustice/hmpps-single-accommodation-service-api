@@ -4,32 +4,22 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Import
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -41,13 +31,9 @@ import java.util.UUID
  * - maxEventsPerBatch limits batch size
  */
 
-@Import(SemaphoreConcurrencyTestConfig::class)
 class InboxEventDispatcherIT : IntegrationTestBase() {
   @Autowired
   lateinit var inboxEventRepository: InboxEventRepository
-
-  @Autowired
-  lateinit var caseRepository: CaseRepository
 
   @Autowired
   lateinit var inboxEventDispatcher: InboxEventDispatcher
@@ -59,14 +45,17 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
   lateinit var dispatcherConfig: DispatcherConfig
 
   @Autowired
-  lateinit var concurrencyCounter: ConcurrencyCounter
+  lateinit var mockEventHandler: MockInboxEventHandler
+
+  @Autowired
+  lateinit var inboxAsserter: InboxAsserter
 
   private val crn = UUID.randomUUID().toString()
 
   @BeforeEach
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
-    databaseUtils.truncate(SAS_CASE, SAS_USER, DUTY_TO_REFER, INBOX_EVENT)
+    databaseUtils.truncate(INBOX_EVENT)
     dispatcherConfig.maxConcurrentEvents = 4
     dispatcherConfig.maxEventsPerBatch = 10
   }
@@ -74,55 +63,27 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
   @Test
   fun `processes only maxEventsPerBatch events per invocation`() {
     dispatcherConfig.maxEventsPerBatch = 2
-    val crns = listOf("X123451", "X123452", "X123453", "X123454", "X123455")
-    val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
-    caseRepository.saveAll(caseEntities)
-
-    crns.forEach {
-      TierStubs.getTierOKResponse(
-        it,
-        buildTier(tierScore = "A3"),
-      )
-    }
 
     val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
     inboxEventRepository.saveAll(
-      crns.mapIndexed { i, c ->
-        createInboxEvent(baseTime.plusSeconds(i.toLong()), crn = c)
+      (1..5).map { i ->
+        createInboxEvent(eventOccurredAt = baseTime.plusSeconds(i.toLong()), crn = UUID.randomUUID().toString())
       },
     )
 
     inboxEventDispatcher.process()
 
-    val processed =
-      inboxEventRepository.findAllByProcessedStatus(
-        ProcessedStatus.PROCESSED,
-        Pageable.unpaged(Sort.by("eventOccurredAt").ascending()),
-      )
-    val pending =
-      inboxEventRepository.findAllByProcessedStatus(
-        ProcessedStatus.PENDING,
-        Pageable.unpaged(Sort.by("eventOccurredAt").ascending()),
-      )
+    inboxAsserter.assertProcessedCount(2)
+    inboxAsserter.assertPendingCount(3)
 
-    assertThat(processed).hasSize(2)
-    assertThat(pending).hasSize(3)
-    assertThat(caseRepository.findAll().mapNotNull { it.tierScore }).hasSize(2)
+    val processed = inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PROCESSED, Pageable.unpaged())
+
+    mockEventHandler.assertThatHasProcessedEvents(processed)
   }
 
   @Test
   fun `processes events in eventOccurredAt ascending order`() {
     dispatcherConfig.maxEventsPerBatch = 1
-    val crns = listOf("X123451", "X123452", "X123453")
-    val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
-    caseRepository.saveAll(caseEntities)
-
-    crns.forEach {
-      TierStubs.getTierOKResponse(
-        it,
-        buildTier(tierScore = "A3"),
-      )
-    }
 
     val t1 = OffsetDateTime.of(2025, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC)
     val t2 = OffsetDateTime.of(2025, 1, 1, 11, 0, 0, 0, ZoneOffset.UTC)
@@ -130,9 +91,9 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
 
     inboxEventRepository.saveAll(
       listOf(
-        createInboxEvent(t3, crn = crns[2]),
-        createInboxEvent(t1, crn = crns[0]),
-        createInboxEvent(t2, crn = crns[1]),
+        createInboxEvent(eventOccurredAt = t3, crn = UUID.randomUUID().toString()),
+        createInboxEvent(eventOccurredAt = t1, crn = UUID.randomUUID().toString()),
+        createInboxEvent(eventOccurredAt = t2, crn = UUID.randomUUID().toString()),
       ),
     )
 
@@ -166,44 +127,8 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     assertThat(firstProcessed.eventOccurredAt).isEqualTo(t1)
     assertThat(secondProcessed.eventOccurredAt).isEqualTo(t2)
     assertThat(thirdProcessed.eventOccurredAt).isEqualTo(t3)
-    assertThat(caseRepository.findAll()).hasSize(3)
-  }
 
-  @Test
-  fun `processes concurrent events for same CRN without creating duplicate case rows`() {
-    dispatcherConfig.maxEventsPerBatch = 2
-    val sharedCrn = "X123456"
-    val caseEntity = buildCaseEntity(tierScore = null) { withCrn(sharedCrn) }
-    caseRepository.save(caseEntity)
-
-    TierStubs.getTierOKResponse(
-      sharedCrn,
-      buildTier(tierScore = "A3"),
-    )
-
-    val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
-    inboxEventRepository.saveAll(
-      listOf(
-        createInboxEvent(baseTime, crn = sharedCrn),
-        createInboxEvent(baseTime.plusSeconds(1), crn = sharedCrn),
-      ),
-    )
-
-    inboxEventDispatcher.process()
-
-    assertThat(
-      inboxEventRepository.findAllByProcessedStatus(
-        ProcessedStatus.PROCESSED,
-        PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
-      ),
-    ).hasSize(2)
-    assertThat(caseRepository.findAll()).hasSize(1)
-    assertThat(
-      caseRepository.findByIdentifier(
-        sharedCrn,
-        IdentifierType.CRN,
-      )?.tierScore,
-    ).isEqualTo("A3")
+    mockEventHandler.assertThatHasProcessedEvents(listOf(firstProcessed, secondProcessed, thirdProcessed))
   }
 
   @Test
@@ -212,54 +137,29 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     dispatcherConfig.maxConcurrentEvents = 4
     val crns = (1..5).map { "X12345$it" }
 
-    val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
-    caseRepository.saveAll(caseEntities)
-    crns.forEach {
-      TierStubs.getTierOKResponse(
-        it,
-        buildTier(tierScore = "A3"),
-      )
-    }
-
     val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
     inboxEventRepository.saveAll(
       crns.mapIndexed { i, c ->
-        createInboxEvent(baseTime.plusSeconds(i.toLong()), crn = c)
+        createInboxEvent(eventOccurredAt = baseTime.plusSeconds(i.toLong()), crn = c)
       },
     )
 
     inboxEventDispatcher.process()
 
-    val processed =
-      inboxEventRepository.findAllByProcessedStatus(
-        ProcessedStatus.PROCESSED,
-        PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
-      )
-    assertThat(processed).hasSize(5)
-    assertThat(caseRepository.findAll()).hasSize(5)
+    inboxAsserter.assertProcessedCount(5)
 
-    assertThat(concurrencyCounter.maxConcurrent.get()).isLessThanOrEqualTo(4)
+    assertThat(mockEventHandler.maxConcurrent.get()).isEqualTo(4)
   }
 
   @Test
   fun `processes multiple events concurrently using coroutines`() {
     val delayMs = 200
     val crns = listOf("X123451", "X123452", "X123453", "X123454")
-    val caseEntities = crns.map { buildCaseEntity(tierScore = null) { withCrn(it) } }
-    caseRepository.saveAll(caseEntities)
-
-    crns.forEach {
-      TierStubs.getTierOKResponse(
-        it,
-        buildTier(tierScore = "A3"),
-        delayMs = delayMs,
-      )
-    }
 
     val baseTime = OffsetDateTime.now(ZoneOffset.UTC)
     inboxEventRepository.saveAll(
       crns.mapIndexed { i, c ->
-        createInboxEvent(baseTime.plusSeconds(i.toLong()), crn = c)
+        createInboxEvent(eventOccurredAt = baseTime.plusSeconds(i.toLong()), crn = c)
       },
     )
 
@@ -267,13 +167,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     inboxEventDispatcher.process()
     val elapsed = System.currentTimeMillis() - start
 
-    val processed =
-      inboxEventRepository.findAllByProcessedStatus(
-        ProcessedStatus.PROCESSED,
-        PageRequest.of(0, 10, Sort.by("eventOccurredAt").ascending()),
-      )
-    assertThat(processed).hasSize(4)
-    assertThat(caseRepository.findAll()).hasSize(4)
+    inboxAsserter.assertProcessedCount(4)
 
     // With 4 events and semaphore(4), parallel execution: ~delayMs. Sequential would be
     // 4*delayMs.
@@ -284,14 +178,12 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     eventOccurredAt: OffsetDateTime,
     crn: String = this.crn,
   ): InboxEventEntity {
-    val baseUrl = applicationContext.environment.getProperty("service.tier.base-url")
-    val detailUrl = "$baseUrl/crn/$crn/tier"
     val payload =
       SnsDomainEvent(
-        eventType = "tier.calculation.complete",
+        eventType = MockInboxEventHandler.EVENT_TYPE,
         version = 1,
-        description = "Tier calculation complete",
-        detailUrl = detailUrl,
+        description = "Integration test event",
+        detailUrl = "localhost",
         occurredAt = eventOccurredAt,
         personReference =
         PersonReference(
@@ -299,8 +191,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
         ),
       )
     return buildPendingInboxEventEntity(
-      eventType = "tier.calculation.complete",
-      eventDetailUrl = detailUrl,
+      eventType = MockInboxEventHandler.EVENT_TYPE,
       eventOccurredAt = eventOccurredAt,
       payload = jsonMapper.writeValueAsString(payload),
     )
