@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationArrivalCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
@@ -263,6 +264,44 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     aggregate.addNote(note = noteCommand.note)
+    val merged = merge(
+      snapshot = aggregate.snapshot(),
+      proposedAccommodationEntity,
+      accommodationTypeEntity,
+      accommodationStatusEntity = getAccommodationStatusEntity(
+        preUpdateAccommodationStatusEntity = accommodationStatusEntity,
+        aggregate,
+      ),
+    )
+    proposedAccommodationRepository.save(merged)
+  }
+
+  @Transactional
+  fun arriveProposedAccommodation(
+    id: UUID,
+    crn: String,
+    proposedAccommodationArrivalCommand: ProposedAccommodationArrivalCommand,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) {
+    val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
+      .orThrowNotFound("id" to id, "crn" to crn)
+    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
+      .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
+      ?.let {
+        accommodationStatusRepository.findByIdOrNull(it)
+          .orThrowNotFound("id" to it)
+      }
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity,
+      accommodationTypeEntity = accommodationTypeEntity,
+      accommodationStatusEntity = accommodationStatusEntity,
+      currentAccommodation,
+    )
+    aggregate.arrivePersonAtProposedAccommodation(
+      arrivalDate = proposedAccommodationArrivalCommand.arrivalDate,
+    )
+    pullEventAndPersistToOutbox(aggregate)
     val merged = merge(
       snapshot = aggregate.snapshot(),
       proposedAccommodationEntity,

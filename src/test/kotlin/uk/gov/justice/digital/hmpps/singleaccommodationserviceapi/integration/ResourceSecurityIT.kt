@@ -138,6 +138,7 @@ private val proposedAccommodationControllerMap: Map<String, Set<String>> =
     "POST /cases/{crn}/proposed-accommodations" to defaultRoles,
     "PUT /cases/{crn}/proposed-accommodations/{id}" to defaultRoles,
     "POST /cases/{crn}/proposed-accommodations/{id}/notes" to defaultRoles,
+    "POST /cases/{crn}/proposed-accommodations/{id}/arrival" to defaultRoles,
   )
 
 private val accommodationControllerMap: Map<String, Set<String>> =
