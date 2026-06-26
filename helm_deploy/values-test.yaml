@@ -33,6 +33,18 @@ generic-service:
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: hmpps-approved-premises-nonprod
+  elastiCacheAlertsClusterIds:
+    cp-74a472d88f514b65: "SAS Redis - Test"
+  rdsAlertsDatabases:
+    cloud-platform-4c0282b388062817: "SAS DB - Test"
+  # API pool users = 20 per pod
+  # Max expected connections for 2 x pods = 40 + additional 10 (buffer for direct connections)
+  rdsAlertsConnectionThreshold: 50
+  sqsAlertsQueueNames:
+    - "hmpps-community-accommodation-devs-test-sas_domain_events_queue"
+    - "hmpps-community-accommodation-devs-test-sas_domain_events_dlq"
+  sqsAlertsOldestThreshold: 30
+  sqsAlertsTotalMessagesThreshold: 10
 
   env_details:
     production_env: false
