@@ -15,7 +15,7 @@ detekt = "2.0.0-alpha.5"
 awaitility = "4.3.0"
 javers = "7.11.4"
 postgres = "42.7.11"
-app-insights-core = "2.6.4"
+app-insights-core = "3.7.9"
 micrometer-registry-azure = "1.17.0"
 sentry = "8.46.0"
 
