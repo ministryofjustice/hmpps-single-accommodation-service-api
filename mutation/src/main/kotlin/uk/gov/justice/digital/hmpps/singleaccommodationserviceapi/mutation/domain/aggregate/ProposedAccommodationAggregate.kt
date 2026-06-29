@@ -8,9 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationPersonArrivedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationPersonCannotArriveException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
@@ -186,6 +188,23 @@ class ProposedAccommodationAggregate private constructor(
     }
   }
 
+  fun arrivePersonAtProposedAccommodation(arrivalDate: LocalDate) {
+    if (!canPersonArrive()) {
+      throw AccommodationPersonCannotArriveException()
+    }
+    startDate = arrivalDate
+    endDate = null
+    accommodationStatus = AccommodationStatusDto(
+      code = AddressStatusCode.M.name,
+      description = AddressStatusCode.M.description,
+    )
+    typeVerified = true
+    domainEvents += AccommodationPersonArrivedDomainEvent(
+      aggregateId = id,
+      cprAddressId = cprAddressId!!,
+    )
+  }
+
   fun addNote(note: String) {
     validateNote(note)
     notes += ProposedAccommodationNoteSnapshot(
@@ -211,6 +230,17 @@ class ProposedAccommodationAggregate private constructor(
     if (nextAccommodationStatus == NextAccommodationStatus.YES && verificationStatus != VerificationStatus.PASSED) {
       throw AccommodationVerificationNotPassedException()
     }
+  }
+
+  private fun canPersonArrive(): Boolean {
+    if (
+      isRegisteredWithCpr() &&
+      NextAccommodationStatus.YES == nextAccommodationStatus &&
+      (AddressStatusCode.PR.name == accommodationStatus?.code || AddressStatusCode.PR1.name == accommodationStatus?.code)
+    ) {
+      return true
+    }
+    return false
   }
 
   fun pullDomainEvents(): List<SingleAccommodationServiceDomainEvent> = domainEvents.toList().also { domainEvents.clear() }

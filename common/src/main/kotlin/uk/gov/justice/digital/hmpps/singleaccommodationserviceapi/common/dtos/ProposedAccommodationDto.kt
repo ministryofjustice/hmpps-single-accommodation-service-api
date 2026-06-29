@@ -34,6 +34,10 @@ data class ProposedAccommodationDetailCommand(
   val endDate: LocalDate?,
 )
 
+data class ProposedAccommodationArrivalCommand(
+  val arrivalDate: LocalDate,
+)
+
 enum class VerificationStatus {
   NOT_CHECKED_YET,
   FAILED,
