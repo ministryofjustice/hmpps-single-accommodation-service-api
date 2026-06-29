@@ -13,3 +13,9 @@ data class AccommodationDeletedDomainEvent(
   val cprAddressId: UUID,
   override val type: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
 ) : SingleAccommodationServiceDomainEvent
+
+data class AccommodationPersonArrivedDomainEvent(
+  override val aggregateId: UUID,
+  val cprAddressId: UUID,
+  override val type: SingleAccommodationServiceDomainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED,
+) : SingleAccommodationServiceDomainEvent

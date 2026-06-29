@@ -273,6 +273,14 @@ fun proposedAddressesRequestBody(
   }
 """.trimIndent()
 
+fun proposedAccommodationArrivalRequestBody(
+  arrivalDate: String = "2026-01-05",
+) = """
+  {
+    "arrivalDate": "$arrivalDate"
+  }
+""".trimIndent()
+
 fun convertNullable(nullable: String?) = if (nullable == null) {
   "null"
 } else {
