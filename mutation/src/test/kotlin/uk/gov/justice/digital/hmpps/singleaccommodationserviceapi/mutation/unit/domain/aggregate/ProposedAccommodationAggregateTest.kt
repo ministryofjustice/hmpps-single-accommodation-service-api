@@ -19,10 +19,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationPersonArrivedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationPersonCannotArriveException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
@@ -566,6 +568,110 @@ class ProposedAccommodationAggregateTest {
     assertThat(domainEventsToPublish).hasSize(0)
   }
 
+  @ParameterizedTest
+  @EnumSource(value = AddressStatusCode::class, names = ["PR", "PR1"])
+  fun `should arrive person at proposed accommodation when registered with CPR and proposed address status is PR`(addressStatusCode: AddressStatusCode) {
+    val cprAddressId = UUID.randomUUID()
+    val aggregate = hydrateAggregate(
+      typeVerified = false,
+      cprAddressId = cprAddressId,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+      accommodationStatus = AccommodationStatusDto(
+        code = addressStatusCode.name,
+        description = addressStatusCode.description,
+      ),
+    )
+    val arrivalDate = LocalDate.of(2026, 2, 5)
+
+    aggregate.arrivePersonAtProposedAccommodation(arrivalDate)
+
+    val aggregateSnapshot = aggregate.snapshot()
+    assertThat(aggregateSnapshot.accommodationStatus?.code).isEqualTo(AddressStatusCode.M.name)
+    assertThat(aggregateSnapshot.accommodationStatus?.description).isEqualTo(AddressStatusCode.M.description)
+    assertThat(aggregateSnapshot.typeVerified).isTrue
+    assertThat(aggregateSnapshot.startDate).isEqualTo(arrivalDate)
+    assertThat(aggregateSnapshot.endDate).isNull()
+    assertThat(aggregateSnapshot.cprAddressId).isEqualTo(cprAddressId)
+
+    val domainEventsToPublish = aggregate.pullDomainEvents()
+    assertThat(domainEventsToPublish).hasSize(1)
+    assertThat(domainEventsToPublish.first()).isInstanceOf(AccommodationPersonArrivedDomainEvent::class.java)
+    assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregateSnapshot.id)
+  }
+
+  @Test
+  fun `should throw AccommodationPersonCannotArriveException when proposed accommodation is not registered with CPR`() {
+    val aggregate = hydrateAggregate(
+      cprAddressId = null,
+      typeVerified = false,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+      accommodationStatus = AccommodationStatusDto(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+    )
+
+    assertThrows<AccommodationPersonCannotArriveException> {
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+    }
+
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
+  @Test
+  fun `should throw AccommodationPersonCannotArriveException when proposed accommodation is not next accommodation`() {
+    val aggregate = hydrateAggregate(
+      cprAddressId = UUID.randomUUID(),
+      typeVerified = false,
+      accommodationStatus = AccommodationStatusDto(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      nextAccommodationStatus = NextAccommodationStatus.NO,
+    )
+
+    assertThrows<AccommodationPersonCannotArriveException> {
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+    }
+
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
+  @Test
+  fun `should throw AccommodationPersonCannotArriveException when accommodation status is not proposed`() {
+    val aggregate = hydrateAggregate(
+      cprAddressId = UUID.randomUUID(),
+      typeVerified = false,
+      accommodationStatus = AccommodationStatusDto(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+    )
+
+    assertThrows<AccommodationPersonCannotArriveException> {
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+    }
+
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
+  @Test
+  fun `should throw AccommodationPersonCannotArriveException when accommodation status is null`() {
+    val aggregate = hydrateAggregate(
+      cprAddressId = UUID.randomUUID(),
+      typeVerified = false,
+      accommodationStatus = null,
+      nextAccommodationStatus = NextAccommodationStatus.YES,
+    )
+
+    assertThrows<AccommodationPersonCannotArriveException> {
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+    }
+
+    assertThat(aggregate.pullDomainEvents()).isEmpty()
+  }
+
   @Test
   fun `should addNote successfully`() {
     val aggregate = hydrateAggregate()
@@ -798,7 +904,10 @@ class ProposedAccommodationAggregateTest {
     accommodationStatus: AccommodationStatusDto? = null,
     cprAddressId: UUID? = null,
     accommodationSource: AccommodationSource = AccommodationSource.SAS,
+    verificationStatus: VerificationStatus = accommodationDetails.verificationStatus!!,
+    nextAccommodationStatus: NextAccommodationStatus = accommodationDetails.nextAccommodationStatus!!,
     noFixedAbode: Boolean? = false,
+    typeVerified: Boolean = false,
     accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(),
   ) = ProposedAccommodationAggregate.hydrateExisting(
     id = UUID.randomUUID(),
@@ -809,8 +918,8 @@ class ProposedAccommodationAggregateTest {
     name = accommodationDetails.name,
     accommodationType = accommodationType,
     accommodationStatus = accommodationStatus,
-    verificationStatus = accommodationDetails.verificationStatus!!,
-    nextAccommodationStatus = accommodationDetails.nextAccommodationStatus!!,
+    verificationStatus = verificationStatus,
+    nextAccommodationStatus = nextAccommodationStatus,
     address = AccommodationAddressDetails(
       postcode = accommodationDetails.address.postcode,
       subBuildingName = accommodationDetails.address.subBuildingName,
@@ -825,7 +934,7 @@ class ProposedAccommodationAggregateTest {
     ),
     startDate = accommodationDetails.startDate,
     endDate = accommodationDetails.endDate,
-    typeVerified = NextAccommodationStatus.YES == accommodationDetails.nextAccommodationStatus,
+    typeVerified = typeVerified,
     noFixedAbode = noFixedAbode,
     notes = emptyList(),
   )

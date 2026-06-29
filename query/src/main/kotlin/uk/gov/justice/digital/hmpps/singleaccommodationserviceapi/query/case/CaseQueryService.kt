@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.limited
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
@@ -39,32 +39,31 @@ class CaseQueryService(
     )
   }
 
-  fun getCases(
+  fun applyCaseListFilters(
     personDtos: List<PersonDto>,
     searchTerm: String? = null,
     riskLevel: RiskLevel? = null,
     teamCode: String? = null,
+  ) = personDtos
+    .filter {
+      if (!teamCode.isNullOrBlank()) {
+        it.matchesTeam(teamCode)
+      } else {
+        it.matchesUser(userService.getUsername())
+      } &&
+        it.matchesSearch(searchTerm) &&
+        it.matchesRiskLevel(riskLevel)
+    }.toList()
+
+  fun getCases(
+    personDtos: List<PersonDto>,
   ): List<CaseDto> {
-    // TODO this may or may not be a bug - if there is case data on sas and delius but NOT in CPR (or CPR fails),
-    // what do we do? return the case list data without it being in our db? or remove it from the case list.
-    val filteredPersonDtos = personDtos
-      .asSequence()
-      .filter {
-        if (!teamCode.isNullOrBlank()) {
-          it.matchesTeam(teamCode)
-        } else {
-          it.matchesUser(userService.getUsername())
-        } &&
-          it.matchesSearch(searchTerm) &&
-          it.matchesRosh(riskLevel)
-      }.toList()
+    val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
 
-    val caseEntitiesByCrn = caseRepository.mapByCrns(filteredPersonDtos.map { it.crn })
-
-    return filteredPersonDtos.map { personDto ->
+    return personDtos.map { personDto ->
 
       when (personDto) {
-        is LimitedPersonDto -> personDto.limited()
+        is LimitedPersonDto -> personDto.toLimitedCaseDto()
 
         is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
@@ -94,7 +93,6 @@ class CaseQueryService(
       crn,
       case,
       caseOrchestrationDto.cpr,
-      caseOrchestrationDto.roshDetails,
       caseOrchestrationDto.tier,
     )
     return toApiResponseDto(data = data, upstreamFailures = orchestrationResult.upstreamFailures)
@@ -123,9 +121,9 @@ class CaseQueryService(
     else -> false
   }
 
-  private fun PersonDto.matchesRosh(riskLevel: RiskLevel?): Boolean = when {
+  private fun PersonDto.matchesRiskLevel(riskLevel: RiskLevel?): Boolean = when {
     riskLevel == null -> true
-    this is Identifiable && roshLevel == riskLevel -> true
+    this is Identifiable && this.riskLevel == riskLevel -> true
     else -> false
   }
 

@@ -7,12 +7,11 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.uri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
-class TierCalculationCompletionHandler(
+class TierCalculationChangedHandler(
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val tierClient: TierClient,
@@ -20,7 +19,7 @@ class TierCalculationCompletionHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE
+  override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)

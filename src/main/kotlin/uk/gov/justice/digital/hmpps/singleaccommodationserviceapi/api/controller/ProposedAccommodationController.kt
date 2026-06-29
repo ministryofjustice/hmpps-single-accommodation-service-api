@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationArrivalCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SingleAccommodationServiceApiExceptionHandler.Companion.handleUpstreamFailure
@@ -47,12 +48,10 @@ class ProposedAccommodationController(
 
     val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
     handleUpstreamFailure(cprAccommodations.upstreamFailures)
-    if (cprAccommodations.data.isNotEmpty()) {
-      accommodationSyncService.syncAccommodationFromDelius(
-        crn,
-        cprAccommodations.data,
-      )
-    }
+    accommodationSyncService.syncAccommodationFromDelius(
+      crn,
+      cprAccommodations.data,
+    )
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
   }
 
@@ -108,5 +107,19 @@ class ProposedAccommodationController(
     handleUpstreamFailure(currentAccommodation.upstreamFailures)
     val updatedProposedAccommodation = proposedAccommodationApplicationService.updateProposedAccommodation(id, crn, request, currentAccommodation.data)
     return ResponseEntity.ok(updatedProposedAccommodation)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @PostMapping("/cases/{crn}/proposed-accommodations/{id}/arrival")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createArrival(
+    @PathVariable crn: String,
+    @PathVariable id: UUID,
+    @RequestBody request: ProposedAccommodationArrivalCommand,
+  ): ResponseEntity<Void> {
+    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(crn)
+    handleUpstreamFailure(currentAccommodation.upstreamFailures)
+    proposedAccommodationApplicationService.arriveProposedAccommodation(id, crn, request, currentAccommodation.data)
+    return ResponseEntity(HttpStatus.CREATED)
   }
 }

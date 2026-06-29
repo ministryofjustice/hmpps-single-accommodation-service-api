@@ -36,7 +36,9 @@ open class ProposedAccommodationEntity(
   var verificationStatus: VerificationStatus?,
   @Enumerated(EnumType.STRING)
   var nextAccommodationStatus: NextAccommodationStatus?,
+  @DiffIgnore
   var startDate: LocalDate?,
+  @DiffIgnore
   var endDate: LocalDate?,
   var postcode: String?,
   var subBuildingName: String?,
@@ -65,6 +67,9 @@ open class ProposedAccommodationEntity(
     orphanRemoval = true,
   )
   var notes: MutableList<ProposedAccommodationNoteEntity> = mutableListOf(),
+
+  @Column(nullable = false)
+  var deleted: Boolean = false,
 
 ) : BaseAuditedEntity()
 

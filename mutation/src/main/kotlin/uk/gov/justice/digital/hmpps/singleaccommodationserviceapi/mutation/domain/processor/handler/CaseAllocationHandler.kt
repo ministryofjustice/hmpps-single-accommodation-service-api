@@ -21,7 +21,7 @@ class CaseAllocationHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED
+  override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
@@ -45,7 +45,7 @@ class CaseAllocationHandler(
     return if (shouldProcess) {
       InboxEventHandler.Result.PROCESSED
     } else {
-      InboxEventHandler.Result.NOT_PROCESSED
+      InboxEventHandler.Result.IGNORED
     }
   }
 }

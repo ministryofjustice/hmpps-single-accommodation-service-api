@@ -3,22 +3,16 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnRoshServerError
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnRoshTimeout
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnTierServerError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.upstreamfailure.response.expectedSingleCrnTierTimeout
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 
@@ -30,7 +24,6 @@ class UpstreamFailureIT : IntegrationTestBase() {
   fun setup() {
     val corePersonRecord = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
     val case = buildCase(crn = crn)
-    val roshVeryHigh = buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.VERY_HIGH))
     val tier = buildTier()
 
     createTestDataSetupUserAndDeliusUser()
@@ -38,7 +31,6 @@ class UpstreamFailureIT : IntegrationTestBase() {
 
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-    ProbationIntegrationOasysStubs.getRoshOKResponse(crn = crn, roshVeryHigh)
     TierStubs.getTierOKResponse(crn = crn, tier)
   }
 
@@ -65,32 +57,6 @@ class UpstreamFailureIT : IntegrationTestBase() {
       .exchange()
       .expectStatus()
       .is5xxServerError
-  }
-
-  @Test
-  fun `getCase should return partial success when ROSH call returns server error`() {
-    ProbationIntegrationOasysStubs.getRoshServerErrorResponse(crn)
-
-    restTestClient.get().uri("/cases/$crn")
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnRoshServerError())
-      }
-  }
-
-  @Test
-  fun `getCase should return partial success when ROSH call times out`() {
-    ProbationIntegrationOasysStubs.getRoshTimeoutResponse(crn)
-
-    restTestClient.get().uri("/cases/$crn")
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody(String::class.java)
-      .value {
-        assertThatJson(normalizeResponse(it!!)).matchesExpectedJson(expectedSingleCrnRoshTimeout())
-      }
   }
 
   @Test
@@ -122,7 +88,6 @@ class UpstreamFailureIT : IntegrationTestBase() {
   @Test
   fun `getCase should return failure when all upstream calls fail`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    ProbationIntegrationOasysStubs.getRoshServerErrorResponse(crn)
     TierStubs.getTierServerErrorResponse(crn)
 
     restTestClient.get().uri("/cases/$crn")

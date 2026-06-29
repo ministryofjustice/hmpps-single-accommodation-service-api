@@ -41,16 +41,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":null
          },
          {
-            "field":"startDate",
-            "value":"2026-01-05",
-            "oldValue":null
-         },
-         {
-            "field":"endDate",
-            "value":"2026-04-25",
-            "oldValue":null
-         },
-         {
             "field":"postcode",
             "value":"test postcode",
             "oldValue":null
@@ -86,11 +76,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":null
          },
          {
-            "field":"country",
-            "value":"England",
-            "oldValue":null
-         },
-         {
             "field":"uprn",
             "value": "test uprn",
             "oldValue":null
@@ -110,7 +95,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
   dependentLocality: String? = "test dependent locality",
   postTown: String? = "test post town",
   county: String? = "test county",
-  country: String? = "England",
   postcode: String = "test postcode",
   uprn: String? = "test uprn",
   initialAccommodationTypeDescription: String,
@@ -132,16 +116,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field":"verificationStatus",
             "value":"PASSED",
             "oldValue":"FAILED"
-         },
-         {
-            "field":"startDate",
-            "value":"2026-01-20",
-            "oldValue":null
-         },
-         {
-            "field":"endDate",
-            "value":"2026-08-01",
-            "oldValue":null
          },
          {
             "field":"postcode",
@@ -174,16 +148,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "field": "nextAccommodationStatus",
             "oldValue": "YES",
             "value": "NO"
-         },
-         {
-            "field":"startDate",
-            "value":null,
-            "oldValue":"2026-01-05"
-         },
-         {
-            "field":"endDate",
-            "value":null,
-            "oldValue":"2026-04-25"
          },
          {
             "field":"subBuildingName",
@@ -235,16 +199,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":null
          },
          {
-            "field":"startDate",
-            "value":"2026-01-05",
-            "oldValue":null
-         },
-         {
-            "field":"endDate",
-            "value":"2026-04-25",
-            "oldValue":null
-         },
-         {
             "field":"postcode",
             "value":"$postcode",
             "oldValue":null
@@ -285,11 +239,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":null
          },
          {
-            "field":"country",
-            "value":"$country",
-            "oldValue":null
-         },
-         {
             "field":"uprn",
             "value":"$uprn",
             "oldValue":null
@@ -303,8 +252,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
 fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
   proposedAccommodationId: UUID,
   caseId: UUID,
-  startDate: String,
-  endDate: String,
 ) = """
 {
    "data":[
@@ -348,16 +295,6 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
             {
                "field":"nextAccommodationStatus",
                "value":"YES",
-               "oldValue":null
-            },
-            {
-               "field":"startDate",
-               "value":"$startDate",
-               "oldValue":null
-            },
-            {
-               "field":"endDate",
-               "value":"$endDate",
                "oldValue":null
             },
             {
@@ -414,8 +351,6 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
 fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
   proposedAccommodationId: UUID,
   caseId: UUID,
-  startDate: String,
-  endDate: String,
   sasCommitDateTime: String,
 ): String = """
    {
@@ -472,16 +407,6 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
                {
                   "field":"nextAccommodationStatus",
                   "value":"YES",
-                  "oldValue":null
-               },
-               {
-                  "field":"startDate",
-                  "value":"$startDate",
-                  "oldValue":null
-               },
-               {
-                  "field":"endDate",
-                  "value":"$endDate",
                   "oldValue":null
                },
                {

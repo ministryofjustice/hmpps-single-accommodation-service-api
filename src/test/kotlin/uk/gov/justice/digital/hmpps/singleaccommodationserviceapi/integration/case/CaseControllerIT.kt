@@ -17,15 +17,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Us
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -38,7 +36,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
@@ -68,7 +65,9 @@ class CaseControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
-    stubInitialRoshAndTier()
+    val tier = buildTier()
+    TierStubs.getTierOKResponse(crns[0], tier)
+    TierStubs.getTierOKResponse(crns[1], tier)
   }
 
   @Test
@@ -197,6 +196,34 @@ class CaseControllerIT : IntegrationTestBase() {
       20,
       getRequestedFor(WireMock.urlPathMatching("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")),
     )
+  }
+
+  @Test
+  fun `should only save cases that match the filtered response`() {
+    val team = buildCaseTeam("TestTeam")
+    val staff = buildOfficer(username = deliusUser.username)
+    val otherStaff = buildOfficer(username = "otherStaff")
+    val cases = listOf(
+      buildCase(crn = "crn1", staff = staff, team = team),
+      buildCase(crn = "crn2", nomsNumber = "noms2", staff = otherStaff, team = team),
+    )
+    SasAndDeliusStubs.stubGetCaseListByUsername(
+      deliusUsername = deliusUser.username,
+      cases = cases,
+      pageSize = pageSize.toInt(),
+    )
+    assertThat(caseRepository.findAll()).hasSize(0)
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    assertThat(caseRepository.findAll()).hasSize(1)
+
+    restTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+
+    assertThat(caseRepository.findAll()).hasSize(2)
   }
 
   @Test
@@ -343,21 +370,6 @@ class CaseControllerIT : IntegrationTestBase() {
       firstName = "Zack",
       lastName = "Smith",
     )
-  }
-
-  private fun stubInitialRoshAndTier() {
-    ProbationIntegrationOasysStubs.getRoshOKResponse(
-      crns[0],
-      buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.VERY_HIGH)),
-    )
-    ProbationIntegrationOasysStubs.getRoshOKResponse(
-      crns[1],
-      buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.MEDIUM)),
-    )
-
-    val tier = buildTier()
-    TierStubs.getTierOKResponse(crns[0], tier)
-    TierStubs.getTierOKResponse(crns[1], tier)
   }
 
   private fun stubCaseList() {

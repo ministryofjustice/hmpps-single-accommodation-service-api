@@ -11,9 +11,9 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
@@ -45,6 +45,7 @@ class DispatcherConfig(
   name = ["hmpps.sqs.enabled"],
   havingValue = "true",
 )
+@Profile(value = ["local", "dev", "test"])
 @Component
 class InboxEventDispatcher(
   handlers: List<InboxEventHandler>,
@@ -54,7 +55,7 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val eventTypeToHandlers: Map<IncomingHmppsDomainEventType, InboxEventHandler> =
+  private val eventTypeToHandlers: Map<String, InboxEventHandler> =
     handlers.associateBy { it.supportedEventType() }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
@@ -93,10 +94,10 @@ class InboxEventDispatcher(
     }
 
     log.info(
-      "Inbox batch complete [total={}, processed={}, notProcessed={}, failed={}, skipped={}]",
+      "Inbox batch complete [total={}, processed={}, ignored={}, failed={}, skipped={}]",
       inboxEvents.size,
       progressTracker.processedCount.get(),
-      progressTracker.notProcessedCount.get(),
+      progressTracker.ignored.get(),
       progressTracker.failedCount.get(),
       progressTracker.skippedCount.get(),
     )
@@ -130,9 +131,9 @@ class InboxEventDispatcher(
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
           progressTracker.eventProcessed()
         }
-        InboxEventHandler.Result.NOT_PROCESSED -> {
-          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.NOT_PROCESSED)
-          progressTracker.eventNotProcessed()
+        InboxEventHandler.Result.IGNORED -> {
+          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.IGNORED)
+          progressTracker.eventIgnored()
         }
         InboxEventHandler.Result.FAILED -> {
           sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
@@ -156,20 +157,20 @@ class InboxEventDispatcher(
 
   private data class ProgressTracker(
     val processedCount: AtomicInteger = AtomicInteger(0),
-    val notProcessedCount: AtomicInteger = AtomicInteger(0),
+    val ignored: AtomicInteger = AtomicInteger(0),
     val failedCount: AtomicInteger = AtomicInteger(0),
     val skippedCount: AtomicInteger = AtomicInteger(0),
   ) {
     fun eventSkipped() = skippedCount.incrementAndGet()
     fun eventFailed() = failedCount.incrementAndGet()
     fun eventProcessed() = processedCount.incrementAndGet()
-    fun eventNotProcessed() = notProcessedCount.incrementAndGet()
-    fun toStats() = EventDispatcherStats(processedCount.get(), notProcessedCount.get(), failedCount.get(), skippedCount.get())
+    fun eventIgnored() = ignored.incrementAndGet()
+    fun toStats() = EventDispatcherStats(processedCount.get(), ignored.get(), failedCount.get(), skippedCount.get())
   }
 
   data class EventDispatcherStats(
     val processedCount: Int,
-    val notProcessedCount: Int,
+    val ignoredCount: Int,
     val failedCount: Int,
     val skippedCount: Int,
   )
@@ -179,9 +180,7 @@ class InboxEventDispatcher(
     val withoutHandlers: List<InboxEventEntity>,
   )
 
-  private fun InboxEventEntity.resolveEventType() = IncomingHmppsDomainEventType.forEventType(eventType)
-
-  private fun InboxEventEntity.resolveHandler() = resolveEventType()?.let { eventTypeToHandlers[it] }
+  private fun InboxEventEntity.resolveHandler() = eventTypeToHandlers[this.eventType]
 
   private fun InboxEventEntity.toInboxEvent() = InboxEventHandler.InboxEvent(
     id = this.id,

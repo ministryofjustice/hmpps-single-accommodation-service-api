@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.sns.model.PublishResponse
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.HmppsDomainEventUrlConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationPersonArrivedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
@@ -102,6 +103,10 @@ class OutboxEventPublisher(
     }
     SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED -> {
       val event = objectMapper.readValue(outboxEventEntity.payload, AccommodationDeletedDomainEvent::class.java)
+      event.cprAddressId
+    }
+    SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED -> {
+      val event = objectMapper.readValue(outboxEventEntity.payload, AccommodationPersonArrivedDomainEvent::class.java)
       event.cprAddressId
     }
     else -> null

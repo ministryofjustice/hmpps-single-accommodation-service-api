@@ -15,10 +15,9 @@ generic-service:
     HMPPS_AUTH_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-AND-OASYS_BASE-URL: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-dev.hmpps.service.justice.gov.uk
-    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
+    SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-test.hmpps.service.justice.gov.uk
+    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-test.hmpps.service.justice.gov.uk
+    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-test.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search-dev.prison.service.justice.gov.uk
@@ -26,14 +25,26 @@ generic-service:
     SERVICE_TIER_BASE-URL: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
     SERVICE_ACCOMMODATION-DATA-DOMAIN_BASE-URL: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
     SERVICE_NOMIS-USER-ROLES_BASE-URL: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
-    EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/accommodations/#id
-    EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-dev.hmpps.service.justice.gov.uk/duty-to-refers/#id
+    EVENT_DETAILS-URL_PROPOSED-ACCOMMODATION-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/accommodations/#id
+    EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/duty-to-refers/#id
     SCHEDULING_ENABLED: true
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: hmpps-approved-premises-nonprod
+  elastiCacheAlertsClusterIds:
+    cp-74a472d88f514b65: "SAS Redis - Test"
+  rdsAlertsDatabases:
+    cloud-platform-4c0282b388062817: "SAS DB - Test"
+  # API pool users = 20 per pod
+  # Max expected connections for 2 x pods = 40 + additional 10 (buffer for direct connections)
+  rdsAlertsConnectionThreshold: 50
+  sqsAlertsQueueNames:
+    - "hmpps-community-accommodation-devs-test-sas_domain_events_queue"
+    - "hmpps-community-accommodation-devs-test-sas_domain_events_dlq"
+  sqsAlertsOldestThreshold: 30
+  sqsAlertsTotalMessagesThreshold: 10
 
   env_details:
     production_env: false

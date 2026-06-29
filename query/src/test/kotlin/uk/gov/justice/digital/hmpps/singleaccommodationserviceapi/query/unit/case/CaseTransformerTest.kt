@@ -33,7 +33,7 @@ class CaseTransformerTest {
 
   @Test
   fun `returns UserAccess of UKNOWN when personDto is missing`() {
-    val result = toCaseDto(crn = crn, person = null, cpr = null, roshDetails = null, tier = null)
+    val result = toCaseDto(crn = crn, person = null, cpr = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.userAccess).isEqualTo(UserAccess.UNKNOWN)
   }
@@ -41,7 +41,7 @@ class CaseTransformerTest {
   @Test
   fun `returns UserAccess FULL when personDto is FullPersonDto`() {
     val person = buildFullPersonDto(crn)
-    val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
     assertThat(fromOrchestrationDto.userAccess).isEqualTo(UserAccess.FULL)
 
@@ -52,7 +52,7 @@ class CaseTransformerTest {
   @Test
   fun `returns UserAccess of FULL when personDto is FullPersonDto and limitedAccess is true`() {
     val person = buildFullPersonDto(crn, limitedAccess = true)
-    val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    val result = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
     assertThat(result.limitedAccess).isTrue
@@ -65,7 +65,7 @@ class CaseTransformerTest {
   @Test
   fun `returns UserAccess of LIMITED when personDto is LimitedPersonDto`() {
     val person = buildLimitedPersonDto(crn)
-    val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    val result = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.userAccess).isEqualTo(UserAccess.LIMITED)
     assertThat(result.limitedAccess).isTrue()
@@ -87,7 +87,6 @@ class CaseTransformerTest {
       toCaseDto(
         crn = CRN,
         cpr = caseOrchestrationDto.cpr,
-        roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,
         person = toPersonDto(caseOrchestrationDto.case!!),
       ),

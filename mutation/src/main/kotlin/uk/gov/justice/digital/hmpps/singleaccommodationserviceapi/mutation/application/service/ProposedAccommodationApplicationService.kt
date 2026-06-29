@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationArrivalCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
@@ -123,6 +124,7 @@ class ProposedAccommodationApplicationService(
         crn = crn,
         address = ProbationCreateAddress(
           noFixedAbode = false,
+          typeVerified = false,
           startDate = Instant.now(clock),
           endDate = null,
           postcode = aggregateSnapshot.address.postcode,
@@ -133,7 +135,6 @@ class ProposedAccommodationApplicationService(
           dependentLocality = aggregateSnapshot.address.dependentLocality,
           postTown = aggregateSnapshot.address.postTown,
           county = aggregateSnapshot.address.county,
-          countryCode = null, // todo: might need to send this as an extra if the FE can get it from the lookup integration for us
           uprn = aggregateSnapshot.address.uprn,
           comment = null,
           statusCode = AddressStatusCode.valueOf(aggregateSnapshot.accommodationStatus!!.code),
@@ -263,6 +264,44 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     aggregate.addNote(note = noteCommand.note)
+    val merged = merge(
+      snapshot = aggregate.snapshot(),
+      proposedAccommodationEntity,
+      accommodationTypeEntity,
+      accommodationStatusEntity = getAccommodationStatusEntity(
+        preUpdateAccommodationStatusEntity = accommodationStatusEntity,
+        aggregate,
+      ),
+    )
+    proposedAccommodationRepository.save(merged)
+  }
+
+  @Transactional
+  fun arriveProposedAccommodation(
+    id: UUID,
+    crn: String,
+    proposedAccommodationArrivalCommand: ProposedAccommodationArrivalCommand,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) {
+    val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
+      .orThrowNotFound("id" to id, "crn" to crn)
+    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
+      .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
+      ?.let {
+        accommodationStatusRepository.findByIdOrNull(it)
+          .orThrowNotFound("id" to it)
+      }
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity,
+      accommodationTypeEntity = accommodationTypeEntity,
+      accommodationStatusEntity = accommodationStatusEntity,
+      currentAccommodation,
+    )
+    aggregate.arrivePersonAtProposedAccommodation(
+      arrivalDate = proposedAccommodationArrivalCommand.arrivalDate,
+    )
+    pullEventAndPersistToOutbox(aggregate)
     val merged = merge(
       snapshot = aggregate.snapshot(),
       proposedAccommodationEntity,

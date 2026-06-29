@@ -9,9 +9,6 @@ object ApiCallKeys {
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
 
-  // probation-integration Oasys service
-  const val GET_ROSH_DETAIL = "getRoshSummaryByCrn"
-
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
   const val GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER = "getCorePersonRecordByPrisonNumber"

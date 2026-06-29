@@ -84,7 +84,7 @@ fun expectedGetProposedAccommodationsResponse(
       "dependentLocality" : null,
       "postTown" : "Bramley",
       "county" : null,
-      "country" : "England",
+      "country" : null,
       "uprn" : null
     },
     "startDate" : $secondStartDateString,
@@ -252,6 +252,7 @@ fun proposedAddressesRequestBody(
 ) = """
   {
     "name" : null,
+    "typeVerified" : false,
     "accommodationTypeCode" : "$accommodationTypeCode",
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
@@ -269,6 +270,14 @@ fun proposedAddressesRequestBody(
     },
     "startDate" : ${convertNullable(startDate)},
     "endDate" : ${convertNullable(endDate)}
+  }
+""".trimIndent()
+
+fun proposedAccommodationArrivalRequestBody(
+  arrivalDate: String = "2026-01-05",
+) = """
+  {
+    "arrivalDate": "$arrivalDate"
   }
 """.trimIndent()
 

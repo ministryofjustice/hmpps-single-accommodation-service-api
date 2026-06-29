@@ -9,7 +9,6 @@ wiremock:
   service-names:
     - sas-and-delius
     - approved-premises-and-delius
-    - approved-premises-and-oasys
     - approved-premises-api
     - core-person-record
     - commissioned-rehabilitative-services-api
@@ -22,8 +21,6 @@ service:
   sas-and-delius:
     read-timeout: 300ms
   approved-premises-and-delius:
-    read-timeout: 300ms
-  approved-premises-and-oasys:
     read-timeout: 300ms
   approved-premises-api:
     read-timeout: 300ms
@@ -79,7 +76,7 @@ hmpps:
         queueName: sas_domain_events_queue
         dlqName: sas_domain_events_dlq
         subscribeTopicId: hmpps-domain-event-topic
-        subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
+        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated"]}'
       test-domain-events-queue:
         dlqName: ${random.uuid}
         queueName: ${random.uuid}
@@ -104,3 +101,4 @@ logging:
   level:
     root: WARN
     uk.gov.justice.digital.hmpps.singleaccommodationserviceapi: INFO
+    uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry: DEBUG
