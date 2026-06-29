@@ -3,9 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.s
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDutyToReferNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 class SasSarComplianceTest : SasSarTestBase() {
@@ -44,10 +49,52 @@ class SasSarComplianceTest : SasSarTestBase() {
     )
   }
 
+
   private fun setupTestData() {
-    createDeliusUser()
+    createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
-    createCase(TEST_CRN, TEST_NOMS_NUMBER, TEST_CASE_ID)
+
+    val case = createCase(TEST_CRN, TEST_NOMS_NUMBER, TEST_CASE_ID)
+
+    val laa = localAuthorityAreaRepository.findAll().first()
+    val dtr = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = laa.id,
+        createdAt = TEST_FROM_DATE.atStartOfDay().toInstant(ZoneOffset.UTC),
+        createdByUserId = userIdOfLoggedInDeliusUser,
+        lastUpdatedByUserId = userIdOfLoggedInDeliusUser,
+      ),
+    )
+
+    dtr.notes.add(
+      buildDutyToReferNoteEntity(
+        dutyToReferEntity = dtr,
+        createdByUserId = userIdOfLoggedInDeliusUser,
+      ),
+    )
+    dutyToReferRepository.save(dtr)
+
+    val accType = accommodationTypeRepository.findAll().first()
+    val accStatus = accommodationStatusRepository.findAll().first()
+    val pa = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        caseId = case.id,
+        accommodationTypeEntity = accType,
+        accommodationStatusEntity = accStatus,
+        createdAt = TEST_FROM_DATE.atStartOfDay().toInstant(ZoneOffset.UTC),
+        createdByUserId = userIdOfLoggedInDeliusUser,
+        lastUpdatedByUserId = userIdOfLoggedInDeliusUser,
+      ),
+    )
+
+    pa.notes.add(
+      buildProposedAccommodationNoteEntity(
+        proposedAccommodationEntity = pa,
+        createdByUserId = userIdOfLoggedInDeliusUser,
+      ),
+    )
+    proposedAccommodationRepository.save(pa)
   }
 
   @Test
