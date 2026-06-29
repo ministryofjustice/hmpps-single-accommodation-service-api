@@ -66,23 +66,33 @@ event:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
     duty-to-refer-updated: http://api-host/duty-to-refers/#id
 
-hmpps.sqs:
-  enabled: true
-  useWebToken: false
-  provider: localstack
-  topics:
-    hmpps-domain-event-topic:
-      arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
-  queues:
-    sas-domain-events-queue:
-      queueName: sas_domain_events_queue
-      dlqName: sas_domain_events_dlq
-      subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
-    test-domain-events-queue:
-      dlqName: ${random.uuid}
-      queueName: ${random.uuid}
-      subscribeTopicId: hmpps-domain-event-topic
+hmpps:
+  sqs:
+    enabled: true
+    useWebToken: false
+    provider: localstack
+    topics:
+      hmpps-domain-event-topic:
+        arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
+    queues:
+      sas-domain-events-queue:
+        queueName: sas_domain_events_queue
+        dlqName: sas_domain_events_dlq
+        subscribeTopicId: hmpps-domain-event-topic
+        subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
+      test-domain-events-queue:
+        dlqName: ${random.uuid}
+        queueName: ${random.uuid}
+        subscribeTopicId: hmpps-domain-event-topic
+  sar:
+    template:
+      path: /sar/template_hmpps-single-accommodation-service-api.mustache
+      enabled: true
+    tests:
+      attachments-expected: false
+      expected-flyway-schema-version: "0034"
+      expected-jpa-entity-schema:
+        path: /sar/sas-entities-schema.json
 
 test-data-setup:
   user-id: 48785d6e-19f2-49e6-9530-d48423f95e66

@@ -1,24 +1,66 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
 
 import org.assertj.core.api.Assertions.assertThat
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import java.io.File
+import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
+import java.time.LocalDate
 
-class SasSarFixtureAsserter {
-  fun assertJson(actualJson: String, expectedJson: String, fileName: String = "sas-sar-api-response.json") {
-    if (System.getenv("SAR_GENERATE_ACTUAL") == "true") {
-      File("src/test/resources/$fileName.log").writeText(actualJson)
+class SasSarFixtureAsserter(
+  private val sasSarHelper: SasSarIntegrationTestHelper,
+  private val sarHelper: SarIntegrationTestHelper,
+  private val webTestClient: WebTestClient,
+  private val expectedApiResponseResourcePath: String,
+  private val expectedReportResourcePath: String,
+  private val generatedApiResponseFilename: String,
+  private val generatedReportFilename: String,
+) {
+
+  fun assertApiDataMatchesFixture(
+    prn: String? = null,
+    crn: String? = null,
+    fromDate: LocalDate? = null,
+    toDate: LocalDate? = null,
+  ) {
+    val response = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient)
+    val actualJson = sarHelper.toJson(response)
+
+    if (generateActual()) {
+      sarHelper.saveContentToFile(actualJson, generatedApiResponseFilename)
+    } else {
+      assertThatJson(actualJson)
+        .`as`("Response content json")
+        .isEqualTo(sarHelper.getResourceAsString(expectedApiResponseResourcePath))
+      assertThat(response.attachments?.isNotEmpty() == true)
+        .`as`("Response has attachments")
+        .isEqualTo(sarHelper.attachmentsExpected)
     }
-    JSONAssert.assertEquals(expectedJson, actualJson, JSONCompareMode.LENIENT)
   }
 
-  fun assertHtml(actualHtml: String, expectedHtml: String, fileName: String = "sas-sar-report.html") {
-    if (System.getenv("SAR_GENERATE_ACTUAL") == "true") {
-      File("src/test/resources/$fileName.log").writeText(actualHtml)
+  fun assertReportMatchesFixture(
+    prn: String? = null,
+    crn: String? = null,
+    fromDate: LocalDate? = null,
+    toDate: LocalDate? = null,
+  ) {
+    val dataResponse = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient)
+    val templateResponse = sasSarHelper.requestSarTemplate(webTestClient)
+
+    val renderResult = sarHelper.renderServiceReport(
+      dataResponse.content,
+      "1.0",
+      templateResponse,
+    )
+
+    if (generateActual()) {
+      sarHelper.saveContentToFile(renderResult, generatedReportFilename)
+    } else {
+      sarHelper.assertHtmlEquals(
+        renderResult,
+        sarHelper.getResourceAsString(expectedReportResourcePath),
+      )
     }
-    // Basic whitespace-insensitive comparison for HTML
-    assertThat(actualHtml.replace("\\s".toRegex(), ""))
-      .isEqualTo(expectedHtml.replace("\\s".toRegex(), ""))
   }
+
+  private fun generateActual() = System.getenv("SAR_GENERATE_ACTUAL").toBoolean()
 }

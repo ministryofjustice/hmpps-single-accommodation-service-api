@@ -2,11 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.s
 
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarFlywaySchemaTest
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarJpaEntitiesTest
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import javax.sql.DataSource
 
@@ -17,6 +21,9 @@ class SarIntegrationTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var entityManager: EntityManager
+
+  @Autowired
+  lateinit var sarIntegrationTestHelper: SarIntegrationTestHelper
 
   private fun sarToken() = jwtAuthHelper.createJwtAccessToken(
     grantType = GrantType.CLIENT_CREDENTIALS.type,
@@ -84,5 +91,17 @@ class SarIntegrationTest : IntegrationTestBase() {
       .headers { it.setBearerAuth(nonSarToken()) }
       .exchange()
       .expectStatus().isForbidden
+  }
+
+  @Nested
+  inner class FlywaySchemaTest : SarFlywaySchemaTest {
+    override fun getDataSourceInstance() = dataSource
+    override fun getSarHelper() = sarIntegrationTestHelper
+  }
+
+  @Nested
+  inner class JpaEntitiesTest : SarJpaEntitiesTest {
+    override fun getSarHelper() = sarIntegrationTestHelper
+    override fun getEntityManagerInstance() = entityManager
   }
 }

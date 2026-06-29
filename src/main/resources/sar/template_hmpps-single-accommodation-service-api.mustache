@@ -1,4 +1,4 @@
-§<h1 class="title">Single Accommodation Service</h1>
+<h1 class="title">Single Accommodation Service</h1>
 {{#.}}
     {{#Cases}}
     <h2>Cases</h2>
@@ -120,7 +120,7 @@
                     <td class="data-column-25">Start date</td>
                     <td class="data-column-25">End date</td>
                     <td class="data-column-25">Postcode</td>
-                    <td class="data-column-25">Post town</td>
+                    <td class="data-column-25">Post-town</td>
                 </tr>
                 <tr>
                     <td>{{ optionalValue (formatDate start_date) }}</td>
@@ -182,4 +182,7 @@
 
     {{/ProposedAccommodations}}
 
+{{/.}}
+{{^.}}
+    <p>No Data Held</p>
 {{/.}}
