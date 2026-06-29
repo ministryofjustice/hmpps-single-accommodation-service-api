@@ -45,7 +45,7 @@ class CaseAllocationHandler(
     return if (shouldProcess) {
       InboxEventHandler.Result.PROCESSED
     } else {
-      InboxEventHandler.Result.NOT_PROCESSED
+      InboxEventHandler.Result.IGNORED
     }
   }
 }
