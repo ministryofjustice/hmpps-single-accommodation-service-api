@@ -49,7 +49,6 @@ class SasSarComplianceTest : SasSarTestBase() {
     )
   }
 
-
   private fun setupTestData() {
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
