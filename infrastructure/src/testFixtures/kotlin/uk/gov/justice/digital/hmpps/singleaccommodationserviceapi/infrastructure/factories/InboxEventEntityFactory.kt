@@ -9,7 +9,7 @@ import java.util.UUID
 
 @TestData
 fun buildInboxEventEntity(
-  eventType: String = "tier.calculation.complete",
+  eventType: String = "tier.calculation.changed",
   eventDetailUrl: String = "http://localhost/event",
   eventOccurredAt: OffsetDateTime = OffsetDateTime.now(),
   createdAt: Instant = Instant.now(),
@@ -29,7 +29,7 @@ fun buildInboxEventEntity(
 
 @TestData
 fun buildPendingInboxEventEntity(
-  eventType: String = "tier.calculation.complete",
+  eventType: String = "tier.calculation.changed",
   eventDetailUrl: String = "http://localhost/event",
   eventOccurredAt: OffsetDateTime = OffsetDateTime.now(),
   payload: String = "{}",
