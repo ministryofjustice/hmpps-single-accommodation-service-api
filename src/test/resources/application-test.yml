@@ -75,7 +75,7 @@ hmpps.sqs:
       queueName: sas_domain_events_queue
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
+      subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated"]}'
     test-domain-events-queue:
       dlqName: ${random.uuid}
       queueName: ${random.uuid}

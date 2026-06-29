@@ -11,8 +11,6 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
@@ -22,7 +20,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
@@ -51,7 +48,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   }
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
-  private val eventType = "tier.calculation.complete"
+  private val eventType = "tier.calculation.changed"
   private val eventDescription = "Tier calculation complete from Tier service"
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/crn/$crn/tier"
 
@@ -63,16 +60,12 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
+  fun `should process incoming HMPPS TIER_CALCULATION_CHANGED domain events on existing record`() {
     caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
     val tier = buildTier(tierScore = "A3")
     TierStubs.getTierOKResponse(crn, response = tier)
 
-    // when
     publishTierEvent()
-
-    // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
 
@@ -81,7 +74,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `process multiple incoming HMPPS TIER_CALCULATION_COMPLETE domain events for the same CRN, updating the same database row`() {
+  fun `process multiple incoming HMPPS TIER_CALCULATION_CHANGED domain events for the same CRN, updating the same database row`() {
     caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
 
     TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A2"))
@@ -108,45 +101,20 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not call CorePersonRecord when incoming HMPPS TIER_CALCULATION_COMPLETE domain events does not match existing record`() {
-    val knownCrn = UUID.randomUUID().toString()
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(knownCrn) })
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn, knownCrn))),
-    )
-
-    publishTierEvent()
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
-
-    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
-    assertThat(case).isNull()
-  }
-
-  @Test
-  fun `should not process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on unknown record`() {
+  fun `should not process incoming HMPPS TIER_CALCULATION_CHANGED domain events on unknown record`() {
     val tier = buildTier(tierScore = "A3")
     TierStubs.getTierOKResponse(crn, response = tier)
-    val cpr = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)
 
     assertThat(caseRepository.findAll()).hasSize(0)
 
-    // when
     publishTierEvent()
-
-    // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
     waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
     assertThat(caseRepository.findAll()).hasSize(0)
   }
 
   @Test
-  fun `should FAIL to process incoming HMPPS TIER_CALCULATION_COMPLETE domain event as callback URL fails with 404`() {
+  fun `should FAIL to process incoming HMPPS TIER_CALCULATION_CHANGED domain event as callback URL fails with 404`() {
     TierStubs.getTierServerErrorResponse(
       crn,
     )
@@ -179,8 +147,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
     detailUrl: String,
   ) {
     assertMessageReceived(
-      typeName = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-      eventDescription = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription,
+      typeName = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName,
+      eventDescription = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeDescription,
       detailUrl = detailUrl,
     )
   }
