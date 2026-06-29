@@ -276,25 +276,16 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should NOT insert Delius origin 'Proposed' accommodation record when record does not have an accommodation type`() {
+  fun `should insert Delius origin 'Proposed' accommodation record when record does not have an accommodation type`() {
     val crn = "ABCDEFG"
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
-    mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
+    shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,
-      deliusOriginAddressStatusCode = AddressStatusCode.PR1,
+      deliusProposedAccommodationBuildingNumber = "11",
       deliusOriginProposedAccommodationTypeCode = null,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
       deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
     )
-    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-      .withDeliusUserJwt()
-      .exchangeSuccessfully()
-      .expectBody<String>()
-      .returnResult()
-      .responseBody!!
-
-    val results = proposedAccommodationRepository.findAll()
-    assertThat(results).hasSize(0)
   }
 
   @Test
@@ -314,7 +305,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedPostTown = updatedRecord.postTown!!,
         expectedCounty = updatedRecord.county!!,
         expectedUprn = updatedRecord.uprn!!,
-        expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedAccommodationTypeEntity.id)!!,
+        expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedAccommodationTypeEntity!!.id)!!,
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
         expectedStartDate = updatedRecord.startDate!!,
@@ -324,6 +315,15 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
+  }
+
+  @Test
+  fun `should sync all data on SAS 'Proposed' accommodation record when someone updates accommodation type to null`() {
+    val (_, updatedRecord, _) = shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
+      deliusRecordAddressStatusCode = AddressStatusCode.PR,
+      deliusRecordAccommodationTypeCode = null,
+    )
+    assertThat(updatedRecord.accommodationTypeId).isNull()
   }
 
   @Test
@@ -338,7 +338,8 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
 
   private fun shouldSyncAllDataInSASAccommodationRecordWhenSomeoneHasChangedAllDataOnTheDeliusAccommodationRecord(
     deliusRecordAddressStatusCode: AddressStatusCode,
-  ): Triple<String, ProposedAccommodationEntity, AccommodationTypeEntity> {
+    deliusRecordAccommodationTypeCode: AddressUsageCode? = AddressUsageCode.A07A,
+  ): Triple<String, ProposedAccommodationEntity, AccommodationTypeEntity?> {
     val startDate = LocalDate.now().minusDays(10)
     val commonCprAddressId = UUID.randomUUID()
     val sasOriginProposedAccommodationEntity = buildProposedAccommodationEntity(
@@ -389,13 +390,17 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         code = deliusRecordAddressStatusCode.name,
         description = deliusRecordAddressStatusCode.description,
       ),
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(
-          code = AddressUsageCode.A07A.name,
-          description = AddressUsageCode.A07A.description,
-        ),
-        isActive = true,
-      ),
+      usages = deliusRecordAccommodationTypeCode?.let {
+        listOf(
+          CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A07A.name,
+              description = AddressUsageCode.A07A.description,
+            ),
+            isActive = true,
+          ),
+        )
+      } ?: emptyList(),
     )
     val cprAccommodationsWithDeliusUpdates = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
@@ -420,13 +425,15 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
 
     val updatedRecord = results.firstOrNull { it.accommodationSource == AccommodationSource.SAS }
     val updatedAccommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(deliusRecordAddressStatusCode.name)!!
-    val updatedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07A.name)!!
+    val updatedAccommodationTypeEntity = deliusRecordAccommodationTypeCode?.let {
+      accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07A.name)!!
+    }
 
     assertThat(updatedRecord).isNotNull
     assertThat(updatedRecord!!.cprAddressId).isEqualTo(commonCprAddressId)
     assertThat(updatedRecord.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(updatedRecord.name).isNull()
-    assertThat(updatedRecord.accommodationTypeId).isEqualTo(updatedAccommodationTypeEntity.id)
+    assertThat(updatedRecord.accommodationTypeId).isEqualTo(updatedAccommodationTypeEntity?.id)
     assertThat(updatedRecord.accommodationStatusId).isEqualTo(updatedAccommodationStatusEntity.id)
     assertThat(updatedRecord.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
     assertThat(updatedRecord.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
@@ -466,7 +473,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          accommodationTypeCode = accommodationTypeRepository.findByIdOrNull(deliusSyncedRecord.accommodationTypeId)!!.code,
+          accommodationTypeCode = accommodationTypeRepository.findByIdOrNull(deliusSyncedRecord.accommodationTypeId!!)!!.code,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = deliusSyncedRecord.subBuildingName,
@@ -539,7 +546,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedPostTown = deliusOriginProposedAccommodation.postTown!!,
         expectedCounty = deliusOriginProposedAccommodation.county!!,
         expectedUprn = deliusOriginProposedAccommodation.uprn!!,
-        expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedRecord.accommodationTypeId)!!,
+        expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedRecord.accommodationTypeId!!)!!,
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
         expectedStartDate = deliusSyncedRecord.startDate!!,
@@ -555,7 +562,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   private fun shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
     crn: String,
     deliusProposedAccommodationBuildingNumber: String,
-    deliusOriginProposedAccommodationTypeCode: AddressUsageCode,
+    deliusOriginProposedAccommodationTypeCode: AddressUsageCode?,
     deliusOriginProposedAccommodationStartDate: LocalDate,
     deliusOriginProposedAccommodationEndDate: LocalDate,
   ): Pair<CanonicalAddress, CanonicalAddress> {
@@ -593,7 +600,9 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedPostTown = deliusOriginProposedAccommodation.postTown!!,
         expectedCounty = deliusOriginProposedAccommodation.county!!,
         expectedUprn = deliusOriginProposedAccommodation.uprn!!,
-        expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(deliusOriginProposedAccommodationTypeCode.name)!!,
+        expectedAccommodationTypeEntity = deliusOriginProposedAccommodationTypeCode?.let {
+          accommodationTypeRepository.findByCodeAndActiveIsTrue(it.name)
+        },
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
         expectedStartDate = deliusOriginProposedAccommodationStartDate,
@@ -634,12 +643,14 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         code = deliusOriginAddressStatusCode.name,
         description = deliusOriginAddressStatusCode.description,
       ),
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(
-          code = deliusOriginProposedAccommodationTypeCode?.name,
-          description = deliusOriginProposedAccommodationTypeCode?.description,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = deliusOriginProposedAccommodationTypeCode?.name,
+            description = deliusOriginProposedAccommodationTypeCode?.description,
+          ),
+          isActive = true,
         ),
-        isActive = true,
       ),
     )
     val currentPrisonAccommodation = buildCanonicalAddress(
@@ -662,12 +673,14 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         code = AddressStatusCode.M.name,
         description = AddressStatusCode.M.description,
       ),
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(
-          code = "HMP",
-          description = "Prison",
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = "HMP",
+            description = "Prison",
+          ),
+          isActive = true,
         ),
-        isActive = true,
       ),
     )
     val cprAccommodations = buildCorePersonRecord(
@@ -1053,7 +1066,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          accommodationTypeCode = accommodationTypeRepository.findByIdOrNull(deliusSyncedRecord.accommodationTypeId)!!.code,
+          accommodationTypeCode = accommodationTypeRepository.findByIdOrNull(deliusSyncedRecord.accommodationTypeId!!)!!.code,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = deliusSyncedRecord.subBuildingName,

@@ -101,12 +101,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07B.name,
-                    description = AddressUsageCode.A07B.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07B.name,
+                      description = AddressUsageCode.A07B.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -119,12 +121,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.PR.name,
                   description = AddressStatusCode.PR.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07A.name,
-                    description = AddressUsageCode.A07A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07A.name,
+                      description = AddressUsageCode.A07A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -139,12 +143,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.P.name,
                   description = AddressStatusCode.P.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A08A.name,
-                    description = AddressUsageCode.A08A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A08A.name,
+                      description = AddressUsageCode.A08A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -187,12 +193,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07B.name,
-                    description = AddressUsageCode.A07B.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07B.name,
+                      description = AddressUsageCode.A07B.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -205,12 +213,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.PR.name,
                   description = AddressStatusCode.PR.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07A.name,
-                    description = AddressUsageCode.A07A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07A.name,
+                      description = AddressUsageCode.A07A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -225,12 +235,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.P.name,
                   description = AddressStatusCode.P.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A08A.name,
-                    description = AddressUsageCode.A08A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A08A.name,
+                      description = AddressUsageCode.A08A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -303,12 +315,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.M.name,
               description = AddressStatusCode.M.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A01A.name,
+                  description = AddressUsageCode.A01A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
           buildCanonicalAddress(
@@ -321,12 +335,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.P.name,
               description = AddressStatusCode.P.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A07A.name,
+                  description = AddressUsageCode.A07A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
         ),
@@ -385,12 +401,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.M.name,
               description = AddressStatusCode.M.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A01A.name,
+                  description = AddressUsageCode.A01A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
           buildCanonicalAddress(
@@ -403,12 +421,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.P.name,
               description = AddressStatusCode.P.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A07A.name,
+                  description = AddressUsageCode.A07A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
         ),
@@ -467,12 +487,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.M.name,
               description = AddressStatusCode.M.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A01A.name,
+                  description = AddressUsageCode.A01A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
           buildCanonicalAddress(
@@ -485,12 +507,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.P.name,
               description = AddressStatusCode.P.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A07A.name,
+                  description = AddressUsageCode.A07A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
         ),
@@ -523,12 +547,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.M.name,
               description = AddressStatusCode.M.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A01A.name,
+                  description = AddressUsageCode.A01A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
           buildCanonicalAddress(
@@ -541,12 +567,14 @@ class AccommodationQueryServiceTest {
               code = AddressStatusCode.P.name,
               description = AddressStatusCode.P.description,
             ),
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A07A.name,
+                  description = AddressUsageCode.A07A.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
         ),
@@ -580,12 +608,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A01A.name,
-                    description = AddressUsageCode.A01A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A01A.name,
+                      description = AddressUsageCode.A01A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -598,12 +628,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.P.name,
                   description = AddressStatusCode.P.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07A.name,
-                    description = AddressUsageCode.A07A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07A.name,
+                      description = AddressUsageCode.A07A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -673,12 +705,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A01A.name,
-                    description = AddressUsageCode.A01A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A01A.name,
+                      description = AddressUsageCode.A01A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -691,12 +725,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.P.name,
                   description = AddressStatusCode.P.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07A.name,
-                    description = AddressUsageCode.A07A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07A.name,
+                      description = AddressUsageCode.A07A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -768,12 +804,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A01A.name,
-                    description = AddressUsageCode.A01A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A01A.name,
+                      description = AddressUsageCode.A01A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -821,12 +859,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A01A.name,
-                    description = AddressUsageCode.A01A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A01A.name,
+                      description = AddressUsageCode.A01A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -874,12 +914,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.M.name,
                   description = AddressStatusCode.M.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A01A.name,
-                    description = AddressUsageCode.A01A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A01A.name,
+                      description = AddressUsageCode.A01A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
               buildCanonicalAddress(
@@ -892,12 +934,14 @@ class AccommodationQueryServiceTest {
                   code = AddressStatusCode.P.name,
                   description = AddressStatusCode.P.description,
                 ),
-                usage = CanonicalAddressUsage(
-                  usageCode = CanonicalAddressUsageCode(
-                    code = AddressUsageCode.A07A.name,
-                    description = AddressUsageCode.A07A.description,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07A.name,
+                      description = AddressUsageCode.A07A.description,
+                    ),
+                    isActive = true,
                   ),
-                  isActive = true,
                 ),
               ),
             ),
@@ -965,12 +1009,14 @@ class AccommodationQueryServiceTest {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A01A.name,
-              description = AddressUsageCode.A01A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -983,12 +1029,14 @@ class AccommodationQueryServiceTest {
             code = AddressStatusCode.PR.name,
             description = AddressStatusCode.PR.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       )
@@ -1030,12 +1078,14 @@ class AccommodationQueryServiceTest {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A01A.name,
-              description = AddressUsageCode.A01A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -1048,12 +1098,14 @@ class AccommodationQueryServiceTest {
             code = AddressStatusCode.PR.name,
             description = AddressStatusCode.PR.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       )
@@ -1092,12 +1144,14 @@ class AccommodationQueryServiceTest {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A01A.name,
-              description = AddressUsageCode.A01A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -1110,12 +1164,14 @@ class AccommodationQueryServiceTest {
             code = AddressStatusCode.PR.name,
             description = AddressStatusCode.PR.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       )

@@ -21,7 +21,7 @@ object ProposedAccommodationMapper {
 
   fun toEntity(
     snapshot: ProposedAccommodationSnapshot,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ) = ProposedAccommodationEntity(
     id = snapshot.id,
@@ -29,7 +29,7 @@ object ProposedAccommodationMapper {
     cprAddressId = snapshot.cprAddressId,
     accommodationSource = snapshot.accommodationSource,
     name = snapshot.name,
-    accommodationTypeId = accommodationTypeEntity.id,
+    accommodationTypeId = accommodationTypeEntity?.id,
     accommodationStatusId = accommodationStatusEntity?.id,
     verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
     nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
@@ -52,13 +52,13 @@ object ProposedAccommodationMapper {
   fun merge(
     snapshot: ProposedAccommodationSnapshot,
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ): ProposedAccommodationEntity {
     proposedAccommodationEntity.cprAddressId = snapshot.cprAddressId
     proposedAccommodationEntity.accommodationSource = snapshot.accommodationSource
     proposedAccommodationEntity.name = snapshot.name
-    proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity.id
+    proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity?.id
     proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
     proposedAccommodationEntity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
     proposedAccommodationEntity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
@@ -98,7 +98,7 @@ object ProposedAccommodationMapper {
 
   fun toAggregate(
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
     currentAccommodation: AccommodationSummaryDto?,
   ): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
@@ -108,10 +108,12 @@ object ProposedAccommodationMapper {
     cprAddressId = proposedAccommodationEntity.cprAddressId,
     currentAccommodation = currentAccommodation,
     name = proposedAccommodationEntity.name,
-    accommodationType = AccommodationTypeDto(
-      code = accommodationTypeEntity.code,
-      description = accommodationTypeEntity.name,
-    ),
+    accommodationType = accommodationTypeEntity?.let {
+      AccommodationTypeDto(
+        code = it.code,
+        description = it.name,
+      )
+    },
     accommodationStatus = accommodationStatusEntity?.let {
       AccommodationStatusDto(
         code = accommodationStatusEntity.code,
@@ -153,10 +155,12 @@ object ProposedAccommodationMapper {
     id = snapshot.id,
     crn = crn,
     name = snapshot.name,
-    accommodationType = AccommodationTypeDto(
-      code = snapshot.accommodationType.code,
-      description = snapshot.accommodationType.description,
-    ),
+    accommodationType = snapshot.accommodationType?.let {
+      AccommodationTypeDto(
+        code = it.code,
+        description = it.description,
+      )
+    },
     verificationStatus = snapshot.verificationStatus,
     nextAccommodationStatus = snapshot.nextAccommodationStatus,
     startDate = snapshot.startDate,

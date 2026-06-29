@@ -150,7 +150,7 @@ fun expectedGetProposedAccommodationsResponse(
   expectedPostTown: String,
   expectedCounty: String,
   expectedUprn: String,
-  expectedAccommodationTypeEntity: AccommodationTypeEntity,
+  expectedAccommodationTypeEntity: AccommodationTypeEntity?,
   expectedVerificationStatus: VerificationStatus,
   expectedNextAccommodationStatus: NextAccommodationStatus,
   expectedStartDate: LocalDate,
@@ -158,16 +158,22 @@ fun expectedGetProposedAccommodationsResponse(
   expectedCreatedAt: String,
   expectedCreatedBy: String,
   crn: String,
-): String = """
+): String {
+  val expectedAccommodationType = expectedAccommodationTypeEntity?.let {
+    """
+    {
+      "code": "${expectedAccommodationTypeEntity.code}",
+      "description": "${expectedAccommodationTypeEntity.name}"
+    }
+    """.trimIndent()
+  } ?: """null"""
+  return """
     {
       "data": [{
         "id" : "$expectedId",
         "crn":"$crn",
         "name" : null,
-        "accommodationType": {
-          "code": "${expectedAccommodationTypeEntity.code}",
-          "description": "${expectedAccommodationTypeEntity.name}"
-        },
+        "accommodationType": $expectedAccommodationType,
         "verificationStatus" : "${expectedVerificationStatus.name}",
         "nextAccommodationStatus" : "${expectedNextAccommodationStatus.name}",
         "address" : {
@@ -188,7 +194,8 @@ fun expectedGetProposedAccommodationsResponse(
         "createdAt" : "$expectedCreatedAt"
       }]
     }
-""".trimIndent()
+  """.trimIndent()
+}
 
 fun expectedGetProposedAccommodationsEmptyResponse() = """
     {
@@ -234,7 +241,7 @@ fun expectedGetProposedAccommodationByIdResponse(
 """.trimIndent()
 
 fun proposedAddressesRequestBody(
-  accommodationTypeCode: String,
+  accommodationTypeCode: String?,
   verificationStatus: String,
   nextAccommodationStatus: String,
   subBuildingName: String? = "test sub building name",
@@ -249,11 +256,17 @@ fun proposedAddressesRequestBody(
   uprn: String? = "test uprn",
   startDate: String? = "2026-01-05",
   endDate: String? = "2026-04-25",
-) = """
+): String {
+  val accommodationTypeConverted = accommodationTypeCode?.let {
+    """
+      "$accommodationTypeCode"
+    """.trimIndent()
+  } ?: """ null """
+  return """
   {
     "name" : null,
     "typeVerified" : false,
-    "accommodationTypeCode" : "$accommodationTypeCode",
+    "accommodationTypeCode" : $accommodationTypeConverted,
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
@@ -271,7 +284,8 @@ fun proposedAddressesRequestBody(
     "startDate" : ${convertNullable(startDate)},
     "endDate" : ${convertNullable(endDate)}
   }
-""".trimIndent()
+  """.trimIndent()
+}
 
 fun proposedAccommodationArrivalRequestBody(
   arrivalDate: String = "2026-01-05",
