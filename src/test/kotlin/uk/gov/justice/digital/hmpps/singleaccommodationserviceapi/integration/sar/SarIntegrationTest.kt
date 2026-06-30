@@ -78,9 +78,9 @@ class SarIntegrationTest : IntegrationTestBase() {
       .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_PLAIN)
       .expectBody(String::class.java)
       .value { body ->
-        assertThat(body).contains("{{#Cases}}")
-        assertThat(body).contains("{{#DutyToRefers}}")
         assertThat(body).contains("{{#ProposedAccommodations}}")
+        assertThat(body).contains("{{#duty_to_refer}}")
+        assertThat(body).contains("{{#accommodation_notes}}")
       }
   }
 

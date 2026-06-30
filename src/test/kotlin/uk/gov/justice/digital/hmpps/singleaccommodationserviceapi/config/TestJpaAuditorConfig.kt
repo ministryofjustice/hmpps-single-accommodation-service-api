@@ -4,11 +4,14 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import org.springframework.data.auditing.DateTimeProvider
 import org.springframework.data.domain.AuditorAware
 import org.springframework.security.core.context.SecurityContextHolder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.AuthAwareAuthenticationToken
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
+import java.time.Clock
+import java.time.OffsetDateTime
 import java.util.*
 
 @TestConfiguration
@@ -33,4 +36,7 @@ class TestJpaAuditorConfig(
       Optional.of(testDataSetupUserId)
     }
   }
+
+  @Bean
+  fun dateTimeProvider(clock: Clock): DateTimeProvider = DateTimeProvider { Optional.of(OffsetDateTime.now(clock)) }
 }
