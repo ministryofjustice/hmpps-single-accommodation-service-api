@@ -4,11 +4,12 @@ import java.time.OffsetDateTime
 
 data class SnsDomainEvent(
   val eventType: String,
-  val version: Int,
+  val version: Int? = null,
   val description: String? = null,
   val detailUrl: String? = null,
   val occurredAt: OffsetDateTime,
   val personReference: PersonReference = PersonReference(),
+  val additionalInformation: Map<String, Any> = emptyMap(),
 )
 
 data class PersonReference(val identifiers: List<PersonIdentifier> = listOf()) {
