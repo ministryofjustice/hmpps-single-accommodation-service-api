@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResult
@@ -215,6 +216,15 @@ class EligibilityTransformerTest {
     val expectedServiceStatus = buildServiceResult()
 
     val actualEligibility = toNotEligibleServiceStatus()
+
+    assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
+  }
+
+  @Test
+  fun `should transform to not required service status`() {
+    val expectedServiceStatus = buildServiceResult(ServiceStatus.NOT_REQUIRED)
+
+    val actualEligibility = toNotRequiredServiceStatus()
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
