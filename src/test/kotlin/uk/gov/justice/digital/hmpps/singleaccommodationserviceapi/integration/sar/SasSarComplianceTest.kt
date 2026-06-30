@@ -29,7 +29,7 @@ class SasSarComplianceTest : SasSarTestBase() {
     val TEST_CASE_ID = UUID.fromString("936a692e-e1e7-49b1-b44f-1c4497f74fe2")
     const val TEST_NOMS_NUMBER = "A1234BC"
     val TEST_FROM_DATE: LocalDate = LocalDate.of(2019, 1, 1)
-    val TEST_TO_DATE: LocalDate = LocalDate.of(2024, 12, 31)
+    val TEST_TO_DATE: LocalDate = LocalDate.of(2026, 12, 31)
 
     const val EXPECTED_API_RESPONSE_PATH = "/sar/sas-expected-api-response.json"
     const val EXPECTED_REPORT_PATH = "/sar/sas-expected-report.html"
