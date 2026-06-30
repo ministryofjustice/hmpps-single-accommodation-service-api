@@ -47,6 +47,7 @@ data class CrsServiceResult(
 )
 
 enum class ServiceStatus {
+  NOT_REQUIRED,
   NOT_ELIGIBLE, // NO APPLICATION
   UPCOMING, // NO APPLICATION
   NOT_STARTED,
