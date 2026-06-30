@@ -42,8 +42,7 @@ class TierCalculationChangedHandler(
     val tier = if (tierEventHandlerConfig.v3Enabled) {
       tierClient.getTier(uri = inboxEvent.uri())
     } else {
-      val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-      tierClient.getTier(tierDomainEvent.personReference.findCrn()!!)
+      tierClient.getTier(checkNotNull(getPartitionKey(inboxEvent)))
     }
 
     log.info("Tier fetched successfully [inboxEventId={}, tierScore={}]", inboxEvent.id, tier.tierScore)

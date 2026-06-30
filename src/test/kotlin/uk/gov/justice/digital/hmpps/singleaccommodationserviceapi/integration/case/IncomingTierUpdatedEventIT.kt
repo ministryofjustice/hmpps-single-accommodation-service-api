@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -57,10 +58,16 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   private val eventDescription = "Tier calculation complete from Tier service"
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v3/crn/$crn/tier"
 
+  @AfterAll
+  fun tearDown() {
+    tierEventHandlerConfig.v3Enabled = false
+  }
+
   @Nested
   inner class TierV2 {
     @BeforeEach
     fun setup() {
+      tierEventHandlerConfig.v3Enabled = false
       crn = UUID.randomUUID().toString()
       HmppsAuthStubs.stubGrantToken()
       databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
@@ -119,7 +126,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
     @Test
     fun `should FAIL to process incoming HMPPS TIER_CALCULATION_CHANGED domain event as callback URL fails with 404`() {
-      TierStubs.getTierServerErrorResponse(
+      TierStubs.getTierNotFoundResponse(
         crn,
       )
 
@@ -198,15 +205,13 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
       publishTierEvent()
 
-      waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+      inboxEventAsserter.assertAllInboxMessagesProcessed(1)
       assertThat(caseRepository.findAll()).hasSize(0)
     }
 
     @Test
     fun `should FAIL to process incoming HMPPS TIER_CALCULATION_CHANGED domain event as callback URL fails with 404`() {
-      TierStubs.getTierServerErrorResponseV3(
-        crn,
-      )
+      TierStubs.getTierNotFoundResponseV3(crn)
 
       publishTierEvent()
 
