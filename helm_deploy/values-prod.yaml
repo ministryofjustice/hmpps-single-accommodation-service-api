@@ -41,9 +41,9 @@ generic-prometheus-alerts:
     cp-4f07c1a0333a5596: "SAS Redis - Prod"
   rdsAlertsDatabases:
     cloud-platform-420403d544f82496: "SAS DB - Prod"
-  # API pool users = 25 per pod
+  # API pool users = 20 per pod
   # Max expected connections for 4 x pods = 80 + additional 10 (buffer for direct connections)
-  rdsAlertsConnectionThreshold: 110
+  rdsAlertsConnectionThreshold: 90
   sqsAlertsQueueNames:
     - "hmpps-community-accommodation-live-prod-sas_domain_events_queue"
     - "hmpps-community-accommodation-live-prod-sas_domain_events_dlq"
