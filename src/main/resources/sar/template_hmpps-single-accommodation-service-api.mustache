@@ -1,0 +1,154 @@
+<h1 class="title">Single Accommodation Service</h1>
+{{#ProposedAccommodations}}
+    <h2>Proposed Accommodation: {{ optionalValue name }}</h2>
+
+    <h3>Accommodation Details</h3>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Arrangement type</td>
+            <td class="data-column-25">Settled type</td>
+            <td class="data-column-25">Verification status</td>
+            <td class="data-column-25">Next accommodation status</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue accommodationType.description }}</td>
+            <td>{{ optionalValue (convertCamelCase settledType) }}</td>
+            <td>{{ optionalValue (convertCamelCase verificationStatus) }}</td>
+            <td>{{ optionalValue (convertCamelCase nextAccommodationStatus) }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Start date</td>
+            <td class="data-column-25">End date</td>
+            <td class="data-column-25">Created at</td>
+            <td class="data-column-25">Last updated at</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue (formatDate startDate) }}</td>
+            <td>{{ optionalValue (formatDate endDate) }}</td>
+            <td>{{ optionalValue (formatDate createdAt) }}</td>
+            <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-50">Created by user</td>
+            <td class="data-column-50">Last updated by user</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue createdBy }}</td>
+            <td>{{ optionalValue lastUpdatedBy }}</td>
+        </tr>
+    </table>
+
+    <h3>Address Details</h3>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Building number</td>
+            <td class="data-column-25">Building name</td>
+            <td class="data-column-25">Sub building name</td>
+            <td class="data-column-25">Thoroughfare name</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue address.buildingNumber }}</td>
+            <td>{{ optionalValue address.buildingName }}</td>
+            <td>{{ optionalValue address.subBuildingName }}</td>
+            <td>{{ optionalValue address.thoroughfareName }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Postcode</td>
+            <td class="data-column-25">Post-town</td>
+            <td class="data-column-25">County</td>
+            <td class="data-column-25">Country</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue address.postcode }}</td>
+            <td>{{ optionalValue address.postTown }}</td>
+            <td>{{ optionalValue address.county }}</td>
+            <td>{{ optionalValue address.country }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Dependent locality</td>
+            <td class="data-column-25">UPRN</td>
+            <td class="data-column-50">CRN</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue address.dependentLocality }}</td>
+            <td>{{ optionalValue address.uprn }}</td>
+            <td>{{ optionalValue crn }}</td>
+        </tr>
+    </table>
+
+    <h3>Duty to Refer</h3>
+    {{#duty_to_refer}}
+        <table class="data-table">
+            <tr>
+                <td class="data-column-25">Reference number</td>
+                <td class="data-column-25">Submission date</td>
+                <td class="data-column-25">Status</td>
+                <td class="data-column-25">Local authority area</td>
+            </tr>
+            <tr>
+                <td>{{ optionalValue submission.referenceNumber }}</td>
+                <td>{{ optionalValue (formatDate submission.submissionDate) }}</td>
+                <td>{{ optionalValue (convertCamelCase status) }}</td>
+                <td>{{ optionalValue submission.localAuthority.localAuthorityAreaName }}</td>
+            </tr>
+        </table>
+        <table class="data-table">
+            <tr>
+                <td class="data-column-25">Created at</td>
+                <td class="data-column-25">Last updated at</td>
+                <td class="data-column-25">Created by user</td>
+                <td class="data-column-25">Last updated by user</td>
+            </tr>
+            <tr>
+                <td>{{ optionalValue (formatDate submission.createdAt) }}</td>
+                <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+                <td>{{ optionalValue submission.createdBy }}</td>
+                <td>{{ optionalValue lastUpdatedBy }}</td>
+            </tr>
+        </table>
+    {{/duty_to_refer}}
+    {{^duty_to_refer}}
+        <p>No Data Held</p>
+    {{/duty_to_refer}}
+
+    <h3>Proposed Accommodation Notes</h3>
+    {{#accommodation_notes}}
+        <table class="data-table">
+            <tr>
+                <td class="data-column-100">Note</td>
+            </tr>
+            <tr>
+                <td>{{ optionalValue note }}</td>
+            </tr>
+        </table>
+        <table class="data-table">
+            <tr>
+                <td class="data-column-25">Created at</td>
+                <td class="data-column-25">Last updated at</td>
+                <td class="data-column-25">Created by user</td>
+                <td class="data-column-25">Last updated by user</td>
+            </tr>
+            <tr>
+                <td>{{ optionalValue (formatDate createdAt) }}</td>
+                <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+                <td>{{ optionalValue createdBy }}</td>
+                <td>{{ optionalValue lastUpdatedBy }}</td>
+            </tr>
+        </table>
+    {{/accommodation_notes}}
+    {{^accommodation_notes}}
+        <p>No Data Held</p>
+    {{/accommodation_notes}}
+
+{{/ProposedAccommodations}}
+{{^ProposedAccommodations}}
+    <p>No Data Held</p>
+{{/ProposedAccommodations}}

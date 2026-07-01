@@ -30,4 +30,5 @@ class CaseIdentifierEntity(
 enum class IdentifierType {
   CRN,
   PRISON_NUMBER,
+  NOMS,
 }
