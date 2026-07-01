@@ -168,8 +168,9 @@ class AccommodationQueryService(
   fun getAccommodation(id: UUID): AccommodationDetailDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val case = caseRepository.findWithIdentifiersById(proposedAccommodationEntity.caseId).orThrowNotFound("id" to proposedAccommodationEntity.id)
-    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
-      .orThrowNotFound("id" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId?.let {
+      accommodationTypeRepository.findByIdOrNull(it).orThrowNotFound("id" to it)
+    }
     val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId?.let {
       accommodationStatusRepository.findByIdOrNull(it).orThrowNotFound("id" to it)
     }

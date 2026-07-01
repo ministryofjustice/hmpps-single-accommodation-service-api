@@ -60,11 +60,13 @@ fun buildCanonicalAddress(
     code = null,
   ),
   typeVerified: Boolean = false,
-  usage: CanonicalAddressUsage = CanonicalAddressUsage(
-    usageCode = CanonicalAddressUsageCode(
-      code = null,
+  usages: List<CanonicalAddressUsage> = listOf(
+    CanonicalAddressUsage(
+      usageCode = CanonicalAddressUsageCode(
+        code = AddressUsageCode.A07B.name,
+      ),
+      isActive = true,
     ),
-    isActive = true,
   ),
   uprn: String? = null,
 ) = CanonicalAddress(
@@ -84,7 +86,7 @@ fun buildCanonicalAddress(
   countryCode = countryCode,
   status = status,
   typeVerified = typeVerified,
-  usages = listOf(usage),
+  usages = usages,
   uprn = uprn,
 )
 

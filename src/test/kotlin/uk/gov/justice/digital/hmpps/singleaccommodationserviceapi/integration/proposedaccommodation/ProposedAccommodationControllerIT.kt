@@ -137,12 +137,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A02.name,
-              description = AddressUsageCode.A02.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -353,6 +355,33 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     assertThat(outboxEventRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `should receive Bad Request when create proposed-accommodation with null accommodation-type`() {
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = null,
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+          subBuildingName = "test subBuildingName",
+          buildingName = "test buildingName",
+          buildingNumber = "test buildingNumber",
+          thoroughfareName = "test thoroughfareName",
+          dependentLocality = "test dependentLocality",
+          postTown = "test postTown",
+          county = "test county",
+          country = "test country",
+          postcode = "test postcode",
+          uprn = "test uprn",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isBadRequest
   }
 
   @Test

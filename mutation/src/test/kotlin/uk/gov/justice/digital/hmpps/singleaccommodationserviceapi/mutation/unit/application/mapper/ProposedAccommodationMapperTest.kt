@@ -127,6 +127,22 @@ class ProposedAccommodationMapperTest {
   }
 
   @Test
+  fun `toEntity maps null accommodation type entity`() {
+    val snapshot = buildProposedAccommodationSnapshot()
+
+    val entity = ProposedAccommodationMapper.toEntity(
+      snapshot = snapshot,
+      accommodationTypeEntity = null,
+      accommodationStatusEntity = buildAccommodationStatusEntity(
+        code = "PR",
+        name = "Proposed",
+      ),
+    )
+
+    assertThat(entity.accommodationTypeId).isNull()
+  }
+
+  @Test
   fun `toEntity maps null CPR address id`() {
     val snapshot = buildProposedAccommodationSnapshot(
       cprAddressId = null,
@@ -284,6 +300,23 @@ class ProposedAccommodationMapperTest {
   }
 
   @Test
+  fun `merge should map null accommodation type entity`() {
+    val proposedAccommodationEntity = buildProposedAccommodationEntity(
+      accommodationTypeEntity = buildAccommodationTypeEntity(),
+    )
+    val snapshot = buildProposedAccommodationSnapshot()
+
+    val merged = ProposedAccommodationMapper.merge(
+      snapshot = snapshot,
+      proposedAccommodationEntity = proposedAccommodationEntity,
+      accommodationTypeEntity = null,
+      accommodationStatusEntity = buildAccommodationStatusEntity(),
+    )
+
+    assertThat(merged.accommodationTypeId).isNull()
+  }
+
+  @Test
   fun `merge should map null CPR address id`() {
     val proposedAccommodationEntity = buildProposedAccommodationEntity(
       cprAddressId = UUID.randomUUID(),
@@ -395,7 +428,7 @@ class ProposedAccommodationMapperTest {
     assertThat(snapshot.caseId).isEqualTo(proposedAccommodationEntity.caseId)
     assertThat(snapshot.cprAddressId).isEqualTo(proposedAccommodationEntity.cprAddressId)
     assertThat(snapshot.name).isEqualTo(proposedAccommodationEntity.name)
-    assertThat(snapshot.accommodationType.code).isEqualTo(accommodationTypeEntity.code)
+    assertThat(snapshot.accommodationType!!.code).isEqualTo(accommodationTypeEntity.code)
     assertThat(snapshot.accommodationType.description).isEqualTo(accommodationTypeEntity.name)
     assertThat(snapshot.accommodationStatus!!.code).isEqualTo(accommodationStatusEntity.code)
     assertThat(snapshot.accommodationStatus.description).isEqualTo(accommodationStatusEntity.name)
@@ -432,6 +465,21 @@ class ProposedAccommodationMapperTest {
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps null accommodation type entity`() {
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity = buildProposedAccommodationEntity(),
+      accommodationTypeEntity = null,
+      accommodationStatusEntity = buildAccommodationStatusEntity(
+        code = "PR",
+        name = "Proposed",
+      ),
+      currentAccommodation = null,
+    )
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.accommodationType).isNull()
   }
 
   @Test
