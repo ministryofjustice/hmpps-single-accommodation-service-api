@@ -81,7 +81,6 @@ hmpps:
 
 case-list:
   page-size: 200
-  onboarded-teams: []
 
 scheduling:
   enabled: true
