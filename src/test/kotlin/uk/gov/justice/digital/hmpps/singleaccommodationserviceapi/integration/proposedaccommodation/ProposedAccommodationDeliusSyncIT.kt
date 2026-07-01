@@ -199,7 +199,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       deliusProposedAccommodationBuildingNumber = "Delius buildingName",
       deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
-      deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
+      deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5),
     )
   }
 
@@ -215,7 +215,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       deliusProposedAccommodationBuildingNumber = "11",
       deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
-      deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
+      deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5),
     )
 
     val newCaseInserted = caseRepository.findByCrn(crn)
@@ -284,7 +284,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       deliusProposedAccommodationBuildingNumber = "11",
       deliusOriginProposedAccommodationTypeCode = null,
       deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
-      deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5),
+      deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5),
     )
   }
 
@@ -369,7 +369,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     proposedAccommodationRepository.save(sasOriginProposedAccommodationEntity)
 
     val updatedStartDate = startDate.minusDays(10)
-    val updatedEndDate = updatedStartDate.plusDays(2)
+    val updatedEndDate = updatedStartDate.plusDays(22)
     val equivalentRecordInDeliusWithUpdatesOnAllFields = buildCanonicalAddress(
       cprAddressId = commonCprAddressId,
       noFixedAbode = true,
@@ -700,7 +700,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   fun shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherUpdate(crn: String): Pair<ProposedAccommodationEntity, CanonicalAddress> {
     val deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A
     val deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10)
-    val deliusOriginProposedAccommodationEndDate = LocalDate.now().minusDays(5)
+    val deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(5)
     val originalBuildingNumberInDelius = "11"
     val updatedBuildingNumberInDelius = "15"
 

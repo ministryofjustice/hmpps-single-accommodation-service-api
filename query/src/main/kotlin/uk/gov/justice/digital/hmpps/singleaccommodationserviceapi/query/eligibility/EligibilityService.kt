@@ -79,14 +79,14 @@ class EligibilityService(
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationsSize={}",
+      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationsType={}",
       data.crn,
       data.tierScore,
       data.sex,
       data.currentAccommodation?.endDate,
       data.currentAccommodation?.status?.description,
       data.currentAccommodation?.type?.description,
-      data.nextAccommodations.size,
+      data.nextAccommodation?.type?.description,
     )
 
     val cas1 = evaluate("CAS1", data, cas1Tree)
@@ -136,9 +136,8 @@ class EligibilityService(
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 
-    val nextAccommodations = accommodationQueryService.getNextAccommodations(
+    val nextAccommodation = accommodationQueryService.getNextAccommodation(
       crn,
-      addresses = eligibilityOrchestrationDto.cpr?.addresses,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
@@ -156,7 +155,7 @@ class EligibilityService(
       cas1Application = eligibilityOrchestrationDto.cas1Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
-      nextAccommodations = nextAccommodations,
+      nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = suitableCrsReferral,
       accommodationTypes = accommodationTypes,

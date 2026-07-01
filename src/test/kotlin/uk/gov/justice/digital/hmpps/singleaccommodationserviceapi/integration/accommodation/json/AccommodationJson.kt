@@ -222,13 +222,13 @@ fun expectedGetNextAccommodationsResponse(
          "startDate":"$prStartDate",
          "endDate":"$prEndDate",
          "address":{
-            "postcode":"W5 2AB",
+            "postcode":"SW1A 1AB",
             "subBuildingName":null,
             "buildingName":null,
-            "buildingNumber":"1",
-            "thoroughfareName":"Another Street",
-            "dependentLocality":null,
-            "postTown":"London",
+            "buildingNumber":null,
+            "thoroughfareName":"123 Test Street",
+            "dependentLocality":"Test Village",
+            "postTown":"Test Town",
             "county":null,
             "country":null,
             "uprn":null
@@ -238,8 +238,8 @@ fun expectedGetNextAccommodationsResponse(
             "description":"Proposed"
          },
          "type":{
-            "code":"A07A",
-            "description":"Friends/Family (transient)"
+            "code":"A02",
+            "description":"Approved Premises"
          }
       }
 }

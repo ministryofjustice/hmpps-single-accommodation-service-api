@@ -50,6 +50,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Optional
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
@@ -790,6 +791,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns listOf()
       every { accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
@@ -845,6 +847,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns listOf()
       every { accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
@@ -900,6 +903,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns listOf()
       every { accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
@@ -963,6 +967,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns listOf()
       every { accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = null,
@@ -998,46 +1003,30 @@ class AccommodationQueryServiceTest {
 
     @Test
     fun `getNextAccommodations get the next accommodations`() {
-      val addresses = listOf(
-        buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
-          noFixedAbode = false,
-          postcode = "SW1A 1AA",
-          thoroughfareName = "Some Street",
-          postTown = "London",
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.M.name,
-            description = AddressStatusCode.M.description,
-          ),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
-              ),
-              isActive = true,
-            ),
-          ),
-        ),
-        buildCanonicalAddress(
+      val accommodationTypeId = UUID.randomUUID()
+      val accommodationStatusId = UUID.randomUUID()
+
+      val accommodationTypeEntity = buildAccommodationTypeEntity(
+        id = accommodationTypeId,
+        code = AddressUsageCode.A07A.name,
+        name = AddressUsageCode.A07A.description,
+      )
+
+      val accommodationStatusEntity = buildAccommodationStatusEntity(
+        id = accommodationStatusId,
+        code = AddressStatusCode.PR.name,
+        name = AddressStatusCode.PR.description,
+      )
+
+      val proposedAccommodationEntities = listOf(
+        buildProposedAccommodationEntity(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = "GL53 8GH",
-          thoroughfareName = "",
+          throughfareName = "",
           postTown = "Cheltenham",
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.PR.name,
-            description = AddressStatusCode.PR.description,
-          ),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
-              ),
-              isActive = true,
-            ),
-          ),
+          accommodationTypeEntity = accommodationTypeEntity,
+          accommodationStatusEntity = accommodationStatusEntity,
         ),
       )
       val cas1Application = buildCas1Application(
@@ -1052,61 +1041,42 @@ class AccommodationQueryServiceTest {
           postcode = "SW1A 1A4",
         ),
       )
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns proposedAccommodationEntities
+      every { accommodationTypeRepository.findById(accommodationTypeId) } returns Optional.of(accommodationTypeEntity)
+      every { accommodationStatusRepository.findById(accommodationStatusId) } returns Optional.of(accommodationStatusEntity)
 
-      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
-      assertThat(result.size).isEqualTo(3)
-      assertThat(result.first().address.postcode).isEqualTo("GL53 8GH")
-      assertThat(result.first().status!!.code).isEqualTo("PR")
+      val result = accommodationQueryService.getNextAccommodation(crn, cas1Application, cas3Application, null)
 
-      assertThat(result[1].address.postcode).isEqualTo("SW1A 1AB")
-      assertThat(result[1].status!!.code).isEqualTo("PR")
-
-      assertThat(result.last().address.postcode).isEqualTo("SW1A 1A4")
-      assertThat(result.last().status!!.code).isEqualTo("PR")
+      assertThat(result!!.address.postcode).isEqualTo("SW1A 1AB")
+      assertThat(result.status!!.code).isEqualTo("PR")
     }
 
     @Test
     fun `getNextAccommodations get the next accommodations without cas1`() {
-      val addresses = listOf(
-        buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
-          noFixedAbode = false,
-          postcode = "SW1A 1AA",
-          thoroughfareName = "Some Street",
-          postTown = "London",
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.M.name,
-            description = AddressStatusCode.M.description,
-          ),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
-              ),
-              isActive = true,
-            ),
-          ),
-        ),
-        buildCanonicalAddress(
+      val accommodationTypeId = UUID.randomUUID()
+      val accommodationStatusId = UUID.randomUUID()
+
+      val accommodationTypeEntity = buildAccommodationTypeEntity(
+        id = accommodationTypeId,
+        code = AddressUsageCode.A07A.name,
+        name = AddressUsageCode.A07A.description,
+      )
+
+      val accommodationStatusEntity = buildAccommodationStatusEntity(
+        id = accommodationStatusId,
+        code = AddressStatusCode.PR.name,
+        name = AddressStatusCode.PR.description,
+      )
+
+      val proposedAccommodationEntities = listOf(
+        buildProposedAccommodationEntity(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = "GL53 8GH",
-          thoroughfareName = "",
+          throughfareName = "",
           postTown = "Cheltenham",
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.PR.name,
-            description = AddressStatusCode.PR.description,
-          ),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
-              ),
-              isActive = true,
-            ),
-          ),
+          accommodationTypeEntity = accommodationTypeEntity,
+          accommodationStatusEntity = accommodationStatusEntity,
         ),
       )
       val cas1Application = buildCas1Application(
@@ -1121,60 +1091,48 @@ class AccommodationQueryServiceTest {
           postcode = "SW1A 1A4",
         ),
       )
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns proposedAccommodationEntities
+      every { accommodationTypeRepository.findById(accommodationTypeId) } returns Optional.of(accommodationTypeEntity)
+      every { accommodationStatusRepository.findById(accommodationStatusId) } returns Optional.of(accommodationStatusEntity)
 
-      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
-      assertThat(result.size).isEqualTo(2)
-      assertThat(result.first().address.postcode).isEqualTo("GL53 8GH")
-      assertThat(result.first().status!!.code).isEqualTo("PR")
-
-      assertThat(result.last().address.postcode).isEqualTo("SW1A 1A4")
-      assertThat(result.last().status!!.code).isEqualTo("PR")
+      val result = accommodationQueryService.getNextAccommodation(crn, cas1Application, cas3Application, null)
+      assertThat(result!!.address.postcode).isEqualTo("SW1A 1A4")
+      assertThat(result.status!!.code).isEqualTo("PR")
     }
 
     @Test
     fun `getNextAccommodations get the next accommodations without cas3`() {
-      val addresses = listOf(
-        buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
-          noFixedAbode = false,
-          postcode = "SW1A 1AA",
-          thoroughfareName = "Some Street",
-          postTown = "London",
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.M.name,
-            description = AddressStatusCode.M.description,
-          ),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A01A.name,
-                description = AddressUsageCode.A01A.description,
-              ),
-              isActive = true,
-            ),
-          ),
-        ),
-        buildCanonicalAddress(
+      val accommodationTypeId = UUID.randomUUID()
+      val accommodationStatusId = UUID.randomUUID()
+
+      val accommodationTypeEntity = buildAccommodationTypeEntity(
+        id = accommodationTypeId,
+        code = AddressUsageCode.A07A.name,
+        name = AddressUsageCode.A07A.description,
+      )
+
+      val accommodationStatusEntity = buildAccommodationStatusEntity(
+        id = accommodationStatusId,
+        code = AddressStatusCode.PR.name,
+        name = AddressStatusCode.PR.description,
+      )
+
+      val proposedAccommodationEntities = listOf(
+        buildProposedAccommodationEntity(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = "GL53 8GH",
-          thoroughfareName = "",
+          throughfareName = "",
           postTown = "Cheltenham",
-          status = CanonicalAddressStatus(
-            code = AddressStatusCode.PR.name,
-            description = AddressStatusCode.PR.description,
-          ),
-          usages = listOf(
-            CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07A.name,
-                description = AddressUsageCode.A07A.description,
-              ),
-              isActive = true,
-            ),
-          ),
+          accommodationTypeEntity = accommodationTypeEntity,
+          accommodationStatusEntity = accommodationStatusEntity,
         ),
       )
+
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns proposedAccommodationEntities
+      every { accommodationTypeRepository.findById(accommodationTypeId) } returns Optional.of(accommodationTypeEntity)
+      every { accommodationStatusRepository.findById(accommodationStatusId) } returns Optional.of(accommodationStatusEntity)
+
       val cas1Application = buildCas1Application(
         placementStatus = Cas1PlacementStatus.UPCOMING,
         premises = buildCas1PremisesSummary(
@@ -1188,13 +1146,61 @@ class AccommodationQueryServiceTest {
         ),
       )
 
-      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
-      assertThat(result.size).isEqualTo(2)
-      assertThat(result.first().address.postcode).isEqualTo("GL53 8GH")
-      assertThat(result.first().status!!.code).isEqualTo("PR")
+      val result = accommodationQueryService.getNextAccommodation(crn, cas1Application, cas3Application, null)
 
-      assertThat(result[1].address.postcode).isEqualTo("SW1A 1AB")
-      assertThat(result[1].status!!.code).isEqualTo("PR")
+      assertThat(result!!.address.postcode).isEqualTo("SW1A 1AB")
+      assertThat(result.status!!.code).isEqualTo("PR")
+    }
+
+    @Test
+    fun `getNextAccommodations get the next accommodations without cas1 and cas3`() {
+      val accommodationTypeId = UUID.randomUUID()
+      val accommodationStatusId = UUID.randomUUID()
+
+      val accommodationTypeEntity = buildAccommodationTypeEntity(
+        id = accommodationTypeId,
+        code = AddressUsageCode.A07A.name,
+        name = AddressUsageCode.A07A.description,
+      )
+
+      val accommodationStatusEntity = buildAccommodationStatusEntity(
+        id = accommodationStatusId,
+        code = AddressStatusCode.PR.name,
+        name = AddressStatusCode.PR.description,
+      )
+
+      val proposedAccommodationEntities = listOf(
+        buildProposedAccommodationEntity(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "GL53 8GH",
+          throughfareName = "",
+          postTown = "Cheltenham",
+          accommodationTypeEntity = accommodationTypeEntity,
+          accommodationStatusEntity = accommodationStatusEntity,
+        ),
+      )
+
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns proposedAccommodationEntities
+      every { accommodationTypeRepository.findById(accommodationTypeId) } returns Optional.of(accommodationTypeEntity)
+      every { accommodationStatusRepository.findById(accommodationStatusId) } returns Optional.of(accommodationStatusEntity)
+
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.ARRIVED,
+        premises = buildCas1PremisesSummary(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.ARRIVED,
+        premises = buildCas3PremisesSummary(
+          postcode = "SW1A 1A4",
+        ),
+      )
+
+      val result = accommodationQueryService.getNextAccommodation(crn, cas1Application, cas3Application, null)
+      assertThat(result!!.address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.status!!.code).isEqualTo("PR")
     }
   }
 

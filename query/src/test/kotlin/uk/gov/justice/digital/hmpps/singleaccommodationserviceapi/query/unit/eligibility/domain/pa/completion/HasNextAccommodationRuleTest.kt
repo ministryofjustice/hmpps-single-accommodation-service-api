@@ -11,7 +11,7 @@ class HasNextAccommodationRuleTest {
   @Test
   fun `candidate passes when nextAccommodation is present`() {
     val data = buildDomainData(
-      nextAccommodations = listOf(buildAccommodationSummaryDto()),
+      nextAccommodation = buildAccommodationSummaryDto(),
     )
 
     val result = HasNextAccommodationRule().evaluate(data)
@@ -22,7 +22,7 @@ class HasNextAccommodationRuleTest {
   @Test
   fun `candidate fails when nextAccommodation is missing`() {
     val data = buildDomainData(
-      nextAccommodations = emptyList(),
+      nextAccommodation = null,
     )
 
     val result = HasNextAccommodationRule().evaluate(data)

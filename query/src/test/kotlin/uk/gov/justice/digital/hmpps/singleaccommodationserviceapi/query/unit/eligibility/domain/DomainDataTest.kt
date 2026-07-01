@@ -69,20 +69,19 @@ class DomainDataTest {
       isCas1 = true,
     )
 
-    val nextAccommodations = listOf(
+    val nextAccommodation =
       buildAccommodationSummaryDto(
         status = buildAccommodationStatusDto(
           code = "PR1",
         ),
-      ),
-    )
+      )
 
     val expected = buildDomainData(
       crn = crn,
       tierScore = tier.tierScore,
       sex = cpr.sex?.code,
       currentAccommodation = currentAccommodation,
-      nextAccommodations = nextAccommodations,
+      nextAccommodation = nextAccommodation,
       cas1Application = cas1Application,
       cas3Application = cas3Application,
       dutyToRefer = dutyToRefer,
@@ -98,7 +97,7 @@ class DomainDataTest {
       cas3Application = cas3Application,
       currentAccommodation = currentAccommodation,
       accommodationTypes = listOf(currentAccommodationTypeEntity),
-      nextAccommodations = nextAccommodations,
+      nextAccommodation = nextAccommodation,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     )
@@ -126,7 +125,7 @@ class DomainDataTest {
       cas3Application = null,
       currentAccommodation = null,
       currentAccommodationTypeEntity = null,
-      nextAccommodations = emptyList(),
+      nextAccommodation = null,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = null,
     )

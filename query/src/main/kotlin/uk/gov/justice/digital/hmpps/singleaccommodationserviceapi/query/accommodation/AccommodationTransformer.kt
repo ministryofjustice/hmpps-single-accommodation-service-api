@@ -210,6 +210,41 @@ object AccommodationTransformer {
     ),
   )
 
+  fun toAccommodationSummary(
+    crn: String,
+    proposedAccommodationEntity: ProposedAccommodationEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
+    accommodationStatusEntity: AccommodationStatusEntity?,
+  ) = AccommodationSummaryDto(
+    crn = crn,
+    startDate = null,
+    endDate = null,
+    address = AccommodationAddressDetails(
+      postcode = proposedAccommodationEntity.postcode,
+      subBuildingName = proposedAccommodationEntity.subBuildingName,
+      buildingName = proposedAccommodationEntity.buildingName,
+      buildingNumber = proposedAccommodationEntity.buildingNumber,
+      thoroughfareName = proposedAccommodationEntity.throughfareName,
+      dependentLocality = proposedAccommodationEntity.dependentLocality,
+      postTown = proposedAccommodationEntity.postTown,
+      county = proposedAccommodationEntity.county,
+      country = proposedAccommodationEntity.country,
+      uprn = proposedAccommodationEntity.uprn,
+    ),
+    status = accommodationStatusEntity?.let {
+      AccommodationStatusDto(
+        code = it.code,
+        description = it.name,
+      )
+    },
+    type = accommodationTypeEntity?.let {
+      AccommodationTypeDto(
+        code = it.code,
+        description = it.name,
+      )
+    },
+  )
+
   fun toAccommodationDetail(
     crn: String,
     proposedAccommodationEntity: ProposedAccommodationEntity,

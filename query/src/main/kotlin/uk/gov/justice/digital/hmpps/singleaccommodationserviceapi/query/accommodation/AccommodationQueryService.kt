@@ -75,16 +75,15 @@ class AccommodationQueryService(
       cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
     )
 
-    val nextAccommodations = getNextAccommodations(
+    val nextAccommodation = getNextAccommodation(
       crn,
-      addresses = orchestrationResult.data.cpr?.addresses,
       cas1Application = orchestrationResult.data.cas1Application,
       cas3Application = orchestrationResult.data.cas3Application,
       currentAccommodation = currentAccommodation,
     )
 
     return toApiResponseDto(
-      data = nextAccommodations.firstOrNull(),
+      data = nextAccommodation,
       upstreamFailures = orchestrationResult.upstreamFailures,
     )
   }
@@ -107,30 +106,48 @@ class AccommodationQueryService(
       ?.let { toAccommodationSummary(crn, address = it) }
   }
 
-  fun getNextAccommodations(
+  fun getNextAccommodation(
     crn: String,
-    addresses: List<CanonicalAddress>?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
     currentAccommodation: AccommodationSummaryDto?,
-  ): List<AccommodationSummaryDto> {
-    val cas1NextAccommodation = cas1Application?.takeIf { it.placementStatus == Cas1PlacementStatus.UPCOMING }
+  ): AccommodationSummaryDto? {
+    // Returns CAS1 as next accommodation if it is upcoming
+    cas1Application?.takeIf { it.placementStatus == Cas1PlacementStatus.UPCOMING }
       ?.premises?.let {
         toAccommodationSummary(crn, premises = it, currentAccommodation)
-      }
+      }?.let { return it }
 
-    val cas3NextAccommodation = cas3Application?.takeIf { it.bookingStatus == Cas3BookingStatus.CONFIRMED }
+    // Returns CAS3 as next accommodation if it is confirmed
+    cas3Application?.takeIf { it.bookingStatus == Cas3BookingStatus.CONFIRMED }
       ?.premises?.let {
         toAccommodationSummary(crn, premises = it, currentAccommodation)
-      }
+      }?.let { return it }
 
-    return (
-      (
-        addresses
-          ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
-          ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
-        ) + cas1NextAccommodation + cas3NextAccommodation
-      ).mapNotNull { it }
+    // Returns proposed accommodation if there is one that is suitable
+    val proposedAccommodation = proposedAccommodationRepository
+      .findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn)
+      .firstOrNull { it.accommodationStatusId != null }
+      ?: return null
+
+    val accommodationType = proposedAccommodation.accommodationTypeId?.let {
+      accommodationTypeRepository
+        .findByIdOrNull(it)
+        .orThrowNotFound("id" to it)
+    }
+
+    val accommodationStatus = proposedAccommodation.accommodationStatusId?.let {
+      accommodationStatusRepository
+        .findByIdOrNull(it)
+        .orThrowNotFound("id" to it)
+    }
+
+    return toAccommodationSummary(
+      crn = crn,
+      proposedAccommodationEntity = proposedAccommodation,
+      accommodationTypeEntity = accommodationType,
+      accommodationStatusEntity = accommodationStatus,
+    )
   }
 
   fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {
