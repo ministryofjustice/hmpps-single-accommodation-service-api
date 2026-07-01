@@ -66,7 +66,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
   private val eventType = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName
   private val eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription
-  private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/crn/$crn/tier"
+  private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v2/crn/$crn/tier"
 
   @BeforeEach
   fun setup() {

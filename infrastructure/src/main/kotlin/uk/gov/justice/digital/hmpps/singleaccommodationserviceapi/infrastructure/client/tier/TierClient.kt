@@ -9,7 +9,7 @@ import java.net.URI
 
 interface TierClient {
 
-  @GetExchange(value = "/crn/{crn}/tier")
+  @GetExchange(value = "/v2/crn/{crn}/tier")
   fun getTier(@PathVariable crn: String): Tier
 
   @GetExchange
@@ -17,9 +17,9 @@ interface TierClient {
 }
 
 @Service
-open class TierCachingService(
+class TierCachingService(
   val tierClient: TierClient,
 ) {
   @Cacheable(ApiCallKeys.GET_TIER, key = "#crn", sync = true)
-  open fun getTier(crn: String) = tierClient.getTier(crn)
+  fun getTier(crn: String) = tierClient.getTier(crn)
 }

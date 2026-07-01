@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventAsserter
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
@@ -97,6 +98,9 @@ abstract class IntegrationTestBase {
 
   @Autowired
   lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
+
+  @Autowired
+  lateinit var inboxEventAsserter: InboxEventAsserter
 
   @BeforeAll
   fun beforeAll() {
