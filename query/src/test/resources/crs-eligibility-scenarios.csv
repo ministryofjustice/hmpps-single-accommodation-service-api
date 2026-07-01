@@ -11,11 +11,11 @@ testCaseId,description,referenceDate,sex,hasNextAccommodation,currentAccommodati
 12,no end date withdrawn,01/01/2025,,FALSE,,09/10/2024,WITHDRAWN,NOT_STARTED,SUBMIT_CRS_REFERRAL,View refer and monitor,,
 13,no end date no CRS,01/01/2025,,FALSE,,,,NOT_STARTED,SUBMIT_CRS_REFERRAL,View refer and monitor,,
 14,has next accommodation submitted LIVE,01/01/2025,,TRUE,01/01/2025,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-16,has next accommodation no CRS,01/01/2025,,TRUE,01/01/2025,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
+16,has next accommodation no CRS,01/01/2025,,TRUE,01/01/2025,,,NOT_REQUIRED,,,"HAS_NEXT_ACCOMMODATION"
 17,has next accommodation no end date submitted LIVE,01/01/2025,,TRUE,,09/10/2024,LIVE,SUBMITTED,,View refer and monitor,
-18,has next accommodation no end date no CRS,01/01/2025,,TRUE,,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
+18,has next accommodation no end date no CRS,01/01/2025,,TRUE,,,,NOT_REQUIRED,,,"HAS_NEXT_ACCOMMODATION"
 19,outside 12 weeks no CRS,01/01/2025,,FALSE,01/07/2025,,,UPCOMING,SUBMIT_CRS_REFERRAL,,
 20,outside 12 weeks CRS submitted LIVE,01/01/2025,,FALSE,01/07/2025,09/10/2024,LIVE,UPCOMING,SUBMIT_CRS_REFERRAL,,
-21,outside 12 weeks has next accommodation,01/01/2025,,TRUE,01/07/2025,,,NOT_ELIGIBLE,,,"HAS_NEXT_ACCOMMODATION"
+21,outside 12 weeks has next accommodation,01/01/2025,,TRUE,01/07/2025,,,NOT_REQUIRED,,,"HAS_NEXT_ACCOMMODATION"
 22,outside 12 weeks male no CRS,01/01/2025,M,FALSE,01/07/2025,,,UPCOMING,SUBMIT_CRS_ACCOMMODATION_REFERRAL,,
 23,inside 12 weeks male no CRS,01/01/2025,M,FALSE,01/01/2025,,,NOT_STARTED,SUBMIT_CRS_ACCOMMODATION_REFERRAL,View refer and monitor,

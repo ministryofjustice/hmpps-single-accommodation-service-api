@@ -66,7 +66,7 @@ private fun tierServerErrorFailure(identifierCrn: String? = null) = failureJson(
 private fun tierTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
   endpoint = "getTierByCrn",
   failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/crn/$crn/tier\\\": Request cancelled",
+  message = "I/O error on GET request for \\\"http://localhost:PORT/v2/crn/$crn/tier\\\": Request cancelled",
   identifierCrn = identifierCrn,
 )
 

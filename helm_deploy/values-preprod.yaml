@@ -32,7 +32,7 @@ generic-service:
     SPRINGDOC_SWAGGER_UI_ENABLED: false
 
     SCHEDULING_ENABLED: true
-
+    TIER_V3-ENABLED: false
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
@@ -41,9 +41,9 @@ generic-prometheus-alerts:
     cp-025a2c55519e9570: "SAS Redis - Preprod"
   rdsAlertsDatabases:
     cloud-platform-708907a2c1ddc7dd: "SAS DB - Preprod"
-  # API pool users = 25 per pod
+  # API pool users = 20 per pod
   # Max expected connections for 4 x pods = 80 + additional 10 (buffer for direct connections)
-  rdsAlertsConnectionThreshold: 110
+  rdsAlertsConnectionThreshold: 90
   sqsAlertsQueueNames:
     - "hmpps-community-accommodation-live-preprod-sas_domain_events_queue"
     - "hmpps-community-accommodation-live-preprod-sas_domain_events_dlq"

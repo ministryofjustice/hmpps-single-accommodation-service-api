@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
@@ -11,10 +12,17 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
+@ConfigurationProperties(prefix = "tier")
+data class TierEventHandlerConfig(
+  var v3Enabled: Boolean = false,
+)
+
+@Component
 class TierCalculationChangedHandler(
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
   private val tierClient: TierClient,
+  private val tierEventHandlerConfig: TierEventHandlerConfig,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -31,7 +39,12 @@ class TierCalculationChangedHandler(
     log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
     log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
 
-    val tier = tierClient.getTier(uri = inboxEvent.uri())
+    val tier = if (tierEventHandlerConfig.v3Enabled) {
+      tierClient.getTier(uri = inboxEvent.uri())
+    } else {
+      tierClient.getTier(checkNotNull(getPartitionKey(inboxEvent)))
+    }
+
     log.info("Tier fetched successfully [inboxEventId={}, tierScore={}]", inboxEvent.id, tier.tierScore)
     log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, tier)
 
