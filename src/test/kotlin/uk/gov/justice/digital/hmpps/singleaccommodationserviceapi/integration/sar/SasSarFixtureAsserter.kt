@@ -5,6 +5,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
 import java.time.LocalDate
+import java.util.UUID
 
 class SasSarFixtureAsserter(
   private val sasSarHelper: SasSarIntegrationTestHelper,
@@ -21,6 +22,7 @@ class SasSarFixtureAsserter(
     crn: String? = null,
     fromDate: LocalDate? = null,
     toDate: LocalDate? = null,
+    laaId: UUID,
   ) {
     val response = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient)
     val actualJson = sarHelper.toJson(response)
@@ -30,7 +32,7 @@ class SasSarFixtureAsserter(
     } else {
       assertThatJson(actualJson)
         .`as`("Response content json")
-        .isEqualTo(sarHelper.getResourceAsString(expectedApiResponseResourcePath))
+        .isEqualTo(sarHelper.getResourceAsString(expectedApiResponseResourcePath).replace("00000000-0000-0000-0000-000000000000", laaId.toString()))
       assertThat(response.attachments?.isNotEmpty() == true)
         .`as`("Response has attachments")
         .isEqualTo(sarHelper.attachmentsExpected)

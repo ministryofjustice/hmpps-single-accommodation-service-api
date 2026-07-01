@@ -47,7 +47,7 @@ class SasSarComplianceTest : SasSarTestBase() {
     val TEST_CASE_ID = UUID.fromString("936a692e-e1e7-49b1-b44f-1c4497f74fe2")
     val TEST_PA_ID = UUID.fromString("3276ece4-4c1d-4a5f-a50e-ef92c1aee368")
     val TEST_DTR_ID = UUID.fromString("5e0fe44d-6903-42ce-a426-c7b53494ba35")
-    val TEST_LAA_ID = UUID.fromString("8011ec88-52d2-478e-9ee5-4632a0d6a9eb")
+    var testLaaId = UUID.fromString("8011ec88-52d2-478e-9ee5-4632a0d6a9eb")
     const val TEST_NOMS_NUMBER = "A1234BC"
     val TEST_FROM_DATE: LocalDate = LocalDate.of(2019, 1, 1)
     val TEST_TO_DATE: LocalDate = LocalDate.of(2026, 12, 31)
@@ -78,7 +78,8 @@ class SasSarComplianceTest : SasSarTestBase() {
       val case = createCase(TEST_CRN, TEST_NOMS_NUMBER, TEST_CASE_ID)
 
       val laa = localAuthorityAreaRepository.findAll().find { it.name == "Aberdeen City" }
-        ?: localAuthorityAreaRepository.save(LocalAuthorityAreaEntity(TEST_LAA_ID, "Aberdeen City", "ABC", true))
+        ?: localAuthorityAreaRepository.save(LocalAuthorityAreaEntity(testLaaId, "Aberdeen City", "ABC", true))
+      testLaaId = laa.id
 
       val dtr = dutyToReferRepository.save(
         buildDutyToReferEntity(
@@ -129,11 +130,13 @@ class SasSarComplianceTest : SasSarTestBase() {
     }
   }
 
+  // This test fails in dev, because we hardcode the laa in the
   @Test
   fun `SAS SAR API should return consolidated data for all domains`() {
     setupTestData()
     asserter.assertApiDataMatchesFixture(
       crn = TEST_CRN,
+      laaId = testLaaId,
       fromDate = TEST_FROM_DATE,
       toDate = TEST_TO_DATE,
     )
