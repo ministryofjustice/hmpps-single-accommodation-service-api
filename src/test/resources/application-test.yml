@@ -86,7 +86,7 @@ test-data-setup:
 
 case-list:
   page-size: 1
-  onboarded-teams: 12345
+
 logging:
   level:
     root: WARN

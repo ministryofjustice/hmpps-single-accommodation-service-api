@@ -1,22 +1,19 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.CacheManager
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_LIST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
 class CaseAllocationHandler(
-  private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
-  private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
-  @field:Value($$"${case-list.onboarded-teams}") private val onboardedTeamsCodes: List<String>,
+  private val cacheManager: CacheManager,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -35,17 +32,20 @@ class CaseAllocationHandler(
     val crn = checkNotNull(getPartitionKey(inboxEvent)) {
       "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
-    val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
-    val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
-    if (shouldProcess) {
-      caseApplicationService.upsertCase(case.crn, case.nomsId)
-    }
-    log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
 
-    return if (shouldProcess) {
-      InboxEventHandler.Result.PROCESSED
+    val cache = cacheManager.getCache(GET_CASE_LIST)
+    if (cache == null) {
+      log.warn("Failed clearing cache. Cache not found: [$GET_CASE_LIST]")
+      return InboxEventHandler.Result.FAILED
     } else {
-      InboxEventHandler.Result.IGNORED
+      cache.clear()
+      return InboxEventHandler.Result.PROCESSED
+      log.info(
+        "CaseAllocation event processed successfully [inboxEventId={}, crn={}]. Cache [{}] cleared.",
+        inboxEvent.id,
+        crn,
+        GET_CASE_LIST,
+      )
     }
   }
 }
