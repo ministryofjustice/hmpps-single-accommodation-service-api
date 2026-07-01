@@ -213,7 +213,7 @@ object AccommodationTransformer {
   fun toAccommodationDetail(
     crn: String,
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ) = AccommodationDetailDto(
     crn = crn,
@@ -238,10 +238,12 @@ object AccommodationTransformer {
         description = it.name,
       )
     },
-    type = AccommodationTypeDto(
-      code = accommodationTypeEntity.code,
-      description = accommodationTypeEntity.name,
-    ),
+    type = accommodationTypeEntity?.let {
+      AccommodationTypeDto(
+        code = accommodationTypeEntity.code,
+        description = accommodationTypeEntity.name,
+      )
+    },
     typeVerified = proposedAccommodationEntity.typeVerified,
     noFixedAbode = proposedAccommodationEntity.noFixedAbode,
   )

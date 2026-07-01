@@ -307,12 +307,14 @@ class EligibilityServiceTest {
               description = AddressStatusCode.M.description,
             ),
             endDate = endDate,
-            usage = CanonicalAddressUsage(
-              usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A02.name,
-                description = AddressUsageCode.A02.description,
+            usages = listOf(
+              CanonicalAddressUsage(
+                usageCode = CanonicalAddressUsageCode(
+                  code = AddressUsageCode.A02.name,
+                  description = AddressUsageCode.A02.description,
+                ),
+                isActive = true,
               ),
-              isActive = true,
             ),
           ),
         ),
