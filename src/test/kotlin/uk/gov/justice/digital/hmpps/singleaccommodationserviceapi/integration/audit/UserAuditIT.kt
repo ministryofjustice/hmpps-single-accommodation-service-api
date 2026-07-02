@@ -218,6 +218,7 @@ class UserAuditIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -251,6 +252,7 @@ class UserAuditIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),

@@ -168,5 +168,6 @@ object ProposedAccommodationMapper {
     address = snapshot.address,
     createdBy = createdBy,
     createdAt = createdAt,
+    accommodationStatus = snapshot.accommodationStatus,
   )
 }

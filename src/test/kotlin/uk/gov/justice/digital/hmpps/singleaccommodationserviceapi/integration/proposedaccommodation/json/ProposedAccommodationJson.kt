@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.p
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import java.time.LocalDate
 import java.util.UUID
@@ -46,6 +47,7 @@ fun expectedGetProposedAccommodationsResponse(
       "code": "${firstAccommodationTypeEntity.code}",
       "description": "${firstAccommodationTypeEntity.name}"
     },
+    "accommodationStatus": null,
     "verificationStatus" : "${firstVerificationStatus.name}",
     "nextAccommodationStatus" : "${firstNextAccommodationStatus.name}",
     "address" : {
@@ -73,6 +75,7 @@ fun expectedGetProposedAccommodationsResponse(
       "code": "${secondAccommodationTypeEntity.code}",
       "description": "${secondAccommodationTypeEntity.name}"
     },
+    "accommodationStatus":null,
     "verificationStatus" : "${secondVerificationStatus.name}",
     "nextAccommodationStatus" : "${secondNextAccommodationStatus.name}",
     "address" : {
@@ -151,6 +154,7 @@ fun expectedGetProposedAccommodationsResponse(
   expectedCounty: String,
   expectedUprn: String,
   expectedAccommodationTypeEntity: AccommodationTypeEntity?,
+  expectedAccommodationStatusEntity: AccommodationStatusEntity?,
   expectedVerificationStatus: VerificationStatus,
   expectedNextAccommodationStatus: NextAccommodationStatus,
   expectedStartDate: LocalDate,
@@ -167,6 +171,14 @@ fun expectedGetProposedAccommodationsResponse(
     }
     """.trimIndent()
   } ?: """null"""
+  val expectedAccommodationStatus = expectedAccommodationStatusEntity?.let {
+    """
+    {
+      "code": "${expectedAccommodationStatusEntity.code}",
+      "description": "${expectedAccommodationStatusEntity.name}"
+    }
+    """.trimIndent()
+  } ?: """null"""
   return """
     {
       "data": [{
@@ -174,6 +186,7 @@ fun expectedGetProposedAccommodationsResponse(
         "crn":"$crn",
         "name" : null,
         "accommodationType": $expectedAccommodationType,
+        "accommodationStatus": $expectedAccommodationStatus,
         "verificationStatus" : "${expectedVerificationStatus.name}",
         "nextAccommodationStatus" : "${expectedNextAccommodationStatus.name}",
         "address" : {
@@ -218,6 +231,7 @@ fun expectedGetProposedAccommodationByIdResponse(
     "code": "A07B",
     "description": "Living in the home of a friend, family member or partner: settled"
   },
+  "accommodationStatus": {"code":"PR","description":"Proposed"},
   "verificationStatus" : "PASSED",
   "nextAccommodationStatus" : "YES",
   "address" : {
@@ -242,6 +256,7 @@ fun expectedGetProposedAccommodationByIdResponse(
 
 fun proposedAddressesRequestBody(
   accommodationTypeCode: String?,
+  accommodationStatusCode: String?,
   verificationStatus: String,
   nextAccommodationStatus: String,
   subBuildingName: String? = "test sub building name",
@@ -262,11 +277,17 @@ fun proposedAddressesRequestBody(
       "$accommodationTypeCode"
     """.trimIndent()
   } ?: """ null """
+  val accommodationStatusConverted = accommodationStatusCode?.let {
+    """
+      "$accommodationStatusCode"
+    """.trimIndent()
+  } ?: """ null """
   return """
   {
     "name" : null,
     "typeVerified" : false,
     "accommodationTypeCode" : $accommodationTypeConverted,
+    "accommodationStatusCode" : $accommodationStatusConverted,
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
     "address" : {
@@ -316,6 +337,8 @@ fun expectedProposedAddressesResponseBody(
   crn: String,
   accommodationTypeCode: String,
   accommodationTypeDescription: String,
+  accommodationStatusCode: String,
+  accommodationStatusDescription: String,
   verificationStatus: String,
   nextAccommodationStatus: String,
   postcode: String,
@@ -337,6 +360,10 @@ fun expectedProposedAddressesResponseBody(
   "accommodationType" : {
     "code": "$accommodationTypeCode",
     "description": "$accommodationTypeDescription"
+  },
+  "accommodationStatus" : {
+    "code": "$accommodationStatusCode",
+    "description": "$accommodationStatusDescription"
   },
   "verificationStatus" : "$verificationStatus",
   "nextAccommodationStatus" : "$nextAccommodationStatus",

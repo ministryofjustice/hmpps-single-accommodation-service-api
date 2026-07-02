@@ -69,7 +69,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
@@ -204,6 +203,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val addressUsageCode = AddressUsageCode.A01A
     val (expectedCprRequestBody, createProposedAccommodationResponseBody) = createConfirmedProposedAccommodation(
       addressUsageCode,
+      AddressStatusCode.PR,
     )
     val proposedAccommodationPersistedResult = proposedAccommodationRepository.findAll().first()
     val expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(addressUsageCode.name)!!
@@ -223,6 +223,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = proposedAccommodationPersistedResult.id,
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
+        accommodationStatusCode = "PR",
+        accommodationStatusDescription = "Proposed",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         subBuildingName = expectedCprRequestBody.subBuildingName!!,
@@ -243,6 +245,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   private fun createConfirmedProposedAccommodation(
     addressUsageCode: AddressUsageCode,
+    addressStatusCode: AddressStatusCode,
   ): Pair<ProbationCreateAddress, String> {
     val expectedCprRequestBody = buildProbationCreateAddress(
       noFixedAbode = false,
@@ -258,7 +261,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       uprn = "test uprn",
       startDate = fixedInstant,
       endDate = null,
-      statusCode = AddressStatusCode.PR,
+      statusCode = addressStatusCode,
       usage = AddressUsage(
         usageCode = addressUsageCode,
         isActive = true,
@@ -271,6 +274,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
+          accommodationStatusCode = addressStatusCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = expectedCprRequestBody.subBuildingName,
@@ -296,6 +300,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `should create 'Unconfirmed' proposed-accommodation and NOT POST to CPR and not publish sas-address-updated event and persists to database without cprAddressId or status`() {
     val addressUsageCode = AddressUsageCode.A01A
+    val addressStatusCode = AddressStatusCode.PR
+
     val createdProposedAccommodation = restTestClient.post()
       .uri("/cases/{crn}/proposed-accommodations", crn)
       .contentType(MediaType.APPLICATION_JSON)
@@ -313,6 +319,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           postcode = "test postcode",
           uprn = "test uprn",
           accommodationTypeCode = addressUsageCode.name,
+          accommodationStatusCode = addressStatusCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -339,6 +346,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = proposedAccommodationPersistedResult.id,
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
+        accommodationStatusCode = "PR",
+        accommodationStatusDescription = "Proposed",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.NO.name,
         subBuildingName = "test sub building name",
@@ -364,6 +373,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = null,
+          accommodationStatusCode = null,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = "test subBuildingName",
@@ -393,6 +403,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = "test sub building name",
@@ -421,6 +432,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -452,6 +464,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
+    val addressStatusCode = AddressStatusCode.PR
     val expectedCprRequestBody = buildProbationCreateAddress(
       noFixedAbode = false,
       typeVerified = false,
@@ -480,6 +493,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = addressUsageCode.name,
+          accommodationStatusCode = addressStatusCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = expectedCprRequestBody.subBuildingName,
@@ -515,6 +529,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = existingEntity.id,
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
+        accommodationStatusCode = "PR",
+        accommodationStatusDescription = "Proposed",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         subBuildingName = expectedCprRequestBody.subBuildingName!!,
@@ -541,6 +557,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       newBuildingName = "NEW BUILDING NAME",
       existingAccommodationTypeCode = AddressUsageCode.A07B,
       newAccommodationTypeCode = AddressUsageCode.A07B,
+      newAccommodationStatusCode = AddressStatusCode.PR,
     )
     shouldPublishExpectedEvent(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
@@ -555,6 +572,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       newBuildingName = "test building name",
       existingAccommodationTypeCode = AddressUsageCode.A07B,
       newAccommodationTypeCode = AddressUsageCode.A07A,
+      newAccommodationStatusCode = AddressStatusCode.PR,
     )
     shouldPublishExpectedEvent(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
@@ -567,6 +585,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     newBuildingName: String,
     existingAccommodationTypeCode: AddressUsageCode,
     newAccommodationTypeCode: AddressUsageCode,
+    newAccommodationStatusCode: AddressStatusCode,
   ): ProposedAccommodationEntity {
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
@@ -593,6 +612,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = newAccommodationTypeCode.name,
+          accommodationStatusCode = newAccommodationStatusCode.name,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
           subBuildingName = "test sub building name",
@@ -632,6 +652,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = existingEntity.id,
         accommodationTypeCode = expectedAccommodationTypeEntity.code,
         accommodationTypeDescription = expectedAccommodationTypeEntity.name,
+        accommodationStatusCode = "PR",
+        accommodationStatusDescription = "Proposed",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.YES.name,
         subBuildingName = "test sub building name",
@@ -695,6 +717,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
+    val addressStatusCode = AddressStatusCode.PR
+
     val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -702,6 +726,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           nextAccommodationStatus = unconfirmedStatus.name,
           verificationStatus = VerificationStatus.PASSED.name,
           accommodationTypeCode = addressUsageCode.name,
+          accommodationStatusCode = addressStatusCode.name,
           subBuildingName = "test sub building name",
           buildingName = "test building name",
           buildingNumber = "4",
@@ -734,6 +759,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         id = existingEntity.id,
         accommodationTypeCode = "A01A",
         accommodationTypeDescription = "Owner of the property",
+        accommodationStatusCode = "PR",
+        accommodationStatusDescription = "Proposed",
         verificationStatus = VerificationStatus.PASSED.name,
         nextAccommodationStatus = NextAccommodationStatus.NO.name,
         subBuildingName = "test sub building name",
@@ -774,6 +801,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -800,6 +828,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -819,6 +848,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A01A",
+          accommodationStatusCode = "PR",
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -855,6 +885,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .body(
         proposedAddressesRequestBody(
           accommodationTypeCode = "A07B",
+          accommodationStatusCode = "PR",
           verificationStatus = EntityVerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.YES.name,
         ),
@@ -876,6 +907,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           endDate = "2026-04-25",
           subBuildingName = null,
           accommodationTypeCode = accommodationTypeCode,
+          accommodationStatusCode = "PR",
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -916,6 +948,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     val secondAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue("A01A")!!
     val (expectedCprRequestBody, createProposedAccommodationResponseBody) = createConfirmedProposedAccommodation(
       addressUsageCode = AddressUsageCode.valueOf(firstAccommodationType.code),
+      addressStatusCode = AddressStatusCode.PR,
     )
     val createdProposedAccommodationId = ObjectMapper()
       .readTree(createProposedAccommodationResponseBody)
@@ -973,6 +1006,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           postcode = expectedCprRequestBody.postcode!!,
           uprn = expectedCprRequestBody.uprn!!,
           accommodationTypeCode = secondAccommodationType.code,
+          accommodationStatusCode = AddressStatusCode.PR.name,
           verificationStatus = VerificationStatus.FAILED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
@@ -995,6 +1029,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
           county = expectedCprRequestBody.county!!,
           postcode = "correct postcode",
           accommodationTypeCode = secondAccommodationType.code,
+          accommodationStatusCode = AddressStatusCode.PR.name,
           verificationStatus = VerificationStatus.PASSED.name,
           nextAccommodationStatus = NextAccommodationStatus.NO.name,
         ),
