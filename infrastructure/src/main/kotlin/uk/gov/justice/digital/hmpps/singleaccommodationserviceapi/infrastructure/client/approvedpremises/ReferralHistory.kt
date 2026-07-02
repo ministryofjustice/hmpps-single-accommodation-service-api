@@ -18,6 +18,7 @@ data class Cas1ReferralHistory(
   val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val placementStatus: String?,
+  val referralUrl: String,
 ) : CasReferralHistory {
   enum class Cas1AssessmentStatus(val value: String) {
     AWAITING_RESPONSE("awaiting_response"),
@@ -48,6 +49,7 @@ data class Cas3ReferralHistory(
   val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val placementStatus: String?,
+  val referralUrl: String,
 ) : CasReferralHistory {
   enum class TemporaryAccommodationAssessmentStatus(val value: String) {
 
