@@ -90,7 +90,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     proposedAccommodationRepository.save(preExistingProposedAccommodation)
 
     publishCprProbationAddressDeletedEvent(
-      outboundCprAddressId = cprAddressId,
+      cprAddressId = cprAddressId,
     )
 
     waitForEntity {
@@ -124,7 +124,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
 
     val unmatchingCprAddressId = UUID.randomUUID()
     publishCprProbationAddressDeletedEvent(
-      outboundCprAddressId = unmatchingCprAddressId,
+      cprAddressId = unmatchingCprAddressId,
     )
     waitForEntity {
       inboxEventRepository.findAllByProcessedStatus(
@@ -142,14 +142,15 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     )
   }
 
-  private fun publishCprProbationAddressDeletedEvent(outboundCprAddressId: UUID) {
+  private fun publishCprProbationAddressDeletedEvent(cprAddressId: UUID) {
     val snsEvent = """ 
       {
         "eventType": "$eventType",
+        "version":1,
         "description": "$eventDescription",
         "additionalInformation": {
-           "outboundCprAddressId": "$outboundCprAddressId", 
-           "outboundDeliusAddressId": "12345678"  
+          "cprAddressId": "$cprAddressId",
+          "deliusAddressId": 2500818067
         },
         "personReference": {
            "identifiers": [
