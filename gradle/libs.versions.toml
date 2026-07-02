@@ -17,7 +17,7 @@ javers = "7.11.4"
 postgres = "42.7.11"
 app-insights-core = "2.6.4"
 micrometer-registry-azure = "1.17.0"
-sentry = "8.46.0"
+sentry = "8.47.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
