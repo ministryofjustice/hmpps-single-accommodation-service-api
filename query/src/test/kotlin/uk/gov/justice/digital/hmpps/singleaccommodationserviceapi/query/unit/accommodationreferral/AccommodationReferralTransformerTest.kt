@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 import java.util.stream.Stream
@@ -43,13 +43,21 @@ class AccommodationReferralTransformerTest {
           assertThat(it.placementAddress).isNull()
           assertThat(it.placementStatus).isEqualTo("NO_LOCAL_CONNECTION")
         }
-        else -> {
+        AccommodationService.CAS1 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
           assertThat(it.placementAddress).isEqualTo("Some address")
-          assertThat(it.placementStatus).isEqualTo("Some status")
+          assertThat(it.placementStatus).isEqualTo("arrived")
+        }
+        AccommodationService.CAS3 -> {
+          assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.localAuthorityArea).isEqualTo("Some area")
+          assertThat(it.pdu).isEqualTo("Some pdu")
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
+          assertThat(it.placementAddress).isEqualTo("Some address")
+          assertThat(it.placementStatus).isEqualTo("confirmed")
         }
       }
     }
@@ -57,8 +65,8 @@ class AccommodationReferralTransformerTest {
 
   @ParameterizedTest
   @MethodSource("cas1StatusMappings")
-  fun `should transform Cas1AssessmentStatus to CasReferralStatus`(
-    input: Cas1AssessmentStatus,
+  fun `should transform ApprovedPremisesApplicationStatus to CasReferralStatus`(
+    input: ApprovedPremisesApplicationStatus,
     expected: AccommodationReferralStatus,
   ) {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
@@ -66,41 +74,45 @@ class AccommodationReferralTransformerTest {
 
   @ParameterizedTest
   @MethodSource("cas3StatusMappings")
-  fun `should transform TemporaryAccommodationAssessmentStatus to CasReferralStatus`(
-    input: TemporaryAccommodationAssessmentStatus,
+  fun `should transform ApplicationStatus to CasReferralStatus`(
+    input: ApplicationStatus,
     expected: AccommodationReferralStatus,
   ) {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
   }
 
   @Test
-  fun `all Cas1AssessmentStatus values map correctly`() {
+  fun `all ApprovedPremisesApplicationStatus values map correctly`() {
     val expectedMapping = mapOf(
-      Cas1AssessmentStatus.COMPLETED to AccommodationReferralStatus.ACCEPTED,
-      Cas1AssessmentStatus.REALLOCATED to AccommodationReferralStatus.REJECTED,
-      Cas1AssessmentStatus.AWAITING_RESPONSE to AccommodationReferralStatus.PENDING,
-      Cas1AssessmentStatus.IN_PROGRESS to AccommodationReferralStatus.PENDING,
-      Cas1AssessmentStatus.NOT_STARTED to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED to AccommodationReferralStatus.ACCEPTED,
+      ApprovedPremisesApplicationStatus.REJECTED to AccommodationReferralStatus.REJECTED,
+      ApprovedPremisesApplicationStatus.INAPPLICABLE to AccommodationReferralStatus.REJECTED,
+      ApprovedPremisesApplicationStatus.WITHDRAWN to AccommodationReferralStatus.REJECTED,
+      ApprovedPremisesApplicationStatus.EXPIRED to AccommodationReferralStatus.REJECTED,
+      ApprovedPremisesApplicationStatus.STARTED to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.AWAITING_ASSESMENT to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.UNALLOCATED_ASSESMENT to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.ASSESMENT_IN_PROGRESS to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.AWAITING_PLACEMENT to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.REQUESTED_FURTHER_INFORMATION to AccommodationReferralStatus.PENDING,
+      ApprovedPremisesApplicationStatus.PENDING_PLACEMENT_REQUEST to AccommodationReferralStatus.PENDING,
     )
 
-    Cas1AssessmentStatus.entries.forEach { status ->
+    ApprovedPremisesApplicationStatus.entries.forEach { status ->
       assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectedMapping[status])
     }
   }
 
   @Test
-  fun `TemporaryAccommodationAssessmentStatus maps to correct CasReferralStatus`() {
+  fun `all ApplicationStatus values map correctly`() {
     val expectations = mapOf(
-      TemporaryAccommodationAssessmentStatus.READY_TO_PLACE to AccommodationReferralStatus.ACCEPTED,
-
-      TemporaryAccommodationAssessmentStatus.CLOSED to AccommodationReferralStatus.REJECTED,
-      TemporaryAccommodationAssessmentStatus.REJECTED to AccommodationReferralStatus.REJECTED,
-
-      TemporaryAccommodationAssessmentStatus.UNALLOCATED to AccommodationReferralStatus.PENDING,
-      TemporaryAccommodationAssessmentStatus.IN_REVIEW to AccommodationReferralStatus.PENDING,
+      ApplicationStatus.REJECTED to AccommodationReferralStatus.REJECTED,
+      ApplicationStatus.IN_PROGRESS to AccommodationReferralStatus.PENDING,
+      ApplicationStatus.SUBMITTED to AccommodationReferralStatus.PENDING,
+      ApplicationStatus.REQUESTED_FURTHER_INFORMATION to AccommodationReferralStatus.PENDING,
     )
 
-    TemporaryAccommodationAssessmentStatus.entries.forEach { status ->
+    ApplicationStatus.entries.forEach { status ->
       assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectations[status])
     }
   }
@@ -108,20 +120,15 @@ class AccommodationReferralTransformerTest {
   private companion object {
     @JvmStatic
     fun cas1StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(Cas1AssessmentStatus.COMPLETED, AccommodationReferralStatus.ACCEPTED),
-      Arguments.of(Cas1AssessmentStatus.REALLOCATED, AccommodationReferralStatus.REJECTED),
-      Arguments.of(Cas1AssessmentStatus.AWAITING_RESPONSE, AccommodationReferralStatus.PENDING),
-      Arguments.of(Cas1AssessmentStatus.IN_PROGRESS, AccommodationReferralStatus.PENDING),
-      Arguments.of(Cas1AssessmentStatus.NOT_STARTED, AccommodationReferralStatus.PENDING),
+      Arguments.of(ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED, AccommodationReferralStatus.ACCEPTED),
+      Arguments.of(ApprovedPremisesApplicationStatus.REJECTED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(ApprovedPremisesApplicationStatus.STARTED, AccommodationReferralStatus.PENDING),
     )
 
     @JvmStatic
     fun cas3StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(TemporaryAccommodationAssessmentStatus.READY_TO_PLACE, AccommodationReferralStatus.ACCEPTED),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.CLOSED, AccommodationReferralStatus.REJECTED),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.REJECTED, AccommodationReferralStatus.REJECTED),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.UNALLOCATED, AccommodationReferralStatus.PENDING),
-      Arguments.of(TemporaryAccommodationAssessmentStatus.IN_REVIEW, AccommodationReferralStatus.PENDING),
+      Arguments.of(ApplicationStatus.REJECTED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(ApplicationStatus.SUBMITTED, AccommodationReferralStatus.PENDING),
     )
   }
 }

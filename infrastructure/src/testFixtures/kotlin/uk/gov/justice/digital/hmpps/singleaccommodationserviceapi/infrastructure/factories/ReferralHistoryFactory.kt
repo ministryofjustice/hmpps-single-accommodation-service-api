@@ -7,7 +7,8 @@ import java.time.Instant
 import java.util.UUID
 
 fun buildReferralHistory(
-  status: Cas1ReferralHistory.Cas1AssessmentStatus,
+  applicationStatus: Cas1ReferralHistory.ApprovedPremisesApplicationStatus,
+  requestForPlacementStatus: Cas1ReferralHistory.RequestForPlacementStatus? = null,
   id: UUID = UUID.randomUUID(),
   applicationId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
@@ -17,11 +18,12 @@ fun buildReferralHistory(
   pdu: String? = null,
   referredBy: DeliusUserDto,
   placementAddress: String? = null,
-  placementStatus: String? = null,
+  placementStatus: Cas1ReferralHistory.Cas1SpaceBookingStatus? = null,
 ) = Cas1ReferralHistory(
   id = id,
   applicationId = applicationId,
-  status = status,
+  applicationStatus = applicationStatus,
+  requestForPlacementStatus = requestForPlacementStatus,
   createdAt = createdAt,
   referralRejectionReason = referralRejectionReason,
   referralRejectionReasonDetail = referralRejectionReasonDetail,
@@ -33,7 +35,7 @@ fun buildReferralHistory(
 )
 
 fun buildReferralHistory(
-  status: Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus,
+  applicationStatus: Cas3ReferralHistory.ApplicationStatus,
   id: UUID = UUID.randomUUID(),
   applicationId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
@@ -43,11 +45,11 @@ fun buildReferralHistory(
   pdu: String? = null,
   referredBy: DeliusUserDto = buildDeliusUserDto(),
   placementAddress: String? = null,
-  placementStatus: String? = null,
+  bookingStatus: Cas3ReferralHistory.Cas3BookingStatus? = null,
 ) = Cas3ReferralHistory(
   id = id,
   applicationId = applicationId,
-  status = status,
+  applicationStatus = applicationStatus,
   createdAt = createdAt,
   referralRejectionReason = referralRejectionReason,
   referralRejectionReasonDetail = referralRejectionReasonDetail,
@@ -55,7 +57,7 @@ fun buildReferralHistory(
   pdu = pdu,
   referredBy = referredBy,
   placementAddress = placementAddress,
-  placementStatus = placementStatus,
+  bookingStatus = bookingStatus,
 )
 
 fun buildDeliusUserDto(name: String = "Joe Bloggs", username: String = "user1", staffCode: String = "ABCD1234") = DeliusUserDto(
