@@ -29,7 +29,8 @@ fun expectedGetReferralHistory(
         "pdu": "Aberdeen City",
         "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER","staffCode": null},
         "placementAddress": null,
-        "placementStatus": null
+        "placementStatus": null,
+        "referralUrl": null
      },
      {
         "id":"$id1",
@@ -42,7 +43,8 @@ fun expectedGetReferralHistory(
         "pdu": $pdu,
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus
+        "placementStatus": $placementStatus,
+        "referralUrl": "https://example.com/referral"
      },
      {
         "id":"$id4",
@@ -55,7 +57,8 @@ fun expectedGetReferralHistory(
         "pdu": $pdu,
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus
+        "placementStatus": $placementStatus,
+        "referralUrl": "https://example.com/referral"
      }
     ]
   }

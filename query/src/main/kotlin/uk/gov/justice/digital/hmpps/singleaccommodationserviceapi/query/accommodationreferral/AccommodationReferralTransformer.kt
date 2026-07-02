@@ -27,6 +27,7 @@ object AccommodationReferralTransformer {
       referredBy = it.referredBy,
       placementAddress = it.placementAddress,
       placementStatus = it.placementStatus?.value,
+      referralUrl = it.referralUrl,
     )
   } +
     dto.cas3Referrals.map {
@@ -42,6 +43,7 @@ object AccommodationReferralTransformer {
         referredBy = it.referredBy,
         placementAddress = it.placementAddress,
         placementStatus = it.bookingStatus?.value,
+        referralUrl = it.referralUrl,
       )
     } + dtrs.map {
       toAccommodationReferralDto(
@@ -60,6 +62,7 @@ object AccommodationReferralTransformer {
         ),
         placementAddress = null,
         placementStatus = it.submission!!.outcomeReason?.name,
+        referralUrl = null,
       )
     }
 
@@ -75,6 +78,7 @@ object AccommodationReferralTransformer {
     referredBy: DeliusUserDto?,
     placementAddress: String?,
     placementStatus: String?,
+    referralUrl: String?,
   ) = AccommodationReferralDto(
     id = id,
     type = type,
@@ -87,6 +91,7 @@ object AccommodationReferralTransformer {
     referredBy = toStaffDetailsDto(referredBy),
     placementAddress = placementAddress,
     placementStatus = placementStatus,
+    referralUrl = referralUrl,
   )
 
   fun toStaffDetailsDto(referredBy: DeliusUserDto?) = referredBy?.let {
