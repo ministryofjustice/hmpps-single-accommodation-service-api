@@ -129,6 +129,8 @@ class AccommodationQueryService(
         (
           addresses
             ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
+            ?.filter { it.postcode != null && it.postcode != "" }
+            ?.filter { it.endDate == null }
             ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
           )
       ).mapNotNull { it }
