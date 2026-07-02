@@ -59,7 +59,7 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
   )
   fun findByIdAndCrnWithNotes(id: UUID, crn: String): ProposedAccommodationEntity?
 
-  fun findByCprAddressId(cprAddressId: UUID?): ProposedAccommodationEntity?
+  fun findByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
 
-  fun findByCaseId(caseId: UUID): List<ProposedAccommodationEntity>
+  fun findByIdAndDeleted(id: UUID, deleted: Boolean): ProposedAccommodationEntity?
 }
