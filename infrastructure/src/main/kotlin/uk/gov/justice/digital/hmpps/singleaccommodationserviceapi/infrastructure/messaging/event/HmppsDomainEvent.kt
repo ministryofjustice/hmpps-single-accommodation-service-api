@@ -8,5 +8,5 @@ data class HmppsDomainEvent(
   val description: String? = null,
   val detailUrl: String? = null,
   val occurredAt: OffsetDateTime,
-  val additionalInformation: Map<String, Any> = emptyMap(),
+  val additionalInformation: Map<String, Any?>? = null,
 )

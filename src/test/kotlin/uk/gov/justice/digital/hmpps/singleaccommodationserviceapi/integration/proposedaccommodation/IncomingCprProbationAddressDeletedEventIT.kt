@@ -150,7 +150,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
         "description": "$eventDescription",
         "additionalInformation": {
           "cprAddressId": "$cprAddressId",
-          "deliusAddressId": 2500818067
+          "deliusAddressId": null
         },
         "personReference": {
            "identifiers": [
