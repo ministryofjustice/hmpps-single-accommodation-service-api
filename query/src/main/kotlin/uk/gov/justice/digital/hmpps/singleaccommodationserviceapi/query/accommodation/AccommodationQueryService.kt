@@ -125,11 +125,12 @@ class AccommodationQueryService(
       }
 
     return (
-      (
-        addresses
-          ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
-          ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
-        ) + cas1NextAccommodation + cas3NextAccommodation
+      listOf(cas1NextAccommodation, cas3NextAccommodation) +
+        (
+          addresses
+            ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
+            ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
+          )
       ).mapNotNull { it }
   }
 
