@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
@@ -64,7 +64,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     val cas1Response: List<Cas1ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-03-01T00:00:00Z"),
-        status = Cas1AssessmentStatus.IN_PROGRESS,
+        applicationStatus = ApprovedPremisesApplicationStatus.ASSESMENT_IN_PROGRESS,
         referredBy = referredByUser,
       ),
     )
@@ -72,7 +72,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
-        status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
+        applicationStatus = ApplicationStatus.IN_PROGRESS,
         referredBy = referredByUser,
       ),
     )
