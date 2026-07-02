@@ -30,6 +30,9 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
         status.code = 'PR1'
     )
     and pa.deleted = false
+    and (pa.endDate is null or pa.endDate > current_date) 
+    and pa.postcode is not null 
+    and pa.postcode != ''
     order by pa.createdAt desc 
   """,
   )
