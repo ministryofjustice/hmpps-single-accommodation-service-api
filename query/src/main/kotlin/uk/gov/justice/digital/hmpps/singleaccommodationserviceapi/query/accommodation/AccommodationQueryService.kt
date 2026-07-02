@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer.toAccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer.toAccommodationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -129,6 +130,8 @@ class AccommodationQueryService(
         (
           addresses
             ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
+            ?.filter { it.postcode != null && it.postcode != "" }
+            ?.filter { it.endDate == null || LocalDate.parse(it.endDate!!) > LocalDate.now() }
             ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
           )
       ).mapNotNull { it }
