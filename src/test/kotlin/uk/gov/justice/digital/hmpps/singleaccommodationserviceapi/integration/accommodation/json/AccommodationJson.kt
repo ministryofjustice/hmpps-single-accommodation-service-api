@@ -216,32 +216,31 @@ fun expectedGetNextAccommodationsResponse(
   crn: String,
 ): String = """
 {
-   "data":
-      {
-         "crn":"$crn",
-         "startDate":"$prStartDate",
-         "endDate":"$prEndDate",
-         "address":{
-            "postcode":"W5 2AB",
-            "subBuildingName":null,
-            "buildingName":null,
-            "buildingNumber":"1",
-            "thoroughfareName":"Another Street",
-            "dependentLocality":null,
-            "postTown":"London",
-            "county":null,
-            "country":null,
-            "uprn":null
-         },
-         "status":{
-            "code":"PR",
-            "description":"Proposed"
-         },
-         "type":{
-            "code":"A07A",
-            "description":"Friends/Family (transient)"
-         }
+   "data":{
+      "crn":"$crn",
+      "startDate":"$prStartDate",
+      "endDate":"$prEndDate",
+      "address":{
+         "postcode":"SW1A 1AB",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":null,
+         "thoroughfareName":"123 Test Street",
+         "dependentLocality":"Test Village",
+         "postTown":"Test Town",
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "status":{
+         "code":"PR",
+         "description":"Proposed"
+      },
+      "type":{
+         "code":"A02",
+         "description":"Approved Premises"
       }
+   }
 }
 """.trimIndent()
 

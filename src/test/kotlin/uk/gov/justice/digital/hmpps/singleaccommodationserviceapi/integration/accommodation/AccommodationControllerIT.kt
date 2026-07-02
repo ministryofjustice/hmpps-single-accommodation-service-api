@@ -560,8 +560,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetNextAccommodationsResponse(
             crn = crn,
-            prStartDate = nextAddress.startDate.toString(),
-            prEndDate = nextAddress.endDate.toString(),
+            prStartDate = cas1Application.premises!!.startDate.toString(),
+            prEndDate = cas1Application.premises!!.endDate.toString(),
           ),
         )
       }
