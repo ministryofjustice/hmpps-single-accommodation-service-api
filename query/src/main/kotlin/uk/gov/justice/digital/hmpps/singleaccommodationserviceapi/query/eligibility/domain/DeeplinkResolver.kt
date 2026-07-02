@@ -15,7 +15,7 @@ class DeeplinkResolver(
       LinkType.CAS1_START_APPLICATION -> "$cas1BaseUrl/applications/start"
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.id?.let { "$cas1BaseUrl/applications/$it" }
       LinkType.CAS3_START_REFERRAL -> "$cas3BaseUrl/referrals/start"
-      LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.id?.let { "$cas3BaseUrl/referrals/$it" }
+      LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.id?.let { "$cas3BaseUrl/referrals/$it/full" }
       null -> return result
     }
     return result.copy(url = url)

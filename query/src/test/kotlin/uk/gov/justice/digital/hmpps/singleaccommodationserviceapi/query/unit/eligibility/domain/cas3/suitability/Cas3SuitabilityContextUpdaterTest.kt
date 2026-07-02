@@ -47,5 +47,26 @@ class Cas3SuitabilityContextUpdaterTest {
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_START_REFERRAL)
       assertThat(result.currentResult.url).isNull()
     }
+
+    @Test
+    fun `in progress application does not produce a referral link`() {
+      val data = buildDomainData(
+        cas3Application = buildCas3Application(
+          id = UUID.randomUUID(),
+          applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+        ),
+      )
+      val context = EvaluationContext(
+        data = data,
+        currentResult = buildServiceResult(),
+      )
+
+      val result = updater.update(context)
+
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
+      assertThat(result.currentResult.link).isNull()
+      assertThat(result.currentResult.linkType).isNull()
+      assertThat(result.currentResult.url).isNull()
+    }
   }
 }
