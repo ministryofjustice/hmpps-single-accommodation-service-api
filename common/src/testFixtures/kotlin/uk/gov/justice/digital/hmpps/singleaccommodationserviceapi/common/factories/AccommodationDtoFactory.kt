@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
@@ -14,6 +15,7 @@ fun buildProposedAccommodationDto(
   name: String? = null,
   crn: String = "X12345",
   accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(),
+  accommodationStatus: AccommodationStatusDto = buildAccommodationStatusDto(),
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.YES,
   address: AccommodationAddressDetails = buildAccommodationAddressDetails(),
@@ -33,6 +35,7 @@ fun buildProposedAccommodationDto(
   endDate = endDate,
   createdBy = createdBy,
   createdAt = createdAt,
+  accommodationStatus = accommodationStatus,
 )
 
 fun buildAccommodationAddressDetails(

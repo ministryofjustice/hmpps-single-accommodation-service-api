@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
@@ -15,6 +17,7 @@ object ProposedAccommodationTransformer {
   fun toAccommodationDetail(
     proposedAccommodationEntity: ProposedAccommodationEntity,
     accommodationTypeEntity: AccommodationTypeEntity?,
+    accommodationStatusEntity: AccommodationStatusEntity?,
     crn: String,
     createdBy: String,
   ) = ProposedAccommodationDto(
@@ -25,6 +28,12 @@ object ProposedAccommodationTransformer {
       AccommodationTypeDto(
         code = accommodationTypeEntity.code,
         description = accommodationTypeEntity.name,
+      )
+    },
+    accommodationStatus = accommodationStatusEntity?.let {
+      AccommodationStatusDto(
+        code = accommodationStatusEntity.code,
+        description = accommodationStatusEntity.name,
       )
     },
     verificationStatus = proposedAccommodationEntity.verificationStatus?.let { toVerificationStatus(it) },

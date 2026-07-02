@@ -10,6 +10,7 @@ data class ProposedAccommodationDto(
   val crn: String,
   val name: String?,
   val accommodationType: AccommodationTypeDto?,
+  val accommodationStatus: AccommodationStatusDto?,
   val verificationStatus: VerificationStatus?,
   val nextAccommodationStatus: NextAccommodationStatus?,
   val address: AccommodationAddressDetails,

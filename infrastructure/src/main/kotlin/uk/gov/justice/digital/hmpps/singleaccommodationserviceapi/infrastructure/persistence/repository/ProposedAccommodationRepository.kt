@@ -31,7 +31,7 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     )
     and pa.deleted = false
     and (pa.endDate is null or pa.endDate > current_date)
-    and pa.postcode is not null
+    and (pa.postcode is not null or pa.postcode != '')
     order by pa.createdAt desc 
   """,
   )

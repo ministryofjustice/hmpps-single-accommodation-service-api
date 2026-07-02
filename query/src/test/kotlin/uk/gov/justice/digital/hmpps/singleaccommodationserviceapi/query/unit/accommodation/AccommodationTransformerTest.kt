@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -468,57 +469,43 @@ class AccommodationTransformerTest {
 
     @Test
     fun `should map proposed accommodation entity correctly`() {
-      val entity = buildProposedAccommodationEntity(
-        cprAddressId = UUID.randomUUID(),
-        typeVerified = true,
-        noFixedAbode = true,
+      val type = buildAccommodationTypeDto(
+        code = AddressUsageCode.A01A.name,
+        description = AddressUsageCode.A01A.description,
+      )
+      val status = buildAccommodationStatusDto(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      )
+      val dto = buildProposedAccommodationDto(
         createdAt = Instant.now(),
         startDate = LocalDate.of(2023, 1, 1),
         endDate = LocalDate.of(2024, 1, 1),
-        postcode = "AB1 2CD",
-        subBuildingName = "Flat 1",
-        buildingName = "Test House",
-        buildingNumber = "10",
-        throughfareName = "High Street",
-        dependentLocality = "Town Centre",
-        postTown = "London",
-        county = "Greater London",
-        country = "England",
-        uprn = "12345",
-      )
-      val type = buildAccommodationTypeEntity(
-        code = AddressUsageCode.A01A.name,
-        name = AddressUsageCode.A01A.description,
-      )
-      val status = buildAccommodationStatusEntity(
-        code = AddressStatusCode.PR.name,
-        name = AddressStatusCode.PR.description,
+        accommodationType = type,
+        accommodationStatus = status,
       )
 
       val result = AccommodationTransformer.toAccommodationSummary(
-        crn = "X123",
-        entity,
-        type,
-        status,
+        dto,
       )
 
-      assertThat(result.crn).isEqualTo("X123")
-      assertThat(result.startDate).isNull()
-      assertThat(result.endDate).isNull()
+      assertThat(result.crn).isEqualTo(dto.crn)
+      assertThat(result.startDate).isEqualTo(dto.startDate)
+      assertThat(result.endDate).isEqualTo(dto.endDate)
       assertThat(result.status!!.code).isEqualTo(AddressStatusCode.PR.name)
       assertThat(result.status!!.description).isEqualTo(AddressStatusCode.PR.description)
       assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
       assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A01A.description)
-      assertThat(result.address.postcode).isEqualTo(entity.postcode)
-      assertThat(result.address.subBuildingName).isEqualTo(entity.subBuildingName)
-      assertThat(result.address.buildingName).isEqualTo(entity.buildingName)
-      assertThat(result.address.buildingNumber).isEqualTo(entity.buildingNumber)
-      assertThat(result.address.thoroughfareName).isEqualTo(entity.throughfareName)
-      assertThat(result.address.dependentLocality).isEqualTo(entity.dependentLocality)
-      assertThat(result.address.postTown).isEqualTo(entity.postTown)
-      assertThat(result.address.county).isEqualTo(entity.county)
-      assertThat(result.address.country).isEqualTo(entity.country)
-      assertThat(result.address.uprn).isEqualTo(entity.uprn)
+      assertThat(result.address.postcode).isEqualTo(dto.address.postcode)
+      assertThat(result.address.subBuildingName).isEqualTo(dto.address.subBuildingName)
+      assertThat(result.address.buildingName).isEqualTo(dto.address.buildingName)
+      assertThat(result.address.buildingNumber).isEqualTo(dto.address.buildingNumber)
+      assertThat(result.address.thoroughfareName).isEqualTo(dto.address.thoroughfareName)
+      assertThat(result.address.dependentLocality).isEqualTo(dto.address.dependentLocality)
+      assertThat(result.address.postTown).isEqualTo(dto.address.postTown)
+      assertThat(result.address.county).isEqualTo(dto.address.county)
+      assertThat(result.address.country).isEqualTo(dto.address.country)
+      assertThat(result.address.uprn).isEqualTo(dto.address.uprn)
     }
   }
 

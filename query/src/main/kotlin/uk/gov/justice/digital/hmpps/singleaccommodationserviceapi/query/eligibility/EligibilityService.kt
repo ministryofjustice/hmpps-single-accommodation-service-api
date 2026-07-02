@@ -79,7 +79,7 @@ class EligibilityService(
 
   fun getEligibility(data: DomainData): EligibilityDto {
     log.debug(
-      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationsType={}",
+      "Eligibility input data: crn={}, tierScore={}, sex={}, currentAccommodationEndDate={}, currentAccommodationStatus={}, currentAccommodationType={}, nextAccommodationType={}",
       data.crn,
       data.tierScore,
       data.sex,

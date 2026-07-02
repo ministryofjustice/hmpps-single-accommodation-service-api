@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
@@ -211,38 +212,14 @@ object AccommodationTransformer {
   )
 
   fun toAccommodationSummary(
-    crn: String,
-    proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity?,
-    accommodationStatusEntity: AccommodationStatusEntity?,
+    proposedAccommodationDto: ProposedAccommodationDto,
   ) = AccommodationSummaryDto(
-    crn = crn,
-    startDate = null,
-    endDate = null,
-    address = AccommodationAddressDetails(
-      postcode = proposedAccommodationEntity.postcode,
-      subBuildingName = proposedAccommodationEntity.subBuildingName,
-      buildingName = proposedAccommodationEntity.buildingName,
-      buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
-      dependentLocality = proposedAccommodationEntity.dependentLocality,
-      postTown = proposedAccommodationEntity.postTown,
-      county = proposedAccommodationEntity.county,
-      country = proposedAccommodationEntity.country,
-      uprn = proposedAccommodationEntity.uprn,
-    ),
-    status = accommodationStatusEntity?.let {
-      AccommodationStatusDto(
-        code = it.code,
-        description = it.name,
-      )
-    },
-    type = accommodationTypeEntity?.let {
-      AccommodationTypeDto(
-        code = it.code,
-        description = it.name,
-      )
-    },
+    crn = proposedAccommodationDto.crn,
+    startDate = proposedAccommodationDto.startDate,
+    endDate = proposedAccommodationDto.endDate,
+    address = proposedAccommodationDto.address,
+    status = proposedAccommodationDto.accommodationStatus,
+    type = proposedAccommodationDto.accommodationType,
   )
 
   fun toAccommodationDetail(

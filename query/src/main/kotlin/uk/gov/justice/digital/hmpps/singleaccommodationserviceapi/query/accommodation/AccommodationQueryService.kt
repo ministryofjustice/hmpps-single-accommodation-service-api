@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer.toAccommodationDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer.toAccommodationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.util.UUID
 
@@ -30,6 +31,7 @@ import java.util.UUID
 class AccommodationQueryService(
   private val accommodationOrchestrationService: AccommodationOrchestrationService,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
+  private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val accommodationStatusRepository: AccommodationStatusRepository,
   private val caseRepository: CaseRepository,
@@ -125,29 +127,13 @@ class AccommodationQueryService(
       }?.let { return it }
 
     // Returns proposed accommodation if there is one that is suitable
-    val proposedAccommodation = proposedAccommodationRepository
-      .findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn)
-      .firstOrNull { it.accommodationStatusId != null }
-      ?: return null
-
-    val accommodationType = proposedAccommodation.accommodationTypeId?.let {
-      accommodationTypeRepository
-        .findByIdOrNull(it)
-        .orThrowNotFound("id" to it)
-    }
-
-    val accommodationStatus = proposedAccommodation.accommodationStatusId?.let {
-      accommodationStatusRepository
-        .findByIdOrNull(it)
-        .orThrowNotFound("id" to it)
-    }
-
-    return toAccommodationSummary(
-      crn = crn,
-      proposedAccommodationEntity = proposedAccommodation,
-      accommodationTypeEntity = accommodationType,
-      accommodationStatusEntity = accommodationStatus,
-    )
+    return proposedAccommodationQueryService.getProposedAccommodations(crn)
+      .firstOrNull { it.accommodationStatus != null }
+      ?.let {
+        toAccommodationSummary(
+          proposedAccommodationDto = it,
+        )
+      }
   }
 
   fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {

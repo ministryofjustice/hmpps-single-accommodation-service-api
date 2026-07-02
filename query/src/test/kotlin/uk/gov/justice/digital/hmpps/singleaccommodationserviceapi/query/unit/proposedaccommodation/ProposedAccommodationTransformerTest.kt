@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTransformer
@@ -33,6 +34,10 @@ class ProposedAccommodationTransformerTest {
         code = "A07B",
         name = "Living in the home of a friend, family member or partner: settled",
       )
+      val accommodationStatusEntity = buildAccommodationStatusEntity(
+        code = "M",
+        name = "Main",
+      )
       val entity = buildProposedAccommodationEntity(
         id = id,
         name = "Test Name",
@@ -55,13 +60,15 @@ class ProposedAccommodationTransformerTest {
         createdAt = createdAt,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity, crn, createdBy)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity, accommodationStatusEntity, crn, createdBy)
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.name).isEqualTo("Test Name")
       assertThat(result.accommodationType?.code).isEqualTo(accommodationTypeEntity.code)
       assertThat(result.accommodationType?.description).isEqualTo(accommodationTypeEntity.name)
+      assertThat(result.accommodationStatus?.code).isEqualTo(accommodationStatusEntity.code)
+      assertThat(result.accommodationStatus?.description).isEqualTo(accommodationStatusEntity.name)
       assertThat(result.verificationStatus).isEqualTo(VerificationStatus.PASSED)
       assertThat(result.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
       assertThat(result.startDate).isEqualTo(startDate)
@@ -91,13 +98,14 @@ class ProposedAccommodationTransformerTest {
         uprn = null,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity = null, crn, createdBy)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity = null, null, crn, createdBy)
 
       assertThat(result.name).isNull()
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.verificationStatus).isNull()
       assertThat(result.nextAccommodationStatus).isNull()
       assertThat(result.accommodationType).isNull()
+      assertThat(result.accommodationStatus).isNull()
       assertThat(result.startDate).isNull()
       assertThat(result.endDate).isNull()
       assertThat(result.address.postcode).isNull()

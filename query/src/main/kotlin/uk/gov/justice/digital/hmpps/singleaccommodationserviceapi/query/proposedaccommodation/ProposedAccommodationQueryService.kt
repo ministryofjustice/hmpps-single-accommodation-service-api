@@ -4,6 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
@@ -14,18 +15,24 @@ class ProposedAccommodationQueryService(
   private val userRepository: UserRepository,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val accommodationStatusRepository: AccommodationStatusRepository,
 ) {
   fun getProposedAccommodations(crn: String): List<ProposedAccommodationDto> {
     val proposedAccommodations = proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn)
     return if (proposedAccommodations.isNotEmpty()) {
       val deduplicatedUserIds = proposedAccommodations.mapNotNull { it.createdByUserId }.toSet()
       val accommodationTypeIds = proposedAccommodations.mapNotNull { it.accommodationTypeId }.toSet()
+      val accommodationStatusIds = proposedAccommodations.mapNotNull { it.accommodationStatusId }.toSet()
+
       val createdByUsers = userRepository.findAllById(deduplicatedUserIds)
       val accommodationTypes = accommodationTypeRepository.findAllById(accommodationTypeIds)
+      val accommodationStatuses = accommodationStatusRepository.findAllById(accommodationStatusIds)
       proposedAccommodations.map { pa ->
         val createdByUser = createdByUsers.first { it.id == pa.createdByUserId }!!
         val accommodationType = accommodationTypes.firstOrNull { it.id == pa.accommodationTypeId }
-        ProposedAccommodationTransformer.toAccommodationDetail(pa, accommodationType, crn, createdByUser.displayName())
+        val accommodationStatus = accommodationStatuses.firstOrNull { it.id == pa.accommodationStatusId }
+
+        ProposedAccommodationTransformer.toAccommodationDetail(pa, accommodationType, accommodationStatus, crn, createdByUser.displayName())
       }
     } else {
       emptyList()
@@ -39,6 +46,10 @@ class ProposedAccommodationQueryService(
       accommodationTypeRepository.findByIdOrNull(it)
         .orThrowNotFound("accommodationTypeId" to it)
     }
-    return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, crn, createdByUser!!.displayName())
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId?.let {
+      accommodationStatusRepository.findByIdOrNull(it)
+        .orThrowNotFound("accommodationStatusId" to it)
+    }
+    return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, accommodationStatusEntity, crn, createdByUser!!.displayName())
   }
 }

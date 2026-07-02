@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -48,6 +49,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationQueryService
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Optional
@@ -60,6 +63,9 @@ class AccommodationQueryServiceTest {
 
   @MockK
   lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
+
+  @MockK
+  lateinit var proposedAccommodationQueryService: ProposedAccommodationQueryService
 
   @MockK
   lateinit var accommodationTypeRepository: AccommodationTypeRepository
@@ -903,7 +909,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns listOf()
+      every { proposedAccommodationQueryService.getProposedAccommodations(crn) } returns listOf()
       every { accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = buildCorePersonRecord(
@@ -967,7 +973,7 @@ class AccommodationQueryServiceTest {
         withPrisonNumber(prisonNumber)
       }
       every { caseRepository.findByCrn(crn) } returns caseEntity
-      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns listOf()
+      every { proposedAccommodationQueryService.getProposedAccommodations(crn) } returns listOf()
       every { accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
         data = buildAccommodationOrchestrationDto(
           cpr = null,
@@ -1154,36 +1160,27 @@ class AccommodationQueryServiceTest {
 
     @Test
     fun `getNextAccommodations get the next accommodations without cas1 and cas3`() {
-      val accommodationTypeId = UUID.randomUUID()
-      val accommodationStatusId = UUID.randomUUID()
-
-      val accommodationTypeEntity = buildAccommodationTypeEntity(
-        id = accommodationTypeId,
+      val type = buildAccommodationTypeDto(
         code = AddressUsageCode.A07A.name,
-        name = AddressUsageCode.A07A.description,
+        description = AddressUsageCode.A07A.description,
       )
-
-      val accommodationStatusEntity = buildAccommodationStatusEntity(
-        id = accommodationStatusId,
+      val status = buildAccommodationStatusDto(
         code = AddressStatusCode.PR.name,
-        name = AddressStatusCode.PR.description,
+        description = AddressStatusCode.PR.description,
+      )
+      val dto = buildProposedAccommodationDto(
+        createdAt = Instant.now(),
+        startDate = LocalDate.of(2023, 1, 1),
+        endDate = LocalDate.of(2024, 1, 1),
+        accommodationType = type,
+        accommodationStatus = status,
       )
 
-      val proposedAccommodationEntities = listOf(
-        buildProposedAccommodationEntity(
-          cprAddressId = UUID.randomUUID(),
-          noFixedAbode = false,
-          postcode = "GL53 8GH",
-          throughfareName = "",
-          postTown = "Cheltenham",
-          accommodationTypeEntity = accommodationTypeEntity,
-          accommodationStatusEntity = accommodationStatusEntity,
-        ),
+      val proposedAccommodationDtos = listOf(
+        dto,
       )
 
-      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns proposedAccommodationEntities
-      every { accommodationTypeRepository.findById(accommodationTypeId) } returns Optional.of(accommodationTypeEntity)
-      every { accommodationStatusRepository.findById(accommodationStatusId) } returns Optional.of(accommodationStatusEntity)
+      every { proposedAccommodationQueryService.getProposedAccommodations(crn) } returns proposedAccommodationDtos
 
       val cas1Application = buildCas1Application(
         placementStatus = Cas1PlacementStatus.ARRIVED,
@@ -1199,7 +1196,7 @@ class AccommodationQueryServiceTest {
       )
 
       val result = accommodationQueryService.getNextAccommodation(crn, cas1Application, cas3Application, null)
-      assertThat(result!!.address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result!!.address.postcode).isEqualTo(dto.address.postcode)
       assertThat(result.status!!.code).isEqualTo("PR")
     }
   }
