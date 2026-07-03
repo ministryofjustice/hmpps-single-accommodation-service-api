@@ -208,6 +208,7 @@ class AccommodationSyncService(
     return true to null
   }
 
+  @Transactional
   fun deleteAccommodationRecordNoLongerInCpr(
     accommodationToDelete: ProposedAccommodationEntity,
   ) {

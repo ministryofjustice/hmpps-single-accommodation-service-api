@@ -42,6 +42,7 @@ class CprProbationAddressDeletedHandler(
       accommodationSyncService.deleteAccommodationRecordNoLongerInCpr(
         accommodationToDelete,
       )
+      log.info("Deleted accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
       return InboxEventHandler.Result.PROCESSED
     }
     log.info("No accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
