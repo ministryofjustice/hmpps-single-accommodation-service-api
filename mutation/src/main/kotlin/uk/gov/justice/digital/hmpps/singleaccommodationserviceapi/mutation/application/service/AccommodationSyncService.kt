@@ -212,10 +212,15 @@ class AccommodationSyncService(
   fun deleteAccommodationRecordNoLongerInCpr(
     accommodationToDelete: ProposedAccommodationEntity,
   ) {
+    log.info("About to set delete flag to true CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
     accommodationToDelete.deleted = true
+    log.info("About to get nDelius sync user CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
     val deliusSystemUser = userService.getNationalDeliusSystemUser()
+    log.info("About to override audit user CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
     AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
+      log.info("About to save deleted accommodation CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
       proposedAccommodationRepository.save(accommodationToDelete)
     }
+    log.info("Successfully deleted accommodation CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
   }
 }
