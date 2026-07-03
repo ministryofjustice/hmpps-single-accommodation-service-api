@@ -15,7 +15,7 @@ data class AccommodationReferralDto(
   val referredBy: StaffDetailsDto?,
   val placementAddress: String?,
   val placementStatus: String?,
-  val referralUrl: String?,
+  val uiUrl: String?,
 )
 
 enum class AccommodationReferralStatus {

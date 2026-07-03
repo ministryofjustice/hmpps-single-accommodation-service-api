@@ -30,7 +30,7 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER","staffCode": null},
         "placementAddress": null,
         "placementStatus": null,
-        "referralUrl": null
+        "uiUrl": null
      },
      {
         "id":"$id1",
@@ -44,7 +44,7 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus,
-        "referralUrl": "https://example.com/referral"
+        "uiUrl": "https://example.com/referral"
      },
      {
         "id":"$id4",
@@ -58,7 +58,7 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
         "placementStatus": $placementStatus,
-        "referralUrl": "https://example.com/referral"
+        "uiUrl": "https://example.com/referral"
      }
     ]
   }

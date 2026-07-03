@@ -19,7 +19,7 @@ fun buildReferralHistory(
   referredBy: DeliusUserDto,
   placementAddress: String? = null,
   placementStatus: Cas1ReferralHistory.Cas1SpaceBookingStatus? = null,
-  referralUrl: String = "https://example.com/referral",
+  uiUrl: String = "https://example.com/referral",
 ) = Cas1ReferralHistory(
   id = id,
   applicationId = applicationId,
@@ -33,7 +33,7 @@ fun buildReferralHistory(
   referredBy = referredBy,
   placementAddress = placementAddress,
   placementStatus = placementStatus,
-  referralUrl = referralUrl,
+  uiUrl = uiUrl,
 )
 
 fun buildReferralHistory(
@@ -48,7 +48,7 @@ fun buildReferralHistory(
   referredBy: DeliusUserDto = buildDeliusUserDto(),
   placementAddress: String? = null,
   bookingStatus: Cas3ReferralHistory.Cas3BookingStatus? = null,
-  referralUrl: String = "https://example.com/referral",
+  uiUrl: String = "https://example.com/referral",
 ) = Cas3ReferralHistory(
   id = id,
   applicationId = applicationId,
@@ -61,7 +61,7 @@ fun buildReferralHistory(
   referredBy = referredBy,
   placementAddress = placementAddress,
   bookingStatus = bookingStatus,
-  referralUrl = referralUrl,
+  uiUrl = uiUrl,
 )
 
 fun buildDeliusUserDto(name: String = "Joe Bloggs", username: String = "user1", staffCode: String = "ABCD1234") = DeliusUserDto(

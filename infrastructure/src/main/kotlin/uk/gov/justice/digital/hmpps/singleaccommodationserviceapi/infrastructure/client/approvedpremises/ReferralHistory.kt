@@ -20,7 +20,7 @@ data class Cas1ReferralHistory(
   val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val placementStatus: Cas1SpaceBookingStatus?,
-  val referralUrl: String,
+  val uiUrl: String,
 ) : CasReferralHistory {
   enum class ApprovedPremisesApplicationStatus(@get:JsonValue val value: String) {
     STARTED("started"),
@@ -88,7 +88,7 @@ data class Cas3ReferralHistory(
   val referredBy: DeliusUserDto,
   val placementAddress: String?,
   val bookingStatus: Cas3BookingStatus?,
-  val referralUrl: String,
+  val uiUrl: String,
 ) : CasReferralHistory {
   enum class ApplicationStatus(@get:JsonValue val value: String) {
     REJECTED("rejected"),
