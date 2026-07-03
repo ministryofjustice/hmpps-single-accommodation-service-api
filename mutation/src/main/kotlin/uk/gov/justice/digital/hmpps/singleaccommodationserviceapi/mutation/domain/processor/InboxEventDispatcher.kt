@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserContextService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -52,6 +53,7 @@ class InboxEventDispatcher(
   private val dispatcherConfig: DispatcherConfig,
   private val inboxEventService: InboxEventService,
   private val sentryService: SentryService,
+  private val userContextService: UserContextService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -126,6 +128,7 @@ class InboxEventDispatcher(
     val handler = inboxEvent.resolveHandler()!!
 
     try {
+      userContextService.setUserContextAsSasSystemUser()
       when (handler.handle(inboxEvent.toInboxEvent())) {
         InboxEventHandler.Result.PROCESSED -> {
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
@@ -148,6 +151,8 @@ class InboxEventDispatcher(
       log.error("Error dispatching to handler [inboxEventId=${inboxEvent.id}]", e)
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
       progressTracker.eventFailed()
+    } finally {
+      userContextService.clearContext()
     }
   }
 

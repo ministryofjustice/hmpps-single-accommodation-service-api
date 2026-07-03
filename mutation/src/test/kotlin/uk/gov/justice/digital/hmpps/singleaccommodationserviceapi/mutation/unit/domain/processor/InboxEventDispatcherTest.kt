@@ -9,14 +9,18 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserContextService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher.InboxEventDispatcherFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import java.util.UUID
 
 /**
  * Concurrency and batching is tested by [InboxEventDispatcherIT]
@@ -29,6 +33,19 @@ class InboxEventDispatcherTest {
 
   @RelaxedMockK
   lateinit var sentryService: SentryService
+
+  @RelaxedMockK
+  lateinit var userContextService: UserContextService
+
+  private val sasSystemUser = buildUserEntity(
+    id = UUID.randomUUID(),
+    username = "SAS_SYSTEM_USER",
+    authSource = AuthSource.NONE,
+    forename = "SAS",
+    middleNames = null,
+    surname = "system user",
+    email = "SAS_SYSTEM_USER",
+  )
 
   @Test
   fun `no events, do nothing`() {
@@ -43,6 +60,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
 
+    verify(exactly = 0) { userContextService.setUserContextAsSasSystemUser() }
+    verify(exactly = 0) { userContextService.clearContext() }
     verifyNoEventUpdatesMade()
   }
 
@@ -62,6 +81,8 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(1)
     assertThat(stats.failedCount).isEqualTo(0)
 
+    verify(exactly = 0) { userContextService.setUserContextAsSasSystemUser() }
+    verify(exactly = 0) { userContextService.clearContext() }
     verifyNoEventUpdatesMade()
   }
 
@@ -88,7 +109,9 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
 
+    verify { userContextService.setUserContextAsSasSystemUser() }
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.PROCESSED) }
+    verify { userContextService.clearContext() }
   }
 
   @Test
@@ -114,7 +137,9 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(0)
 
+    verify { userContextService.setUserContextAsSasSystemUser() }
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.IGNORED) }
+    verify { userContextService.clearContext() }
   }
 
   @Test
@@ -140,8 +165,10 @@ class InboxEventDispatcherTest {
     assertThat(stats.skippedCount).isEqualTo(0)
     assertThat(stats.failedCount).isEqualTo(1)
 
+    verify { userContextService.setUserContextAsSasSystemUser() }
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
     verify { sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]") }
+    verify { userContextService.clearContext() }
   }
 
   @Test
@@ -173,7 +200,9 @@ class InboxEventDispatcherTest {
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
 
     val raisedExceptionSlot = slot<InboxEventDispatcherFailureException>()
+    verify { userContextService.setUserContextAsSasSystemUser() }
     verify { sentryService.captureException(capture(raisedExceptionSlot)) }
+    verify { userContextService.clearContext() }
 
     assertThat(raisedExceptionSlot.captured.message).isEqualTo("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]")
     assertThat(raisedExceptionSlot.captured.cause).isEqualTo(exception)
@@ -188,6 +217,7 @@ class InboxEventDispatcherTest {
     dispatcherConfig = DispatcherConfig(maxEventsPerBatch, maxConcurrentEvents),
     inboxEventService = inboxEventService,
     sentryService = sentryService,
+    userContextService = userContextService,
   )
 
   private data class MockEventHandler(

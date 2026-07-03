@@ -114,4 +114,9 @@ class UserService(
     username = Username("DELIUS_SYNC_USER"),
     authSource = AuthSourceEntity.DELIUS,
   )!!
+
+  fun getSystemUser() = userRepository.findByUsernameAndAuthSource(
+    username = Username("SAS_SYSTEM_USER"),
+    authSource = AuthSourceEntity.NONE,
+  )!!
 }
