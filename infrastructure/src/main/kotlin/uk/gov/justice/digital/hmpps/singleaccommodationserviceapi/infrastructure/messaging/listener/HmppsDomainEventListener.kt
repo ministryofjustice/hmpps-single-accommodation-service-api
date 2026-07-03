@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
@@ -14,6 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.Instant
 import java.util.UUID
 
+@ConditionalOnProperty(
+  name = ["hmpps.sqs.enabled"],
+  havingValue = "true",
+)
 @Profile(value = ["local", "dev", "test"])
 @Component
 class HmppsDomainEventListener(
