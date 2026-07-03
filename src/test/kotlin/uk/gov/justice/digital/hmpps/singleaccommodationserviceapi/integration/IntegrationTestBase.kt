@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
@@ -63,7 +65,9 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class])
+@Import(
+  value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class],
+)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
@@ -76,10 +80,10 @@ abstract class IntegrationTestBase {
   protected val userIdOfDeliusSyncUser: UUID = UUID.fromString("dc403174-5986-4824-9783-09d33602ad9f")
 
   @Autowired
-  lateinit var applicationContext: ApplicationContext
+  protected lateinit var applicationContext: ApplicationContext
 
   @Autowired
-  lateinit var restTestClient: RestTestClient
+  protected lateinit var restTestClient: RestTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
@@ -91,13 +95,16 @@ abstract class IntegrationTestBase {
   protected lateinit var databaseUtils: DatabaseUtils
 
   @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
+  protected lateinit var hmppsQueueService: HmppsQueueService
 
   @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
+  protected lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
-  lateinit var inboxEventAsserter: InboxEventAsserter
+  protected lateinit var inboxEventAsserter: InboxEventAsserter
+
+  @Autowired
+  protected lateinit var cacheManager: ConcurrentMapCacheManager
 
   @BeforeAll
   fun beforeAll() {
