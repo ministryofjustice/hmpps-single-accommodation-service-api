@@ -21,7 +21,7 @@ data class Cas1ReferralHistory(
   val placementAddress: String?,
   val placementStatus: Cas1SpaceBookingStatus?,
 ) : CasReferralHistory {
-  enum class ApprovedPremisesApplicationStatus(@get:JsonValue val value: String) {
+  enum class ApprovedPremisesApplicationStatus(val value: String) {
     STARTED("started"),
     REJECTED("rejected"),
     AWAITING_ASSESMENT("awaitingAssesment"),
@@ -39,7 +39,7 @@ data class Cas1ReferralHistory(
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): ApprovedPremisesApplicationStatus = entries.first { it.value == value }
+      fun forValue(value: String): ApprovedPremisesApplicationStatus = entries.first { it.name == value }
     }
   }
 
