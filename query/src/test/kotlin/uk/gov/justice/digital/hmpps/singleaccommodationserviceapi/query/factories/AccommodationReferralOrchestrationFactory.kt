@@ -9,23 +9,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 fun buildAccommodationReferralOrchestrationDto(
   cas1Referrals: List<Cas1ReferralHistory> = listOf(
     buildReferralHistory(
-      Cas1ReferralHistory.Cas1AssessmentStatus.COMPLETED,
+      Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED,
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
       referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
-      placementStatus = "Some status",
+      placementStatus = Cas1ReferralHistory.Cas1SpaceBookingStatus.ARRIVED,
     ),
   ),
   cas3Referrals: List<Cas3ReferralHistory> = listOf(
     buildReferralHistory(
-      Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus.READY_TO_PLACE,
+      Cas3ReferralHistory.ApplicationStatus.SUBMITTED,
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
       placementAddress = "Some address",
-      placementStatus = "Some status",
+      bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.CONFIRMED,
     ),
   ),
 ) = AccommodationReferralOrchestrationDto(

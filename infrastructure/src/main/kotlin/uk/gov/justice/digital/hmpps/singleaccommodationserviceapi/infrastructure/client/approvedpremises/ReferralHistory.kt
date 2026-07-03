@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import java.time.Instant
 import java.util.UUID
 
@@ -9,7 +10,8 @@ sealed interface CasReferralHistory
 data class Cas1ReferralHistory(
   val id: UUID,
   val applicationId: UUID,
-  val status: Cas1AssessmentStatus,
+  val applicationStatus: ApprovedPremisesApplicationStatus,
+  val requestForPlacementStatus: RequestForPlacementStatus?,
   val createdAt: Instant,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
@@ -17,21 +19,58 @@ data class Cas1ReferralHistory(
   val pdu: String?,
   val referredBy: DeliusUserDto,
   val placementAddress: String?,
-  val placementStatus: String?,
+  val placementStatus: Cas1SpaceBookingStatus?,
 ) : CasReferralHistory {
-  enum class Cas1AssessmentStatus(val value: String) {
-    AWAITING_RESPONSE("awaiting_response"),
-    COMPLETED("completed"),
-    REALLOCATED("reallocated"),
-    IN_PROGRESS("in_progress"),
-    NOT_STARTED("not_started"),
+  enum class ApprovedPremisesApplicationStatus(@get:JsonValue val value: String) {
+    STARTED("started"),
+    REJECTED("rejected"),
+    AWAITING_ASSESMENT("awaitingAssesment"),
+    UNALLOCATED_ASSESMENT("unallocatedAssesment"),
+    ASSESMENT_IN_PROGRESS("assesmentInProgress"),
+    AWAITING_PLACEMENT("awaitingPlacement"),
+    PLACEMENT_ALLOCATED("placementAllocated"),
+    INAPPLICABLE("inapplicable"),
+    WITHDRAWN("withdrawn"),
+    REQUESTED_FURTHER_INFORMATION("requestedFurtherInformation"),
+    PENDING_PLACEMENT_REQUEST("pendingPlacementRequest"),
+    EXPIRED("expired"),
     ;
 
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): Cas1AssessmentStatus = entries
-        .first { it.value == value || it.name == value }
+      fun forValue(value: String): ApprovedPremisesApplicationStatus = entries.first { it.value == value }
+    }
+  }
+
+  enum class RequestForPlacementStatus(@get:JsonValue val value: String) {
+    REQUEST_UNSUBMITTED("request_unsubmitted"),
+    REQUEST_REJECTED("request_rejected"),
+    REQUEST_SUBMITTED("request_submitted"),
+    AWAITING_MATCH("awaiting_match"),
+    REQUEST_WITHDRAWN("request_withdrawn"),
+    PLACEMENT_BOOKED("placement_booked"),
+    ;
+
+    companion object {
+      @JvmStatic
+      @JsonCreator
+      fun forValue(value: String): RequestForPlacementStatus = entries.first { it.value == value }
+    }
+  }
+
+  enum class Cas1SpaceBookingStatus(@get:JsonValue val value: String) {
+    CANCELLED("cancelled"),
+    NOT_ARRIVED("notArrived"),
+    DEPARTED("departed"),
+    ARRIVED("arrived"),
+    UPCOMING("upcoming"),
+    ;
+
+    companion object {
+      @JvmStatic
+      @JsonCreator
+      fun forValue(value: String): Cas1SpaceBookingStatus = entries.first { it.value == value }
     }
   }
 }
@@ -39,7 +78,7 @@ data class Cas1ReferralHistory(
 data class Cas3ReferralHistory(
   val id: UUID,
   val applicationId: UUID,
-  val status: TemporaryAccommodationAssessmentStatus,
+  val applicationStatus: ApplicationStatus,
   val createdAt: Instant,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
@@ -47,21 +86,36 @@ data class Cas3ReferralHistory(
   val pdu: String?,
   val referredBy: DeliusUserDto,
   val placementAddress: String?,
-  val placementStatus: String?,
+  val bookingStatus: Cas3BookingStatus?,
 ) : CasReferralHistory {
-  enum class TemporaryAccommodationAssessmentStatus(val value: String) {
-
-    UNALLOCATED("unallocated"),
-    IN_REVIEW("in_review"),
-    READY_TO_PLACE("ready_to_place"),
-    CLOSED("closed"),
+  enum class ApplicationStatus(@get:JsonValue val value: String) {
     REJECTED("rejected"),
+    IN_PROGRESS("inProgress"),
+    SUBMITTED("submitted"),
+    REQUESTED_FURTHER_INFORMATION("requestedFurtherInformation"),
     ;
 
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): TemporaryAccommodationAssessmentStatus = entries.first { it.value == value || it.name == value }
+      fun forValue(value: String): ApplicationStatus = entries.first { it.value == value }
+    }
+  }
+
+  enum class Cas3BookingStatus(@get:JsonValue val value: String) {
+    ARRIVED("arrived"),
+    NOT_MINUS_ARRIVED("notMinusArrived"),
+    DEPARTED("departed"),
+    CANCELLED("cancelled"),
+    PROVISIONAL("provisional"),
+    CONFIRMED("confirmed"),
+    CLOSED("closed"),
+    ;
+
+    companion object {
+      @JvmStatic
+      @JsonCreator
+      fun forValue(value: String): Cas3BookingStatus = entries.first { it.value == value }
     }
   }
 }
