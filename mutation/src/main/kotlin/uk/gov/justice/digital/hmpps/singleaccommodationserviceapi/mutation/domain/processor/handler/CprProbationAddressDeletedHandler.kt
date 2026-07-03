@@ -24,23 +24,28 @@ class CprProbationAddressDeletedHandler(
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val cprProbationAddressDeletedEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    return cprProbationAddressDeletedEvent.additionalInformation["outboundCprAddressId"]?.toString()
+    val cprAddressId = cprProbationAddressDeletedEvent.additionalInformation?.let { it["cprAddressId"] }
+    return cprAddressId?.toString()
   }
 
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     log.info("Processing CPR_PROBATION_ADDRESS_DELETED event [inboxEventId={}]", inboxEvent.id)
-    val outboundCprAddressId = checkNotNull(getPartitionKey(inboxEvent)) {
-      "outboundCprAddressId not found in event payload [inboxEventId=${inboxEvent.id}]"
+    val cprAddressIdString = checkNotNull(getPartitionKey(inboxEvent)) {
+      "cprAddressId not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
-
-    val accommodationToDelete = proposedAccommodationRepository.findByCprAddressId(UUID.fromString(outboundCprAddressId))
+    log.info("Converting cprAddressIdString [cprAddressIdString={}]", cprAddressIdString)
+    val cprAddressId = UUID.fromString(cprAddressIdString)
+    val accommodationToDelete = proposedAccommodationRepository.findByCprAddressId(cprAddressId)
     if (accommodationToDelete != null) {
+      log.info("Found accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
       accommodationSyncService.deleteAccommodationRecordNoLongerInCpr(
         accommodationToDelete,
       )
+      log.info("Deleted accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
       return InboxEventHandler.Result.PROCESSED
     }
+    log.info("No accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
     return InboxEventHandler.Result.IGNORED
   }
 }
