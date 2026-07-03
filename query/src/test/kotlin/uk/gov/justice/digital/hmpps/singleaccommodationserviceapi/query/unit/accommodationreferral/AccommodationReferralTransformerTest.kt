@@ -42,6 +42,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER", null))
           assertThat(it.placementAddress).isNull()
           assertThat(it.placementStatus).isEqualTo("NO_LOCAL_CONNECTION")
+          assertThat(it.uiUrl).isNull()
         }
         AccommodationService.CAS1 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
@@ -58,6 +59,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
           assertThat(it.placementAddress).isEqualTo("Some address")
           assertThat(it.placementStatus).isEqualTo("confirmed")
+          assertThat(it.uiUrl).isEqualTo("https://example.com/referral")
         }
       }
     }
