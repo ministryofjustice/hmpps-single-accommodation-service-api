@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.ACCEPTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.NOT_ACCEPTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.WITHDRAWN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
@@ -36,8 +37,7 @@ class DutyToReferQueryService(
   }
 
   fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
-    // Only show not accepted and withdrawn, submitted and accepted don't appear in the history section form the prototype.
-    val dtrEntities = dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, listOf(NOT_ACCEPTED, WITHDRAWN))
+    val dtrEntities = dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, listOf(ACCEPTED, NOT_ACCEPTED, WITHDRAWN))
     if (dtrEntities.isEmpty()) return emptyList()
 
     val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()
