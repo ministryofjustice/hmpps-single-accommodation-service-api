@@ -65,6 +65,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
     createDeliusSyncUser()
+    createSasSystemUser()
     databaseUtils.truncate(
       DatabaseUtils.SasTables.SAS_CASE,
       DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION,
@@ -103,6 +104,8 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.id).isEqualTo(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.deleted).isTrue()
+    assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
     assertThatSingleInboxEventIsAsExpected(
       processedStatus = ProcessedStatus.PROCESSED,
@@ -136,6 +139,8 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.id).isEqualTo(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.deleted).isFalse()
+    assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
 
     assertThatSingleInboxEventIsAsExpected(
       processedStatus = ProcessedStatus.IGNORED,

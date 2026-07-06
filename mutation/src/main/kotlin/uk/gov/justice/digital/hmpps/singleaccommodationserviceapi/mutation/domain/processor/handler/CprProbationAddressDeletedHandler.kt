@@ -34,18 +34,15 @@ class CprProbationAddressDeletedHandler(
     val cprAddressIdString = checkNotNull(getPartitionKey(inboxEvent)) {
       "cprAddressId not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
-    log.info("Converting cprAddressIdString [cprAddressIdString={}]", cprAddressIdString)
     val cprAddressId = UUID.fromString(cprAddressIdString)
     val accommodationToDelete = proposedAccommodationRepository.findByCprAddressId(cprAddressId)
     if (accommodationToDelete != null) {
       log.info("Found accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
-      accommodationSyncService.deleteAccommodationRecordNoLongerInCpr(
+      accommodationSyncService.softDeleteAccommodationRecordNoLongerInCpr(
         accommodationToDelete,
       )
-      log.info("Deleted accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
       return InboxEventHandler.Result.PROCESSED
     }
-    log.info("No accommodation match for CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", cprAddressId)
     return InboxEventHandler.Result.IGNORED
   }
 }

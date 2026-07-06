@@ -33,4 +33,5 @@ data class UserEntity(
 enum class AuthSource(val source: String) {
   NOMIS("nomis"),
   DELIUS("delius"),
+  NONE("none"),
 }
