@@ -43,14 +43,13 @@ data class Cas1ReferralHistory(
     }
   }
 
-  @Suppress("ktlint:standard:enum-entry-name-case", "EnumNaming")
   enum class RequestForPlacementStatus(val value: String) {
-    requestUnsubmitted("request_unsubmitted"),
-    requestRejected("request_rejected"),
-    requestSubmitted("request_submitted"),
-    awaitingMatch("awaiting_match"),
-    requestWithdrawn("request_withdrawn"),
-    placementBooked("placement_booked"),
+    REQUEST_UNSUBMITTED("request_unsubmitted"),
+    REQUEST_REJECTED("request_rejected"),
+    REQUEST_SUBMITTED("request_submitted"),
+    AWAITING_MATCH("awaiting_match"),
+    REQUEST_WITHDRAWN("request_withdrawn"),
+    PLACEMENT_BOOKED("placement_booked"),
     ;
 
     companion object {
@@ -91,12 +90,11 @@ data class Cas3ReferralHistory(
   val uiUrl: String,
 ) : CasReferralHistory {
 
-  @Suppress("ktlint:standard:enum-entry-name-case", "EnumNaming")
   enum class ApplicationStatus(val value: String) {
-    rejected("rejected"),
-    inProgress("inProgress"),
-    submitted("submitted"),
-    requestedFurtherInformation("requestedFurtherInformation"),
+    REJECTED("rejected"),
+    IN_PROGRESS("inProgress"),
+    SUBMITTED("submitted"),
+    REQUESTED_FURTHER_INFORMATION("requestedFurtherInformation"),
     ;
 
     companion object {
@@ -106,15 +104,14 @@ data class Cas3ReferralHistory(
     }
   }
 
-  @Suppress("ktlint:standard:enum-entry-name-case", "EnumNaming")
   enum class Cas3BookingStatus(val value: String) {
-    arrived("arrived"),
-    notMinusArrived("notMinusArrived"),
-    departed("departed"),
-    cancelled("cancelled"),
-    provisional("provisional"),
-    confirmed("confirmed"),
-    closed("closed"),
+    ARRIVED("arrived"),
+    NOT_MINUS_ARRIVED("notMinusArrived"),
+    DEPARTED("departed"),
+    CANCELLED("cancelled"),
+    PROVISIONAL("provisional"),
+    CONFIRMED("confirmed"),
+    CLOSED("closed"),
     ;
 
     companion object {

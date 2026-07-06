@@ -108,10 +108,10 @@ class AccommodationReferralTransformerTest {
   @Test
   fun `all ApplicationStatus values map correctly`() {
     val expectations = mapOf(
-      ApplicationStatus.rejected to AccommodationReferralStatus.REJECTED,
-      ApplicationStatus.inProgress to AccommodationReferralStatus.PENDING,
-      ApplicationStatus.submitted to AccommodationReferralStatus.PENDING,
-      ApplicationStatus.requestedFurtherInformation to AccommodationReferralStatus.PENDING,
+      ApplicationStatus.REJECTED to AccommodationReferralStatus.REJECTED,
+      ApplicationStatus.IN_PROGRESS to AccommodationReferralStatus.PENDING,
+      ApplicationStatus.SUBMITTED to AccommodationReferralStatus.PENDING,
+      ApplicationStatus.REQUESTED_FURTHER_INFORMATION to AccommodationReferralStatus.PENDING,
     )
 
     ApplicationStatus.entries.forEach { status ->
@@ -129,8 +129,8 @@ class AccommodationReferralTransformerTest {
 
     @JvmStatic
     fun cas3StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(ApplicationStatus.rejected, AccommodationReferralStatus.REJECTED),
-      Arguments.of(ApplicationStatus.submitted, AccommodationReferralStatus.PENDING),
+      Arguments.of(ApplicationStatus.REJECTED, AccommodationReferralStatus.REJECTED),
+      Arguments.of(ApplicationStatus.SUBMITTED, AccommodationReferralStatus.PENDING),
     )
   }
 }

@@ -72,7 +72,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
-        applicationStatus = ApplicationStatus.inProgress,
+        applicationStatus = ApplicationStatus.IN_PROGRESS,
         referredBy = referredByUser,
       ),
     )
