@@ -8,7 +8,7 @@ mockk = "1.14.11"
 shedlock = "7.7.0"
 coroutines = "1.10.2"
 swagger-parser = "2.1.45"
-hmpps-gradle-spring-boot = "10.5.3"
+hmpps-gradle-spring-boot = "10.5.4"
 kotlin = "2.4.0"
 apache-commons-csv = "1.14.1"
 detekt = "2.0.0-alpha.5"
@@ -17,7 +17,7 @@ javers = "7.11.5"
 postgres = "42.7.11"
 app-insights-core = "2.6.4"
 micrometer-registry-azure = "1.17.0"
-sentry = "8.46.0"
+sentry = "8.47.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
