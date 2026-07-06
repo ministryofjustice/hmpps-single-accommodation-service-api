@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonValue
 import java.time.Instant
 import java.util.UUID
 
@@ -45,7 +44,7 @@ data class Cas1ReferralHistory(
   }
 
   @Suppress("ktlint:standard:enum-entry-name-case", "EnumNaming")
-  enum class RequestForPlacementStatus(@get:JsonValue val value: String) {
+  enum class RequestForPlacementStatus(val value: String) {
     requestUnsubmitted("request_unsubmitted"),
     requestRejected("request_rejected"),
     requestSubmitted("request_submitted"),
@@ -61,7 +60,7 @@ data class Cas1ReferralHistory(
     }
   }
 
-  enum class Cas1SpaceBookingStatus(@get:JsonValue val value: String) {
+  enum class Cas1SpaceBookingStatus(val value: String) {
     CANCELLED("cancelled"),
     NOT_ARRIVED("notArrived"),
     DEPARTED("departed"),
@@ -93,7 +92,7 @@ data class Cas3ReferralHistory(
 ) : CasReferralHistory {
 
   @Suppress("ktlint:standard:enum-entry-name-case", "EnumNaming")
-  enum class ApplicationStatus(@get:JsonValue val value: String) {
+  enum class ApplicationStatus(val value: String) {
     rejected("rejected"),
     inProgress("inProgress"),
     submitted("submitted"),
@@ -108,7 +107,7 @@ data class Cas3ReferralHistory(
   }
 
   @Suppress("ktlint:standard:enum-entry-name-case", "EnumNaming")
-  enum class Cas3BookingStatus(@get:JsonValue val value: String) {
+  enum class Cas3BookingStatus(val value: String) {
     arrived("arrived"),
     notMinusArrived("notMinusArrived"),
     departed("departed"),
