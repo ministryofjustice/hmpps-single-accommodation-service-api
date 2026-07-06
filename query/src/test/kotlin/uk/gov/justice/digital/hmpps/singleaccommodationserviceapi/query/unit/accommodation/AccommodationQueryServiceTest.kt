@@ -1195,73 +1195,197 @@ class AccommodationQueryServiceTest {
       assertThat(result[0].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[0].status!!.code).isEqualTo("PR")
     }
-  }
 
-  @Test
-  fun `getNextAccommodations get the next accommodations without cas3`() {
-    val addresses = listOf(
-      buildCanonicalAddress(
-        cprAddressId = UUID.randomUUID(),
-        noFixedAbode = false,
-        postcode = "SW1A 1AA",
-        thoroughfareName = "Some Street",
-        postTown = "London",
-        status = CanonicalAddressStatus(
-          code = AddressStatusCode.M.name,
-          description = AddressStatusCode.M.description,
-        ),
-        usages = listOf(
-          CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A01A.name,
-              description = AddressUsageCode.A01A.description,
+    @Test
+    fun `getNextAccommodations is empty when only proposed accommodation with end dates`() {
+      val addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          endDate = LocalDate.now().plusDays(1),
+          postTown = "London",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
-      ),
-      buildCanonicalAddress(
-        cprAddressId = UUID.randomUUID(),
-        noFixedAbode = false,
-        postcode = "GL53 8GH",
-        thoroughfareName = "",
-        postTown = "Cheltenham",
-        status = CanonicalAddressStatus(
-          code = AddressStatusCode.PR.name,
-          description = AddressStatusCode.PR.description,
-        ),
-        usages = listOf(
-          CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "GL53 8GH",
+          thoroughfareName = "",
+          postTown = "Cheltenham",
+          endDate = LocalDate.now(),
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
-      ),
-    )
-    val cas1Application = buildCas1Application(
-      placementStatus = Cas1PlacementStatus.UPCOMING,
-      premises = buildCas1PremisesSummary(
-        postcode = "SW1A 1AB",
-      ),
-    )
-    val cas3Application = buildCas3Application(
-      bookingStatus = Cas3BookingStatus.ARRIVED,
-      premises = buildCas3PremisesSummary(
-        postcode = "SW1A 1A4",
-      ),
-    )
+      )
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.ARRIVED,
+        premises = buildCas1PremisesSummary(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.ARRIVED,
+        premises = buildCas3PremisesSummary(
+          postcode = "SW1A 1A4",
+        ),
+      )
 
-    val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
-    assertThat(result.size).isEqualTo(2)
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
+      assertThat(result.size).isEqualTo(0)
+    }
 
-    assertThat(result[0].address.postcode).isEqualTo("SW1A 1AB")
-    assertThat(result[0].status!!.code).isEqualTo("PR")
+    @Test
+    fun `getNextAccommodations is empty when only proposed accommodation with no postcode`() {
+      val addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = null,
+          thoroughfareName = "",
+          postTown = "Cheltenham",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      )
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.ARRIVED,
+        premises = buildCas1PremisesSummary(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.ARRIVED,
+        premises = buildCas3PremisesSummary(
+          postcode = "SW1A 1A4",
+        ),
+      )
 
-    assertThat(result[1].address.postcode).isEqualTo("GL53 8GH")
-    assertThat(result[1].status!!.code).isEqualTo("PR")
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
+      assertThat(result.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `getNextAccommodations get the next accommodations without cas3`() {
+      val addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AA",
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A01A.name,
+                description = AddressUsageCode.A01A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "GL53 8GH",
+          thoroughfareName = "",
+          postTown = "Cheltenham",
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.PR.name,
+            description = AddressStatusCode.PR.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      )
+      val cas1Application = buildCas1Application(
+        placementStatus = Cas1PlacementStatus.UPCOMING,
+        premises = buildCas1PremisesSummary(
+          postcode = "SW1A 1AB",
+        ),
+      )
+      val cas3Application = buildCas3Application(
+        bookingStatus = Cas3BookingStatus.ARRIVED,
+        premises = buildCas3PremisesSummary(
+          postcode = "SW1A 1A4",
+        ),
+      )
+
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, cas1Application, cas3Application, null)
+      assertThat(result.size).isEqualTo(2)
+
+      assertThat(result[0].address.postcode).isEqualTo("SW1A 1AB")
+      assertThat(result[0].status!!.code).isEqualTo("PR")
+
+      assertThat(result[1].address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result[1].status!!.code).isEqualTo("PR")
+    }
   }
 
   @Nested
