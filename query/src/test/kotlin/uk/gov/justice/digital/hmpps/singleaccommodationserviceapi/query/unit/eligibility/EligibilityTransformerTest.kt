@@ -153,8 +153,8 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE"])
-  fun `does not surface the DTR submission when the DTR result is NOT STARTED or NOT ELIGIBLE`(serviceStatus: ServiceStatus) {
+  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE", "NOT_REQUIRED"])
+  fun `does not surface the DTR submission when the DTR result is NOT STARTED, NOT ELIGIBLE or NOT REQUIRED`(serviceStatus: ServiceStatus) {
     val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
@@ -178,8 +178,8 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE"])
-  fun `does not surface the CRS referral data when the CRS result is NOT STARTED or NOT ELIGIBLE`(serviceStatus: ServiceStatus) {
+  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE", "NOT_REQUIRED"])
+  fun `does not surface the CRS referral data when the CRS result is NOT STARTED, NOT ELIGIBLE or NOT REQUIRED`(serviceStatus: ServiceStatus) {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResult(
