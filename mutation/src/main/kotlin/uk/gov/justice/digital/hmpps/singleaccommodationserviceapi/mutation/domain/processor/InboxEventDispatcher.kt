@@ -145,6 +145,7 @@ class InboxEventDispatcher(
       sentryService.captureException(
         InboxEventDispatcherFailureException("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]", e),
       )
+      log.error("Error dispatching to handler [inboxEventId=${inboxEvent.id}]", e)
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
       progressTracker.eventFailed()
     }

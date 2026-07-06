@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -25,13 +24,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
-import java.time.Clock
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 @Service
 class AccommodationSyncService(
-  private val clock: Clock,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val accommodationStatusRepository: AccommodationStatusRepository,
@@ -49,14 +44,13 @@ class AccommodationSyncService(
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
     syncAccommodationRecordsWithCpr(case, cprAccommodations)
-    // deleteAccommodationRecordsNoLongerInCpr(case, cprAccommodations)
   }
 
   private fun syncAccommodationRecordsWithCpr(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
     cprAccommodations
       .forEach { cprAccommodation ->
         val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
-          cprAddressId = cprAccommodation.cprAddressId,
+          cprAddressId = cprAccommodation.cprAddressId!!,
         )
         if (!sasAccommodationRecordExists(sasProposedAccommodationRecord) && isProposedAccommodation(accommodation = cprAccommodation)) {
           insertDeliusOriginProposedAccommodationRecord(
@@ -214,26 +208,19 @@ class AccommodationSyncService(
     return true to null
   }
 
-  private fun deleteAccommodationRecordsNoLongerInCpr(
-    case: CaseEntity,
-    cprAccommodations: List<AccommodationDetailDto>,
+  @Transactional
+  fun deleteAccommodationRecordNoLongerInCpr(
+    accommodationToDelete: ProposedAccommodationEntity,
   ) {
-    val tenSecondsAgo = LocalDateTime.now(clock).minusSeconds(10).toInstant(ZoneOffset.UTC)
-    val cprAddressIds = cprAccommodations.mapNotNull { it.cprAddressId }.toSet()
-    val accommodationsToDelete = proposedAccommodationRepository.findByCaseId(case.id)
-      .filter { it.createdAt!!.isBefore(tenSecondsAgo) }
-      .filter { NextAccommodationStatus.YES == it.nextAccommodationStatus }
-      .filter { accommodation ->
-        accommodation.cprAddressId !in cprAddressIds
-      }
-    accommodationsToDelete.forEach { accommodation ->
-      accommodation.deleted = true
+    log.info("About to set delete flag to true CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
+    accommodationToDelete.deleted = true
+    log.info("About to get nDelius sync user CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
+    val deliusSystemUser = userService.getNationalDeliusSystemUser()
+    log.info("About to override audit user CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
+    AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
+      log.info("About to save deleted accommodation CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
+      proposedAccommodationRepository.save(accommodationToDelete)
     }
-    if (accommodationsToDelete.isNotEmpty()) {
-      val deliusSystemUser = userService.getNationalDeliusSystemUser()
-      AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
-        proposedAccommodationRepository.saveAll(accommodationsToDelete)
-      }
-    }
+    log.info("Successfully deleted accommodation CPR_PROBATION_ADDRESS_DELETED event [cprAddressId={}]", accommodationToDelete.cprAddressId)
   }
 }

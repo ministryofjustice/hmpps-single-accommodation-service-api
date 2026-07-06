@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
@@ -31,6 +32,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytore
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
 
 @ExtendWith(MockKExtension::class)
 class DutyToReferQueryServiceTest {
@@ -98,6 +100,58 @@ class DutyToReferQueryServiceTest {
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
       assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
+    }
+  }
+
+  @Nested
+  inner class GetDutyToReferHistory {
+
+    @Test
+    fun `should return empty list when no matching DTRs exist`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      every {
+        dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, any())
+      } returns emptyList()
+
+      assertThat(service.getDutyToReferHistory(caseEntity, crn)).isEmpty()
+    }
+
+    @Test
+    fun `should query for accepted, not accepted and withdrawn statuses only and map the results`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      val createdByUserId = UUID.randomUUID()
+      val localAuthorityAreaId = UUID.randomUUID()
+
+      val acceptedDtr = buildDutyToReferEntity(
+        caseId = caseId,
+        localAuthorityAreaId = localAuthorityAreaId,
+        createdByUserId = createdByUserId,
+        status = EntityDtrStatus.ACCEPTED,
+      )
+      val userEntity = buildUserEntity(id = createdByUserId)
+      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
+        id = localAuthorityAreaId,
+        name = "Test Local Authority",
+      )
+
+      val statusSlot = slot<List<EntityDtrStatus>>()
+      every {
+        dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, capture(statusSlot))
+      } returns listOf(acceptedDtr)
+      every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
+      every { localAuthorityAreaRepository.findAllById(setOf(localAuthorityAreaId)) } returns listOf(localAuthorityAreaEntity)
+
+      val result = service.getDutyToReferHistory(caseEntity, crn)
+
+      assertThat(statusSlot.captured).containsExactlyInAnyOrder(
+        EntityDtrStatus.ACCEPTED,
+        EntityDtrStatus.NOT_ACCEPTED,
+        EntityDtrStatus.WITHDRAWN,
+      )
+      assertThat(result).hasSize(1)
+      assertThat(result[0].status).isEqualTo(DtrStatus.ACCEPTED)
+      assertThat(result[0].crn).isEqualTo(crn)
+      assertThat(result[0].submission!!.localAuthority.localAuthorityAreaName).isEqualTo("Test Local Authority")
     }
   }
 

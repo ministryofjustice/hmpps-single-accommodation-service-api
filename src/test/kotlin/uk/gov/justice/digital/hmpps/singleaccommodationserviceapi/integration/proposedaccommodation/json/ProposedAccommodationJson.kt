@@ -7,6 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.LocalDate
 import java.util.UUID
 
+fun expectedGetProposedAccommodationsEmptyListResponse(): String = """
+{
+  "data": [
+  ]
+}
+""".trimIndent()
+
 fun expectedGetProposedAccommodationsResponse(
   firstId: UUID,
   firstAccommodationTypeEntity: AccommodationTypeEntity,
@@ -96,48 +103,6 @@ fun expectedGetProposedAccommodationsResponse(
 }
   """.trimIndent()
 }
-
-fun expectedGetProposedAccommodationsResponse(
-  firstId: UUID,
-  firstBuildingNumber: String,
-  firstAccommodationTypeEntity: AccommodationTypeEntity,
-  firstVerificationStatus: VerificationStatus,
-  firstNextAccommodationStatus: NextAccommodationStatus,
-  firstStartDate: LocalDate?,
-  firstCreatedAt: String,
-  firstCreatedBy: String,
-  crn: String,
-): String = """
-    {
-      "data": [{
-        "id" : "$firstId",
-        "crn":"$crn",
-        "name" : null,
-        "accommodationType": {
-          "code": "${firstAccommodationTypeEntity.code}",
-          "description": "${firstAccommodationTypeEntity.name}"
-        },
-        "verificationStatus" : "${firstVerificationStatus.name}",
-        "nextAccommodationStatus" : "${firstNextAccommodationStatus.name}",
-        "address" : {
-          "postcode" : "W1 8XX",
-          "subBuildingName" : null,
-          "buildingName" : null,
-          "buildingNumber" : "$firstBuildingNumber",
-          "thoroughfareName" : "Piccadilly Circus",
-          "dependentLocality" : null,
-          "postTown" : "London",
-          "county" : null,
-          "country" : null,
-          "uprn" : null
-        },
-        "startDate" : ${convertNullable(firstStartDate?.toString())},
-        "endDate" : null,
-        "createdBy":"$firstCreatedBy",
-        "createdAt" : "$firstCreatedAt"
-      }]
-    }
-""".trimIndent()
 
 fun expectedGetProposedAccommodationsResponse(
   expectedId: UUID,
