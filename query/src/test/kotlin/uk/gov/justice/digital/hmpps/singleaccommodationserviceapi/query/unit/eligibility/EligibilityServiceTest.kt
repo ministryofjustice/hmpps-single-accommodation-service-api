@@ -977,7 +977,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(dtrTree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_REQUIRED)
       assertThat(result.failureReasons).contains(FailureReason.HAS_NEXT_ACCOMMODATION)
     }
 
