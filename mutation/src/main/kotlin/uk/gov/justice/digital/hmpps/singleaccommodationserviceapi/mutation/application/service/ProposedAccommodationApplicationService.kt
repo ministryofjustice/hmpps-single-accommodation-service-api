@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationArrivalCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
@@ -30,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationTypeRequiredOnCreateException
 import java.time.Clock
 import java.time.Instant
 import java.util.UUID
@@ -53,11 +55,14 @@ class ProposedAccommodationApplicationService(
     currentAccommodation: AccommodationSummaryDto?,
     proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand,
   ): ProposedAccommodationDto {
+    if (proposedAccommodationDetailCommand.accommodationTypeCode == null) {
+      throw AccommodationTypeRequiredOnCreateException()
+    }
     val user = userService.authorizeAndRetrieveUser()
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
-    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
-      .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
+    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode!!)
+      .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode!!)
     val (aggregate, persistedRecord) = createProposedAccommodationAndPersistToDatabase(
       caseId = case.id,
       currentAccommodation = currentAccommodation,
@@ -137,12 +142,14 @@ class ProposedAccommodationApplicationService(
           uprn = aggregateSnapshot.address.uprn,
           comment = null,
           statusCode = AddressStatusCode.valueOf(aggregateSnapshot.accommodationStatus!!.code),
-          usages = listOf(
-            AddressUsage(
-              usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
-              isActive = true,
-            ),
-          ),
+          usages = aggregateSnapshot.accommodationType?.let {
+            listOf(
+              AddressUsage(
+                usageCode = AddressUsageCode.valueOf(aggregateSnapshot.accommodationType.code),
+                isActive = true,
+              ),
+            )
+          } ?: emptyList(),
           contacts = emptyList(),
         ),
       )
@@ -160,14 +167,21 @@ class ProposedAccommodationApplicationService(
     currentAccommodation: AccommodationSummaryDto?,
   ): ProposedAccommodationDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val currentAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)!!
+    val currentAccommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId
+      ?.let {
+        accommodationTypeRepository.findByIdOrNull(it)
+          .orThrowNotFound("id" to it)
+      }
     val currentAccommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
       ?.let {
         accommodationStatusRepository.findByIdOrNull(it)
           .orThrowNotFound("id" to it)
       }
-    val accommodationTypeEntityToUpdate = accommodationTypeRepository.findByCodeAndActiveIsTrue(proposedAccommodationDetailCommand.accommodationTypeCode)
-      .orThrowNotFound("code" to proposedAccommodationDetailCommand.accommodationTypeCode)
+    val accommodationTypeEntityToUpdate = proposedAccommodationDetailCommand.accommodationTypeCode
+      ?.let {
+        accommodationTypeRepository.findByCodeAndActiveIsTrue(it)
+          .orThrowNotFound("code" to it)
+      }
     val (aggregate, updatedRecord) = updateProposedAccommodationAndPersistToDatabase(
       proposedAccommodationEntity = proposedAccommodationEntity,
       currentAccommodationTypeEntity = currentAccommodationTypeEntity,
@@ -190,8 +204,8 @@ class ProposedAccommodationApplicationService(
 
   private fun updateProposedAccommodationAndPersistToDatabase(
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    currentAccommodationTypeEntity: AccommodationTypeEntity,
-    accommodationTypeEntityToUpdate: AccommodationTypeEntity,
+    currentAccommodationTypeEntity: AccommodationTypeEntity?,
+    accommodationTypeEntityToUpdate: AccommodationTypeEntity?,
     currentAccommodationStatusEntity: AccommodationStatusEntity?,
     proposedAccommodationDetailCommand: ProposedAccommodationDetailCommand,
     currentAccommodation: AccommodationSummaryDto?,
@@ -204,10 +218,12 @@ class ProposedAccommodationApplicationService(
     )
     aggregate.updateProposedAccommodation(
       newName = proposedAccommodationDetailCommand.name,
-      newAccommodationType = AccommodationTypeDto(
-        code = accommodationTypeEntityToUpdate.code,
-        description = accommodationTypeEntityToUpdate.name,
-      ),
+      newAccommodationType = accommodationTypeEntityToUpdate?.let {
+        AccommodationTypeDto(
+          code = accommodationTypeEntityToUpdate.code,
+          description = accommodationTypeEntityToUpdate.name,
+        )
+      },
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
@@ -249,8 +265,10 @@ class ProposedAccommodationApplicationService(
     currentAccommodation: AccommodationSummaryDto?,
   ) {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
-      .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId?.let {
+      accommodationTypeRepository.findByIdOrNull(it)
+        .orThrowNotFound("id" to it)
+    }
     val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
       ?.let {
         accommodationStatusRepository.findByIdOrNull(it)
@@ -263,6 +281,46 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     aggregate.addNote(note = noteCommand.note)
+    val merged = merge(
+      snapshot = aggregate.snapshot(),
+      proposedAccommodationEntity,
+      accommodationTypeEntity,
+      accommodationStatusEntity = getAccommodationStatusEntity(
+        preUpdateAccommodationStatusEntity = accommodationStatusEntity,
+        aggregate,
+      ),
+    )
+    proposedAccommodationRepository.save(merged)
+  }
+
+  @Transactional
+  fun arriveProposedAccommodation(
+    id: UUID,
+    crn: String,
+    proposedAccommodationArrivalCommand: ProposedAccommodationArrivalCommand,
+    currentAccommodation: AccommodationSummaryDto?,
+  ) {
+    val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn)
+      .orThrowNotFound("id" to id, "crn" to crn)
+    val accommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId?.let {
+      accommodationTypeRepository.findByIdOrNull(it)
+        .orThrowNotFound("id" to it)
+    }
+    val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId
+      ?.let {
+        accommodationStatusRepository.findByIdOrNull(it)
+          .orThrowNotFound("id" to it)
+      }
+    val aggregate = ProposedAccommodationMapper.toAggregate(
+      proposedAccommodationEntity,
+      accommodationTypeEntity = accommodationTypeEntity,
+      accommodationStatusEntity = accommodationStatusEntity,
+      currentAccommodation,
+    )
+    aggregate.arrivePersonAtProposedAccommodation(
+      arrivalDate = proposedAccommodationArrivalCommand.arrivalDate,
+    )
+    pullEventAndPersistToOutbox(aggregate)
     val merged = merge(
       snapshot = aggregate.snapshot(),
       proposedAccommodationEntity,

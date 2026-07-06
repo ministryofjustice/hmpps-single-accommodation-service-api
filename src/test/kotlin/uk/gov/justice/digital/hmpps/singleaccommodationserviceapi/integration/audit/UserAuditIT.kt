@@ -93,12 +93,14 @@ class UserAuditIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A02.name,
-              description = AddressUsageCode.A02.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),

@@ -19,12 +19,12 @@ class ProposedAccommodationQueryService(
     val proposedAccommodations = proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn)
     return if (proposedAccommodations.isNotEmpty()) {
       val deduplicatedUserIds = proposedAccommodations.mapNotNull { it.createdByUserId }.toSet()
-      val accommodationTypeIds = proposedAccommodations.map { it.accommodationTypeId }.toSet()
+      val accommodationTypeIds = proposedAccommodations.mapNotNull { it.accommodationTypeId }.toSet()
       val createdByUsers = userRepository.findAllById(deduplicatedUserIds)
       val accommodationTypes = accommodationTypeRepository.findAllById(accommodationTypeIds)
       proposedAccommodations.map { pa ->
         val createdByUser = createdByUsers.first { it.id == pa.createdByUserId }!!
-        val accommodationType = accommodationTypes.first { it.id == pa.accommodationTypeId }!!
+        val accommodationType = accommodationTypes.firstOrNull { it.id == pa.accommodationTypeId }
         ProposedAccommodationTransformer.toAccommodationDetail(pa, accommodationType, crn, createdByUser.displayName())
       }
     } else {
@@ -35,8 +35,10 @@ class ProposedAccommodationQueryService(
   fun getProposedAccommodation(crn: String, id: UUID): ProposedAccommodationDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userRepository.findByIdOrNull(proposedAccommodationEntity.createdByUserId!!)
-    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
-      .orThrowNotFound("accommodationTypeId" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId?.let {
+      accommodationTypeRepository.findByIdOrNull(it)
+        .orThrowNotFound("accommodationTypeId" to it)
+    }
     return ProposedAccommodationTransformer.toAccommodationDetail(proposedAccommodationEntity, accommodationTypeEntity, crn, createdByUser!!.displayName())
   }
 }

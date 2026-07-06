@@ -208,12 +208,14 @@ class AccommodationTransformerTest {
         code = AddressStatusCode.M.name,
         description = AddressStatusCode.M.description,
       ),
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(
-          code = AddressUsageCode.A01A.name,
-          description = AddressUsageCode.A01A.description,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A01A.name,
+            description = AddressUsageCode.A01A.description,
+          ),
+          isActive = true,
         ),
-        isActive = true,
       ),
       uprn = "100012345678",
     )
@@ -382,7 +384,6 @@ class AccommodationTransformerTest {
       address = address,
     )
     assertThat(result.status).isNull()
-    assertThat(result.type).isNull()
   }
 
   @Test
@@ -401,9 +402,11 @@ class AccommodationTransformerTest {
   @Test
   fun `should return null type when no active usage`() {
     val address = buildCanonicalAddress(
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode("A01A", "desc"),
-        isActive = false,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode("A01A", "desc"),
+          isActive = false,
+        ),
       ),
     )
 
@@ -415,9 +418,11 @@ class AccommodationTransformerTest {
   @Test
   fun `should return null type when usage code is null`() {
     val address = buildCanonicalAddress(
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(null, "desc"),
-        isActive = true,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(null, "desc"),
+          isActive = true,
+        ),
       ),
     )
 
@@ -563,12 +568,14 @@ class AccommodationTransformerTest {
           code = AddressStatusCode.P.name,
           description = AddressStatusCode.P.description,
         ),
-        usage = CanonicalAddressUsage(
-          usageCode = CanonicalAddressUsageCode(
-            code = AddressUsageCode.A01A.name,
-            description = AddressUsageCode.A01A.description,
+        usages = listOf(
+          CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A01A.name,
+              description = AddressUsageCode.A01A.description,
+            ),
+            isActive = true,
           ),
-          isActive = true,
         ),
         uprn = "100012345678",
       )
@@ -608,12 +615,14 @@ class AccommodationTransformerTest {
           code = null,
           description = null,
         ),
-        usage = CanonicalAddressUsage(
-          usageCode = CanonicalAddressUsageCode(
-            code = AddressUsageCode.A01A.name,
-            description = AddressUsageCode.A01A.description,
+        usages = listOf(
+          CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = AddressUsageCode.A01A.name,
+              description = AddressUsageCode.A01A.description,
+            ),
+            isActive = false,
           ),
-          isActive = false,
         ),
       )
 

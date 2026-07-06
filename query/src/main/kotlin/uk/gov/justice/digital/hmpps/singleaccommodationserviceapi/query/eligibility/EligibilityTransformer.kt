@@ -106,6 +106,11 @@ object EligibilityTransformer {
     failureReasons = failureReasons,
   )
 
+  fun toNotRequiredServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
+    serviceStatus = ServiceStatus.NOT_REQUIRED,
+    failureReasons = failureReasons,
+  )
+
   // Helper function to determine if referral data (DTR/CRS) should be surfaced in EligibilityDto
   private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus != ServiceStatus.NOT_STARTED && result.serviceStatus != ServiceStatus.NOT_ELIGIBLE
 

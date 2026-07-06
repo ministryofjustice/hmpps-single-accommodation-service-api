@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
@@ -10,14 +11,20 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import java.time.Instant
 import java.util.UUID
 
+@ConditionalOnProperty(
+  name = ["hmpps.sqs.enabled"],
+  havingValue = "true",
+)
 @Profile(value = ["local", "dev", "test"])
 @Component
 class HmppsDomainEventListener(
   private val jsonMapper: JsonMapper,
   private val inboxEventService: InboxEventService,
+  private val sentryService: SentryService,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -40,6 +47,7 @@ class HmppsDomainEventListener(
       )
     } catch (e: Exception) {
       log.error("Exception caught in HmppsDomainEventListener", e)
+      sentryService.captureException(e)
       throw e
     }
   }

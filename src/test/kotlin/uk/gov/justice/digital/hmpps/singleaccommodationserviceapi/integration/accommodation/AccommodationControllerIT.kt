@@ -100,12 +100,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.P.name,
             description = AddressStatusCode.P.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -121,12 +123,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -162,12 +166,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.P.name,
             description = AddressStatusCode.P.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -182,12 +188,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -234,12 +242,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.P.name,
             description = AddressStatusCode.P.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -254,12 +264,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -316,12 +328,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.P.name,
             description = AddressStatusCode.P.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -336,12 +350,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -474,12 +490,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
         code = AddressStatusCode.PR.name,
         description = AddressStatusCode.PR.description,
       ),
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(
-          code = AddressUsageCode.A07A.name,
-          description = AddressUsageCode.A07A.description,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A07A.name,
+            description = AddressUsageCode.A07A.description,
+          ),
+          isActive = true,
         ),
-        isActive = true,
       ),
     )
     val corePersonRecord = buildCorePersonRecord(
@@ -498,12 +516,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -540,8 +560,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetNextAccommodationsResponse(
             crn = crn,
-            prStartDate = nextAddress.startDate.toString(),
-            prEndDate = nextAddress.endDate.toString(),
+            prStartDate = cas1Application.premises!!.startDate.toString(),
+            prEndDate = cas1Application.premises!!.endDate.toString(),
           ),
         )
       }

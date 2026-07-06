@@ -5,7 +5,11 @@
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
-      "fileMatch": ["^\\.github/workflows/.*\\.yml$"]
+      "matchFileNames": ["**/.github/workflows/**/*.ya?ml"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": false
     }
-  ]
+  ],
+  "platformCommit": "enabled",
+  "dependencyDashboard": true
 }

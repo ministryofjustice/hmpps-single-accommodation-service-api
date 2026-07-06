@@ -8,9 +8,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationDeletedDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationPersonArrivedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.AccommodationUpdatedDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationPersonCannotArriveException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
@@ -66,7 +68,7 @@ class ProposedAccommodationAggregate private constructor(
       currentAccommodation: AccommodationSummaryDto?,
       cprAddressId: UUID?,
       name: String?,
-      accommodationType: AccommodationTypeDto,
+      accommodationType: AccommodationTypeDto?,
       accommodationStatus: AccommodationStatusDto?,
       verificationStatus: VerificationStatus,
       nextAccommodationStatus: NextAccommodationStatus,
@@ -98,7 +100,7 @@ class ProposedAccommodationAggregate private constructor(
 
   fun updateProposedAccommodation(
     newName: String?,
-    newAccommodationType: AccommodationTypeDto,
+    newAccommodationType: AccommodationTypeDto?,
     newVerificationStatus: VerificationStatus,
     newNextAccommodationStatus: NextAccommodationStatus,
     newAddress: AccommodationAddressDetails,
@@ -162,7 +164,7 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun syncProposedAccommodation(
-    newAccommodationType: AccommodationTypeDto,
+    newAccommodationType: AccommodationTypeDto?,
     newAccommodationStatus: AccommodationStatusDto?,
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
@@ -184,6 +186,23 @@ class ProposedAccommodationAggregate private constructor(
       verificationStatus = VerificationStatus.PASSED
       nextAccommodationStatus = NextAccommodationStatus.YES
     }
+  }
+
+  fun arrivePersonAtProposedAccommodation(arrivalDate: LocalDate) {
+    if (!canPersonArrive()) {
+      throw AccommodationPersonCannotArriveException()
+    }
+    startDate = arrivalDate
+    endDate = null
+    accommodationStatus = AccommodationStatusDto(
+      code = AddressStatusCode.M.name,
+      description = AddressStatusCode.M.description,
+    )
+    typeVerified = true
+    domainEvents += AccommodationPersonArrivedDomainEvent(
+      aggregateId = id,
+      cprAddressId = cprAddressId!!,
+    )
   }
 
   fun addNote(note: String) {
@@ -211,6 +230,17 @@ class ProposedAccommodationAggregate private constructor(
     if (nextAccommodationStatus == NextAccommodationStatus.YES && verificationStatus != VerificationStatus.PASSED) {
       throw AccommodationVerificationNotPassedException()
     }
+  }
+
+  private fun canPersonArrive(): Boolean {
+    if (
+      isRegisteredWithCpr() &&
+      NextAccommodationStatus.YES == nextAccommodationStatus &&
+      (AddressStatusCode.PR.name == accommodationStatus?.code || AddressStatusCode.PR1.name == accommodationStatus?.code)
+    ) {
+      return true
+    }
+    return false
   }
 
   fun pullDomainEvents(): List<SingleAccommodationServiceDomainEvent> = domainEvents.toList().also { domainEvents.clear() }
@@ -247,8 +277,8 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
-    newAccommodationType: AccommodationTypeDto,
-  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate || accommodationType?.code != newAccommodationType.code
+    newAccommodationType: AccommodationTypeDto?,
+  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate || accommodationType?.code != newAccommodationType?.code
 
   private fun shouldDeleteFromCpr(
     previousNextAccommodationStatus: NextAccommodationStatus?,
@@ -284,7 +314,7 @@ class ProposedAccommodationAggregate private constructor(
     cprAddressId,
     accommodationSource!!,
     name,
-    accommodationType!!,
+    accommodationType,
     accommodationStatus,
     verificationStatus!!,
     nextAccommodationStatus!!,
@@ -302,7 +332,7 @@ class ProposedAccommodationAggregate private constructor(
     val cprAddressId: UUID?,
     val accommodationSource: AccommodationSource,
     val name: String?,
-    val accommodationType: AccommodationTypeDto,
+    val accommodationType: AccommodationTypeDto?,
     val accommodationStatus: AccommodationStatusDto?,
     val verificationStatus: VerificationStatus,
     val nextAccommodationStatus: NextAccommodationStatus,

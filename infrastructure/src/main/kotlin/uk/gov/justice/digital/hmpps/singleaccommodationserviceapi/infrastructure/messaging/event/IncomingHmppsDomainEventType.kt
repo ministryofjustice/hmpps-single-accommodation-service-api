@@ -4,9 +4,13 @@ enum class IncomingHmppsDomainEventType(
   val typeName: String,
   val typeDescription: String,
 ) {
-  TIER_CALCULATION_COMPLETE(
-    "tier.calculation.complete",
-    "Tier calculation complete from Tier service",
+  CPR_PROBATION_ADDRESS_DELETED(
+    "core-person-record.probation.address.deleted",
+    "A probation address has been deleted for a person",
+  ),
+  TIER_CALCULATION_CHANGED(
+    "tier.calculation.changed",
+    "Tier calculation resulted in an updated tier value",
   ),
   CASE_ALLOCATED(
     "person.community.manager.allocated",

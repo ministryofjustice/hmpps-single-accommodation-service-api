@@ -55,6 +55,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAddressesResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedSasAddressUpdatedDomainEventJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationArrivalRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAccommodationNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
@@ -65,6 +66,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.String
@@ -135,12 +137,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A02.name,
-              description = AddressUsageCode.A02.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -354,6 +358,33 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should receive Bad Request when create proposed-accommodation with null accommodation-type`() {
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAddressesRequestBody(
+          accommodationTypeCode = null,
+          verificationStatus = VerificationStatus.PASSED.name,
+          nextAccommodationStatus = NextAccommodationStatus.YES.name,
+          subBuildingName = "test subBuildingName",
+          buildingName = "test buildingName",
+          buildingNumber = "test buildingNumber",
+          thoroughfareName = "test thoroughfareName",
+          dependentLocality = "test dependentLocality",
+          postTown = "test postTown",
+          county = "test county",
+          country = "test country",
+          postcode = "test postcode",
+          uprn = "test uprn",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isBadRequest
+  }
+
+  @Test
   fun `should receive 5xx Error for create proposed-accommodation when current accommodation has 5xx upstream failure`() {
     val currentAccommodation5xxWireMockedCrn = "X123"
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn = currentAccommodation5xxWireMockedCrn)
@@ -511,8 +542,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       existingAccommodationTypeCode = AddressUsageCode.A07B,
       newAccommodationTypeCode = AddressUsageCode.A07B,
     )
-    shouldPublishUpdatedEvent(
+    shouldPublishExpectedEvent(
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
+      domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
     )
   }
 
@@ -524,7 +556,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       existingAccommodationTypeCode = AddressUsageCode.A07B,
       newAccommodationTypeCode = AddressUsageCode.A07A,
     )
-    shouldPublishUpdatedEvent(proposedAccommodationId = proposedAccommodationPersistedResult.id)
+    shouldPublishExpectedEvent(
+      proposedAccommodationId = proposedAccommodationPersistedResult.id,
+      domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
+    )
   }
 
   private fun shouldUpdateConfirmedProposedAccommodation(
@@ -616,11 +651,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     return proposedAccommodationPersistedResult
   }
 
-  private fun shouldPublishUpdatedEvent(proposedAccommodationId: UUID) {
+  private fun shouldPublishExpectedEvent(
+    proposedAccommodationId: UUID,
+    domainEventType: SingleAccommodationServiceDomainEventType,
+  ) {
     val detailUrl = "http://api-host/proposed-accommodations/$proposedAccommodationId"
     assertMessageReceived(
-      typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeName,
-      eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED.typeDescription,
+      typeName = domainEventType.typeName,
+      eventDescription = domainEventType.typeDescription,
       detailUrl = detailUrl,
       cprAddressId = cprAddressId,
     )
@@ -628,7 +666,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThatOutboxIsAsExpected(
       proposedAccommodationId = proposedAccommodationId,
       cprAddressId = cprAddressId,
-      eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
+      eventType = domainEventType,
     )
   }
 
@@ -1129,6 +1167,144 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should arrive a 'Confirmed' proposed-accommodation and publish a sas-address-person-arrived event and transition database record appropriately`() {
+    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
+    val address = buildCanonicalAddress(
+      subBuildingName = "test sub building name",
+      buildingName = "test building name",
+      buildingNumber = "4",
+      thoroughfareName = "test thoroughfare",
+      dependentLocality = "test dependent locality",
+      postTown = "test post town",
+      county = "test county",
+      country = null,
+      postcode = "test postcode",
+      uprn = "test uprn",
+    )
+    val existingEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        cprAddressId = cprAddressId,
+        typeVerified = false,
+        startDate = LocalDate.now().minusDays(20),
+        endDate = LocalDate.now().minusDays(10),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
+        name = null,
+        subBuildingName = address.subBuildingName,
+        buildingName = address.buildingName,
+        buildingNumber = address.buildingNumber,
+        throughfareName = address.thoroughfareName,
+        dependentLocality = address.dependentLocality,
+        postTown = address.postTown,
+        county = address.county,
+        country = null,
+        postcode = address.postcode,
+        uprn = address.uprn,
+        accommodationTypeEntity = accommodationTypeEntity,
+        caseId = caseEntity.id,
+      ),
+    )
+
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationArrivalRequestBody(
+          arrivalDate = fixedInstant.toString(),
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .returnResult()
+
+    val proposedAccommodationUpdatedResult = proposedAccommodationRepository.findAll().first()
+
+    // assert that all fields have been transitioned to reflect this is not the "Main" current accommodation
+    assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.M.name)!!.id)
+    assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.ofInstant(fixedInstant, ZoneId.systemDefault()))
+    assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
+    assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
+
+    // assert that we retain original values for all other fields
+    assertThat(proposedAccommodationUpdatedResult.name).isNull()
+    assertThat(proposedAccommodationUpdatedResult.cprAddressId).isEqualTo(cprAddressId)
+    assertThat(proposedAccommodationUpdatedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
+    assertThat(proposedAccommodationUpdatedResult.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
+    assertThat(proposedAccommodationUpdatedResult.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
+    assertThat(proposedAccommodationUpdatedResult.nextAccommodationStatus).isEqualTo(EntityNextAccommodationStatus.YES)
+    assertThat(proposedAccommodationUpdatedResult.noFixedAbode).isFalse()
+    assertThat(proposedAccommodationUpdatedResult.postcode).isEqualTo(address.postcode)
+    assertThat(proposedAccommodationUpdatedResult.subBuildingName).isEqualTo(address.subBuildingName)
+    assertThat(proposedAccommodationUpdatedResult.buildingName).isEqualTo(address.buildingName)
+    assertThat(proposedAccommodationUpdatedResult.buildingNumber).isEqualTo(address.buildingNumber)
+    assertThat(proposedAccommodationUpdatedResult.throughfareName).isEqualTo(address.thoroughfareName)
+    assertThat(proposedAccommodationUpdatedResult.dependentLocality).isEqualTo(address.dependentLocality)
+    assertThat(proposedAccommodationUpdatedResult.postTown).isEqualTo(address.postTown)
+    assertThat(proposedAccommodationUpdatedResult.county).isEqualTo(address.county)
+    assertThat(proposedAccommodationUpdatedResult.uprn).isEqualTo(address.uprn)
+
+    shouldPublishExpectedEvent(
+      proposedAccommodationId = proposedAccommodationUpdatedResult.id,
+      domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED,
+    )
+  }
+
+  @Test
+  fun `should NOT arrive an 'Unconfirmed' proposed-accommodation and NOT publish a sas-address-person-arrived event`() {
+    val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
+    val address = buildCanonicalAddress(
+      subBuildingName = "test sub building name",
+      buildingName = "test building name",
+      buildingNumber = "4",
+      thoroughfareName = "test thoroughfare",
+      dependentLocality = "test dependent locality",
+      postTown = "test post town",
+      county = "test county",
+      country = null,
+      postcode = "test postcode",
+      uprn = "test uprn",
+    )
+    val existingEntity = proposedAccommodationRepository.save(
+      buildProposedAccommodationEntity(
+        cprAddressId = cprAddressId,
+        typeVerified = false,
+        startDate = LocalDate.now().minusDays(20),
+        endDate = LocalDate.now().minusDays(10),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = null,
+        name = null,
+        subBuildingName = address.subBuildingName,
+        buildingName = address.buildingName,
+        buildingNumber = address.buildingNumber,
+        throughfareName = address.thoroughfareName,
+        dependentLocality = address.dependentLocality,
+        postTown = address.postTown,
+        county = address.county,
+        country = null,
+        postcode = address.postcode,
+        uprn = address.uprn,
+        accommodationTypeEntity = accommodationTypeEntity,
+        caseId = caseEntity.id,
+      ),
+    )
+
+    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        proposedAccommodationArrivalRequestBody(
+          arrivalDate = fixedInstant.toString(),
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isBadRequest
+
+    assertThat(outboxEventRepository.findAll()).isEmpty()
   }
 
   private fun getCommitTimesAsc(createdProposedAccommodationId: UUID): List<Instant> {

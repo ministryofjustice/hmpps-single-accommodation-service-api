@@ -71,7 +71,7 @@ class DeeplinkResolverTest {
         buildDomainData(cas3Application = buildCas3Application(id = referralId)),
       )
 
-      assertThat(result.url).isEqualTo("$cas3UiUrl/referrals/$referralId")
+      assertThat(result.url).isEqualTo("$cas3UiUrl/referrals/$referralId/full")
     }
 
     @Test
