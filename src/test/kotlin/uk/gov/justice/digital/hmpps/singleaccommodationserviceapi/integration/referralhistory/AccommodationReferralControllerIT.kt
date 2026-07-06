@@ -64,7 +64,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     val cas1Response: List<Cas1ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-03-01T00:00:00Z"),
-        applicationStatus = ApprovedPremisesApplicationStatus.ASSESMENT_IN_PROGRESS,
+        applicationStatus = ApprovedPremisesApplicationStatus.ASSESSMENT_IN_PROGRESS,
         referredBy = referredByUser,
       ),
     )
@@ -72,7 +72,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
-        applicationStatus = ApplicationStatus.IN_PROGRESS,
+        applicationStatus = ApplicationStatus.inProgress,
         referredBy = referredByUser,
       ),
     )

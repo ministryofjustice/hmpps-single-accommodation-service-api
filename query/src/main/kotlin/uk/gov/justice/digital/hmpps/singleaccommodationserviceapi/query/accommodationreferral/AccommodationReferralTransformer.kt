@@ -114,7 +114,7 @@ object AccommodationReferralTransformer {
   }
 
   fun toCasReferralStatus(status: Cas3ReferralHistory.ApplicationStatus): AccommodationReferralStatus = when (status) {
-    Cas3ReferralHistory.ApplicationStatus.REJECTED -> AccommodationReferralStatus.REJECTED
+    Cas3ReferralHistory.ApplicationStatus.rejected -> AccommodationReferralStatus.REJECTED
     else -> AccommodationReferralStatus.PENDING
   }
 

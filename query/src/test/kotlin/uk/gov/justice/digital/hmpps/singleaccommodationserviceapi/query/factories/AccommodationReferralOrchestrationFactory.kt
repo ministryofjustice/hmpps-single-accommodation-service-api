@@ -20,12 +20,12 @@ fun buildAccommodationReferralOrchestrationDto(
   ),
   cas3Referrals: List<Cas3ReferralHistory> = listOf(
     buildReferralHistory(
-      Cas3ReferralHistory.ApplicationStatus.SUBMITTED,
+      Cas3ReferralHistory.ApplicationStatus.submitted,
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
       placementAddress = "Some address",
-      bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.CONFIRMED,
+      bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.confirmed,
     ),
   ),
 ) = AccommodationReferralOrchestrationDto(
