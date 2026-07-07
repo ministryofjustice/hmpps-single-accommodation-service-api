@@ -3,10 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
@@ -17,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -35,6 +39,19 @@ class AccommodationQueryService(
   private val caseRepository: CaseRepository,
 ) {
   private val excludedAddressStatuses = setOf(AddressStatusCode.PR.name, AddressStatusCode.PR1.name)
+  private val transientAccommodationTypeCodes: Set<String> by lazy {
+    accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
+      AccommodationSettledType.TRANSIENT,
+    ).map { it.code }.toSet()
+  }
+  private val settledAccommodationTypes: Set<String> by lazy {
+    accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
+      AccommodationSettledType.SETTLED,
+    ).map { it.code }.toSet()
+  }
+  private val homelessAccommodationTypeCodes: Set<String> by lazy {
+    accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().map { it.code }.toSet()
+  }
 
   private fun getPrisonNumber(crn: String): String? = caseRepository.findByCrn(crn)?.latestPrisonNumber()
 
@@ -64,7 +81,7 @@ class AccommodationQueryService(
     }
   }
 
-  fun getNextAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
+  private fun getAccommodationSummaries(crn: String): Pair<AccommodationSummariesDto, List<UpstreamFailure>> {
     val prisonNumber = getPrisonNumber(crn)
     val orchestrationResult = accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber)
     val currentAccommodation = getCurrentAccommodation(
@@ -75,17 +92,33 @@ class AccommodationQueryService(
       cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
     )
 
-    val nextAccommodations = getNextAccommodations(
+    val nextAccommodation = getNextAccommodations(
       crn,
       addresses = orchestrationResult.data.cpr?.addresses,
       cas1Application = orchestrationResult.data.cas1Application,
       cas3Application = orchestrationResult.data.cas3Application,
       currentAccommodation = currentAccommodation,
-    )
+    ).firstOrNull()
 
+    val caseAccommodationStatus =
+      calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation)
+    return AccommodationSummariesDto(
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      caseAccommodationStatus = caseAccommodationStatus,
+    ) to orchestrationResult.upstreamFailures
+  }
+
+  fun getAccommodationSummariesResponse(crn: String): ApiResponseDto<AccommodationSummariesDto> {
+    val (accommodationSummaries, upstreamFailures) = getAccommodationSummaries(crn)
+    return toApiResponseDto(data = accommodationSummaries, upstreamFailures = upstreamFailures)
+  }
+
+  fun getNextAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
+    val (accommodationSummaries, upstreamFailures) = getAccommodationSummaries(crn)
     return toApiResponseDto(
-      data = nextAccommodations.firstOrNull(),
-      upstreamFailures = orchestrationResult.upstreamFailures,
+      data = accommodationSummaries.nextAccommodation,
+      upstreamFailures = upstreamFailures,
     )
   }
 
@@ -183,5 +216,24 @@ class AccommodationQueryService(
       accommodationTypeEntity = accommodationTypeEntity,
       accommodationStatusEntity = accommodationStatusEntity,
     )
+  }
+
+  private fun calculateCaseAccommodationStatus(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ): CaseAccommodationStatus? = when {
+    currentAccommodation == null ||
+      currentAccommodation.type?.code in homelessAccommodationTypeCodes -> CaseAccommodationStatus.NO_FIXED_ABODE
+
+    nextAccommodation == null ||
+      nextAccommodation.type?.code in homelessAccommodationTypeCodes -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+
+    nextAccommodation.type?.code in settledAccommodationTypes -> CaseAccommodationStatus.SETTLED
+
+    nextAccommodation.type?.code in transientAccommodationTypeCodes -> CaseAccommodationStatus.TRANSIENT
+
+    else -> {
+      null
+    }
   }
 }

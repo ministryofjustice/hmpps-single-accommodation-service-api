@@ -7,6 +7,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -40,6 +41,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -783,6 +785,21 @@ class AccommodationQueryServiceTest {
 
   @Nested
   inner class GetNextAccommodation {
+    @BeforeEach
+    fun setup() {
+      every { accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue() } returns listOf(
+        buildAccommodationTypeEntity(isHomeless = true),
+      )
+
+      every { accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED) } returns listOf(
+        buildAccommodationTypeEntity(settledType = AccommodationSettledType.SETTLED),
+      )
+
+      every { accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT) } returns listOf(
+        buildAccommodationTypeEntity(settledType = AccommodationSettledType.TRANSIENT),
+      )
+    }
+
     @Test
     fun `getNextAccommodation should orchestrate calls and get the next accommodation when current accommodation is prison`() {
       val caseEntity = buildCaseEntity {

@@ -3,6 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 import java.time.LocalDate
 import java.util.UUID
 
+data class AccommodationSummariesDto(
+  val caseAccommodationStatus: CaseAccommodationStatus? = null,
+  val currentAccommodation: AccommodationSummaryDto?,
+  val nextAccommodation: AccommodationSummaryDto?,
+)
+
 data class AccommodationSummaryDto(
   val crn: String,
   val startDate: LocalDate? = null,
