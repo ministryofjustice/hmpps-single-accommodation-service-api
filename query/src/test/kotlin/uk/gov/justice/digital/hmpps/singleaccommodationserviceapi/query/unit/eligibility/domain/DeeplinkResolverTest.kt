@@ -38,6 +38,18 @@ class DeeplinkResolverTest {
     }
 
     @Test
+    fun `CAS1_START_APPLICATION resolves to a null url when the url templates fetch fails`() {
+      every { approvedPremisesCachingService.getCas1UrlTemplates() } throws RuntimeException("boom")
+
+      val result = resolver.resolve(
+        buildServiceResult(linkType = LinkType.CAS1_START_APPLICATION),
+        buildDomainData(),
+      )
+
+      assertThat(result.url).isNull()
+    }
+
+    @Test
     fun `CAS1_VIEW_APPLICATION resolves to the application uiUrl`() {
       val cas1Application = buildCas1Application()
       val result = resolver.resolve(
@@ -69,6 +81,18 @@ class DeeplinkResolverTest {
       )
 
       assertThat(result.url).isEqualTo(cas3ReferralStartUrl)
+    }
+
+    @Test
+    fun `CAS3_START_REFERRAL resolves to a null url when the url templates fetch fails`() {
+      every { approvedPremisesCachingService.getCas3UrlTemplates() } throws RuntimeException("boom")
+
+      val result = resolver.resolve(
+        buildServiceResult(linkType = LinkType.CAS3_START_REFERRAL),
+        buildDomainData(),
+      )
+
+      assertThat(result.url).isNull()
     }
 
     @Test
