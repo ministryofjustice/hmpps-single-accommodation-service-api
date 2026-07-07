@@ -25,22 +25,22 @@ data class Cas1ReferralHistory(
   enum class ApprovedPremisesApplicationStatus(val value: String) {
     STARTED("started"),
     REJECTED("rejected"),
-    AWAITING_ASSESMENT("awaitingAssesment"),
+    AWAITING_ASSESSMENT("awaitingAssesment"),
     UNALLOCATED_ASSESMENT("unallocatedAssesment"),
-    ASSESMENT_IN_PROGRESS("assesmentInProgress"),
+    ASSESSMENT_IN_PROGRESS("assesmentInProgress"),
     AWAITING_PLACEMENT("awaitingPlacement"),
+    REQUESTED_FURTHER_INFORMATION("requestedFurtherInformation"),
+    PENDING_PLACEMENT_REQUEST("pendingPlacementRequest"),
     PLACEMENT_ALLOCATED("placementAllocated"),
     INAPPLICABLE("inapplicable"),
     WITHDRAWN("withdrawn"),
-    REQUESTED_FURTHER_INFORMATION("requestedFurtherInformation"),
-    PENDING_PLACEMENT_REQUEST("pendingPlacementRequest"),
     EXPIRED("expired"),
     ;
 
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): ApprovedPremisesApplicationStatus = entries.first { it.name == value }
+      fun forValue(value: String): ApprovedPremisesApplicationStatus = entries.firstOrNull { it.name == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 
@@ -56,7 +56,7 @@ data class Cas1ReferralHistory(
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): RequestForPlacementStatus = entries.first { it.value == value }
+      fun forValue(value: String): RequestForPlacementStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 
@@ -71,7 +71,7 @@ data class Cas1ReferralHistory(
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): Cas1SpaceBookingStatus = entries.first { it.value == value }
+      fun forValue(value: String): Cas1SpaceBookingStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 }
@@ -90,6 +90,7 @@ data class Cas3ReferralHistory(
   val bookingStatus: Cas3BookingStatus?,
   val uiUrl: String,
 ) : CasReferralHistory {
+
   enum class ApplicationStatus(@get:JsonValue val value: String) {
     REJECTED("rejected"),
     IN_PROGRESS("inProgress"),
@@ -100,7 +101,7 @@ data class Cas3ReferralHistory(
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): ApplicationStatus = entries.first { it.value == value }
+      fun forValue(value: String): ApplicationStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 
@@ -117,7 +118,7 @@ data class Cas3ReferralHistory(
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): Cas3BookingStatus = entries.first { it.value == value }
+      fun forValue(value: String): Cas3BookingStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 }
