@@ -7,6 +7,7 @@ data class AccommodationReferralDto(
   val id: UUID,
   val type: AccommodationService,
   val status: AccommodationReferralStatus,
+  val assessmentStatus: String?,
   val requestForPlacementStatus: String?,
   val date: Instant,
   val referralRejectionReason: String?,

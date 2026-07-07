@@ -21,6 +21,7 @@ fun buildAccommodationReferralOrchestrationDto(
   cas3Referrals: List<Cas3ReferralHistory> = listOf(
     buildReferralHistory(
       Cas3ReferralHistory.ApplicationStatus.SUBMITTED,
+      Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus.READY_TO_PLACE,
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
