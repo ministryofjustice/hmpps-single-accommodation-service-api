@@ -5,12 +5,31 @@ import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
 object ApprovedPremisesStubs {
+  const val CAS1_APPLICATION_START_URL = "https://cas1-ui/applications/start"
+  const val CAS3_REFERRAL_START_URL = "https://cas3-ui/referrals/start"
+
+  fun getCas1UrlTemplatesOKResponse(cas1ApplicationStart: String = CAS1_APPLICATION_START_URL) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas1/external/url-templates"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(Cas1UrlTemplates(cas1ApplicationStart)))),
+    )
+  }
+
+  fun getCas3UrlTemplatesOKResponse(cas3ReferralStart: String = CAS3_REFERRAL_START_URL) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas3/external/url-templates"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(Cas3UrlTemplates(cas3ReferralStart)))),
+    )
+  }
+
   fun getCas1CurrentPremisesOKResponse(crn: String, response: Any) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
