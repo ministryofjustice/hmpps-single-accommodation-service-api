@@ -38,7 +38,7 @@ fun buildReferralHistory(
 
 fun buildReferralHistory(
   applicationStatus: Cas3ReferralHistory.ApplicationStatus,
-  assessmentStatus: Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus,
+  assessmentStatus: Cas3ReferralHistory.AssessmentStatus,
   id: UUID = UUID.randomUUID(),
   applicationId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),

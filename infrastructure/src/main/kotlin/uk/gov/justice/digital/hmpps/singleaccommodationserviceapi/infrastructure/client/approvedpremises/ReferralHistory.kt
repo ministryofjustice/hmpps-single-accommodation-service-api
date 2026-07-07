@@ -80,7 +80,7 @@ data class Cas3ReferralHistory(
   val id: UUID,
   val applicationId: UUID,
   val applicationStatus: ApplicationStatus,
-  val assessmentStatus: TemporaryAccommodationAssessmentStatus?,
+  val assessmentStatus: AssessmentStatus?,
   val createdAt: Instant,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
@@ -106,7 +106,7 @@ data class Cas3ReferralHistory(
     }
   }
 
-  enum class TemporaryAccommodationAssessmentStatus(@get:JsonValue val value: String) {
+  enum class AssessmentStatus(@get:JsonValue val value: String) {
     UNALLOCATED("unallocated"),
     IN_REVIEW("in_review"),
     READY_TO_PLACE("ready_to_place"),
@@ -117,7 +117,7 @@ data class Cas3ReferralHistory(
     companion object {
       @JvmStatic
       @JsonCreator
-      fun forValue(value: String): TemporaryAccommodationAssessmentStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
+      fun forValue(value: String): AssessmentStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 
