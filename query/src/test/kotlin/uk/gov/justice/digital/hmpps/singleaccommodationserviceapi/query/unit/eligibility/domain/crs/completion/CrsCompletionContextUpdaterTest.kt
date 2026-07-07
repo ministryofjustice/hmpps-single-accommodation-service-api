@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -14,8 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
 class CrsCompletionContextUpdaterTest {
-  val crsUiUrl = "CRS_UI_URL"
-  private val updater = CrsCompletionContextUpdater(crsUiUrl)
+  private val updater = CrsCompletionContextUpdater()
 
   @Nested
   inner class UpdateTests {
@@ -33,7 +33,7 @@ class CrsCompletionContextUpdaterTest {
           serviceStatus = ServiceStatus.NOT_STARTED,
           action = CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL),
           link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-          url = crsUiUrl,
+          linkType = LinkType.CRS_START_REFERRAL,
         ),
       )
 
@@ -56,7 +56,7 @@ class CrsCompletionContextUpdaterTest {
           serviceStatus = ServiceStatus.NOT_STARTED,
           action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL),
           link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-          url = crsUiUrl,
+          linkType = LinkType.CRS_START_REFERRAL,
         ),
       )
 

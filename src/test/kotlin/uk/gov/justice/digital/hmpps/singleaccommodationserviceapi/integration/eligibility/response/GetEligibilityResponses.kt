@@ -87,7 +87,7 @@ fun expectedGetEligibilityResponse(
             "action":null,
             "link":"View refer and monitor",
             "url":"$crsUrl",
-            "linkType":null,
+            "linkType":"CRS_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -275,7 +275,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "action":null,
             "link":"View refer and monitor",
             "url":"$crsUrl",
-            "linkType":null,
+            "linkType":"CRS_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
@@ -389,7 +389,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "action":null,
             "link":"View refer and monitor",
             "url":"$crsUrl",
-            "linkType":null,
+            "linkType":"CRS_VIEW_REFERRAL",
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{

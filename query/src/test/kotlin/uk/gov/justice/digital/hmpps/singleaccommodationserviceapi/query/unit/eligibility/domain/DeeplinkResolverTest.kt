@@ -19,11 +19,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 class DeeplinkResolverTest {
   private val cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
   private val cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
+  private val crsUiBaseUrl = "CRS_UI_BASE_URL"
   private val approvedPremisesCachingService = mockk<ApprovedPremisesCachingService> {
     every { getCas1UrlTemplates() } returns Cas1UrlTemplates(cas1ApplicationStartUrl)
     every { getCas3UrlTemplates() } returns Cas3UrlTemplates(cas3ReferralStartUrl)
   }
-  private val resolver = DeeplinkResolver(approvedPremisesCachingService)
+  private val resolver = DeeplinkResolver(approvedPremisesCachingService, crsUiBaseUrl)
 
   @Nested
   inner class Cas1 {
@@ -114,6 +115,29 @@ class DeeplinkResolverTest {
       )
 
       assertThat(result.url).isNull()
+    }
+  }
+
+  @Nested
+  inner class Crs {
+    @Test
+    fun `CRS_START_REFERRAL resolves to the CRS UI base url`() {
+      val result = resolver.resolve(
+        buildServiceResult(linkType = LinkType.CRS_START_REFERRAL),
+        buildDomainData(),
+      )
+
+      assertThat(result.url).isEqualTo(crsUiBaseUrl)
+    }
+
+    @Test
+    fun `CRS_VIEW_REFERRAL resolves to the CRS UI base url`() {
+      val result = resolver.resolve(
+        buildServiceResult(linkType = LinkType.CRS_VIEW_REFERRAL),
+        buildDomainData(),
+      )
+
+      assertThat(result.url).isEqualTo(crsUiBaseUrl)
     }
   }
 

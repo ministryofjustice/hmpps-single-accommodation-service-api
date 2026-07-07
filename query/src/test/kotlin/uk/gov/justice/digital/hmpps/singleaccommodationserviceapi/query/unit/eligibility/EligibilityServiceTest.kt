@@ -201,7 +201,7 @@ class EligibilityServiceTest {
     CrsSubmittedRule(),
     CrsExpiredRule(clock),
   )
-  var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsUiUrl)
+  var crsCompletionContextUpdater = CrsCompletionContextUpdater()
   var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
   var crsUpcomingContextUpdater = CrsUpcomingContextUpdater()
 
@@ -255,7 +255,6 @@ class EligibilityServiceTest {
     completionContextUpdater = crsCompletionContextUpdater,
     upcoming = crsUpcomingRuleSet,
     upcomingContextUpdater = crsUpcomingContextUpdater,
-    crsUiBaseUrl = crsUiUrl,
   )
 
   private val paTree = PaEligibilityTreeProvider(
@@ -275,7 +274,7 @@ class EligibilityServiceTest {
     caseRepository = caseRepository,
     dutyToReferQueryService = dutyToReferQueryService,
     eligibilityOrchestrationService = eligibilityOrchestrationService,
-    deeplinkResolver = DeeplinkResolver(approvedPremisesCachingService),
+    deeplinkResolver = DeeplinkResolver(approvedPremisesCachingService, crsUiUrl),
     cas1Tree = cas1Tree,
     cas3Tree = cas3Tree,
     dtrTree = dtrTree,

@@ -80,6 +80,8 @@ enum class LinkType {
   CAS1_VIEW_APPLICATION,
   CAS3_START_REFERRAL,
   CAS3_VIEW_REFERRAL,
+  CRS_START_REFERRAL,
+  CRS_VIEW_REFERRAL,
 }
 
 enum class FailureReason {
