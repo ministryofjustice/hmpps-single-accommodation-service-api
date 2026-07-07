@@ -19,6 +19,7 @@ object AccommodationReferralTransformer {
       id = it.id,
       type = AccommodationService.CAS1,
       status = toCasReferralStatus(it.applicationStatus),
+      requestForPlacementStatus = it.requestForPlacementStatus?.value,
       date = it.createdAt,
       referralRejectionReason = it.referralRejectionReason,
       referralRejectionReasonDetail = it.referralRejectionReasonDetail,
@@ -35,6 +36,7 @@ object AccommodationReferralTransformer {
         id = it.id,
         type = AccommodationService.CAS3,
         status = toCasReferralStatus(it.applicationStatus),
+        requestForPlacementStatus = null,
         date = it.createdAt,
         referralRejectionReason = it.referralRejectionReason,
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
@@ -50,6 +52,7 @@ object AccommodationReferralTransformer {
         id = it.submission!!.id,
         type = AccommodationService.DTR,
         status = toCasReferralStatus(it.status),
+        requestForPlacementStatus = null,
         date = it.submission!!.submissionDate.atStartOfDay().toInstant(ZoneOffset.UTC),
         referralRejectionReason = it.submission!!.withdrawalReason?.name,
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
@@ -70,6 +73,7 @@ object AccommodationReferralTransformer {
     id: UUID,
     type: AccommodationService,
     status: AccommodationReferralStatus,
+    requestForPlacementStatus: String?,
     date: Instant,
     referralRejectionReason: String?,
     referralRejectionReasonDetail: String?,
@@ -83,6 +87,7 @@ object AccommodationReferralTransformer {
     id = id,
     type = type,
     status = status,
+    requestForPlacementStatus = requestForPlacementStatus,
     date = date,
     referralRejectionReason = referralRejectionReason,
     referralRejectionReasonDetail = referralRejectionReasonDetail,
@@ -104,12 +109,11 @@ object AccommodationReferralTransformer {
 
   fun toCasReferralStatus(status: Cas1ReferralHistory.ApprovedPremisesApplicationStatus): AccommodationReferralStatus = when (status) {
     Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED -> AccommodationReferralStatus.ACCEPTED
-    Cas1ReferralHistory.ApprovedPremisesApplicationStatus.REJECTED,
     Cas1ReferralHistory.ApprovedPremisesApplicationStatus.INAPPLICABLE,
-    Cas1ReferralHistory.ApprovedPremisesApplicationStatus.WITHDRAWN,
-    Cas1ReferralHistory.ApprovedPremisesApplicationStatus.EXPIRED,
+    Cas1ReferralHistory.ApprovedPremisesApplicationStatus.REJECTED,
     -> AccommodationReferralStatus.REJECTED
-
+    Cas1ReferralHistory.ApprovedPremisesApplicationStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+    Cas1ReferralHistory.ApprovedPremisesApplicationStatus.EXPIRED -> AccommodationReferralStatus.EXPIRED
     else -> AccommodationReferralStatus.PENDING
   }
 
