@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.AuditorAware
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -15,13 +14,9 @@ import java.util.UUID
 
 @Configuration
 @EnableJpaAuditing
-class JpaConfig
-
-@Configuration
 class JpaAuditorConfig {
 
   @Bean
-  @Profile("local", "dev", "preprod", "prod")
   fun auditorAware(): AuditorAware<UUID> = AuditorAware {
     val auditOverrideId = AuditOverrideContext.currentAuditorId()
     if (auditOverrideId != null) {

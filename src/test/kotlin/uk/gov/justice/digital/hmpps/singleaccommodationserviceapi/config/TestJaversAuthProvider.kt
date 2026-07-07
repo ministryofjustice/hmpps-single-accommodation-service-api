@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config
 import org.javers.spring.auditable.AuthorProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Primary
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import java.util.UUID
 
+@Primary
 @TestConfiguration
 class TestJaversAuthProvider(
   @Value($$"${test-data-setup.user-id}")

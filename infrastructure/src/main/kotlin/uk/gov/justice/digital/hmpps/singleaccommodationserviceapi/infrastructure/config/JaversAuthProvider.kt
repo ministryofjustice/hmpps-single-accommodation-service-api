@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import org.javers.spring.auditable.AuthorProvider
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
@@ -10,7 +9,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 
 @Configuration
-@Profile("local", "dev", "preprod", "prod")
 class JaversAuthProvider : AuthorProvider {
   override fun provide(): String {
     val auditOverrideId = AuditOverrideContext.currentAuditorId()
