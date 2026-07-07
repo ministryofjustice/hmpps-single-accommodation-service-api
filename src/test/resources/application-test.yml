@@ -36,10 +36,6 @@ service:
     read-timeout: 300ms
   prisoner-search:
     read-timeout: 300ms
-  approved-premises-ui:
-    base-url: approved-premises-ui-test-url
-  temporary-accommodation-ui:
-    base-url: temporary-accommodation-ui-test-url
   commissioned-rehabilitative-services-ui:
     base-url: commissioned-rehabilitative-services-ui-test-url
 

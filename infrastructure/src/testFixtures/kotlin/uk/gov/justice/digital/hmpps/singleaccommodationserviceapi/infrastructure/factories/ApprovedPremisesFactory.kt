@@ -19,12 +19,14 @@ fun buildCas1Application(
   placementStatus: Cas1PlacementStatus? = null,
   requestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
   premises: Cas1PremisesSummary? = null,
+  uiUrl: String = "https://cas1-ui/applications/$id",
 ) = Cas1Application(
   id = id,
   applicationStatus = applicationStatus,
   placementStatus = placementStatus,
   requestForPlacementStatus = requestForPlacementStatus,
   premises = premises,
+  uiUrl = uiUrl,
 )
 
 fun buildCas1PremisesSummary(
@@ -49,12 +51,14 @@ fun buildCas3Application(
   assessmentStatus: Cas3AssessmentStatus? = null,
   bookingStatus: Cas3BookingStatus? = null,
   premises: Cas3PremisesSummary? = null,
+  uiUrl: String = "https://cas3-ui/referrals/$id/full",
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
   bookingStatus = bookingStatus,
   assessmentStatus = assessmentStatus,
   premises = premises,
+  uiUrl = uiUrl,
 )
 
 fun buildCas3PremisesSummary(

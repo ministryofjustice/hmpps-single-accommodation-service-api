@@ -15,8 +15,8 @@ fun expectedGetEligibilityResponse(
   createdBy: String,
   createdAt: String,
   crsSubmissionDate: String,
-  cas1Url: String,
-  cas3Url: String,
+  cas1ApplicationUrl: String,
+  cas3ReferralUrl: String,
   crsUrl: String,
 ): String = """
 {
@@ -27,7 +27,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"ARRIVED",
             "action":null,
             "link":"View application",
-            "url":"$cas1Url/applications/$cas1ApplicationId",
+            "url":"$cas1ApplicationUrl",
             "linkType":"CAS1_VIEW_APPLICATION",
             "failureReasons":[]
          },
@@ -43,7 +43,7 @@ fun expectedGetEligibilityResponse(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url/referrals/$cas3ApplicationId/full",
+            "url":"$cas3ReferralUrl",
             "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
@@ -203,8 +203,8 @@ fun expectedGetEligibilityResponseTierNotFound(
   createdBy: String,
   createdAt: String,
   crsSubmissionDate: String,
-  cas1Url: String,
-  cas3Url: String,
+  cas1ApplicationUrl: String,
+  cas3ReferralUrl: String,
   crsUrl: String,
 ): String = """
 {
@@ -215,7 +215,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"ARRIVED",
             "action":null,
             "link":"View application",
-            "url":"$cas1Url/applications/$cas1ApplicationId",
+            "url":"$cas1ApplicationUrl",
             "linkType":"CAS1_VIEW_APPLICATION",
             "failureReasons":[]
          },
@@ -231,7 +231,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url/referrals/$cas3ApplicationId/full",
+            "url":"$cas3ReferralUrl",
             "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },
@@ -316,7 +316,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
   createdBy: String,
   createdAt: String,
   crsSubmissionDate: String,
-  cas3Url: String,
+  cas3ReferralUrl: String,
   crsUrl: String,
 ): String = """
 {
@@ -345,7 +345,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "serviceStatus":"SUBMITTED",
             "action":null,
             "link":"View referral",
-            "url":"$cas3Url/referrals/$cas3ApplicationId/full",
+            "url":"$cas3ReferralUrl",
             "linkType":"CAS3_VIEW_REFERRAL",
             "failureReasons":[]
          },

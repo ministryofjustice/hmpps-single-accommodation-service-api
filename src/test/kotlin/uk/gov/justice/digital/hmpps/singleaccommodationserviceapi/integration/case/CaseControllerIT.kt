@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
@@ -65,6 +66,8 @@ class CaseControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
+    ApprovedPremisesStubs.getCas1UrlTemplatesOKResponse()
+    ApprovedPremisesStubs.getCas3UrlTemplatesOKResponse()
     val tier = buildTier()
     TierStubs.getTierOKResponse(crns[0], tier)
     TierStubs.getTierOKResponse(crns[1], tier)
