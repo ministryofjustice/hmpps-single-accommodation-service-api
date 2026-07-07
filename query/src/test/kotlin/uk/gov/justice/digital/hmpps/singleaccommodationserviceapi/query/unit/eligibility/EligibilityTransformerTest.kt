@@ -153,8 +153,8 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE", "NOT_REQUIRED"])
-  fun `does not surface the DTR submission when the DTR result is NOT STARTED, NOT ELIGIBLE or NOT REQUIRED`(serviceStatus: ServiceStatus) {
+  @EnumSource(value = ServiceStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `does not surface the DTR submission unless the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatus) {
     val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
@@ -178,8 +178,29 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["NOT_STARTED", "NOT_ELIGIBLE", "NOT_REQUIRED"])
-  fun `does not surface the CRS referral data when the CRS result is NOT STARTED, NOT ELIGIBLE or NOT REQUIRED`(serviceStatus: ServiceStatus) {
+  @EnumSource(value = ServiceStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"])
+  fun `surfaces the DTR submission when the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatus) {
+    val dutyToReferDto = buildDutyToReferDto()
+    val data = buildDomainData(dutyToRefer = dutyToReferDto)
+    val dtr = buildServiceResult(serviceStatus = serviceStatus)
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(),
+      dtr = dtr,
+      crs = buildServiceResult(),
+      pa = buildServiceResult(),
+      data = data,
+    )
+
+    assertThat(actualEligibility.dtr.submission).isEqualTo(dutyToReferDto.submission)
+    assertThat(actualEligibility.dtr.caseId).isEqualTo(dutyToReferDto.caseId)
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = ServiceStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `does not surface the CRS referral data unless the CRS result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatus) {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResult(
@@ -199,6 +220,26 @@ class EligibilityTransformerTest {
     )
 
     assertThat(actualEligibility.crs.commissionedRehabilitativeServices).isNull()
+  }
+
+  @Test
+  fun `surfaces the CRS referral data when the CRS result is SUBMITTED`() {
+    val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
+    val commissionedRehabilitativeServicesDto = buildCommissionedRehabilitativeServicesDto()
+    val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
+    val crs = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED)
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(),
+      dtr = buildServiceResult(),
+      crs = crs,
+      pa = buildServiceResult(),
+      data = data,
+    )
+
+    assertThat(actualEligibility.crs.commissionedRehabilitativeServices).isEqualTo(commissionedRehabilitativeServicesDto)
   }
 
   @Test
