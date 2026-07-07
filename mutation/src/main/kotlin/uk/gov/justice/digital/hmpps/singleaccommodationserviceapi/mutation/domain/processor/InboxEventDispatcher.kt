@@ -11,7 +11,6 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
@@ -46,7 +45,6 @@ class DispatcherConfig(
   name = ["hmpps.sqs.enabled"],
   havingValue = "true",
 )
-@Profile(value = ["local", "dev", "test"])
 @Component
 class InboxEventDispatcher(
   handlers: List<InboxEventHandler>,
