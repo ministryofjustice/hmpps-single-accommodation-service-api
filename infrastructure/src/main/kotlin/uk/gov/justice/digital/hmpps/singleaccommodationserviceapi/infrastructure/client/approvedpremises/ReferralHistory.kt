@@ -26,7 +26,7 @@ data class Cas1ReferralHistory(
     STARTED("started"),
     REJECTED("rejected"),
     AWAITING_ASSESSMENT("awaitingAssesment"),
-    UNALLOCATED_ASSESMENT("unallocatedAssesment"),
+    UNALLOCATED_ASSESSMENT("unallocatedAssesment"),
     ASSESSMENT_IN_PROGRESS("assesmentInProgress"),
     AWAITING_PLACEMENT("awaitingPlacement"),
     REQUESTED_FURTHER_INFORMATION("requestedFurtherInformation"),

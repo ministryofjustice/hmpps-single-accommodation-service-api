@@ -7,6 +7,7 @@ data class AccommodationReferralDto(
   val id: UUID,
   val type: AccommodationService,
   val status: AccommodationReferralStatus,
+  val requestForPlacementStatus: String?,
   val date: Instant,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
@@ -23,6 +24,7 @@ enum class AccommodationReferralStatus {
   REJECTED,
   PENDING,
   WITHDRAWN,
+  EXPIRED,
 }
 
 enum class AccommodationService {
