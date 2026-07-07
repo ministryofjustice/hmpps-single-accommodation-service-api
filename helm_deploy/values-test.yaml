@@ -41,11 +41,11 @@ generic-prometheus-alerts:
   # API pool users = 20 per pod
   # Max expected connections for 2 x pods = 40 + additional 10 (buffer for direct connections)
   rdsAlertsConnectionThreshold: 50
-  sqsAlertsQueueNames:
-    - "hmpps-community-accommodation-devs-test-sas_domain_events_queue"
-    - "hmpps-community-accommodation-devs-test-sas_domain_events_dlq"
-  sqsAlertsOldestThreshold: 30
-  sqsAlertsTotalMessagesThreshold: 10
+#  sqsAlertsQueueNames:
+#    - "hmpps-community-accommodation-devs-test-sas_domain_events_queue"
+#    - "hmpps-community-accommodation-devs-test-sas_domain_events_dlq"
+#  sqsAlertsOldestThreshold: 30
+#  sqsAlertsTotalMessagesThreshold: 10
 
   env_details:
     production_env: false
