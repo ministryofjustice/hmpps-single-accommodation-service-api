@@ -75,6 +75,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       buildReferralHistory(
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
         applicationStatus = ApplicationStatus.IN_PROGRESS,
+        assessmentStatus = Cas3ReferralHistory.AssessmentStatus.READY_TO_PLACE,
         referredBy = referredByUser,
       ),
     )
