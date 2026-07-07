@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
@@ -46,7 +46,7 @@ class ProposedAccommodationApplicationService(
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  private val corePersonRecordClient: CorePersonRecordClient,
+  private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
 
   @Transactional
@@ -124,7 +124,7 @@ class ProposedAccommodationApplicationService(
   ) {
     if (aggregate.requiresCprRegistration()) {
       val aggregateSnapshot = aggregate.snapshot()
-      val createdAccommodation = corePersonRecordClient.createProbationAddress(
+      val createdAccommodation = corePersonRecordCachingService.createProbationAddress(
         crn = crn,
         address = ProbationCreateAddress(
           noFixedAbode = false,
