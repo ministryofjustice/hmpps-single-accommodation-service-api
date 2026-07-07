@@ -24,6 +24,12 @@ interface ApprovedPremisesClient {
 
   @GetExchange(value = "/cas3/external/referrals/{crn}")
   fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
+
+  @GetExchange(value = "/cas1/external/url-templates")
+  fun getCas1UrlTemplatesInternal(): Cas1UrlTemplates
+
+  @GetExchange(value = "/cas3/external/url-templates")
+  fun getCas3UrlTemplatesInternal(): Cas3UrlTemplates
 }
 
 @Service
@@ -47,4 +53,10 @@ open class ApprovedPremisesCachingService(
 
   @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, key = "#crn", sync = true)
   open fun getSuitableCas3Application(crn: String) = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
+
+  @Cacheable(ApiCallKeys.GET_CAS_1_URL_TEMPLATES, sync = true)
+  open fun getCas1UrlTemplates() = approvedPremisesClient.getCas1UrlTemplatesInternal()
+
+  @Cacheable(ApiCallKeys.GET_CAS_3_URL_TEMPLATES, sync = true)
+  open fun getCas3UrlTemplates() = approvedPremisesClient.getCas3UrlTemplatesInternal()
 }

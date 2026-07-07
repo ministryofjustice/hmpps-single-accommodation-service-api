@@ -21,6 +21,8 @@ object ApiCallKeys {
   const val GET_CAS_3_CURRENT_PREMISES = "getCas3CurrentPremises"
   const val GET_CAS_1_APPLICATION = "getCas1Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
+  const val GET_CAS_1_URL_TEMPLATES = "getCas1UrlTemplates"
+  const val GET_CAS_3_URL_TEMPLATES = "getCas3UrlTemplates"
 
   // prisoner-search service
   const val GET_PRISONER = "getPrisoner"
