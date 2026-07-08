@@ -10,7 +10,6 @@ fun expectedGetReferralHistory(
   localAuthorityArea: String? = null,
   pdu: String? = null,
   placementAddress: String? = null,
-  placementStatus: String? = null,
   dtrId: UUID,
   dtrStatus: String? = null,
   dtrSubmissionDate: String? = null,
@@ -21,7 +20,7 @@ fun expectedGetReferralHistory(
      {
         "id":"$dtrId",
         "type":"DTR",
-        "status":"${dtrStatus ?: "PENDING"}",
+        "status":"${dtrStatus ?: "DEPARTED"}",
         "assessmentStatus": null,
         "requestForPlacementStatus": null,
         "date":"${dtrSubmissionDate}T00:00:00Z",
@@ -37,7 +36,7 @@ fun expectedGetReferralHistory(
      {
         "id":"$id1",
         "type":"CAS1",
-        "status":"PENDING",
+        "status":"NOT_ARRIVED",
         "assessmentStatus": null,
         "requestForPlacementStatus": "awaiting_match",
         "date":"2025-03-01T00:00:00Z",
@@ -47,13 +46,13 @@ fun expectedGetReferralHistory(
         "pdu": $pdu,
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus,
+        "placementStatus": "notArrived",
         "uiUrl": "https://example.com/referral"
      },
      {
         "id":"$id4",
         "type":"CAS3",
-        "status":"PENDING",
+        "status":"DEPARTED",
         "assessmentStatus": "ready_to_place",
         "requestForPlacementStatus": null,
         "date":"2025-02-01T00:00:00Z",
@@ -63,7 +62,7 @@ fun expectedGetReferralHistory(
         "pdu": $pdu,
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus,
+        "placementStatus": "departed",
         "uiUrl": "https://example.com/referral"
      }
     ]

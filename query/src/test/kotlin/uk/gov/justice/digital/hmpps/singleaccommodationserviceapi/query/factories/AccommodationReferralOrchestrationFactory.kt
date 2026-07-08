@@ -15,7 +15,7 @@ fun buildAccommodationReferralOrchestrationDto(
       pdu = "Some pdu",
       referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
-      placementStatus = Cas1ReferralHistory.Cas1SpaceBookingStatus.ARRIVED,
+      placementStatus = Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED,
     ),
   ),
   cas3Referrals: List<Cas3ReferralHistory> = listOf(
@@ -26,7 +26,7 @@ fun buildAccommodationReferralOrchestrationDto(
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
       placementAddress = "Some address",
-      bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.CONFIRMED,
+      bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.DEPARTED,
     ),
   ),
 ) = AccommodationReferralOrchestrationDto(

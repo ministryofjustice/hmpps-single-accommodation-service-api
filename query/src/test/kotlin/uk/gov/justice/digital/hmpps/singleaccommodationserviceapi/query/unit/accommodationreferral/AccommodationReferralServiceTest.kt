@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralOrchestrationService
@@ -45,7 +46,7 @@ class AccommodationReferralServiceTest {
 
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = listOf(
-          buildReferralHistory(ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED, createdAt = olderDate, referredBy = buildDeliusUserDto()),
+          buildReferralHistory(PLACEMENT_ALLOCATED, placementStatus = NOT_ARRIVED, createdAt = olderDate, referredBy = buildDeliusUserDto()),
         ),
         cas3Referrals = emptyList(),
       )
