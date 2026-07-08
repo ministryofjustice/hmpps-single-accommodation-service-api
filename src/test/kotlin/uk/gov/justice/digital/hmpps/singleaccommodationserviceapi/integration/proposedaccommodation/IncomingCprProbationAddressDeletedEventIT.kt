@@ -79,6 +79,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should process incoming HMPPS CPR_PROBATION_ADDRESS_DELETED domain event and soft-delete related record when SAS has a matching record`() {
+    cacheValueByCrn(crn)
     val preExistingProposedAccommodation = buildProposedAccommodationEntity(
       cprAddressId = cprAddressId,
       caseId = caseEntity.id,
@@ -110,10 +111,12 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     assertThatSingleInboxEventIsAsExpected(
       processedStatus = ProcessedStatus.PROCESSED,
     )
+    assertThat(isCacheEvicted(crn)).isTrue
   }
 
   @Test
   fun `should ignore incoming HMPPS CPR_PROBATION_ADDRESS_DELETED domain event when SAS does NOT have a matching record`() {
+    cacheValueByCrn(crn)
     val preExistingProposedAccommodation = buildProposedAccommodationEntity(
       cprAddressId = cprAddressId,
       caseId = caseEntity.id,
@@ -145,6 +148,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     assertThatSingleInboxEventIsAsExpected(
       processedStatus = ProcessedStatus.IGNORED,
     )
+    assertThat(isCacheEvicted(crn)).isFalse
   }
 
   private fun publishCprProbationAddressDeletedEvent(cprAddressId: UUID) {

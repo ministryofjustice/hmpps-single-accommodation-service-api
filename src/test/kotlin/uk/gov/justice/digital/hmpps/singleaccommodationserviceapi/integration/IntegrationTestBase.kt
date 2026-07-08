@@ -11,15 +11,19 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
@@ -67,7 +71,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
@@ -97,6 +101,9 @@ abstract class IntegrationTestBase {
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
+
+  @Autowired
+  protected lateinit var cacheManager: ConcurrentMapCacheManager
 
   @Autowired
   lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
@@ -287,4 +294,18 @@ abstract class IntegrationTestBase {
       }
     return matchedMessage!!
   }
+
+  protected fun cacheValueByCrn(
+    crn: String,
+    cacheKey: String = GET_CORE_PERSON_RECORD_BY_CRN,
+    cacheValue: Any = buildCorePersonRecord(),
+  ) {
+    cacheManager.getCache(cacheKey)!!.put(crn, cacheValue)
+    assertThat(cacheManager.getCache(cacheKey)!!.get(crn)).isNotNull
+  }
+
+  protected fun isCacheEvicted(
+    crn: String,
+    cacheKey: String = GET_CORE_PERSON_RECORD_BY_CRN,
+  ): Boolean = cacheManager.getCache(cacheKey)!!.get(crn) == null
 }
