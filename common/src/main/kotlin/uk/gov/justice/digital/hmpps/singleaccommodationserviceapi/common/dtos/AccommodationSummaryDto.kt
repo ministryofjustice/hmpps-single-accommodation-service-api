@@ -52,3 +52,10 @@ data class AccommodationAddressDetails(
   val country: String? = null,
   val uprn: String? = null,
 )
+
+enum class CaseAccommodationStatus {
+  RISK_OF_NO_FIXED_ABODE,
+  NO_FIXED_ABODE,
+  TRANSIENT,
+  SETTLED,
+}

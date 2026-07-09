@@ -37,10 +37,3 @@ enum class RiskLevel(val code: String) {
     fun findByCode(code: String) = RiskLevel.entries.firstOrNull { it.code == code }
   }
 }
-
-enum class CaseAccommodationStatus {
-  RISK_OF_NO_FIXED_ABODE,
-  NO_FIXED_ABODE,
-  TRANSIENT,
-  SETTLED,
-}
