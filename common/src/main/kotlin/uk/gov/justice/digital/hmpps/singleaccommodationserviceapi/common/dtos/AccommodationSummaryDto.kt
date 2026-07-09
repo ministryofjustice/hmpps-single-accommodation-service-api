@@ -5,8 +5,8 @@ import java.util.UUID
 
 data class AccommodationSummariesDto(
   val caseAccommodationStatus: CaseAccommodationStatus? = null,
-  val currentAccommodation: AccommodationSummaryDto?,
-  val nextAccommodation: AccommodationSummaryDto?,
+  val currentAccommodation: AccommodationSummaryDto? = null,
+  val nextAccommodation: AccommodationSummaryDto? = null,
 )
 
 data class AccommodationSummaryDto(
