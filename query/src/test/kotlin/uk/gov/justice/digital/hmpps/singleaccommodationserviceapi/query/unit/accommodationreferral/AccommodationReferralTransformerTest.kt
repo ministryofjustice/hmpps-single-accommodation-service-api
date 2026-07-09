@@ -88,11 +88,11 @@ class AccommodationReferralTransformerTest {
       RequestForPlacementStatus.REQUEST_REJECTED -> AccommodationReferralStatus.REQUEST_REJECTED
       RequestForPlacementStatus.REQUEST_WITHDRAWN -> AccommodationReferralStatus.REQUEST_WITHDRAWN
       RequestForPlacementStatus.PLACEMENT_BOOKED -> AccommodationReferralStatus.ACCEPTED
-      RequestForPlacementStatus.REQUEST_UNSUBMITTED -> AccommodationReferralStatus.EXPIRED
-      RequestForPlacementStatus.REQUEST_SUBMITTED -> AccommodationReferralStatus.EXPIRED
-      RequestForPlacementStatus.AWAITING_MATCH -> AccommodationReferralStatus.EXPIRED
+      RequestForPlacementStatus.REQUEST_UNSUBMITTED -> AccommodationReferralStatus.PENDING
+      RequestForPlacementStatus.REQUEST_SUBMITTED -> AccommodationReferralStatus.PENDING
+      RequestForPlacementStatus.AWAITING_MATCH -> AccommodationReferralStatus.PENDING
     }
-    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApprovedPremisesApplicationStatus.EXPIRED)).isEqualTo(expected)
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApprovedPremisesApplicationStatus.STARTED)).isEqualTo(expected)
   }
 
   @ParameterizedTest

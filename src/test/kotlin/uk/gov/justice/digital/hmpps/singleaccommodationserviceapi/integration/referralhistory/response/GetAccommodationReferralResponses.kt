@@ -20,7 +20,7 @@ fun expectedGetReferralHistory(
      {
         "id":"$dtrId",
         "type":"DTR",
-        "status":"${dtrStatus ?: "NOT_ACCEPTED"}",
+        "status":"${dtrStatus ?: "REJECTED"}",
         "assessmentStatus": null,
         "requestForPlacementStatus": null,
         "date":"${dtrSubmissionDate}T00:00:00Z",

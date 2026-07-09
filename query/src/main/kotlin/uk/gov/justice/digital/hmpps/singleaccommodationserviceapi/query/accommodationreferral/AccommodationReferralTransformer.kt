@@ -126,11 +126,16 @@ object AccommodationReferralTransformer {
       }
     }
 
-    when (requestForPlacementStatus) {
-      RequestForPlacementStatus.REQUEST_REJECTED -> return AccommodationReferralStatus.REQUEST_REJECTED
-      RequestForPlacementStatus.REQUEST_WITHDRAWN -> return AccommodationReferralStatus.REQUEST_WITHDRAWN
-      RequestForPlacementStatus.PLACEMENT_BOOKED -> return AccommodationReferralStatus.ACCEPTED
-      else -> Unit
+    requestForPlacementStatus?.let {
+      when (it) {
+        RequestForPlacementStatus.REQUEST_REJECTED -> return AccommodationReferralStatus.REQUEST_REJECTED
+        RequestForPlacementStatus.REQUEST_WITHDRAWN -> return AccommodationReferralStatus.REQUEST_WITHDRAWN
+        RequestForPlacementStatus.PLACEMENT_BOOKED -> return AccommodationReferralStatus.ACCEPTED
+        RequestForPlacementStatus.REQUEST_UNSUBMITTED,
+        RequestForPlacementStatus.REQUEST_SUBMITTED,
+        RequestForPlacementStatus.AWAITING_MATCH,
+        -> Unit
+      }
     }
 
     return when (applicationStatus) {
