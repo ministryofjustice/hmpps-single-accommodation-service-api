@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus.AWAITING_MATCH
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
@@ -66,6 +67,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       buildReferralHistory(
         createdAt = Instant.parse("2025-03-01T00:00:00Z"),
         applicationStatus = ApprovedPremisesApplicationStatus.ASSESSMENT_IN_PROGRESS,
+        placementStatus = NOT_ARRIVED,
         requestForPlacementStatus = AWAITING_MATCH,
         referredBy = referredByUser,
       ),
@@ -76,6 +78,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         createdAt = Instant.parse("2025-02-01T00:00:00Z"),
         applicationStatus = ApplicationStatus.IN_PROGRESS,
         assessmentStatus = Cas3ReferralHistory.AssessmentStatus.READY_TO_PLACE,
+        bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.DEPARTED,
         referredBy = referredByUser,
       ),
     )

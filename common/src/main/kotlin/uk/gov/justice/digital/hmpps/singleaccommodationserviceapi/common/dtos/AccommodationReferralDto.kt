@@ -26,6 +26,12 @@ enum class AccommodationReferralStatus {
   PENDING,
   WITHDRAWN,
   EXPIRED,
+  NOT_ARRIVED,
+  DEPARTED,
+  CANCELLED,
+  REQUEST_REJECTED,
+  REQUEST_WITHDRAWN,
+  ARCHIVED,
 }
 
 enum class AccommodationService {
