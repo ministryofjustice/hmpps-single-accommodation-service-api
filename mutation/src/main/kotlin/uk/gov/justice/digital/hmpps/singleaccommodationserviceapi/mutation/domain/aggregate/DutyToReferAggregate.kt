@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeNoteNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonChangedOnWithdrawal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
@@ -95,9 +96,11 @@ class DutyToReferAggregate private constructor(
   ) {
     validateStatusTransition(status)
     validateWithdrawal(status, withdrawalReason, withdrawalReasonOther)
-    validateOutcome(status, outcomeReason, outcomeNote)
 
     val previousStatus = this.status
+    val previousOutcomeReason = this.outcomeReason
+
+    validateOutcome(status, outcomeReason, outcomeNote, previousStatus, previousOutcomeReason)
 
     this.localAuthorityAreaId = localAuthorityAreaId
     this.submissionDate = submissionDate
@@ -183,23 +186,57 @@ class DutyToReferAggregate private constructor(
   }
 
   // validate the outcome reason and note for incoming change
-  private fun validateOutcome(newStatus: DtrStatus, outcomeReason: OutcomeReason?, outcomeNote: String?) {
+  private fun validateOutcome(newStatus: DtrStatus, outcomeReason: OutcomeReason?, outcomeNote: String?, previousStatus: DtrStatus?, prevOutcomeReason: OutcomeReason?) {
     when (newStatus) {
-      // accepted outcomes must have a valid accepted reason
-      DtrStatus.ACCEPTED -> if (outcomeReason !in ACCEPTED_OUTCOME_REASONS) {
-        if (outcomeReason == null) throw DutyToReferOutcomeReasonRequiredException()
+      DtrStatus.WITHDRAWN -> when (previousStatus) {
+        DtrStatus.ACCEPTED -> validateOutcomeReasonUnchanged(outcomeReason, prevOutcomeReason, ACCEPTED_OUTCOME_REASONS)
+        DtrStatus.NOT_ACCEPTED -> validateOutcomeReasonUnchanged(outcomeReason, prevOutcomeReason, NOT_ACCEPTED_OUTCOME_REASONS)
+        else -> validateNoOutcome(outcomeReason, outcomeNote)
+      }
+
+      DtrStatus.ACCEPTED -> validateOutcomeReason(outcomeReason, ACCEPTED_OUTCOME_REASONS)
+      DtrStatus.NOT_ACCEPTED -> validateOutcomeReason(outcomeReason, NOT_ACCEPTED_OUTCOME_REASONS)
+      else -> validateNoOutcome(outcomeReason, outcomeNote)
+    }
+  }
+
+  private fun validateOutcomeReason(
+    outcomeReason: OutcomeReason?,
+    validReasons: Set<OutcomeReason>,
+  ) {
+    when {
+      outcomeReason == null ->
+        throw DutyToReferOutcomeReasonRequiredException()
+
+      outcomeReason !in validReasons ->
         throw DutyToReferOutcomeReasonNotApplicableException()
-      }
-      // not accepted outcomes must have a valid not accepted reason
-      DtrStatus.NOT_ACCEPTED -> if (outcomeReason !in NOT_ACCEPTED_OUTCOME_REASONS) {
-        if (outcomeReason == null) throw DutyToReferOutcomeReasonRequiredException()
+    }
+  }
+
+  private fun validateOutcomeReasonUnchanged(
+    outcomeReason: OutcomeReason?,
+    previousOutcomeReason: OutcomeReason?,
+    validReasons: Set<OutcomeReason>,
+  ) {
+    when {
+      outcomeReason != previousOutcomeReason ->
+        throw DutyToReferOutcomeReasonChangedOnWithdrawal()
+
+      outcomeReason !in validReasons ->
         throw DutyToReferOutcomeReasonNotApplicableException()
-      }
-      // any other status then an outcome reason or note is not applicable
-      else -> {
-        if (outcomeReason != null) throw DutyToReferOutcomeReasonNotApplicableException()
-        if (!outcomeNote.isNullOrBlank()) throw DutyToReferOutcomeNoteNotApplicableException()
-      }
+    }
+  }
+
+  private fun validateNoOutcome(
+    outcomeReason: OutcomeReason?,
+    outcomeNote: String?,
+  ) {
+    if (outcomeReason != null) {
+      throw DutyToReferOutcomeReasonNotApplicableException()
+    }
+
+    if (!outcomeNote.isNullOrBlank()) {
+      throw DutyToReferOutcomeNoteNotApplicableException()
     }
   }
 
