@@ -115,6 +115,33 @@ class AccommodationReferralTransformerTest {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, null, status)).isEqualTo(expected)
   }
 
+  @Test
+  fun `should respect precedence of statuses for CAS1`() {
+    assertThat(
+      AccommodationReferralTransformer.toCasReferralStatus(
+        Cas1SpaceBookingStatus.CANCELLED,
+        RequestForPlacementStatus.PLACEMENT_BOOKED,
+        ApprovedPremisesApplicationStatus.EXPIRED,
+      ),
+    ).isEqualTo(AccommodationReferralStatus.CANCELLED)
+
+    assertThat(
+      AccommodationReferralTransformer.toCasReferralStatus(
+        null,
+        RequestForPlacementStatus.REQUEST_REJECTED,
+        ApprovedPremisesApplicationStatus.EXPIRED,
+      ),
+    ).isEqualTo(AccommodationReferralStatus.REQUEST_REJECTED)
+
+    assertThat(
+      AccommodationReferralTransformer.toCasReferralStatus(
+        null,
+        RequestForPlacementStatus.AWAITING_MATCH,
+        ApprovedPremisesApplicationStatus.EXPIRED,
+      ),
+    ).isEqualTo(AccommodationReferralStatus.EXPIRED)
+  }
+
   @ParameterizedTest
   @EnumSource(Cas3BookingStatus::class)
   fun `should transform CAS3 booking status`(status: Cas3BookingStatus) {
