@@ -157,7 +157,7 @@ class AccommodationQueryService(
       ?.takeIf { it.inOutStatus == InOutStatus.IN }
       ?.let { toAccommodationSummary(crn, prisoner = it) }
 
-    val notProposedAddresses = data.cpr?.addresses?.filter { it.status.code !in excludedAddressStatuses }
+    val notProposedAddresses = data.cpr?.addresses?.filter { it.status.code !in excludedAddressStatuses }?.sortedByDescending { it.startDate }
 
     val accommodationHistory = listOfNotNull(prisonAddress) +
       notProposedAddresses?.map { toAccommodationSummary(crn, address = it) }.orEmpty()
