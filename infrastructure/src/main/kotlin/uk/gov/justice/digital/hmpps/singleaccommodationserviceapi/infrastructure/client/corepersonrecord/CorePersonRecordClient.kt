@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord
 
-import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -26,7 +25,6 @@ interface CorePersonRecordClient {
 @Service
 class CorePersonRecordCachingService(
   private val corePersonRecordClient: CorePersonRecordClient,
-  private val cacheManager: CacheManager,
 ) {
   @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN, key = "#crn", sync = true)
   fun getCorePersonRecordByCrn(crn: String) = corePersonRecordClient.getByCrn(crn)
@@ -37,5 +35,6 @@ class CorePersonRecordCachingService(
   @Cacheable(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER, key = "#prisonNumber", sync = true)
   fun getCorePersonRecordByNoms(prisonNumber: String) = corePersonRecordClient.getByPrisonNumber(prisonNumber)
 
-  fun cacheEvictOnCorePersonRecordByCrn(crn: String) = cacheManager.getCache(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN)?.evict(crn)
+  @CacheEvict(ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN, key = "#crn")
+  fun cacheEvictOnCorePersonRecordByCrn(crn: String) {}
 }
