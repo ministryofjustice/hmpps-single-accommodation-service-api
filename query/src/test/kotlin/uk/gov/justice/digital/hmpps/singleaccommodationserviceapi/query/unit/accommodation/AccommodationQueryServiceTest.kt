@@ -264,6 +264,106 @@ class AccommodationQueryServiceTest {
     }
 
     @Test
+    fun `getAccommodationHistory should orchestrate calls and map addresses and sort by start date`() {
+      val referenceDate = LocalDate.of(2024, 10, 17)
+      val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN, prisonName = "A Prison")
+      val caseEntity = buildCaseEntity {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      }
+      every { caseRepository.findByCrn(crn) } returns caseEntity
+      every { accommodationOrchestrationService.getCprAndPrisonOrchestration(crn, prisonNumber) } returns OrchestrationResultDto(
+        data = buildAccommodationOrchestrationDto(
+          prisoner = prisoner,
+          cpr = buildCorePersonRecord(
+            identifiers = buildIdentifiers(crns = listOf(crn)),
+            addresses = listOf(
+
+              buildCanonicalAddress(
+                startDate = referenceDate.minusDays(3),
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "GL53 8GH",
+                thoroughfareName = "Another Road",
+                postTown = "Cheltenham",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.P.name,
+                  description = AddressStatusCode.P.description,
+                ),
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07A.name,
+                      description = AddressUsageCode.A07A.description,
+                    ),
+                    isActive = true,
+                  ),
+                ),
+              ),
+              buildCanonicalAddress(
+                startDate = referenceDate.minusDays(2),
+                cprAddressId = UUID.randomUUID(),
+                noFixedAbode = false,
+                postcode = "GL53 8G4",
+                thoroughfareName = null,
+                postTown = null,
+                endDate = LocalDate.of(2025, 10, 17),
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.P.name,
+                  description = AddressStatusCode.P.description,
+                ),
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A08A.name,
+                      description = AddressUsageCode.A08A.description,
+                    ),
+                    isActive = true,
+                  ),
+                ),
+              ),
+              buildCanonicalAddress(
+                cprAddressId = null,
+                noFixedAbode = false,
+                postcode = "SW1A 1AA",
+                thoroughfareName = "Some Street",
+                postTown = "London",
+                status = CanonicalAddressStatus(
+                  code = AddressStatusCode.M.name,
+                  description = AddressStatusCode.M.description,
+                ),
+                startDate = referenceDate,
+                usages = listOf(
+                  CanonicalAddressUsage(
+                    usageCode = CanonicalAddressUsageCode(
+                      code = AddressUsageCode.A07B.name,
+                      description = AddressUsageCode.A07B.description,
+                    ),
+                    isActive = true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        upstreamFailures = emptyList(),
+      )
+
+      val result = accommodationQueryService.getAccommodationHistory(crn)
+
+      assertThat(result.data.size).isEqualTo(4)
+      assertThat(result.data[0].address.buildingName).isEqualTo(prisoner.prisonName)
+      assertThat(result.data[0].status!!.code).isEqualTo("C")
+      assertThat(result.data[1].address.postcode).isEqualTo("SW1A 1AA")
+      assertThat(result.data[1].status!!.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(result.data[2].address.postcode).isEqualTo("GL53 8G4")
+      assertThat(result.data[2].status!!.code).isEqualTo(AddressStatusCode.P.name)
+      assertThat(result.data[3].address.postcode).isEqualTo("GL53 8GH")
+      assertThat(result.data[3].status!!.code).isEqualTo(AddressStatusCode.P.name)
+      assertThat(result.upstreamFailures.size).isEqualTo(0)
+    }
+
+    @Test
     fun `getAccommodationHistory should return empty list when cpr addresses call fails`() {
       val caseEntity = buildCaseEntity {
         withCrn(crn)
