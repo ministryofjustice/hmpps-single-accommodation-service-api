@@ -157,16 +157,16 @@ class AccommodationQueryService(
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
 
-    return (
-      listOf(cas1NextAccommodation, cas3NextAccommodation) +
-        (
-          addresses
-            ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
-            ?.filter { it.postcode != null && it.postcode != "" }
-            ?.filter { it.endDate == null }
-            ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
-          )
-      ).mapNotNull { it }
+    val nextApprovedPremisesAccommodations = listOfNotNull(cas1NextAccommodation, cas3NextAccommodation)
+
+    val nextCprProposedAccommodations = addresses
+      .orEmpty()
+      .filter { it.status.code in excludedAddressStatuses }
+      .filter { !it.postcode.isNullOrBlank() }
+      .filter { it.endDate == null }
+      .map { toAccommodationSummary(crn, address = it) }
+
+    return (nextApprovedPremisesAccommodations + nextCprProposedAccommodations)
   }
 
   fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {
