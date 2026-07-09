@@ -10,6 +10,7 @@ data class Cas3Application(
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
   val premises: Cas3PremisesSummary?,
+  val uiUrl: String?,
 )
 
 data class Cas3PremisesSummary(
