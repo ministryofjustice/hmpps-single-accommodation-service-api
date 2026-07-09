@@ -21,9 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
@@ -297,8 +295,8 @@ abstract class IntegrationTestBase {
 
   protected fun cacheValueByCrn(
     crn: String,
-    cacheKey: String = GET_CORE_PERSON_RECORD_BY_CRN,
-    cacheValue: Any = buildCorePersonRecord(),
+    cacheKey: String,
+    cacheValue: Any,
   ) {
     cacheManager.getCache(cacheKey)!!.put(crn, cacheValue)
     assertThat(cacheManager.getCache(cacheKey)!!.get(crn)).isNotNull
@@ -306,6 +304,6 @@ abstract class IntegrationTestBase {
 
   protected fun isCacheEvicted(
     crn: String,
-    cacheKey: String = GET_CORE_PERSON_RECORD_BY_CRN,
+    cacheKey: String,
   ): Boolean = cacheManager.getCache(cacheKey)!!.get(crn) == null
 }
