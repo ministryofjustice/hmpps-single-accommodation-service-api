@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.REJECTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
@@ -22,9 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class AccommodationReferralServiceTest {
@@ -45,11 +43,11 @@ class AccommodationReferralServiceTest {
 
     @Test
     fun `should get referral history sorted by date descending`() {
-      val olderDate = Instant.parse("2024-01-01T10:00:00Z")
+      val olderDate = LocalDate.parse("2024-01-01")
 
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = listOf(
-          buildReferralHistory(PLACEMENT_ALLOCATED, placementStatus = NOT_ARRIVED, createdAt = olderDate, referredBy = buildDeliusUserDto()),
+          buildReferralHistory(REJECTED, date = olderDate, referredBy = buildDeliusUserDto()),
         ),
         cas3Referrals = emptyList(),
       )
@@ -62,7 +60,7 @@ class AccommodationReferralServiceTest {
       val result = service.getReferralHistory(crn)
 
       assertThat(result.data).hasSize(2)
-      assertThat(result.data[0].date).isEqualTo(dtrSubmissionDate.atStartOfDay().atOffset(ZoneOffset.UTC).toInstant())
+      assertThat(result.data[0].date).isEqualTo(dtrSubmissionDate)
       assertThat(result.data[1].date).isEqualTo(olderDate)
     }
 
@@ -128,7 +126,7 @@ class AccommodationReferralServiceTest {
       // For DTR: Filter PENDING only. Keep others (including ACCEPTED).
 
       val cas1Rejected = buildReferralHistory(
-        applicationStatus = Cas1ReferralHistory.ApprovedPremisesApplicationStatus.REJECTED,
+        applicationStatus = REJECTED,
         referredBy = buildDeliusUserDto(),
       )
       val cas1Pending = buildReferralHistory(

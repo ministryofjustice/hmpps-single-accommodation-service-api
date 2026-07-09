@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
-import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 sealed interface CasReferralHistory
@@ -12,7 +12,7 @@ data class Cas1ReferralHistory(
   val applicationId: UUID,
   val applicationStatus: ApprovedPremisesApplicationStatus,
   val requestForPlacementStatus: RequestForPlacementStatus?,
-  val createdAt: Instant,
+  val date: LocalDate,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
@@ -81,7 +81,7 @@ data class Cas3ReferralHistory(
   val applicationId: UUID,
   val applicationStatus: ApplicationStatus,
   val assessmentStatus: AssessmentStatus?,
-  val createdAt: Instant,
+  val date: LocalDate,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
