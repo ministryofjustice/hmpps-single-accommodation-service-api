@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus.ACCEPTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus.PENDING
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService.DTR
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
@@ -20,7 +21,12 @@ class AccommodationReferralService(
     val dtrs = dutyToReferQueryService.getDutyToReferHistory(crn)
 
     val allReferrals = AccommodationReferralTransformer.transformReferrals(orchestrationDto.data, dtrs)
-      .filterNot { it.status == ACCEPTED || it.status == PENDING }
+      .filterNot {
+        when (it.type) {
+          DTR -> it.status == PENDING
+          else -> it.status == PENDING || it.status == ACCEPTED
+        }
+      }
       .sortedByDescending { it.date }
     return toApiResponseDto(
       data = allReferrals,
