@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
-import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 data class AccommodationReferralDto(
@@ -9,7 +9,7 @@ data class AccommodationReferralDto(
   val status: AccommodationReferralStatus,
   val assessmentStatus: String?,
   val requestForPlacementStatus: String?,
-  val date: Instant,
+  val date: LocalDate,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,

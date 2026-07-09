@@ -13,8 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
-import java.time.Instant
-import java.time.ZoneOffset
+import java.time.LocalDate
 import java.util.UUID
 
 object AccommodationReferralTransformer {
@@ -24,7 +23,7 @@ object AccommodationReferralTransformer {
       type = AccommodationService.CAS1,
       status = toCasReferralStatus(it.placementStatus, it.requestForPlacementStatus, it.applicationStatus),
       requestForPlacementStatus = it.requestForPlacementStatus?.value,
-      date = it.createdAt,
+      date = it.date,
       referralRejectionReason = it.referralRejectionReason,
       referralRejectionReasonDetail = it.referralRejectionReasonDetail,
       localAuthorityArea = it.localAuthorityArea,
@@ -42,7 +41,7 @@ object AccommodationReferralTransformer {
         status = toCasReferralStatus(it.bookingStatus, it.assessmentStatus, it.applicationStatus, it.referralRejectionReason),
         assessmentStatus = it.assessmentStatus?.value,
         requestForPlacementStatus = null,
-        date = it.createdAt,
+        date = it.date,
         referralRejectionReason = it.referralRejectionReason,
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
@@ -58,7 +57,7 @@ object AccommodationReferralTransformer {
         type = AccommodationService.DTR,
         status = toCasReferralStatus(it.status),
         requestForPlacementStatus = null,
-        date = it.submission!!.submissionDate.atStartOfDay().toInstant(ZoneOffset.UTC),
+        date = it.submission!!.submissionDate,
         referralRejectionReason = it.submission!!.withdrawalReason?.name,
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
@@ -80,7 +79,7 @@ object AccommodationReferralTransformer {
     status: AccommodationReferralStatus,
     assessmentStatus: String? = null,
     requestForPlacementStatus: String?,
-    date: Instant,
+    date: LocalDate,
     referralRejectionReason: String?,
     referralRejectionReasonDetail: String?,
     localAuthorityArea: String?,
