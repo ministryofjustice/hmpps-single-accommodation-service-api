@@ -20,9 +20,6 @@ fun expectedGetCaseResponse(): String = """
       "username": "user1",
       "staffCode": "ABCD1234"
     },
-    "currentAccommodation": null,
-    "nextAccommodation": null,
-    "status": null,
     "actions": [],
     "userAccess": "FULL",
     "limitedAccess": false

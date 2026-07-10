@@ -22,9 +22,6 @@ private fun caseJson(
   "riskLevel": ${if (riskLevel != null) "\"$riskLevel\"" else "null"},
   "pncReference": ${if (pncReference != null) "\"$pncReference\"" else "null"},
   "assignedTo": $assignedTo,
-  "currentAccommodation": null,
-  "nextAccommodation": null,
-  "status": null,
   "actions": [],
   "userAccess": "FULL",
   "limitedAccess": false
