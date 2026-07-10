@@ -27,8 +27,6 @@ dependencies {
 
   // Due to use of a spring bom in hmpps-starter we have to force some versions to override them locally
   implementation(enforcedPlatform(libs.postgres))
-  implementation(enforcedPlatform(libs.app.insights.core))
-  implementation(enforcedPlatform(libs.micrometer.registry.azure))
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
