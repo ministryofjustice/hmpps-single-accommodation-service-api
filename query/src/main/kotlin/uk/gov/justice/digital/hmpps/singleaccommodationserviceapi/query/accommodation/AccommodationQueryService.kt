@@ -164,7 +164,7 @@ class AccommodationQueryService(
       .filter { it.status.code in excludedAddressStatuses }
       .filter { !it.postcode.isNullOrBlank() }
       .filter { it.endDate == null }
-      .map { toAccommodationSummary(crn, address = it) }
+      .map { toAccommodationSummary(crn, address = it, maskDates = true) }
 
     return (nextApprovedPremisesAccommodations + nextCprProposedAccommodations)
   }
