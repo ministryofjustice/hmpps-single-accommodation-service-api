@@ -27,6 +27,7 @@ data class AccommodationTypeEntity(
   val isPrison: Boolean,
   val isCas1: Boolean,
   val isCas2: Boolean,
+  val isHomeless: Boolean,
 ) : ReferenceData
 
 enum class AccommodationSettledType {

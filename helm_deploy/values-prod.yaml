@@ -10,13 +10,11 @@ generic-service:
     JAVA_OPTS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: prod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
-    HMPPS_SQS_ENABLED: false
+    HMPPS_SQS_ENABLED: true
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises.hmpps.service.justice.gov.uk
-    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search.prison.service.justice.gov.uk

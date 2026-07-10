@@ -101,6 +101,7 @@ fun buildAccommodationTypeEntity(
   isPrison: Boolean = false,
   isCas1: Boolean = false,
   isCas2: Boolean = false,
+  isHomeless: Boolean = false,
 ) = AccommodationTypeEntity(
   id,
   name = name,
@@ -112,6 +113,7 @@ fun buildAccommodationTypeEntity(
   isPrison = isPrison,
   isCas1 = isCas1,
   isCas2 = isCas2,
+  isHomeless = isHomeless,
 )
 
 @TestData

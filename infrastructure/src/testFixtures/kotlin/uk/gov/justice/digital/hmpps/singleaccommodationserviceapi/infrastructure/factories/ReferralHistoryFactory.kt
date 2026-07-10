@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
-import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 fun buildReferralHistory(
@@ -11,7 +11,7 @@ fun buildReferralHistory(
   requestForPlacementStatus: Cas1ReferralHistory.RequestForPlacementStatus? = null,
   id: UUID = UUID.randomUUID(),
   applicationId: UUID = UUID.randomUUID(),
-  createdAt: Instant = Instant.now(),
+  date: LocalDate = LocalDate.now(),
   referralRejectionReason: String? = null,
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
@@ -25,7 +25,7 @@ fun buildReferralHistory(
   applicationId = applicationId,
   applicationStatus = applicationStatus,
   requestForPlacementStatus = requestForPlacementStatus,
-  createdAt = createdAt,
+  date = date,
   referralRejectionReason = referralRejectionReason,
   referralRejectionReasonDetail = referralRejectionReasonDetail,
   localAuthorityArea = localAuthorityArea,
@@ -38,9 +38,10 @@ fun buildReferralHistory(
 
 fun buildReferralHistory(
   applicationStatus: Cas3ReferralHistory.ApplicationStatus,
+  assessmentStatus: Cas3ReferralHistory.AssessmentStatus,
   id: UUID = UUID.randomUUID(),
   applicationId: UUID = UUID.randomUUID(),
-  createdAt: Instant = Instant.now(),
+  date: LocalDate = LocalDate.now(),
   referralRejectionReason: String? = null,
   referralRejectionReasonDetail: String? = null,
   localAuthorityArea: String? = null,
@@ -53,7 +54,8 @@ fun buildReferralHistory(
   id = id,
   applicationId = applicationId,
   applicationStatus = applicationStatus,
-  createdAt = createdAt,
+  assessmentStatus = assessmentStatus,
+  date = date,
   referralRejectionReason = referralRejectionReason,
   referralRejectionReasonDetail = referralRejectionReasonDetail,
   localAuthorityArea = localAuthorityArea,

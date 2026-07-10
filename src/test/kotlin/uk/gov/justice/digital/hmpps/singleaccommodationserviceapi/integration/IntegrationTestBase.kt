@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
@@ -56,6 +58,10 @@ const val USERNAME_OF_DELIUS_SYNC_USER = "DELIUS_SYNC_USER"
 const val FORENAME_OF_DELIUS_SYNC_USER: String = "nDelius"
 const val SURNAME_OF_DELIUS_SYNC_USER: String = "user"
 
+const val USERNAME_OF_SAS_SYSTEM_USER = "SAS_SYSTEM_USER"
+const val FORENAME_OF_SAS_SYSTEM_USER: String = "SAS"
+const val SURNAME_OF_SAS_SYSTEM_USER: String = "system user"
+
 const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
 private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
@@ -63,7 +69,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
@@ -74,6 +80,7 @@ abstract class IntegrationTestBase {
   protected lateinit var userIdOfTestDataSetupUser: UUID
   protected val userIdOfLoggedInDeliusUser: UUID = UUID.fromString("a1e2345f-b847-409a-9fee-aa75659bd9f8")
   protected val userIdOfDeliusSyncUser: UUID = UUID.fromString("dc403174-5986-4824-9783-09d33602ad9f")
+  protected val userIdOfSasSystemUser: UUID = UUID.fromString("21c60402-79cd-4952-9add-3dd15f1110fa")
 
   @Autowired
   lateinit var applicationContext: ApplicationContext
@@ -92,6 +99,9 @@ abstract class IntegrationTestBase {
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
+
+  @Autowired
+  protected lateinit var cacheManager: ConcurrentMapCacheManager
 
   @Autowired
   lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
@@ -134,6 +144,8 @@ abstract class IntegrationTestBase {
   }
 
   protected fun createDeliusSyncUser() = userRepository.save(deliusSyncUser())
+
+  protected fun createSasSystemUser() = userRepository.save(sasSystemUser())
 
   protected fun createTestDataSetupUserAndDeliusUser() = userRepository.save(testDataSetupUser()).also { user ->
     ProbationIntegrationDeliusStubs.stubGetStaffByUsername(user.username, staffDetail)
@@ -181,6 +193,23 @@ abstract class IntegrationTestBase {
     middleNames = null,
     surname = SURNAME_OF_DELIUS_SYNC_USER,
     email = USERNAME_OF_DELIUS_SYNC_USER,
+    telephoneNumber = null,
+    deliusStaffCode = null,
+    nomisStaffId = null,
+    nomisAccountType = null,
+    nomisActiveCaseloadId = null,
+    isEnabled = true,
+    isActive = true,
+  )
+
+  protected fun sasSystemUser() = UserEntity(
+    id = userIdOfSasSystemUser,
+    username = USERNAME_OF_SAS_SYSTEM_USER,
+    authSource = AuthSourceEntity.NONE,
+    forename = FORENAME_OF_SAS_SYSTEM_USER,
+    middleNames = null,
+    surname = SURNAME_OF_SAS_SYSTEM_USER,
+    email = USERNAME_OF_SAS_SYSTEM_USER,
     telephoneNumber = null,
     deliusStaffCode = null,
     nomisStaffId = null,
@@ -263,4 +292,18 @@ abstract class IntegrationTestBase {
       }
     return matchedMessage!!
   }
+
+  protected fun cacheValueByCrn(
+    crn: String,
+    cacheKey: String,
+    cacheValue: Any,
+  ) {
+    cacheManager.getCache(cacheKey)!!.put(crn, cacheValue)
+    assertThat(cacheManager.getCache(cacheKey)!!.get(crn)).isNotNull
+  }
+
+  protected fun isCacheEvicted(
+    crn: String,
+    cacheKey: String,
+  ): Boolean = cacheManager.getCache(cacheKey)!!.get(crn) == null
 }

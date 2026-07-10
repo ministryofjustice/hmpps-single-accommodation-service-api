@@ -71,6 +71,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       crn = UUID.randomUUID().toString()
       HmppsAuthStubs.stubGrantToken()
       databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
+      createSasSystemUser()
     }
 
     @Test
@@ -157,6 +158,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       HmppsAuthStubs.stubGrantToken()
       databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
       tierEventHandlerConfig.v3Enabled = true
+      createSasSystemUser()
     }
 
     @Test

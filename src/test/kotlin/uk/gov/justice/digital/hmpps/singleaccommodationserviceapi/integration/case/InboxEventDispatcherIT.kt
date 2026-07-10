@@ -58,6 +58,7 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     databaseUtils.truncate(INBOX_EVENT)
     dispatcherConfig.maxConcurrentEvents = 4
     dispatcherConfig.maxEventsPerBatch = 10
+    createSasSystemUser()
   }
 
   @Test
