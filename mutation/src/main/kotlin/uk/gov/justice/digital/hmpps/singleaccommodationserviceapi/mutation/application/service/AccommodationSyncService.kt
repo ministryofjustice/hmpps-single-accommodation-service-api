@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
+import java.util.UUID
 
 @Service
 class AccommodationSyncService(
@@ -32,6 +34,7 @@ class AccommodationSyncService(
   private val accommodationStatusRepository: AccommodationStatusRepository,
   private val caseRepository: CaseRepository,
   private val userService: UserService,
+  private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -214,5 +217,14 @@ class AccommodationSyncService(
   ) {
     accommodationToDelete.deleted = true
     proposedAccommodationRepository.save(accommodationToDelete)
+    cprCacheEvict(caseId = accommodationToDelete.caseId)
+  }
+
+  private fun cprCacheEvict(caseId: UUID) {
+    caseRepository.findByIdOrNull(caseId)?.let {
+      corePersonRecordCachingService.cacheEvictOnCorePersonRecordByCrn(
+        crn = it.latestCrn(),
+      )
+    }
   }
 }

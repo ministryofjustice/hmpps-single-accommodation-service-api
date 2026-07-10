@@ -338,6 +338,63 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should withdraw duty to refer and return 200 with updated data with outcome reason`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 15),
+        status = EntityDtrStatus.ACCEPTED,
+        outcomeReason = EntityOutcomeReason.PRIORITY_NEED,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = newLocalAuthorityArea.id,
+          submissionDate = LocalDate.of(2026, 1, 20).toString(),
+          referenceNumber = "DTR-REF-002",
+          status = EntityDtrStatus.WITHDRAWN.name,
+          outcomeReason = "PRIORITY_NEED",
+          withdrawalReason = "NEW_REFERRAL",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = newLocalAuthorityArea.id,
+        localAuthorityAreaName = newLocalAuthorityArea.name,
+        submissionDate = LocalDate.of(2026, 1, 20).toString(),
+        referenceNumber = "DTR-REF-002",
+        status = DtrStatus.WITHDRAWN.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        outcomeReason = "PRIORITY_NEED",
+        withdrawalReason = "NEW_REFERRAL",
+      ),
+    )
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingEntity.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    )
+    assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
   fun `should return 404 when updating nonexistent duty to refer`() {
     val nonExistentId = UUID.randomUUID()
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
