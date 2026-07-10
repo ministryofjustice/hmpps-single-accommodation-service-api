@@ -44,11 +44,6 @@ class AccommodationQueryService(
       AccommodationSettledType.TRANSIENT,
     ).map { it.code }.toSet()
   }
-  private val settledAccommodationTypes: Set<String> by lazy {
-    accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
-      AccommodationSettledType.SETTLED,
-    ).map { it.code }.toSet()
-  }
   private val homelessAccommodationTypeCodes: Set<String> by lazy {
     accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().map { it.code }.toSet()
   }
@@ -226,11 +221,8 @@ class AccommodationQueryService(
       currentAccommodation.type?.code in homelessAccommodationTypeCodes -> CaseAccommodationStatus.NO_FIXED_ABODE
 
     nextAccommodation == null ||
-      nextAccommodation.type?.code in homelessAccommodationTypeCodes -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-
-    nextAccommodation.type?.code in settledAccommodationTypes -> CaseAccommodationStatus.SETTLED
-
-    nextAccommodation.type?.code in transientAccommodationTypeCodes -> CaseAccommodationStatus.TRANSIENT
+      nextAccommodation.type?.code in homelessAccommodationTypeCodes ||
+      nextAccommodation.type?.code in transientAccommodationTypeCodes -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
 
     else -> {
       null

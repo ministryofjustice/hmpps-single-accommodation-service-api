@@ -342,13 +342,13 @@ fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
 
 fun expectedAccommodationStatusResponse(
   crn: String,
-  settledType: CaseAccommodationStatus,
+  settledType: CaseAccommodationStatus?,
   nextCode: String,
   nextDescription: String,
 ) = """
   {
    "data":{
-      "caseAccommodationStatus":"${settledType.name}",
+      "caseAccommodationStatus":${settledType?.let { "\"$it\"" }},
       "currentAccommodation":{
          "crn":"$crn",
          "startDate":"2026-01-11",

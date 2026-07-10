@@ -171,7 +171,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return current and next accommodation and return SETTLED when next accommodation is SETTLED type`() {
+    fun `should return current and next accommodation and return caseAccommodationStatus as NULL when next accommodation is SETTLED type`() {
       val accommodationType =
         accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED).first()
       val nextAddress = nextAddress(accommodationType)
@@ -189,7 +189,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
           assertThatJson(it!!).matchesExpectedJson(
             expectedAccommodationStatusResponse(
               crn,
-              settledType = CaseAccommodationStatus.SETTLED,
+              settledType = null,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
             ),
@@ -198,7 +198,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return current and next accommodation and return TRANSIENT when next accommodation is TRANSIENT type`() {
+    fun `should return current and next accommodation and return RISK_OF_NO_FIXED_ABODE when next accommodation is TRANSIENT type`() {
       val accommodationType =
         accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT).first()
       val nextAddress = nextAddress(accommodationType)
@@ -216,7 +216,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
           assertThatJson(it!!).matchesExpectedJson(
             expectedAccommodationStatusResponse(
               crn,
-              settledType = CaseAccommodationStatus.TRANSIENT,
+              settledType = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
             ),
