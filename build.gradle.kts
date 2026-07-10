@@ -84,6 +84,11 @@ tasks.named("check") {
 }
 
 allprojects {
+  pluginManager.apply("org.owasp.dependencycheck")
+  dependencyCheck {
+    skipConfigurations.addAll(listOf("detekt", "detektPlugins"))
+  }
+
   tasks.register<Test>("integrationTest") {
     group = "verification"
     testClassesDirs = sourceSets.test.get().output.classesDirs
@@ -124,14 +129,6 @@ val unitTestAggregateReport by tasks.registering(TestReport::class) {
   testResults.from(allUnitTestTasks.map { it.binaryResultsDirectory })
 }
 
-
-//  dependencyCheck {
-//    skipConfigurations.addAll(
-//      listOf("detekt", "detektPlugins")
-//    )
-//  }
-
-
 subprojects {
   repositories {
     mavenLocal()
@@ -145,12 +142,6 @@ subprojects {
 
   detekt {
     config.setFrom("../detekt/detekt.yml")
-  }
-
-  dependencyCheck {
-    skipConfigurations.addAll(
-      listOf("detekt", "detektPlugins"),
-    )
   }
 
   tasks.withType<Test> {
