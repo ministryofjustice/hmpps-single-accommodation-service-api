@@ -31,7 +31,7 @@ shift $((OPTIND - 1))
 ENV=$1
 
 if [ -z "$ENV" ] || [[ ! "$ENV" =~ ^(dev|test|preprod|prod)$ ]]; then
-  echo "You must specify the environment: ./remote-redis-tunnel [-d] [-c] [dev|test|preprod|prod]"
+  echo "You must specify the environment: ./remote-redis-tunnel.sh [-d] [-c] [dev|test|preprod|prod]"
   exit 1
 fi
 
