@@ -124,6 +124,14 @@ val unitTestAggregateReport by tasks.registering(TestReport::class) {
   testResults.from(allUnitTestTasks.map { it.binaryResultsDirectory })
 }
 
+
+//  dependencyCheck {
+//    skipConfigurations.addAll(
+//      listOf("detekt", "detektPlugins")
+//    )
+//  }
+
+
 subprojects {
   repositories {
     mavenLocal()
@@ -137,6 +145,12 @@ subprojects {
 
   detekt {
     config.setFrom("../detekt/detekt.yml")
+  }
+
+  dependencyCheck {
+    skipConfigurations.addAll(
+      listOf("detekt", "detektPlugins"),
+    )
   }
 
   tasks.withType<Test> {
