@@ -9,7 +9,7 @@ data class ProposedAccommodationDto(
   val id: UUID,
   val crn: String,
   val name: String?,
-  val accommodationType: AccommodationTypeDto,
+  val accommodationType: AccommodationTypeDto?,
   val verificationStatus: VerificationStatus?,
   val nextAccommodationStatus: NextAccommodationStatus?,
   val address: AccommodationAddressDetails,
@@ -26,7 +26,7 @@ data class ProposedAccommodationDto(
 
 data class ProposedAccommodationDetailCommand(
   val name: String?,
-  val accommodationTypeCode: String,
+  val accommodationTypeCode: String?,
   val verificationStatus: VerificationStatus,
   val nextAccommodationStatus: NextAccommodationStatus,
   val address: AccommodationAddressDetails,

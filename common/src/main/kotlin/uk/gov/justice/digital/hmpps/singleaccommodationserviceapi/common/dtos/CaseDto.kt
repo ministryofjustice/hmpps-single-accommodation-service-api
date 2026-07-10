@@ -14,9 +14,6 @@ data class CaseDto(
   val riskLevel: RiskLevel? = null,
   val pncReference: String? = null,
   val assignedTo: AssignedToDto? = null,
-  val currentAccommodation: AccommodationSummaryDto? = null,
-  val nextAccommodation: AccommodationSummaryDto? = null,
-  val status: Status? = null,
   val actions: List<CaseAction> = emptyList(),
   val userAccess: UserAccess,
   val limitedAccess: Boolean?,
@@ -39,11 +36,4 @@ enum class RiskLevel(val code: String) {
   companion object {
     fun findByCode(code: String) = RiskLevel.entries.firstOrNull { it.code == code }
   }
-}
-
-enum class Status {
-  RISK_OF_NO_FIXED_ABODE,
-  NO_FIXED_ABODE,
-  TRANSIENT,
-  SETTLED,
 }

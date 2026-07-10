@@ -14,17 +14,19 @@ object ProposedAccommodationTransformer {
 
   fun toAccommodationDetail(
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     crn: String,
     createdBy: String,
   ) = ProposedAccommodationDto(
     id = proposedAccommodationEntity.id,
     name = proposedAccommodationEntity.name,
     crn = crn,
-    accommodationType = AccommodationTypeDto(
-      code = accommodationTypeEntity.code,
-      description = accommodationTypeEntity.name,
-    ),
+    accommodationType = accommodationTypeEntity?.let {
+      AccommodationTypeDto(
+        code = accommodationTypeEntity.code,
+        description = accommodationTypeEntity.name,
+      )
+    },
     verificationStatus = proposedAccommodationEntity.verificationStatus?.let { toVerificationStatus(it) },
     nextAccommodationStatus = proposedAccommodationEntity.nextAccommodationStatus?.let { toNextAccommodationStatus(it) },
     address = toAddressDetails(proposedAccommodationEntity),

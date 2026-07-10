@@ -40,13 +40,13 @@ class DtrEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible()
+    val notRequired = builder.notRequired()
     val accepted = builder.outcome(ServiceResult(ServiceStatus.ACCEPTED))
 
     val eligibilityNode = builder
       .ruleSet("DtrEligibility", eligibility)
       .onPass(confirmed)
-      .onFail(notEligible)
+      .onFail(notRequired)
       .build()
 
     val completionNode = builder

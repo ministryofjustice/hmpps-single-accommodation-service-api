@@ -21,9 +21,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -47,9 +44,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -73,9 +67,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -99,9 +90,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_REFERRAL","startDate":null},
@@ -125,9 +113,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_REFERRAL","startDate":null},
@@ -151,9 +136,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_REFERRAL","startDate":null},
@@ -178,9 +160,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_REFERRAL","startDate":null}
@@ -203,9 +182,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_REFERRAL","startDate":null}
@@ -228,9 +204,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_REFERRAL","startDate":null}
@@ -253,9 +226,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null}
@@ -278,9 +248,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -304,9 +271,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -331,9 +295,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -358,9 +319,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -384,9 +342,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -410,9 +365,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -436,9 +388,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -462,9 +411,6 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER",
             "staffCode":"ABCD1234"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
             {"type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL","startDate":null},
@@ -483,9 +429,6 @@ fun expectedGetCaseListResponse(): String = """
          "riskLevel":null,
          "pncReference":null,
          "assignedTo":null,
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             
          ],
@@ -502,9 +445,6 @@ fun expectedGetCaseListResponse(): String = """
          "riskLevel":null,
          "pncReference":null,
          "assignedTo":null,
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
             
          ],

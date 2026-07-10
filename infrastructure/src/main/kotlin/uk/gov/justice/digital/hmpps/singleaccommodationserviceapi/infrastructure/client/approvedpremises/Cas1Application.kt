@@ -10,6 +10,7 @@ data class Cas1Application(
   val requestForPlacementStatus: Cas1RequestForPlacementStatus?,
   val placementStatus: Cas1PlacementStatus?,
   val premises: Cas1PremisesSummary?,
+  val uiUrl: String?,
 )
 
 data class Cas1PremisesSummary(

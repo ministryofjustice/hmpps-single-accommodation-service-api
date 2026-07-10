@@ -68,7 +68,7 @@ class ProposedAccommodationAggregate private constructor(
       currentAccommodation: AccommodationSummaryDto?,
       cprAddressId: UUID?,
       name: String?,
-      accommodationType: AccommodationTypeDto,
+      accommodationType: AccommodationTypeDto?,
       accommodationStatus: AccommodationStatusDto?,
       verificationStatus: VerificationStatus,
       nextAccommodationStatus: NextAccommodationStatus,
@@ -100,7 +100,7 @@ class ProposedAccommodationAggregate private constructor(
 
   fun updateProposedAccommodation(
     newName: String?,
-    newAccommodationType: AccommodationTypeDto,
+    newAccommodationType: AccommodationTypeDto?,
     newVerificationStatus: VerificationStatus,
     newNextAccommodationStatus: NextAccommodationStatus,
     newAddress: AccommodationAddressDetails,
@@ -164,7 +164,7 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun syncProposedAccommodation(
-    newAccommodationType: AccommodationTypeDto,
+    newAccommodationType: AccommodationTypeDto?,
     newAccommodationStatus: AccommodationStatusDto?,
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
@@ -277,8 +277,8 @@ class ProposedAccommodationAggregate private constructor(
     newAddress: AccommodationAddressDetails,
     newStartDate: LocalDate?,
     newEndDate: LocalDate?,
-    newAccommodationType: AccommodationTypeDto,
-  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate || accommodationType?.code != newAccommodationType.code
+    newAccommodationType: AccommodationTypeDto?,
+  ) = address != newAddress || startDate != newStartDate || endDate != newEndDate || accommodationType?.code != newAccommodationType?.code
 
   private fun shouldDeleteFromCpr(
     previousNextAccommodationStatus: NextAccommodationStatus?,
@@ -314,7 +314,7 @@ class ProposedAccommodationAggregate private constructor(
     cprAddressId,
     accommodationSource!!,
     name,
-    accommodationType!!,
+    accommodationType,
     accommodationStatus,
     verificationStatus!!,
     nextAccommodationStatus!!,
@@ -332,7 +332,7 @@ class ProposedAccommodationAggregate private constructor(
     val cprAddressId: UUID?,
     val accommodationSource: AccommodationSource,
     val name: String?,
-    val accommodationType: AccommodationTypeDto,
+    val accommodationType: AccommodationTypeDto?,
     val accommodationStatus: AccommodationStatusDto?,
     val verificationStatus: VerificationStatus,
     val nextAccommodationStatus: NextAccommodationStatus,

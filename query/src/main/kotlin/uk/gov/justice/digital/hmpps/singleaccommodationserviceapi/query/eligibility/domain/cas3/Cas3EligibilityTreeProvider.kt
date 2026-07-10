@@ -16,14 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 
 @Component
 class Cas3EligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
-  private val upcoming: Cas3UpcomingRuleSet,
-  private val upcomingContextUpdater: Cas3UpcomingContextUpdater,
   private val suitability: Cas3SuitabilityRuleSet,
   private val suitabilityContextUpdater: Cas3SuitabilityContextUpdater,
   private val completion: Cas3CompletionRuleSet,
@@ -49,8 +45,6 @@ class Cas3EligibilityTreeProvider(
       serviceResult(),
     )
 
-    // eligibility is checked before prerequisites on the suitability fail path
-    // NOT_ELIGIBLE takes priority over CANNOT_START_YET when both fail
     val prerequisiteNode = builder
       .ruleSet("Cas3Prerequisite", prerequisite)
       .onPass(confirmed)
@@ -69,22 +63,10 @@ class Cas3EligibilityTreeProvider(
       .onFail(confirmed)
       .build()
 
-    val suitabilityNode = builder
+    return builder
       .ruleSet("Cas3Suitability", suitability, suitabilityContextUpdater)
       .onPass(completionNode)
       .onFail(eligibilityWithPrereqNode)
-      .build()
-
-    val eligibilityNode = builder
-      .ruleSet("Cas3Eligibility", eligibility)
-      .onPass(confirmed)
-      .onFail(notEligible)
-      .build()
-
-    return builder
-      .ruleSet("Cas3Upcoming", upcoming, upcomingContextUpdater)
-      .onPass(suitabilityNode)
-      .onFail(eligibilityNode)
       .build()
   }
 

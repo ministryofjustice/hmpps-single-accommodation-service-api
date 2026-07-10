@@ -16,8 +16,6 @@ generic-service:
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-dev.hmpps.service.justice.gov.uk
-    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-dev.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search-dev.prison.service.justice.gov.uk

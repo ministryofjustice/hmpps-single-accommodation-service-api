@@ -36,10 +36,6 @@ service:
     read-timeout: 300ms
   prisoner-search:
     read-timeout: 300ms
-  approved-premises-ui:
-    base-url: approved-premises-ui-test-url
-  temporary-accommodation-ui:
-    base-url: temporary-accommodation-ui-test-url
   commissioned-rehabilitative-services-ui:
     base-url: commissioned-rehabilitative-services-ui-test-url
 
@@ -75,7 +71,7 @@ hmpps.sqs:
       queueName: sas_domain_events_queue
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated"]}'
+      subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.deleted"]}'
     test-domain-events-queue:
       dlqName: ${random.uuid}
       queueName: ${random.uuid}

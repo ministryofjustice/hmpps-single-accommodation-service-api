@@ -85,7 +85,7 @@ case-list:
 
 scheduling:
   enabled: true
-  fixed-delay: 2s
+  fixed-delay: 500ms
 
 shedlock:
   default-lock-at-most-for: PT2M

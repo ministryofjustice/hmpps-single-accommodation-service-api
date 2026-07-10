@@ -182,4 +182,20 @@ class UserServiceTest {
       verify(exactly = 1) { userRepository.save(any()) }
     }
   }
+
+  @Nested
+  inner class GetSystemUser {
+    @Test
+    fun `getSystemUser returns sas system user`() {
+      val systemUser = buildUserEntity(
+        username = "SAS_SYSTEM_USER",
+        authSource = AuthSource.NONE,
+      )
+      every { userRepository.findByUsernameAndAuthSource(Username("SAS_SYSTEM_USER"), AuthSource.NONE) } returns systemUser
+
+      val result = userService.getSystemUser()
+
+      assertThat(result).isEqualTo(systemUser)
+    }
+  }
 }

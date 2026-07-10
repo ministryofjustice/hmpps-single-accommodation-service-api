@@ -111,8 +111,9 @@ object EligibilityTransformer {
     failureReasons = failureReasons,
   )
 
-  // Helper function to determine if referral data (DTR/CRS) should be surfaced in EligibilityDto
-  private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus != ServiceStatus.NOT_STARTED && result.serviceStatus != ServiceStatus.NOT_ELIGIBLE
+  // DTR/CRS referral data should only be surfaced when a referral exists and has relevant service status to show the data
+  private val surfacingStatuses = setOf(ServiceStatus.SUBMITTED, ServiceStatus.ACCEPTED, ServiceStatus.NOT_ACCEPTED)
+  private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus in surfacingStatuses
 
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,

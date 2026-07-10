@@ -27,8 +27,8 @@ open class ProposedAccommodationEntity(
   @DiffIgnore
   var cprAddressId: UUID?,
   var name: String?,
-  @Column(name = "accommodation_type_id", nullable = false)
-  var accommodationTypeId: UUID,
+  @Column(name = "accommodation_type_id", nullable = true)
+  var accommodationTypeId: UUID?,
   @DiffIgnore
   @Column(name = "accommodation_status_id", nullable = true)
   var accommodationStatusId: UUID?,
@@ -68,6 +68,7 @@ open class ProposedAccommodationEntity(
   )
   var notes: MutableList<ProposedAccommodationNoteEntity> = mutableListOf(),
 
+  @DiffIgnore
   @Column(nullable = false)
   var deleted: Boolean = false,
 

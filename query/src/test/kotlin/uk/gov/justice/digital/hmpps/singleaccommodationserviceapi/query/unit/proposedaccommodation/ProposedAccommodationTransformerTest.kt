@@ -60,8 +60,8 @@ class ProposedAccommodationTransformerTest {
       assertThat(result.id).isEqualTo(id)
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.name).isEqualTo("Test Name")
-      assertThat(result.accommodationType.code).isEqualTo(accommodationTypeEntity.code)
-      assertThat(result.accommodationType.description).isEqualTo(accommodationTypeEntity.name)
+      assertThat(result.accommodationType?.code).isEqualTo(accommodationTypeEntity.code)
+      assertThat(result.accommodationType?.description).isEqualTo(accommodationTypeEntity.name)
       assertThat(result.verificationStatus).isEqualTo(VerificationStatus.PASSED)
       assertThat(result.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
       assertThat(result.startDate).isEqualTo(startDate)
@@ -73,9 +73,7 @@ class ProposedAccommodationTransformerTest {
     @Test
     fun `should handle nullable fields correctly`() {
       val crn = UUID.randomUUID().toString()
-      val accommodationTypeEntity = buildAccommodationTypeEntity()
       val entity = buildProposedAccommodationEntity(
-        accommodationTypeEntity = accommodationTypeEntity,
         name = null,
         verificationStatus = null,
         nextAccommodationStatus = null,
@@ -93,12 +91,13 @@ class ProposedAccommodationTransformerTest {
         uprn = null,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity, crn, createdBy)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity = null, crn, createdBy)
 
       assertThat(result.name).isNull()
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.verificationStatus).isNull()
       assertThat(result.nextAccommodationStatus).isNull()
+      assertThat(result.accommodationType).isNull()
       assertThat(result.startDate).isNull()
       assertThat(result.endDate).isNull()
       assertThat(result.address.postcode).isNull()

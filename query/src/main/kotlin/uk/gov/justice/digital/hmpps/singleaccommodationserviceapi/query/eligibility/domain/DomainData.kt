@@ -66,6 +66,7 @@ data class DomainData(
         requestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
         placementStatus = caseEntity.cas1ApplicationPlacementStatus,
         premises = null,
+        uiUrl = null,
       )
     } else {
       null
