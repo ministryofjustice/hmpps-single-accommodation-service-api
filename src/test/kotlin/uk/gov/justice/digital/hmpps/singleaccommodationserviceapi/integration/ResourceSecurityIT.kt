@@ -145,6 +145,7 @@ private val accommodationControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /cases/{crn}/accommodations/current" to defaultRoles,
     "GET /cases/{crn}/accommodations/next" to defaultRoles,
+    "GET /cases/{crn}/accommodations/summary" to defaultRoles,
     "GET /accommodations/{id}" to setOf("SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD"),
   )
 

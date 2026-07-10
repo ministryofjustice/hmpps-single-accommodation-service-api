@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation
 
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
@@ -24,6 +27,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -33,6 +38,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedAccommodationStatusResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationByIdResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationCas1CurrentPremisesResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationCas3CurrentPremisesResponse
@@ -41,10 +47,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationWithAllUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationWithUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationsResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedNoFixedAbodeResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedRiskOfNoFixedAbodeResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -70,7 +79,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    proposedAccommodationRepository.deleteAll()
+    databaseUtils.truncate(DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION)
     crn = UUID.randomUUID().toString()
     prisonNumber = "PR1"
     caseEntity = caseRepository.save(
@@ -81,6 +90,139 @@ class AccommodationControllerIT : IntegrationTestBase() {
     )
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
+  }
+
+  @Nested
+  inner class AccommodationsSummary {
+
+    val currentAddress = buildCanonicalAddress(
+      cprAddressId = UUID.randomUUID(),
+      typeVerified = true,
+      noFixedAbode = false,
+      postcode = "SW1A 1AA",
+      thoroughfareName = "Some Street",
+      postTown = "London",
+      startDate = LocalDate.of(2026, 1, 11),
+      endDate = null,
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A07B.name,
+            description = AddressUsageCode.A07B.description,
+          ),
+          isActive = true,
+        ),
+      ),
+    )
+
+    fun nextAddress(accommodationType: AccommodationTypeEntity, noFixedAbode: Boolean = false) = buildCanonicalAddress(
+      cprAddressId = UUID.randomUUID(),
+      noFixedAbode = noFixedAbode,
+      startDate = LocalDate.of(2025, 10, 17),
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = accommodationType.code,
+            description = accommodationType.name,
+          ),
+          isActive = true,
+        ),
+      ),
+    )
+
+    @Test
+    fun `should return NO_FIXED_ABODE when no current accommodation`() {
+      val corePersonRecord = buildCorePersonRecord(addresses = emptyList())
+
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, corePersonRecord)
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(expectedNoFixedAbodeResponse)
+        }
+    }
+
+    @Test
+    fun `should return current accommodation with RISK_OF_NO_FIXED_ABODE when next accommodation is homeless type`() {
+      val accommodationType = accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().first()
+      val nextAddress = nextAddress(accommodationType, noFixedAbode = true)
+
+      val corePersonRecord = buildCorePersonRecord(
+        addresses = listOf(currentAddress, nextAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, corePersonRecord)
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(expectedRiskOfNoFixedAbodeResponse(crn))
+        }
+    }
+
+    @Test
+    fun `should return current and next accommodation and return SETTLED when next accommodation is SETTLED type`() {
+      val accommodationType =
+        accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED).first()
+      val nextAddress = nextAddress(accommodationType)
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(nextAddress, currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedAccommodationStatusResponse(
+              crn,
+              settledType = CaseAccommodationStatus.SETTLED,
+              nextCode = accommodationType.code,
+              nextDescription = accommodationType.name,
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return current and next accommodation and return TRANSIENT when next accommodation is TRANSIENT type`() {
+      val accommodationType =
+        accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT).first()
+      val nextAddress = nextAddress(accommodationType)
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(nextAddress, currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedAccommodationStatusResponse(
+              crn,
+              settledType = CaseAccommodationStatus.TRANSIENT,
+              nextCode = accommodationType.code,
+              nextDescription = accommodationType.name,
+            ),
+          )
+        }
+    }
   }
 
   @Test
@@ -555,7 +697,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetNextAccommodationsResponse(
