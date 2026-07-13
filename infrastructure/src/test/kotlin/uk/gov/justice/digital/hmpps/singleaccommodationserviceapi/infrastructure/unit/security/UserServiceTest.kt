@@ -67,14 +67,14 @@ class UserServiceTest {
       assertThat(result).isEqualTo(existingUser)
 
       verify(exactly = 0) { approvedPremisesAndDeliusCachingService.getStaffDetail(any()) }
-      verify(exactly = 0) { userRepository.save(existingUser) }
+      verify(exactly = 0) { userRepository.createUser(existingUser) }
     }
 
     @Test
     fun `getAndUpsertDeliusUser creates new user`() {
       val deliusUser = buildStaffDetail()
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
-      every { userRepository.save(any()) } answers { it.invocation.args[0] as UserEntity }
+      every { userRepository.createUser(any()) } answers { it.invocation.args[0] as UserEntity }
       every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns deliusUser
 
       val result = userService.getAndUpsertDeliusUser(username)
@@ -91,7 +91,7 @@ class UserServiceTest {
       assertThat(result.nomisAccountType).isNull()
       assertThat(result.nomisActiveCaseloadId).isNull()
 
-      verify(exactly = 1) { userRepository.save(any()) }
+      verify(exactly = 1) { userRepository.createUser(any()) }
     }
   }
 
