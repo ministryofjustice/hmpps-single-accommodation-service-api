@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 
 @RestController
 class CaseController(
@@ -35,26 +34,22 @@ class CaseController(
     val upstreamFailures = personDtos.upstreamFailures.toMutableList()
 
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, teamCode)
-    saveCases(filteredCaseList)
-    // TODO: Add caseApplicationService.upsertCases() in here after MVP
-    val caseDtos = caseQueryService.getCases(filteredCaseList)
-    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
-  }
+    val unpersistedCrns = caseQueryService.findUnpersistedCrns(filteredCaseList.map { it.crn })
+    if (unpersistedCrns.isNotEmpty()) {
+      val crnsToPrisonNumbers =
+        filteredCaseList.filter { it.crn in unpersistedCrns }.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
 
-  fun saveCases(filteredCaseList: List<PersonDto>) {
-    filteredCaseList.chunked(25) { chunk ->
-      val unpersistedCrns = caseQueryService.findUnpersistedCrns(filteredCaseList.map { it.crn })
-      if (unpersistedCrns.isNotEmpty()) {
-        val crnsToPrisonNumbers =
-          chunk.filter { it.crn in unpersistedCrns }.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
+      crnsToPrisonNumbers.chunked(25) {
         try {
-          caseApplicationService.createCases(crnsToPrisonNumbers)
-        } catch (d: DataIntegrityViolationException) {
-          log.warn("Caught DataIngratityViolation When creating cases. Refiltering:\n{}", d.message)
-          saveCases(chunk)
+          caseApplicationService.createCases(it)
+        } catch (e: DataIntegrityViolationException) {
+          log.warn("Caught DataIntegrityViolationException. Ignoring. {}", e.message)
         }
       }
     }
+    // TODO: Add caseApplicationService.upsertCases() in here after MVP
+    val caseDtos = caseQueryService.getCases(filteredCaseList)
+    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
