@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus.AWAITING_MATCH
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
@@ -23,7 +25,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.referralhistory.response.expectedGetReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import java.time.Instant
 import java.time.LocalDate
 
 class AccommodationReferralControllerIT : IntegrationTestBase() {
@@ -63,16 +64,20 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
 
     val cas1Response: List<Cas1ReferralHistory> = listOf(
       buildReferralHistory(
-        createdAt = Instant.parse("2025-03-01T00:00:00Z"),
-        status = Cas1AssessmentStatus.IN_PROGRESS,
+        date = LocalDate.parse("2025-03-01"),
+        applicationStatus = ApprovedPremisesApplicationStatus.ASSESSMENT_IN_PROGRESS,
+        placementStatus = NOT_ARRIVED,
+        requestForPlacementStatus = AWAITING_MATCH,
         referredBy = referredByUser,
       ),
     )
 
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
-        createdAt = Instant.parse("2025-02-01T00:00:00Z"),
-        status = TemporaryAccommodationAssessmentStatus.IN_REVIEW,
+        date = LocalDate.parse("2025-02-01"),
+        applicationStatus = ApplicationStatus.IN_PROGRESS,
+        assessmentStatus = Cas3ReferralHistory.AssessmentStatus.READY_TO_PLACE,
+        bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.DEPARTED,
         referredBy = referredByUser,
       ),
     )

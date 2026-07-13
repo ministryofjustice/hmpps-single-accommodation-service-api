@@ -68,6 +68,7 @@ open class ProposedAccommodationEntity(
   )
   var notes: MutableList<ProposedAccommodationNoteEntity> = mutableListOf(),
 
+  @DiffIgnore
   @Column(nullable = false)
   var deleted: Boolean = false,
 

@@ -3,6 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 import java.time.LocalDate
 import java.util.UUID
 
+data class AccommodationSummariesDto(
+  val caseAccommodationStatus: CaseAccommodationStatus? = null,
+  val currentAccommodation: AccommodationSummaryDto? = null,
+  val nextAccommodation: AccommodationSummaryDto? = null,
+)
+
 data class AccommodationSummaryDto(
   val crn: String,
   val startDate: LocalDate? = null,
@@ -46,3 +52,10 @@ data class AccommodationAddressDetails(
   val country: String? = null,
   val uprn: String? = null,
 )
+
+enum class CaseAccommodationStatus {
+  RISK_OF_NO_FIXED_ABODE,
+  NO_FIXED_ABODE,
+  TRANSIENT,
+  SETTLED,
+}

@@ -13,7 +13,7 @@ import java.util.UUID
 fun buildDutyToReferDto(
   crn: String = "CR12345N",
   caseId: UUID = UUID.randomUUID(),
-  status: DtrStatus = DtrStatus.SUBMITTED,
+  status: DtrStatus = DtrStatus.NOT_ACCEPTED,
   submissionDate: LocalDate = LocalDate.now(),
   submission: DtrSubmissionDto? = buildDtrSubmission(submissionDate = submissionDate),
 ) = DutyToReferDto(

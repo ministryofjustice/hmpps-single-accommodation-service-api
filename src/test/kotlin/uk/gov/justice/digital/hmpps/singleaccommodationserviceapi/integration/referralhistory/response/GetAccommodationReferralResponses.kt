@@ -10,7 +10,6 @@ fun expectedGetReferralHistory(
   localAuthorityArea: String? = null,
   pdu: String? = null,
   placementAddress: String? = null,
-  placementStatus: String? = null,
   dtrId: UUID,
   dtrStatus: String? = null,
   dtrSubmissionDate: String? = null,
@@ -21,41 +20,50 @@ fun expectedGetReferralHistory(
      {
         "id":"$dtrId",
         "type":"DTR",
-        "status":"${dtrStatus ?: "PENDING"}",
-        "date":"${dtrSubmissionDate}T00:00:00Z",
+        "status":"${dtrStatus ?: "REJECTED"}",
+        "assessmentStatus": null,
+        "requestForPlacementStatus": null,
+        "date":"$dtrSubmissionDate",
         "referralRejectionReason": null,
         "referralRejectionReasonDetail": null,
         "localAuthorityArea": "Aberdeen City",
         "pdu": "Aberdeen City",
         "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER","staffCode": null},
         "placementAddress": null,
-        "placementStatus": null
+        "placementStatus": null,
+        "uiUrl": null
      },
      {
         "id":"$id1",
         "type":"CAS1",
-        "status":"PENDING",
-        "date":"2025-03-01T00:00:00Z",
+        "status":"NOT_ARRIVED",
+        "assessmentStatus": null,
+        "requestForPlacementStatus": "awaiting_match",
+        "date":"2025-03-01",
         "referralRejectionReason": $referralRejectionReason,
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus
+        "placementStatus": "notArrived",
+        "uiUrl": "https://example.com/referral"
      },
      {
         "id":"$id4",
         "type":"CAS3",
-        "status":"PENDING",
-        "date":"2025-02-01T00:00:00Z",
+        "status":"DEPARTED",
+        "assessmentStatus": "ready_to_place",
+        "requestForPlacementStatus": null,
+        "date":"2025-02-01",
         "referralRejectionReason": $referralRejectionReason,
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
         "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
         "placementAddress": $placementAddress,
-        "placementStatus": $placementStatus
+        "placementStatus": "departed",
+        "uiUrl": "https://example.com/referral"
      }
     ]
   }

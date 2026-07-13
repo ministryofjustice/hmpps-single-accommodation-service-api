@@ -37,10 +37,11 @@ object AccommodationTransformer {
   fun toAccommodationSummary(
     crn: String,
     address: CanonicalAddress,
+    maskDates: Boolean = false,
   ) = AccommodationSummaryDto(
     crn = crn,
-    startDate = address.startDate?.let { LocalDate.parse(it) },
-    endDate = address.endDate?.let { LocalDate.parse(it) },
+    startDate = address.startDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
+    endDate = address.endDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
     address = AccommodationAddressDetails(
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,

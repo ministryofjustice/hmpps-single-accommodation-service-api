@@ -27,8 +27,6 @@ dependencies {
 
   // Due to use of a spring bom in hmpps-starter we have to force some versions to override them locally
   implementation(enforcedPlatform(libs.postgres))
-  implementation(enforcedPlatform(libs.app.insights.core))
-  implementation(enforcedPlatform(libs.micrometer.registry.azure))
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
@@ -90,6 +88,11 @@ tasks.named("check") {
 }
 
 allprojects {
+  pluginManager.apply("org.owasp.dependencycheck")
+  dependencyCheck {
+    skipConfigurations.addAll(listOf("detekt", "detektPlugins"))
+  }
+
   tasks.register<Test>("integrationTest") {
     group = "verification"
     testClassesDirs = sourceSets.test.get().output.classesDirs

@@ -1,13 +1,15 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
-import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 data class AccommodationReferralDto(
   val id: UUID,
   val type: AccommodationService,
   val status: AccommodationReferralStatus,
-  val date: Instant,
+  val assessmentStatus: String?,
+  val requestForPlacementStatus: String?,
+  val date: LocalDate,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
@@ -15,6 +17,7 @@ data class AccommodationReferralDto(
   val referredBy: StaffDetailsDto?,
   val placementAddress: String?,
   val placementStatus: String?,
+  val uiUrl: String?,
 )
 
 enum class AccommodationReferralStatus {
@@ -22,6 +25,13 @@ enum class AccommodationReferralStatus {
   REJECTED,
   PENDING,
   WITHDRAWN,
+  EXPIRED,
+  NOT_ARRIVED,
+  DEPARTED,
+  CANCELLED,
+  REQUEST_REJECTED,
+  REQUEST_WITHDRAWN,
+  ARCHIVED,
 }
 
 enum class AccommodationService {

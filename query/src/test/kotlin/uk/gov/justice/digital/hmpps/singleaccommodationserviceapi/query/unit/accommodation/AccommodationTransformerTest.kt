@@ -387,6 +387,78 @@ class AccommodationTransformerTest {
   }
 
   @Test
+  fun `should map all fields for private address`() {
+    shouldMapAllFieldsForPrivateAddress(maskDates = false)
+  }
+
+  @Test
+  fun `should map all fields for private address and mask dates`() {
+    shouldMapAllFieldsForPrivateAddress(maskDates = true)
+  }
+
+  private fun shouldMapAllFieldsForPrivateAddress(maskDates: Boolean) {
+    val address = buildCanonicalAddress(
+      cprAddressId = UUID.randomUUID(),
+      noFixedAbode = false,
+      startDate = LocalDate.of(2025, 10, 17),
+      endDate = LocalDate.of(2025, 11, 2),
+      postcode = "SW1A 1AA",
+      subBuildingName = "test subBuildingName",
+      buildingName = "test buildingName",
+      buildingNumber = "test buildingNumber",
+      thoroughfareName = "test thoroughfareName",
+      dependentLocality = "test dependentLocality",
+      postTown = "test postTown",
+      county = "test county",
+      country = "test country",
+      countryCode = "test countryCode",
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      typeVerified = false,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A07B.name,
+            description = AddressUsageCode.A07B.description,
+          ),
+          isActive = true,
+        ),
+      ),
+      uprn = "test uprn",
+    )
+
+    val result = AccommodationTransformer.toAccommodationSummary("X92123", address, maskDates)
+
+    if (maskDates) {
+      assertThat(result.startDate).isNull()
+      assertThat(result.endDate).isNull()
+    } else {
+      assertThat(result.startDate).isEqualTo(LocalDate.parse(address.startDate!!))
+      assertThat(result.endDate).isEqualTo(LocalDate.parse(address.endDate!!))
+    }
+
+    assertThat(result.crn).isEqualTo("X92123")
+    assertThat(result.status).isNotNull()
+    assertThat(result.status!!.code).isEqualTo(AddressStatusCode.PR.name)
+    assertThat(result.status!!.description).isEqualTo(AddressStatusCode.PR.description)
+    assertThat(result.type).isNotNull()
+    assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A07B.name)
+    assertThat(result.type!!.description).isEqualTo(AddressUsageCode.A07B.description)
+    assertThat(result.address.postcode).isEqualTo(address.postcode)
+    assertThat(result.address.subBuildingName).isEqualTo(address.subBuildingName)
+    assertThat(result.address.buildingName).isEqualTo(address.buildingName)
+    assertThat(result.address.buildingNumber).isEqualTo(address.buildingNumber)
+    assertThat(result.address.thoroughfareName).isEqualTo(address.thoroughfareName)
+    assertThat(result.address.dependentLocality).isEqualTo(address.dependentLocality)
+    assertThat(result.address.postTown).isEqualTo(address.postTown)
+    assertThat(result.address.county).isEqualTo(address.county)
+    assertThat(result.address.country).isEqualTo(address.countryCode)
+    assertThat(result.address.uprn).isEqualTo(address.uprn)
+  }
+
+  @Test
   fun `should map status when code present but description null`() {
     val address = buildCanonicalAddress(
       status = CanonicalAddressStatus(code = "M", description = null),

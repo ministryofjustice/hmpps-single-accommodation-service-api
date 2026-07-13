@@ -9,12 +9,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
@@ -25,18 +25,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
-import java.time.Clock
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.util.UUID
 
 @Service
 class AccommodationSyncService(
-  private val clock: Clock,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val accommodationStatusRepository: AccommodationStatusRepository,
   private val caseRepository: CaseRepository,
   private val userService: UserService,
+  private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -49,14 +47,13 @@ class AccommodationSyncService(
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
     syncAccommodationRecordsWithCpr(case, cprAccommodations)
-    // deleteAccommodationRecordsNoLongerInCpr(case, cprAccommodations)
   }
 
   private fun syncAccommodationRecordsWithCpr(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
     cprAccommodations
       .forEach { cprAccommodation ->
         val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
-          cprAddressId = cprAccommodation.cprAddressId,
+          cprAddressId = cprAccommodation.cprAddressId!!,
         )
         if (!sasAccommodationRecordExists(sasProposedAccommodationRecord) && isProposedAccommodation(accommodation = cprAccommodation)) {
           insertDeliusOriginProposedAccommodationRecord(
@@ -214,26 +211,20 @@ class AccommodationSyncService(
     return true to null
   }
 
-  private fun deleteAccommodationRecordsNoLongerInCpr(
-    case: CaseEntity,
-    cprAccommodations: List<AccommodationDetailDto>,
+  @Transactional
+  fun softDeleteAccommodationRecordNoLongerInCpr(
+    accommodationToDelete: ProposedAccommodationEntity,
   ) {
-    val tenSecondsAgo = LocalDateTime.now(clock).minusSeconds(10).toInstant(ZoneOffset.UTC)
-    val cprAddressIds = cprAccommodations.mapNotNull { it.cprAddressId }.toSet()
-    val accommodationsToDelete = proposedAccommodationRepository.findByCaseId(case.id)
-      .filter { it.createdAt!!.isBefore(tenSecondsAgo) }
-      .filter { NextAccommodationStatus.YES == it.nextAccommodationStatus }
-      .filter { accommodation ->
-        accommodation.cprAddressId !in cprAddressIds
-      }
-    accommodationsToDelete.forEach { accommodation ->
-      accommodation.deleted = true
-    }
-    if (accommodationsToDelete.isNotEmpty()) {
-      val deliusSystemUser = userService.getNationalDeliusSystemUser()
-      AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
-        proposedAccommodationRepository.saveAll(accommodationsToDelete)
-      }
+    accommodationToDelete.deleted = true
+    proposedAccommodationRepository.save(accommodationToDelete)
+    cprCacheEvict(caseId = accommodationToDelete.caseId)
+  }
+
+  private fun cprCacheEvict(caseId: UUID) {
+    caseRepository.findByIdOrNull(caseId)?.let {
+      corePersonRecordCachingService.cacheEvictOnCorePersonRecordByCrn(
+        crn = it.latestCrn(),
+      )
     }
   }
 }
