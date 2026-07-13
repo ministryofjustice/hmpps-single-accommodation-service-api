@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.excepti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserRolesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildNomisUserDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
@@ -48,6 +47,7 @@ class UserServiceTest {
 
     @Test
     fun `getAndUpsertDeliusUser should throw NotFoundException when staff-detail not found`() {
+      every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns null
       every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns null
 
       assertThatThrownBy { userService.getAndUpsertDeliusUser(username) }
@@ -58,34 +58,16 @@ class UserServiceTest {
     @Test
     fun `getAndUpsertDeliusUser updates and returns existing user`() {
       val existingUser = buildUserEntity()
-      val staffDetail = buildStaffDetail(
-        username = existingUser.username,
-        name = buildPersonName(forename = "updated", surname = "updated"),
-        code = "updated",
-        email = "updated",
-        telephoneNumber = "updated",
-        active = false,
-      )
-      every { approvedPremisesAndDeliusCachingService.getStaffDetail(username.value) } returns staffDetail
       every { userRepository.findByUsernameAndAuthSource(username, AuthSource.DELIUS) } returns existingUser
 
-      val expectedUpdatedUser = existingUser.copy(
-        forename = "updated",
-        middleNames = null,
-        surname = "updated",
-        deliusStaffCode = "updated",
-        email = "updated",
-        telephoneNumber = "updated",
-        isActive = false,
-      )
-
-      every { userRepository.save(expectedUpdatedUser) } returnsArgument 0
+      every { userRepository.save(existingUser) } returnsArgument 0
 
       val result = userService.getAndUpsertDeliusUser(username)
 
-      assertThat(result).isEqualTo(expectedUpdatedUser)
+      assertThat(result).isEqualTo(existingUser)
 
-      verify(exactly = 1) { userRepository.save(expectedUpdatedUser) }
+      verify(exactly = 0) { approvedPremisesAndDeliusCachingService.getStaffDetail(any()) }
+      verify(exactly = 0) { userRepository.save(existingUser) }
     }
 
     @Test
