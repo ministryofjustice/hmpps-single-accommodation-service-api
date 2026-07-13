@@ -165,7 +165,7 @@ class AccommodationReferralTransformerTest {
       AssessmentStatus.UNALLOCATED -> AccommodationReferralStatus.PENDING
       AssessmentStatus.IN_REVIEW -> AccommodationReferralStatus.PENDING
       AssessmentStatus.READY_TO_PLACE -> AccommodationReferralStatus.PENDING
-      AssessmentStatus.CLOSED -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.CLOSED -> AccommodationReferralStatus.ARCHIVED
     }
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApplicationStatus.SUBMITTED, "reason")).isEqualTo(expected)
   }
@@ -178,7 +178,7 @@ class AccommodationReferralTransformerTest {
       AssessmentStatus.UNALLOCATED -> AccommodationReferralStatus.PENDING
       AssessmentStatus.IN_REVIEW -> AccommodationReferralStatus.PENDING
       AssessmentStatus.READY_TO_PLACE -> AccommodationReferralStatus.PENDING
-      AssessmentStatus.CLOSED -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.CLOSED -> AccommodationReferralStatus.ARCHIVED
     }
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApplicationStatus.SUBMITTED, null)).isEqualTo(expected)
   }

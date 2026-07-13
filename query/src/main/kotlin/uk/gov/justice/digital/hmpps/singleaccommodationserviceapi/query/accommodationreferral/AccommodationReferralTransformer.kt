@@ -163,8 +163,11 @@ object AccommodationReferralTransformer {
       }
     }
 
-    val isRejected = assessmentStatus == AssessmentStatus.REJECTED ||
-      applicationStatus == ApplicationStatus.REJECTED
+    if (assessmentStatus == AssessmentStatus.CLOSED) {
+      return AccommodationReferralStatus.ARCHIVED
+    }
+
+    val isRejected = assessmentStatus == AssessmentStatus.REJECTED || applicationStatus == ApplicationStatus.REJECTED
     if (isRejected) {
       return if (referralRejectionReason != null) {
         AccommodationReferralStatus.REJECTED
