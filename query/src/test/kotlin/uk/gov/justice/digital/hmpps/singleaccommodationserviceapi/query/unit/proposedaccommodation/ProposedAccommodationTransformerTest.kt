@@ -45,7 +45,7 @@ class ProposedAccommodationTransformerTest {
         subBuildingName = "Flat 1",
         buildingName = "Test Building",
         buildingNumber = "10",
-        throughfareName = "Test Street",
+        thoroughfareName = "Test Street",
         dependentLocality = "Test Locality",
         postTown = "London",
         county = "Greater London",
@@ -83,7 +83,7 @@ class ProposedAccommodationTransformerTest {
         subBuildingName = null,
         buildingName = null,
         buildingNumber = null,
-        throughfareName = null,
+        thoroughfareName = null,
         dependentLocality = null,
         postTown = null,
         county = null,
@@ -123,7 +123,7 @@ class ProposedAccommodationTransformerTest {
         subBuildingName = "Sub Building",
         buildingName = "Building Name",
         buildingNumber = "42",
-        throughfareName = "Main Street",
+        thoroughfareName = "Main Street",
         dependentLocality = "Village",
         postTown = "Town",
         county = "County",
@@ -143,17 +143,6 @@ class ProposedAccommodationTransformerTest {
       assertThat(result.county).isEqualTo("County")
       assertThat(result.country).isEqualTo("Country")
       assertThat(result.uprn).isEqualTo("UP123")
-    }
-
-    @Test
-    fun `should map entity throughfareName typo to DTO thoroughfareName`() {
-      val entity = buildProposedAccommodationEntity(
-        throughfareName = "Test Thoroughfare",
-      )
-
-      val result = ProposedAccommodationTransformer.toAddressDetails(entity)
-
-      assertThat(result.thoroughfareName).isEqualTo("Test Thoroughfare")
     }
   }
 

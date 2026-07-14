@@ -608,7 +608,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       subBuildingName = "test sub building name",
       buildingName = "test building name",
       buildingNumber = "4",
-      throughfareName = "test thoroughfare",
+      thoroughfareName = "test thoroughfare",
       dependentLocality = "test dependent locality",
       postTown = "test post town",
       county = "test county",

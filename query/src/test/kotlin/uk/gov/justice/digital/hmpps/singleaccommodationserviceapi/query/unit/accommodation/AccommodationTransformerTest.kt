@@ -551,7 +551,7 @@ class AccommodationTransformerTest {
         subBuildingName = "Flat 1",
         buildingName = "Test House",
         buildingNumber = "10",
-        throughfareName = "High Street",
+        thoroughfareName = "High Street",
         dependentLocality = "Town Centre",
         postTown = "London",
         county = "Greater London",
@@ -588,7 +588,7 @@ class AccommodationTransformerTest {
       assertThat(result.address.subBuildingName).isEqualTo(entity.subBuildingName)
       assertThat(result.address.buildingName).isEqualTo(entity.buildingName)
       assertThat(result.address.buildingNumber).isEqualTo(entity.buildingNumber)
-      assertThat(result.address.thoroughfareName).isEqualTo(entity.throughfareName)
+      assertThat(result.address.thoroughfareName).isEqualTo(entity.thoroughfareName)
       assertThat(result.address.dependentLocality).isEqualTo(entity.dependentLocality)
       assertThat(result.address.postTown).isEqualTo(entity.postTown)
       assertThat(result.address.county).isEqualTo(entity.county)

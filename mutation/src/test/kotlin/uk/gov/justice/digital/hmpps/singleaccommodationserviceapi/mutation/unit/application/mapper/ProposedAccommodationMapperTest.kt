@@ -49,7 +49,7 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.subBuildingName).isEqualTo(snapshot.address.subBuildingName)
     assertThat(entity.buildingName).isEqualTo(snapshot.address.buildingName)
     assertThat(entity.buildingNumber).isEqualTo(snapshot.address.buildingNumber)
-    assertThat(entity.throughfareName).isEqualTo(snapshot.address.thoroughfareName)
+    assertThat(entity.thoroughfareName).isEqualTo(snapshot.address.thoroughfareName)
     assertThat(entity.dependentLocality).isEqualTo(snapshot.address.dependentLocality)
     assertThat(entity.postTown).isEqualTo(snapshot.address.postTown)
     assertThat(entity.county).isEqualTo(snapshot.address.county)
@@ -86,7 +86,7 @@ class ProposedAccommodationMapperTest {
     assertThat(entity.subBuildingName).isNull()
     assertThat(entity.buildingName).isNull()
     assertThat(entity.buildingNumber).isNull()
-    assertThat(entity.throughfareName).isNull()
+    assertThat(entity.thoroughfareName).isNull()
     assertThat(entity.dependentLocality).isNull()
     assertThat(entity.postTown).isNull()
     assertThat(entity.county).isNull()
@@ -231,7 +231,7 @@ class ProposedAccommodationMapperTest {
     assertThat(merged.subBuildingName).isEqualTo(snapshot.address.subBuildingName)
     assertThat(merged.buildingName).isEqualTo(snapshot.address.buildingName)
     assertThat(merged.buildingNumber).isEqualTo(snapshot.address.buildingNumber)
-    assertThat(merged.throughfareName).isEqualTo(snapshot.address.thoroughfareName)
+    assertThat(merged.thoroughfareName).isEqualTo(snapshot.address.thoroughfareName)
     assertThat(merged.dependentLocality).isEqualTo(snapshot.address.dependentLocality)
     assertThat(merged.postTown).isEqualTo(snapshot.address.postTown)
     assertThat(merged.county).isEqualTo(snapshot.address.county)
@@ -274,7 +274,7 @@ class ProposedAccommodationMapperTest {
     assertThat(merged.subBuildingName).isNull()
     assertThat(merged.buildingName).isNull()
     assertThat(merged.buildingNumber).isNull()
-    assertThat(merged.throughfareName).isNull()
+    assertThat(merged.thoroughfareName).isNull()
     assertThat(merged.dependentLocality).isNull()
     assertThat(merged.postTown).isNull()
     assertThat(merged.county).isNull()
@@ -391,7 +391,7 @@ class ProposedAccommodationMapperTest {
       subBuildingName = "Sub",
       buildingName = "Building",
       buildingNumber = "10",
-      throughfareName = "Downing Street",
+      thoroughfareName = "Downing Street",
       dependentLocality = "Westminster",
       postTown = "London",
       county = "London",
@@ -438,7 +438,7 @@ class ProposedAccommodationMapperTest {
     assertThat(snapshot.address.subBuildingName).isEqualTo(proposedAccommodationEntity.subBuildingName)
     assertThat(snapshot.address.buildingName).isEqualTo(proposedAccommodationEntity.buildingName)
     assertThat(snapshot.address.buildingNumber).isEqualTo(proposedAccommodationEntity.buildingNumber)
-    assertThat(snapshot.address.thoroughfareName).isEqualTo(proposedAccommodationEntity.throughfareName)
+    assertThat(snapshot.address.thoroughfareName).isEqualTo(proposedAccommodationEntity.thoroughfareName)
     assertThat(snapshot.address.dependentLocality).isEqualTo(proposedAccommodationEntity.dependentLocality)
     assertThat(snapshot.address.postTown).isEqualTo(proposedAccommodationEntity.postTown)
     assertThat(snapshot.address.county).isEqualTo(proposedAccommodationEntity.county)
