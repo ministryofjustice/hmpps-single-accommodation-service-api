@@ -22,29 +22,41 @@ class CaseApplicationService(
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   fun createCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
-    var count = 0
-    while (count < maxAttempts) {
-      val crnsToPersist = caseRepository.findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
-      if (crnsToPersist.isEmpty()) return
-      count++
-      val entities = crnsToPrisonNumbers.filter { it.crn in crnsToPersist }.map {
-        CaseMapper.create(
-          CaseAggregate.hydrateNew().snapshot(),
-          buildIdentifiers(crn = it.crn, prisonNumber = it.prisonNumber),
+    repeat(maxAttempts) { attempt ->
+      try {
+        createMissingCases(crnsToPrisonNumbers)
+        return
+      } catch (e: DataIntegrityViolationException) {
+        if (attempt == maxAttempts - 1) throw e
+
+        log.warn(
+          "Data integrity violation creating cases (attempt {}/{}). Retrying.",
+          attempt + 1,
+          maxAttempts,
         )
       }
-      try {
-        caseRepository.saveAll(entities)
-        break
-      } catch (e: DataIntegrityViolationException) {
-        log.warn("Caught DataIntegrityViolationException. Retrying. {}", e.message)
-        if (count == maxAttempts) {
-          log.warn("Data violation after 3 attempts.")
-          throw e
-        }
-      }
     }
-    log.debug("Creating {} new Cases for: {}", crnsToPrisonNumbers.size, crnsToPrisonNumbers.map { it.crn })
+  }
+
+  private fun createMissingCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+    val unpersistedCrns = caseRepository
+      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+      .toSet()
+
+    if (unpersistedCrns.isEmpty()) {
+      return
+    }
+
+    val entities = crnsToPrisonNumbers
+      .filter { it.crn in unpersistedCrns }
+      .map {
+        CaseMapper.create(
+          CaseAggregate.hydrateNew().snapshot(),
+          buildIdentifiers(it.crn, it.prisonNumber),
+        )
+      }
+
+    caseRepository.saveAll(entities)
   }
 
   @Transactional
