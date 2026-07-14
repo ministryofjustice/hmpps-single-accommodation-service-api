@@ -226,7 +226,7 @@ object AccommodationTransformer {
       subBuildingName = proposedAccommodationEntity.subBuildingName,
       buildingName = proposedAccommodationEntity.buildingName,
       buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
+      thoroughfareName = proposedAccommodationEntity.thoroughfareName,
       dependentLocality = proposedAccommodationEntity.dependentLocality,
       postTown = proposedAccommodationEntity.postTown,
       county = proposedAccommodationEntity.county,
