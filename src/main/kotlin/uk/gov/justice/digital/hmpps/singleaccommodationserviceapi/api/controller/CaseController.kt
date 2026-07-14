@@ -32,8 +32,8 @@ class CaseController(
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, teamCode)
     val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     // TODO: Change this to upsertCases after MVP
-    crnsToPrisonNumbers.chunked(25) {
-      caseApplicationService.createCases(crnsToPrisonNumbers)
+    crnsToPrisonNumbers.chunked(25) { chunk ->
+      caseApplicationService.createCases(chunk)
     }
     val caseDtos = caseQueryService.getCases(filteredCaseList)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
