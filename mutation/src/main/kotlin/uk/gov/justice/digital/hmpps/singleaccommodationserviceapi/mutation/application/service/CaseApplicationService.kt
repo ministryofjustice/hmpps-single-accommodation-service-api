@@ -16,15 +16,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 class CaseApplicationService(
   private val caseRepository: CaseRepository,
   private val caseOrchestrationService: CaseMutationOrchestrationService,
+  private val caseCreationService: CaseCreationService,
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
   private val maxAttempts = 3
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   fun createCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+    crnsToPrisonNumbers.chunked(25).forEach(::saveChunkWithRetry)
+  }
+
+  private fun saveChunkWithRetry(chunk: List<CrnToPrisonNumber>) {
     repeat(maxAttempts) { attempt ->
       try {
-        createMissingCases(crnsToPrisonNumbers)
+        caseCreationService.saveUnpersistedCases(chunk)
         return
       } catch (e: DataIntegrityViolationException) {
         if (attempt == maxAttempts - 1) throw e
@@ -36,27 +40,6 @@ class CaseApplicationService(
         )
       }
     }
-  }
-
-  private fun createMissingCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
-    val unpersistedCrns = caseRepository
-      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
-      .toSet()
-
-    if (unpersistedCrns.isEmpty()) {
-      return
-    }
-
-    val entities = crnsToPrisonNumbers
-      .filter { it.crn in unpersistedCrns }
-      .map {
-        CaseMapper.create(
-          CaseAggregate.hydrateNew().snapshot(),
-          buildIdentifiers(it.crn, it.prisonNumber),
-        )
-      }
-
-    caseRepository.saveAll(entities)
   }
 
   @Transactional
@@ -107,11 +90,36 @@ class CaseApplicationService(
     caseAggregate.updateTier(tier.tierScore)
     caseRepository.save(CaseMapper.merge(caseEntity, caseAggregate.snapshot()))
   }
-
-  private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
-    put(crn, IdentifierType.CRN)
-    prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
-  }
 }
 
+private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
+  put(crn, IdentifierType.CRN)
+  prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
+}
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)
+
+@Service
+class CaseCreationService(private val caseRepository: CaseRepository) {
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+    val unpersistedCrns = caseRepository
+      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+      .toSet()
+
+    if (unpersistedCrns.isEmpty()) {
+      return
+    }
+
+    val entities = crnsToPrisonNumbers
+      .filter { it.crn in unpersistedCrns }
+      .map {
+        CaseMapper.create(
+          CaseAggregate.hydrateNew().snapshot(),
+          buildIdentifiers(it.crn, it.prisonNumber),
+        )
+      }
+
+    caseRepository.saveAll(entities)
+  }
+}
