@@ -29,6 +29,7 @@ Start a tunnel to one of `dev`, `test`, `preprod`, or `prod`:
 Use the environment you need:
 
 ```shell
+./scripts/remote-db-tunnel.sh -d test
 ./scripts/remote-db-tunnel.sh -d preprod
 ./scripts/remote-db-tunnel.sh -d prod
 ```
