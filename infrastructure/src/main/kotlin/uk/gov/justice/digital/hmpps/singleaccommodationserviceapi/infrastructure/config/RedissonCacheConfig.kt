@@ -101,7 +101,7 @@ class RedissonCacheConfig {
     val configs = mapOf(
       GET_STAFF_DETAIL to CacheConfig(600_000, 300_000),
       GET_CASE to CacheConfig(60_000, 30_000),
-      GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(60_000, 30_000),
+      GET_CORE_PERSON_RECORD_BY_CRN to CacheConfig(500, 250),
       GET_CORE_PERSON_RECORD_BY_PRISON_NUMBER to CacheConfig(60_000, 30_000),
       GET_TIER to CacheConfig(60_000, 30_000),
       GET_CAS1_REFERRAL to CacheConfig(60_000, 30_000),

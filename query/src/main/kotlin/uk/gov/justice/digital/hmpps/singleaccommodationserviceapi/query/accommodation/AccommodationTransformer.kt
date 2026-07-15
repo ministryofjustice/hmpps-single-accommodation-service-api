@@ -37,10 +37,11 @@ object AccommodationTransformer {
   fun toAccommodationSummary(
     crn: String,
     address: CanonicalAddress,
+    maskDates: Boolean = false,
   ) = AccommodationSummaryDto(
     crn = crn,
-    startDate = address.startDate?.let { LocalDate.parse(it) },
-    endDate = address.endDate?.let { LocalDate.parse(it) },
+    startDate = address.startDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
+    endDate = address.endDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
     address = AccommodationAddressDetails(
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,
@@ -71,60 +72,39 @@ object AccommodationTransformer {
 
   fun toAccommodationSummary(
     crn: String,
-    premises: Cas1PremisesSummary,
+    address: CanonicalAddress,
+    startDate: LocalDate?,
+    endDate: LocalDate?,
   ) = AccommodationSummaryDto(
     crn = crn,
-    startDate = premises.startDate,
-    endDate = premises.endDate,
+    startDate = startDate,
+    endDate = endDate,
     address = AccommodationAddressDetails(
-      postcode = premises.postcode,
-      subBuildingName = null,
-      buildingName = null,
-      buildingNumber = null,
-      thoroughfareName = premises.addressLine1,
-      dependentLocality = premises.addressLine2,
-      postTown = premises.town,
-      county = null,
-      country = null,
-      uprn = null,
+      postcode = address.postcode,
+      subBuildingName = address.subBuildingName,
+      buildingName = address.buildingName,
+      buildingNumber = address.buildingNumber,
+      thoroughfareName = address.thoroughfareName,
+      dependentLocality = address.dependentLocality,
+      postTown = address.postTown,
+      county = address.county,
+      country = address.countryCode,
+      uprn = address.uprn,
     ),
-    status = AccommodationStatusDto(
-      code = AddressStatusCode.M.name,
-      description = AddressStatusCode.M.description,
-    ),
-    type = AccommodationTypeDto(
-      code = AddressUsageCode.A02.name,
-      description = AddressUsageCode.A02.description,
-    ),
-  )
-
-  fun toAccommodationSummary(
-    crn: String,
-    premises: Cas3PremisesSummary,
-  ) = AccommodationSummaryDto(
-    crn = crn,
-    startDate = premises.startDate,
-    endDate = premises.endDate,
-    address = AccommodationAddressDetails(
-      postcode = premises.postcode,
-      subBuildingName = null,
-      buildingName = null,
-      buildingNumber = null,
-      thoroughfareName = premises.addressLine1,
-      dependentLocality = premises.addressLine2,
-      postTown = premises.town,
-      county = null,
-      country = null,
-      uprn = null,
-    ),
-    status = AccommodationStatusDto(
-      code = AddressStatusCode.M.name,
-      description = AddressStatusCode.M.description,
-    ),
-    type = AccommodationTypeDto(
-      code = AddressUsageCode.A17.name,
-      description = AddressUsageCode.A17.description,
-    ),
+    status = address.status.code?.let {
+      AccommodationStatusDto(
+        code = it,
+        description = address.status.description,
+      )
+    },
+    type = address.usages
+      .firstOrNull { it.isActive && it.usageCode.code != null }
+      ?.let {
+        AccommodationTypeDto(
+          code = it.usageCode.code!!,
+          description = it.usageCode.description,
+        )
+      },
   )
 
   fun toAccommodationSummary(
@@ -225,7 +205,7 @@ object AccommodationTransformer {
       subBuildingName = proposedAccommodationEntity.subBuildingName,
       buildingName = proposedAccommodationEntity.buildingName,
       buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
+      thoroughfareName = proposedAccommodationEntity.thoroughfareName,
       dependentLocality = proposedAccommodationEntity.dependentLocality,
       postTown = proposedAccommodationEntity.postTown,
       county = proposedAccommodationEntity.county,
@@ -247,42 +227,42 @@ object AccommodationTransformer {
     typeVerified = proposedAccommodationEntity.typeVerified,
     noFixedAbode = proposedAccommodationEntity.noFixedAbode,
   )
-}
 
-fun toAccommodationDetail(
-  crn: String,
-  address: CanonicalAddress,
-) = AccommodationDetailDto(
-  crn = crn,
-  cprAddressId = UUID.fromString(address.cprAddressId),
-  typeVerified = address.typeVerified,
-  noFixedAbode = address.noFixedAbode,
-  startDate = address.startDate?.let { LocalDate.parse(it) },
-  endDate = address.endDate?.let { LocalDate.parse(it) },
-  address = AccommodationAddressDetails(
-    postcode = address.postcode,
-    subBuildingName = address.subBuildingName,
-    buildingName = address.buildingName,
-    buildingNumber = address.buildingNumber,
-    thoroughfareName = address.thoroughfareName,
-    dependentLocality = address.dependentLocality,
-    postTown = address.postTown,
-    county = address.county,
-    country = null,
-    uprn = address.uprn,
-  ),
-  status = address.status.code?.let {
-    AccommodationStatusDto(
-      code = it,
-      description = address.status.description,
-    )
-  },
-  type = address.usages
-    .firstOrNull { it.isActive && it.usageCode.code != null }
-    ?.let {
-      AccommodationTypeDto(
-        code = it.usageCode.code!!,
-        description = it.usageCode.description,
+  fun toAccommodationDetail(
+    crn: String,
+    address: CanonicalAddress,
+  ) = AccommodationDetailDto(
+    crn = crn,
+    cprAddressId = UUID.fromString(address.cprAddressId),
+    typeVerified = address.typeVerified,
+    noFixedAbode = address.noFixedAbode,
+    startDate = address.startDate?.let { LocalDate.parse(it) },
+    endDate = address.endDate?.let { LocalDate.parse(it) },
+    address = AccommodationAddressDetails(
+      postcode = address.postcode,
+      subBuildingName = address.subBuildingName,
+      buildingName = address.buildingName,
+      buildingNumber = address.buildingNumber,
+      thoroughfareName = address.thoroughfareName,
+      dependentLocality = address.dependentLocality,
+      postTown = address.postTown,
+      county = address.county,
+      country = null,
+      uprn = address.uprn,
+    ),
+    status = address.status.code?.let {
+      AccommodationStatusDto(
+        code = it,
+        description = address.status.description,
       )
     },
-)
+    type = address.usages
+      .firstOrNull { it.isActive && it.usageCode.code != null }
+      ?.let {
+        AccommodationTypeDto(
+          code = it.usageCode.code!!,
+          description = it.usageCode.description,
+        )
+      },
+  )
+}

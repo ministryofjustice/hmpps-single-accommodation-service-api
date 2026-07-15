@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.util.UUID
 
 fun expectedGetAccommodationHistoryResponse(): String = """
@@ -138,10 +139,6 @@ fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
   crn: String,
   startDate: String,
   endDate: String,
-  postcode: String,
-  dependentLocality: String,
-  thoroughfareName: String,
-  postTown: String,
 ): String = """
 {
    "data":{
@@ -149,13 +146,13 @@ fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
       "startDate":"$startDate",
       "endDate":"$endDate",
       "address":{
-         "postcode":"$postcode",
+         "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
-         "buildingNumber":null,
-         "thoroughfareName":"$thoroughfareName",
-         "dependentLocality":"$dependentLocality",
-         "postTown":"$postTown",
+         "buildingNumber":"1",
+         "thoroughfareName":"Some Street",
+         "dependentLocality":null,
+         "postTown":"London",
          "county":null,
          "country":null,
          "uprn":null
@@ -176,10 +173,6 @@ fun expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
   crn: String,
   startDate: String,
   endDate: String,
-  postcode: String,
-  dependentLocality: String,
-  thoroughfareName: String,
-  postTown: String,
 ): String = """
 {
    "data":{
@@ -187,13 +180,13 @@ fun expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
       "startDate":"$startDate",
       "endDate":"$endDate",
       "address":{
-         "postcode":"$postcode",
+         "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
-         "buildingNumber":null,
-         "thoroughfareName":"$thoroughfareName",
-         "dependentLocality":"$dependentLocality",
-         "postTown":"$postTown",
+         "buildingNumber":"1",
+         "thoroughfareName":"Some Street",
+         "dependentLocality":null,
+         "postTown":"London",
          "county":null,
          "country":null,
          "uprn":null
@@ -331,3 +324,73 @@ fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
   ]
 }
 """.trimIndent()
+
+val expectedNoFixedAbodeResponse =
+  """{"data":{"caseAccommodationStatus":"NO_FIXED_ABODE","currentAccommodation":null,"nextAccommodation":null}}"""
+
+fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
+  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"}},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
+""".trimIndent()
+
+fun expectedAccommodationStatusResponse(
+  crn: String,
+  settledType: CaseAccommodationStatus?,
+  nextCode: String,
+  nextDescription: String,
+) = """
+  {
+   "data":{
+      "caseAccommodationStatus":${settledType?.let { "\"$it\"" }},
+      "currentAccommodation":{
+         "crn":"$crn",
+         "startDate":"2026-01-11",
+         "endDate":null,
+         "address":{
+            "postcode":"SW1A 1AA",
+            "subBuildingName":null,
+            "buildingName":null,
+            "buildingNumber":"1",
+            "thoroughfareName":"Some Street",
+            "dependentLocality":null,
+            "postTown":"London",
+            "county":null,
+            "country":null,
+            "uprn":null
+         },
+         "status":{
+            "code":"M",
+            "description":"Main"
+         },
+         "type":{
+            "code":"A07B",
+            "description":"Friends/Family (settled)"
+         }
+      },
+      "nextAccommodation":{
+         "crn":"$crn",
+         "startDate":null,
+         "endDate":null,
+         "address":{
+            "postcode":"SW1A 1AA",
+            "subBuildingName":null,
+            "buildingName":null,
+            "buildingNumber":"1",
+            "thoroughfareName":"Some Street",
+            "dependentLocality":null,
+            "postTown":"London",
+            "county":null,
+            "country":null,
+            "uprn":null
+         },
+         "status":{
+            "code":"PR",
+            "description":"Proposed"
+         },
+         "type":{
+            "code":"$nextCode",
+            "description":"$nextDescription"
+         }
+      }
+   }
+}
+""".trimMargin()

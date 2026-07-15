@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
@@ -28,6 +29,23 @@ object ProbationIntegrationDeliusStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/staff/$encodedUsername"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun stubGetStaffByUsernameNotFound(deliusUsername: String) {
+    val encodedUsername = URLEncoder.encode(deliusUsername.uppercase(), StandardCharsets.UTF_8)
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/staff/$encodedUsername"))
+        .willReturn(
+          aResponse()
+            .withStatus(404)
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              jsonMapper.writeValueAsString(
+                mapOf("status" to 404, "message" to "Staff with username of $deliusUsername not found"),
+              ),
+            ),
+        ),
     )
   }
 }

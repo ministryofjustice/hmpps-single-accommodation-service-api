@@ -42,24 +42,15 @@ class UserService(
   }
 
   fun getAndUpsertDeliusUser(username: Username): UserEntity {
-    val staffDetail =
-      approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
-
-    val user =
-      userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)?.update(staffDetail)
-        ?: createDeliusUser(username, staffDetail)
-
-    return userRepository.save(user)
-  }
-
-  private fun UserEntity.update(staffDetail: StaffDetail) = this.apply {
-    forename = staffDetail.name.forename
-    middleNames = staffDetail.name.middleName
-    surname = staffDetail.name.surname
-    deliusStaffCode = staffDetail.code
-    email = staffDetail.email
-    telephoneNumber = staffDetail.telephoneNumber
-    isActive = staffDetail.active
+    val preExistingUser = userRepository.findByUsernameAndAuthSource(username, authSource = AuthSourceEntity.DELIUS)
+    if (preExistingUser == null) {
+      val staffDetail =
+        approvedPremisesAndDeliusCachingService.getStaffDetail(username.value).orThrowNotFound("username" to username)
+      val newUser = createDeliusUser(username, staffDetail)
+      userRepository.createUser(newUser)
+      return newUser
+    }
+    return preExistingUser
   }
 
   private fun createDeliusUser(username: Username, staffDetail: StaffDetail) = UserEntity(

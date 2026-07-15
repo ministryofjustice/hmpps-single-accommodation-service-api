@@ -191,7 +191,7 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     createProposedAccommodationInCprWhereApplicable(crn, aggregate, updateRecord = updatedRecord)
-    pullEventAndPersistToOutbox(aggregate)
+    cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn, aggregate)
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
       .orThrowNotFound("id" to updatedRecord.createdByUserId!!)
     return ProposedAccommodationMapper.toDto(
@@ -320,7 +320,7 @@ class ProposedAccommodationApplicationService(
     aggregate.arrivePersonAtProposedAccommodation(
       arrivalDate = proposedAccommodationArrivalCommand.arrivalDate,
     )
-    pullEventAndPersistToOutbox(aggregate)
+    cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn, aggregate)
     val merged = merge(
       snapshot = aggregate.snapshot(),
       proposedAccommodationEntity,
@@ -333,18 +333,24 @@ class ProposedAccommodationApplicationService(
     proposedAccommodationRepository.save(merged)
   }
 
-  private fun pullEventAndPersistToOutbox(aggregate: ProposedAccommodationAggregate) = aggregate.pullDomainEvents().forEach { event ->
-    outboxEventRepository.save(
-      OutboxEventEntity(
-        id = UUID.randomUUID(),
-        aggregateId = event.aggregateId,
-        aggregateType = "ProposedAccommodation",
-        domainEventType = event.type.name,
-        payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(clock),
-        processedStatus = ProcessedStatus.PENDING,
-        processedAt = null,
-      ),
-    )
+  private fun cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn: String, aggregate: ProposedAccommodationAggregate) {
+    val domainEvents = aggregate.pullDomainEvents()
+    if (domainEvents.isNotEmpty()) {
+      corePersonRecordCachingService.cacheEvictOnCorePersonRecordByCrn(crn)
+      domainEvents.forEach { event ->
+        outboxEventRepository.save(
+          OutboxEventEntity(
+            id = UUID.randomUUID(),
+            aggregateId = event.aggregateId,
+            aggregateType = "ProposedAccommodation",
+            domainEventType = event.type.name,
+            payload = jsonMapper.writeValueAsString(event),
+            createdAt = Instant.now(clock),
+            processedStatus = ProcessedStatus.PENDING,
+            processedAt = null,
+          ),
+        )
+      }
+    }
   }
 }

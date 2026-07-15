@@ -56,7 +56,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":null
          },
          {
-            "field":"throughfareName",
+            "field":"thoroughfareName",
             "value":"test thoroughfare",
             "oldValue":null
          },
@@ -219,7 +219,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
             "oldValue":null
          },
          {
-            "field":"throughfareName",
+            "field":"thoroughfareName",
             "value":"$thoroughfareName",
             "oldValue":null
          },
@@ -318,7 +318,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
                "oldValue":null
             },
             {
-               "field":"throughfareName",
+               "field":"thoroughfareName",
                "value":"Delius thoroughfareName",
                "oldValue":null
             },
@@ -430,7 +430,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
                   "oldValue":null
                },
                {
-                  "field":"throughfareName",
+                  "field":"thoroughfareName",
                   "value":"Delius thoroughfareName",
                   "oldValue":null
                },

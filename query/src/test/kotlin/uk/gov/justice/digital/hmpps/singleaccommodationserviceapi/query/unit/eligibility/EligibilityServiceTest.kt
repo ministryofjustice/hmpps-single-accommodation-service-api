@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
@@ -92,6 +93,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsSettledRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingRuleSet
@@ -196,6 +198,7 @@ class EligibilityServiceTest {
   var crsUiUrl = "CRS_UI_URL"
   var crsEligibilityRuleSet = CrsEligibilityRuleSet(
     NoNextAccommodationRule(),
+    IsSettledRule(),
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     CrsSubmittedRule(),
@@ -732,6 +735,7 @@ class EligibilityServiceTest {
             sex = row["sex"]?.takeIf { it.isNotBlank() }?.let { SexCode.valueOf(it) },
             hasNextAccommodation = row["hasNextAccommodation"]!!,
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+            currentAccommodationSettledType = row["currentAccommodationSettledType"]?.takeIf { it.isNotBlank() }?.let { AccommodationSettledType.valueOf(it) },
             crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
             expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatus.valueOf(it) },
             expectedCrsAction = row["expectedCrsAction"]?.let { CaseActionType.valueOf(it) },
@@ -774,12 +778,17 @@ class EligibilityServiceTest {
           emptyList()
         }
 
+        val currentAccommodationTypeEntity = s.currentAccommodationSettledType?.let {
+          buildAccommodationTypeEntity(settledType = it)
+        }
+
         val data = buildDomainData(
           crn = s.testCaseId,
           sex = s.sex,
           currentAccommodation = currentAccommodation,
           nextAccommodations = nextAccommodations,
           commissionedRehabilitativeServices = commissionedRehabilitativeServices,
+          currentAccommodationTypeEntity = currentAccommodationTypeEntity,
         )
 
         val result = eligibilityService.evaluate(crsTree, data)
@@ -1082,6 +1091,7 @@ data class CrsScenario(
   val sex: SexCode?,
   val hasNextAccommodation: String,
   val currentAccommodationEndDate: LocalDate?,
+  val currentAccommodationSettledType: AccommodationSettledType?,
   val crsSubmissionDate: LocalDate?,
   val crsStatus: CrsReferralStatus?,
   val expectedCrsStatus: ServiceStatus?,
