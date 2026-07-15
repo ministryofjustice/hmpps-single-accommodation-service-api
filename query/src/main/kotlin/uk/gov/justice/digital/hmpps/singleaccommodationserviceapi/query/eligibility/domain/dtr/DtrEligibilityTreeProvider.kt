@@ -55,7 +55,17 @@ class DtrEligibilityTreeProvider(
       .onFail(confirmed)
       .build()
 
-    val suitabilityNode = builder
+    // runs when there is no active referral found
+    // checks if release within 8 weeks to prompt
+    val upcomingNode = builder
+      .ruleSet("DtrUpcoming", upcoming, upcomingContextUpdater)
+      .onPass(eligibilityNode)
+      .onFail(eligibilityNode)
+      .build()
+
+    // runs when there is an active referral
+    // we dont care about the 8 week release window - surface the referral
+    return builder
       .ruleSet(
         "DtrSuitability",
         suitability,
@@ -66,13 +76,7 @@ class DtrEligibilityTreeProvider(
         ),
       )
       .onPass(completionNode)
-      .onFail(eligibilityNode)
-      .build()
-
-    return builder
-      .ruleSet("DtrUpcoming", upcoming, upcomingContextUpdater)
-      .onPass(suitabilityNode)
-      .onFail(eligibilityNode)
+      .onFail(upcomingNode)
       .build()
   }
 }

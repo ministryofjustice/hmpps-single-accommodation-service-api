@@ -18,10 +18,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isDtrExpired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.Clock
 import java.util.UUID
 
 private const val LOCAL_AUTHORITY_AREA_NAME = "localAuthorityAreaName"
+private val HISTORY_STATUSES = listOf(ACCEPTED, NOT_ACCEPTED, WITHDRAWN)
 
 @Service
 class DutyToReferQueryService(
@@ -30,14 +33,23 @@ class DutyToReferQueryService(
   private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
   private val caseRepository: CaseRepository,
   private val auditService: AuditService,
+  private val clock: Clock,
 ) {
   fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
     val caseEntity = caseRepository.findByCrn(crn) ?: return emptyList()
     return getDutyToReferHistory(caseEntity, crn)
   }
 
+  private fun isActiveDtr(dtr: DutyToReferEntity, clock: Clock): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
+
   fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
-    val dtrEntities = dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, listOf(ACCEPTED, NOT_ACCEPTED, WITHDRAWN))
+    val activeDtrId = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
+      ?.takeIf { isActiveDtr(it, clock) }
+      ?.id
+
+    val dtrEntities = dutyToReferRepository
+      .findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, HISTORY_STATUSES)
+      .filter { it.id != activeDtrId }
     if (dtrEntities.isEmpty()) return emptyList()
 
     val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()
