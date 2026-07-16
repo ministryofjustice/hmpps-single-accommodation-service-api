@@ -26,7 +26,7 @@ import java.util.UUID
 class CaseApplicationServiceTest {
 
   @Nested
-  inner class CaseApplicationServiceTest {
+  inner class CreateCases {
     @MockK
     lateinit var caseRepository: CaseRepository
 
@@ -78,7 +78,7 @@ class CaseApplicationServiceTest {
   }
 
   @Nested
-  inner class CaseCreationServiceTest {
+  inner class SaveUnpersistedCases {
 
     @MockK
     lateinit var caseRepository: CaseRepository
@@ -102,13 +102,11 @@ class CaseApplicationServiceTest {
       verify(exactly = 1) { caseRepository.saveAll(any<List<CaseEntity>>()) }
       val entities = entityList[0]
       assertThat(entities).hasSize(2)
-      assertThat(entities.map { it.latestCrn() }).containsExactlyInAnyOrder(first.crn, third.crn)
-      assertThat(entities[0].latestCrn()).isEqualTo(first.crn)
-      assertThat(entities[1].latestCrn()).isEqualTo(third.crn)
+      assertThat(entities.map { it.latestCrn() }).containsExactly(first.crn, third.crn)
     }
 
     @Test
-    fun `Does not save when no cases to persist`() {
+    fun `does not save when no cases to persist`() {
       val crnToPrisonNumbers = List(3) {
         CrnToPrisonNumber(
           crn = UUID.randomUUID().toString(),
