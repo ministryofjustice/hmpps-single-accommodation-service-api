@@ -139,10 +139,6 @@ fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
   crn: String,
   startDate: String,
   endDate: String,
-  postcode: String,
-  dependentLocality: String,
-  thoroughfareName: String,
-  postTown: String,
 ): String = """
 {
    "data":{
@@ -150,13 +146,13 @@ fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
       "startDate":"$startDate",
       "endDate":"$endDate",
       "address":{
-         "postcode":"$postcode",
+         "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
-         "buildingNumber":null,
-         "thoroughfareName":"$thoroughfareName",
-         "dependentLocality":"$dependentLocality",
-         "postTown":"$postTown",
+         "buildingNumber":"1",
+         "thoroughfareName":"Some Street",
+         "dependentLocality":null,
+         "postTown":"London",
          "county":null,
          "country":null,
          "uprn":null
@@ -177,10 +173,6 @@ fun expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
   crn: String,
   startDate: String,
   endDate: String,
-  postcode: String,
-  dependentLocality: String,
-  thoroughfareName: String,
-  postTown: String,
 ): String = """
 {
    "data":{
@@ -188,13 +180,13 @@ fun expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
       "startDate":"$startDate",
       "endDate":"$endDate",
       "address":{
-         "postcode":"$postcode",
+         "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
-         "buildingNumber":null,
-         "thoroughfareName":"$thoroughfareName",
-         "dependentLocality":"$dependentLocality",
-         "postTown":"$postTown",
+         "buildingNumber":"1",
+         "thoroughfareName":"Some Street",
+         "dependentLocality":null,
+         "postTown":"London",
          "county":null,
          "country":null,
          "uprn":null

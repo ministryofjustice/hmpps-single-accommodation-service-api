@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
@@ -125,15 +126,38 @@ class AccommodationQueryService(
     cas3CurrentPremises: Cas3PremisesSummary?,
   ): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
     toAccommodationSummary(crn, prisoner)
-  } else if (cas1CurrentPremises != null) {
-    toAccommodationSummary(crn, cas1CurrentPremises)
-  } else if (cas3CurrentPremises != null) {
-    toAccommodationSummary(crn, cas3CurrentPremises)
   } else {
     addresses
-      ?.firstOrNull { it.status.code == AddressStatusCode.M.name }
-      ?.let { toAccommodationSummary(crn, address = it) }
+      ?.firstOrNull { it.status.code == AddressStatusCode.M.name }?.let { mainAddress ->
+        when {
+          isAddressWithUsageCode(mainAddress, AddressUsageCode.A02) && postcodesMatch(cas1CurrentPremises?.postcode, mainAddress.postcode) ->
+            toAccommodationSummary(
+              crn,
+              startDate = cas1CurrentPremises?.startDate,
+              endDate = cas1CurrentPremises?.endDate,
+              address = mainAddress,
+            )
+
+          isAddressWithUsageCode(mainAddress, AddressUsageCode.A17) && postcodesMatch(cas3CurrentPremises?.postcode, mainAddress.postcode) ->
+            toAccommodationSummary(
+              crn,
+              startDate = cas3CurrentPremises?.startDate,
+              endDate = cas3CurrentPremises?.endDate,
+              address = mainAddress,
+            )
+
+          else ->
+            toAccommodationSummary(
+              crn,
+              address = mainAddress,
+            )
+        }
+      }
   }
+
+  private fun postcodesMatch(postcode1: String?, postcode2: String?) = postcode1?.filterNot(Char::isWhitespace).equals(postcode2?.filterNot(Char::isWhitespace), ignoreCase = true)
+
+  private fun isAddressWithUsageCode(address: CanonicalAddress, usageCode: AddressUsageCode): Boolean = address.usages.find { it.usageCode.code == usageCode.name && it.isActive } != null
 
   fun getNextAccommodations(
     crn: String,
