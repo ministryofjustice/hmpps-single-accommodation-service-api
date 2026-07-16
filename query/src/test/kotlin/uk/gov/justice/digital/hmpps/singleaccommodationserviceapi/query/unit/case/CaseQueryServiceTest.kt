@@ -144,9 +144,9 @@ class CaseQueryServiceTest {
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
-      every { caseOrchestrationService.getCaseList(username) } returns caseList
+      every { caseOrchestrationService.getCaseList(username, null) } returns caseList
 
-      val result = caseQueryService.getCaseList()
+      val result = caseQueryService.getCaseList(null)
       assertThat(result.data).hasSize(2)
 
       val firstPerson = result.data.first() as FullPersonDto

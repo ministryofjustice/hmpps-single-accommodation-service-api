@@ -26,11 +26,11 @@ class CaseController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list")
   fun getCases(
-    @RequestParam riskLevel: RiskLevel?,
-    @RequestParam searchTerm: String?,
-    @RequestParam teamCode: String?,
+    @RequestParam(required = false) riskLevel: RiskLevel?,
+    @RequestParam(required = false) searchTerm: String?,
+    @RequestParam(required = false) teamCode: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val personDtos = caseQueryService.getCaseList()
+    val personDtos = caseQueryService.getCaseList(teamCode)
     val upstreamFailures = personDtos.upstreamFailures.toMutableList()
 
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, teamCode)
