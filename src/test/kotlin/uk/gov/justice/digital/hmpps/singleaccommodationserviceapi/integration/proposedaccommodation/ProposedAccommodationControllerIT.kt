@@ -67,7 +67,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.String
@@ -269,7 +269,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       county = "test county",
       postcode = "test postcode",
       uprn = "test uprn",
-      startDate = fixedInstant,
+      startDate = LocalDateTime.now(clock),
       endDate = null,
       statusCode = AddressStatusCode.PR,
       usage = AddressUsage(
@@ -493,7 +493,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       county = "test county",
       postcode = "test postcode",
       uprn = "test uprn",
-      startDate = fixedInstant,
+      startDate = LocalDateTime.now(clock),
       endDate = null,
       statusCode = AddressStatusCode.PR,
       usage = AddressUsage(
@@ -1309,7 +1309,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     // assert that all fields have been transitioned to reflect this is not the "Main" current accommodation
     assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.M.name)!!.id)
-    assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.ofInstant(fixedInstant, ZoneId.systemDefault()))
+    assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.now(clock))
     assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
     assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
 
