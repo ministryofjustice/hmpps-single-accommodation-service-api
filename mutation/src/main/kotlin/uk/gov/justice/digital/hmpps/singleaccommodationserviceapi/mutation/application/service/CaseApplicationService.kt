@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -92,34 +91,8 @@ class CaseApplicationService(
   }
 }
 
-private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
+fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
   put(crn, IdentifierType.CRN)
   prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
 }
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)
-
-@Service
-class CaseCreationService(private val caseRepository: CaseRepository) {
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
-    val unpersistedCrns = caseRepository
-      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
-      .toSet()
-
-    if (unpersistedCrns.isEmpty()) {
-      return
-    }
-
-    val entities = crnsToPrisonNumbers
-      .filter { it.crn in unpersistedCrns }
-      .map {
-        CaseMapper.create(
-          CaseAggregate.hydrateNew().snapshot(),
-          buildIdentifiers(it.crn, it.prisonNumber),
-        )
-      }
-
-    caseRepository.saveAll(entities)
-  }
-}
