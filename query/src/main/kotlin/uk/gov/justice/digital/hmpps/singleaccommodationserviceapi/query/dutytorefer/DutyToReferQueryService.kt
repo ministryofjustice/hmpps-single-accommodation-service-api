@@ -40,12 +40,14 @@ class DutyToReferQueryService(
     return getDutyToReferHistory(caseEntity, crn)
   }
 
-  private fun isActiveDtr(dtr: DutyToReferEntity, clock: Clock): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
+  private fun isActiveDtr(dtr: DutyToReferEntity): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
+
+  private fun getActiveDtrId(caseId: UUID): UUID? = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId)
+    ?.takeIf { isActiveDtr(it) }
+    ?.id
 
   fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
-    val activeDtrId = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
-      ?.takeIf { isActiveDtr(it, clock) }
-      ?.id
+    val activeDtrId = getActiveDtrId(caseEntity.id)
 
     val dtrEntities = dutyToReferRepository
       .findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, HISTORY_STATUSES)
@@ -77,7 +79,13 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+    return DutyToReferTransformer.toDutyToReferDto(
+      entity,
+      crn,
+      createdByUser!!.displayName(),
+      localAuthorityArea!!.name,
+      active = entity.id == getActiveDtrId(entity.caseId),
+    )
   }
 
   fun getDutyToRefer(id: UUID): DutyToReferDto {
