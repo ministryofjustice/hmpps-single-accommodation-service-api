@@ -34,7 +34,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationTypeRequiredOnCreateException
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
@@ -130,7 +129,7 @@ class ProposedAccommodationApplicationService(
         address = ProbationCreateAddress(
           noFixedAbode = false,
           typeVerified = false,
-          startDate = LocalDateTime.now(clock),
+          startDate = Instant.now(clock),
           endDate = null,
           postcode = aggregateSnapshot.address.postcode,
           subBuildingName = aggregateSnapshot.address.subBuildingName,
