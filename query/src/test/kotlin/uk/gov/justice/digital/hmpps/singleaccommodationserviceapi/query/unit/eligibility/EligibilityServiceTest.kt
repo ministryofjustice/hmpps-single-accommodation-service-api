@@ -66,6 +66,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.NonMaleRiskEligibilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationRelevantExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
@@ -149,7 +151,7 @@ class EligibilityServiceTest {
     Cas1SexValidationRule(),
   )
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
-  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationSuitabilityRule())
+  var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationPresentRule(), Cas1ApplicationSuitabilityRule(), Cas1ApplicationRelevantExpiredRule())
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
     STierEligibilityRule(),
     MaleRiskEligibilityRule(),
@@ -417,10 +419,10 @@ class EligibilityServiceTest {
         try {
           Cas1Scenario(
             testCaseId = row["testCaseId"]!!,
-            description = row["description"]!!,
+            description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
-            sex = SexCode.valueOf(row["sex"]!!),
-            tierScore = row["tierScore"]!!,
+            sex = row["sex"]?.let { SexCode.valueOf(it) },
+            tierScore = row["tierScore"],
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             cas1ApplicationStatus = row["cas1ApplicationStatus"]?.let { Cas1ApplicationStatus.valueOf(it) },
             cas1RequestForPlacementStatus = row["cas1RequestForPlacementStatus"]?.let {
@@ -1035,10 +1037,10 @@ class EligibilityServiceTest {
 
 data class Cas1Scenario(
   val testCaseId: String,
-  val description: String,
+  val description: String?,
   val referenceDate: LocalDate,
-  val sex: SexCode,
-  val tierScore: String,
+  val sex: SexCode?,
+  val tierScore: String?,
   val currentAccommodationEndDate: LocalDate?,
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
