@@ -21,6 +21,8 @@ class RuleSetNodeBuilder(
     return this
   }
 
+  fun continueWith(node: DecisionNode): RuleSetNodeBuilder = onPass(node).onFail(node)
+
   fun build(): RuleSetNode = RuleSetNode(
     ruleSetName = name,
     ruleSet = ruleSet,
