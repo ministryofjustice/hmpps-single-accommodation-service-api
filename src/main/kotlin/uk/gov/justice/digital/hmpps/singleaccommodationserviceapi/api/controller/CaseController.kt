@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
+import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,6 +21,8 @@ class CaseController(
   private val caseApplicationService: CaseApplicationService,
 ) {
 
+  private val log = LoggerFactory.getLogger(javaClass)
+
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/case-list")
   fun getCases(
@@ -30,14 +34,19 @@ class CaseController(
     val upstreamFailures = personDtos.upstreamFailures.toMutableList()
 
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, teamCode)
-
     val unpersistedCrns = caseQueryService.findUnpersistedCrns(filteredCaseList.map { it.crn })
     if (unpersistedCrns.isNotEmpty()) {
       val crnsToPrisonNumbers =
         filteredCaseList.filter { it.crn in unpersistedCrns }.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-      caseApplicationService.createCases(crnsToPrisonNumbers)
-    }
 
+      crnsToPrisonNumbers.chunked(25) {
+        try {
+          caseApplicationService.createCases(it)
+        } catch (e: DataIntegrityViolationException) {
+          log.warn("Caught DataIntegrityViolationException. Ignoring. {}", e.message)
+        }
+      }
+    }
     // TODO: Add caseApplicationService.upsertCases() in here after MVP
     val caseDtos = caseQueryService.getCases(filteredCaseList)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))

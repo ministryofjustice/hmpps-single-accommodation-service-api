@@ -368,7 +368,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get current accommodation for crn when it is a cas1 current premises`() {
-    val cas1CurrentPremises = buildCas1PremisesSummary()
+    val postcode = "SW1A 1AA"
+    val cas1CurrentPremises = buildCas1PremisesSummary(postcode = postcode, startDate = LocalDate.of(2026, 1, 11), endDate = LocalDate.of(2026, 5, 11))
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -397,7 +398,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
-          postcode = "SW1A 1AA",
+          postcode = postcode,
           thoroughfareName = "Some Street",
           postTown = "London",
           startDate = LocalDate.of(2026, 1, 11),
@@ -409,8 +410,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
           usages = listOf(
             CanonicalAddressUsage(
               usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07B.name,
-                description = AddressUsageCode.A07B.description,
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
               ),
               isActive = true,
             ),
@@ -443,10 +444,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
             crn = crn,
             startDate = cas1CurrentPremises.startDate.toString(),
             endDate = cas1CurrentPremises.endDate.toString(),
-            postcode = cas1CurrentPremises.postcode,
-            dependentLocality = cas1CurrentPremises.addressLine2!!,
-            thoroughfareName = cas1CurrentPremises.addressLine1,
-            postTown = cas1CurrentPremises.town!!,
           ),
         )
       }
@@ -454,7 +451,10 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get current accommodation for crn when it is a cas3 current premises`() {
-    val cas3CurrentPremises = buildCas3PremisesSummary()
+    val postcode1 = "SW1A 1AA"
+    val postcode2 = "Sw1A1AA    "
+
+    val cas3CurrentPremises = buildCas3PremisesSummary(postcode = postcode2)
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -483,7 +483,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
-          postcode = "SW1A 1AA",
+          postcode = postcode1,
           thoroughfareName = "Some Street",
           postTown = "London",
           startDate = LocalDate.of(2026, 1, 11),
@@ -495,8 +495,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
           usages = listOf(
             CanonicalAddressUsage(
               usageCode = CanonicalAddressUsageCode(
-                code = AddressUsageCode.A07B.name,
-                description = AddressUsageCode.A07B.description,
+                code = AddressUsageCode.A17.name,
+                description = AddressUsageCode.A17.description,
               ),
               isActive = true,
             ),
@@ -529,10 +529,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
             crn = crn,
             startDate = cas3CurrentPremises.startDate.toString(),
             endDate = cas3CurrentPremises.endDate.toString(),
-            postcode = cas3CurrentPremises.postcode,
-            dependentLocality = cas3CurrentPremises.addressLine2!!,
-            thoroughfareName = cas3CurrentPremises.addressLine1,
-            postTown = cas3CurrentPremises.town!!,
           ),
         )
       }
@@ -608,7 +604,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       subBuildingName = "test sub building name",
       buildingName = "test building name",
       buildingNumber = "4",
-      throughfareName = "test thoroughfare",
+      thoroughfareName = "test thoroughfare",
       dependentLocality = "test dependent locality",
       postTown = "test post town",
       county = "test county",

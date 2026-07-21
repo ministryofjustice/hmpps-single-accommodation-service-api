@@ -415,7 +415,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedSubBuildingName = updatedRecord.subBuildingName!!,
         expectedBuildingName = updatedRecord.buildingName!!,
         expectedBuildingNumber = updatedRecord.buildingNumber!!,
-        expectedThoroughfareName = updatedRecord.throughfareName!!,
+        expectedThoroughfareName = updatedRecord.thoroughfareName!!,
         expectedDependentLocality = updatedRecord.dependentLocality!!,
         expectedPostTown = updatedRecord.postTown!!,
         expectedCounty = updatedRecord.county!!,
@@ -470,7 +470,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       subBuildingName = "Original subBuildingName",
       buildingName = "Original buildingName",
       buildingNumber = "Original buildingNumber",
-      throughfareName = "Original thoroughfareName",
+      thoroughfareName = "Original thoroughfareName",
       dependentLocality = "Original dependentLocality",
       postTown = "Original postTown",
       county = "Original county",
@@ -558,7 +558,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     assertThat(updatedRecord.subBuildingName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.subBuildingName)
     assertThat(updatedRecord.buildingName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.buildingName)
     assertThat(updatedRecord.buildingNumber).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.buildingNumber)
-    assertThat(updatedRecord.throughfareName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.thoroughfareName)
+    assertThat(updatedRecord.thoroughfareName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.thoroughfareName)
     assertThat(updatedRecord.dependentLocality).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.dependentLocality)
     assertThat(updatedRecord.postTown).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.postTown)
     assertThat(updatedRecord.county).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.county)
@@ -594,7 +594,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           subBuildingName = deliusSyncedRecord.subBuildingName,
           buildingName = deliusSyncedRecord.buildingName,
           buildingNumber = sasUpdatedBuildingNumber,
-          thoroughfareName = deliusSyncedRecord.throughfareName,
+          thoroughfareName = deliusSyncedRecord.thoroughfareName,
           dependentLocality = deliusSyncedRecord.dependentLocality,
           postTown = deliusSyncedRecord.postTown,
           county = deliusSyncedRecord.county,
@@ -931,7 +931,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           subBuildingName = deliusSyncedRecord.subBuildingName,
           buildingName = deliusSyncedRecord.buildingName,
           buildingNumber = sasUpdatedBuildingNumber,
-          thoroughfareName = deliusSyncedRecord.throughfareName,
+          thoroughfareName = deliusSyncedRecord.thoroughfareName,
           dependentLocality = deliusSyncedRecord.dependentLocality,
           postTown = deliusSyncedRecord.postTown,
           county = deliusSyncedRecord.county,
@@ -994,7 +994,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       nextAccommodationStatus = nextAccommodationStatus,
       postcode = postcode,
       buildingNumber = buildingNumber,
-      throughfareName = thoroughfareName,
+      thoroughfareName = thoroughfareName,
       postTown = postTown,
       country = country,
       startDate = startDate,

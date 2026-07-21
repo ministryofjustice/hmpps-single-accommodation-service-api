@@ -468,7 +468,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         subBuildingName = "test sub building name",
         buildingName = "test building name",
         buildingNumber = "4",
-        throughfareName = "test thoroughfare",
+        thoroughfareName = "test thoroughfare",
         dependentLocality = "test dependent locality",
         postTown = "test post town",
         county = "test county",
@@ -633,7 +633,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         subBuildingName = "test sub building name",
         buildingName = existingBuildingName,
         buildingNumber = "4",
-        throughfareName = "test thoroughfare",
+        thoroughfareName = "test thoroughfare",
         dependentLocality = "test dependent locality",
         postTown = "test post town",
         county = "test county",
@@ -744,7 +744,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         subBuildingName = "test sub building name",
         buildingName = "test building name",
         buildingNumber = "4",
-        throughfareName = "test thoroughfare",
+        thoroughfareName = "test thoroughfare",
         dependentLocality = "test dependent locality",
         postTown = "test post town",
         county = "test county",
@@ -1281,7 +1281,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         subBuildingName = address.subBuildingName,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
-        throughfareName = address.thoroughfareName,
+        thoroughfareName = address.thoroughfareName,
         dependentLocality = address.dependentLocality,
         postTown = address.postTown,
         county = address.county,
@@ -1307,7 +1307,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val proposedAccommodationUpdatedResult = proposedAccommodationRepository.findAll().first()
 
-    // assert that all fields have been transitioned to reflect this is not the "Main" current accommodation
+    // assert that all fields have been transitioned to reflect this is the "Main" current accommodation
     assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.M.name)!!.id)
     assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.ofInstant(fixedInstant, ZoneId.systemDefault()))
     assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
@@ -1325,7 +1325,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationUpdatedResult.subBuildingName).isEqualTo(address.subBuildingName)
     assertThat(proposedAccommodationUpdatedResult.buildingName).isEqualTo(address.buildingName)
     assertThat(proposedAccommodationUpdatedResult.buildingNumber).isEqualTo(address.buildingNumber)
-    assertThat(proposedAccommodationUpdatedResult.throughfareName).isEqualTo(address.thoroughfareName)
+    assertThat(proposedAccommodationUpdatedResult.thoroughfareName).isEqualTo(address.thoroughfareName)
     assertThat(proposedAccommodationUpdatedResult.dependentLocality).isEqualTo(address.dependentLocality)
     assertThat(proposedAccommodationUpdatedResult.postTown).isEqualTo(address.postTown)
     assertThat(proposedAccommodationUpdatedResult.county).isEqualTo(address.county)
@@ -1376,7 +1376,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         subBuildingName = address.subBuildingName,
         buildingName = address.buildingName,
         buildingNumber = address.buildingNumber,
-        throughfareName = address.thoroughfareName,
+        thoroughfareName = address.thoroughfareName,
         dependentLocality = address.dependentLocality,
         postTown = address.postTown,
         county = address.county,
@@ -1446,7 +1446,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       nextAccommodationStatus = nextAccommodationStatus,
       postcode = postcode,
       buildingNumber = buildingNumber,
-      throughfareName = thoroughfareName,
+      thoroughfareName = thoroughfareName,
       postTown = postTown,
       country = country,
       startDate = startDate,
@@ -1475,7 +1475,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationEntity.subBuildingName).isEqualTo(probationCreateAddress.subBuildingName)
     assertThat(proposedAccommodationEntity.buildingName).isEqualTo(probationCreateAddress.buildingName)
     assertThat(proposedAccommodationEntity.buildingNumber).isEqualTo(probationCreateAddress.buildingNumber)
-    assertThat(proposedAccommodationEntity.throughfareName).isEqualTo(probationCreateAddress.thoroughfareName)
+    assertThat(proposedAccommodationEntity.thoroughfareName).isEqualTo(probationCreateAddress.thoroughfareName)
     assertThat(proposedAccommodationEntity.dependentLocality).isEqualTo(probationCreateAddress.dependentLocality)
     assertThat(proposedAccommodationEntity.postTown).isEqualTo(probationCreateAddress.postTown)
     assertThat(proposedAccommodationEntity.county).isEqualTo(probationCreateAddress.county)

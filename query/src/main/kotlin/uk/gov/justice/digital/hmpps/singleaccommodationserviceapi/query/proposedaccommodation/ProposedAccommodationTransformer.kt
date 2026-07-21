@@ -41,7 +41,7 @@ object ProposedAccommodationTransformer {
     subBuildingName = entity.subBuildingName,
     buildingName = entity.buildingName,
     buildingNumber = entity.buildingNumber,
-    thoroughfareName = entity.throughfareName,
+    thoroughfareName = entity.thoroughfareName,
     dependentLocality = entity.dependentLocality,
     postTown = entity.postTown,
     county = entity.county,

@@ -41,7 +41,7 @@ object ProposedAccommodationMapper {
     subBuildingName = convertEmptyAddressFieldToToNull(snapshot.address.subBuildingName),
     buildingName = convertEmptyAddressFieldToToNull(snapshot.address.buildingName),
     buildingNumber = convertEmptyAddressFieldToToNull(snapshot.address.buildingNumber),
-    throughfareName = convertEmptyAddressFieldToToNull(snapshot.address.thoroughfareName),
+    thoroughfareName = convertEmptyAddressFieldToToNull(snapshot.address.thoroughfareName),
     dependentLocality = convertEmptyAddressFieldToToNull(snapshot.address.dependentLocality),
     postTown = convertEmptyAddressFieldToToNull(snapshot.address.postTown),
     county = convertEmptyAddressFieldToToNull(snapshot.address.county),
@@ -70,7 +70,7 @@ object ProposedAccommodationMapper {
     proposedAccommodationEntity.subBuildingName = convertEmptyAddressFieldToToNull(snapshot.address.subBuildingName)
     proposedAccommodationEntity.buildingName = convertEmptyAddressFieldToToNull(snapshot.address.buildingName)
     proposedAccommodationEntity.buildingNumber = convertEmptyAddressFieldToToNull(snapshot.address.buildingNumber)
-    proposedAccommodationEntity.throughfareName = convertEmptyAddressFieldToToNull(snapshot.address.thoroughfareName)
+    proposedAccommodationEntity.thoroughfareName = convertEmptyAddressFieldToToNull(snapshot.address.thoroughfareName)
     proposedAccommodationEntity.dependentLocality = convertEmptyAddressFieldToToNull(snapshot.address.dependentLocality)
     proposedAccommodationEntity.postTown = convertEmptyAddressFieldToToNull(snapshot.address.postTown)
     proposedAccommodationEntity.county = convertEmptyAddressFieldToToNull(snapshot.address.county)
@@ -127,7 +127,7 @@ object ProposedAccommodationMapper {
       subBuildingName = proposedAccommodationEntity.subBuildingName,
       buildingName = proposedAccommodationEntity.buildingName,
       buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
+      thoroughfareName = proposedAccommodationEntity.thoroughfareName,
       dependentLocality = proposedAccommodationEntity.dependentLocality,
       postTown = proposedAccommodationEntity.postTown,
       county = proposedAccommodationEntity.county,
