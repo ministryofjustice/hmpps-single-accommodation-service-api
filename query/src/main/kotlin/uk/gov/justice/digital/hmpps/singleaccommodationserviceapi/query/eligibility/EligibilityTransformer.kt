@@ -10,12 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -104,6 +107,13 @@ object EligibilityTransformer {
   fun toNotEligibleServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
     serviceStatus = ServiceStatus.NOT_ELIGIBLE,
     failureReasons = failureReasons,
+  )
+
+  fun toNotStartedServiceStatus() = ServiceResult(
+    serviceStatus = ServiceStatus.NOT_STARTED,
+    action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION),
+    link = EligibilityKeys.START_APPLICATION,
+    linkType = LinkType.CAS1_START_APPLICATION,
   )
 
   fun toNotRequiredServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
