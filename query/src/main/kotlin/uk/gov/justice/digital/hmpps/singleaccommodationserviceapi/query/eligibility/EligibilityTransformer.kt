@@ -172,7 +172,7 @@ object EligibilityTransformer {
     Cas1ApplicationStatusInfra.ASSESSMENT_IN_PROGRESS -> Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS
     Cas1ApplicationStatusInfra.AWAITING_PLACEMENT -> Cas1ApplicationStatus.AWAITING_PLACEMENT
     Cas1ApplicationStatusInfra.PLACEMENT_ALLOCATED -> Cas1ApplicationStatus.PLACEMENT_ALLOCATED
-    Cas1ApplicationStatusInfra.REQUEST_FOR_FURTHER_INFORMATION -> Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION
+    Cas1ApplicationStatusInfra.REQUESTED_FURTHER_INFORMATION -> Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION
     Cas1ApplicationStatusInfra.PENDING_PLACEMENT_REQUEST -> Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST
     Cas1ApplicationStatusInfra.STARTED -> Cas1ApplicationStatus.STARTED
     Cas1ApplicationStatusInfra.REJECTED -> Cas1ApplicationStatus.REJECTED
