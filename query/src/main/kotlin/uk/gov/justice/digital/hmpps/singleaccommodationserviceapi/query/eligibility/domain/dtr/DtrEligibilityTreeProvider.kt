@@ -52,8 +52,7 @@ class DtrEligibilityTreeProvider(
     // runs when the person is eligible (no next accommodation) and has no active referral
     val upcomingNode = builder
       .ruleSet("DtrUpcoming", upcoming, upcomingContextUpdater)
-      .onPass(confirmed)
-      .onFail(confirmed)
+      .continueWith(confirmed)
       .build()
 
     //  has next accommodation to produce NOT_REQUIRED
