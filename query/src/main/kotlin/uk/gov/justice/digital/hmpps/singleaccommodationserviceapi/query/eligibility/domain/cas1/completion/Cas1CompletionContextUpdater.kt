@@ -93,7 +93,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
   }
 
   private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?) = when (applicationStatus) {
-    Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION -> ServiceResult(
+    Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
       action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION),
       link = EligibilityKeys.VIEW_APPLICATION,
