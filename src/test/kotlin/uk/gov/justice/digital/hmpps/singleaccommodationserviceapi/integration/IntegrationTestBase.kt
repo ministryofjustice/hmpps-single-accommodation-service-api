@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles

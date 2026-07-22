@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -13,8 +14,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Lo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TitleEnum
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TitleEnumSerialiser
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.sar.SasSubjectAccessRequestRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonProbationSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
@@ -27,12 +31,16 @@ import java.time.ZoneOffset
 @Service
 @Transactional(readOnly = true)
 class SubjectAccessRequestService(
-  val jsonMapper: JsonMapper,
   val sasSubjectAccessRequestRepository: SasSubjectAccessRequestRepository,
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val enumModule: SimpleModule = SimpleModule()
+      .addSerializer(TitleEnum::class.java, TitleEnumSerialiser())
+    private val mapper: JsonMapper = JsonMapper.builder()
+      .addModule(enumModule)
+      .build()
   }
 
   override fun getContentFor(
@@ -93,7 +101,7 @@ class SubjectAccessRequestService(
           subBuildingName = pa.subBuildingName,
           buildingName = pa.buildingName,
           buildingNumber = pa.buildingNumber,
-          thoroughfareName = pa.throughfareName,
+          thoroughfareName = pa.thoroughfareName,
           dependentLocality = pa.dependentLocality,
           postTown = pa.postTown,
           county = pa.county,
@@ -106,10 +114,14 @@ class SubjectAccessRequestService(
         createdAt = pa.createdAt ?: Instant.now(),
       )
 
-      val paMap = jsonMapper.convertValue(paDto, Map::class.java).toMutableMap()
+      val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
       paMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
       paMap["lastUpdatedAt"] = pa.lastUpdatedAt
-      paMap["settledType"] = type?.settledType
+      paMap["settledType"] = when (type?.settledType) {
+        AccommodationSettledType.SETTLED -> "Settled"
+        AccommodationSettledType.TRANSIENT -> "Transient"
+        null -> null
+      }
 
       paMap["duty_to_refer"] = dutyToRefers.map { dtr ->
         val dtrCreatedByUser = users[dtr.createdByUserId]
@@ -137,7 +149,7 @@ class SubjectAccessRequestService(
             outcomeNote = dtr.outcomeNote,
           ),
         )
-        val dtrMap = jsonMapper.convertValue(dtrDto, Map::class.java).toMutableMap()
+        val dtrMap = mapper.convertValue(dtrDto, Map::class.java).toMutableMap()
         dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser?.displayName() ?: "Unknown"
         dtrMap["lastUpdatedAt"] = dtr.lastUpdatedAt
         dtrMap

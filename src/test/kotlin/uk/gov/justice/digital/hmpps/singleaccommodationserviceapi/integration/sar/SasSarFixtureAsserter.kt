@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SubjectAccessRequestResponse
 import java.time.LocalDate
 import java.util.UUID
 
@@ -24,7 +25,7 @@ class SasSarFixtureAsserter(
     toDate: LocalDate? = null,
     laaId: UUID,
   ) {
-    val response = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient)
+    val response = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient, SubjectAccessRequestResponse::class.java)
     val actualJson = sarHelper.toJson(response)
 
     if (generateActual()) {
@@ -45,7 +46,7 @@ class SasSarFixtureAsserter(
     fromDate: LocalDate? = null,
     toDate: LocalDate? = null,
   ) {
-    val dataResponse = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient)
+    val dataResponse = sasSarHelper.requestSarData(prn, crn, fromDate, toDate, webTestClient, SubjectAccessRequestResponse::class.java)
     val templateResponse = sasSarHelper.requestSarTemplate(webTestClient)
 
     val renderResult = sarHelper.renderServiceReport(

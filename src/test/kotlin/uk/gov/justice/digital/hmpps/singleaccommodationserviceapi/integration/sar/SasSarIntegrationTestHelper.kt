@@ -1,27 +1,24 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
 
-import com.fasterxml.jackson.databind.MapperFeature
+import com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.SubjectAccessRequestResponse
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.LocalDate
 import java.util.Optional
-import kotlin.jvm.java
 
 @Component
 open class SasSarIntegrationTestHelper(
   val jwtAuthHelper: JwtAuthorisationHelper,
-  val objectMapper: ObjectMapper = JsonMapper.builder().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
-    .build(),
+  val objectMapper: ObjectMapper = JsonMapper.builder().configure(SORT_PROPERTIES_ALPHABETICALLY, true).build(),
 ) {
 
-  fun requestSarData(prn: String?, crn: String?, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse {
+  fun <T> requestSarData(prn: String?, crn: String?, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient, responseType: Class<T>): T {
     val response = webTestClient.get().uri {
       it.path("/subject-access-request")
         .queryParamIfPresent("prn", Optional.ofNullable(prn))
@@ -35,7 +32,7 @@ open class SasSarIntegrationTestHelper(
       .expectStatus().isOk
       .expectBody(String::class.java)
       .returnResult().responseBody!!
-    return objectMapper.readValue(response, SubjectAccessRequestResponse::class.java)
+    return objectMapper.readValue(response, responseType)
   }
 
   fun requestSarTemplate(webTestClient: WebTestClient): String = webTestClient
@@ -53,5 +50,6 @@ open class SasSarIntegrationTestHelper(
     username: String? = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
+    // To set the authSource we need to copy code from the library.
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles, authSource = AuthSource.DELIUS)
 }

@@ -12,9 +12,9 @@
         </tr>
         <tr>
             <td>{{ optionalValue accommodationType.description }}</td>
-            <td>{{ optionalValue (convertCamelCase settledType) }}</td>
-            <td>{{ optionalValue (convertCamelCase verificationStatus) }}</td>
-            <td>{{ optionalValue (convertCamelCase nextAccommodationStatus) }}</td>
+            <td>{{ optionalValue settledType }}</td>
+            <td>{{ optionalValue verificationStatus }}</td>
+            <td>{{ optionalValue nextAccommodationStatus }}</td>
         </tr>
     </table>
     <table class="data-table">
@@ -74,7 +74,7 @@
     <table class="data-table">
         <tr>
             <td class="data-column-25">Dependent locality</td>
-            <td class="data-column-25">UPRN</td>
+            <td class="data-column-25">Unique Property Reference Number</td>
             <td class="data-column-50">CRN</td>
         </tr>
         <tr>
@@ -96,7 +96,7 @@
             <tr>
                 <td>{{ optionalValue submission.referenceNumber }}</td>
                 <td>{{ optionalValue (formatDate submission.submissionDate) }}</td>
-                <td>{{ optionalValue (convertCamelCase status) }}</td>
+                <td>{{ optionalValue status }}</td>
                 <td>{{ optionalValue submission.localAuthority.localAuthorityAreaName }}</td>
             </tr>
         </table>

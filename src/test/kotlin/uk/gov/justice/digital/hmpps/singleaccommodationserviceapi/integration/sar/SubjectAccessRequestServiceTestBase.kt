@@ -104,7 +104,7 @@ open class SubjectAccessRequestServiceTestBase : IntegrationTestBase() {
         "sub_building_name": ${pa.subBuildingName?.let { "\"$it\"" } ?: "null"},
         "building_name": ${pa.buildingName?.let { "\"$it\"" } ?: "null"},
         "building_number": "${pa.buildingNumber}",
-        "throughfare_name": "${pa.throughfareName}",
+        "throughfare_name": "${pa.thoroughfareName}",
         "dependent_locality": ${pa.dependentLocality?.let { "\"$it\"" } ?: "null"},
         "post_town": "${pa.postTown}",
         "county": ${pa.county?.let { "\"$it\"" } ?: "null"},

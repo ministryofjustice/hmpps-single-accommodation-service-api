@@ -44,7 +44,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-webtestclient")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux")
   testImplementation(testFixtures(project(":infrastructure")))
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.4.3")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.6.1")
 }
 
 kotlin {
