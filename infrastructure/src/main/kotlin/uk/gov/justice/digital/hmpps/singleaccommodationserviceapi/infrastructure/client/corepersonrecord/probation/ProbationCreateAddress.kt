@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class ProbationCreateAddress(
   val noFixedAbode: Boolean,
   val typeVerified: Boolean,
-  val startDate: LocalDateTime,
-  val endDate: LocalDateTime?,
+  val startDate: ZonedDateTime,
+  val endDate: ZonedDateTime?,
   val postcode: String?,
   val uprn: String?,
   val subBuildingName: String?,

@@ -67,7 +67,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.String
@@ -241,6 +242,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = expectedCprRequestBody.county!!,
         postcode = expectedCprRequestBody.postcode!!,
         uprn = expectedCprRequestBody.uprn!!,
+        startDate = expectedCprRequestBody.startDate.toLocalDate().toString(),
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
         createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
@@ -269,7 +271,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       county = "test county",
       postcode = "test postcode",
       uprn = "test uprn",
-      startDate = LocalDateTime.now(clock),
+      startDate = fixedInstant.atZone(ZoneOffset.UTC).toLocalDate()
+        .atStartOfDay(ZoneOffset.UTC),
       endDate = null,
       statusCode = AddressStatusCode.PR,
       usage = AddressUsage(
@@ -368,6 +371,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = "test county",
         postcode = "test postcode",
         uprn = "test uprn",
+        startDate = proposedAccommodationPersistedResult.startDate.toString(),
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
         createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
@@ -478,6 +482,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        startDate = fixedInstant.atZone(ZoneOffset.UTC).toLocalDate(),
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
@@ -493,7 +498,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       county = "test county",
       postcode = "test postcode",
       uprn = "test uprn",
-      startDate = LocalDateTime.now(clock),
+      startDate = fixedInstant.atZone(ZoneOffset.UTC).toLocalDate()
+        .atStartOfDay(ZoneOffset.UTC),
       endDate = null,
       statusCode = AddressStatusCode.PR,
       usage = AddressUsage(
@@ -555,6 +561,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = expectedCprRequestBody.county!!,
         postcode = expectedCprRequestBody.postcode!!,
         uprn = expectedCprRequestBody.uprn!!,
+        startDate = expectedCprRequestBody.startDate.toLocalDate().toString(),
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         crn = crn,
@@ -643,6 +650,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.PASSED,
         nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        startDate = LocalDate.now(),
       ),
     )
     val result = restTestClient.put().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}")
@@ -700,6 +708,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = "test county",
         postcode = "test postcode",
         uprn = "test uprn",
+        startDate = proposedAccommodationPersistedResult.startDate.toString(),
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         crn = crn,
@@ -754,6 +763,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         caseId = caseEntity.id,
         verificationStatus = EntityVerificationStatus.PASSED,
         nextAccommodationStatus = confirmedStatus,
+        startDate = LocalDate.now(),
       ),
     )
     val addressUsageCode = AddressUsageCode.A01A
@@ -807,6 +817,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = "test county",
         postcode = "test postcode",
         uprn = "test uprn",
+        startDate = existingEntity.startDate.toString(),
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         crn = crn,
@@ -1307,9 +1318,9 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     val proposedAccommodationUpdatedResult = proposedAccommodationRepository.findAll().first()
 
-    // assert that all fields have been transitioned to reflect this is not the "Main" current accommodation
+    // assert that all fields have been transitioned to reflect this is the "Main" current accommodation
     assertThat(proposedAccommodationUpdatedResult.accommodationStatusId).isEqualTo(accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.M.name)!!.id)
-    assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.now(clock))
+    assertThat(proposedAccommodationUpdatedResult.startDate).isEqualTo(LocalDate.ofInstant(fixedInstant, ZoneId.systemDefault()))
     assertThat(proposedAccommodationUpdatedResult.endDate).isNull()
     assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
 
@@ -1429,7 +1440,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     thoroughfareName: String,
     postTown: String?,
     country: String?,
-    startDate: LocalDate?,
+    startDate: LocalDate,
     accommodationStatusEntity: AccommodationStatusEntity?,
     verificationStatus: EntityVerificationStatus?,
     nextAccommodationStatus: EntityNextAccommodationStatus?,
@@ -1480,8 +1491,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationEntity.postTown).isEqualTo(probationCreateAddress.postTown)
     assertThat(proposedAccommodationEntity.county).isEqualTo(probationCreateAddress.county)
     assertThat(proposedAccommodationEntity.uprn).isEqualTo(probationCreateAddress.uprn)
-    assertThat(proposedAccommodationEntity.startDate).isEqualTo(LocalDate.of(2026, 1, 5))
-    assertThat(proposedAccommodationEntity.endDate).isEqualTo(LocalDate.of(2026, 4, 25))
+    assertThat(proposedAccommodationEntity.startDate).isEqualTo(fixedInstant.atZone(ZoneOffset.UTC).toLocalDate())
+    assertThat(proposedAccommodationEntity.endDate).isNull()
     assertThat(proposedAccommodationEntity.createdByUserId).isEqualTo(createdByUserId)
     assertThat(proposedAccommodationEntity.createdAt).isBetween(
       beforeTest.minusSeconds(1),

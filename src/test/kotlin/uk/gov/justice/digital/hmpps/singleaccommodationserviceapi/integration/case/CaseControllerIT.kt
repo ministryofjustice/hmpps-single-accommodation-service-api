@@ -456,7 +456,7 @@ class CaseControllerIT : IntegrationTestBase() {
       buildCaseEntity(
         tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
       ) { withCrn(crns[10]) },
       buildCaseEntity(
         tierScore = "B3",
