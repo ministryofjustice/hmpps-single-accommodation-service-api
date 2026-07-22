@@ -27,8 +27,6 @@ class CaseQueryService(
   private val eligibilityService: EligibilityService,
   private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
-  fun findUnpersistedCrns(crns: List<String>) = caseRepository.findUnpersistedCrns(crns = crns.toTypedArray())
-
   fun getCaseList(): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username)
