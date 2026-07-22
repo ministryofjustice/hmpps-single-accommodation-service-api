@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.UUID
 
 class AccommodationTransformerTest {
@@ -570,8 +569,8 @@ class AccommodationTransformerTest {
       assertThat(result.cprAddressId).isEqualTo(entity.cprAddressId)
       assertThat(result.typeVerified).isEqualTo(entity.typeVerified)
       assertThat(result.noFixedAbode).isEqualTo(entity.noFixedAbode)
-      assertThat(result.startDate).isEqualTo(entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate())
-      assertThat(result.endDate).isNull()
+      assertThat(result.startDate).isEqualTo(entity.startDate)
+      assertThat(result.endDate).isEqualTo(entity.endDate)
       assertThat(result.status!!.code).isEqualTo(AddressStatusCode.M.name)
       assertThat(result.status!!.description).isEqualTo(AddressStatusCode.M.description)
       assertThat(result.type!!.code).isEqualTo(AddressUsageCode.A01A.name)
