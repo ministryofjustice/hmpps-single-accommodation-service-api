@@ -144,9 +144,9 @@ class CaseQueryServiceTest {
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
-      every { caseOrchestrationService.getCaseList(username, null) } returns caseList
+      every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
 
-      val result = caseQueryService.getCaseList(null)
+      val result = caseQueryService.getCaseList("testTeam")
       assertThat(result.data).hasSize(2)
 
       val firstPerson = result.data.first() as FullPersonDto
@@ -168,7 +168,7 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
-      assertThat(lastPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(lastPerson.assignedTo.forename).isEqualTo(case2.staff.name.forename)
       assertThat(lastPerson.assignedTo.surname).isEqualTo(case2.staff.name.surname)
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
       assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)

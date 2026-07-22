@@ -24,7 +24,9 @@ object SasAndDeliusStubs {
     cases.forEachIndexed { page, case ->
       sasWiremock.stubFor(
         get(WireMock.urlPathEqualTo("/case-list/$deliusUsername")).apply {
-          teamCode?.let { withQueryParam("teamCode", WireMock.equalTo(teamCode)) }
+          if (!teamCode.isNullOrBlank()) {
+            withQueryParam("teamCode", WireMock.equalTo(teamCode))
+          }
         }
           .withQueryParam("page", WireMock.equalTo(page.toString()))
           .withQueryParam("size", WireMock.equalTo(pageSize.toString()))
