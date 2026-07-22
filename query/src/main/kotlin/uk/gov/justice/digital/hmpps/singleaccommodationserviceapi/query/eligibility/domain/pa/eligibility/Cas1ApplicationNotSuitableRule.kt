@@ -19,7 +19,7 @@ class Cas1ApplicationNotSuitableRule : Rule {
       Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
       Cas1ApplicationStatus.AWAITING_PLACEMENT,
       Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+      Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
       Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
     )
 

@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @TestData
@@ -94,8 +94,8 @@ fun buildCanonicalAddress(
 fun buildProbationCreateAddress(
   noFixedAbode: Boolean = false,
   typeVerified: Boolean = false,
-  startDate: LocalDateTime = LocalDateTime.now(),
-  endDate: LocalDateTime? = null,
+  startDate: ZonedDateTime = ZonedDateTime.now(),
+  endDate: ZonedDateTime? = null,
   postcode: String? = "SW1A 1AA",
   subBuildingName: String? = null,
   buildingName: String? = null,

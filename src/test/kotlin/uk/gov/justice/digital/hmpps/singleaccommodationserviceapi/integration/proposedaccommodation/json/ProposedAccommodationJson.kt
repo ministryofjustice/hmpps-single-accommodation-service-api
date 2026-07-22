@@ -292,6 +292,7 @@ fun expectedProposedAddressesResponseBody(
   postTown: String,
   county: String,
   uprn: String,
+  startDate: String,
   createdBy: String,
   createdAt: String,
 ): String = """
@@ -317,8 +318,8 @@ fun expectedProposedAddressesResponseBody(
     "country" : "England",
     "uprn" : "$uprn"
   },
-  "startDate" : "2026-01-05",
-  "endDate" : "2026-04-25",
+  "startDate" : "$startDate",
+  "endDate" : null,
   "createdBy":"$createdBy",
   "createdAt" : "$createdAt"
 }
