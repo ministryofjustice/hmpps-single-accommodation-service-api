@@ -6,31 +6,24 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import java.time.Instant
-import java.time.LocalDate
 import java.util.UUID
 
 fun buildProposedAccommodationDto(
   id: UUID = UUID.randomUUID(),
-  name: String? = null,
   crn: String = "X12345",
   accommodationType: AccommodationTypeDto = buildAccommodationTypeDto(),
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.YES,
   address: AccommodationAddressDetails = buildAccommodationAddressDetails(),
-  startDate: LocalDate? = null,
-  endDate: LocalDate? = null,
   createdBy: String = "Joe Bloggs",
   createdAt: Instant = Instant.now(),
 ) = ProposedAccommodationDto(
   id = id,
   crn = crn,
-  name = name,
   accommodationType = accommodationType,
   verificationStatus = verificationStatus,
   nextAccommodationStatus = nextAccommodationStatus,
   address = address,
-  startDate = startDate,
-  endDate = endDate,
   createdBy = createdBy,
   createdAt = createdAt,
 )

@@ -185,7 +185,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
             id = entity.id,
             crn = crn,
             createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-            startDate = LocalDate.now().toString(),
           ),
         )
       }
@@ -242,7 +241,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = expectedCprRequestBody.county!!,
         postcode = expectedCprRequestBody.postcode!!,
         uprn = expectedCprRequestBody.uprn!!,
-        startDate = expectedCprRequestBody.startDate.toLocalDate().toString(),
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
         createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
@@ -322,8 +320,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          startDate = "2026-01-05",
-          endDate = "2026-04-25",
           subBuildingName = "test sub building name",
           buildingName = "test building name",
           buildingNumber = "4",
@@ -371,7 +367,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = "test county",
         postcode = "test postcode",
         uprn = "test uprn",
-        startDate = proposedAccommodationPersistedResult.startDate.toString(),
         createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
         createdAt = proposedAccommodationPersistedResult.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
       ),
@@ -561,7 +556,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = expectedCprRequestBody.county!!,
         postcode = expectedCprRequestBody.postcode!!,
         uprn = expectedCprRequestBody.uprn!!,
-        startDate = expectedCprRequestBody.startDate.toLocalDate().toString(),
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         crn = crn,
@@ -708,7 +702,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = "test county",
         postcode = "test postcode",
         uprn = "test uprn",
-        startDate = proposedAccommodationPersistedResult.startDate.toString(),
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         crn = crn,
@@ -817,7 +810,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
         county = "test county",
         postcode = "test postcode",
         uprn = "test uprn",
-        startDate = existingEntity.startDate.toString(),
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         crn = crn,
@@ -962,8 +954,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          startDate = "2026-01-05",
-          endDate = "2026-04-25",
           subBuildingName = null,
           accommodationTypeCode = accommodationTypeCode,
           verificationStatus = VerificationStatus.PASSED.name,
@@ -1051,8 +1041,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          startDate = null,
-          endDate = null,
           subBuildingName = "another sub building name",
           buildingName = expectedCprRequestBody.buildingName!!,
           buildingNumber = expectedCprRequestBody.buildingNumber!!,
@@ -1074,8 +1062,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         proposedAddressesRequestBody(
-          startDate = "2026-01-20",
-          endDate = "2026-08-01",
           subBuildingName = null,
           buildingName = expectedCprRequestBody.buildingName!!,
           buildingNumber = expectedCprRequestBody.buildingNumber!!,
@@ -1328,7 +1314,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     assertThat(proposedAccommodationUpdatedResult.typeVerified).isTrue()
 
     // assert that we retain original values for all other fields
-    assertThat(proposedAccommodationUpdatedResult.name).isNull()
     assertThat(proposedAccommodationUpdatedResult.cprAddressId).isEqualTo(cprAddressId)
     assertThat(proposedAccommodationUpdatedResult.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(proposedAccommodationUpdatedResult.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
@@ -1478,7 +1463,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
   ) {
     assertThat(proposedAccommodationEntity.cprAddressId).isEqualTo(cprAddressId)
     assertThat(proposedAccommodationEntity.accommodationSource).isEqualTo(AccommodationSource.SAS)
-    assertThat(proposedAccommodationEntity.name).isNull()
     assertThat(proposedAccommodationEntity.accommodationTypeId).isEqualTo(accommodationTypeEntity.id)
     assertThat(proposedAccommodationEntity.accommodationStatusId).isEqualTo(accommodationStatusEntity.id)
     assertThat(proposedAccommodationEntity.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
