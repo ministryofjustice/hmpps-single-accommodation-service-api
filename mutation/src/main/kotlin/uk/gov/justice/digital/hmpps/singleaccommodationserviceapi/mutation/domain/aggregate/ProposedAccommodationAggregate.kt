@@ -33,7 +33,6 @@ class ProposedAccommodationAggregate private constructor(
   private var currentAccommodation: AccommodationSummaryDto?,
   private var accommodationSource: AccommodationSource? = null,
   private var cprAddressId: UUID? = null,
-  private var name: String? = null,
   private var accommodationType: AccommodationTypeDto? = null,
   private var accommodationStatus: AccommodationStatusDto? = null,
   private var verificationStatus: VerificationStatus? = null,
@@ -67,7 +66,6 @@ class ProposedAccommodationAggregate private constructor(
       accommodationSource: AccommodationSource,
       currentAccommodation: AccommodationSummaryDto?,
       cprAddressId: UUID?,
-      name: String?,
       accommodationType: AccommodationTypeDto?,
       accommodationStatus: AccommodationStatusDto?,
       verificationStatus: VerificationStatus,
@@ -84,7 +82,6 @@ class ProposedAccommodationAggregate private constructor(
       accommodationSource = accommodationSource,
       currentAccommodation = currentAccommodation,
       cprAddressId = cprAddressId,
-      name = name,
       accommodationType = accommodationType,
       accommodationStatus = accommodationStatus,
       verificationStatus = verificationStatus,
@@ -99,7 +96,6 @@ class ProposedAccommodationAggregate private constructor(
   }
 
   fun updateProposedAccommodation(
-    newName: String?,
     newAccommodationType: AccommodationTypeDto?,
     newVerificationStatus: VerificationStatus,
     newNextAccommodationStatus: NextAccommodationStatus,
@@ -130,7 +126,6 @@ class ProposedAccommodationAggregate private constructor(
           newVerificationStatus,
         )
 
-    name = newName
     accommodationType = newAccommodationType
     verificationStatus = newVerificationStatus
     nextAccommodationStatus = newNextAccommodationStatus
@@ -173,7 +168,6 @@ class ProposedAccommodationAggregate private constructor(
     newNoFixedAbode: Boolean?,
     syncType: SyncType,
   ) {
-    name = null
     accommodationType = newAccommodationType
     accommodationStatus = newAccommodationStatus
     typeVerified = newTypeVerified
@@ -313,7 +307,6 @@ class ProposedAccommodationAggregate private constructor(
     caseId,
     cprAddressId,
     accommodationSource!!,
-    name,
     accommodationType,
     accommodationStatus,
     verificationStatus!!,
@@ -331,7 +324,6 @@ class ProposedAccommodationAggregate private constructor(
     val caseId: UUID,
     val cprAddressId: UUID?,
     val accommodationSource: AccommodationSource,
-    val name: String?,
     val accommodationType: AccommodationTypeDto?,
     val accommodationStatus: AccommodationStatusDto?,
     val verificationStatus: VerificationStatus,

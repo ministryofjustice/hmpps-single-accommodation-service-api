@@ -266,14 +266,12 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
             firstAccommodationTypeEntity = newerEntityAccommodationTypeEntity,
             firstVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
             firstNextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
-            firstStartDate = newerEntity.startDate,
             secondId = olderEntity.id,
             secondCreatedBy = "Test Data Setup User",
             secondCreatedAt = olderEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             secondAccommodationTypeEntity = olderEntityAccommodationTypeEntity,
             secondVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
             secondNextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
-            secondStartDate = olderEntity.startDate,
             crn = crn,
           ),
         )
@@ -423,8 +421,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedAccommodationTypeEntity!!.id)!!,
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
-        expectedStartDate = updatedRecord.startDate!!,
-        expectedEndDate = updatedRecord.endDate!!,
         expectedCreatedAt = updatedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         expectedCreatedBy = "Test Data Setup User",
         crn = crn,
@@ -547,7 +543,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     assertThat(updatedRecord).isNotNull
     assertThat(updatedRecord!!.cprAddressId).isEqualTo(commonCprAddressId)
     assertThat(updatedRecord.accommodationSource).isEqualTo(AccommodationSource.SAS)
-    assertThat(updatedRecord.name).isNull()
     assertThat(updatedRecord.accommodationTypeId).isEqualTo(updatedAccommodationTypeEntity?.id)
     assertThat(updatedRecord.accommodationStatusId).isEqualTo(updatedAccommodationStatusEntity.id)
     assertThat(updatedRecord.verificationStatus).isEqualTo(EntityVerificationStatus.PASSED)
@@ -600,8 +595,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           county = deliusSyncedRecord.county,
           country = deliusSyncedRecord.country,
           postcode = deliusSyncedRecord.postcode!!,
-          startDate = deliusSyncedRecord.startDate?.toString(),
-          endDate = deliusSyncedRecord.endDate?.toString(),
           uprn = deliusSyncedRecord.uprn,
         ),
       )
@@ -664,8 +657,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedAccommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(updatedRecord.accommodationTypeId!!)!!,
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
-        expectedStartDate = deliusSyncedRecord.startDate!!,
-        expectedEndDate = deliusSyncedRecord.endDate!!,
         expectedCreatedAt = updatedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         expectedCreatedBy = "nDelius user",
         crn = crn,
@@ -690,7 +681,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       deliusProposedAccommodationBuildingNumber,
     )
 
-    val response: String = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
+    val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody<String>()
@@ -720,8 +711,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         },
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
-        expectedStartDate = deliusOriginProposedAccommodationStartDate,
-        expectedEndDate = deliusOriginProposedAccommodationEndDate,
         expectedCreatedAt = deliusSyncedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         expectedCreatedBy = "nDelius user",
         crn = crn,
@@ -881,8 +870,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(deliusOriginProposedAccommodationTypeCode.name)!!,
         expectedVerificationStatus = VerificationStatus.PASSED,
         expectedNextAccommodationStatus = NextAccommodationStatus.YES,
-        expectedStartDate = deliusOriginProposedAccommodationStartDate,
-        expectedEndDate = deliusOriginProposedAccommodationEndDate,
         expectedCreatedAt = deliusSyncedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         expectedCreatedBy = "nDelius user",
         crn = crn,
@@ -937,8 +924,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           county = deliusSyncedRecord.county,
           country = deliusSyncedRecord.country,
           postcode = deliusSyncedRecord.postcode!!,
-          startDate = deliusSyncedRecord.startDate?.toString(),
-          endDate = deliusSyncedRecord.endDate?.toString(),
           uprn = deliusSyncedRecord.uprn,
         ),
       )
