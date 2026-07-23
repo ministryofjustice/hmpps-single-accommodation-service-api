@@ -39,14 +39,14 @@ class EligibilityTransformerTest {
   @Test
   fun `should transform to eligibility`() {
     val cas1Application = buildCas1Application(
-      applicationStatus = InfraCas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+      applicationStatus = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
     )
     val cas3Application = buildCas3Application(
       applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
     )
     val cas1ApplicationDto = buildCas1ApplicationDto(
       id = cas1Application.id,
-      applicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+      applicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
     )
     val cas3ApplicationDto = buildCas3ApplicationDto(
       id = cas3Application.id,
