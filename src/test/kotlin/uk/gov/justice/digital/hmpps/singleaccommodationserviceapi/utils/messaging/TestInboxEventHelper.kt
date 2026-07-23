@@ -16,7 +16,7 @@ import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 
 @Component
-class InboxEventHelper(
+class TestInboxEventHelper(
   private val inboxEventRepository: InboxEventRepository,
   private val jsonMapper: JsonMapper,
   private val hmppsQueueService: HmppsQueueService,

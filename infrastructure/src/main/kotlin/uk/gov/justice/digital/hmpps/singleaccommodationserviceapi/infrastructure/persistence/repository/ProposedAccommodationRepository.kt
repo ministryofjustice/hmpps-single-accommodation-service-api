@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository
 
 import org.javers.spring.annotation.JaversSpringDataAuditable
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -64,6 +65,9 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
   fun findByIdAndCrnWithNotes(id: UUID, crn: String): ProposedAccommodationEntity?
 
   fun findByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
+
+  @EntityGraph(attributePaths = ["notes"])
+  fun findWithNotesByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
 
   fun findByIdAndDeleted(id: UUID, deleted: Boolean): ProposedAccommodationEntity?
 
