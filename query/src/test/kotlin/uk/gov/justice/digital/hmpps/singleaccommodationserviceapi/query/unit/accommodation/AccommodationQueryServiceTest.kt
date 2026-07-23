@@ -51,7 +51,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
@@ -1737,6 +1736,7 @@ class AccommodationQueryServiceTest {
         accommodationTypeEntity = accommodationTypeEntity,
         accommodationStatusEntity = accommodationStatusEntity,
         createdByUserId = createdByUserId,
+        startDate = LocalDate.now().minusDays(1),
       )
       val case = buildCaseEntity(id = caseId)
 
@@ -1751,7 +1751,7 @@ class AccommodationQueryServiceTest {
       assertThat(result.cprAddressId).isEqualTo(proposedAccommodationEntity.cprAddressId)
       assertThat(result.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
       assertThat(result.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
-      assertThat(result.startDate).isEqualTo(proposedAccommodationEntity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate())
+      assertThat(result.startDate).isEqualTo(proposedAccommodationEntity.startDate)
       assertThat(result.endDate).isNull()
       assertThat(result.address.postcode).isEqualTo(proposedAccommodationEntity.postcode)
       assertThat(result.status!!.code).isEqualTo(accommodationStatusEntity.code)
@@ -1769,6 +1769,7 @@ class AccommodationQueryServiceTest {
         caseId = caseId,
         accommodationTypeEntity = accommodationTypeEntity,
         accommodationStatusEntity = null,
+        startDate = LocalDate.now().minusDays(1),
       )
       val case = buildCaseEntity(id = caseId)
 
@@ -1782,7 +1783,7 @@ class AccommodationQueryServiceTest {
       assertThat(result.cprAddressId).isEqualTo(proposedAccommodationEntity.cprAddressId)
       assertThat(result.typeVerified).isEqualTo(proposedAccommodationEntity.typeVerified)
       assertThat(result.noFixedAbode).isEqualTo(proposedAccommodationEntity.noFixedAbode)
-      assertThat(result.startDate).isEqualTo(proposedAccommodationEntity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate())
+      assertThat(result.startDate).isEqualTo(proposedAccommodationEntity.startDate)
       assertThat(result.endDate).isNull()
       assertThat(result.address.postcode).isEqualTo(proposedAccommodationEntity.postcode)
       assertThat(result.status).isNull()

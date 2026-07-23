@@ -276,7 +276,8 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = ""
 fun expectedGetAccommodationByIdResponse(
   crn: String,
   cprAddressId: UUID,
-  createdAt: String,
+  startDate: String,
+  endDate: String,
 ): String = """
 {
     "data": {
@@ -284,8 +285,8 @@ fun expectedGetAccommodationByIdResponse(
         "cprAddressId" : "$cprAddressId",
         "noFixedAbode": false,
         "typeVerified": true,
-        "startDate": "$createdAt",
-        "endDate": null,
+        "startDate": "$startDate",
+        "endDate": "$endDate",
         "address": {
             "buildingName": "test building name",
             "buildingNumber": "4",

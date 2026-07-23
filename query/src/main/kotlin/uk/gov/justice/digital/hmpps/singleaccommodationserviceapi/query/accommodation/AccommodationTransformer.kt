@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.UUID
 
 private const val PRISON_ACCOMMODATION_TYPE_CODE = "HMP"
@@ -198,8 +197,8 @@ object AccommodationTransformer {
   ) = AccommodationDetailDto(
     crn = crn,
     cprAddressId = proposedAccommodationEntity.cprAddressId,
-    startDate = proposedAccommodationEntity.createdAt?.atZone(ZoneId.systemDefault())?.toLocalDate(),
-    endDate = null,
+    startDate = proposedAccommodationEntity.startDate,
+    endDate = proposedAccommodationEntity.endDate,
     address = AccommodationAddressDetails(
       postcode = proposedAccommodationEntity.postcode,
       subBuildingName = proposedAccommodationEntity.subBuildingName,

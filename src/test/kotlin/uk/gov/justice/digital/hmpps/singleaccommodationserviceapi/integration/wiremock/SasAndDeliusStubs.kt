@@ -13,8 +13,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelp
 
 object SasAndDeliusStubs {
 
-  fun stubGetCaseListByUsername(
+  fun stubCaseList(
     deliusUsername: String,
+    teamCode: String? = null,
     cases: List<Case>,
     pageSize: Int,
   ) {
@@ -22,7 +23,11 @@ object SasAndDeliusStubs {
 
     cases.forEachIndexed { page, case ->
       sasWiremock.stubFor(
-        get(WireMock.urlPathEqualTo("/case-list/$deliusUsername"))
+        get(WireMock.urlPathEqualTo("/case-list/$deliusUsername")).apply {
+          if (!teamCode.isNullOrBlank()) {
+            withQueryParam("teamCode", WireMock.equalTo(teamCode))
+          }
+        }
           .withQueryParam("page", WireMock.equalTo(page.toString()))
           .withQueryParam("size", WireMock.equalTo(pageSize.toString()))
           .willReturn(
