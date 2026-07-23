@@ -33,6 +33,8 @@ import java.util.UUID
 
 class ProposedAccommodationAggregateTest {
   private val prisonAccommodationTypeCode = "HMP"
+  private val startDate = LocalDate.now().minusDays(10)
+  private val endDate = LocalDate.now().minusDays(1)
 
   private val accommodationDetails = buildProposedAccommodationDto(
     verificationStatus = VerificationStatus.PASSED,
@@ -43,10 +45,11 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.cprAddressId).isNull()
-    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
     assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
@@ -60,8 +63,8 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.address.county).isEqualTo(accommodationDetails.address.county)
     assertThat(aggregateSnapshot.address.country).isEqualTo(accommodationDetails.address.country)
     assertThat(aggregateSnapshot.address.uprn).isEqualTo(accommodationDetails.address.uprn)
-    assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
-    assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
+    assertThat(aggregateSnapshot.startDate).isEqualTo(startDate)
+    assertThat(aggregateSnapshot.endDate).isEqualTo(endDate)
     assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(aggregateSnapshot.typeVerified).isFalse
     assertThat(aggregateSnapshot.noFixedAbode).isFalse
@@ -75,12 +78,13 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.NOT_CHECKED_YET,
       nextAccommodationStatus = NextAccommodationStatus.NO,
+      startDate = startDate,
+      endDate = endDate,
     )
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.cprAddressId).isNull()
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
     assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
-    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
     assertThat(aggregateSnapshot.address.postcode).isEqualTo(accommodationDetails.address.postcode)
     assertThat(aggregateSnapshot.address.subBuildingName).isEqualTo(accommodationDetails.address.subBuildingName)
@@ -92,8 +96,8 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.address.county).isEqualTo(accommodationDetails.address.county)
     assertThat(aggregateSnapshot.address.country).isEqualTo(accommodationDetails.address.country)
     assertThat(aggregateSnapshot.address.uprn).isEqualTo(accommodationDetails.address.uprn)
-    assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
-    assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
+    assertThat(aggregateSnapshot.startDate).isEqualTo(startDate)
+    assertThat(aggregateSnapshot.endDate).isEqualTo(endDate)
     assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.SAS)
     assertThat(aggregateSnapshot.typeVerified).isFalse
     assertThat(aggregateSnapshot.noFixedAbode).isFalse
@@ -114,6 +118,8 @@ class ProposedAccommodationAggregateTest {
       currentAccommodation = currentAccommodation,
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus?.code)
@@ -134,6 +140,8 @@ class ProposedAccommodationAggregateTest {
       currentAccommodation = currentAccommodation,
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus?.code)
@@ -148,6 +156,8 @@ class ProposedAccommodationAggregateTest {
       currentAccommodation = null,
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
     val snapshot = aggregate.snapshot()
     assertThat(snapshot.accommodationStatus?.code)
@@ -162,6 +172,8 @@ class ProposedAccommodationAggregateTest {
       hydrateAndCreateProposedAccommodation(
         verificationStatus = VerificationStatus.NOT_CHECKED_YET,
         nextAccommodationStatus = NextAccommodationStatus.YES,
+        startDate = startDate,
+        endDate = endDate,
       )
     }
   }
@@ -171,6 +183,8 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.FAILED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     val snapshot = aggregate.snapshot()
@@ -185,6 +199,8 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     assertThat(aggregate.requiresCprRegistration()).isTrue
@@ -195,6 +211,8 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.NOT_CHECKED_YET,
       nextAccommodationStatus = NextAccommodationStatus.NO,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     assertThat(aggregate.requiresCprRegistration()).isFalse
@@ -205,6 +223,8 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAndCreateProposedAccommodation(
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.markRegisteredWithCpr(UUID.randomUUID())
@@ -214,7 +234,7 @@ class ProposedAccommodationAggregateTest {
 
   @Test
   fun `should mark proposed accommodation as registered with CPR`() {
-    val aggregate = hydrateAggregate()
+    val aggregate = hydrateAggregate(startDate = startDate, endDate = endDate)
     val cprAddressId = UUID.randomUUID()
 
     aggregate.markRegisteredWithCpr(cprAddressId)
@@ -226,10 +246,11 @@ class ProposedAccommodationAggregateTest {
   fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to address data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -245,8 +266,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -260,11 +281,12 @@ class ProposedAccommodationAggregateTest {
   fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to address startDate`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
+      startDate = startDate,
+      endDate = endDate,
     )
-    val newStartDate = accommodationDetails.startDate?.plusDays(1) ?: LocalDate.now().plusDays(1)
+    val newStartDate = startDate?.plusDays(1) ?: LocalDate.now().plusDays(1)
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -281,7 +303,7 @@ class ProposedAccommodationAggregateTest {
         uprn = accommodationDetails.address.uprn,
       ),
       newStartDate = newStartDate,
-      newEndDate = accommodationDetails.endDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -298,13 +320,14 @@ class ProposedAccommodationAggregateTest {
       accommodationType = buildAccommodationTypeDto(
         code = "A02",
       ),
+      startDate = startDate,
+      endDate = endDate,
     )
     val newAccommodationType = buildAccommodationTypeDto(
       code = "A07B",
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = newAccommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -320,8 +343,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -335,11 +358,12 @@ class ProposedAccommodationAggregateTest {
   fun `should add AccommodationUpdatedDomainEvent when registered with CPR and SAS update to endDate data`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
+      startDate = startDate,
+      endDate = endDate,
     )
-    val newEndDate = accommodationDetails.endDate?.plusDays(1) ?: LocalDate.now().plusDays(1)
+    val newEndDate = endDate?.plusDays(1) ?: LocalDate.now().plusDays(1)
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -355,7 +379,7 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
+      newStartDate = startDate,
       newEndDate = newEndDate,
       newNoFixedAbode = false,
     )
@@ -370,10 +394,11 @@ class ProposedAccommodationAggregateTest {
   fun `should not add AccommodationUpdatedDomainEvent when registered with CPR and SAS update but no relevant CPR fields change`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = "Updated name",
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -389,8 +414,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -400,10 +425,12 @@ class ProposedAccommodationAggregateTest {
 
   @Test
   fun `should not add AccommodationUpdatedDomainEvent when not registered with CPR and SAS update to relevant CPR fields`() {
-    val aggregate = hydrateAggregate()
+    val aggregate = hydrateAggregate(
+      startDate = startDate,
+      endDate = endDate,
+    )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -419,8 +446,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -433,10 +460,11 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationSource = AccommodationSource.DELIUS,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -452,8 +480,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -468,10 +496,11 @@ class ProposedAccommodationAggregateTest {
   fun `should add AccommodationDeletedDomainEvent when registered with CPR and next accommodation changes`(nextAccommodationStatus: NextAccommodationStatus) {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = nextAccommodationStatus,
@@ -487,8 +516,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -503,10 +532,11 @@ class ProposedAccommodationAggregateTest {
   fun `should add AccommodationDeletedDomainEvent when registered with CPR and verification changes from passed to failed`() {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.FAILED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -522,8 +552,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -540,10 +570,12 @@ class ProposedAccommodationAggregateTest {
 
   @Test
   fun `should not add AccommodationDeletedDomainEvent when not registered with CPR and next accommodation changes to NO`() {
-    val aggregate = hydrateAggregate()
+    val aggregate = hydrateAggregate(
+      startDate = startDate,
+      endDate = endDate,
+    )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.NO,
@@ -559,8 +591,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -580,6 +612,8 @@ class ProposedAccommodationAggregateTest {
         code = addressStatusCode.name,
         description = addressStatusCode.description,
       ),
+      startDate = startDate,
+      endDate = endDate,
     )
     val arrivalDate = LocalDate.of(2026, 2, 5)
 
@@ -609,6 +643,8 @@ class ProposedAccommodationAggregateTest {
         code = AddressStatusCode.PR.name,
         description = AddressStatusCode.PR.description,
       ),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
@@ -628,6 +664,8 @@ class ProposedAccommodationAggregateTest {
         description = AddressStatusCode.PR.description,
       ),
       nextAccommodationStatus = NextAccommodationStatus.NO,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
@@ -647,6 +685,8 @@ class ProposedAccommodationAggregateTest {
         description = AddressStatusCode.M.description,
       ),
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
@@ -663,6 +703,8 @@ class ProposedAccommodationAggregateTest {
       typeVerified = false,
       accommodationStatus = null,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
@@ -674,7 +716,10 @@ class ProposedAccommodationAggregateTest {
 
   @Test
   fun `should addNote successfully`() {
-    val aggregate = hydrateAggregate()
+    val aggregate = hydrateAggregate(
+      startDate = startDate,
+      endDate = endDate,
+    )
     val note = "note"
     aggregate.addNote(note)
 
@@ -682,7 +727,6 @@ class ProposedAccommodationAggregateTest {
 
     assertThat(aggregateSnapshot.notes.first().id).isNotNull
     assertThat(aggregateSnapshot.notes.first().note).isEqualTo(note)
-    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
     assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
@@ -696,8 +740,8 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.address.county).isEqualTo(accommodationDetails.address.county)
     assertThat(aggregateSnapshot.address.country).isEqualTo(accommodationDetails.address.country)
     assertThat(aggregateSnapshot.address.uprn).isEqualTo(accommodationDetails.address.uprn)
-    assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
-    assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
+    assertThat(aggregateSnapshot.startDate).isEqualTo(startDate)
+    assertThat(aggregateSnapshot.endDate).isEqualTo(endDate)
 
     val domainEventsToPublish = aggregate.pullDomainEvents()
     assertThat(domainEventsToPublish).hasSize(0)
@@ -707,7 +751,10 @@ class ProposedAccommodationAggregateTest {
   @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
   fun `addNote should throw NoteIsEmptyException domain exception when note is blank`(note: String) {
     assertThrows<NoteIsEmptyException> {
-      val aggregate = hydrateAggregate()
+      val aggregate = hydrateAggregate(
+        startDate = startDate,
+        endDate = endDate,
+      )
       aggregate.addNote(note)
     }
   }
@@ -715,7 +762,10 @@ class ProposedAccommodationAggregateTest {
   @Test
   fun `addNote should throw NoteIsGreaterThanMaxLengthException domain exception when note is greater than 4000 chars`() {
     assertThrows<NoteIsGreaterThanMaxLengthException> {
-      val aggregate = hydrateAggregate()
+      val aggregate = hydrateAggregate(
+        startDate = startDate,
+        endDate = endDate,
+      )
       aggregate.addNote(note = "a".repeat(4001))
     }
   }
@@ -737,6 +787,8 @@ class ProposedAccommodationAggregateTest {
       accommodationSource = AccommodationSource.SAS,
       verificationStatus = VerificationStatus.PASSED,
       nextAccommodationStatus = NextAccommodationStatus.YES,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     val snapshot = aggregate.snapshot()
@@ -768,8 +820,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = true,
       newTypeVerified = true,
       newAccommodationStatus = AccommodationStatusDto(
@@ -782,7 +834,6 @@ class ProposedAccommodationAggregateTest {
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.caseId).isEqualTo(caseId)
     assertThat(aggregateSnapshot.cprAddressId).isEqualTo(cprAddressId)
-    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(accommodationDetails.accommodationType)
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(accommodationDetails.verificationStatus)
     assertThat(aggregateSnapshot.nextAccommodationStatus).isEqualTo(accommodationDetails.nextAccommodationStatus)
@@ -796,8 +847,8 @@ class ProposedAccommodationAggregateTest {
     assertThat(aggregateSnapshot.address.county).isEqualTo(accommodationDetails.address.county)
     assertThat(aggregateSnapshot.address.country).isEqualTo(accommodationDetails.address.country)
     assertThat(aggregateSnapshot.address.uprn).isEqualTo(accommodationDetails.address.uprn)
-    assertThat(aggregateSnapshot.startDate).isEqualTo(accommodationDetails.startDate)
-    assertThat(aggregateSnapshot.endDate).isEqualTo(accommodationDetails.endDate)
+    assertThat(aggregateSnapshot.startDate).isEqualTo(startDate)
+    assertThat(aggregateSnapshot.endDate).isEqualTo(endDate)
     assertThat(aggregateSnapshot.accommodationSource).isEqualTo(AccommodationSource.DELIUS)
     assertThat(aggregateSnapshot.typeVerified).isTrue
     assertThat(aggregateSnapshot.noFixedAbode).isTrue
@@ -816,7 +867,6 @@ class ProposedAccommodationAggregateTest {
       accommodationSource = AccommodationSource.SAS,
       currentAccommodation = null,
       cprAddressId = commonCprAddressId,
-      name = null,
       accommodationType = buildAccommodationTypeDto(
         code = AddressUsageCode.A07B.name,
       ),
@@ -877,7 +927,6 @@ class ProposedAccommodationAggregateTest {
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.caseId).isEqualTo(caseId)
     assertThat(aggregateSnapshot.cprAddressId).isEqualTo(commonCprAddressId)
-    assertThat(aggregateSnapshot.name).isEqualTo(accommodationDetails.name)
     assertThat(aggregateSnapshot.accommodationType).isEqualTo(newAccommodationType)
     assertThat(aggregateSnapshot.accommodationStatus).isEqualTo(newAccommodationStatus)
     assertThat(aggregateSnapshot.verificationStatus).isEqualTo(VerificationStatus.PASSED)
@@ -903,7 +952,6 @@ class ProposedAccommodationAggregateTest {
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -919,8 +967,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -937,10 +985,11 @@ class ProposedAccommodationAggregateTest {
       accommodationType = buildAccommodationTypeDto(
         code = "A02",
       ),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -956,8 +1005,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -975,10 +1024,11 @@ class ProposedAccommodationAggregateTest {
       accommodationType = buildAccommodationTypeDto(
         code = "A02",
       ),
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -994,8 +1044,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -1010,13 +1060,14 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationType = null,
+      startDate = startDate,
+      endDate = endDate,
     )
     val newAccommodationType = buildAccommodationTypeDto(
       code = "A07B",
     )
 
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = newAccommodationType,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -1032,8 +1083,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -1051,10 +1102,11 @@ class ProposedAccommodationAggregateTest {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       accommodationType = null,
+      startDate = startDate,
+      endDate = endDate,
     )
 
     aggregate.updateProposedAccommodation(
-      newName = "Updated name",
       newAccommodationType = null,
       newVerificationStatus = VerificationStatus.PASSED,
       newNextAccommodationStatus = NextAccommodationStatus.YES,
@@ -1070,8 +1122,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = false,
     )
 
@@ -1107,8 +1159,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = true,
       newTypeVerified = true,
       newAccommodationStatus = AccommodationStatusDto(
@@ -1142,7 +1194,6 @@ class ProposedAccommodationAggregateTest {
       accommodationSource = AccommodationSource.SAS,
       currentAccommodation = null,
       cprAddressId = commonCprAddressId,
-      name = null,
       accommodationType = buildAccommodationTypeDto(
         code = AddressUsageCode.A07B.name,
       ),
@@ -1217,7 +1268,10 @@ class ProposedAccommodationAggregateTest {
   }
 
   private fun shouldSuccessfullyAddNote(note: String) {
-    val aggregate = hydrateAggregate()
+    val aggregate = hydrateAggregate(
+      startDate = startDate,
+      endDate = endDate,
+    )
     aggregate.addNote(note)
     assertThat(aggregate.snapshot().notes.first().note).isEqualTo(note)
   }
@@ -1232,13 +1286,14 @@ class ProposedAccommodationAggregateTest {
     noFixedAbode: Boolean? = false,
     typeVerified: Boolean = false,
     accommodationType: AccommodationTypeDto? = buildAccommodationTypeDto(),
+    startDate: LocalDate,
+    endDate: LocalDate,
   ) = ProposedAccommodationAggregate.hydrateExisting(
     id = UUID.randomUUID(),
     caseId = UUID.randomUUID(),
     accommodationSource = accommodationSource,
     currentAccommodation = currentAccommodation,
     cprAddressId = cprAddressId,
-    name = accommodationDetails.name,
     accommodationType = accommodationType,
     accommodationStatus = accommodationStatus,
     verificationStatus = verificationStatus,
@@ -1255,8 +1310,8 @@ class ProposedAccommodationAggregateTest {
       country = accommodationDetails.address.country,
       uprn = accommodationDetails.address.uprn,
     ),
-    startDate = accommodationDetails.startDate,
-    endDate = accommodationDetails.endDate,
+    startDate = startDate,
+    endDate = endDate,
     typeVerified = typeVerified,
     noFixedAbode = noFixedAbode,
     notes = emptyList(),
@@ -1269,6 +1324,8 @@ class ProposedAccommodationAggregateTest {
     verificationStatus: VerificationStatus,
     nextAccommodationStatus: NextAccommodationStatus,
     noFixedAbode: Boolean = false,
+    startDate: LocalDate,
+    endDate: LocalDate,
   ): ProposedAccommodationAggregate {
     val aggregate = ProposedAccommodationAggregate.hydrateNew(
       caseId = UUID.randomUUID(),
@@ -1277,7 +1334,6 @@ class ProposedAccommodationAggregateTest {
       accommodationSource = accommodationSource,
     )
     aggregate.updateProposedAccommodation(
-      newName = accommodationDetails.name,
       newAccommodationType = accommodationDetails.accommodationType,
       newVerificationStatus = verificationStatus,
       newNextAccommodationStatus = nextAccommodationStatus,
@@ -1293,8 +1349,8 @@ class ProposedAccommodationAggregateTest {
         country = accommodationDetails.address.country,
         uprn = accommodationDetails.address.uprn,
       ),
-      newStartDate = accommodationDetails.startDate,
-      newEndDate = accommodationDetails.endDate,
+      newStartDate = startDate,
+      newEndDate = endDate,
       newNoFixedAbode = noFixedAbode,
     )
     return aggregate
