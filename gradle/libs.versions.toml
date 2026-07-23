@@ -13,7 +13,7 @@ kotlin = "2.4.10"
 apache-commons-csv = "1.14.1"
 detekt = "2.0.0-alpha.5"
 awaitility = "4.3.0"
-javers = "7.11.4"
+javers = "7.11.5"
 postgres = "42.7.12"
 sentry = "8.50.0"
 
