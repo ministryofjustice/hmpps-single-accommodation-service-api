@@ -90,7 +90,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventHelper.assertMessageProcessed()
+    testInboxEventHelper.assertMessageProcessed()
 
     val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
     assertThat(case).isNotNull()
@@ -121,7 +121,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
   }
 
@@ -162,7 +162,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     expectedTier: String? = "A3",
     cpr: CorePersonRecord? = null,
   ) {
-    inboxEventHelper.assertMessageProcessed()
+    testInboxEventHelper.assertMessageProcessed()
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     assertThat(case.tierScore).isEqualTo(expectedTier)
@@ -201,6 +201,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

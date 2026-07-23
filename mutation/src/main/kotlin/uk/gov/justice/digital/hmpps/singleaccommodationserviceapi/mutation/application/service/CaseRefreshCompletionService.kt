@@ -12,10 +12,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_PRISONER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_TIER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -65,10 +68,20 @@ class CaseRefreshCompletionService(
 @Service
 class CaseMutationOrchestrationService(
   private val aggregatorService: AggregatorService,
+  private val tierCachingService: TierCachingService,
+  private val corePersonRecordCachingService: CorePersonRecordCachingService,
   private val tierClient: TierClient,
   private val corePersonRecordClient: CorePersonRecordClient,
   private val prisonerSearchClient: PrisonerSearchClient,
+  private val prisonerSearchCachingService: PrisonerSearchCachingService,
 ) {
+
+  fun getCase(crn: String, prisonNumber: String? = null): CaseMutationOrchestrationDto = orchestrateCase(
+    crn = crn,
+    loadTier = { tierCachingService.getTier(crn) },
+    loadPersonRecord = { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) },
+    loadPrisoner = prisonNumber?.let { num -> { prisonerSearchCachingService.getPrisoner(num) } },
+  ).data
 
   fun getCurrentCaseResult(crn: String, prisonNumber: String? = null): OrchestrationResultDto<CaseMutationOrchestrationDto> = orchestrateCase(
     crn = crn,

@@ -62,8 +62,8 @@ class TierCalculationChangedIT : IntegrationTestBase() {
 
     publishTierEvent()
 
-    inboxEventHelper.assertMessageProcessed()
-    inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertMessageProcessed()
+    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
@@ -77,7 +77,7 @@ class TierCalculationChangedIT : IntegrationTestBase() {
     publishTierEvent()
     publishTierEvent()
 
-    inboxEventHelper.assertAllInboxMessagesProcessed(3)
+    testInboxEventHelper.assertAllInboxMessagesProcessed(3)
 
     waitFor {
       val case = caseRefreshRequestRepository.findAll()
@@ -94,7 +94,7 @@ class TierCalculationChangedIT : IntegrationTestBase() {
 
     publishTierEvent()
 
-    inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 
@@ -118,6 +118,6 @@ class TierCalculationChangedIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

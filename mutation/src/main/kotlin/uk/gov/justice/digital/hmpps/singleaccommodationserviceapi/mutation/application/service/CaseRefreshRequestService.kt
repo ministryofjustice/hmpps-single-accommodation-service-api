@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -25,12 +26,17 @@ class CaseRefreshRequestService(
   private val clock: Clock,
 ) {
 
+  private val log = LoggerFactory.getLogger(this.javaClass)
+
   @Transactional
-  fun requestLiveRefresh(caseId: UUID) = caseRefreshRequestRepository.upsertRequest(
-    caseId = caseId,
-    priority = CaseRefreshPriority.LIVE,
-    requestedAt = Instant.now(clock),
-  )
+  fun requestLiveRefresh(caseId: UUID) {
+    log.info("Requesting refresh for case [id=$caseId]")
+    caseRefreshRequestRepository.upsertRequest(
+      caseId = caseId,
+      priority = CaseRefreshPriority.LIVE,
+      requestedAt = Instant.now(clock),
+    )
+  }
 
   // entry point for a bulk refresh (case list pre-load) & not triggered yet
   @Transactional

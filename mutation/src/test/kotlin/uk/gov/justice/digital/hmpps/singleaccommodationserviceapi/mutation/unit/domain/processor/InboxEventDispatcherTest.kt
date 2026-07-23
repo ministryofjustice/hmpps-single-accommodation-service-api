@@ -153,6 +153,8 @@ class InboxEventDispatcherTest {
       val supportedEventTypes: Set<String>,
     ) : InboxEventHandler {
       override fun supportedEventTypes() = supportedEventTypes
+      override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent) = "partitionKey"
+
       override fun handle(inboxEvent: InboxEventHandler.InboxEvent) = InboxEventHandler.Result.PROCESSED
     }
 
@@ -286,6 +288,8 @@ class InboxEventDispatcherTest {
     val processedEvents: MutableList<InboxEventHandler.InboxEvent> = mutableListOf(),
   ) : InboxEventHandler {
     override fun supportedEventTypes() = supportedEventTypes
+    override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent) = "partitionKey"
+
     override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
       processedEvents.add(inboxEvent)
 
