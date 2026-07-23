@@ -5,6 +5,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import java.util.UUID
 
 @Entity
@@ -29,6 +30,13 @@ data class UserEntity(
 ) {
   fun displayName() = "$forename $surname"
 }
+
+fun UserEntity.toAssignedToDto() = AssignedToDto(
+  forename = forename,
+  surname = surname,
+  username = username,
+  staffCode = deliusStaffCode,
+)
 
 enum class AuthSource(val source: String) {
   NOMIS("nomis"),

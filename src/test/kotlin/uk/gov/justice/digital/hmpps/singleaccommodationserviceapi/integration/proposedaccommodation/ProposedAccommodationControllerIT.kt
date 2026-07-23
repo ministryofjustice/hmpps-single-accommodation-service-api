@@ -1120,7 +1120,10 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
               .truncatedTo(ChronoUnit.SECONDS).toString(),
             createNoteCommitTime = createNoteCommitTime!!
               .truncatedTo(ChronoUnit.SECONDS).toString(),
-            update1Author = "${newDeliusUserStaffDetail.name.forename} ${newDeliusUserStaffDetail.name.surname}",
+            update1AuthorForename = newDeliusUserStaffDetail.name.forename,
+            update1AuthorSurname = newDeliusUserStaffDetail.name.surname,
+            update1AuthorUsername = usernameOfNewDeliusUser.uppercase(),
+            update1AuthorStaffCode = newDeliusUserStaffDetail.code,
             update1CommitTime = commitTimesAsc[1]
               .truncatedTo(ChronoUnit.SECONDS).toString(),
             update2CommitTime = commitTimesAsc[2]
