@@ -117,7 +117,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       thoroughfareName = "Dollis Green",
       postTown = "Bramley",
       country = null,
-      startDate = null,
+      startDate = LocalDate.now().minusDays(10),
       verificationStatus = EntityVerificationStatus.PASSED,
       nextAccommodationStatus = EntityNextAccommodationStatus.YES,
       accommodationStatusEntity = accommodationStatusEntity,
@@ -229,7 +229,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       thoroughfareName = "Dollis Green",
       postTown = "Bramley",
       country = null,
-      startDate = null,
+      startDate = LocalDate.now().minusDays(10),
       verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
       nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
       accommodationStatusEntity = null,
@@ -247,7 +247,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       country = null,
       verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
       nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
-      startDate = LocalDate.now(),
+      startDate = LocalDate.now().minusDays(8),
       accommodationStatusEntity = null,
       accommodationTypeEntity = newerEntityAccommodationTypeEntity,
     )
@@ -415,7 +415,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         expectedSubBuildingName = updatedRecord.subBuildingName!!,
         expectedBuildingName = updatedRecord.buildingName!!,
         expectedBuildingNumber = updatedRecord.buildingNumber!!,
-        expectedThoroughfareName = updatedRecord.throughfareName!!,
+        expectedThoroughfareName = updatedRecord.thoroughfareName!!,
         expectedDependentLocality = updatedRecord.dependentLocality!!,
         expectedPostTown = updatedRecord.postTown!!,
         expectedCounty = updatedRecord.county!!,
@@ -470,7 +470,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       subBuildingName = "Original subBuildingName",
       buildingName = "Original buildingName",
       buildingNumber = "Original buildingNumber",
-      throughfareName = "Original thoroughfareName",
+      thoroughfareName = "Original thoroughfareName",
       dependentLocality = "Original dependentLocality",
       postTown = "Original postTown",
       county = "Original county",
@@ -558,7 +558,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     assertThat(updatedRecord.subBuildingName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.subBuildingName)
     assertThat(updatedRecord.buildingName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.buildingName)
     assertThat(updatedRecord.buildingNumber).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.buildingNumber)
-    assertThat(updatedRecord.throughfareName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.thoroughfareName)
+    assertThat(updatedRecord.thoroughfareName).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.thoroughfareName)
     assertThat(updatedRecord.dependentLocality).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.dependentLocality)
     assertThat(updatedRecord.postTown).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.postTown)
     assertThat(updatedRecord.county).isEqualTo(equivalentRecordInDeliusWithUpdatesOnAllFields.county)
@@ -594,7 +594,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           subBuildingName = deliusSyncedRecord.subBuildingName,
           buildingName = deliusSyncedRecord.buildingName,
           buildingNumber = sasUpdatedBuildingNumber,
-          thoroughfareName = deliusSyncedRecord.throughfareName,
+          thoroughfareName = deliusSyncedRecord.thoroughfareName,
           dependentLocality = deliusSyncedRecord.dependentLocality,
           postTown = deliusSyncedRecord.postTown,
           county = deliusSyncedRecord.county,
@@ -892,262 +892,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     return Pair(deliusSyncedRecord, deliusOriginProposedAccommodation)
   }
 
-//  @Test
-//  fun `should delete the correct SAS accommodation record when it has been deleted in nDelius`() {
-//    val crn = "ABCDEFG"
-//    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
-//
-//    val commonCprAddressId = UUID.randomUUID()
-//    val addressForRecordInSasAndInDelius = buildCanonicalAddress(
-//      postcode = "RG26 5AG",
-//      buildingNumber = "4",
-//      thoroughfareName = "Dollis Green",
-//      postTown = "Bramley",
-//      country = null,
-//    )
-//    val firstPreExistingConfirmedProposedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07A.name)!!
-//    val firstPreExistingConfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
-//      caseEntity = caseEntity,
-//      cprAddressId = commonCprAddressId,
-//      accommodationSource = AccommodationSource.SAS,
-//      postcode = addressForRecordInSasAndInDelius.postcode!!,
-//      buildingNumber = addressForRecordInSasAndInDelius.buildingNumber!!,
-//      thoroughfareName = addressForRecordInSasAndInDelius.thoroughfareName!!,
-//      postTown = addressForRecordInSasAndInDelius.postTown!!,
-//      country = null,
-//      startDate = LocalDate.now().minusDays(1),
-//      verificationStatus = EntityVerificationStatus.PASSED,
-//      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
-//      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
-//      accommodationTypeEntity = firstPreExistingConfirmedProposedAccommodationType,
-//    )
-//    firstPreExistingConfirmedProposedAccommodationEntity.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
-//    proposedAccommodationRepository.save(firstPreExistingConfirmedProposedAccommodationEntity)
-//
-//    val secondPreExistingConfirmedProposedAccommodationType = createAndSaveProposedAccommodation(
-//      caseEntity = caseEntity,
-//      cprAddressId = UUID.randomUUID(),
-//      accommodationSource = AccommodationSource.SAS,
-//      postcode = "W3 9XE",
-//      buildingNumber = "511",
-//      thoroughfareName = "Test street",
-//      postTown = "London",
-//      country = "England",
-//      startDate = null,
-//      verificationStatus = EntityVerificationStatus.PASSED,
-//      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
-//      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
-//      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
-//    )
-//    secondPreExistingConfirmedProposedAccommodationType.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
-//    proposedAccommodationRepository.save(secondPreExistingConfirmedProposedAccommodationType)
-//
-//    val preExistingUnconfirmedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A01A.name)!!
-//    val preExistingUnconfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
-//      caseEntity = caseEntity,
-//      cprAddressId = null,
-//      accommodationSource = AccommodationSource.SAS,
-//      postcode = "W1 8XX",
-//      buildingNumber = "11",
-//      thoroughfareName = "Piccadilly Circus",
-//      postTown = "London",
-//      country = null,
-//      verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
-//      nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
-//      startDate = LocalDate.now(),
-//      accommodationStatusEntity = null,
-//      accommodationTypeEntity = preExistingUnconfirmedAccommodationType,
-//    )
-//    preExistingUnconfirmedProposedAccommodationEntity.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
-//    proposedAccommodationRepository.save(preExistingUnconfirmedProposedAccommodationEntity)
-//
-//    val deliusOriginProposedAccommodation = buildCanonicalAddress(
-//      cprAddressId = commonCprAddressId,
-//      noFixedAbode = false,
-//      typeVerified = false,
-//
-//      postcode = addressForRecordInSasAndInDelius.postcode!!,
-//      buildingNumber = addressForRecordInSasAndInDelius.buildingNumber!!,
-//      thoroughfareName = addressForRecordInSasAndInDelius.thoroughfareName!!,
-//      postTown = addressForRecordInSasAndInDelius.postTown!!,
-//      startDate = LocalDate.now().minusDays(1),
-//      endDate = null,
-//      status = CanonicalAddressStatus(
-//        code = AddressStatusCode.PR.name,
-//        description = AddressStatusCode.PR.description,
-//      ),
-//      usage = CanonicalAddressUsage(
-//        usageCode = CanonicalAddressUsageCode(
-//          code = AddressUsageCode.A07A.name,
-//          description = AddressUsageCode.A07A.description,
-//        ),
-//        isActive = true,
-//      ),
-//    )
-//    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-//      crn = crn,
-//      response = buildCorePersonRecord(
-//        identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
-//        addresses = listOf(deliusOriginProposedAccommodation),
-//      ),
-//    )
-//
-//    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-//      .withDeliusUserJwt()
-//      .exchangeSuccessfully()
-//      .expectBody<String>()
-//      .value {
-//        assertThatJson(it!!).matchesExpectedJson(
-//          expectedGetProposedAccommodationsResponse(
-//            firstId = preExistingUnconfirmedProposedAccommodationEntity.id,
-//            firstBuildingNumber = preExistingUnconfirmedProposedAccommodationEntity.buildingNumber!!,
-//            firstCreatedBy = "Test Data Setup User",
-//            firstCreatedAt = preExistingUnconfirmedProposedAccommodationEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-//            firstAccommodationTypeEntity = preExistingUnconfirmedAccommodationType,
-//            firstVerificationStatus = VerificationStatus.NOT_CHECKED_YET,
-//            firstNextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
-//            firstStartDate = preExistingUnconfirmedProposedAccommodationEntity.startDate,
-//            secondId = firstPreExistingConfirmedProposedAccommodationEntity.id,
-//            secondCreatedBy = "Test Data Setup User",
-//            secondCreatedAt = firstPreExistingConfirmedProposedAccommodationEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-//            secondAccommodationTypeEntity = firstPreExistingConfirmedProposedAccommodationType,
-//            secondVerificationStatus = VerificationStatus.PASSED,
-//            secondNextAccommodationStatus = NextAccommodationStatus.YES,
-//            secondStartDate = firstPreExistingConfirmedProposedAccommodationEntity.startDate,
-//            crn = crn,
-//          ),
-//        )
-//      }
-//
-//    val results = proposedAccommodationRepository.findAll()
-//    assertThat(results).hasSize(3)
-//
-//    val softDeletedRecords = results.filter { it.deleted }
-//    assertThat(softDeletedRecords).hasSize(1)
-//    assertThat(softDeletedRecords.first().id).isEqualTo(secondPreExistingConfirmedProposedAccommodationType.id)
-//
-//    assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
-//  }
-//
-//  @Test
-//  fun `should delete the correct SAS accommodation record when no accommodation records in nDelius`() {
-//    val crn = "ABCDEFG"
-//    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
-//
-//    val preExistingConfirmedProposedAccommodationType = createAndSaveProposedAccommodation(
-//      caseEntity = caseEntity,
-//      cprAddressId = UUID.randomUUID(),
-//      accommodationSource = AccommodationSource.SAS,
-//      postcode = "W3 9XE",
-//      buildingNumber = "511",
-//      thoroughfareName = "Test street",
-//      postTown = "London",
-//      country = "England",
-//      startDate = null,
-//      verificationStatus = EntityVerificationStatus.PASSED,
-//      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
-//      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
-//      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
-//    )
-//    preExistingConfirmedProposedAccommodationType.createdAt = ZonedDateTime.now().minusSeconds(11).toInstant()
-//    proposedAccommodationRepository.save(preExistingConfirmedProposedAccommodationType)
-//
-//    val preExistingUnconfirmedAccommodationType = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A01A.name)!!
-//    val preExistingUnconfirmedProposedAccommodationEntity = createAndSaveProposedAccommodation(
-//      caseEntity = caseEntity,
-//      cprAddressId = null,
-//      accommodationSource = AccommodationSource.SAS,
-//      postcode = "W1 8XX",
-//      buildingNumber = "11",
-//      thoroughfareName = "Piccadilly Circus",
-//      postTown = "London",
-//      country = null,
-//      verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
-//      nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
-//      startDate = LocalDate.now(),
-//      accommodationStatusEntity = null,
-//      accommodationTypeEntity = preExistingUnconfirmedAccommodationType,
-//    )
-//
-//    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-//      crn = crn,
-//      response = buildCorePersonRecord(
-//        identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
-//        addresses = emptyList(),
-//      ),
-//    )
-//
-//    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-//      .withDeliusUserJwt()
-//      .exchangeSuccessfully()
-//      .expectBody<String>()
-//      .returnResult()
-//      .responseBody!!
-//
-//    val results = proposedAccommodationRepository.findAll()
-//    assertThat(results).hasSize(2)
-//
-//    val softDeletedRecord = results.filter { it.deleted }
-//    assertThat(softDeletedRecord).hasSize(1)
-//    assertThat(softDeletedRecord.first().id).isEqualTo(preExistingConfirmedProposedAccommodationType.id)
-//
-//    val notDeletedRecord = results.filter { !it.deleted }
-//    assertThat(notDeletedRecord).hasSize(1)
-//    assertThat(notDeletedRecord.first().id).isEqualTo(preExistingUnconfirmedProposedAccommodationEntity.id)
-//
-//    assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
-//  }
-//
-//  @Test
-//  fun `should NOT delete records that are not in nDelius if they were created in the last 10 seconds - mitigates race condition`() {
-//    // simulates creating "Confirmed" Proposed Accommodation right now
-//    val confirmedProposedAccommodationCreatedRightNow = createAndSaveProposedAccommodation(
-//      caseEntity = caseEntity,
-//      cprAddressId = UUID.randomUUID(),
-//      accommodationSource = AccommodationSource.SAS,
-//      postcode = "W3 9XE",
-//      buildingNumber = "511",
-//      thoroughfareName = "Test street",
-//      postTown = "London",
-//      country = "England",
-//      startDate = null,
-//      verificationStatus = EntityVerificationStatus.PASSED,
-//      nextAccommodationStatus = EntityNextAccommodationStatus.YES,
-//      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name),
-//      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07B.name)!!,
-//    )
-//    confirmedProposedAccommodationCreatedRightNow.createdAt = ZonedDateTime.now().toInstant()
-//    proposedAccommodationRepository.save(confirmedProposedAccommodationCreatedRightNow)
-//
-//    // addresses comes back empty - not yet arrived as just created
-//    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-//      crn = crn,
-//      response = buildCorePersonRecord(
-//        identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
-//        addresses = emptyList(),
-//      ),
-//    )
-//    // get and sync with CPR / nDelius
-//    restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
-//      .withDeliusUserJwt()
-//      .exchangeSuccessfully()
-//      .expectBody<String>()
-//      .returnResult()
-//      .responseBody!!
-//
-//    val results = proposedAccommodationRepository.findAll()
-//    assertThat(results).hasSize(1)
-//
-//    val softDeletedRecords = results.filter { it.deleted }
-//    assertThat(softDeletedRecords).hasSize(0)
-//
-//    val notDeletedRecords = results.filter { !it.deleted }
-//    assertThat(notDeletedRecords).hasSize(1)
-//    assertThat(notDeletedRecords.first().id).isEqualTo(confirmedProposedAccommodationCreatedRightNow.id)
-//
-//    assertThat(outboxEventRepository.findAll().size).isEqualTo(0)
-//  }
-
   @Test
   fun `should return expected proposed accommodation timeline for Delius Origin records and show further Delius update`() {
     val crn = "X12345"
@@ -1187,7 +931,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
           subBuildingName = deliusSyncedRecord.subBuildingName,
           buildingName = deliusSyncedRecord.buildingName,
           buildingNumber = sasUpdatedBuildingNumber,
-          thoroughfareName = deliusSyncedRecord.throughfareName,
+          thoroughfareName = deliusSyncedRecord.thoroughfareName,
           dependentLocality = deliusSyncedRecord.dependentLocality,
           postTown = deliusSyncedRecord.postTown,
           county = deliusSyncedRecord.county,
@@ -1232,7 +976,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     thoroughfareName: String,
     postTown: String?,
     country: String?,
-    startDate: LocalDate?,
+    startDate: LocalDate,
     endDate: LocalDate? = null,
     accommodationStatusEntity: AccommodationStatusEntity?,
     verificationStatus: EntityVerificationStatus?,
@@ -1250,7 +994,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       nextAccommodationStatus = nextAccommodationStatus,
       postcode = postcode,
       buildingNumber = buildingNumber,
-      throughfareName = thoroughfareName,
+      thoroughfareName = thoroughfareName,
       postTown = postTown,
       country = country,
       startDate = startDate,

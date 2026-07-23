@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDetailCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
@@ -34,6 +34,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationTypeRequiredOnCreateException
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Service
@@ -46,7 +48,7 @@ class ProposedAccommodationApplicationService(
   private val outboxEventRepository: OutboxEventRepository,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  private val corePersonRecordClient: CorePersonRecordClient,
+  private val corePersonRecordCachingService: CorePersonRecordCachingService,
 ) {
 
   @Transactional
@@ -99,8 +101,8 @@ class ProposedAccommodationApplicationService(
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
-      newStartDate = proposedAccommodationDetailCommand.startDate,
-      newEndDate = proposedAccommodationDetailCommand.endDate,
+      newStartDate = LocalDate.now(clock),
+      newEndDate = null,
       newNoFixedAbode = false,
     )
     val accommodationStatusEntity = aggregate.snapshot().accommodationStatus
@@ -124,13 +126,13 @@ class ProposedAccommodationApplicationService(
   ) {
     if (aggregate.requiresCprRegistration()) {
       val aggregateSnapshot = aggregate.snapshot()
-      val createdAccommodation = corePersonRecordClient.createProbationAddress(
+      val createdAccommodation = corePersonRecordCachingService.createProbationAddress(
         crn = crn,
         address = ProbationCreateAddress(
           noFixedAbode = false,
           typeVerified = false,
-          startDate = Instant.now(clock),
-          endDate = null,
+          startDate = aggregateSnapshot.startDate!!.atStartOfDay(ZoneOffset.UTC),
+          endDate = aggregateSnapshot.endDate?.atStartOfDay(ZoneOffset.UTC),
           postcode = aggregateSnapshot.address.postcode,
           subBuildingName = aggregateSnapshot.address.subBuildingName,
           buildingName = aggregateSnapshot.address.buildingName,
@@ -191,7 +193,7 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     createProposedAccommodationInCprWhereApplicable(crn, aggregate, updateRecord = updatedRecord)
-    pullEventAndPersistToOutbox(aggregate)
+    cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn, aggregate)
     val createdByUser = userService.findUserByUserId(updatedRecord.createdByUserId!!)
       .orThrowNotFound("id" to updatedRecord.createdByUserId!!)
     return ProposedAccommodationMapper.toDto(
@@ -227,8 +229,8 @@ class ProposedAccommodationApplicationService(
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
-      newStartDate = proposedAccommodationDetailCommand.startDate,
-      newEndDate = proposedAccommodationDetailCommand.endDate,
+      newStartDate = proposedAccommodationEntity.startDate,
+      newEndDate = proposedAccommodationEntity.endDate,
       newNoFixedAbode = false,
     )
     val mergedRecord = merge(
@@ -320,7 +322,7 @@ class ProposedAccommodationApplicationService(
     aggregate.arrivePersonAtProposedAccommodation(
       arrivalDate = proposedAccommodationArrivalCommand.arrivalDate,
     )
-    pullEventAndPersistToOutbox(aggregate)
+    cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn, aggregate)
     val merged = merge(
       snapshot = aggregate.snapshot(),
       proposedAccommodationEntity,
@@ -333,18 +335,24 @@ class ProposedAccommodationApplicationService(
     proposedAccommodationRepository.save(merged)
   }
 
-  private fun pullEventAndPersistToOutbox(aggregate: ProposedAccommodationAggregate) = aggregate.pullDomainEvents().forEach { event ->
-    outboxEventRepository.save(
-      OutboxEventEntity(
-        id = UUID.randomUUID(),
-        aggregateId = event.aggregateId,
-        aggregateType = "ProposedAccommodation",
-        domainEventType = event.type.name,
-        payload = jsonMapper.writeValueAsString(event),
-        createdAt = Instant.now(clock),
-        processedStatus = ProcessedStatus.PENDING,
-        processedAt = null,
-      ),
-    )
+  private fun cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn: String, aggregate: ProposedAccommodationAggregate) {
+    val domainEvents = aggregate.pullDomainEvents()
+    if (domainEvents.isNotEmpty()) {
+      corePersonRecordCachingService.cacheEvictOnCorePersonRecordByCrn(crn)
+      domainEvents.forEach { event ->
+        outboxEventRepository.save(
+          OutboxEventEntity(
+            id = UUID.randomUUID(),
+            aggregateId = event.aggregateId,
+            aggregateType = "ProposedAccommodation",
+            domainEventType = event.type.name,
+            payload = jsonMapper.writeValueAsString(event),
+            createdAt = Instant.now(clock),
+            processedStatus = ProcessedStatus.PENDING,
+            processedAt = null,
+          ),
+        )
+      }
+    }
   }
 }

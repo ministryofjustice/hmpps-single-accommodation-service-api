@@ -10,12 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -106,13 +109,21 @@ object EligibilityTransformer {
     failureReasons = failureReasons,
   )
 
+  fun toNotStartedServiceStatus() = ServiceResult(
+    serviceStatus = ServiceStatus.NOT_STARTED,
+    action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION),
+    link = EligibilityKeys.START_APPLICATION,
+    linkType = LinkType.CAS1_START_APPLICATION,
+  )
+
   fun toNotRequiredServiceStatus(failureReasons: List<FailureReason> = emptyList()) = ServiceResult(
     serviceStatus = ServiceStatus.NOT_REQUIRED,
     failureReasons = failureReasons,
   )
 
-  // Helper function to determine if referral data (DTR/CRS) should be surfaced in EligibilityDto
-  private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus != ServiceStatus.NOT_STARTED && result.serviceStatus != ServiceStatus.NOT_ELIGIBLE
+  // DTR/CRS referral data should only be surfaced when a referral exists and has relevant service status to show the data
+  private val surfacingStatuses = setOf(ServiceStatus.SUBMITTED, ServiceStatus.ACCEPTED, ServiceStatus.NOT_ACCEPTED)
+  private fun surfacesReferralData(result: ServiceResult) = result.serviceStatus in surfacingStatuses
 
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,
@@ -161,7 +172,7 @@ object EligibilityTransformer {
     Cas1ApplicationStatusInfra.ASSESSMENT_IN_PROGRESS -> Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS
     Cas1ApplicationStatusInfra.AWAITING_PLACEMENT -> Cas1ApplicationStatus.AWAITING_PLACEMENT
     Cas1ApplicationStatusInfra.PLACEMENT_ALLOCATED -> Cas1ApplicationStatus.PLACEMENT_ALLOCATED
-    Cas1ApplicationStatusInfra.REQUEST_FOR_FURTHER_INFORMATION -> Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION
+    Cas1ApplicationStatusInfra.REQUESTED_FURTHER_INFORMATION -> Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION
     Cas1ApplicationStatusInfra.PENDING_PLACEMENT_REQUEST -> Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST
     Cas1ApplicationStatusInfra.STARTED -> Cas1ApplicationStatus.STARTED
     Cas1ApplicationStatusInfra.REJECTED -> Cas1ApplicationStatus.REJECTED

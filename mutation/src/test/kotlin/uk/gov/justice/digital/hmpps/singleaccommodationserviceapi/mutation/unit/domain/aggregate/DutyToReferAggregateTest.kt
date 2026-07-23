@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeNoteNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonChangedOnWithdrawal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
@@ -139,6 +140,7 @@ class DutyToReferAggregateTest {
       referenceNumber = null,
       status = DtrStatus.WITHDRAWN,
       withdrawalReason = WithdrawalReason.NEW_REFERRAL,
+      outcomeReason = outcomeReasonFor(currentStatus),
     )
 
     assertThat(aggregate.snapshot().status).isEqualTo(DtrStatus.WITHDRAWN)
@@ -847,6 +849,57 @@ class DutyToReferAggregateTest {
         status = status,
         withdrawalReason = if (status == DtrStatus.WITHDRAWN) WithdrawalReason.DISENGAGED else null,
         outcomeNote = "should not be here",
+      )
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(DtrStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["ACCEPTED", "NOT_ACCEPTED"])
+  fun `updateDutyToRefer should throw DutyToReferOutcomeReasonNotApplicableException when withdrawing a DTR with outcomes that didn't use to be ACCEPTED or NOT_ACCEPTED`(prevStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(prevStatus)
+    assertThrows<DutyToReferOutcomeReasonNotApplicableException> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.WITHDRAWN,
+        withdrawalReason = WithdrawalReason.DISENGAGED,
+        outcomeReason = OutcomeReason.PRIORITY_NEED,
+      )
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
+  fun `updateDutyToRefer should complete when withdrawing a DTR with outcomes that used to be ACCEPTED or NOT_ACCEPTED`(prevStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(prevStatus)
+    val outcomeReason = outcomeReasonFor(prevStatus)
+    aggregate.updateDutyToRefer(
+      localAuthorityAreaId = localAuthorityAreaId,
+      submissionDate = submissionDate,
+      referenceNumber = null,
+      status = DtrStatus.WITHDRAWN,
+      withdrawalReason = WithdrawalReason.DISENGAGED,
+      outcomeReason = outcomeReason,
+    )
+
+    val snapshot = aggregate.snapshot()
+    assertThat(snapshot.status).isEqualTo(DtrStatus.WITHDRAWN)
+    assertThat(snapshot.outcomeReason).isEqualTo(outcomeReason)
+  }
+
+  @ParameterizedTest
+  @EnumSource(DtrStatus::class, names = ["ACCEPTED", "NOT_ACCEPTED"])
+  fun `updateDutyToRefer withdrawing does not allow change in outcome reason with prev status of accepted or not accepted`(prevStatus: DtrStatus) {
+    val aggregate = hydrateAndCreateDutyToRefer(prevStatus)
+    assertThrows<DutyToReferOutcomeReasonChangedOnWithdrawal> {
+      aggregate.updateDutyToRefer(
+        localAuthorityAreaId = localAuthorityAreaId,
+        submissionDate = submissionDate,
+        referenceNumber = null,
+        status = DtrStatus.WITHDRAWN,
+        withdrawalReason = WithdrawalReason.DISENGAGED,
+        outcomeReason = OutcomeReason.REJECTED_FOR_ANOTHER_REASON,
       )
     }
   }

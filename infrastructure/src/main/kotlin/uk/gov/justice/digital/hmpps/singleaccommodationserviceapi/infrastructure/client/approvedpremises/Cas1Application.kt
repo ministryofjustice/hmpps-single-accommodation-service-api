@@ -10,6 +10,7 @@ data class Cas1Application(
   val requestForPlacementStatus: Cas1RequestForPlacementStatus?,
   val placementStatus: Cas1PlacementStatus?,
   val premises: Cas1PremisesSummary?,
+  val uiUrl: String?,
 )
 
 data class Cas1PremisesSummary(
@@ -58,7 +59,7 @@ enum class Cas1ApplicationStatus {
   ASSESSMENT_IN_PROGRESS,
   AWAITING_PLACEMENT,
   PLACEMENT_ALLOCATED,
-  REQUEST_FOR_FURTHER_INFORMATION,
+  REQUESTED_FURTHER_INFORMATION,
   PENDING_PLACEMENT_REQUEST,
   STARTED,
   REJECTED,

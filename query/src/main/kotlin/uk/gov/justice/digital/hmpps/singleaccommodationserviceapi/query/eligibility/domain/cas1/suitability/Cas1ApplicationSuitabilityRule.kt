@@ -12,19 +12,17 @@ class Cas1ApplicationSuitabilityRule : Rule {
   override val description = "FAIL if candidate does not have a suitable application"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val suitableStatuses = listOf(
-      Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-      Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
-      Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
-      Cas1ApplicationStatus.AWAITING_PLACEMENT,
-      Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
-      Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
+    val unsuitableStatuses = listOf(
+      Cas1ApplicationStatus.STARTED,
+      Cas1ApplicationStatus.REJECTED,
+      Cas1ApplicationStatus.EXPIRED,
+      Cas1ApplicationStatus.INAPPLICABLE,
+      Cas1ApplicationStatus.WITHDRAWN,
     )
 
-    val isSuitableApplication = suitableStatuses.contains(data.cas1Application?.applicationStatus)
+    val isFail = unsuitableStatuses.contains(data.cas1Application?.applicationStatus) && data.cas1Application?.requestForPlacementStatus == null && data.cas1Application?.placementStatus == null
 
-    val ruleStatus = if (isSuitableApplication) RuleStatus.PASS else RuleStatus.FAIL
+    val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(
       description = description,

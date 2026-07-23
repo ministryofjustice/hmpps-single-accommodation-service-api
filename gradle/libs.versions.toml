@@ -8,16 +8,14 @@ mockk = "1.14.11"
 shedlock = "7.7.0"
 coroutines = "1.10.2"
 swagger-parser = "2.1.45"
-hmpps-gradle-spring-boot = "10.5.4"
-kotlin = "2.4.0"
+hmpps-gradle-spring-boot = "10.5.7"
+kotlin = "2.4.10"
 apache-commons-csv = "1.14.1"
 detekt = "2.0.0-alpha.5"
 awaitility = "4.3.0"
 javers = "7.11.5"
-postgres = "42.7.11"
-app-insights-core = "2.6.4"
-micrometer-registry-azure = "1.17.0"
-sentry = "8.47.0"
+postgres = "42.7.12"
+sentry = "8.50.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -40,10 +38,6 @@ sentry-spring-boot-starter-jakarta = { module = "io.sentry:sentry-spring-boot-4"
 
 # Springdoc
 springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
-
-# App Insights
-app-insights-core = { module = "com.microsoft.azure:applicationinsights-core", version.ref = "app-insights-core" }
-micrometer-registry-azure = { module = "io.micrometer:micrometer-registry-azure-monitor", version.ref = "micrometer-registry-azure" }
 
 # Coroutines
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

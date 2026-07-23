@@ -132,7 +132,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
         caseId = case.id,
         localAuthorityAreaId = localAuthorityArea.id,
         referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
+        submissionDate = LocalDate.now().minusMonths(5),
         status = EntityDtrStatus.SUBMITTED,
       ),
     )
@@ -149,10 +149,47 @@ class DutyToReferControllerIT : IntegrationTestBase() {
             crn = crn,
             localAuthorityAreaId = localAuthorityArea.id,
             localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = "2026-01-15",
+            submissionDate = entity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            active = true,
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return active false for an expired referral by crn and id`() {
+    val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+    val entity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityArea.id,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.now().minusMonths(7),
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+
+    restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetDtrResponseBody(
+            id = entity.id,
+            caseId = case.id,
+            crn = crn,
+            localAuthorityAreaId = localAuthorityArea.id,
+            localAuthorityAreaName = localAuthorityArea.name,
+            submissionDate = entity.submissionDate.toString(),
+            referenceNumber = "DTR-REF-001",
+            createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+            createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            active = false,
           ),
         )
       }
@@ -327,6 +364,63 @@ class DutyToReferControllerIT : IntegrationTestBase() {
         createdBy = NAME_OF_TEST_DATA_SETUP_USER,
         createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
         outcomeReason = "PRIORITY_NEED",
+      ),
+    )
+
+    assertPublishedSNSEvent(
+      dutyToReferId = existingEntity.id,
+      eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    )
+    assertThatOutboxIsAsExpected(existingEntity.id)
+  }
+
+  @Test
+  fun `should withdraw duty to refer and return 200 with updated data with outcome reason`() {
+    val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+    val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
+
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        referenceNumber = "DTR-REF-001",
+        submissionDate = LocalDate.of(2026, 1, 15),
+        status = EntityDtrStatus.ACCEPTED,
+        outcomeReason = EntityOutcomeReason.PRIORITY_NEED,
+      ),
+    )
+
+    val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        createDtrRequestBody(
+          localAuthorityAreaId = newLocalAuthorityArea.id,
+          submissionDate = LocalDate.of(2026, 1, 20).toString(),
+          referenceNumber = "DTR-REF-002",
+          status = EntityDtrStatus.WITHDRAWN.name,
+          outcomeReason = "PRIORITY_NEED",
+          withdrawalReason = "NEW_REFERRAL",
+        ),
+      )
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .returnResult().responseBody!!
+
+    assertThatJson(result).matchesExpectedJson(
+      expectedDtrResponseBody(
+        id = existingEntity.id,
+        caseId = case.id,
+        crn = crn,
+        localAuthorityAreaId = newLocalAuthorityArea.id,
+        localAuthorityAreaName = newLocalAuthorityArea.name,
+        submissionDate = LocalDate.of(2026, 1, 20).toString(),
+        referenceNumber = "DTR-REF-002",
+        status = DtrStatus.WITHDRAWN.name,
+        createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+        createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        outcomeReason = "PRIORITY_NEED",
+        withdrawalReason = "NEW_REFERRAL",
       ),
     )
 

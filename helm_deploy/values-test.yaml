@@ -16,8 +16,6 @@ generic-service:
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api-test.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises-test.hmpps.service.justice.gov.uk
-    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation-test.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search-dev.prison.service.justice.gov.uk
@@ -41,11 +39,11 @@ generic-prometheus-alerts:
   # API pool users = 20 per pod
   # Max expected connections for 2 x pods = 40 + additional 10 (buffer for direct connections)
   rdsAlertsConnectionThreshold: 50
-  sqsAlertsQueueNames:
-    - "hmpps-community-accommodation-devs-test-sas_domain_events_queue"
-    - "hmpps-community-accommodation-devs-test-sas_domain_events_dlq"
-  sqsAlertsOldestThreshold: 30
-  sqsAlertsTotalMessagesThreshold: 10
+#  sqsAlertsQueueNames:
+#    - "hmpps-community-accommodation-devs-test-sas_domain_events_queue"
+#    - "hmpps-community-accommodation-devs-test-sas_domain_events_dlq"
+#  sqsAlertsOldestThreshold: 30
+#  sqsAlertsTotalMessagesThreshold: 10
 
   env_details:
     production_env: false

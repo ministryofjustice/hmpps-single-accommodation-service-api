@@ -11,8 +11,10 @@ import org.springframework.test.context.TestPropertySource
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
@@ -65,6 +67,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
     createDeliusSyncUser()
+    createSasSystemUser()
     databaseUtils.truncate(
       DatabaseUtils.SasTables.SAS_CASE,
       DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION,
@@ -78,6 +81,11 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should process incoming HMPPS CPR_PROBATION_ADDRESS_DELETED domain event and soft-delete related record when SAS has a matching record`() {
+    cacheValueByCrn(
+      crn,
+      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
+      cacheValue = buildCorePersonRecord(),
+    )
     val preExistingProposedAccommodation = buildProposedAccommodationEntity(
       cprAddressId = cprAddressId,
       caseId = caseEntity.id,
@@ -103,14 +111,27 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.id).isEqualTo(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.deleted).isTrue()
+    assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
     assertThatSingleInboxEventIsAsExpected(
       processedStatus = ProcessedStatus.PROCESSED,
     )
+    assertThat(
+      isCacheEvicted(
+        crn,
+        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
+      ),
+    ).isTrue
   }
 
   @Test
   fun `should ignore incoming HMPPS CPR_PROBATION_ADDRESS_DELETED domain event when SAS does NOT have a matching record`() {
+    cacheValueByCrn(
+      crn,
+      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
+      cacheValue = buildCorePersonRecord(),
+    )
     val preExistingProposedAccommodation = buildProposedAccommodationEntity(
       cprAddressId = cprAddressId,
       caseId = caseEntity.id,
@@ -136,10 +157,18 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.id).isEqualTo(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.deleted).isFalse()
+    assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
 
     assertThatSingleInboxEventIsAsExpected(
       processedStatus = ProcessedStatus.IGNORED,
     )
+    assertThat(
+      isCacheEvicted(
+        crn,
+        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
+      ),
+    ).isFalse
   }
 
   private fun publishCprProbationAddressDeletedEvent(cprAddressId: UUID) {

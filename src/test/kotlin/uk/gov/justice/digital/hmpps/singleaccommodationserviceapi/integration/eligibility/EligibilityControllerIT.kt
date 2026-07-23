@@ -55,11 +55,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   private val crsSubmissionDate = LocalDate.now()
 
-  @Value($$"${service.approved-premises-ui.base-url}")
-  private lateinit var cas1Url: String
-
-  @Value($$"${service.temporary-accommodation-ui.base-url}")
-  private lateinit var cas3Url: String
+  private val cas1ApplicationUiUrl = "https://cas1-ui/applications/$cas1ApplicationId"
+  private val cas3ReferralUiUrl = "https://cas3-ui/referrals/$cas3ApplicationId/full"
 
   @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}")
   private lateinit var crsUrl: String
@@ -96,11 +93,13 @@ class EligibilityControllerIT : IntegrationTestBase() {
       applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       placementStatus = Cas1PlacementStatus.ARRIVED,
+      uiUrl = cas1ApplicationUiUrl,
     )
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
+      uiUrl = cas3ReferralUiUrl,
     )
 
     HmppsAuthStubs.stubGrantToken()
@@ -139,7 +138,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         caseId = entity.id,
         localAuthorityAreaId = localAuthorityArea.id,
         referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
+        submissionDate = LocalDate.now().minusMonths(5),
         status = EntityDtrStatus.SUBMITTED,
       ),
     )
@@ -158,14 +157,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
             dutyToReferId = existingEntity.id,
             localAuthorityAreaId = localAuthorityArea.id,
             localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = "2026-01-15",
+            submissionDate = existingEntity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
-            cas1Url = cas1Url,
+            cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
-            cas3Url = cas3Url,
+            cas3ReferralUrl = cas3ReferralUiUrl,
           ),
         )
       }
@@ -188,7 +187,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         caseId = entity.id,
         localAuthorityAreaId = localAuthorityArea.id,
         referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
+        submissionDate = LocalDate.now().minusMonths(5),
         status = EntityDtrStatus.SUBMITTED,
       ),
     )
@@ -207,14 +206,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
             dutyToReferId = existingEntity.id,
             localAuthorityAreaId = localAuthorityArea.id,
             localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = "2026-01-15",
+            submissionDate = existingEntity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
-            cas1Url = cas1Url,
+            cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
-            cas3Url = cas3Url,
+            cas3ReferralUrl = cas3ReferralUiUrl,
           ),
         )
       }
@@ -261,7 +260,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         caseId = entity.id,
         localAuthorityAreaId = localAuthorityArea.id,
         referenceNumber = "DTR-REF-001",
-        submissionDate = LocalDate.of(2026, 1, 15),
+        submissionDate = LocalDate.now().minusMonths(5),
         status = EntityDtrStatus.SUBMITTED,
       ),
     )
@@ -280,13 +279,13 @@ class EligibilityControllerIT : IntegrationTestBase() {
             dutyToReferId = existingEntity.id,
             localAuthorityAreaId = localAuthorityArea.id,
             localAuthorityAreaName = localAuthorityArea.name,
-            submissionDate = "2026-01-15",
+            submissionDate = existingEntity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
             createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             crsUrl = crsUrl,
-            cas3Url = cas3Url,
+            cas3ReferralUrl = cas3ReferralUiUrl,
           ),
         )
       }

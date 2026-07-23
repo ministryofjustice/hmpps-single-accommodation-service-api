@@ -3,18 +3,21 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
-import java.util.stream.Stream
 
 class AccommodationReferralTransformerTest {
   @Test
@@ -50,7 +53,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
           assertThat(it.placementAddress).isEqualTo("Some address")
-          assertThat(it.placementStatus).isEqualTo("arrived")
+          assertThat(it.placementStatus).isEqualTo("notArrived")
         }
         AccommodationService.CAS3 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
@@ -58,7 +61,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
           assertThat(it.placementAddress).isEqualTo("Some address")
-          assertThat(it.placementStatus).isEqualTo("confirmed")
+          assertThat(it.placementStatus).isEqualTo("departed")
           assertThat(it.uiUrl).isEqualTo("https://example.com/referral")
         }
       }
@@ -66,71 +69,153 @@ class AccommodationReferralTransformerTest {
   }
 
   @ParameterizedTest
-  @MethodSource("cas1StatusMappings")
-  fun `should transform ApprovedPremisesApplicationStatus to CasReferralStatus`(
-    input: ApprovedPremisesApplicationStatus,
-    expected: AccommodationReferralStatus,
-  ) {
-    assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
+  @EnumSource(Cas1SpaceBookingStatus::class)
+  fun `should transform CAS1 space booking status`(status: Cas1SpaceBookingStatus) {
+    val expected = when (status) {
+      Cas1SpaceBookingStatus.CANCELLED -> AccommodationReferralStatus.CANCELLED
+      Cas1SpaceBookingStatus.NOT_ARRIVED -> AccommodationReferralStatus.NOT_ARRIVED
+      Cas1SpaceBookingStatus.DEPARTED -> AccommodationReferralStatus.DEPARTED
+      Cas1SpaceBookingStatus.ARRIVED -> AccommodationReferralStatus.ACCEPTED
+      Cas1SpaceBookingStatus.UPCOMING -> AccommodationReferralStatus.ACCEPTED
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(status, null, ApprovedPremisesApplicationStatus.STARTED)).isEqualTo(expected)
   }
 
   @ParameterizedTest
-  @MethodSource("cas3StatusMappings")
-  fun `should transform ApplicationStatus to CasReferralStatus`(
-    input: ApplicationStatus,
-    expected: AccommodationReferralStatus,
-  ) {
-    assertThat(AccommodationReferralTransformer.toCasReferralStatus(input)).isEqualTo(expected)
+  @EnumSource(RequestForPlacementStatus::class)
+  fun `should transform CAS1 request for placement status`(status: RequestForPlacementStatus) {
+    val expected = when (status) {
+      RequestForPlacementStatus.REQUEST_REJECTED -> AccommodationReferralStatus.REQUEST_REJECTED
+      RequestForPlacementStatus.REQUEST_WITHDRAWN -> AccommodationReferralStatus.REQUEST_WITHDRAWN
+      RequestForPlacementStatus.PLACEMENT_BOOKED -> AccommodationReferralStatus.ACCEPTED
+      RequestForPlacementStatus.REQUEST_UNSUBMITTED -> AccommodationReferralStatus.PENDING
+      RequestForPlacementStatus.REQUEST_SUBMITTED -> AccommodationReferralStatus.PENDING
+      RequestForPlacementStatus.AWAITING_MATCH -> AccommodationReferralStatus.PENDING
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApprovedPremisesApplicationStatus.STARTED)).isEqualTo(expected)
+  }
+
+  @ParameterizedTest
+  @EnumSource(ApprovedPremisesApplicationStatus::class)
+  fun `should transform CAS1 application status`(status: ApprovedPremisesApplicationStatus) {
+    val expected = when (status) {
+      ApprovedPremisesApplicationStatus.EXPIRED -> AccommodationReferralStatus.EXPIRED
+      ApprovedPremisesApplicationStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+      ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED -> AccommodationReferralStatus.ACCEPTED
+      ApprovedPremisesApplicationStatus.REJECTED -> AccommodationReferralStatus.REJECTED
+      ApprovedPremisesApplicationStatus.INAPPLICABLE -> AccommodationReferralStatus.REJECTED
+      ApprovedPremisesApplicationStatus.STARTED -> AccommodationReferralStatus.PENDING
+      ApprovedPremisesApplicationStatus.AWAITING_ASSESSMENT -> AccommodationReferralStatus.PENDING
+      ApprovedPremisesApplicationStatus.UNALLOCATED_ASSESSMENT -> AccommodationReferralStatus.PENDING
+      ApprovedPremisesApplicationStatus.ASSESSMENT_IN_PROGRESS -> AccommodationReferralStatus.PENDING
+      ApprovedPremisesApplicationStatus.AWAITING_PLACEMENT -> AccommodationReferralStatus.PENDING
+      ApprovedPremisesApplicationStatus.REQUESTED_FURTHER_INFORMATION -> AccommodationReferralStatus.PENDING
+      ApprovedPremisesApplicationStatus.PENDING_PLACEMENT_REQUEST -> AccommodationReferralStatus.PENDING
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, null, status)).isEqualTo(expected)
   }
 
   @Test
-  fun `all ApprovedPremisesApplicationStatus values map correctly`() {
-    val expectedMapping = mapOf(
-      ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED to AccommodationReferralStatus.ACCEPTED,
-      ApprovedPremisesApplicationStatus.REJECTED to AccommodationReferralStatus.REJECTED,
-      ApprovedPremisesApplicationStatus.INAPPLICABLE to AccommodationReferralStatus.REJECTED,
-      ApprovedPremisesApplicationStatus.WITHDRAWN to AccommodationReferralStatus.REJECTED,
-      ApprovedPremisesApplicationStatus.EXPIRED to AccommodationReferralStatus.REJECTED,
-      ApprovedPremisesApplicationStatus.STARTED to AccommodationReferralStatus.PENDING,
-      ApprovedPremisesApplicationStatus.AWAITING_ASSESMENT to AccommodationReferralStatus.PENDING,
-      ApprovedPremisesApplicationStatus.UNALLOCATED_ASSESMENT to AccommodationReferralStatus.PENDING,
-      ApprovedPremisesApplicationStatus.ASSESMENT_IN_PROGRESS to AccommodationReferralStatus.PENDING,
-      ApprovedPremisesApplicationStatus.AWAITING_PLACEMENT to AccommodationReferralStatus.PENDING,
-      ApprovedPremisesApplicationStatus.REQUESTED_FURTHER_INFORMATION to AccommodationReferralStatus.PENDING,
-      ApprovedPremisesApplicationStatus.PENDING_PLACEMENT_REQUEST to AccommodationReferralStatus.PENDING,
-    )
+  fun `should respect precedence of statuses for CAS1`() {
+    assertThat(
+      AccommodationReferralTransformer.toCasReferralStatus(
+        Cas1SpaceBookingStatus.CANCELLED,
+        RequestForPlacementStatus.PLACEMENT_BOOKED,
+        ApprovedPremisesApplicationStatus.EXPIRED,
+      ),
+    ).isEqualTo(AccommodationReferralStatus.CANCELLED)
 
-    ApprovedPremisesApplicationStatus.entries.forEach { status ->
-      assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectedMapping[status])
-    }
+    assertThat(
+      AccommodationReferralTransformer.toCasReferralStatus(
+        null,
+        RequestForPlacementStatus.REQUEST_REJECTED,
+        ApprovedPremisesApplicationStatus.EXPIRED,
+      ),
+    ).isEqualTo(AccommodationReferralStatus.REQUEST_REJECTED)
+
+    assertThat(
+      AccommodationReferralTransformer.toCasReferralStatus(
+        null,
+        RequestForPlacementStatus.AWAITING_MATCH,
+        ApprovedPremisesApplicationStatus.EXPIRED,
+      ),
+    ).isEqualTo(AccommodationReferralStatus.EXPIRED)
   }
 
-  @Test
-  fun `all ApplicationStatus values map correctly`() {
-    val expectations = mapOf(
-      ApplicationStatus.REJECTED to AccommodationReferralStatus.REJECTED,
-      ApplicationStatus.IN_PROGRESS to AccommodationReferralStatus.PENDING,
-      ApplicationStatus.SUBMITTED to AccommodationReferralStatus.PENDING,
-      ApplicationStatus.REQUESTED_FURTHER_INFORMATION to AccommodationReferralStatus.PENDING,
-    )
-
-    ApplicationStatus.entries.forEach { status ->
-      assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expectations[status])
+  @ParameterizedTest
+  @EnumSource(Cas3BookingStatus::class)
+  fun `should transform CAS3 booking status`(status: Cas3BookingStatus) {
+    val expected = when (status) {
+      Cas3BookingStatus.DEPARTED -> AccommodationReferralStatus.DEPARTED
+      Cas3BookingStatus.CANCELLED -> AccommodationReferralStatus.CANCELLED
+      Cas3BookingStatus.NOT_MINUS_ARRIVED -> AccommodationReferralStatus.ACCEPTED
+      Cas3BookingStatus.ARRIVED -> AccommodationReferralStatus.ACCEPTED
+      Cas3BookingStatus.CONFIRMED -> AccommodationReferralStatus.ACCEPTED
+      Cas3BookingStatus.PROVISIONAL -> AccommodationReferralStatus.PENDING
+      Cas3BookingStatus.CLOSED -> AccommodationReferralStatus.PENDING
     }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(status, null, ApplicationStatus.SUBMITTED, null)).isEqualTo(expected)
   }
 
-  private companion object {
-    @JvmStatic
-    fun cas1StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED, AccommodationReferralStatus.ACCEPTED),
-      Arguments.of(ApprovedPremisesApplicationStatus.REJECTED, AccommodationReferralStatus.REJECTED),
-      Arguments.of(ApprovedPremisesApplicationStatus.STARTED, AccommodationReferralStatus.PENDING),
-    )
+  @ParameterizedTest
+  @EnumSource(AssessmentStatus::class)
+  fun `should transform CAS3 assessment status`(status: AssessmentStatus) {
+    val expected = when (status) {
+      AssessmentStatus.REJECTED -> AccommodationReferralStatus.REJECTED
+      AssessmentStatus.UNALLOCATED -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.IN_REVIEW -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.READY_TO_PLACE -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.CLOSED -> AccommodationReferralStatus.ARCHIVED
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApplicationStatus.SUBMITTED, "reason")).isEqualTo(expected)
+  }
 
-    @JvmStatic
-    fun cas3StatusMappings(): Stream<Arguments> = Stream.of(
-      Arguments.of(ApplicationStatus.REJECTED, AccommodationReferralStatus.REJECTED),
-      Arguments.of(ApplicationStatus.SUBMITTED, AccommodationReferralStatus.PENDING),
-    )
+  @ParameterizedTest
+  @EnumSource(AssessmentStatus::class)
+  fun `should transform CAS3 assessment status without reason`(status: AssessmentStatus) {
+    val expected = when (status) {
+      AssessmentStatus.REJECTED -> AccommodationReferralStatus.ARCHIVED
+      AssessmentStatus.UNALLOCATED -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.IN_REVIEW -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.READY_TO_PLACE -> AccommodationReferralStatus.PENDING
+      AssessmentStatus.CLOSED -> AccommodationReferralStatus.ARCHIVED
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, status, ApplicationStatus.SUBMITTED, null)).isEqualTo(expected)
+  }
+
+  @ParameterizedTest
+  @EnumSource(ApplicationStatus::class)
+  fun `should transform CAS3 application status`(status: ApplicationStatus) {
+    val expected = when (status) {
+      ApplicationStatus.REJECTED -> AccommodationReferralStatus.REJECTED
+      ApplicationStatus.IN_PROGRESS -> AccommodationReferralStatus.PENDING
+      ApplicationStatus.SUBMITTED -> AccommodationReferralStatus.PENDING
+      ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> AccommodationReferralStatus.PENDING
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, null, status, "reason")).isEqualTo(expected)
+  }
+
+  @ParameterizedTest
+  @EnumSource(ApplicationStatus::class)
+  fun `should transform CAS3 application status without reason`(status: ApplicationStatus) {
+    val expected = when (status) {
+      ApplicationStatus.REJECTED -> AccommodationReferralStatus.ARCHIVED
+      ApplicationStatus.IN_PROGRESS -> AccommodationReferralStatus.PENDING
+      ApplicationStatus.SUBMITTED -> AccommodationReferralStatus.PENDING
+      ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> AccommodationReferralStatus.PENDING
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(null, null, status, null)).isEqualTo(expected)
+  }
+
+  @ParameterizedTest
+  @EnumSource(DtrStatus::class)
+  fun `should transform DTR status`(status: DtrStatus) {
+    val expected = when (status) {
+      DtrStatus.SUBMITTED -> AccommodationReferralStatus.PENDING
+      DtrStatus.ACCEPTED -> AccommodationReferralStatus.ACCEPTED
+      DtrStatus.NOT_ACCEPTED -> AccommodationReferralStatus.REJECTED
+      DtrStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+    }
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expected)
   }
 }

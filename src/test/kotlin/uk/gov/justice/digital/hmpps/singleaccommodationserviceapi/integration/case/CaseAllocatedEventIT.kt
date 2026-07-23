@@ -73,6 +73,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     crn = UUID.randomUUID().toString()
     HmppsAuthStubs.stubGrantToken()
     deleteAllFromRepositories()
+    createSasSystemUser()
   }
 
   private fun deleteAllFromRepositories() {

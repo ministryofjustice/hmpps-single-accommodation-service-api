@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
@@ -65,6 +66,8 @@ class CaseControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
+    ApprovedPremisesStubs.getCas1UrlTemplatesOKResponse()
+    ApprovedPremisesStubs.getCas3UrlTemplatesOKResponse()
     val tier = buildTier()
     TierStubs.getTierOKResponse(crns[0], tier)
     TierStubs.getTierOKResponse(crns[1], tier)
@@ -119,7 +122,7 @@ class CaseControllerIT : IntegrationTestBase() {
       ),
     ).hasSize(0)
 
-    SasAndDeliusStubs.stubGetCaseListByUsername(
+    SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = cases,
       pageSize = pageSize.toInt(),
@@ -202,26 +205,42 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `should only save cases that match the filtered response`() {
     val team = buildCaseTeam("TestTeam")
     val staff = buildOfficer(username = deliusUser.username)
-    val otherStaff = buildOfficer(username = "otherStaff")
-    val cases = listOf(
-      buildCase(crn = "crn1", staff = staff, team = team),
-      buildCase(crn = "crn2", nomsNumber = "noms2", staff = otherStaff, team = team),
-    )
-    SasAndDeliusStubs.stubGetCaseListByUsername(
+    val assignedCase = buildCase(crn = "crn1", staff = staff, team = team)
+
+    val otherStaff = buildOfficer(username = "otherStaff", code = "otherStaff")
+    val teamCase = buildCase(crn = "crn2", nomsNumber = "noms2", staff = otherStaff, team = team)
+
+    SasAndDeliusStubs.stubCaseList(
       deliusUsername = deliusUser.username,
-      cases = cases,
+      cases = listOf(assignedCase, teamCase),
       pageSize = pageSize.toInt(),
     )
+
     assertThat(caseRepository.findAll()).hasSize(0)
+
+    // request with no parameters defaults to only the cases assigned to the user, so should only return `assignedCase`
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+      .jsonPath("$.data[0].assignedTo.username").isEqualTo("DELIUS_USER")
 
     assertThat(caseRepository.findAll()).hasSize(1)
+
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = deliusUser.username,
+      teamCode = team.code,
+      cases = listOf(teamCase),
+      pageSize = pageSize.toInt(),
+    )
 
     restTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+      .jsonPath("$.data[0].assignedTo.username").isEqualTo("otherStaff")
 
     assertThat(caseRepository.findAll()).hasSize(2)
   }
@@ -402,7 +421,7 @@ class CaseControllerIT : IntegrationTestBase() {
       )
     }
 
-    SasAndDeliusStubs.stubGetCaseListByUsername(
+    SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = cases,
       pageSize = pageSize.toInt(),
@@ -437,7 +456,7 @@ class CaseControllerIT : IntegrationTestBase() {
       buildCaseEntity(
         tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
       ) { withCrn(crns[10]) },
       buildCaseEntity(
         tierScore = "B3",

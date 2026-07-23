@@ -32,7 +32,7 @@ fun buildProposedAccommodationEntity(
   subBuildingName: String? = null,
   buildingName: String? = null,
   buildingNumber: String? = "10",
-  throughfareName: String? = "Downing Street",
+  thoroughfareName: String? = "Downing Street",
   dependentLocality: String? = null,
   postTown: String? = "London",
   county: String? = null,
@@ -57,7 +57,7 @@ fun buildProposedAccommodationEntity(
   subBuildingName = subBuildingName,
   buildingName = buildingName,
   buildingNumber = buildingNumber,
-  throughfareName = throughfareName,
+  thoroughfareName = thoroughfareName,
   dependentLocality = dependentLocality,
   postTown = postTown,
   county = county,
@@ -101,6 +101,7 @@ fun buildAccommodationTypeEntity(
   isPrison: Boolean = false,
   isCas1: Boolean = false,
   isCas2: Boolean = false,
+  isHomeless: Boolean = false,
 ) = AccommodationTypeEntity(
   id,
   name = name,
@@ -112,6 +113,7 @@ fun buildAccommodationTypeEntity(
   isPrison = isPrison,
   isCas1 = isCas1,
   isCas2 = isCas2,
+  isHomeless = isHomeless,
 )
 
 @TestData

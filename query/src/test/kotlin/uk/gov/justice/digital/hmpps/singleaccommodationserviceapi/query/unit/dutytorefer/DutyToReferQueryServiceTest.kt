@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
@@ -29,7 +30,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.Instant
+import java.time.LocalDate
 import java.util.Optional
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus as EntityDtrStatus
@@ -57,6 +60,7 @@ class DutyToReferQueryServiceTest {
 
   private val caseId = UUID.randomUUID()
   private val crn = UUID.randomUUID().toString()
+  private val clock = MutableClock()
 
   @Nested
   inner class GetDutyToReferByCrnAndCaseEntity {
@@ -109,6 +113,7 @@ class DutyToReferQueryServiceTest {
     @Test
     fun `should return empty list when no matching DTRs exist`() {
       val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
       every {
         dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, any())
       } returns emptyList()
@@ -135,6 +140,7 @@ class DutyToReferQueryServiceTest {
       )
 
       val statusSlot = slot<List<EntityDtrStatus>>()
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns null
       every {
         dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, capture(statusSlot))
       } returns listOf(acceptedDtr)
@@ -153,6 +159,98 @@ class DutyToReferQueryServiceTest {
       assertThat(result[0].crn).isEqualTo(crn)
       assertThat(result[0].submission!!.localAuthority.localAuthorityAreaName).isEqualTo("Test Local Authority")
     }
+
+    @Test
+    fun `should exclude the active referral from history`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      val historicUserId = UUID.randomUUID()
+      val historicLaId = UUID.randomUUID()
+
+      val activeDtr = buildDutyToReferEntity(
+        id = UUID.randomUUID(),
+        caseId = caseId,
+        submissionDate = LocalDate.now().minusMonths(5),
+        status = EntityDtrStatus.ACCEPTED,
+      )
+      val historicDtr = buildDutyToReferEntity(
+        id = UUID.randomUUID(),
+        caseId = caseId,
+        localAuthorityAreaId = historicLaId,
+        createdByUserId = historicUserId,
+        submissionDate = LocalDate.now().minusMonths(13),
+        status = EntityDtrStatus.WITHDRAWN,
+      )
+
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns activeDtr
+      every {
+        dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, any())
+      } returns listOf(activeDtr, historicDtr)
+      every { userRepository.findAllById(setOf(historicUserId)) } returns listOf(buildUserEntity(id = historicUserId))
+      every { localAuthorityAreaRepository.findAllById(setOf(historicLaId)) } returns
+        listOf(buildLocalAuthorityAreaEntity(id = historicLaId, name = "Historic LA"))
+
+      val result = service.getDutyToReferHistory(caseEntity, crn)
+
+      assertThat(result).hasSize(1)
+      assertThat(result[0].submission!!.id).isEqualTo(historicDtr.id)
+      assertThat(result[0].status).isEqualTo(DtrStatus.WITHDRAWN)
+    }
+
+    @Test
+    fun `should include the latest referral in history when it is withdrawn`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      val userId = UUID.randomUUID()
+      val laId = UUID.randomUUID()
+      val withdrawnLatest = buildDutyToReferEntity(
+        id = UUID.randomUUID(),
+        caseId = caseId,
+        localAuthorityAreaId = laId,
+        createdByUserId = userId,
+        submissionDate = LocalDate.now().minusMonths(1),
+        status = EntityDtrStatus.WITHDRAWN,
+      )
+
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns withdrawnLatest
+      every {
+        dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, any())
+      } returns listOf(withdrawnLatest)
+      every { userRepository.findAllById(setOf(userId)) } returns listOf(buildUserEntity(id = userId))
+      every { localAuthorityAreaRepository.findAllById(setOf(laId)) } returns
+        listOf(buildLocalAuthorityAreaEntity(id = laId, name = "LA"))
+
+      val result = service.getDutyToReferHistory(caseEntity, crn)
+
+      assertThat(result).hasSize(1)
+      assertThat(result[0].submission!!.id).isEqualTo(withdrawnLatest.id)
+    }
+
+    @Test
+    fun `should include the latest referral in history when it is expired`() {
+      val caseEntity = buildCaseEntity(id = caseId) { withCrn(crn) }
+      val userId = UUID.randomUUID()
+      val laId = UUID.randomUUID()
+      val expiredLatest = buildDutyToReferEntity(
+        id = UUID.randomUUID(),
+        caseId = caseId,
+        localAuthorityAreaId = laId,
+        createdByUserId = userId,
+        submissionDate = LocalDate.now().minusMonths(7),
+        status = EntityDtrStatus.ACCEPTED,
+      )
+
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns expiredLatest
+      every {
+        dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseId, any())
+      } returns listOf(expiredLatest)
+      every { userRepository.findAllById(setOf(userId)) } returns listOf(buildUserEntity(id = userId))
+      every { localAuthorityAreaRepository.findAllById(setOf(laId)) } returns
+        listOf(buildLocalAuthorityAreaEntity(id = laId, name = "LA"))
+
+      val result = service.getDutyToReferHistory(caseEntity, crn)
+
+      assertThat(result).hasSize(1)
+      assertThat(result[0].submission!!.id).isEqualTo(expiredLatest.id)
+    }
   }
 
   @Nested
@@ -169,6 +267,7 @@ class DutyToReferQueryServiceTest {
         caseId = caseId,
         localAuthorityAreaId = localAuthorityAreaId,
         createdByUserId = createdByUserId,
+        submissionDate = LocalDate.now().minusMonths(5),
       )
       val userEntity = buildUserEntity()
       val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(
@@ -177,6 +276,7 @@ class DutyToReferQueryServiceTest {
       )
 
       every { dutyToReferRepository.findByIdAndCrn(id, crn) } returns dtrEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
       every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
 
@@ -185,12 +285,73 @@ class DutyToReferQueryServiceTest {
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.caseId).isEqualTo(caseId)
       assertThat(result.status).isEqualTo(DtrStatus.SUBMITTED)
+      assertThat(result.active).isTrue()
       assertThat(result.submission).isNotNull()
       val submission = result.submission!!
       assertThat(submission.id).isEqualTo(id)
       assertThat(submission.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
       assertThat(submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaEntity.name)
       assertThat(submission.createdBy).isEqualTo(userEntity.displayName())
+    }
+
+    @Test
+    fun `should return active false when the referral is expired`() {
+      val dtrEntity = buildDutyToReferEntity(
+        id = id,
+        caseId = caseId,
+        createdByUserId = UUID.randomUUID(),
+        submissionDate = LocalDate.now().minusMonths(7),
+        status = EntityDtrStatus.SUBMITTED,
+      )
+
+      every { dutyToReferRepository.findByIdAndCrn(id, crn) } returns dtrEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
+      every { userRepository.findByIdOrNull(any()) } returns buildUserEntity()
+      every { localAuthorityAreaRepository.findByIdOrNull(any()) } returns buildLocalAuthorityAreaEntity()
+
+      assertThat(service.getDutyToRefer(crn, id).active).isFalse()
+    }
+
+    @Test
+    fun `should return active false when the referral is withdrawn`() {
+      val dtrEntity = buildDutyToReferEntity(
+        id = id,
+        caseId = caseId,
+        createdByUserId = UUID.randomUUID(),
+        submissionDate = LocalDate.now().minusMonths(5),
+        status = EntityDtrStatus.WITHDRAWN,
+      )
+
+      every { dutyToReferRepository.findByIdAndCrn(id, crn) } returns dtrEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns dtrEntity
+      every { userRepository.findByIdOrNull(any()) } returns buildUserEntity()
+      every { localAuthorityAreaRepository.findByIdOrNull(any()) } returns buildLocalAuthorityAreaEntity()
+
+      assertThat(service.getDutyToRefer(crn, id).active).isFalse()
+    }
+
+    @Test
+    fun `should return active false when a newer referral supersedes this one`() {
+      val dtrEntity = buildDutyToReferEntity(
+        id = id,
+        caseId = caseId,
+        createdByUserId = UUID.randomUUID(),
+        submissionDate = LocalDate.now().minusMonths(5),
+        status = EntityDtrStatus.SUBMITTED,
+      )
+      val newerDtr = buildDutyToReferEntity(
+        id = UUID.randomUUID(),
+        caseId = caseId,
+        submissionDate = LocalDate.now().minusMonths(4),
+        status = EntityDtrStatus.SUBMITTED,
+      )
+
+      every { dutyToReferRepository.findByIdAndCrn(id, crn) } returns dtrEntity
+      every { dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId) } returns newerDtr
+      every { userRepository.findByIdOrNull(any()) } returns buildUserEntity()
+      every { localAuthorityAreaRepository.findByIdOrNull(any()) } returns buildLocalAuthorityAreaEntity()
+
+      assertThat(service.getDutyToRefer(crn, id).active).isFalse()
     }
 
     @Test
@@ -532,8 +693,8 @@ class DutyToReferQueryServiceTest {
           FieldChange(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
-      val noteAuthor1 = buildUserEntity(id = user1Id, forename = "First", surname = "user")
-      val noteAuthor2 = buildUserEntity(id = user2Id, forename = "Second", surname = "user")
+      val noteAuthor1 = buildUserEntity(id = user1Id, username = "user1", forename = "First", surname = "user")
+      val noteAuthor2 = buildUserEntity(id = user2Id, username = "user2", forename = "Second", surname = "user")
 
       every { dutyToReferRepository.findByIdAndCrnWithNotes(dtrEntity.id, crn) } returns dtrEntity
       every {
@@ -548,6 +709,9 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[0].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[0].commitDate).isEqualTo(note2CreatedAt)
       assertThat(result.data[0].author).isEqualTo("Second user")
+      assertThat(result.data[0].authorDetails).isEqualTo(
+        AssignedToDto(forename = "Second", surname = "user", username = "user2", staffCode = null),
+      )
       assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[1].type).isEqualTo(AuditRecordType.UPDATE)
       assertThat(result.data[1].commitDate).isEqualTo(updateRecord.commitDate)
@@ -555,6 +719,9 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[2].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[2].commitDate).isEqualTo(note1CreatedAt)
       assertThat(result.data[2].author).isEqualTo("First user")
+      assertThat(result.data[2].authorDetails).isEqualTo(
+        AssignedToDto(forename = "First", surname = "user", username = "user1", staffCode = null),
+      )
       assertThat(result.data[2].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[3].type).isEqualTo(AuditRecordType.CREATE)
       assertThat(result.data[3].commitDate).isEqualTo(createRecord.commitDate)

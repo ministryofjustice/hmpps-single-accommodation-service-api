@@ -6,6 +6,7 @@ const val DTR_WITHDRAWAL_REASON_REQUIRED_KEY = "dtrWithdrawalReasonRequired"
 const val DTR_WITHDRAWAL_REASON_OTHER_GREATER_THAN_MAX_LENGTH_KEY = "dtrWithdrawalReasonOtherGreaterThanMaxLength"
 const val DTR_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY = "dtrWithdrawalReasonNotApplicable"
 const val DTR_OUTCOME_REASON_REQUIRED_KEY = "dtrOutcomeReasonRequired"
+const val DTR_OUTCOME_REASON_CHANGED_ON_WITHDRAWAL = "dtrOutcomeReasonChangedOnWithdrawal"
 const val DTR_OUTCOME_REASON_NOT_APPLICABLE_KEY = "dtrOutcomeReasonNotApplicable"
 const val DTR_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "dtrOutcomeNoteNotApplicable"
 
@@ -24,3 +25,5 @@ class DutyToReferOutcomeReasonRequiredException : DomainException(DTR_OUTCOME_RE
 class DutyToReferOutcomeReasonNotApplicableException : DomainException(DTR_OUTCOME_REASON_NOT_APPLICABLE_KEY)
 
 class DutyToReferOutcomeNoteNotApplicableException : DomainException(DTR_OUTCOME_NOTE_NOT_APPLICABLE_KEY)
+
+class DutyToReferOutcomeReasonChangedOnWithdrawal : DomainException(DTR_OUTCOME_REASON_CHANGED_ON_WITHDRAWAL)

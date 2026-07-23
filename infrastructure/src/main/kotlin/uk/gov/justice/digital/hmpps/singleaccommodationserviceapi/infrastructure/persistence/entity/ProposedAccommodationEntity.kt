@@ -44,7 +44,8 @@ open class ProposedAccommodationEntity(
   var subBuildingName: String?,
   var buildingName: String?,
   var buildingNumber: String?,
-  var throughfareName: String?,
+  @Column("throughfare_name")
+  var thoroughfareName: String?,
   var dependentLocality: String?,
   var postTown: String?,
   var county: String?,
@@ -68,6 +69,7 @@ open class ProposedAccommodationEntity(
   )
   var notes: MutableList<ProposedAccommodationNoteEntity> = mutableListOf(),
 
+  @DiffIgnore
   @Column(nullable = false)
   var deleted: Boolean = false,
 
