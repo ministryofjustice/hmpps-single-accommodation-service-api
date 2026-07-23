@@ -83,6 +83,12 @@ case-list:
   page-size: 200
   onboarded-teams: []
 
+case-refresh:
+  worker:
+    enabled: true
+    fixed-delay: 500ms
+    max-requests-per-run: 10
+
 scheduling:
   enabled: true
   fixed-delay: 500ms
@@ -93,5 +99,8 @@ shedlock:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
   inbox-event-dispatcher:
+    lock-at-most-for: PT2M
+    lock-at-least-for: PT1S
+  case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
