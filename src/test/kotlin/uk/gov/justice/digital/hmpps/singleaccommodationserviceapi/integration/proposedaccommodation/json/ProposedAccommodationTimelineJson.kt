@@ -13,6 +13,12 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"CREATE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER",
+         "staffCode":null
+      },
       "commitDate":"$createCommitTime",
       "changes":[
          {
@@ -101,7 +107,10 @@ fun expectedGetProposedAccommodationTimelineResponse(
   updatedAccommodationTypeDescription: String,
   createCommitTime: String,
   createNoteCommitTime: String,
-  update1Author: String,
+  update1AuthorForename: String,
+  update1AuthorSurname: String,
+  update1AuthorUsername: String,
+  update1AuthorStaffCode: String? = null,
   update1CommitTime: String,
   update2CommitTime: String,
 ) = """
@@ -110,6 +119,12 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"UPDATE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER",
+         "staffCode":null
+      },
       "commitDate":"$update2CommitTime",
       "changes":[
          {
@@ -131,7 +146,13 @@ fun expectedGetProposedAccommodationTimelineResponse(
    },
    {
       "type":"UPDATE",
-      "author":"$update1Author",
+      "author":"$update1AuthorForename $update1AuthorSurname",
+      "authorDetails":{
+         "forename":"$update1AuthorForename",
+         "surname":"$update1AuthorSurname",
+         "username":"$update1AuthorUsername",
+         "staffCode":${update1AuthorStaffCode?.let { "\"$it\"" } ?: "null"}
+      },
       "commitDate":"$update1CommitTime",
       "changes":[
          {
@@ -159,6 +180,12 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"NOTE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER",
+         "staffCode":null
+      },
       "commitDate":"$createNoteCommitTime",
       "changes":[
          {
@@ -171,6 +198,12 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"CREATE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER",
+         "staffCode":null
+      },
       "commitDate":"$createCommitTime",
       "changes":[
          {
@@ -258,6 +291,12 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
       {
          "type":"UPDATE",
          "author":"nDelius user",
+         "authorDetails":{
+            "forename":"nDelius",
+            "surname":"user",
+            "username":"DELIUS_SYNC_USER",
+            "staffCode":null
+         },
          "commitDate":null,
          "changes":[
             {
@@ -270,6 +309,12 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
       {
          "type":"CREATE",
          "author":"nDelius user",
+         "authorDetails":{
+            "forename":"nDelius",
+            "surname":"user",
+            "username":"DELIUS_SYNC_USER",
+            "staffCode":null
+         },
          "commitDate":null,
          "changes":[
             {
@@ -358,6 +403,12 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          {
             "type":"UPDATE",
             "author":"Delius User",
+            "authorDetails":{
+               "forename":"Delius",
+               "surname":"User",
+               "username":"DELIUS_USER",
+               "staffCode":null
+            },
             "commitDate":"$sasCommitDateTime",
             "changes":[
                {
@@ -370,6 +421,12 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          {
             "type":"UPDATE",
             "author":"nDelius user",
+            "authorDetails":{
+               "forename":"nDelius",
+               "surname":"user",
+               "username":"DELIUS_SYNC_USER",
+               "staffCode":null
+            },
             "commitDate":null,
             "changes":[
                {
@@ -382,6 +439,12 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          {
             "type":"CREATE",
             "author":"nDelius user",
+            "authorDetails":{
+               "forename":"nDelius",
+               "surname":"user",
+               "username":"DELIUS_SYNC_USER",
+               "staffCode":null
+            },
             "commitDate":null,
             "changes":[
                {

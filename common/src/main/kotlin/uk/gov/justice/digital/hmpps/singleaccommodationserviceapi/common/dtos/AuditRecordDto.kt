@@ -6,7 +6,9 @@ import java.time.Instant
 
 data class AuditRecordDto(
   val type: AuditRecordType,
+  @Deprecated("author will be removed in the future - use authorDetails")
   val author: String,
+  val authorDetails: AssignedToDto? = null,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
