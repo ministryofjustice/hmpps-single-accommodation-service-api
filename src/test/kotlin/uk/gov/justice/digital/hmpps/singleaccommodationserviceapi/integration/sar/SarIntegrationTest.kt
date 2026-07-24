@@ -1,0 +1,107 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
+
+import jakarta.persistence.EntityManager
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarFlywaySchemaTest
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarJpaEntitiesTest
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
+import javax.sql.DataSource
+
+class SarIntegrationTest : IntegrationTestBase() {
+
+  @Autowired
+  lateinit var dataSource: DataSource
+
+  @Autowired
+  lateinit var entityManager: EntityManager
+
+  @Autowired
+  lateinit var sarIntegrationTestHelper: SarIntegrationTestHelper
+
+  private fun sarToken() = jwtAuthHelper.createJwtAccessToken(
+    grantType = GrantType.CLIENT_CREDENTIALS.type,
+    clientId = "test-client-id",
+    username = null,
+    roles = listOf("ROLE_SAR_DATA_ACCESS"),
+    authSource = AuthSource.NONE.source,
+  )
+
+  private fun nonSarToken() = jwtAuthHelper.createJwtAccessToken(
+    grantType = GrantType.CLIENT_CREDENTIALS.type,
+    clientId = "other-client",
+    username = null,
+    roles = listOf("SOME_OTHER_ROLE"),
+    authSource = AuthSource.NONE.source,
+  )
+
+  @Test
+  fun `GET subject-access-request returns 400 when neither PRN nor CRN provided`() {
+    restTestClient.get()
+      .uri("/subject-access-request")
+      .headers { it.setBearerAuth(sarToken()) }
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `GET subject-access-request returns 204 when no data found for CRN`() {
+    restTestClient.get()
+      .uri("/subject-access-request?crn=X000000")
+      .headers { it.setBearerAuth(sarToken()) }
+      .exchange()
+      .expectStatus().isNoContent
+  }
+
+  @Test
+  fun `GET subject-access-request returns 403 without SAR_DATA_ACCESS role`() {
+    restTestClient.get()
+      .uri("/subject-access-request?crn=X000000")
+      .headers { it.setBearerAuth(nonSarToken()) }
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `GET subject-access-request template returns 200 with mustache content`() {
+    restTestClient.get()
+      .uri("/subject-access-request/template")
+      .headers { it.setBearerAuth(sarToken()) }
+      .exchange()
+      .expectStatus().isOk
+      .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_PLAIN)
+      .expectBody(String::class.java)
+      .value { body ->
+        assertThat(body).contains("{{#ProposedAccommodations}}")
+        assertThat(body).contains("{{#duty_to_refer}}")
+        assertThat(body).contains("{{#accommodation_notes}}")
+      }
+  }
+
+  @Test
+  fun `GET subject-access-request template returns 403 without SAR_DATA_ACCESS role`() {
+    restTestClient.get()
+      .uri("/subject-access-request/template")
+      .headers { it.setBearerAuth(nonSarToken()) }
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Nested
+  inner class FlywaySchemaTest : SarFlywaySchemaTest {
+    override fun getDataSourceInstance() = dataSource
+    override fun getSarHelper() = sarIntegrationTestHelper
+  }
+
+  @Nested
+  inner class JpaEntitiesTest : SarJpaEntitiesTest {
+    override fun getSarHelper() = sarIntegrationTestHelper
+    override fun getEntityManagerInstance() = entityManager
+  }
+}

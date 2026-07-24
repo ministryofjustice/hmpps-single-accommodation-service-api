@@ -38,14 +38,14 @@ data class ProposedAccommodationArrivalCommand(
   val arrivalDate: LocalDate,
 )
 
-enum class VerificationStatus {
-  NOT_CHECKED_YET,
-  FAILED,
-  PASSED,
+enum class VerificationStatus(override val title: String) : TitleEnum {
+  NOT_CHECKED_YET("Not checked"),
+  FAILED("Failed"),
+  PASSED("Passed"),
 }
 
-enum class NextAccommodationStatus {
-  YES,
-  NO,
-  TO_BE_DECIDED,
+enum class NextAccommodationStatus(override val title: String) : TitleEnum {
+  YES("Yes"),
+  NO("No"),
+  TO_BE_DECIDED("Not yet"),
 }

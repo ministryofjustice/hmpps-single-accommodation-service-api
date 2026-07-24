@@ -20,6 +20,8 @@ class ResourceSecurityIT : IntegrationTestBase() {
     "GET /v3/api-docs/swagger-config",
     " /error",
     "PUT /queue-admin/retry-all-dlqs",
+    "GET /subject-access-request", // Ignore SAR as well.
+    "GET /subject-access-request/template",
   )
 
   private val unprotectedDefaultClasses =

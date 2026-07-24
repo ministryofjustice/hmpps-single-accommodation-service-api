@@ -78,6 +78,10 @@ hmpps:
     dispatcher:
       max-events-per-batch: 10
       max-concurrent-events: 4
+  sar:
+    template:
+      path: /sar/template_hmpps-single-accommodation-service-api.mustache
+      enabled: true
 
 case-list:
   page-size: 200

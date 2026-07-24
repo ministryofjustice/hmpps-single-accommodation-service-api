@@ -40,7 +40,11 @@ dependencies {
   testImplementation(libs.redisson.boot)
 
   testImplementation(libs.awaitility)
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.1")
+  testImplementation("org.springframework.boot:spring-boot-webtestclient")
+  testImplementation("org.springframework.boot:spring-boot-starter-webflux")
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.6.1")
 }
 
 kotlin {

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
@@ -34,6 +35,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.R
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventAsserter
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -66,10 +68,11 @@ const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
 private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 
+@AutoConfigureWebTestClient
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class, SarIntegrationTestHelperConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
