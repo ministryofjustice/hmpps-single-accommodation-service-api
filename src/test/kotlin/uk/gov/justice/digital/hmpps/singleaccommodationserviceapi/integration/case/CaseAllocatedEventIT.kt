@@ -103,7 +103,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventHelper.assertAllInboxMessagesProcessed(1)
+    inboxEventHelper.assertMessageProcessed()
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
   }
 
@@ -183,7 +183,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     expectedCas1Application: Cas1Application?,
     expectedTier: String? = "A3",
   ) {
-    inboxEventHelper.assertAllInboxMessagesProcessed(1)
+    inboxEventHelper.assertMessageProcessed()
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     if (expectedCas1Application != null) {

@@ -88,7 +88,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A2"))
       publishTierEvent()
 
-      inboxEventHelper.assertAllInboxMessagesProcessed(1)
+      inboxEventHelper.assertMessageProcessed()
 
       val caseUpdate1 = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
       assertThat(caseUpdate1.tierScore).isEqualTo("A2")
@@ -167,7 +167,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierOKResponseV3(crn, response = buildTierV3(tierScore = "B"))
       publishTierEvent()
 
-      inboxEventHelper.assertAllInboxMessagesProcessed(1)
+      inboxEventHelper.assertMessageProcessed()
 
       val caseUpdate1 = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
       assertThat(caseUpdate1.tierScore).isEqualTo("B")
@@ -192,7 +192,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
       publishTierEvent()
 
-      inboxEventHelper.assertAllInboxMessagesProcessed(1)
+      inboxEventHelper.assertMessageProcessed()
       assertThat(caseRepository.findAll()).hasSize(0)
     }
 
