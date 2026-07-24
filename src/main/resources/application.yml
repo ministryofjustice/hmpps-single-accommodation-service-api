@@ -88,6 +88,10 @@ case-refresh:
     enabled: true
     fixed-delay: 500ms
     max-requests-per-run: 10
+    max-attempts: 3
+    initial-backoff: 1m
+    max-backoff: 30m
+    abandoned-claim-timeout: 10m
 
 scheduling:
   enabled: true
