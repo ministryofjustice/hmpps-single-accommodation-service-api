@@ -118,7 +118,6 @@ abstract class IntegrationTestBase {
     await
       .atMost(ofSeconds(10))
       .pollInterval(ofMillis(100))
-      .logging()
       .untilAsserted {
         restTestClient.get().uri("/health/readiness")
           .exchange()
@@ -287,7 +286,7 @@ abstract class IntegrationTestBase {
   ): HmppsDomainEvent {
     var matchedMessage: HmppsDomainEvent? = null
 
-    await.logging()
+    await
       .atMost(ofSeconds(5))
       .pollInterval(ofMillis(100))
       .untilAsserted {
