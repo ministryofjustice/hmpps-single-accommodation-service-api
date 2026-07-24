@@ -1,10 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical
 
+import java.time.LocalDateTime
+
 data class CanonicalAddress(
   val cprAddressId: String,
   val noFixedAbode: Boolean? = null,
   val startDate: String? = null,
+  val startDateTime: LocalDateTime? = null,
   val endDate: String? = null,
+  val endDateTime: LocalDateTime? = null,
   val postcode: String? = null,
   val subBuildingName: String? = null,
   val buildingName: String? = null,

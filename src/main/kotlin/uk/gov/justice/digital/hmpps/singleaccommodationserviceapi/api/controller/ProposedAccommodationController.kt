@@ -48,7 +48,7 @@ class ProposedAccommodationController(
 
     val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
     handleUpstreamFailure(cprAccommodations.upstreamFailures)
-    accommodationSyncService.syncAccommodationFromDelius(
+    accommodationSyncService.syncAccommodationFromCpr(
       crn,
       cprAccommodations.data,
     )
