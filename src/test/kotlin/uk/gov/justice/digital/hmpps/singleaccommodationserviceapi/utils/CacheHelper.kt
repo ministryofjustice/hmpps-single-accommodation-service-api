@@ -22,9 +22,4 @@ class CacheHelper(private val cacheManager: CacheManager) {
   fun assertCacheEntryEvicted(crn: String, cacheKey: String) {
     assertThat(cacheManager.getCache(cacheKey)!!.get(crn)).isNull()
   }
-
-  fun isCacheEvicted(
-    crn: String,
-    cacheKey: String,
-  ): Boolean = cacheManager.getCache(cacheKey)!!.get(crn) == null
 }
