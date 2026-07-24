@@ -6,16 +6,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Pageable
 import org.springframework.test.context.TestPropertySource
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTierV3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -28,7 +24,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
@@ -48,10 +43,6 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var tierEventHandlerConfig: TierEventHandlerConfig
 
-  private val domainTopic by lazy {
-    hmppsQueueService.findByTopicId("hmpps-domain-event-topic")
-      ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
-  }
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
   private val eventType = "tier.calculation.changed"
@@ -82,7 +73,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
       publishTierEvent()
 
-      waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+      inboxEventHelper.assertMessageProcessed()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
 
       val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
       assertThat(case.tierScore).isEqualTo("A3")
@@ -96,7 +88,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A2"))
       publishTierEvent()
 
-      inboxEventAsserter.assertAllInboxMessagesProcessed(1)
+      inboxEventHelper.assertMessageProcessed()
 
       val caseUpdate1 = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
       assertThat(caseUpdate1.tierScore).isEqualTo("A2")
@@ -104,7 +96,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
       publishTierEvent()
 
-      inboxEventAsserter.assertAllInboxMessagesProcessed(2)
+      inboxEventHelper.assertAllInboxMessagesProcessed(2)
 
       val caseUpdate2 = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
       assertThat(caseUpdate2.tierScore).isEqualTo("A3")
@@ -121,7 +113,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
       publishTierEvent()
 
-      waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
       assertThat(caseRepository.findAll()).hasSize(0)
     }
 
@@ -132,14 +124,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       )
 
       publishTierEvent()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.FAILED)
 
-      waitFor {
-        assertThat(caseRepository.findAll().size).isEqualTo(0)
-        assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED)
-        assertThat(
-          inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.FAILED, Pageable.unpaged()),
-        ).isNotEmpty()
-      }
       assertThat(caseRepository.findAll().size).isEqualTo(0)
 
       val inboxRecord = inboxEventRepository.findAll().first()
@@ -168,8 +154,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierOKResponseV3(crn, response = tier)
 
       publishTierEvent()
-
-      waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
 
       val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
       assertThat(case.tierScore).isEqualTo("B")
@@ -182,14 +167,14 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierOKResponseV3(crn, response = buildTierV3(tierScore = "B"))
       publishTierEvent()
 
-      inboxEventAsserter.assertAllInboxMessagesProcessed(1)
+      inboxEventHelper.assertMessageProcessed()
 
       val caseUpdate1 = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
       assertThat(caseUpdate1.tierScore).isEqualTo("B")
 
       TierStubs.getTierOKResponseV3(crn, response = buildTierV3(tierScore = "C"))
       publishTierEvent()
-      inboxEventAsserter.assertAllInboxMessagesProcessed(2)
+      inboxEventHelper.assertAllInboxMessagesProcessed(2)
 
       val caseUpdate2 = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
 
@@ -207,7 +192,7 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
       publishTierEvent()
 
-      inboxEventAsserter.assertAllInboxMessagesProcessed(1)
+      inboxEventHelper.assertMessageProcessed()
       assertThat(caseRepository.findAll()).hasSize(0)
     }
 
@@ -216,14 +201,8 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       TierStubs.getTierNotFoundResponseV3(crn)
 
       publishTierEvent()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.FAILED)
 
-      waitFor {
-        assertThat(caseRepository.findAll().size).isEqualTo(0)
-        assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED)
-        assertThat(
-          inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.FAILED, Pageable.unpaged()),
-        ).isNotEmpty()
-      }
       assertThat(caseRepository.findAll().size).isEqualTo(0)
 
       val inboxRecord = inboxEventRepository.findAll().first()
@@ -253,27 +232,6 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    domainTopic.snsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainTopic.arn)
-        .message(snsEvent)
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        ).build(),
-    )
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
-    val inboxEvents = inboxEventRepository.findAll()
-    assertThat(inboxEvents).hasSize(1)
-    val inboxEvent = inboxEvents.first()
-    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    assertThat(tierDomainEvent.personReference.findCrn()).isEqualTo(crn)
-
-    assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl())
-    assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
+    inboxEventHelper.publish(snsEvent, eventType)
   }
 }

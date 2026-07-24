@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -23,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -36,7 +33,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
-import uk.gov.justice.hmpps.sqs.MissingTopicException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
@@ -58,9 +58,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var jsonMapper: JsonMapper
 
-  private val domainTopic by lazy {
-    hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
-  }
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
 
@@ -72,15 +69,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   fun setup() {
     crn = UUID.randomUUID().toString()
     HmppsAuthStubs.stubGrantToken()
-    deleteAllFromRepositories()
+    databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, INBOX_EVENT, OUTBOX_EVENT)
     createSasSystemUser()
-  }
-
-  private fun deleteAllFromRepositories() {
-    dutyToReferRepository.deleteAll()
-    inboxEventRepository.deleteAll()
-    outboxEventRepository.deleteAll()
-    caseRepository.deleteAll()
   }
 
   @Test
@@ -113,7 +103,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+    inboxEventHelper.assertMessageProcessed()
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
   }
 
@@ -139,7 +129,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.IGNORED) }
+    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
   }
 
@@ -193,7 +183,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     expectedCas1Application: Cas1Application?,
     expectedTier: String? = "A3",
   ) {
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+    inboxEventHelper.assertMessageProcessed()
+
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     if (expectedCas1Application != null) {
       assertThat(case.tierScore).isEqualTo(expectedTier)
@@ -216,7 +207,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    assertMessageReceived(
+    testSqsDomainEventListener.assertMessageReceived(
       typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
       eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
       detailUrl = detailUrl,
@@ -243,27 +234,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    domainTopic.snsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainTopic.arn)
-        .message(snsEvent)
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        ).build(),
-    )
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
-    val inboxEvents = inboxEventRepository.findAll()
-    assertThat(inboxEvents).hasSize(1)
-    val inboxEvent = inboxEvents.first()
-    val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    assertThat(caseAllocationEvent.personReference.findCrn()).isEqualTo(crn)
-
-    assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl())
-    assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
+    inboxEventHelper.publish(snsEvent, eventType)
   }
 }
