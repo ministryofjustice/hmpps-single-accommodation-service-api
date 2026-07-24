@@ -144,7 +144,6 @@ class CaseTransformerTest {
         forename = "First",
         surname = "Last",
         username = "user1",
-        staffCode = "ABCD1234",
       ),
       photoUrl = null,
       actions = emptyList(),

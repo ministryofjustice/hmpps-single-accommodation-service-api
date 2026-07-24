@@ -710,7 +710,7 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[0].commitDate).isEqualTo(note2CreatedAt)
       assertThat(result.data[0].author).isEqualTo("Second user")
       assertThat(result.data[0].authorDetails).isEqualTo(
-        AssignedToDto(forename = "Second", surname = "user", username = "user2", staffCode = null),
+        AssignedToDto(forename = "Second", surname = "user", username = "user2"),
       )
       assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[1].type).isEqualTo(AuditRecordType.UPDATE)
@@ -720,7 +720,7 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[2].commitDate).isEqualTo(note1CreatedAt)
       assertThat(result.data[2].author).isEqualTo("First user")
       assertThat(result.data[2].authorDetails).isEqualTo(
-        AssignedToDto(forename = "First", surname = "user", username = "user1", staffCode = null),
+        AssignedToDto(forename = "First", surname = "user", username = "user1"),
       )
       assertThat(result.data[2].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[3].type).isEqualTo(AuditRecordType.CREATE)

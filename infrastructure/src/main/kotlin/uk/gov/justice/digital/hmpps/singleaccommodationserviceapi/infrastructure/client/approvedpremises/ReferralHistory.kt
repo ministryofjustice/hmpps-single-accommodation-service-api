@@ -142,5 +142,4 @@ data class Cas3ReferralHistory(
 data class DeliusUserDto(
   val name: String,
   val username: String? = null, // TODO make this non-nullable when refactoring
-  val staffCode: String? = null,
 )
