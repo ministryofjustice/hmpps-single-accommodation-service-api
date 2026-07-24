@@ -71,7 +71,6 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import kotlin.String
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus as EntityNextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
@@ -729,10 +728,19 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       cprAddressId = cprAddressId,
     )
 
-    assertThatOutboxIsAsExpected(
-      proposedAccommodationId = proposedAccommodationId,
-      cprAddressId = cprAddressId,
+    val outboxRecord = outboxEventHelper.findOutboxMessage(
+      aggregateId = proposedAccommodationId,
+      aggregateType = "ProposedAccommodation",
       eventType = domainEventType,
+      processedStatus = ProcessedStatus.PROCESSED,
+    )
+
+    assertThatJson(outboxRecord.payload).matchesExpectedJson(
+      expectedSasAddressUpdatedDomainEventJson(
+        proposedAccommodationId,
+        cprAddressId,
+        domainEventType,
+      ),
     )
   }
 
@@ -831,11 +839,13 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       cprAddressId = existingEntity.cprAddressId,
     )
 
-    assertThatOutboxIsAsExpected(
-      proposedAccommodationId = proposedAccommodationPersistedResult.id,
-      cprAddressId = cprAddressId,
+    outboxEventHelper.findOutboxMessage(
+      aggregateId = proposedAccommodationPersistedResult.id,
+      aggregateType = "ProposedAccommodation",
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
+      processedStatus = ProcessedStatus.PROCESSED,
     )
+
     assertThat(
       isCacheEvicted(
         crn,
@@ -1414,12 +1424,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectStatus().isBadRequest
 
     assertThat(outboxEventRepository.findAll()).isEmpty()
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isFalse
+    assertThat(isCacheEvicted(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN)).isFalse
   }
 
   private fun getCommitTimesAsc(createdProposedAccommodationId: UUID): List<Instant> {
@@ -1502,24 +1507,5 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       Instant.now().plusSeconds(1),
     )
     assertThat(proposedAccommodationEntity.lastUpdatedByUserId).isEqualTo(updatedByUserId)
-  }
-
-  private fun assertThatOutboxIsAsExpected(
-    proposedAccommodationId: UUID,
-    cprAddressId: UUID,
-    eventType: SingleAccommodationServiceDomainEventType,
-  ) {
-    val outboxRecord = outboxEventRepository.findAll().first()
-    assertThat(outboxRecord.aggregateId).isEqualTo(proposedAccommodationId)
-    assertThat(outboxRecord.aggregateType).isEqualTo("ProposedAccommodation")
-    assertThat(outboxRecord.domainEventType).isEqualTo(eventType.name)
-    assertThatJson(outboxRecord.payload).matchesExpectedJson(
-      expectedSasAddressUpdatedDomainEventJson(
-        proposedAccommodationId,
-        cprAddressId,
-        eventType,
-      ),
-    )
-    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
   }
 }

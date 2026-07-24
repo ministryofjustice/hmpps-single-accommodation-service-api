@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -36,6 +35,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
@@ -72,15 +75,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   fun setup() {
     crn = UUID.randomUUID().toString()
     HmppsAuthStubs.stubGrantToken()
-    deleteAllFromRepositories()
+    databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, INBOX_EVENT, OUTBOX_EVENT)
     createSasSystemUser()
-  }
-
-  private fun deleteAllFromRepositories() {
-    dutyToReferRepository.deleteAll()
-    inboxEventRepository.deleteAll()
-    outboxEventRepository.deleteAll()
-    caseRepository.deleteAll()
   }
 
   @Test
@@ -113,7 +109,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+    inboxEventAsserter.assertAllInboxMessagesProcessed(1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
   }
 
@@ -139,7 +135,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.IGNORED) }
+    inboxEventAsserter.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
   }
 
@@ -193,7 +189,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     expectedCas1Application: Cas1Application?,
     expectedTier: String? = "A3",
   ) {
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
+    inboxEventAsserter.assertAllInboxMessagesProcessed(1)
+
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     if (expectedCas1Application != null) {
       assertThat(case.tierScore).isEqualTo(expectedTier)
@@ -253,17 +250,5 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
           ),
         ).build(),
     )
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
-    val inboxEvents = inboxEventRepository.findAll()
-    assertThat(inboxEvents).hasSize(1)
-    val inboxEvent = inboxEvents.first()
-    val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    assertThat(caseAllocationEvent.personReference.findCrn()).isEqualTo(crn)
-
-    assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl())
-    assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
   }
 }

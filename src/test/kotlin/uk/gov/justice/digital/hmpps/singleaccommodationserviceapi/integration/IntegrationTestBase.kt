@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventAsserter
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.OutboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -83,10 +84,10 @@ abstract class IntegrationTestBase {
   protected val userIdOfSasSystemUser: UUID = UUID.fromString("21c60402-79cd-4952-9add-3dd15f1110fa")
 
   @Autowired
-  lateinit var applicationContext: ApplicationContext
+  protected lateinit var applicationContext: ApplicationContext
 
   @Autowired
-  lateinit var restTestClient: RestTestClient
+  protected lateinit var restTestClient: RestTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
@@ -98,16 +99,19 @@ abstract class IntegrationTestBase {
   protected lateinit var databaseUtils: DatabaseUtils
 
   @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
+  protected lateinit var hmppsQueueService: HmppsQueueService
 
   @Autowired
   protected lateinit var cacheManager: ConcurrentMapCacheManager
 
   @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
+  protected lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
-  lateinit var inboxEventAsserter: InboxEventAsserter
+  protected lateinit var inboxEventAsserter: InboxEventAsserter
+
+  @Autowired
+  protected lateinit var outboxEventHelper: OutboxEventHelper
 
   @BeforeAll
   fun beforeAll() {
