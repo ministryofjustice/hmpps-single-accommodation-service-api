@@ -19,7 +19,6 @@ class NotFoundIT : IntegrationTestBase() {
     await
       .atMost(Duration.ofSeconds(10))
       .pollInterval(Duration.ofMillis(100))
-      .logging()
       .untilAsserted {
         restTestClient.get().uri("/some-url-not-found")
           .exchange()
