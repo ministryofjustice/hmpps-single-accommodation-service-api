@@ -135,10 +135,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier and cas API calls fail`() {
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
-    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))))
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierServerErrorResponse(crn)
     ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn = crn)
