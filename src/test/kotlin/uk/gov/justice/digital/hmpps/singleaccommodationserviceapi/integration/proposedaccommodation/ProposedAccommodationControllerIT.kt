@@ -247,12 +247,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     assertThat(outboxEventRepository.findAll()).isEmpty()
-    assertThat(
-      cacheHelper.isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isFalse
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   private fun createConfirmedProposedAccommodation(
