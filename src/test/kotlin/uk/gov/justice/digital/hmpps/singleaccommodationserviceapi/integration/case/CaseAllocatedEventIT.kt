@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -39,7 +37,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
@@ -61,9 +58,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var jsonMapper: JsonMapper
 
-  private val domainTopic by lazy {
-    hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
-  }
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
 
@@ -109,7 +103,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventAsserter.assertAllInboxMessagesProcessed(1)
+    inboxEventHelper.assertAllInboxMessagesProcessed(1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
   }
 
@@ -135,7 +129,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventAsserter.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
   }
 
@@ -189,7 +183,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     expectedCas1Application: Cas1Application?,
     expectedTier: String? = "A3",
   ) {
-    inboxEventAsserter.assertAllInboxMessagesProcessed(1)
+    inboxEventHelper.assertAllInboxMessagesProcessed(1)
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     if (expectedCas1Application != null) {
@@ -213,7 +207,7 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
-    assertMessageReceived(
+    testSqsDomainEventListener.assertMessageReceived(
       typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
       eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
       detailUrl = detailUrl,
@@ -240,15 +234,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    domainTopic.snsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainTopic.arn)
-        .message(snsEvent)
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        ).build(),
-    )
+    inboxEventHelper.publish(snsEvent, eventType)
   }
 }
