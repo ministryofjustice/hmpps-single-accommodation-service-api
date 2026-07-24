@@ -28,7 +28,7 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": null,
         "localAuthorityArea": "Aberdeen City",
         "pdu": "Aberdeen City",
-        "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER","staffCode": null},
+        "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER"},
         "placementAddress": null,
         "placementStatus": null,
         "uiUrl": null
@@ -44,7 +44,7 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
-        "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
+        "referredBy": {"name":"Joe Bloggs","username":"user1"},
         "placementAddress": $placementAddress,
         "placementStatus": "notArrived",
         "uiUrl": "https://example.com/referral"
@@ -60,7 +60,7 @@ fun expectedGetReferralHistory(
         "referralRejectionReasonDetail": $referralRejectionReasonDetail,
         "localAuthorityArea": $localAuthorityArea,
         "pdu": $pdu,
-        "referredBy": {"name":"Joe Bloggs","username":"user1","staffCode":"ABCD1234"},
+        "referredBy": {"name":"Joe Bloggs","username":"user1"},
         "placementAddress": $placementAddress,
         "placementStatus": "departed",
         "uiUrl": "https://example.com/referral"

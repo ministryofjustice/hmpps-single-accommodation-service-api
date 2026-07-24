@@ -21,13 +21,13 @@ interface UserRepository : JpaRepository<UserEntity, UUID> {
     value = """
     INSERT INTO sas_user (
       id, username, forename, middle_names, surname, 
-      auth_source, email, telephone_number, delius_staff_code,
+      auth_source, email, telephone_number,
       nomis_staff_id, nomis_account_type, nomis_active_caseload_id,
       is_enabled, is_active 
     )
     VALUES (
       :#{#user.id}, :#{#user.username}, :#{#user.forename}, :#{#user.middleNames}, :#{#user.surname},
-      :#{#user.authSource.name}, :#{#user.email}, :#{#user.telephoneNumber}, :#{#user.deliusStaffCode},
+      :#{#user.authSource.name}, :#{#user.email}, :#{#user.telephoneNumber},
       :#{#user.nomisStaffId}, :#{#user.nomisAccountType}, :#{#user.nomisActiveCaseloadId},
       :#{#user.isEnabled}, :#{#user.isActive}
     )

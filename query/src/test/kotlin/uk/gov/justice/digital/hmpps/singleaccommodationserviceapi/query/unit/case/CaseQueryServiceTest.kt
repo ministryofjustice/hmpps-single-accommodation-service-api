@@ -71,14 +71,12 @@ class CaseQueryServiceTest {
     forename = "Firstname",
     surname = "Surname",
     username = username,
-    staffCode = "5318008",
   )
 
   val assignedToOther = AssignedToDto(
     forename = "Second",
     surname = "User",
     username = "Second.User",
-    staffCode = "12345678",
   )
 
   val personDtos = listOf(
@@ -158,7 +156,6 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
       assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
       assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
-      assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
       assertThat(firstPerson.riskLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
@@ -171,7 +168,6 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.assignedTo.forename).isEqualTo(case2.staff.name.forename)
       assertThat(lastPerson.assignedTo.surname).isEqualTo(case2.staff.name.surname)
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
-      assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.riskLevel).isEqualTo(RiskLevel.MEDIUM)
     }

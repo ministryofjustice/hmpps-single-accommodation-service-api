@@ -65,7 +65,6 @@ object AccommodationReferralTransformer {
         referredBy = DeliusUserDto(
           name = it.submission!!.createdBy,
           username = it.submission!!.createdByUsername,
-          staffCode = null,
         ),
         placementAddress = null,
         placementStatus = it.submission!!.outcomeReason?.name,
@@ -109,7 +108,6 @@ object AccommodationReferralTransformer {
     StaffDetailsDto(
       it.name,
       it.username,
-      it.staffCode,
     )
   }
 
