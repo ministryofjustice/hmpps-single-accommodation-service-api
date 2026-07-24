@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -14,6 +15,7 @@ import java.util.UUID
 class CaseRefreshRequestService(
   private val caseRepository: CaseRepository,
   private val caseRefreshRequestRepository: CaseRefreshRequestRepository,
+  private val retryPolicy: CaseRefreshRetryPolicy,
   private val clock: Clock,
 ) {
 
@@ -25,32 +27,59 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
-  fun claimPending(maxRequests: Int): List<Claim> {
+  fun claimPending(maxRequests: Int, abandonedClaimTimeout: Duration): List<Claim> {
     val claimedAt = Instant.now(clock)
-    return caseRefreshRequestRepository.findOldestByStatus(
-      CaseRefreshRequestStatus.PENDING,
-      PageRequest.of(0, maxRequests),
+    return caseRefreshRequestRepository.findClaimable(
+      pendingStatus = CaseRefreshRequestStatus.PENDING,
+      processingStatus = CaseRefreshRequestStatus.PROCESSING,
+      now = claimedAt,
+      abandonedClaimedBefore = claimedAt.minus(abandonedClaimTimeout),
+      pageable = PageRequest.of(0, maxRequests),
     ).map { request ->
-      request.status = CaseRefreshRequestStatus.PROCESSING
-      request.processingGeneration = request.generation
-      request.claimedAt = claimedAt
-      Claim(request.caseId, request.generation)
+      val claimId = UUID.randomUUID()
+      request.claim(claimId, claimedAt)
+      Claim(request.caseId, request.generation, claimId)
     }
   }
 
   @Transactional
-  fun returnToPending(claim: Claim) {
-    val request = caseRefreshRequestRepository.findByCaseIdForUpdate(claim.caseId) ?: return
-    if (request.processingGeneration != claim.generation) {
-      return
+  fun recordFailure(
+    claim: Claim,
+    failure: CaseRefreshFailure,
+  ): FailureDisposition {
+    val request = caseRefreshRequestRepository.findByCaseIdForUpdate(claim.caseId)
+      ?: return FailureDisposition.IgnoredStaleClaim
+    if (!request.isOwnedBy(claim.generation, claim.claimId)) {
+      return FailureDisposition.IgnoredStaleClaim
     }
-    request.returnToPending()
+    if (request.generation != claim.generation) {
+      request.releaseForNewerGeneration()
+      return FailureDisposition.Handled
+    }
+
+    val failedAt = Instant.now(clock)
+    return when (val decision = retryPolicy.decide(failure, request.attemptCount, failedAt)) {
+      is CaseRefreshRetryDecision.RetryAt -> {
+        request.scheduleRetry(failure.category, failure.detail, decision.nextAttemptAt)
+        FailureDisposition.Handled
+      }
+      CaseRefreshRetryDecision.FailPermanently -> {
+        request.failPermanently(failure.category, failure.detail, failedAt)
+        FailureDisposition.Handled
+      }
+    }
   }
 
   data class Claim(
     val caseId: UUID,
     val generation: Long,
+    val claimId: UUID,
   )
+
+  enum class FailureDisposition {
+    Handled,
+    IgnoredStaleClaim,
+  }
 
   enum class Result {
     REQUESTED,
