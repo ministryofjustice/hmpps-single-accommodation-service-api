@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
-import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -24,7 +23,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -32,11 +30,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventAsserter
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.CacheHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.OutboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 import java.time.Duration.ofMillis
@@ -108,10 +108,13 @@ abstract class IntegrationTestBase {
   protected lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
-  protected lateinit var inboxEventAsserter: InboxEventAsserter
+  protected lateinit var inboxEventHelper: InboxEventHelper
 
   @Autowired
   protected lateinit var outboxEventHelper: OutboxEventHelper
+
+  @Autowired
+  protected lateinit var cacheHelper: CacheHelper
 
   @BeforeAll
   fun beforeAll() {
@@ -277,36 +280,4 @@ abstract class IntegrationTestBase {
       ),
     )
   }
-
-  fun assertMessageReceived(
-    typeName: String,
-    eventDescription: String,
-    detailUrl: String?,
-    cprAddressId: UUID? = null,
-  ): HmppsDomainEvent {
-    var matchedMessage: HmppsDomainEvent? = null
-
-    await
-      .atMost(ofSeconds(5))
-      .pollInterval(ofMillis(100))
-      .untilAsserted {
-        matchedMessage = testSqsDomainEventListener.takeMessageOrNull(typeName, eventDescription, detailUrl, cprAddressId)
-        assertThat(matchedMessage).isNotNull()
-      }
-    return matchedMessage!!
-  }
-
-  protected fun cacheValueByCrn(
-    crn: String,
-    cacheKey: String,
-    cacheValue: Any,
-  ) {
-    cacheManager.getCache(cacheKey)!!.put(crn, cacheValue)
-    assertThat(cacheManager.getCache(cacheKey)!!.get(crn)).isNotNull
-  }
-
-  protected fun isCacheEvicted(
-    crn: String,
-    cacheKey: String,
-  ): Boolean = cacheManager.getCache(cacheKey)!!.get(crn) == null
 }
