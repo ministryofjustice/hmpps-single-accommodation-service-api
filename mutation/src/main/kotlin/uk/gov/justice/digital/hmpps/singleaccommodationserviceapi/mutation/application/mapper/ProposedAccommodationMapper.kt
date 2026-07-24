@@ -28,7 +28,6 @@ object ProposedAccommodationMapper {
     caseId = snapshot.caseId,
     cprAddressId = snapshot.cprAddressId,
     accommodationSource = snapshot.accommodationSource,
-    name = snapshot.name,
     accommodationTypeId = accommodationTypeEntity?.id,
     accommodationStatusId = accommodationStatusEntity?.id,
     verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
@@ -57,7 +56,6 @@ object ProposedAccommodationMapper {
   ): ProposedAccommodationEntity {
     proposedAccommodationEntity.cprAddressId = snapshot.cprAddressId
     proposedAccommodationEntity.accommodationSource = snapshot.accommodationSource
-    proposedAccommodationEntity.name = snapshot.name
     proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity?.id
     proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
     proposedAccommodationEntity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
@@ -107,7 +105,6 @@ object ProposedAccommodationMapper {
     accommodationSource = proposedAccommodationEntity.accommodationSource,
     cprAddressId = proposedAccommodationEntity.cprAddressId,
     currentAccommodation = currentAccommodation,
-    name = proposedAccommodationEntity.name,
     accommodationType = accommodationTypeEntity?.let {
       AccommodationTypeDto(
         code = it.code,
@@ -154,7 +151,6 @@ object ProposedAccommodationMapper {
   ) = ProposedAccommodationDto(
     id = snapshot.id,
     crn = crn,
-    name = snapshot.name,
     accommodationType = snapshot.accommodationType?.let {
       AccommodationTypeDto(
         code = it.code,
@@ -163,8 +159,6 @@ object ProposedAccommodationMapper {
     },
     verificationStatus = snapshot.verificationStatus,
     nextAccommodationStatus = snapshot.nextAccommodationStatus,
-    startDate = snapshot.startDate,
-    endDate = snapshot.endDate,
     address = snapshot.address,
     createdBy = createdBy,
     createdAt = createdAt,

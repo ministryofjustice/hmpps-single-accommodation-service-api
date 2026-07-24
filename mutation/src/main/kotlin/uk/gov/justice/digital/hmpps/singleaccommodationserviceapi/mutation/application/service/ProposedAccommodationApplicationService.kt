@@ -93,7 +93,6 @@ class ProposedAccommodationApplicationService(
       currentAccommodation = currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
-      newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
         code = accommodationTypeEntity.code,
         description = accommodationTypeEntity.name,
@@ -219,7 +218,6 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
-      newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = accommodationTypeEntityToUpdate?.let {
         AccommodationTypeDto(
           code = accommodationTypeEntityToUpdate.code,
