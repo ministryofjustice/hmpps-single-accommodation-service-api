@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher.InboxEventDispatcherFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import java.time.Duration
 import java.util.UUID
 
 /**
@@ -49,7 +50,7 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `no events, do nothing`() {
-    every { inboxEventService.findPendingOldestFirst(10) } returns emptyList()
+    every { inboxEventService.claimPendingOldestFirst(10, any()) } returns emptyList()
 
     val stats = inboxEventDispatcher(
       maxEventsPerBatch = 10,
@@ -69,7 +70,7 @@ class InboxEventDispatcherTest {
   fun `single event, no handler, skip`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
-    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
+    every { inboxEventService.claimPendingOldestFirst(10, any()) } returns listOf(event)
 
     val stats = inboxEventDispatcher(
       handlers = emptyList(),
@@ -90,7 +91,7 @@ class InboxEventDispatcherTest {
   fun `handler returns PROCESSED, update event processed state to PROCESSED`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
-    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
+    every { inboxEventService.claimPendingOldestFirst(10, any()) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = "test.event",
@@ -118,7 +119,7 @@ class InboxEventDispatcherTest {
   fun `handler returns IGNORED, update event processed state to IGNORED`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
-    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
+    every { inboxEventService.claimPendingOldestFirst(10, any()) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = "test.event",
@@ -146,7 +147,7 @@ class InboxEventDispatcherTest {
   fun `handler returns FAILED, update event processed state to FAILED and raise alert`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
-    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
+    every { inboxEventService.claimPendingOldestFirst(10, any()) } returns listOf(event)
 
     val handler = MockEventHandler(
       supportedEventType = "test.event",
@@ -175,7 +176,7 @@ class InboxEventDispatcherTest {
   fun `handler throws Exception, ,update event processed state to FAILED and raise alert`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
-    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
+    every { inboxEventService.claimPendingOldestFirst(10, any()) } returns listOf(event)
 
     val exception = Exception("error message")
 
@@ -212,9 +213,10 @@ class InboxEventDispatcherTest {
     handlers: List<InboxEventHandler> = emptyList(),
     maxEventsPerBatch: Int = 1,
     maxConcurrentEvents: Int = 1,
+    processingTimeout: Duration = Duration.ofMinutes(5),
   ) = InboxEventDispatcher(
     handlers = handlers,
-    dispatcherConfig = DispatcherConfig(maxEventsPerBatch, maxConcurrentEvents),
+    dispatcherConfig = DispatcherConfig(maxEventsPerBatch, maxConcurrentEvents, processingTimeout),
     inboxEventService = inboxEventService,
     sentryService = sentryService,
     userContextService = userContextService,

@@ -69,6 +69,8 @@ event:
 
 hmpps.sqs:
   enabled: true
+  dispatcher:
+    processing-timeout: PT10S
   useWebToken: false
   provider: localstack
   topics:

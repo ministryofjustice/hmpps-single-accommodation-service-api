@@ -1,27 +1,40 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service
 
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import java.time.Duration
 import java.time.Instant
 
 @Service
 class InboxEventService(
   private val inboxEventRepository: InboxEventRepository,
 ) {
-  fun findPendingOldestFirst(maxSize: Int): List<InboxEventEntity> {
-    val pageable = PageRequest.of(
-      0,
-      maxSize,
-      Sort.by("eventOccurredAt").ascending(),
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  fun claimPendingOldestFirst(maxSize: Int, processingTimeout: Duration): List<InboxEventEntity> {
+    val reclaimBefore = Instant.now().minus(processingTimeout)
+    inboxEventRepository.reclaimStaleProcessingEvents(
+      expectedStatus = ProcessedStatus.PROCESSING,
+      newStatus = ProcessedStatus.PENDING,
+      processedBefore = reclaimBefore,
     )
 
-    return inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
+    val lockedIds = inboxEventRepository.lockPendingIds(maxSize)
+    if (lockedIds.isEmpty()) {
+      return emptyList()
+    }
+
+    inboxEventRepository.updateProcessedStatusForIds(
+      ids = lockedIds,
+      expectedStatus = ProcessedStatus.PENDING,
+      newStatus = ProcessedStatus.PROCESSING,
+      processedAt = Instant.now(),
+    )
+
+    return inboxEventRepository.findAllById(lockedIds).sortedBy { it.eventOccurredAt }
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)

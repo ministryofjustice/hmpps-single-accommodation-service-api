@@ -78,6 +78,7 @@ hmpps:
     dispatcher:
       max-events-per-batch: 10
       max-concurrent-events: 4
+      processing-timeout: PT5M
 
 case-list:
   page-size: 200

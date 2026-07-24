@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserContextService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class DispatcherConfig(
   var maxEventsPerBatch: Int = 10,
   var maxConcurrentEvents: Int = 4,
+  var processingTimeout: Duration = Duration.ofMinutes(5),
 )
 
 @ConditionalOnProperty(
@@ -67,7 +69,10 @@ class InboxEventDispatcher(
   fun process() = runBlocking {
     val progressTracker = ProgressTracker()
 
-    val inboxEvents = inboxEventService.findPendingOldestFirst(dispatcherConfig.maxEventsPerBatch)
+    val inboxEvents = inboxEventService.claimPendingOldestFirst(
+      maxSize = dispatcherConfig.maxEventsPerBatch,
+      processingTimeout = dispatcherConfig.processingTimeout,
+    )
     if (inboxEvents.isEmpty()) {
       return@runBlocking progressTracker.toStats()
     }
