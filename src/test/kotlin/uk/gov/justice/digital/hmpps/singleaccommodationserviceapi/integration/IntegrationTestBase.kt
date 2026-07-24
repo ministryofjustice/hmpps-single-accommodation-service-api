@@ -29,14 +29,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.CacheHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.OutboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
-import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 import java.time.Duration.ofMillis

@@ -861,7 +861,6 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
     assertThat(outboxEventRepository.findAll()).isEmpty()
     cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
-
   }
 
   @Test

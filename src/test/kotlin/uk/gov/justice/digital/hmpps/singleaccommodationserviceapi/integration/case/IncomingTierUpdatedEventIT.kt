@@ -234,5 +234,4 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
 
     inboxEventHelper.publish(snsEvent, eventType)
   }
-
 }
