@@ -42,17 +42,24 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
     return matchedMessage!!
   }
 
-  fun takeMessageOrNull(eventTypeName: String, eventDescription: String, detailUrl: String?, cprAddressId: UUID? = null) = messages.singleOrNull {
-    it.eventType == eventTypeName &&
-      it.description == eventDescription &&
-      it.detailUrl == detailUrl &&
-      (
-        cprAddressId == null ||
-          it.additionalInformation?.let { ai ->
-            ai["corePersonAddressId"]
-          } == cprAddressId.toString()
-        )
-  }?.also { messages.remove(it) }
+  fun takeMessageOrNull(
+    eventTypeName: String,
+    eventDescription: String,
+    detailUrl: String?,
+    cprAddressId: UUID? = null,
+  ): HmppsDomainEvent? = synchronized(messages) {
+    messages.singleOrNull {
+      it.eventType == eventTypeName &&
+        it.description == eventDescription &&
+        it.detailUrl == detailUrl &&
+        (
+          cprAddressId == null ||
+            it.additionalInformation?.let { ai ->
+              ai["corePersonAddressId"]
+            } == cprAddressId.toString()
+          )
+    }?.also { messages.remove(it) }
+  }
 
   @Value("\${hmpps.sqs.topics.hmpps-domain-event-topic.arn}")
   lateinit var topicName: String
