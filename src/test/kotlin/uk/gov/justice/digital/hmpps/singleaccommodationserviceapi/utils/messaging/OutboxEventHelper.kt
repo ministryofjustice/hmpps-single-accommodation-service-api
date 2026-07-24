@@ -16,7 +16,7 @@ class OutboxEventHelper(
   private val outboxEventTestRepository: OutboxEventTestRepository,
 ) {
 
-  fun findOutboxMessage(
+  fun waitForMessage(
     aggregateId: UUID,
     aggregateType: String,
     eventType: SingleAccommodationServiceDomainEventType,

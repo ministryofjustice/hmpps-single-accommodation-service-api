@@ -203,7 +203,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should create 'Confirmed' proposed-accommodation and POST to CPR and not publish sas-address-updated event and persist to database with cprAddressId`() {
-    cacheValueByCrn(
+    cacheHelper.cacheValueByCrn(
       crn,
       cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
       cacheValue = buildCorePersonRecord(),
@@ -248,7 +248,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     )
     assertThat(outboxEventRepository.findAll()).isEmpty()
     assertThat(
-      isCacheEvicted(
+      cacheHelper.isCacheEvicted(
         crn,
         cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
       ),
@@ -310,7 +310,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should create 'Unconfirmed' proposed-accommodation and NOT POST to CPR and not publish sas-address-updated event and persists to database without cprAddressId or status`() {
-    cacheValueByCrn(
+    cacheHelper.cacheValueByCrn(
       crn,
       cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
       cacheValue = buildCorePersonRecord(),
@@ -376,12 +376,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     assertThat(outboxEventRepository.findAll()).isEmpty()
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isFalse
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   @Test
@@ -459,11 +454,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should update 'Unconfirmed' proposed-accommodation to be 'Confirmed' and so POST to CPR and not publish sas-address-updated event and persist to database with cprAddressId and status`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
@@ -567,21 +558,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     assertThat(outboxEventRepository.findAll()).isEmpty()
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isFalse
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   @Test
   fun `should update address details on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+
     val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
       existingBuildingName = "test building name",
       newBuildingName = "NEW BUILDING NAME",
@@ -592,21 +576,13 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
       domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
     )
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isTrue
+
+    cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   @Test
   fun `should update accommodation type on 'Confirmed' proposed-accommodation and so should publish sas-address-updated event and should not POST to CPR`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val proposedAccommodationPersistedResult = shouldUpdateConfirmedProposedAccommodation(
       existingBuildingName = "test building name",
       newBuildingName = "test building name",
@@ -617,12 +593,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       proposedAccommodationId = proposedAccommodationPersistedResult.id,
       domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_UPDATED,
     )
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isTrue
+    cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   private fun shouldUpdateConfirmedProposedAccommodation(
@@ -721,14 +692,14 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     domainEventType: SingleAccommodationServiceDomainEventType,
   ) {
     val detailUrl = "http://api-host/proposed-accommodations/$proposedAccommodationId"
-    assertMessageReceived(
+    testSqsDomainEventListener.assertMessageReceived(
       typeName = domainEventType.typeName,
       eventDescription = domainEventType.typeDescription,
       detailUrl = detailUrl,
       cprAddressId = cprAddressId,
     )
 
-    val outboxRecord = outboxEventHelper.findOutboxMessage(
+    val outboxRecord = outboxEventHelper.waitForMessage(
       aggregateId = proposedAccommodationId,
       aggregateType = "ProposedAccommodation",
       eventType = domainEventType,
@@ -746,11 +717,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should downgrade 'Confirmed' proposed-accommodation to 'Unconfirmed' and so should publish sas-address-deleted event and should not POST to CPR`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val confirmedStatus = EntityNextAccommodationStatus.YES
     val unconfirmedStatus = NextAccommodationStatus.NO
     val existingEntity = proposedAccommodationRepository.save(
@@ -832,26 +799,21 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       ),
     )
 
-    assertMessageReceived(
+    testSqsDomainEventListener.assertMessageReceived(
       typeName = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeName,
       eventDescription = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED.typeDescription,
       detailUrl = null,
       cprAddressId = existingEntity.cprAddressId,
     )
 
-    outboxEventHelper.findOutboxMessage(
+    outboxEventHelper.waitForMessage(
       aggregateId = proposedAccommodationPersistedResult.id,
       aggregateType = "ProposedAccommodation",
       eventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_DELETED,
       processedStatus = ProcessedStatus.PROCESSED,
     )
 
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isTrue
+    cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   @Test
@@ -874,11 +836,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should update proposed-accommodation and not publish domain event when nextAccommodationStatus is NO`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val existingEntity = proposedAccommodationRepository.save(
       buildProposedAccommodationEntity(
         accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")!!,
@@ -902,12 +860,8 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
 
     assertThat(outboxEventRepository.findAll()).isEmpty()
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isFalse
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+
   }
 
   @Test
@@ -1274,11 +1228,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should arrive a 'Confirmed' proposed-accommodation and publish a sas-address-person-arrived event and transition database record appropriately`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
     val address = buildCanonicalAddress(
       subBuildingName = "test sub building name",
@@ -1359,21 +1309,12 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       proposedAccommodationId = proposedAccommodationUpdatedResult.id,
       domainEventType = SingleAccommodationServiceDomainEventType.SAS_ACCOMMODATION_PERSON_ARRIVED,
     )
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isTrue
+    cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   @Test
   fun `should NOT arrive an 'Unconfirmed' proposed-accommodation and NOT publish a sas-address-person-arrived event`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!
     val address = buildCanonicalAddress(
       subBuildingName = "test sub building name",
@@ -1424,7 +1365,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
       .expectStatus().isBadRequest
 
     assertThat(outboxEventRepository.findAll()).isEmpty()
-    assertThat(isCacheEvicted(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN)).isFalse
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   private fun getCommitTimesAsc(createdProposedAccommodationId: UUID): List<Instant> {

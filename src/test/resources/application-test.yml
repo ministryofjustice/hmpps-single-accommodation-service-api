@@ -53,6 +53,14 @@ scheduling:
   enabled: false
   fixed-delay: 100ms
 
+shedlock:
+  default-lock-at-most-for: 100ms
+  outbox-event-publisher:
+    lock-at-most-for: 100ms
+    lock-at-least-for: 1ms
+  inbox-event-dispatcher:
+    lock-at-most-for: 100ms
+    lock-at-least-for: 1ms
 
 event:
   details-url:
