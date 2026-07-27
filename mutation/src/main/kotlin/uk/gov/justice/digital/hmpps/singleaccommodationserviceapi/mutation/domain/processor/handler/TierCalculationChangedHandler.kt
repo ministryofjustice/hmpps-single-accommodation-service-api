@@ -27,7 +27,7 @@ class TierCalculationChangedHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName
+  override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName)
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
