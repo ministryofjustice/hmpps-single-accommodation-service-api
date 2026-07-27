@@ -130,7 +130,6 @@ class SasSarComplianceTest : SasSarTestBase() {
     }
   }
 
-  // This test fails in dev, because we hardcode the laa in the
   @Test
   fun `SAS SAR API should return consolidated data for all domains`() {
     setupTestData()

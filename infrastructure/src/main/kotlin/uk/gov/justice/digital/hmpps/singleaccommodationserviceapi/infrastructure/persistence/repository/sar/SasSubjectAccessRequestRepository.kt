@@ -34,7 +34,7 @@ class SasSubjectAccessRequestRepository(
     nomsNumber?.let {
       clauses.add("(ci.identifier = :nomsNumber and ci.identifierType = :nomsType)")
       params["nomsNumber"] = it
-      params["nomsType"] = IdentifierType.NOMS
+      params["nomsType"] = IdentifierType.PRISON_NUMBER
     }
 
     val jpql = """

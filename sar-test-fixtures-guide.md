@@ -22,7 +22,7 @@ You can automatically generate the actual output of the tests by setting the `SA
 To generate new fixtures, run the following command:
 
 ```bash
-SAR_GENERATE_ACTUAL=true ./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarComplianceTest"
+SAR_GENERATE_ACTUAL=true ./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SasSarComplianceTest"
 ```
 
 ### 2. Locate the generated files

@@ -18,7 +18,7 @@ open class SasSarTestBase : SubjectAccessRequestServiceTestBase() {
     val case = buildCaseEntity(id = id)
     case.caseIdentifiers.clear()
     case.withIdentifier(crn, IdentifierType.CRN)
-    case.withIdentifier(nomsNumber, IdentifierType.NOMS)
+    case.withIdentifier(nomsNumber, IdentifierType.PRISON_NUMBER)
     return caseRepository.save(case)
   }
 }
