@@ -55,8 +55,9 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
+  // should we fail here if 2 handlers integrate the same event type?
   private val eventTypeToHandlers: Map<String, InboxEventHandler> =
-    handlers.associateBy { it.supportedEventType() }
+    handlers.flatMap { handler -> handler.supportedEventTypes().map { it to handler } }.toMap()
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(

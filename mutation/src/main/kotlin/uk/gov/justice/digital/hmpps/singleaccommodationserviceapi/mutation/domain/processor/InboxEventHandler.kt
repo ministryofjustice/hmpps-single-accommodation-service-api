@@ -14,11 +14,11 @@ import java.util.UUID
 interface InboxEventHandler {
 
   /**
-   * The event type this handler supports (typically the value of IncomingHmppsDomainEventType.typeName). Only one handler per type
+   * The event type this handler supports (typically values of IncomingHmppsDomainEventType.typeName). Only one handler per type
    *
    * We use a non-bounded type here so we can use custom handlers during integration testing
    **/
-  fun supportedEventType(): String
+  fun supportedEventTypes(): Set<String>
 
   /**
    * Partition key for serialising processing. Events with the same key are never processed
