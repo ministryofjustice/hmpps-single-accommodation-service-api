@@ -17,30 +17,31 @@ class CaseProjectionRefreshHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName
+  override fun supportedEventTypes() = setOf(
+    IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName,
+  )
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
-    val domainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    return domainEvent.personReference.findCrn()
-  }
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? = parse(inboxEvent).personReference.findCrn()
 
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing Case projection change event [inboxEventId={}]", inboxEvent.id)
+    val domainEvent = parse(inboxEvent)
+    log.info("Processing Case projection change event [inboxEventId={}, eventType={}]", inboxEvent.id, domainEvent.eventType)
 
-    val crn = checkNotNull(getPartitionKey(inboxEvent)) {
-      "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
+    val crn = checkNotNull(domainEvent.personReference.findCrn()) {
+      "CRN not found in event payload [inboxEventId=${inboxEvent.id}, eventType=${domainEvent.eventType}]"
     }
 
     return when (caseRefreshRequestService.requestLiveRefresh(crn)) {
       CaseRefreshRequestService.Result.REQUESTED -> {
-        log.info("Case projection refresh requested [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+        log.info("Case projection refresh requested [inboxEventId={}, eventType={}, crn={}]", inboxEvent.id, domainEvent.eventType, crn)
         InboxEventHandler.Result.PROCESSED
       }
       CaseRefreshRequestService.Result.CASE_NOT_FOUND -> {
-        log.info("Ignoring projection change event for unknown Case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+        log.info("Ignoring projection change event for unknown Case [inboxEventId={}, eventType={}, crn={}]", inboxEvent.id, domainEvent.eventType, crn)
         InboxEventHandler.Result.IGNORED
       }
     }
   }
+  private fun parse(inboxEvent: InboxEventHandler.InboxEvent): SnsDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
 }

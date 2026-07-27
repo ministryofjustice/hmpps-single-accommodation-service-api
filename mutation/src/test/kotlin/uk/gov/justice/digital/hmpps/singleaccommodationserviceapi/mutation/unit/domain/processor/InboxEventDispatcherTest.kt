@@ -93,7 +93,7 @@ class InboxEventDispatcherTest {
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       result = InboxEventHandler.Result.PROCESSED,
     )
 
@@ -121,7 +121,7 @@ class InboxEventDispatcherTest {
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       result = InboxEventHandler.Result.IGNORED,
     )
 
@@ -149,7 +149,7 @@ class InboxEventDispatcherTest {
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       result = InboxEventHandler.Result.FAILED,
     )
 
@@ -180,7 +180,7 @@ class InboxEventDispatcherTest {
     val exception = Exception("error message")
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       responseException = exception,
       result = InboxEventHandler.Result.FAILED,
     )
@@ -221,12 +221,12 @@ class InboxEventDispatcherTest {
   )
 
   private data class MockEventHandler(
-    val supportedEventType: String,
+    val supportedEventTypes: Set<String>,
     val result: InboxEventHandler.Result,
     val responseException: Throwable? = null,
     val processedEvents: MutableList<InboxEventHandler.InboxEvent> = mutableListOf(),
   ) : InboxEventHandler {
-    override fun supportedEventType() = supportedEventType
+    override fun supportedEventTypes() = supportedEventTypes
     override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
       processedEvents.add(inboxEvent)
 
