@@ -32,7 +32,6 @@ fun buildProposedAccommodationSnapshot(
   caseId = UUID.randomUUID(),
   cprAddressId = cprAddressId,
   accommodationSource = accommodationSource,
-  name = "Test Accommodation",
   accommodationType = accommodationType,
   accommodationStatus = accommodationStatus,
   verificationStatus = verificationStatus,
