@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PersonNamesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
@@ -99,7 +100,15 @@ class CaseTransformerTest {
     val name = buildName()
     val personDto = buildFullPersonDto(crn = CRN, name = name)
     val eligibilityDto = buildEligibilityDto(CRN)
-    val caseDto = buildCaseDto(crn = CRN, name = name.fullName)
+    val caseDto = buildCaseDto(
+      crn = CRN,
+      name = name.fullName,
+      personNames = PersonNamesDto(
+        forename = name.forename,
+        middleNames = name.middleName,
+        surname = name.surname,
+      ),
+    )
 
     assertThat(personDto.toCaseDto(caseEntity = caseEntity, eligibility = eligibilityDto)).isEqualTo(caseDto)
   }
@@ -129,11 +138,51 @@ class CaseTransformerTest {
     assertThat(cpr.toFullName()).isEqualTo(expected)
   }
 
+  @ParameterizedTest
+  @CsvSource(
+    value = [
+      "John,Paul Andrew, Smith, John, Paul Andrew, Smith",
+      "John, null, Smith, John, null, Smith",
+      "John, '', Smith, John, null, Smith",
+      "null, MiddleName, Lastname, null, null, null",
+      "'', MiddleName, Lastname, null, null, null",
+      "Firstname, MiddleName, null, null, null, null",
+      "Firstname, MiddleName, '   ', null, null, null",
+    ],
+    nullValues = ["null"],
+  )
+  fun `should map personNames from core person record only when first and last names are present`(
+    firstname: String?,
+    middleNames: String?,
+    lastName: String?,
+    expectedForename: String?,
+    expectedMiddleNames: String?,
+    expectedSurname: String?,
+  ) {
+    val cpr = buildCorePersonRecord(firstName = firstname, middleNames = middleNames, lastName = lastName)
+    val expected = if (expectedForename != null && expectedSurname != null) {
+      PersonNamesDto(
+        forename = expectedForename,
+        middleNames = expectedMiddleNames,
+        surname = expectedSurname,
+      )
+    } else {
+      null
+    }
+
+    assertThat(cpr.toPersonNamesDto()).isEqualTo(expected)
+  }
+
   private companion object {
     private const val CRN = "X12345"
 
     private val caseDtoWhenAllDataSupplied = CaseDto(
       name = "First Middle Last",
+      personNames = PersonNamesDto(
+        forename = "First",
+        middleNames = "Middle",
+        surname = "Last",
+      ),
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",

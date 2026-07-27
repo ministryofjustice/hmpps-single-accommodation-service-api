@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PersonNamesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import java.time.LocalDate
 
@@ -13,6 +14,7 @@ sealed interface PersonDto {
 
 sealed interface Identifiable {
   val name: String
+  val personNames: PersonNamesDto?
   val dateOfBirth: LocalDate?
   val pncNumber: String?
   val gender: String
@@ -33,6 +35,7 @@ data class FullPersonDto(
   override val assignedTo: AssignedToDto,
   override val riskLevel: RiskLevel?,
   override val name: String,
+  override val personNames: PersonNamesDto?,
   override val pncNumber: String?,
   override val dateOfBirth: LocalDate,
   override val gender: String,

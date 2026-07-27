@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PersonNamesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import java.time.LocalDate
 import java.util.UUID
@@ -24,6 +25,16 @@ data class CorePersonRecord(
     middleNames?.takeIf { it.isNotBlank() },
     lastName,
   ).joinToString(" ")
+
+  fun toPersonNamesDto() = if (firstName.isNullOrBlank() || lastName.isNullOrBlank()) {
+    null
+  } else {
+    PersonNamesDto(
+      forename = firstName,
+      middleNames = middleNames?.takeIf { it.isNotBlank() },
+      surname = lastName,
+    )
+  }
 }
 
 data class Title(

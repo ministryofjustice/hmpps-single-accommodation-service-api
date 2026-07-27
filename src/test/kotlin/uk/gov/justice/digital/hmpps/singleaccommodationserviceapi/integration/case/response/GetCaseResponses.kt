@@ -7,6 +7,11 @@ fun expectedGetCaseResponse(): String = """
 {
   "data": {
     "name": "First Middle Last",
+    "personNames": {
+        "forename": "First",
+        "middleNames": "Middle",
+        "surname": "Last"
+    },
     "dateOfBirth": "2000-12-03",
     "crn": "FAKECRN1",
     "prisonNumber": "PRI1",
