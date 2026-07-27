@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.sar.SasSubjectAccessRequestRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonProbationSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
@@ -31,7 +32,9 @@ import java.time.ZoneOffset
 @Service
 @Transactional(readOnly = true)
 class SubjectAccessRequestService(
-  val sasSubjectAccessRequestRepository: SasSubjectAccessRequestRepository,
+  private val sasSubjectAccessRequestRepository: SasSubjectAccessRequestRepository,
+  private val caseRepository: CaseRepository,
+
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
@@ -44,14 +47,14 @@ class SubjectAccessRequestService(
   }
 
   override fun getContentFor(
-    prn: String?,
+    prisonNumber: String?,
     crn: String?,
     fromDate: LocalDate?,
     toDate: LocalDate?,
   ): HmppsSubjectAccessRequestContent? {
     val sarResult = getSarResult(
       crn,
-      prn,
+      prisonNumber,
       fromDate?.atStartOfDay(),
       toDate?.atTime(LocalTime.MAX),
     ) ?: return null
@@ -65,9 +68,14 @@ class SubjectAccessRequestService(
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
   ): Map<String, Any>? {
-    val caseIdentifier = sasSubjectAccessRequestRepository.findCaseIdentifier(crn, prisonNumber) ?: return null
-    val caseId = caseIdentifier.caseEntity.id
-    val personCrn = caseIdentifier.caseEntity.latestCrn()
+    val caseEntity =
+      caseRepository.findByIdentifiers(
+        crn?.let { listOf(it) } ?: emptyList(),
+        prisonNumber?.let { listOf(it) } ?: emptyList(),
+      ) ?: return null
+
+    val caseId = caseEntity.id
+    val personCrn = caseEntity.latestCrn()
 
     val startInstant = startDate?.toInstant(ZoneOffset.UTC)
     val endInstant = endDate?.toInstant(ZoneOffset.UTC)
