@@ -34,6 +34,5 @@ object PersonTransformer {
     forename = staff.name.forename,
     surname = staff.name.surname,
     username = staff.username,
-    staffCode = staff.code,
   )
 }

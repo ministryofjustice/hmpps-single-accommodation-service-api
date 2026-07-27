@@ -21,7 +21,6 @@ data class UserEntity(
   var surname: String,
   var email: String?,
   var telephoneNumber: String?,
-  var deliusStaffCode: String?,
   var nomisStaffId: Long?,
   var nomisAccountType: String?,
   var nomisActiveCaseloadId: String?,
@@ -35,7 +34,6 @@ fun UserEntity.toAssignedToDto() = AssignedToDto(
   forename = forename,
   surname = surname,
   username = username,
-  staffCode = deliusStaffCode,
 )
 
 enum class AuthSource(val source: String) {

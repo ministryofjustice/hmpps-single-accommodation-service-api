@@ -17,8 +17,7 @@ fun expectedGetCaseResponse(): String = """
     "assignedTo": {
       "forename": "First",
       "surname": "Last",
-      "username": "user1",
-      "staffCode": "ABCD1234"
+      "username": "user1"
     },
     "actions": [],
     "userAccess": "FULL",
