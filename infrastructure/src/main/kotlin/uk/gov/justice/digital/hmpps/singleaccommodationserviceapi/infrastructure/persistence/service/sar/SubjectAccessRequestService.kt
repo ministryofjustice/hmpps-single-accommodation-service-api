@@ -61,11 +61,11 @@ class SubjectAccessRequestService(
 
   fun getSarResult(
     crn: String?,
-    nomsNumber: String?,
+    prisonNumber: String?,
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
   ): Map<String, Any>? {
-    val caseIdentifier = sasSubjectAccessRequestRepository.findCaseIdentifier(crn, nomsNumber) ?: return null
+    val caseIdentifier = sasSubjectAccessRequestRepository.findCaseIdentifier(crn, prisonNumber) ?: return null
     val caseId = caseIdentifier.caseEntity.id
     val personCrn = caseIdentifier.caseEntity.latestCrn()
 

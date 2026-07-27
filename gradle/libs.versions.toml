@@ -16,6 +16,7 @@ awaitility = "4.3.0"
 javers = "7.11.5"
 postgres = "42.7.12"
 sentry = "8.50.0"
+sar-test-support = "2.6.1"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -58,6 +59,8 @@ swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref =
 awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+sartestsupport = { module = "uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support", version.ref = "sar-test-support" }
+webtestclient = { module = "org.springframework.boot:spring-boot-webtestclient" }
 
 # Runtime
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }

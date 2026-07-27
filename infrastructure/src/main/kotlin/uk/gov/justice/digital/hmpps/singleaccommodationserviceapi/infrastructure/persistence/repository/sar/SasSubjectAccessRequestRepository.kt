@@ -20,8 +20,8 @@ class SasSubjectAccessRequestRepository(
 ) : SubjectAccessRequestRepositoryBase(jdbcTemplate) {
 
   // Make this a repo, with jpaql queries
-  fun findCaseIdentifier(crn: String?, nomsNumber: String?): CaseIdentifierEntity? {
-    if (crn == null && nomsNumber == null) return null
+  fun findCaseIdentifier(crn: String?, prisonNumber: String?): CaseIdentifierEntity? {
+    if (crn == null && prisonNumber == null) return null
 
     val clauses = mutableListOf<String>()
     val params = mutableMapOf<String, Any>()
@@ -31,10 +31,10 @@ class SasSubjectAccessRequestRepository(
       params["crn"] = it
       params["crnType"] = IdentifierType.CRN
     }
-    nomsNumber?.let {
-      clauses.add("(ci.identifier = :nomsNumber and ci.identifierType = :nomsType)")
-      params["nomsNumber"] = it
-      params["nomsType"] = IdentifierType.PRISON_NUMBER
+    prisonNumber?.let {
+      clauses.add("(ci.identifier = :prisonNumber and ci.identifierType = :prisonNumberType)")
+      params["prisonNumber"] = it
+      params["prisonNumberType"] = IdentifierType.PRISON_NUMBER
     }
 
     val jpql = """
