@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
@@ -692,8 +693,8 @@ class DutyToReferQueryServiceTest {
           FieldChange(field = "status", value = "ACCEPTED", oldValue = "SUBMITTED"),
         ),
       )
-      val noteAuthor1 = buildUserEntity(id = user1Id, forename = "First", surname = "user")
-      val noteAuthor2 = buildUserEntity(id = user2Id, forename = "Second", surname = "user")
+      val noteAuthor1 = buildUserEntity(id = user1Id, username = "user1", forename = "First", surname = "user")
+      val noteAuthor2 = buildUserEntity(id = user2Id, username = "user2", forename = "Second", surname = "user")
 
       every { dutyToReferRepository.findByIdAndCrnWithNotes(dtrEntity.id, crn) } returns dtrEntity
       every {
@@ -708,6 +709,9 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[0].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[0].commitDate).isEqualTo(note2CreatedAt)
       assertThat(result.data[0].author).isEqualTo("Second user")
+      assertThat(result.data[0].authorDetails).isEqualTo(
+        AssignedToDto(forename = "Second", surname = "user", username = "user2", staffCode = null),
+      )
       assertThat(result.data[0].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[1].type).isEqualTo(AuditRecordType.UPDATE)
       assertThat(result.data[1].commitDate).isEqualTo(updateRecord.commitDate)
@@ -715,6 +719,9 @@ class DutyToReferQueryServiceTest {
       assertThat(result.data[2].type).isEqualTo(AuditRecordType.NOTE)
       assertThat(result.data[2].commitDate).isEqualTo(note1CreatedAt)
       assertThat(result.data[2].author).isEqualTo("First user")
+      assertThat(result.data[2].authorDetails).isEqualTo(
+        AssignedToDto(forename = "First", surname = "user", username = "user1", staffCode = null),
+      )
       assertThat(result.data[2].extraInformation?.get("localAuthorityAreaName")).isNull()
       assertThat(result.data[3].type).isEqualTo(AuditRecordType.CREATE)
       assertThat(result.data[3].commitDate).isEqualTo(createRecord.commitDate)

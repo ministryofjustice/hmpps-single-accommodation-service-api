@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
@@ -158,6 +159,7 @@ class ProposedAccommodationTimelineServiceTest {
         buildAuditRecordDto(
           type = AuditRecordType.NOTE,
           author = "Joe Bloggs",
+          authorDetails = AssignedToDto(forename = "Joe", surname = "Bloggs", username = "joe.bloggs12", staffCode = null),
           commitDate = noteCreatedAt,
           changes = listOf(
             buildFieldChange(
@@ -171,6 +173,7 @@ class ProposedAccommodationTimelineServiceTest {
         buildAuditRecordDto(
           type = AuditRecordType.NOTE,
           author = "Jane Doe",
+          authorDetails = AssignedToDto(forename = "Jane", surname = "Doe", username = "joe.bloggs12", staffCode = null),
           commitDate = note2CreatedAt,
           changes = listOf(
             buildFieldChange(

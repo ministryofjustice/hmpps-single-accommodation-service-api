@@ -1206,7 +1206,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     eventType: SingleAccommodationServiceDomainEventType,
     detailUrl: String = "http://api-host/duty-to-refers",
   ) {
-    assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
+    testSqsDomainEventListener.assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
   }
 
   @Test

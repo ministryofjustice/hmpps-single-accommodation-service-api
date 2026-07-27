@@ -33,12 +33,13 @@ class CaseOrchestrationService(
   private val initialPage = 0L
 
   @Cacheable(FULL_CASE_LIST)
-  fun getCaseList(username: String): OrchestrationResultDto<List<Case>> {
+  fun getCaseList(username: String, teamCode: String?): OrchestrationResultDto<List<Case>> {
     log.debug("Retrieving case list from Delius for username {}", username)
     val initialCall = mapOf(
       getCallKey(username, initialPage) to {
         sasAndDeliusCachingService.getCaseList(
           username = username,
+          teamCode = teamCode,
           page = initialPage,
           size = pageSize,
         )
@@ -64,7 +65,7 @@ class CaseOrchestrationService(
           list.page.totalPages,
         )
 
-        getRemainingCases(list.page, username)
+        getRemainingCases(list.page, username, teamCode)
       } ?: (emptyList<Case>() to emptyList())
 
     return OrchestrationResultDto(
@@ -75,13 +76,14 @@ class CaseOrchestrationService(
 
   private fun getCallKey(username: String, page: Long) = GET_CASE_LIST + username + page
 
-  private fun getRemainingCases(page: PageMetadata, username: String) = if (page.number + 1 < page.totalPages) {
+  private fun getRemainingCases(page: PageMetadata, username: String, teamCode: String?) = if (page.number + 1 < page.totalPages) {
     val remainingPages = 1 until page.totalPages
     val additionalResults = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = remainingPages.associate { nextPage ->
         (getCallKey(username, nextPage)) to {
           sasAndDeliusCachingService.getCaseList(
             username,
+            teamCode = teamCode,
             page = nextPage,
             size = pageSize,
           )
