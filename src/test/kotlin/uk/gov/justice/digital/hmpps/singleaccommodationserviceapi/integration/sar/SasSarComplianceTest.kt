@@ -136,9 +136,9 @@ class SasSarComplianceTest : SasSarTestBase() {
     setupTestData()
     asserter.assertApiDataMatchesFixture(
       crn = TEST_CRN,
-      laaId = testLaaId,
       fromDate = TEST_FROM_DATE,
       toDate = TEST_TO_DATE,
+      laaId = testLaaId,
     )
   }
 
