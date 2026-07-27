@@ -16,8 +16,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "authorDetails":{
          "forename":"Delius",
          "surname":"User",
-         "username":"DELIUS_USER",
-         "staffCode":null
+         "username":"DELIUS_USER"
       },
       "commitDate":"$createCommitTime",
       "changes":[
@@ -110,7 +109,6 @@ fun expectedGetProposedAccommodationTimelineResponse(
   update1AuthorForename: String,
   update1AuthorSurname: String,
   update1AuthorUsername: String,
-  update1AuthorStaffCode: String? = null,
   update1CommitTime: String,
   update2CommitTime: String,
 ) = """
@@ -122,8 +120,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "authorDetails":{
          "forename":"Delius",
          "surname":"User",
-         "username":"DELIUS_USER",
-         "staffCode":null
+         "username":"DELIUS_USER"
       },
       "commitDate":"$update2CommitTime",
       "changes":[
@@ -150,8 +147,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "authorDetails":{
          "forename":"$update1AuthorForename",
          "surname":"$update1AuthorSurname",
-         "username":"$update1AuthorUsername",
-         "staffCode":${update1AuthorStaffCode?.let { "\"$it\"" } ?: "null"}
+         "username":"$update1AuthorUsername"
       },
       "commitDate":"$update1CommitTime",
       "changes":[
@@ -183,8 +179,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "authorDetails":{
          "forename":"Delius",
          "surname":"User",
-         "username":"DELIUS_USER",
-         "staffCode":null
+         "username":"DELIUS_USER"
       },
       "commitDate":"$createNoteCommitTime",
       "changes":[
@@ -201,8 +196,7 @@ fun expectedGetProposedAccommodationTimelineResponse(
       "authorDetails":{
          "forename":"Delius",
          "surname":"User",
-         "username":"DELIUS_USER",
-         "staffCode":null
+         "username":"DELIUS_USER"
       },
       "commitDate":"$createCommitTime",
       "changes":[
@@ -294,8 +288,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
          "authorDetails":{
             "forename":"nDelius",
             "surname":"user",
-            "username":"DELIUS_SYNC_USER",
-            "staffCode":null
+            "username":"DELIUS_SYNC_USER"
          },
          "commitDate":null,
          "changes":[
@@ -312,8 +305,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
          "authorDetails":{
             "forename":"nDelius",
             "surname":"user",
-            "username":"DELIUS_SYNC_USER",
-            "staffCode":null
+            "username":"DELIUS_SYNC_USER"
          },
          "commitDate":null,
          "changes":[
@@ -406,8 +398,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             "authorDetails":{
                "forename":"Delius",
                "surname":"User",
-               "username":"DELIUS_USER",
-               "staffCode":null
+               "username":"DELIUS_USER"
             },
             "commitDate":"$sasCommitDateTime",
             "changes":[
@@ -424,8 +415,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             "authorDetails":{
                "forename":"nDelius",
                "surname":"user",
-               "username":"DELIUS_SYNC_USER",
-               "staffCode":null
+               "username":"DELIUS_SYNC_USER"
             },
             "commitDate":null,
             "changes":[
@@ -442,8 +432,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             "authorDetails":{
                "forename":"nDelius",
                "surname":"user",
-               "username":"DELIUS_SYNC_USER",
-               "staffCode":null
+               "username":"DELIUS_SYNC_USER"
             },
             "commitDate":null,
             "changes":[

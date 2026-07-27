@@ -18,8 +18,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -50,8 +49,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -82,8 +80,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -114,8 +111,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -146,8 +142,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -178,8 +173,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -214,8 +208,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -242,8 +235,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -270,8 +262,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -298,8 +289,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -330,8 +320,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -362,8 +351,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -398,8 +386,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -434,8 +421,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -466,8 +452,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -498,8 +483,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -530,8 +514,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {
@@ -562,8 +545,7 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
          "actions":[
             {

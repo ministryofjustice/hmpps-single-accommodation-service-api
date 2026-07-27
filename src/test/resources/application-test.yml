@@ -54,12 +54,12 @@ scheduling:
   fixed-delay: 100ms
 
 shedlock:
-  default-lock-at-most-for: 100ms
+  default-lock-at-most-for: 10s
   outbox-event-publisher:
-    lock-at-most-for: 100ms
+    lock-at-most-for: 10s
     lock-at-least-for: 1ms
   inbox-event-dispatcher:
-    lock-at-most-for: 100ms
+    lock-at-most-for: 10s
     lock-at-least-for: 1ms
 
 event:

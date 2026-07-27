@@ -84,7 +84,6 @@ class UserServiceTest {
       assertThat(result.surname).isEqualTo(deliusUser.name.surname)
       assertThat(result.email).isEqualTo(deliusUser.email)
       assertThat(result.telephoneNumber).isEqualTo(deliusUser.telephoneNumber)
-      assertThat(result.deliusStaffCode).isEqualTo(deliusUser.code)
       assertThat(result.isEnabled).isNull()
       assertThat(result.isActive).isTrue()
       assertThat(result.nomisStaffId).isNull()
@@ -159,8 +158,6 @@ class UserServiceTest {
       assertThat(result.isEnabled).isEqualTo(nomisUser.active)
       assertThat(result.isActive).isEqualTo(nomisUser.enabled)
       assertThat(result.telephoneNumber).isNull()
-      assertThat(result.deliusStaffCode).isNull()
-
       verify(exactly = 1) { userRepository.save(any()) }
     }
   }
