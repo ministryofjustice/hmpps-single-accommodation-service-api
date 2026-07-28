@@ -80,7 +80,7 @@ class AccommodationSyncService(
   private fun insertDeliusOriginProposedAccommodationRecord(
     case: CaseEntity,
     cprProposedAccommodationRecord: AccommodationDetailDto,
-  ) {
+  ): Boolean {
     val (isAccommodationTypeNullOrExists, accommodationTypeEntityToUpdate) = accommodationTypeIsNullOrExists(cprProposedAccommodationRecord)
     val (isAccommodationStatusNullOrExists, accommodationStatusEntityToUpdate) = accommodationStatusIsNullOrExists(cprProposedAccommodationRecord)
     if (isAccommodationTypeNullOrExists && isAccommodationStatusNullOrExists) {
@@ -116,8 +116,19 @@ class AccommodationSyncService(
         accommodationStatusEntityToUpdate,
       )
       saveProposedAccommodation(proposedAccommodationEntityToCreate)
+      return true
     }
+    return false
   }
+
+  fun createAccommodationRecordWithCprAddressCreate(
+    crn: String,
+    case: CaseEntity,
+    cprAddressRecord: CanonicalAddress,
+  ): Boolean = insertDeliusOriginProposedAccommodationRecord(
+    case = case,
+    cprProposedAccommodationRecord = toAccommodationDetail(crn, cprAddressRecord),
+  )
 
   private fun saveProposedAccommodation(
     proposedAccommodationEntity: ProposedAccommodationEntity,
