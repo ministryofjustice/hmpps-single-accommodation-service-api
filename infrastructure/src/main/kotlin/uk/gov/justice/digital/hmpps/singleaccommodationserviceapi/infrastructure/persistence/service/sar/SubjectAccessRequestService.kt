@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.sar
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
@@ -19,25 +18,30 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.sar.SasSubjectAccessRequestRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonProbationSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneOffset
+import java.time.ZoneId
 
 @Service
 @Transactional(readOnly = true)
 class SubjectAccessRequestService(
-  val sasSubjectAccessRequestRepository: SasSubjectAccessRequestRepository,
-  val caseRepository: CaseRepository,
+  private val caseRepository: CaseRepository,
+  private val proposedAccommodationRepository: ProposedAccommodationRepository,
+  private val dutyToReferRepository: DutyToReferRepository,
+  private val userRepository: UserRepository,
+  private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
     private val enumModule: SimpleModule = SimpleModule()
       .addSerializer(TitleEnum::class.java, TitleEnumSerialiser())
     private val mapper: JsonMapper = JsonMapper.builder()
@@ -54,8 +58,8 @@ class SubjectAccessRequestService(
     val sarResult = getSarResult(
       crn,
       prn,
-      fromDate?.atStartOfDay(),
-      toDate?.atTime(LocalTime.MAX),
+      fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MIN,
+      toDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MAX,
     ) ?: return null
 
     return HmppsSubjectAccessRequestContent(content = sarResult)
@@ -64,8 +68,8 @@ class SubjectAccessRequestService(
   fun getSarResult(
     crn: String?,
     prisonNumber: String?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
+    startDate: Instant,
+    endDate: Instant,
   ): Map<String, Any>? {
     if (crn == null && prisonNumber == null) return null
 
@@ -77,64 +81,65 @@ class SubjectAccessRequestService(
     val caseId = caseEntity.id
     val personCrn = caseEntity.latestCrn()
 
-    val startInstant = startDate?.toInstant(ZoneOffset.UTC)
-    val endInstant = endDate?.toInstant(ZoneOffset.UTC)
-
-    val accommodations = sasSubjectAccessRequestRepository.findProposedAccommodations(caseId, startInstant, endInstant)
-    val dutyToRefers = sasSubjectAccessRequestRepository.findDutyToRefers(caseId, startInstant, endInstant)
+    val accommodations = proposedAccommodationRepository.findAllForSar(caseId, startDate, endDate)
+    val dutyToRefers = dutyToReferRepository.findAllForSar(caseId, startDate, endDate)
 
     if (accommodations.isEmpty()) return null
 
-    val users = sasSubjectAccessRequestRepository.findAllUsers().associateBy { it.id }
-    val accTypes = sasSubjectAccessRequestRepository.findAllAccommodationTypes().associateBy { it.id }
-    val laas = sasSubjectAccessRequestRepository.findAllLocalAuthorityAreas().associateBy { it.id }
+    val users = userRepository.findAll().associateBy { it.id }
+    val accommodationTypes = accommodationTypeRepository.findAll().associateBy { it.id }
+    val localAuthorityAreas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
-    val nestedAccommodations = accommodations.map { pa ->
-      val type = accTypes[pa.accommodationTypeId]
-      val createdByUser = users[pa.createdByUserId]
-      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]
+    val nestedAccommodations = accommodations.map { proposedAccomodationEntity ->
+      val type = accommodationTypes[proposedAccomodationEntity.accommodationTypeId]
+      val createdByUser = users[proposedAccomodationEntity.createdByUserId]
+      val lastUpdatedByUser = users[proposedAccomodationEntity.lastUpdatedByUserId]
 
-      val paDto = ProposedAccommodationDto(
-        id = pa.id,
+      val proposedAccommodationDto = ProposedAccommodationDto(
+        id = proposedAccomodationEntity.id,
         crn = personCrn,
-        name = pa.name,
+        name = proposedAccomodationEntity.name,
         accommodationType = AccommodationTypeDto(
           code = type?.code ?: "UNKNOWN",
           description = type?.name ?: "Unknown",
         ),
-        verificationStatus = pa.verificationStatus?.let { VerificationStatus.valueOf(it.name) },
-        nextAccommodationStatus = pa.nextAccommodationStatus?.let { NextAccommodationStatus.valueOf(it.name) },
+        verificationStatus = proposedAccomodationEntity.verificationStatus?.let { VerificationStatus.valueOf(it.name) },
+        nextAccommodationStatus = proposedAccomodationEntity.nextAccommodationStatus?.let {
+          NextAccommodationStatus.valueOf(
+            it.name,
+          )
+        },
         address = AccommodationAddressDetails(
-          postcode = pa.postcode,
-          subBuildingName = pa.subBuildingName,
-          buildingName = pa.buildingName,
-          buildingNumber = pa.buildingNumber,
-          thoroughfareName = pa.thoroughfareName,
-          dependentLocality = pa.dependentLocality,
-          postTown = pa.postTown,
-          county = pa.county,
-          country = pa.country,
-          uprn = pa.uprn,
+          postcode = proposedAccomodationEntity.postcode,
+          subBuildingName = proposedAccomodationEntity.subBuildingName,
+          buildingName = proposedAccomodationEntity.buildingName,
+          buildingNumber = proposedAccomodationEntity.buildingNumber,
+          thoroughfareName = proposedAccomodationEntity.thoroughfareName,
+          dependentLocality = proposedAccomodationEntity.dependentLocality,
+          postTown = proposedAccomodationEntity.postTown,
+          county = proposedAccomodationEntity.county,
+          country = proposedAccomodationEntity.country,
+          uprn = proposedAccomodationEntity.uprn,
         ),
-        startDate = pa.startDate,
-        endDate = pa.endDate,
+        startDate = proposedAccomodationEntity.startDate,
+        endDate = proposedAccomodationEntity.endDate,
         createdBy = createdByUser?.displayName() ?: "Unknown",
-        createdAt = pa.createdAt ?: Instant.now(),
+        createdAt = proposedAccomodationEntity.createdAt ?: Instant.now(),
       )
 
-      val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
-      paMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
-      paMap["lastUpdatedAt"] = pa.lastUpdatedAt
-      paMap["settledType"] = when (type?.settledType) {
+      val proposedAccommodationAsMap = mapper.convertValue(proposedAccommodationDto, Map::class.java).toMutableMap()
+      proposedAccommodationAsMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
+      proposedAccommodationAsMap["lastUpdatedAt"] = proposedAccomodationEntity.lastUpdatedAt
+      proposedAccommodationAsMap["settledType"] = when (type?.settledType) {
         AccommodationSettledType.SETTLED -> "Settled"
         AccommodationSettledType.TRANSIENT -> "Transient"
         null -> null
       }
 
-      paMap["duty_to_refer"] = dutyToRefers.map { dtr ->
+      proposedAccommodationAsMap["duty_to_refer"] = dutyToRefers.map { dtr ->
         val dtrCreatedByUser = users[dtr.createdByUserId]
         val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]
-        val laa = laas[dtr.localAuthorityAreaId]
+        val laa = localAuthorityAreas[dtr.localAuthorityAreaId]
 
         val dtrDto = DutyToReferDto(
           caseId = dtr.caseId,
@@ -163,7 +168,7 @@ class SubjectAccessRequestService(
         dtrMap
       }
 
-      paMap["accommodation_notes"] = pa.notes.map { note ->
+      proposedAccommodationAsMap["accommodation_notes"] = proposedAccomodationEntity.notes.map { note ->
         mapOf(
           "note" to note.note,
           "createdAt" to note.createdAt,
@@ -172,7 +177,7 @@ class SubjectAccessRequestService(
           "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.displayName() ?: "Unknown"),
         )
       }
-      paMap
+      proposedAccommodationAsMap
     }
 
     return mapOf("ProposedAccommodations" to nestedAccommodations)
