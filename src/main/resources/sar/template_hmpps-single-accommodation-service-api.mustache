@@ -1,6 +1,6 @@
 <h1 class="title">Single Accommodation Service</h1>
 {{#ProposedAccommodations}}
-    <h2>Proposed Accommodation: {{ optionalValue name }}</h2>
+    <h2>Proposed Accommodation</h2>
 
     <h3>Accommodation Details</h3>
     <table class="data-table">
@@ -19,24 +19,14 @@
     </table>
     <table class="data-table">
         <tr>
-            <td class="data-column-25">Start date</td>
-            <td class="data-column-25">End date</td>
             <td class="data-column-25">Created at</td>
             <td class="data-column-25">Last updated at</td>
+            <td class="data-column-25">Created by user</td>
+            <td class="data-column-25">Last updated by user</td>
         </tr>
         <tr>
-            <td>{{ optionalValue (formatDate startDate) }}</td>
-            <td>{{ optionalValue (formatDate endDate) }}</td>
             <td>{{ optionalValue (formatDate createdAt) }}</td>
             <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
-        </tr>
-    </table>
-    <table class="data-table">
-        <tr>
-            <td class="data-column-50">Created by user</td>
-            <td class="data-column-50">Last updated by user</td>
-        </tr>
-        <tr>
             <td>{{ optionalValue createdBy }}</td>
             <td>{{ optionalValue lastUpdatedBy }}</td>
         </tr>

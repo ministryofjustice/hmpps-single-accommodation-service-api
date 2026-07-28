@@ -97,7 +97,6 @@ class SubjectAccessRequestService(
       val paDto = ProposedAccommodationDto(
         id = pa.id,
         crn = personCrn,
-        name = pa.name,
         accommodationType = AccommodationTypeDto(
           code = type?.code ?: "UNKNOWN",
           description = type?.name ?: "Unknown",
@@ -116,8 +115,6 @@ class SubjectAccessRequestService(
           country = pa.country,
           uprn = pa.uprn,
         ),
-        startDate = pa.startDate,
-        endDate = pa.endDate,
         createdBy = createdByUser?.displayName() ?: "Unknown",
         createdAt = pa.createdAt ?: Instant.now(),
       )
