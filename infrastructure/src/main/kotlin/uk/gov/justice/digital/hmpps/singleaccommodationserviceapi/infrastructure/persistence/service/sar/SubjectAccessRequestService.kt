@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.sar.SasSubjectAccessRequestRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonProbationSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
@@ -32,6 +33,7 @@ import java.time.ZoneOffset
 @Transactional(readOnly = true)
 class SubjectAccessRequestService(
   val sasSubjectAccessRequestRepository: SasSubjectAccessRequestRepository,
+  val caseRepository: CaseRepository,
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
@@ -65,9 +67,15 @@ class SubjectAccessRequestService(
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
   ): Map<String, Any>? {
-    val caseIdentifier = sasSubjectAccessRequestRepository.findCaseIdentifier(crn, prisonNumber) ?: return null
-    val caseId = caseIdentifier.caseEntity.id
-    val personCrn = caseIdentifier.caseEntity.latestCrn()
+    if (crn == null && prisonNumber == null) return null
+
+    val caseEntity = caseRepository.findByIdentifiers(
+      crn?.let { listOf(it) },
+      prisonNumber?.let { listOf(it) },
+    ) ?: return null
+
+    val caseId = caseEntity.id
+    val personCrn = caseEntity.latestCrn()
 
     val startInstant = startDate?.toInstant(ZoneOffset.UTC)
     val endInstant = endDate?.toInstant(ZoneOffset.UTC)

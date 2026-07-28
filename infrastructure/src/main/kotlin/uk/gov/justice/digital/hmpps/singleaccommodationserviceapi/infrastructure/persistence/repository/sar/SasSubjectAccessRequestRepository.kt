@@ -4,9 +4,7 @@ import jakarta.persistence.EntityManager
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
@@ -20,36 +18,6 @@ class SasSubjectAccessRequestRepository(
 ) : SubjectAccessRequestRepositoryBase(jdbcTemplate) {
 
   // Make this a repo, with jpaql queries
-  fun findCaseIdentifier(crn: String?, prisonNumber: String?): CaseIdentifierEntity? {
-    if (crn == null && prisonNumber == null) return null
-
-    val clauses = mutableListOf<String>()
-    val params = mutableMapOf<String, Any>()
-
-    crn?.let {
-      clauses.add("(ci.identifier = :crn and ci.identifierType = :crnType)")
-      params["crn"] = it
-      params["crnType"] = IdentifierType.CRN
-    }
-    prisonNumber?.let {
-      clauses.add("(ci.identifier = :prisonNumber and ci.identifierType = :prisonNumberType)")
-      params["prisonNumber"] = it
-      params["prisonNumberType"] = IdentifierType.PRISON_NUMBER
-    }
-
-    val jpql = """
-      select ci from CaseIdentifierEntity ci 
-      join fetch ci.caseEntity ce 
-      join fetch ce.caseIdentifiers 
-      where ${clauses.joinToString(" or ")}
-    """.trimIndent()
-
-    val query = entityManager.createQuery(jpql, CaseIdentifierEntity::class.java)
-    params.forEach { (k, v) -> query.setParameter(k, v) }
-
-    return query.resultList.firstOrNull()
-  }
-
   fun findProposedAccommodations(caseId: UUID, startDate: Instant?, endDate: Instant?): List<ProposedAccommodationEntity> {
     val clauses = mutableListOf("pa.caseId = :caseId", "pa.deleted = false")
     val params = mutableMapOf<String, Any>("caseId" to caseId)
