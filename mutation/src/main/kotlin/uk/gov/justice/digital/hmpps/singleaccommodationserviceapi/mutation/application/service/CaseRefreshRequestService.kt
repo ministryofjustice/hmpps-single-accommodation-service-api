@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -22,8 +23,18 @@ class CaseRefreshRequestService(
   @Transactional
   fun requestLiveRefresh(crn: String): Result {
     val caseEntity = caseRepository.findByCrn(crn) ?: return Result.CASE_NOT_FOUND
-    caseRefreshRequestRepository.upsertPending(caseEntity.id, Instant.now(clock))
+    caseRefreshRequestRepository.upsertLiveRequest(caseEntity.id, Instant.now(clock))
     return Result.REQUESTED
+  }
+
+  // entry point for a bulk refresh (case list pre-load) & not triggered yet
+  @Transactional
+  fun requestBulkRefresh(caseIds: List<UUID>) {
+    if (caseIds.isEmpty()) return
+    caseRefreshRequestRepository.insertBulkRequests(
+      caseIds.map(UUID::toString).toTypedArray(),
+      Instant.now(clock),
+    )
   }
 
   @Transactional
@@ -32,6 +43,7 @@ class CaseRefreshRequestService(
     return caseRefreshRequestRepository.findClaimable(
       pendingStatus = CaseRefreshRequestStatus.PENDING,
       processingStatus = CaseRefreshRequestStatus.PROCESSING,
+      livePriority = CaseRefreshPriority.LIVE,
       now = claimedAt,
       abandonedClaimedBefore = claimedAt.minus(abandonedClaimTimeout),
       pageable = PageRequest.of(0, maxRequests),
