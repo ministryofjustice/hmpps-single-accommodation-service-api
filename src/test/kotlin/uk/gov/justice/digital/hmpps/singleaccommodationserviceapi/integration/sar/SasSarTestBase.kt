@@ -1,12 +1,17 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar
 
 import org.junit.jupiter.api.BeforeEach
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+import org.springframework.context.annotation.Import
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import java.util.UUID
 
+@AutoConfigureWebTestClient
+@Import(value = [SarIntegrationTestHelperConfig::class])
 open class SasSarTestBase : SubjectAccessRequestServiceTestBase() {
 
   @BeforeEach

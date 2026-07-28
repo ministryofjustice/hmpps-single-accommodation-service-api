@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
@@ -68,7 +67,6 @@ const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
 private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 
-@AutoConfigureWebTestClient
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
