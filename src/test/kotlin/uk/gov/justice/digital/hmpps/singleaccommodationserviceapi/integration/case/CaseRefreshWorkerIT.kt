@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -269,6 +270,61 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
     assertThat(reopenedRequest.nextAttemptAt).isEqualTo(now.plus(Duration.ofMinutes(2)))
     assertThat(reopenedRequest.lastFailureCategory).isNull()
     assertThat(reopenedRequest.failedAt).isNull()
+  }
+
+  @Test
+  fun `claims live work ahead of bulk work that has been waiting longer`() {
+    val bulkCase = caseRepository.save(
+      buildCaseEntity(tierScore = "A1") { withCrn(UUID.randomUUID().toString()) },
+    )
+    caseRefreshRequestService.requestBulkRefresh(listOf(bulkCase.id))
+
+    clock.freezeAt(now.plus(Duration.ofMinutes(1)))
+    val liveCase = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(crn)
+
+    clock.freezeAt(now.plus(Duration.ofMinutes(2)))
+    val firstClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
+    val secondClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
+
+    assertThat(firstClaim.caseId).isEqualTo(liveCase.id)
+    assertThat(secondClaim.caseId).isEqualTo(bulkCase.id)
+  }
+
+  @Test
+  fun `bulk preload leaves an existing refresh request untouched`() {
+    val caseEntity = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(crn)
+
+    clock.freezeAt(now.plus(Duration.ofMinutes(1)))
+    caseRefreshRequestService.requestBulkRefresh(listOf(caseEntity.id))
+
+    val request = caseRefreshRequestRepository.findAll().single()
+    assertThat(request.priority).isEqualTo(CaseRefreshPriority.LIVE)
+    assertThat(request.generation).isEqualTo(1)
+    assertThat(request.requestedAt).isEqualTo(now)
+    assertThat(request.nextAttemptAt).isEqualTo(now)
+  }
+
+  @Test
+  fun `bulk preload does not reopen terminally failed work`() {
+    val caseEntity = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
+    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+
+    caseRefreshWorker.process()
+    clock.freezeAt(now.plus(Duration.ofMinutes(1)))
+    caseRefreshWorker.process()
+    assertThat(caseRefreshRequestRepository.findAll().single().status)
+      .isEqualTo(CaseRefreshRequestStatus.FAILED)
+
+    clock.freezeAt(now.plus(Duration.ofMinutes(2)))
+    caseRefreshRequestService.requestBulkRefresh(listOf(caseEntity.id))
+
+    val request = caseRefreshRequestRepository.findAll().single()
+    assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.FAILED)
+    assertThat(request.attemptCount).isEqualTo(2)
   }
 
   @Test

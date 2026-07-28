@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import java.time.Instant
@@ -21,17 +22,19 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         case_id,
         generation,
         status,
+        priority,
         requested_at,
         attempt_count,
         next_attempt_at
       )
-      VALUES (:caseId, 1, 'PENDING', :requestedAt, 0, :requestedAt)
+      VALUES (:caseId, 1, 'PENDING', 'LIVE', :requestedAt, 0, :requestedAt)
       ON CONFLICT (case_id) DO UPDATE
       SET generation = case_refresh_request.generation + 1,
           status = CASE
               WHEN case_refresh_request.status = 'FAILED' THEN 'PENDING'
               ELSE case_refresh_request.status
           END,
+          priority = 'LIVE',
           requested_at = EXCLUDED.requested_at,
           attempt_count = 0,
           next_attempt_at = EXCLUDED.next_attempt_at,
@@ -52,7 +55,28 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
           END
     """,
   )
-  fun upsertPending(caseId: UUID, requestedAt: Instant)
+  fun upsertLiveRequest(caseId: UUID, requestedAt: Instant)
+
+  // bulk refresh for a case that does not have a live request already
+  @Modifying
+  @Query(
+    nativeQuery = true,
+    value = """
+      INSERT INTO case_refresh_request (
+        case_id,
+        generation,
+        status,
+        priority,
+        requested_at,
+        attempt_count,
+        next_attempt_at
+      )
+      SELECT case_id, 1, 'PENDING', 'BULK', :requestedAt, 0, :requestedAt
+      FROM unnest((:caseIds)::uuid[]) AS case_id
+      ON CONFLICT (case_id) DO NOTHING
+    """,
+  )
+  fun insertBulkRequests(caseIds: Array<String>, requestedAt: Instant)
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
@@ -66,12 +90,13 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         request.status = :processingStatus
         AND request.claimedAt < :abandonedClaimedBefore
       )
-      ORDER BY request.requestedAt
+      ORDER BY CASE WHEN request.priority = :livePriority THEN 0 ELSE 1 END, request.requestedAt
     """,
   )
   fun findClaimable(
     pendingStatus: CaseRefreshRequestStatus,
     processingStatus: CaseRefreshRequestStatus,
+    livePriority: CaseRefreshPriority,
     now: Instant,
     abandonedClaimedBefore: Instant,
     pageable: Pageable,

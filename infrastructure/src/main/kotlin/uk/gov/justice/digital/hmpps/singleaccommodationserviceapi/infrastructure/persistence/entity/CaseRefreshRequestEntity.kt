@@ -17,6 +17,8 @@ class CaseRefreshRequestEntity(
   var processingGeneration: Long?,
   @Enumerated(EnumType.STRING)
   var status: CaseRefreshRequestStatus,
+  @Enumerated(EnumType.STRING)
+  val priority: CaseRefreshPriority,
   var requestedAt: Instant,
   var claimedAt: Instant?,
   var claimId: UUID?,
@@ -82,6 +84,11 @@ enum class CaseRefreshRequestStatus {
   PENDING,
   PROCESSING,
   FAILED,
+}
+
+enum class CaseRefreshPriority {
+  LIVE,
+  BULK,
 }
 
 enum class CaseRefreshFailureCategory {
