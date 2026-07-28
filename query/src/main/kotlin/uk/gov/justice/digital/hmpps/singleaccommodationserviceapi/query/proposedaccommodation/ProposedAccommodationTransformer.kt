@@ -19,7 +19,6 @@ object ProposedAccommodationTransformer {
     createdBy: String,
   ) = ProposedAccommodationDto(
     id = proposedAccommodationEntity.id,
-    name = proposedAccommodationEntity.name,
     crn = crn,
     accommodationType = accommodationTypeEntity?.let {
       AccommodationTypeDto(
@@ -30,8 +29,6 @@ object ProposedAccommodationTransformer {
     verificationStatus = proposedAccommodationEntity.verificationStatus?.let { toVerificationStatus(it) },
     nextAccommodationStatus = proposedAccommodationEntity.nextAccommodationStatus?.let { toNextAccommodationStatus(it) },
     address = toAddressDetails(proposedAccommodationEntity),
-    startDate = proposedAccommodationEntity.startDate,
-    endDate = proposedAccommodationEntity.endDate,
     createdBy = createdBy,
     createdAt = proposedAccommodationEntity.createdAt!!,
   )

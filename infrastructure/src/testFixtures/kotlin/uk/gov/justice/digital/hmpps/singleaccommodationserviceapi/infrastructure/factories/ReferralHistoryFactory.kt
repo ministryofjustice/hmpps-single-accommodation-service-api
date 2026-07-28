@@ -66,8 +66,7 @@ fun buildReferralHistory(
   uiUrl = uiUrl,
 )
 
-fun buildDeliusUserDto(name: String = "Joe Bloggs", username: String = "user1", staffCode: String = "ABCD1234") = DeliusUserDto(
+fun buildDeliusUserDto(name: String = "Joe Bloggs", username: String = "user1") = DeliusUserDto(
   name = name,
   username = username,
-  staffCode = staffCode,
 )

@@ -46,7 +46,6 @@ fun buildProposedAccommodationEntity(
   id = id,
   caseId = caseId,
   cprAddressId = cprAddressId,
-  name = name,
   accommodationTypeId = accommodationTypeEntity?.id,
   accommodationStatusId = accommodationStatusEntity?.id,
   verificationStatus = verificationStatus,

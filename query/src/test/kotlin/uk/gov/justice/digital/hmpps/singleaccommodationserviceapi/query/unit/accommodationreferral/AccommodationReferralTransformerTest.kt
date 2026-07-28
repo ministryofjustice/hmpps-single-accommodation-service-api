@@ -42,7 +42,7 @@ class AccommodationReferralTransformerTest {
           assertThat(it.referralRejectionReason).isEqualTo("NOT_ELIGIBLE")
           assertThat(it.localAuthorityArea).isEqualTo("localAuthorityAreaName")
           assertThat(it.pdu).isEqualTo("localAuthorityAreaName")
-          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER", null))
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER"))
           assertThat(it.placementAddress).isNull()
           assertThat(it.placementStatus).isEqualTo("NO_LOCAL_CONNECTION")
           assertThat(it.uiUrl).isNull()

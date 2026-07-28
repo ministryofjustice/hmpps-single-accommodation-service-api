@@ -65,4 +65,6 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
   fun findByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
 
   fun findByIdAndDeleted(id: UUID, deleted: Boolean): ProposedAccommodationEntity?
+
+  fun findByIdAndAccommodationStatusId(id: UUID, accommodationStatusId: UUID): ProposedAccommodationEntity?
 }

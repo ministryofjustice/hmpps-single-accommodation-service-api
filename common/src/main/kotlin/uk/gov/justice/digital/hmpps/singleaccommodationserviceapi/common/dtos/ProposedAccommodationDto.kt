@@ -8,13 +8,10 @@ import java.util.UUID
 data class ProposedAccommodationDto(
   val id: UUID,
   val crn: String,
-  val name: String?,
   val accommodationType: AccommodationTypeDto?,
   val verificationStatus: VerificationStatus?,
   val nextAccommodationStatus: NextAccommodationStatus?,
   val address: AccommodationAddressDetails,
-  val startDate: LocalDate?,
-  val endDate: LocalDate?,
   val createdBy: String,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
@@ -25,13 +22,10 @@ data class ProposedAccommodationDto(
 )
 
 data class ProposedAccommodationDetailCommand(
-  val name: String?,
   val accommodationTypeCode: String?,
   val verificationStatus: VerificationStatus,
   val nextAccommodationStatus: NextAccommodationStatus,
   val address: AccommodationAddressDetails,
-  val startDate: LocalDate?,
-  val endDate: LocalDate?,
 )
 
 data class ProposedAccommodationArrivalCommand(
