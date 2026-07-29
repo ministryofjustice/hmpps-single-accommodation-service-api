@@ -1,15 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation
 
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
@@ -17,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
@@ -30,7 +25,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
-import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
@@ -52,9 +46,6 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var jsonMapper: JsonMapper
 
-  private val domainTopic by lazy {
-    hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
-  }
   lateinit var crn: String
   private val eventType = "core-person-record.probation.address.deleted"
   private val eventDescription = "A probation address has been deleted for a person"
@@ -77,15 +68,11 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
 
     crn = UUID.randomUUID().toString()
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    cacheHelper.cacheValueByCrn(crn, cacheKey = GET_CORE_PERSON_RECORD_BY_CRN, cacheValue = buildCorePersonRecord())
   }
 
   @Test
   fun `should process incoming HMPPS CPR_PROBATION_ADDRESS_DELETED domain event and soft-delete related record when SAS has a matching record`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
     val preExistingProposedAccommodation = buildProposedAccommodationEntity(
       cprAddressId = cprAddressId,
       caseId = caseEntity.id,
@@ -114,24 +101,12 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
-    assertThatSingleInboxEventIsAsExpected(
-      processedStatus = ProcessedStatus.PROCESSED,
-    )
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isTrue
+    inboxEventHelper.assertMessageProcessed()
+    cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   @Test
   fun `should ignore incoming HMPPS CPR_PROBATION_ADDRESS_DELETED domain event when SAS does NOT have a matching record`() {
-    cacheValueByCrn(
-      crn,
-      cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      cacheValue = buildCorePersonRecord(),
-    )
     val preExistingProposedAccommodation = buildProposedAccommodationEntity(
       cprAddressId = cprAddressId,
       caseId = caseEntity.id,
@@ -144,31 +119,18 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     proposedAccommodationRepository.save(preExistingProposedAccommodation)
 
     val unmatchingCprAddressId = UUID.randomUUID()
-    publishCprProbationAddressDeletedEvent(
-      cprAddressId = unmatchingCprAddressId,
-    )
-    waitForEntity {
-      inboxEventRepository.findAllByProcessedStatus(
-        processedStatus = ProcessedStatus.IGNORED,
-        pageable = PageRequest.of(0, 10),
-      ).firstOrNull()
-    }
+    publishCprProbationAddressDeletedEvent(cprAddressId = unmatchingCprAddressId)
 
-    val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
-    assertThat(latestProposedAccommodation?.id).isEqualTo(preExistingProposedAccommodation.id)
-    assertThat(latestProposedAccommodation?.deleted).isFalse()
-    assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
-    assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
 
-    assertThatSingleInboxEventIsAsExpected(
-      processedStatus = ProcessedStatus.IGNORED,
-    )
-    assertThat(
-      isCacheEvicted(
-        crn,
-        cacheKey = GET_CORE_PERSON_RECORD_BY_CRN,
-      ),
-    ).isFalse
+    val latestProposedAccommodation =
+      proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)!!
+    assertThat(latestProposedAccommodation.id).isEqualTo(preExistingProposedAccommodation.id)
+    assertThat(latestProposedAccommodation.deleted).isFalse()
+    assertThat(latestProposedAccommodation.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(latestProposedAccommodation.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
+
+    cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
   }
 
   private fun publishCprProbationAddressDeletedEvent(cprAddressId: UUID) {
@@ -193,25 +155,6 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    domainTopic.snsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainTopic.arn)
-        .message(snsEvent)
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        ).build(),
-    )
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
-    val inboxEvents = inboxEventRepository.findAll()
-    Assertions.assertThat(inboxEvents).hasSize(1)
-    val inboxEvent = inboxEvents.first()
-    val cprProbationAddressDeletedEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    Assertions.assertThat(cprProbationAddressDeletedEvent.personReference.findCrn()).isEqualTo(crn)
-    Assertions.assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    Assertions.assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
+    inboxEventHelper.publish(snsEvent, eventType)
   }
 }

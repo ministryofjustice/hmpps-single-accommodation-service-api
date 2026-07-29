@@ -7,6 +7,9 @@ fun expectedGetCaseResponse(): String = """
 {
   "data": {
     "name": "First Middle Last",
+    "forename": "First",
+    "middleNames": "Middle",
+    "surname": "Last",
     "dateOfBirth": "2000-12-03",
     "crn": "FAKECRN1",
     "prisonNumber": "PRI1",
@@ -17,8 +20,7 @@ fun expectedGetCaseResponse(): String = """
     "assignedTo": {
       "forename": "First",
       "surname": "Last",
-      "username": "user1",
-      "staffCode": "ABCD1234"
+      "username": "user1"
     },
     "actions": [],
     "userAccess": "FULL",

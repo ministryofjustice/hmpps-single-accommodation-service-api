@@ -26,6 +26,9 @@ fun buildFullPersonDto(
 ) = FullPersonDto(
   crn = crn,
   name = name.fullName,
+  forename = name.forename,
+  middleNames = name.middleName,
+  surname = name.surname,
   nomsNumber = nomsNumber,
   pncNumber = pncNumber,
   dateOfBirth = dateOfBirth,
@@ -53,5 +56,4 @@ private fun assignedTo(staff: Officer) = buildAssignedToDto(
   forename = staff.name.forename,
   surname = staff.name.surname,
   username = staff.username,
-  staffCode = staff.code,
 )

@@ -159,7 +159,7 @@ class ProposedAccommodationTimelineServiceTest {
         buildAuditRecordDto(
           type = AuditRecordType.NOTE,
           author = "Joe Bloggs",
-          authorDetails = AssignedToDto(forename = "Joe", surname = "Bloggs", username = "joe.bloggs12", staffCode = null),
+          authorDetails = AssignedToDto(forename = "Joe", surname = "Bloggs", username = "joe.bloggs12"),
           commitDate = noteCreatedAt,
           changes = listOf(
             buildFieldChange(
@@ -173,7 +173,7 @@ class ProposedAccommodationTimelineServiceTest {
         buildAuditRecordDto(
           type = AuditRecordType.NOTE,
           author = "Jane Doe",
-          authorDetails = AssignedToDto(forename = "Jane", surname = "Doe", username = "joe.bloggs12", staffCode = null),
+          authorDetails = AssignedToDto(forename = "Jane", surname = "Doe", username = "joe.bloggs12"),
           commitDate = note2CreatedAt,
           changes = listOf(
             buildFieldChange(

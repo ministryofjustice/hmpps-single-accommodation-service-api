@@ -129,7 +129,7 @@ class CaseQueryService(
     searchTerm.isNullOrBlank() -> true
     crn.trim().equals(searchTerm, true) -> true
     nomsNumber?.trim().equals(searchTerm, true) -> true
-    this is Identifiable && name.contains(searchTerm, true) -> true
+    this is Identifiable && "$forename $middleNames $surname".contains(searchTerm, true) -> true
     else -> false
   }
 }

@@ -129,7 +129,6 @@ class ProposedAccommodationQueryServiceTest {
       val result = service.getProposedAccommodation(crn, id)
 
       assertThat(result.id).isEqualTo(proposedAccommodationEntity.id)
-      assertThat(result.name).isEqualTo(proposedAccommodationEntity.name)
       assertThat(result.createdAt).isEqualTo(proposedAccommodationEntity.createdAt)
     }
 

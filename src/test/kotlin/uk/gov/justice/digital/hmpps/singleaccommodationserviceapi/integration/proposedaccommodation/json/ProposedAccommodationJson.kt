@@ -4,7 +4,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ne
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import java.time.LocalDate
 import java.util.UUID
 
 fun expectedGetProposedAccommodationsEmptyListResponse(): String = """
@@ -19,7 +18,6 @@ fun expectedGetProposedAccommodationsResponse(
   firstAccommodationTypeEntity: AccommodationTypeEntity,
   firstVerificationStatus: VerificationStatus,
   firstNextAccommodationStatus: NextAccommodationStatus,
-  firstStartDate: LocalDate?,
   firstCreatedAt: String,
   firstCreatedBy: String,
   firstBuildingNumber: String,
@@ -27,28 +25,15 @@ fun expectedGetProposedAccommodationsResponse(
   secondAccommodationTypeEntity: AccommodationTypeEntity,
   secondVerificationStatus: VerificationStatus,
   secondNextAccommodationStatus: NextAccommodationStatus,
-  secondStartDate: LocalDate?,
   secondCreatedAt: String,
   secondCreatedBy: String,
   crn: String,
-): String {
-  val firstStartDateString = firstStartDate?.let {
-    """
-    "$firstStartDate"
-    """.trimIndent()
-  } ?: "null"
-  val secondStartDateString = secondStartDate?.let {
-    """
-    "$secondStartDate"
-    """.trimIndent()
-  } ?: "null"
-  return """
+) = """
 {
   "data": [
   {
     "id" : "$firstId",
     "crn":"$crn",
-    "name" : null,
     "accommodationType": {
       "code": "${firstAccommodationTypeEntity.code}",
       "description": "${firstAccommodationTypeEntity.name}"
@@ -67,15 +52,12 @@ fun expectedGetProposedAccommodationsResponse(
       "country" : null,
       "uprn" : null
     },
-    "startDate" : $firstStartDateString,
-    "endDate" : null,
     "createdBy":"$firstCreatedBy",
     "createdAt" : "$firstCreatedAt"
   },
   {
     "id" : "$secondId",
     "crn":"$crn",
-    "name" : null,
     "accommodationType": {
       "code": "${secondAccommodationTypeEntity.code}",
       "description": "${secondAccommodationTypeEntity.name}"
@@ -94,15 +76,12 @@ fun expectedGetProposedAccommodationsResponse(
       "country" : null,
       "uprn" : null
     },
-    "startDate" : $secondStartDateString,
-    "endDate" : null,
     "createdBy":"$secondCreatedBy",
     "createdAt" : "$secondCreatedAt"
   }
   ]
 }
-  """.trimIndent()
-}
+""".trimIndent()
 
 fun expectedGetProposedAccommodationsResponse(
   expectedId: UUID,
@@ -118,8 +97,6 @@ fun expectedGetProposedAccommodationsResponse(
   expectedAccommodationTypeEntity: AccommodationTypeEntity?,
   expectedVerificationStatus: VerificationStatus,
   expectedNextAccommodationStatus: NextAccommodationStatus,
-  expectedStartDate: LocalDate,
-  expectedEndDate: LocalDate,
   expectedCreatedAt: String,
   expectedCreatedBy: String,
   crn: String,
@@ -137,7 +114,6 @@ fun expectedGetProposedAccommodationsResponse(
       "data": [{
         "id" : "$expectedId",
         "crn":"$crn",
-        "name" : null,
         "accommodationType": $expectedAccommodationType,
         "verificationStatus" : "${expectedVerificationStatus.name}",
         "nextAccommodationStatus" : "${expectedNextAccommodationStatus.name}",
@@ -153,8 +129,6 @@ fun expectedGetProposedAccommodationsResponse(
           "country" : null,
           "uprn" : "$expectedUprn"
         },
-        "startDate" : ${convertNullable(expectedStartDate.toString())},
-        "endDate" : ${convertNullable(expectedEndDate.toString())},
         "createdBy":"$expectedCreatedBy",
         "createdAt" : "$expectedCreatedAt"
       }]
@@ -172,13 +146,11 @@ fun expectedGetProposedAccommodationByIdResponse(
   id: UUID,
   crn: String,
   createdAt: String,
-  startDate: String,
 ): String = """
 {
   "data": {
   "id" : "$id",
   "crn": "$crn",
-  "name" : null,
   "accommodationType": {
     "code": "A07B",
     "description": "Living in the home of a friend, family member or partner: settled"
@@ -197,8 +169,6 @@ fun expectedGetProposedAccommodationByIdResponse(
     "country" : "England",
     "uprn" : null
   },
-  "startDate" : "$startDate",
-  "endDate" : null,
   "createdBy":"Test Data Setup User",
   "createdAt" : "$createdAt"
   }
@@ -219,8 +189,6 @@ fun proposedAddressesRequestBody(
   country: String? = "England",
   postcode: String = "test postcode",
   uprn: String? = "test uprn",
-  startDate: String? = "2026-01-05",
-  endDate: String? = "2026-04-25",
 ): String {
   val accommodationTypeConverted = accommodationTypeCode?.let {
     """
@@ -229,8 +197,6 @@ fun proposedAddressesRequestBody(
   } ?: """ null """
   return """
   {
-    "name" : null,
-    "typeVerified" : false,
     "accommodationTypeCode" : $accommodationTypeConverted,
     "verificationStatus" : "$verificationStatus",
     "nextAccommodationStatus" : "$nextAccommodationStatus",
@@ -245,9 +211,7 @@ fun proposedAddressesRequestBody(
       "county" : ${convertNullable(county)},
       "country" : ${convertNullable(country)},
       "uprn" : ${convertNullable(uprn)}
-    },
-    "startDate" : ${convertNullable(startDate)},
-    "endDate" : ${convertNullable(endDate)}
+    }
   }
   """.trimIndent()
 }
@@ -292,14 +256,12 @@ fun expectedProposedAddressesResponseBody(
   postTown: String,
   county: String,
   uprn: String,
-  startDate: String,
   createdBy: String,
   createdAt: String,
 ): String = """
 {
   "id" : "$id",
   "crn":"$crn",
-  "name" : null,
   "accommodationType" : {
     "code": "$accommodationTypeCode",
     "description": "$accommodationTypeDescription"
@@ -318,8 +280,6 @@ fun expectedProposedAddressesResponseBody(
     "country" : "England",
     "uprn" : "$uprn"
   },
-  "startDate" : "$startDate",
-  "endDate" : null,
   "createdBy":"$createdBy",
   "createdAt" : "$createdAt"
 }
