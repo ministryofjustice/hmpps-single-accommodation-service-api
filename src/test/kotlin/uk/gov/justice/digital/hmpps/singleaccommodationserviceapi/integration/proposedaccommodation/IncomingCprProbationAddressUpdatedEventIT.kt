@@ -1,16 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation
 
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -20,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
@@ -29,14 +23,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
-import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.UUID
@@ -55,15 +47,6 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
   @Autowired
   private lateinit var accommodationStatusRepository: AccommodationStatusRepository
 
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
-
-  @Autowired
-  lateinit var jsonMapper: JsonMapper
-
-  private val domainTopic by lazy {
-    hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
-  }
   lateinit var crn: String
   private val eventType = "core-person-record.probation.address.updated"
   private val eventDescription = "A probation address has been updated for a person"
@@ -200,7 +183,10 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
     assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
-    assertThatSingleInboxEventIsAsExpected(
+    inboxEventHelper.assertInboxEvent(
+      crn = crn,
+      eventType = eventType,
+      eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
     )
   }
@@ -224,21 +210,21 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
       cprAddressId = unmatchingCprAddressId,
     )
 
-    waitForEntity {
-      inboxEventRepository.findAllByProcessedStatus(
-        processedStatus = ProcessedStatus.IGNORED,
-        pageable = PageRequest.of(0, 10),
-      ).firstOrNull()
-    }
+    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
 
     val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
     assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
 
-    assertThatSingleInboxEventIsAsExpected(
+    inboxEventHelper.assertInboxEvent(
+      crn = crn,
+      eventType = eventType,
+      eventDetailUrl = eventDetailUrl(unmatchingCprAddressId),
       processedStatus = ProcessedStatus.IGNORED,
     )
   }
+
+  private fun eventDetailUrl(cprAddressId: UUID) = "${sasWiremock.baseUrl()}/person/probation/$crn/address/$cprAddressId"
 
   private fun publishCprProbationAddressUpdatedEvent(cprAddressId: UUID) {
     val snsEvent = """ 
@@ -247,7 +233,7 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
        "version":1,
        "occurredAt":"2026-07-24T13:58:28.076572456+01:00",
        "description":"$eventDescription",
-       "detailUrl":"${sasWiremock.baseUrl()}/person/probation/$crn/address/$cprAddressId",
+       "detailUrl":"${eventDetailUrl(cprAddressId)}",
        "personReference":{
           "identifiers":[
              {
@@ -263,25 +249,6 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    domainTopic.snsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainTopic.arn)
-        .message(snsEvent)
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        ).build(),
-    )
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
-    val inboxEvents = inboxEventRepository.findAll()
-    Assertions.assertThat(inboxEvents).hasSize(1)
-    val inboxEvent = inboxEvents.first()
-    val cprProbationAddressDeletedEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    Assertions.assertThat(cprProbationAddressDeletedEvent.personReference.findCrn()).isEqualTo(crn)
-    Assertions.assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    Assertions.assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
+    inboxEventHelper.publish(snsEvent, eventType)
   }
 }
