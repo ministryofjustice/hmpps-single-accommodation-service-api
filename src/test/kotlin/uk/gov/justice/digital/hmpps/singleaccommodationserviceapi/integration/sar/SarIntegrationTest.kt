@@ -79,7 +79,7 @@ class SarIntegrationTest : IntegrationTestBase() {
       .expectBody(String::class.java)
       .value { body ->
         assertThat(body).contains("{{#ProposedAccommodations}}")
-        assertThat(body).contains("{{#duty_to_refer}}")
+        assertThat(body).contains("{{#DutyToRefer}}")
         assertThat(body).contains("{{#accommodation_notes}}")
       }
   }

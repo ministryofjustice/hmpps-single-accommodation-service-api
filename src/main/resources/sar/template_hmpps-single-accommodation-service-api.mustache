@@ -74,49 +74,6 @@
         </tr>
     </table>
 
-    <h3>Duty to Refer</h3>
-    {{#duty_to_refer}}
-        <table class="data-table">
-            <tr>
-                <td class="data-column-25">CRN</td>
-                <td class="data-column-25">Reference number</td>
-                <td class="data-column-25">Submission date</td>
-                <td class="data-column-25">Status</td>
-            </tr>
-            <tr>
-                <td>{{ optionalValue crn }}</td>
-                <td>{{ optionalValue submission.referenceNumber }}</td>
-                <td>{{ optionalValue (formatDate submission.submissionDate) }}</td>
-                <td>{{ optionalValue status }}</td>
-            </tr>
-        </table>
-        <table class="data-table">
-            <tr>
-                <td class="data-column-25">Local authority area</td>
-            </tr>
-            <tr>
-                <td>{{ optionalValue submission.localAuthority.localAuthorityAreaName }}</td>
-            </tr>
-        </table>
-        <table class="data-table">
-            <tr>
-                <td class="data-column-25">Created at</td>
-                <td class="data-column-25">Last updated at</td>
-                <td class="data-column-25">Created by user</td>
-                <td class="data-column-25">Last updated by user</td>
-            </tr>
-            <tr>
-                <td>{{ optionalValue (formatDate submission.createdAt) }}</td>
-                <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
-                <td>{{ optionalValue submission.createdBy }}</td>
-                <td>{{ optionalValue lastUpdatedBy }}</td>
-            </tr>
-        </table>
-    {{/duty_to_refer}}
-    {{^duty_to_refer}}
-        <p>No Data Held</p>
-    {{/duty_to_refer}}
-
     <h3>Proposed Accommodation Notes</h3>
     {{#accommodation_notes}}
         <table class="data-table">
@@ -150,3 +107,46 @@
 {{^ProposedAccommodations}}
     <p>No Data Held</p>
 {{/ProposedAccommodations}}
+
+<h3>Duty to Refer</h3>
+{{#DutyToRefer}}
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">CRN</td>
+            <td class="data-column-25">Reference number</td>
+            <td class="data-column-25">Submission date</td>
+            <td class="data-column-25">Status</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue crn }}</td>
+            <td>{{ optionalValue submission.referenceNumber }}</td>
+            <td>{{ optionalValue (formatDate submission.submissionDate) }}</td>
+            <td>{{ optionalValue status }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Local authority area</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue submission.localAuthority.localAuthorityAreaName }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Created at</td>
+            <td class="data-column-25">Last updated at</td>
+            <td class="data-column-25">Created by user</td>
+            <td class="data-column-25">Last updated by user</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue (formatDate submission.createdAt) }}</td>
+            <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+            <td>{{ optionalValue submission.createdBy }}</td>
+            <td>{{ optionalValue lastUpdatedBy }}</td>
+        </tr>
+    </table>
+{{/DutyToRefer}}
+{{^DutyToRefer}}
+    <p>No Data Held</p>
+{{/DutyToRefer}}

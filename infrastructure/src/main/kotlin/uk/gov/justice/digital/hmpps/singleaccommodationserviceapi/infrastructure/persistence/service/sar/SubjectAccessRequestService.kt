@@ -90,6 +90,39 @@ class SubjectAccessRequestService(
 
     val users = userRepository.findAll().associateBy { it.id }
     val accTypes = accommodationTypeRepository.findAll().associateBy { it.id }
+    val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
+
+    val nestedDutyToRefers = dutyToRefers.map { dtr ->
+      val dtrCreatedByUser = users[dtr.createdByUserId]
+      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]
+      val laa = laas[dtr.localAuthorityAreaId]
+
+      val dtrDto = DutyToReferDto(
+        caseId = dtr.caseId,
+        crn = personCrn,
+        status = DtrStatus.valueOf(dtr.status.name),
+        submission = DtrSubmissionDto(
+          id = dtr.id,
+          localAuthority = LocalAuthorityDto(
+            localAuthorityAreaId = dtr.localAuthorityAreaId,
+            localAuthorityAreaName = laa?.name,
+          ),
+          referenceNumber = dtr.referenceNumber,
+          submissionDate = dtr.submissionDate,
+          createdBy = dtrCreatedByUser?.displayName() ?: "Unknown",
+          createdAt = dtr.createdAt!!,
+          withdrawalReason = dtr.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
+          withdrawalReasonOther = dtr.withdrawalReasonOther,
+          outcomeReason = dtr.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
+          submissionNote = dtr.submissionNote,
+          outcomeNote = dtr.outcomeNote,
+        ),
+      )
+      val dtrMap = mapper.convertValue(dtrDto, Map::class.java).toMutableMap()
+      dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser?.displayName() ?: "Unknown"
+      dtrMap["lastUpdatedAt"] = dtr.lastUpdatedAt
+      dtrMap
+    }
 
     val nestedAccommodations = accommodations.map { pa ->
       val type = accTypes[pa.accommodationTypeId]
@@ -121,8 +154,6 @@ class SubjectAccessRequestService(
         createdAt = pa.createdAt!!,
       )
 
-      val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
-
       val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
       paMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
       paMap["lastUpdatedAt"] = pa.lastUpdatedAt
@@ -131,39 +162,6 @@ class SubjectAccessRequestService(
         AccommodationSettledType.TRANSIENT -> "Transient"
         null -> null
       }
-
-      paMap["duty_to_refer"] = dutyToRefers.map { dtr ->
-        val dtrCreatedByUser = users[dtr.createdByUserId]
-        val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]
-        val laa = laas[dtr.localAuthorityAreaId]
-
-        val dtrDto = DutyToReferDto(
-          caseId = dtr.caseId,
-          crn = personCrn,
-          status = DtrStatus.valueOf(dtr.status.name),
-          submission = DtrSubmissionDto(
-            id = dtr.id,
-            localAuthority = LocalAuthorityDto(
-              localAuthorityAreaId = dtr.localAuthorityAreaId,
-              localAuthorityAreaName = laa?.name,
-            ),
-            referenceNumber = dtr.referenceNumber,
-            submissionDate = dtr.submissionDate,
-            createdBy = dtrCreatedByUser?.displayName() ?: "Unknown",
-            createdAt = dtr.createdAt!!,
-            withdrawalReason = dtr.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
-            withdrawalReasonOther = dtr.withdrawalReasonOther,
-            outcomeReason = dtr.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
-            submissionNote = dtr.submissionNote,
-            outcomeNote = dtr.outcomeNote,
-          ),
-        )
-        val dtrMap = mapper.convertValue(dtrDto, Map::class.java).toMutableMap()
-        dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser?.displayName() ?: "Unknown"
-        dtrMap["lastUpdatedAt"] = dtr.lastUpdatedAt
-        dtrMap
-      }
-
       paMap["accommodation_notes"] = pa.notes.map { note ->
         mapOf(
           "note" to note.note,
@@ -176,6 +174,9 @@ class SubjectAccessRequestService(
       paMap
     }
 
-    return mapOf("ProposedAccommodations" to nestedAccommodations)
+    return mapOf(
+      "ProposedAccommodations" to nestedAccommodations,
+      "DutyToRefer" to nestedDutyToRefers,
+    )
   }
 }
