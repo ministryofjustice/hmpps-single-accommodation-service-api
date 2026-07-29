@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PersonNamesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
@@ -27,15 +26,9 @@ fun buildFullPersonDto(
 ) = FullPersonDto(
   crn = crn,
   name = name.fullName,
-  personNames = if (name.forename.isBlank() || name.surname.isBlank()) {
-    null
-  } else {
-    PersonNamesDto(
-      forename = name.forename,
-      middleNames = name.middleName?.takeIf { it.isNotBlank() },
-      surname = name.surname,
-    )
-  },
+  forename = name.forename,
+  middleNames = name.middleName,
+  surname = name.surname,
   nomsNumber = nomsNumber,
   pncNumber = pncNumber,
   dateOfBirth = dateOfBirth,

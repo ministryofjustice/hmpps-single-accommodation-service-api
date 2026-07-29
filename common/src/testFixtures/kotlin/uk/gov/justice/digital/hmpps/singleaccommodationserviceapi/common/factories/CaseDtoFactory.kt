@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PersonNamesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
@@ -12,7 +11,9 @@ import java.time.LocalDate
 fun buildCaseDto(
   crn: String,
   name: String = "First Middle Last",
-  personNames: PersonNamesDto? = PersonNamesDto(forename = "First", middleNames = "Middle", surname = "Last"),
+  forename: String = "First",
+  middleNames: String? = "Middle",
+  surname: String = "Last",
   dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
   prisonNumber: String? = "PRI1",
   tierScore: String? = "A1",
@@ -24,7 +25,9 @@ fun buildCaseDto(
   limitedAccess: Boolean = false,
 ) = CaseDto(
   name = name,
-  personNames = personNames,
+  forename = forename,
+  middleNames = middleNames,
+  surname = surname,
   dateOfBirth = dateOfBirth,
   crn = crn,
   prisonNumber = prisonNumber,

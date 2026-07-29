@@ -27,7 +27,9 @@ object CaseTransformer {
     limitedAccess: Boolean,
   ) = CaseDto(
     name = cpr?.toFullName(),
-    personNames = cpr?.toPersonNamesDto(),
+    forename = cpr?.firstName,
+    middleNames = cpr?.middleNames,
+    surname = cpr?.lastName,
     dateOfBirth = cpr?.dateOfBirth,
     crn = person.crn,
     prisonNumber = cpr?.identifiers?.prisonNumbers?.firstOrNull(),
@@ -48,7 +50,9 @@ object CaseTransformer {
     is FullPersonDto -> {
       CaseDto(
         name = name,
-        personNames = personNames,
+        forename = forename,
+        middleNames = middleNames,
+        surname = surname,
         dateOfBirth = dateOfBirth,
         crn = crn,
         prisonNumber = nomsNumber,

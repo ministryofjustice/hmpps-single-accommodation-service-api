@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PersonNamesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
 
 object PersonTransformer {
   fun toPersonDto(
@@ -20,7 +18,9 @@ object PersonTransformer {
     FullPersonDto(
       crn = case.crn,
       name = case.name.fullName,
-      personNames = case.name.toPersonNamesDto(),
+      forename = case.name.forename,
+      middleNames = case.name.middleName,
+      surname = case.name.surname,
       nomsNumber = case.nomsNumber,
       pncNumber = case.pncNumber,
       dateOfBirth = case.dateOfBirth,
@@ -38,14 +38,4 @@ object PersonTransformer {
     surname = staff.name.surname,
     username = staff.username,
   )
-
-  private fun Name.toPersonNamesDto() = if (forename.isBlank() || surname.isBlank()) {
-    null
-  } else {
-    PersonNamesDto(
-      forename = forename,
-      middleNames = middleName?.takeIf { it.isNotBlank() },
-      surname = surname,
-    )
-  }
 }
