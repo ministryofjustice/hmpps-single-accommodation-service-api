@@ -8,6 +8,9 @@ fun expectedGetCaseListResponse(): String = """
    "data":[
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN1",
          "prisonNumber":"PRI1",
@@ -39,6 +42,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"Zack Middle Smith",
+         "forename":"Zack",
+         "middleNames":"Middle",
+         "surname":"Smith",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN2",
          "prisonNumber":"PRI2",
@@ -70,6 +76,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN3",
          "prisonNumber":"PRI3",
@@ -101,6 +110,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN4",
          "prisonNumber":"PRI4",
@@ -132,6 +144,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN5",
          "prisonNumber":"PRI5",
@@ -163,6 +178,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN6",
          "prisonNumber":"PRI6",
@@ -198,6 +216,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN7",
          "prisonNumber":"PRI7",
@@ -225,6 +246,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN8",
          "prisonNumber":"PRI8",
@@ -252,6 +276,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN9",
          "prisonNumber":"PRI9",
@@ -279,6 +306,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN10",
          "prisonNumber":"PRI10",
@@ -310,6 +340,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN11",
          "prisonNumber":"PRI11",
@@ -341,6 +374,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN12",
          "prisonNumber":"PRI12",
@@ -376,6 +412,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN13",
          "prisonNumber":"PRI13",
@@ -411,6 +450,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN14",
          "prisonNumber":"PRI14",
@@ -442,6 +484,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN15",
          "prisonNumber":"PRI15",
@@ -473,6 +518,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN16",
          "prisonNumber":"PRI16",
@@ -504,6 +552,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN17",
          "prisonNumber":"PRI17",
@@ -535,6 +586,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN18",
          "prisonNumber":"PRI18",
@@ -566,6 +620,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":null,
+         "forename":null,
+         "middleNames":null,
+         "surname":null,
          "dateOfBirth":null,
          "crn":"FAKECRN19",
          "prisonNumber":null,
@@ -582,6 +639,9 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":null,
+         "forename":null,
+         "middleNames":null,
+         "surname":null,
          "dateOfBirth":null,
          "crn":"FAKECRN20",
          "prisonNumber":null,

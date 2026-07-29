@@ -5,7 +5,11 @@ import java.time.LocalDate
 enum class UserAccess { LIMITED, FULL, UNKNOWN }
 
 data class CaseDto(
+  @Deprecated("Use forename and surname instead")
   val name: String? = null,
+  val forename: String? = null,
+  val middleNames: String? = null,
+  val surname: String? = null,
   val dateOfBirth: LocalDate? = null,
   val crn: String,
   val prisonNumber: String? = null,

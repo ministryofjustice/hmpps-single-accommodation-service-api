@@ -99,7 +99,13 @@ class CaseTransformerTest {
     val name = buildName()
     val personDto = buildFullPersonDto(crn = CRN, name = name)
     val eligibilityDto = buildEligibilityDto(CRN)
-    val caseDto = buildCaseDto(crn = CRN, name = name.fullName)
+    val caseDto = buildCaseDto(
+      crn = CRN,
+      name = name.fullName,
+      forename = name.forename,
+      middleNames = name.middleName,
+      surname = name.surname,
+    )
 
     assertThat(personDto.toCaseDto(caseEntity = caseEntity, eligibility = eligibilityDto)).isEqualTo(caseDto)
   }
@@ -134,6 +140,9 @@ class CaseTransformerTest {
 
     private val caseDtoWhenAllDataSupplied = CaseDto(
       name = "First Middle Last",
+      forename = "First",
+      middleNames = "Middle",
+      surname = "Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",

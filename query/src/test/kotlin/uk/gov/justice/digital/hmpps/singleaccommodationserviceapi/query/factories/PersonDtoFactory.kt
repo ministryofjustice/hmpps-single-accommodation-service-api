@@ -26,6 +26,9 @@ fun buildFullPersonDto(
 ) = FullPersonDto(
   crn = crn,
   name = name.fullName,
+  forename = name.forename,
+  middleNames = name.middleName,
+  surname = name.surname,
   nomsNumber = nomsNumber,
   pncNumber = pncNumber,
   dateOfBirth = dateOfBirth,
