@@ -19,21 +19,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.sar.SasSubjectAccessRequestRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonProbationSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneOffset
+import java.time.ZoneId
 
 @Service
 @Transactional(readOnly = true)
 class SubjectAccessRequestService(
-  val sasSubjectAccessRequestRepository: SasSubjectAccessRequestRepository,
-  val caseRepository: CaseRepository,
+  private val caseRepository: CaseRepository,
+  private val proposedAccommodationRepository: ProposedAccommodationRepository,
+  private val dutyToReferRepository: DutyToReferRepository,
+  private val userRepository: UserRepository,
+  private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
@@ -54,8 +60,8 @@ class SubjectAccessRequestService(
     val sarResult = getSarResult(
       crn,
       prn,
-      fromDate?.atStartOfDay(),
-      toDate?.atTime(LocalTime.MAX),
+      fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MIN,
+      toDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MAX,
     ) ?: return null
 
     return HmppsSubjectAccessRequestContent(content = sarResult)
@@ -64,8 +70,8 @@ class SubjectAccessRequestService(
   fun getSarResult(
     crn: String?,
     prisonNumber: String?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
+    startDate: Instant,
+    endDate: Instant,
   ): Map<String, Any>? {
     if (crn == null && prisonNumber == null) return null
 
@@ -77,17 +83,14 @@ class SubjectAccessRequestService(
     val caseId = caseEntity.id
     val personCrn = caseEntity.latestCrn()
 
-    val startInstant = startDate?.toInstant(ZoneOffset.UTC)
-    val endInstant = endDate?.toInstant(ZoneOffset.UTC)
-
-    val accommodations = sasSubjectAccessRequestRepository.findProposedAccommodations(caseId, startInstant, endInstant)
-    val dutyToRefers = sasSubjectAccessRequestRepository.findDutyToRefers(caseId, startInstant, endInstant)
+    val accommodations = proposedAccommodationRepository.findAllForSar(caseId, startDate, endDate)
+    val dutyToRefers = dutyToReferRepository.findAllForSar(caseId, startDate, endDate)
 
     if (accommodations.isEmpty()) return null
 
-    val users = sasSubjectAccessRequestRepository.findAllUsers().associateBy { it.id }
-    val accTypes = sasSubjectAccessRequestRepository.findAllAccommodationTypes().associateBy { it.id }
-    val laas = sasSubjectAccessRequestRepository.findAllLocalAuthorityAreas().associateBy { it.id }
+    val users = userRepository.findAll().associateBy { it.id }
+    val accTypes = accommodationTypeRepository.findAll().associateBy { it.id }
+    val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
     val nestedAccommodations = accommodations.map { pa ->
       val type = accTypes[pa.accommodationTypeId]

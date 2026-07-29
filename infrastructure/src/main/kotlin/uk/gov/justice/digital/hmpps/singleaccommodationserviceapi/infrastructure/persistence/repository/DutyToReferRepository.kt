@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
+import java.time.Instant
 import java.util.UUID
 
 @JaversSpringDataAuditable
@@ -33,4 +34,14 @@ interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
   """,
   )
   fun findByIdAndCrnWithNotes(id: UUID, crn: String): DutyToReferEntity?
+
+  @Query(
+    """
+    select dtr from DutyToReferEntity dtr
+    where dtr.caseId = :caseId
+    and dtr.createdAt >= :startDate
+    and dtr.createdAt <= :endDate
+  """,
+  )
+  fun findAllForSar(caseId: UUID, startDate: Instant, endDate: Instant): List<DutyToReferEntity>
 }
