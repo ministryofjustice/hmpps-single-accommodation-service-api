@@ -86,11 +86,10 @@ class SubjectAccessRequestService(
     val accommodations = proposedAccommodationRepository.findAllForSar(caseId, startDate, endDate)
     val dutyToRefers = dutyToReferRepository.findAllForSar(caseId, startDate, endDate)
 
-    if (accommodations.isEmpty()) return null
+    if (accommodations.isEmpty() && dutyToRefers.isEmpty()) return null
 
     val users = userRepository.findAll().associateBy { it.id }
     val accTypes = accommodationTypeRepository.findAll().associateBy { it.id }
-    val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
     val nestedAccommodations = accommodations.map { pa ->
       val type = accTypes[pa.accommodationTypeId]
@@ -119,8 +118,10 @@ class SubjectAccessRequestService(
           uprn = pa.uprn,
         ),
         createdBy = createdByUser?.displayName() ?: "Unknown",
-        createdAt = pa.createdAt ?: Instant.now(),
+        createdAt = pa.createdAt!!,
       )
+
+      val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
       val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
       paMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
@@ -149,7 +150,7 @@ class SubjectAccessRequestService(
             referenceNumber = dtr.referenceNumber,
             submissionDate = dtr.submissionDate,
             createdBy = dtrCreatedByUser?.displayName() ?: "Unknown",
-            createdAt = dtr.createdAt ?: Instant.now(),
+            createdAt = dtr.createdAt!!,
             withdrawalReason = dtr.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
             withdrawalReasonOther = dtr.withdrawalReasonOther,
             outcomeReason = dtr.outcomeReason?.let { OutcomeReason.valueOf(it.name) },

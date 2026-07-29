@@ -40,8 +40,8 @@ Once you have verified that the generated `.log` files contain the correct and e
 **Example:**
 
 ```bash
-cp src/test/resources/sas-sar-api-response.json.log src/test/resources/sar/expected_output.json 
-cp src/test/resources/sas-sar-report.html.log src/test/resources/sar/expected_report.html
+cp src/test/resources/sas-sar-api-response.json.log src/test/resources/sar/sas-expected-api-response.json
+cp src/test/resources/sas-sar-report.html.log src/test/resources/sar/sas-expected-report.html
 ```
 
 ## Template Modifications
