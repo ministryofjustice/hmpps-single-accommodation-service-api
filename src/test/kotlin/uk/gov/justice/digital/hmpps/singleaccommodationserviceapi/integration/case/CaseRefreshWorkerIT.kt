@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshCompletionService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.CaseRefreshWorker
 import java.time.Duration
@@ -266,10 +267,85 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
     val reopenedRequest = caseRefreshRequestRepository.findAll().single()
     assertThat(reopenedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
-    assertThat(reopenedRequest.attemptCount).isZero()
+    assertThat(reopenedRequest.attemptCount).isEqualTo(2)
     assertThat(reopenedRequest.nextAttemptAt).isEqualTo(now.plus(Duration.ofMinutes(2)))
-    assertThat(reopenedRequest.lastFailureCategory).isNull()
+    assertThat(reopenedRequest.lastFailureCategory).isEqualTo(CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR)
     assertThat(reopenedRequest.failedAt).isNull()
+
+    caseRefreshWorker.process()
+
+    val refailedRequest = caseRefreshRequestRepository.findAll().single()
+    assertThat(refailedRequest.status).isEqualTo(CaseRefreshRequestStatus.FAILED)
+    assertThat(refailedRequest.attemptCount).isEqualTo(3)
+    assertThat(refailedRequest.failedAt).isEqualTo(now.plus(Duration.ofMinutes(2)))
+  }
+
+  @Test
+  fun `retains the backoff and attempt count when a new event arrives for failing work`() {
+    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(crn)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
+    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+
+    caseRefreshWorker.process()
+
+    clock.freezeAt(now.plus(Duration.ofSeconds(10)))
+    caseRefreshRequestService.requestLiveRefresh(crn)
+
+    val churnedRequest = caseRefreshRequestRepository.findAll().single()
+    assertThat(churnedRequest.generation).isEqualTo(2)
+    assertThat(churnedRequest.attemptCount).isEqualTo(1)
+    assertThat(churnedRequest.nextAttemptAt).isEqualTo(now.plus(Duration.ofMinutes(1)))
+    assertThat(churnedRequest.requestedAt).isEqualTo(now)
+    assertThat(churnedRequest.lastFailureCategory).isEqualTo(CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR)
+
+    val duringBackoff = caseRefreshWorker.process()
+
+    assertThat(duringBackoff.refreshedCount).isZero()
+    assertThat(duringBackoff.failedCount).isZero()
+
+    clock.freezeAt(now.plus(Duration.ofMinutes(1)))
+    caseRefreshWorker.process()
+
+    assertThat(caseRefreshRequestRepository.findAll().single().status)
+      .isEqualTo(CaseRefreshRequestStatus.FAILED)
+  }
+
+  @Test
+  fun `clears the failure history when a refresh succeeds while a newer event is waiting`() {
+    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(crn)
+
+    val failedClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
+    caseRefreshRequestService.recordFailure(
+      failedClaim,
+      CaseRefreshFailure(
+        category = CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR,
+        detail = "500 server error",
+      ),
+    )
+    assertThat(caseRefreshRequestRepository.findAll().single().attemptCount).isEqualTo(1)
+
+    clock.freezeAt(now.plus(Duration.ofMinutes(1)))
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"), delayMs = 200)
+    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+
+    val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
+    waitFor {
+      assertThat(caseRefreshRequestRepository.findAll().single().status)
+        .isEqualTo(CaseRefreshRequestStatus.PROCESSING)
+    }
+
+    caseRefreshRequestService.requestLiveRefresh(crn)
+    workerRun.get(5, TimeUnit.SECONDS)
+
+    val retainedRequest = caseRefreshRequestRepository.findAll().single()
+    assertThat(caseRepository.findByCrn(crn)!!.tierScore).isEqualTo("A3")
+    assertThat(retainedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+    assertThat(retainedRequest.generation).isEqualTo(2)
+    assertThat(retainedRequest.attemptCount).isZero()
+    assertThat(retainedRequest.lastFailureCategory).isNull()
+    assertThat(retainedRequest.lastFailureDetail).isNull()
   }
 
   @Test

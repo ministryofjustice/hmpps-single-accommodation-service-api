@@ -35,11 +35,8 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
               ELSE case_refresh_request.status
           END,
           priority = 'LIVE',
-          requested_at = EXCLUDED.requested_at,
-          attempt_count = 0,
-          next_attempt_at = EXCLUDED.next_attempt_at,
-          last_failure_category = NULL,
-          last_failure_detail = NULL,
+          requested_at = LEAST(case_refresh_request.requested_at, EXCLUDED.requested_at),
+          next_attempt_at = GREATEST(case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at),
           failed_at = NULL,
           processing_generation = CASE
               WHEN case_refresh_request.status = 'PROCESSING' THEN case_refresh_request.processing_generation
