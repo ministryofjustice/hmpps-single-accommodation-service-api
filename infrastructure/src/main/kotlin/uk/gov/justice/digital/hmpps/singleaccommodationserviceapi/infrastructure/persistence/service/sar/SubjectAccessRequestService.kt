@@ -61,7 +61,7 @@ class SubjectAccessRequestService(
       crn,
       prn,
       fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MIN,
-      toDate?.plusDays(1).atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MAX,
+      toDate?.plusDays(1)?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MAX,
     ) ?: return null
 
     return HmppsSubjectAccessRequestContent(content = sarResult)
