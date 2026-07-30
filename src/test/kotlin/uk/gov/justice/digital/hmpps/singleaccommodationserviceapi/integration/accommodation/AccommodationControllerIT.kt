@@ -170,7 +170,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return current accommodation with null caseAccommodationStatus when current accommodation is settled and no next accommodation`() {
+    fun `returns null caseAccommodationStatus when current accommodation is settled and has no next accommodation`() {
       val corePersonRecord = buildCorePersonRecord(
         identifiers = buildIdentifiers(crns = listOf(crn)),
         addresses = listOf(currentAddress),
