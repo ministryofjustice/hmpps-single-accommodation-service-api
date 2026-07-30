@@ -45,6 +45,14 @@ class CaseRefreshRequestEntity(
     clearClaim()
   }
 
+  fun releaseAfterSuccess() {
+    status = CaseRefreshRequestStatus.PENDING
+    attemptCount = 0
+    lastFailureCategory = null
+    lastFailureDetail = null
+    clearClaim()
+  }
+
   fun scheduleRetry(
     failureCategory: CaseRefreshFailureCategory,
     failureDetail: String,

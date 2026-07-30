@@ -55,7 +55,7 @@ class CaseRefreshCompletionService(
     if (request.generation == claim.generation) {
       caseRefreshRequestRepository.delete(request)
     } else {
-      request.releaseForNewerGeneration()
+      request.releaseAfterSuccess()
     }
     return Result.Applied
   }

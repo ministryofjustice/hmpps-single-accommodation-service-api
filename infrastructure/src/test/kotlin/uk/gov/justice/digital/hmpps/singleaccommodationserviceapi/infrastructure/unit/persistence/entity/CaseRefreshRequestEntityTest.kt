@@ -88,6 +88,30 @@ class CaseRefreshRequestEntityTest {
     assertThat(request.processingGeneration).isNull()
   }
 
+  @Test
+  fun `release after success clears the failure history and keeps the next attempt`() {
+    val newerRequestAt = now.plusSeconds(1)
+    val request = refreshRequest(
+      attemptCount = 2,
+      nextAttemptAt = newerRequestAt,
+      lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR,
+      lastFailureDetail = "Tier returned 500",
+    )
+    request.claim(claimId, now)
+    request.generation = 2
+
+    request.releaseAfterSuccess()
+
+    assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+    assertThat(request.generation).isEqualTo(2)
+    assertThat(request.attemptCount).isZero()
+    assertThat(request.lastFailureCategory).isNull()
+    assertThat(request.lastFailureDetail).isNull()
+    assertThat(request.nextAttemptAt).isEqualTo(newerRequestAt)
+    assertThat(request.claimId).isNull()
+    assertThat(request.processingGeneration).isNull()
+  }
+
   private fun refreshRequest(
     status: CaseRefreshRequestStatus = CaseRefreshRequestStatus.PENDING,
     attemptCount: Int = 0,
