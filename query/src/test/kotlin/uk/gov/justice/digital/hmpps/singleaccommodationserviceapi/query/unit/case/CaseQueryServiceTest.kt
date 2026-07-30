@@ -247,8 +247,10 @@ class CaseQueryServiceTest {
         "fI,3",
         "rSt,3",
         "rSt Mid,3",
-        "First Middle Last,2", // Currently the search includes middle name. Will be changed in a future PR.
-        "First Last,0",
+        "First Middle Last,2",
+        "First Last,2",
+        "lAsT fIrSt,2",
+        " Last   First ,2",
         "MultiCaseSurname,1",
         "Multi,1",
         "CASE,1",
