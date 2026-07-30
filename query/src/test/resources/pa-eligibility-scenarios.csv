@@ -6,4 +6,4 @@ testCaseId,description,hasNextAccommodation,isSubmittedCas1,isSubmittedCas3,expe
 5,Eligible - completed,TRUE,TRUE,FALSE,COMPLETED,,
 6,,FALSE,TRUE,FALSE,NOT_ELIGIBLE,,"SUITABLE_CAS1_APPLICATION"
 7,Eligible - completed,TRUE,FALSE,FALSE,COMPLETED,,
-8,Eligible,FALSE,FALSE,FALSE,NOT_STARTED,Add and confirm proposed address,
+8,Eligible,FALSE,FALSE,FALSE,NOT_STARTED,ADD_AND_CONFIRM_PROPOSED_ADDRESS,

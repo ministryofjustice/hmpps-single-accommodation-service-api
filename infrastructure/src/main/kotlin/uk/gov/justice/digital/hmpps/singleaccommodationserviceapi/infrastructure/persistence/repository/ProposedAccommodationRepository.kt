@@ -4,6 +4,7 @@ import org.javers.spring.annotation.JaversSpringDataAuditable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
+import java.time.Instant
 import java.util.UUID
 
 @JaversSpringDataAuditable
@@ -13,6 +14,7 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     select pa from ProposedAccommodationEntity pa 
     join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId 
     where pa.id = :id and ci.identifier = :crn and ci.identifierType = 'CRN'
+    and pa.deleted = false
   """,
   )
   fun findByIdAndCrn(id: UUID, crn: String): ProposedAccommodationEntity?
@@ -21,11 +23,21 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     """
     select pa from ProposedAccommodationEntity pa 
     join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId 
+    left join AccommodationStatusEntity status on status.id = pa.accommodationStatusId 
     where ci.identifier = :crn and ci.identifierType = 'CRN'
+    and (
+        status is null or
+        status.code = 'PR' or 
+        status.code = 'PR1'
+    )
+    and pa.deleted = false
+    and (pa.endDate is null or pa.endDate > current_date) 
+    and pa.postcode is not null 
+    and pa.postcode != ''
     order by pa.createdAt desc 
   """,
   )
-  fun findAllByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
+  fun findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
 
   @Query(
     """
@@ -33,6 +45,7 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId 
     join fetch pa.notes 
     where ci.identifier = :crn and ci.identifierType = 'CRN'
+    and pa.deleted = false
     order by pa.createdAt desc 
     """,
   )
@@ -44,10 +57,27 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     join CaseIdentifierEntity ci on ci.caseEntity.id = pa.caseId
     left join fetch pa.notes 
     where pa.id = :id
+    and pa.deleted = false
     and ci.identifier = :crn and ci.identifierType = 'CRN'
     """,
   )
   fun findByIdAndCrnWithNotes(id: UUID, crn: String): ProposedAccommodationEntity?
 
-  fun findByCprAddressId(cprAddressId: UUID?): ProposedAccommodationEntity?
+  fun findByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
+
+  fun findByIdAndDeleted(id: UUID, deleted: Boolean): ProposedAccommodationEntity?
+
+  fun findByIdAndAccommodationStatusId(id: UUID, accommodationStatusId: UUID): ProposedAccommodationEntity?
+
+  @Query(
+    """
+    select distinct pa from ProposedAccommodationEntity pa
+    left join fetch pa.notes 
+    where pa.caseId = :caseId
+    and pa.createdAt >= :startDate
+    and pa.createdAt <= :endDate
+    order by pa.createdAt desc 
+    """,
+  )
+  fun findAllForSar(caseId: UUID, startDate: Instant, endDate: Instant): List<ProposedAccommodationEntity>
 }

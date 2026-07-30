@@ -93,12 +93,14 @@ class UserAuditIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A02.name,
-              description = AddressUsageCode.A02.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -180,7 +182,6 @@ class UserAuditIT : IntegrationTestBase() {
     assertThat(unknownUser.middleNames).isEqualTo(staffDetail.name.middleName)
     assertThat(unknownUser.surname).isEqualTo(staffDetail.name.surname)
     assertThat(unknownUser.telephoneNumber).isEqualTo(staffDetail.telephoneNumber)
-    assertThat(unknownUser.deliusStaffCode).isEqualTo(staffDetail.code)
     assertThat(unknownUser.nomisStaffId).isNull()
     assertThat(unknownUser.nomisAccountType).isNull()
     assertThat(unknownUser.nomisActiveCaseloadId).isNull()
@@ -203,7 +204,6 @@ class UserAuditIT : IntegrationTestBase() {
     assertThat(unknownUser.isEnabled).isEqualTo(nomisUserDetail.active)
     assertThat(unknownUser.isActive).isEqualTo(nomisUserDetail.enabled)
     assertThat(unknownUser.telephoneNumber).isNull()
-    assertThat(unknownUser.deliusStaffCode).isNull()
   }
 
   private fun createAndAssertAuditData(
@@ -223,7 +223,7 @@ class UserAuditIT : IntegrationTestBase() {
       .withJwt()
       .exchangeSuccessfully()
 
-    val persistedResult = proposedAccommodationRepository.findAllByCrnOrderByCreatedAtDesc(crn).first()
+    val persistedResult = proposedAccommodationRepository.findAll().first()
     assertThat(persistedResult).isNotNull
     assertPersistedProposedAccommodationAuditFields(
       persistedProposedAccommodationEntity = persistedResult,

@@ -76,6 +76,21 @@ class DutyToReferTransformerTest {
       assertThat(result.referenceNumber).isNull()
       assertThat(result.withdrawalReason).isNull()
       assertThat(result.withdrawalReasonOther).isNull()
+      assertThat(result.submissionNote).isNull()
+      assertThat(result.outcomeNote).isNull()
+    }
+
+    @Test
+    fun `should map submissionNote and outcomeNote correctly`() {
+      val entity = buildDutyToReferEntity(
+        submissionNote = "A submission note",
+        outcomeNote = "An outcome note",
+      )
+
+      val result = DutyToReferTransformer.toSubmission(entity, createdByName, "Test LA")
+
+      assertThat(result.submissionNote).isEqualTo("A submission note")
+      assertThat(result.outcomeNote).isEqualTo("An outcome note")
     }
   }
 

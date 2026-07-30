@@ -23,7 +23,12 @@ docker compose up -d
         - the result should be a running application (you should see in the application logs that it is deployed on port `8080`)
 
 ## Run tests locally
-1. No local docker infrastructure required (as using lib for embedded redis - for tests only)
+
+1. We need a test database running - so you will need to run a local docker infrastructure
+```shell
+docker compose up -d
+```
+
 2. The following `gradle command` will build the application and run the tests
 ```shell
 ./gradlew check

@@ -21,15 +21,14 @@ object ProposedAccommodationMapper {
 
   fun toEntity(
     snapshot: ProposedAccommodationSnapshot,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ) = ProposedAccommodationEntity(
     id = snapshot.id,
     caseId = snapshot.caseId,
     cprAddressId = snapshot.cprAddressId,
     accommodationSource = snapshot.accommodationSource,
-    name = snapshot.name,
-    accommodationTypeId = accommodationTypeEntity.id,
+    accommodationTypeId = accommodationTypeEntity?.id,
     accommodationStatusId = accommodationStatusEntity?.id,
     verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name),
     nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name),
@@ -38,27 +37,26 @@ object ProposedAccommodationMapper {
     typeVerified = snapshot.typeVerified,
     noFixedAbode = snapshot.noFixedAbode,
     postcode = snapshot.address.postcode,
-    subBuildingName = snapshot.address.subBuildingName,
-    buildingName = snapshot.address.buildingName,
-    buildingNumber = snapshot.address.buildingNumber,
-    throughfareName = snapshot.address.thoroughfareName,
-    dependentLocality = snapshot.address.dependentLocality,
-    postTown = snapshot.address.postTown,
-    county = snapshot.address.county,
-    country = snapshot.address.country,
-    uprn = snapshot.address.uprn,
+    subBuildingName = convertEmptyAddressFieldToToNull(snapshot.address.subBuildingName),
+    buildingName = convertEmptyAddressFieldToToNull(snapshot.address.buildingName),
+    buildingNumber = convertEmptyAddressFieldToToNull(snapshot.address.buildingNumber),
+    thoroughfareName = convertEmptyAddressFieldToToNull(snapshot.address.thoroughfareName),
+    dependentLocality = convertEmptyAddressFieldToToNull(snapshot.address.dependentLocality),
+    postTown = convertEmptyAddressFieldToToNull(snapshot.address.postTown),
+    county = convertEmptyAddressFieldToToNull(snapshot.address.county),
+    country = null,
+    uprn = convertEmptyAddressFieldToToNull(snapshot.address.uprn),
   )
 
   fun merge(
     snapshot: ProposedAccommodationSnapshot,
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
   ): ProposedAccommodationEntity {
     proposedAccommodationEntity.cprAddressId = snapshot.cprAddressId
     proposedAccommodationEntity.accommodationSource = snapshot.accommodationSource
-    proposedAccommodationEntity.name = snapshot.name
-    proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity.id
+    proposedAccommodationEntity.accommodationTypeId = accommodationTypeEntity?.id
     proposedAccommodationEntity.accommodationStatusId = accommodationStatusEntity?.id
     proposedAccommodationEntity.verificationStatus = EntityVerificationStatus.valueOf(snapshot.verificationStatus.name)
     proposedAccommodationEntity.nextAccommodationStatus = EntityNextAccommodationStatus.valueOf(snapshot.nextAccommodationStatus.name)
@@ -67,18 +65,20 @@ object ProposedAccommodationMapper {
     proposedAccommodationEntity.typeVerified = snapshot.typeVerified
     proposedAccommodationEntity.noFixedAbode = snapshot.noFixedAbode
     proposedAccommodationEntity.postcode = snapshot.address.postcode
-    proposedAccommodationEntity.subBuildingName = snapshot.address.subBuildingName
-    proposedAccommodationEntity.buildingName = snapshot.address.buildingName
-    proposedAccommodationEntity.buildingNumber = snapshot.address.buildingNumber
-    proposedAccommodationEntity.throughfareName = snapshot.address.thoroughfareName
-    proposedAccommodationEntity.dependentLocality = snapshot.address.dependentLocality
-    proposedAccommodationEntity.postTown = snapshot.address.postTown
-    proposedAccommodationEntity.county = snapshot.address.county
-    proposedAccommodationEntity.country = snapshot.address.country
-    proposedAccommodationEntity.uprn = snapshot.address.uprn
+    proposedAccommodationEntity.subBuildingName = convertEmptyAddressFieldToToNull(snapshot.address.subBuildingName)
+    proposedAccommodationEntity.buildingName = convertEmptyAddressFieldToToNull(snapshot.address.buildingName)
+    proposedAccommodationEntity.buildingNumber = convertEmptyAddressFieldToToNull(snapshot.address.buildingNumber)
+    proposedAccommodationEntity.thoroughfareName = convertEmptyAddressFieldToToNull(snapshot.address.thoroughfareName)
+    proposedAccommodationEntity.dependentLocality = convertEmptyAddressFieldToToNull(snapshot.address.dependentLocality)
+    proposedAccommodationEntity.postTown = convertEmptyAddressFieldToToNull(snapshot.address.postTown)
+    proposedAccommodationEntity.county = convertEmptyAddressFieldToToNull(snapshot.address.county)
+    proposedAccommodationEntity.country = null
+    proposedAccommodationEntity.uprn = convertEmptyAddressFieldToToNull(snapshot.address.uprn)
     proposedAccommodationEntity.addMissingNotes(snapshot.notes)
     return proposedAccommodationEntity
   }
+
+  private fun convertEmptyAddressFieldToToNull(addressField: String?) = addressField?.let { addressField.ifEmpty { null } }
 
   fun ProposedAccommodationEntity.addMissingNotes(snapshotNotes: List<ProposedAccommodationAggregate.ProposedAccommodationNoteSnapshot>) {
     val existingIds = this.notes.map { it.id }.toSet()
@@ -96,7 +96,7 @@ object ProposedAccommodationMapper {
 
   fun toAggregate(
     proposedAccommodationEntity: ProposedAccommodationEntity,
-    accommodationTypeEntity: AccommodationTypeEntity,
+    accommodationTypeEntity: AccommodationTypeEntity?,
     accommodationStatusEntity: AccommodationStatusEntity?,
     currentAccommodation: AccommodationSummaryDto?,
   ): ProposedAccommodationAggregate = ProposedAccommodationAggregate.hydrateExisting(
@@ -105,11 +105,12 @@ object ProposedAccommodationMapper {
     accommodationSource = proposedAccommodationEntity.accommodationSource,
     cprAddressId = proposedAccommodationEntity.cprAddressId,
     currentAccommodation = currentAccommodation,
-    name = proposedAccommodationEntity.name,
-    accommodationType = AccommodationTypeDto(
-      code = accommodationTypeEntity.code,
-      description = accommodationTypeEntity.name,
-    ),
+    accommodationType = accommodationTypeEntity?.let {
+      AccommodationTypeDto(
+        code = it.code,
+        description = it.name,
+      )
+    },
     accommodationStatus = accommodationStatusEntity?.let {
       AccommodationStatusDto(
         code = accommodationStatusEntity.code,
@@ -123,7 +124,7 @@ object ProposedAccommodationMapper {
       subBuildingName = proposedAccommodationEntity.subBuildingName,
       buildingName = proposedAccommodationEntity.buildingName,
       buildingNumber = proposedAccommodationEntity.buildingNumber,
-      thoroughfareName = proposedAccommodationEntity.throughfareName,
+      thoroughfareName = proposedAccommodationEntity.thoroughfareName,
       dependentLocality = proposedAccommodationEntity.dependentLocality,
       postTown = proposedAccommodationEntity.postTown,
       county = proposedAccommodationEntity.county,
@@ -150,15 +151,14 @@ object ProposedAccommodationMapper {
   ) = ProposedAccommodationDto(
     id = snapshot.id,
     crn = crn,
-    name = snapshot.name,
-    accommodationType = AccommodationTypeDto(
-      code = snapshot.accommodationType.code,
-      description = snapshot.accommodationType.description,
-    ),
+    accommodationType = snapshot.accommodationType?.let {
+      AccommodationTypeDto(
+        code = it.code,
+        description = it.description,
+      )
+    },
     verificationStatus = snapshot.verificationStatus,
     nextAccommodationStatus = snapshot.nextAccommodationStatus,
-    startDate = snapshot.startDate,
-    endDate = snapshot.endDate,
     address = snapshot.address,
     createdBy = createdBy,
     createdAt = createdAt,

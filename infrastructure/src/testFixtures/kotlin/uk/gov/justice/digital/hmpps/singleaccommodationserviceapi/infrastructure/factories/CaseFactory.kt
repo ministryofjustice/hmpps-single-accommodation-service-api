@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
@@ -12,7 +11,7 @@ import java.util.UUID
 
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
-  tierScore: TierScore? = TierScore.A1,
+  tierScore: String? = "A1",
   cas1ApplicationId: UUID? = null,
   cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
   cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,

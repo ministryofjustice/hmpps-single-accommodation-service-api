@@ -6,6 +6,10 @@ event:
     proposed-accommodation-updated: http://localhost:8080/proposed-accommodations/#id
     duty-to-refer-updated: http://localhost:8080/duty-to-refers/#id
 
+service:
+  commissioned-rehabilitative-services-ui:
+    base-url: https://find-and-refer-intervention-dev.hmpps.service.justice.gov.uk
+
 hmpps.sqs:
   enabled: false
   useWebToken: false
@@ -18,8 +22,10 @@ hmpps.sqs:
       queueName: sas_domain_events_queue
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.complete", "person.community.manager.allocated"]}'
+      subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted"]}'
 spring:
+  config:
+    import: classpath:application-infrastructure-local.yml
   jpa:
     properties:
       hibernate:
@@ -34,3 +40,7 @@ logging:
 
 scheduling:
   enabled: true
+
+sentry:
+  sample-rate: 1
+  traces-sample-rate: 0.01

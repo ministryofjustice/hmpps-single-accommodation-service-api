@@ -3,15 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.propose
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
@@ -68,6 +67,7 @@ class ProposedAccommodationTimelineService(
     proposedAccommodationAuditHistory: List<AuditRecordDto>,
     deliusSyncUser: UserEntity,
   ): List<AuditRecordDto> = proposedAccommodationAuditHistory.map { auditRecord ->
+    // TODO - switch to auditRecord.authorDetails?.username == deliusSyncUser.username when .author is removed
     if (auditRecord.author == deliusSyncUser.displayName()) {
       auditRecord.copy(
         commitDate = null,
@@ -84,25 +84,11 @@ class ProposedAccommodationTimelineService(
     if (change.field != "accommodationTypeId") {
       return change
     }
-    return when (change) {
-      is CreateFieldChangeDto -> {
-        val accommodationType = accommodationTypes.getValue(UUID.fromString(change.value))
-        change.copy(
-          field = "accommodationTypeDescription",
-          value = accommodationType.name,
-        )
-      }
-      is UpdateFieldChangeDto -> {
-        val newAccommodationType = accommodationTypes.getValue(UUID.fromString(change.value))
-        val oldAccommodationType = accommodationTypes.getValue(UUID.fromString(change.oldValue))
-        change.copy(
-          field = "accommodationTypeDescription",
-          value = newAccommodationType.name,
-          oldValue = oldAccommodationType.name,
-        )
-      }
-      else -> change
-    }
+    return change.copy(
+      field = "accommodationTypeDescription",
+      value = accommodationTypes.getValue(UUID.fromString(change.value)).name,
+      oldValue = change.oldValue?.let { accommodationTypes.getValue(UUID.fromString(it)).name },
+    )
   }
 
   private fun getProposedAccommodationNotesAuditHistory(proposedAccommodationEntity: ProposedAccommodationEntity): List<AuditRecordDto> {
@@ -113,9 +99,10 @@ class ProposedAccommodationTimelineService(
       AuditRecordDto(
         type = AuditRecordType.NOTE,
         author = createdByUser!!.displayName(),
+        authorDetails = createdByUser.toAssignedToDto(),
         commitDate = it.createdAt!!,
         changes = listOf(
-          CreateFieldChangeDto(
+          FieldChange(
             field = "note",
             value = it.note,
           ),

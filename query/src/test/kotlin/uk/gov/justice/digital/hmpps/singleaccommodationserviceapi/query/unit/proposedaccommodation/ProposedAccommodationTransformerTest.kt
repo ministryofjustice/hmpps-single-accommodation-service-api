@@ -45,7 +45,7 @@ class ProposedAccommodationTransformerTest {
         subBuildingName = "Flat 1",
         buildingName = "Test Building",
         buildingNumber = "10",
-        throughfareName = "Test Street",
+        thoroughfareName = "Test Street",
         dependentLocality = "Test Locality",
         postTown = "London",
         county = "Greater London",
@@ -59,13 +59,10 @@ class ProposedAccommodationTransformerTest {
 
       assertThat(result.id).isEqualTo(id)
       assertThat(result.crn).isEqualTo(crn)
-      assertThat(result.name).isEqualTo("Test Name")
-      assertThat(result.accommodationType.code).isEqualTo(accommodationTypeEntity.code)
-      assertThat(result.accommodationType.description).isEqualTo(accommodationTypeEntity.name)
+      assertThat(result.accommodationType?.code).isEqualTo(accommodationTypeEntity.code)
+      assertThat(result.accommodationType?.description).isEqualTo(accommodationTypeEntity.name)
       assertThat(result.verificationStatus).isEqualTo(VerificationStatus.PASSED)
       assertThat(result.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
-      assertThat(result.startDate).isEqualTo(startDate)
-      assertThat(result.endDate).isEqualTo(endDate)
       assertThat(result.createdBy).isEqualTo(createdBy)
       assertThat(result.createdAt).isEqualTo(createdAt)
     }
@@ -73,9 +70,7 @@ class ProposedAccommodationTransformerTest {
     @Test
     fun `should handle nullable fields correctly`() {
       val crn = UUID.randomUUID().toString()
-      val accommodationTypeEntity = buildAccommodationTypeEntity()
       val entity = buildProposedAccommodationEntity(
-        accommodationTypeEntity = accommodationTypeEntity,
         name = null,
         verificationStatus = null,
         nextAccommodationStatus = null,
@@ -85,7 +80,7 @@ class ProposedAccommodationTransformerTest {
         subBuildingName = null,
         buildingName = null,
         buildingNumber = null,
-        throughfareName = null,
+        thoroughfareName = null,
         dependentLocality = null,
         postTown = null,
         county = null,
@@ -93,14 +88,12 @@ class ProposedAccommodationTransformerTest {
         uprn = null,
       )
 
-      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity, crn, createdBy)
+      val result = ProposedAccommodationTransformer.toAccommodationDetail(entity, accommodationTypeEntity = null, crn, createdBy)
 
-      assertThat(result.name).isNull()
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.verificationStatus).isNull()
       assertThat(result.nextAccommodationStatus).isNull()
-      assertThat(result.startDate).isNull()
-      assertThat(result.endDate).isNull()
+      assertThat(result.accommodationType).isNull()
       assertThat(result.address.postcode).isNull()
       assertThat(result.address.subBuildingName).isNull()
       assertThat(result.address.buildingName).isNull()
@@ -124,7 +117,7 @@ class ProposedAccommodationTransformerTest {
         subBuildingName = "Sub Building",
         buildingName = "Building Name",
         buildingNumber = "42",
-        throughfareName = "Main Street",
+        thoroughfareName = "Main Street",
         dependentLocality = "Village",
         postTown = "Town",
         county = "County",
@@ -144,17 +137,6 @@ class ProposedAccommodationTransformerTest {
       assertThat(result.county).isEqualTo("County")
       assertThat(result.country).isEqualTo("Country")
       assertThat(result.uprn).isEqualTo("UP123")
-    }
-
-    @Test
-    fun `should map entity throughfareName typo to DTO thoroughfareName`() {
-      val entity = buildProposedAccommodationEntity(
-        throughfareName = "Test Thoroughfare",
-      )
-
-      val result = ProposedAccommodationTransformer.toAddressDetails(entity)
-
-      assertThat(result.thoroughfareName).isEqualTo("Test Thoroughfare")
     }
   }
 

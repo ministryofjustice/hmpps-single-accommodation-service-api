@@ -19,6 +19,8 @@ generic-service:
     JAVA_OPTS: "-Xmx512m"
     SERVER_PORT: "8080"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
+    SENTRY_SAMPLE_RATE: 1
+    SENTRY_TRACES_SAMPLE_RATE: 0.01
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
@@ -37,7 +39,7 @@ generic-service:
     hmpps-single-accommodation-service-api:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-ID: "SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-SECRET: "SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET"
-#      SENTRY_DSN: "SENTRY_DSN"
+      SENTRY_DSN: "SENTRY_DSN"
     sas-elasticache-redis:
       REDIS_HOST: 'primary_endpoint_address'
       REDIS_REPLICA_HOST: 'reader_endpoint_address'

@@ -3,27 +3,26 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming.DtrUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
 class DtrUpcomingContextUpdaterTest {
-  private val clock = MutableClock()
-  private val updater = DtrUpcomingContextUpdater(clock)
+  private val updater = DtrUpcomingContextUpdater()
 
   @Nested
   inner class UpdateTests {
     @Test
-    fun `update returns context UPCOMING`() {
-      val today = LocalDate.of(2025, 1, 1)
-      clock.setNow(today)
+    fun `update returns context UPCOMING with due date eight weeks before end date`() {
+      val endDate = LocalDate.of(2025, 1, 1).plusYears(2)
       val data = buildDomainData(
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusYears(2)),
+        currentAccommodation = buildAccommodationSummaryDto(endDate = endDate),
       )
       val context = EvaluationContext(
         data = data,
@@ -34,7 +33,10 @@ class DtrUpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
-          action = "Submit a DTR referral in 674 days",
+          action = CaseAction(
+            type = CaseActionType.SUBMIT_DTR_REFERRAL,
+            startDate = endDate.minusWeeks(8),
+          ),
         ),
       )
 

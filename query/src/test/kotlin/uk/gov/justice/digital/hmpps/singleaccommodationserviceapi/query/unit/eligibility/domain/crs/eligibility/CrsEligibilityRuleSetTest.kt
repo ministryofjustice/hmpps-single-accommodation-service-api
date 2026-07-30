@@ -9,11 +9,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.accommodation.NoNextAccommodationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.CrsEligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.eligibility.IsSettledRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     CrsEligibilityRuleSet::class,
+    IsSettledRule::class,
     NoNextAccommodationRule::class,
     ClockConfig::class,
   ],
@@ -25,6 +27,7 @@ class CrsEligibilityRuleSetTest {
 
   private val expectedCrsEligibilityRuleNames = listOf(
     NoNextAccommodationRule::class.simpleName,
+    IsSettledRule::class.simpleName,
   )
 
   @Test
@@ -32,7 +35,7 @@ class CrsEligibilityRuleSetTest {
     val ruleSetRules = crsEligibilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(1)
+      .hasSize(2)
       .containsExactlyInAnyOrderElementsOf(expectedCrsEligibilityRuleNames)
   }
 }

@@ -67,6 +67,68 @@ class CaseQueryServiceTest {
   private val crnTwo = "X12346"
   private val username = "user1"
 
+  val assignedTo = AssignedToDto(
+    forename = "Firstname",
+    surname = "Surname",
+    username = username,
+  )
+
+  val assignedToOther = AssignedToDto(
+    forename = "Second",
+    surname = "User",
+    username = "Second.User",
+  )
+
+  val personDtos = listOf(
+    buildFullPersonDto(
+      crn = "CRN1",
+      nomsNumber = "PRI_1",
+      name = buildName(surname = "MultiCaseSurname"),
+      roshLevel = null,
+      teamCode = "TestTeam1",
+      assignedTo = assignedTo,
+    ),
+    buildFullPersonDto(
+      crn = "CRN2",
+      nomsNumber = "PRI_2",
+      name = buildName(forename = "QQQQQ"),
+      roshLevel = RiskLevel.LOW,
+      teamCode = "TestTeam2",
+      assignedTo = assignedTo,
+    ),
+    buildFullPersonDto(
+      crn = "CRN3",
+      nomsNumber = "PRI_3",
+      roshLevel = RiskLevel.MEDIUM,
+      teamCode = "TestTeam1",
+      assignedTo = assignedTo,
+      limitedAccess = true,
+    ),
+    buildFullPersonDto(
+      crn = "CRN4",
+      nomsNumber = "PRI_4",
+      roshLevel = RiskLevel.VERY_HIGH,
+      teamCode = "TestTeam2",
+      assignedTo = assignedTo,
+      limitedAccess = true,
+    ),
+    buildLimitedPersonDto(
+      crn = "CRN5",
+      nomsNumber = "PRI_5",
+      teamCode = "TestTeam1",
+      assignedTo = assignedTo,
+    ),
+    buildLimitedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
+    buildFullPersonDto(
+      crn = "CRN6",
+      nomsNumber = "PRI_6",
+      name = buildName(forename = "Other", middleName = "Users", surname = "Case"),
+      roshLevel = RiskLevel.VERY_HIGH,
+      teamCode = "TestTeam2",
+      assignedTo = assignedToOther,
+    ),
+  )
+
   @Nested
   inner class GetCaseList {
 
@@ -80,9 +142,9 @@ class CaseQueryServiceTest {
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
-      every { caseOrchestrationService.getCaseList(username) } returns caseList
+      every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
 
-      val result = caseQueryService.getCaseList()
+      val result = caseQueryService.getCaseList("testTeam")
       assertThat(result.data).hasSize(2)
 
       val firstPerson = result.data.first() as FullPersonDto
@@ -94,9 +156,8 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
       assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
       assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
-      assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
-      assertThat(firstPerson.roshLevel).isEqualTo(RiskLevel.VERY_HIGH)
+      assertThat(firstPerson.riskLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
       val lastPerson = result.data.last() as FullPersonDto
       assertThat(lastPerson.crn).isEqualTo(crnTwo)
@@ -104,12 +165,11 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
-      assertThat(lastPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(lastPerson.assignedTo.forename).isEqualTo(case2.staff.name.forename)
       assertThat(lastPerson.assignedTo.surname).isEqualTo(case2.staff.name.surname)
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
-      assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
-      assertThat(lastPerson.roshLevel).isEqualTo(RiskLevel.MEDIUM)
+      assertThat(lastPerson.riskLevel).isEqualTo(RiskLevel.MEDIUM)
     }
   }
 
@@ -119,161 +179,62 @@ class CaseQueryServiceTest {
     @BeforeEach
     fun setup() {
       every { userService.getUsername() } returns Username(username)
-      every { caseRepository.mapByCrns(any()) } returns emptyMap()
-      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto("mock")
     }
 
-    val assignedTo = AssignedToDto(
-      forename = "Firstname",
-      surname = "Surname",
-      username = username,
-      staffCode = "5318008",
-    )
-
-    val assignedToOther = AssignedToDto(
-      forename = "Second",
-      surname = "User",
-      username = "Second.User",
-      staffCode = "12345678",
-    )
-
-    val personDtos = listOf(
-      buildFullPersonDto(
-        crn = "CRN1",
-        nomsNumber = "PRI_1",
-        name = buildName(surname = "MultiCaseSurname"),
-        roshLevel = null,
-        teamCode = "TestTeam1",
-        assignedTo = assignedTo,
-      ),
-      buildFullPersonDto(
-        crn = "CRN2",
-        nomsNumber = "PRI_2",
-        name = buildName(forename = "QQQQQ"),
-        roshLevel = RiskLevel.LOW,
-        teamCode = "TestTeam2",
-        assignedTo = assignedTo,
-      ),
-      buildFullPersonDto(
-        crn = "CRN3",
-        nomsNumber = "PRI_3",
-        roshLevel = RiskLevel.MEDIUM,
-        teamCode = "TestTeam1",
-        assignedTo = assignedTo,
-        limitedAccess = true,
-      ),
-      buildFullPersonDto(
-        crn = "CRN4",
-        nomsNumber = "PRI_4",
-        roshLevel = RiskLevel.VERY_HIGH,
-        teamCode = "TestTeam2",
-        assignedTo = assignedTo,
-        limitedAccess = true,
-      ),
-      buildLimitedPersonDto(
-        crn = "CRN5",
-        nomsNumber = "PRI_5",
-        teamCode = "TestTeam1",
-        assignedTo = assignedTo,
-      ),
-      buildLimitedPersonDto(crn = "CRN6", nomsNumber = "PRI_6", teamCode = "TestTeam3", assignedTo = assignedTo),
-      buildFullPersonDto(
-        crn = "CRN6",
-        nomsNumber = "PRI_6",
-        name = buildName(forename = "Other", middleName = "Users", surname = "Case"),
-        roshLevel = RiskLevel.VERY_HIGH,
-        teamCode = "TestTeam2",
-        assignedTo = assignedToOther,
-      ),
-    )
-
-    private fun toLimitedCaseDto(crn: String, prisonNumber: String?, assignedTo: AssignedToDto) = CaseDto(
-      name = null,
-      dateOfBirth = null,
-      crn = crn,
-      prisonNumber = prisonNumber,
-      photoUrl = null,
-      tierScore = null,
-      riskLevel = null,
-      pncReference = null,
-      assignedTo = assignedTo,
-      currentAccommodation = null,
-      nextAccommodation = null,
-      status = null,
-      actions = emptyList(),
-      userAccess = UserAccess.LIMITED,
-      limitedAccess = true,
-    )
-
     @Test
-    fun `returns full list when no filters provided, CaseDto is redacted when UserAccess is Limited`() {
-      val result = caseQueryService.getCases(personDtos = personDtos)
+    fun `returns only cases for the current user when no filters provided`() {
+      val result = caseQueryService.applyCaseListFilters(
+        personDtos = personDtos,
+        searchTerm = null,
+        riskLevel = null,
+        teamCode = null,
+      )
       assertThat(result).hasSize(6)
-
-      val limitedCases = result.filter { it.userAccess == UserAccess.LIMITED }
-      assertThat(limitedCases).hasSize(2)
-
-      val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5", prisonNumber = "PRI_5", assignedTo = assignedTo)
-      val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6", prisonNumber = "PRI_6", assignedTo = assignedTo)
-      assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
     @CsvSource(
       value = [
-        "crn1,1,FULL",
-        "CRN3,1,FULL",
-        "cRn5,1,LIMITED",
-        "crn,0,null", // attempted partial match
-        "null,6,null",
-        "'',6,null",
+        "crn1,1",
+        "CRN3,1",
+        "cRn5,1",
+        "crn,0", // attempted partial match
+        "null,6",
+        "'',6",
       ],
       nullValues = ["null"],
     )
     fun `filters by match on FULL CRN search, ignoring case`(
       searchTerm: String?,
       count: Int,
-      userAccess: UserAccess?,
     ) {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
 
-      if (userAccess != null) {
-        assertThat(result.size).isEqualTo(1)
-        assertThat(result.first().crn).isEqualToIgnoringCase(searchTerm)
-        assertThat(result.first().userAccess).isEqualTo(userAccess)
-      }
-
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
     @CsvSource(
       value = [
-        "pri_2,1,FULL",
-        "PRI_4,1,FULL",
-        "pRi_6,1,LIMITED",
-        "pri_,0,null", // attempted partial match
-        "null,6,null",
-        "'',6,null",
+        "pri_2,1",
+        "PRI_4,1",
+        "pRi_6,1",
+        "pri_,0", // attempted partial match
+        "null,6",
+        "'',6",
       ],
       nullValues = ["null"],
     )
     fun `filters by match on FULL prisonNumber search, ignoring case`(
       searchTerm: String?,
       count: Int,
-      userAccess: UserAccess?,
     ) {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
 
-      if (userAccess != null) {
-        assertThat(result.size).isEqualTo(1)
-        assertThat(result.first().prisonNumber).isEqualToIgnoringCase(searchTerm)
-        assertThat(result.first().userAccess).isEqualTo(userAccess)
-      }
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -301,14 +262,9 @@ class CaseQueryServiceTest {
       searchTerm: String?,
       count: Int,
     ) {
-      val result = caseQueryService.getCases(personDtos = personDtos, searchTerm = searchTerm)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, searchTerm = searchTerm)
       assertThat(result).hasSize(count)
-      if (!searchTerm.isNullOrEmpty()) {
-        assertThat(result)
-          .allMatch { it.name!!.contains(searchTerm, ignoreCase = true) }
-          .noneMatch { it.userAccess == UserAccess.LIMITED }
-      }
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -323,12 +279,9 @@ class CaseQueryServiceTest {
       nullValues = ["null"],
     )
     fun `filters by risk level`(riskLevel: RiskLevel?, count: Int) {
-      val result = caseQueryService.getCases(personDtos = personDtos, riskLevel = riskLevel)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, riskLevel = riskLevel)
       assertThat(result).hasSize(count)
-      if (riskLevel != null) {
-        assertThat(result.map { it.userAccess }).noneMatch { it == UserAccess.LIMITED }
-      }
-      assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+      assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
     @ParameterizedTest
@@ -339,14 +292,38 @@ class CaseQueryServiceTest {
       "TestTeam4,0",
     )
     fun `filters by team code`(teamCode: String, count: Int) {
-      val result = caseQueryService.getCases(personDtos = personDtos, teamCode = teamCode)
+      val result = caseQueryService.applyCaseListFilters(personDtos = personDtos, teamCode = teamCode)
       assertThat(result).hasSize(count)
       // check we can see cases in other teams
       if (teamCode == "TestTeam2") {
-        assertThat(result.map { it.assignedTo!!.username }.distinct()).containsExactly(username, "Second.User")
+        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactly(username, "Second.User")
       } else {
-        assertThat(result).noneMatch { it.assignedTo!!.username == assignedToOther.username }
+        assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
       }
+    }
+  }
+
+  @Nested
+  inner class GetCases {
+
+    private fun toLimitedCaseDto(crn: String) = CaseDto(
+      name = null,
+      dateOfBirth = null,
+      crn = crn,
+      prisonNumber = null,
+      photoUrl = null,
+      tierScore = null,
+      riskLevel = null,
+      pncReference = null,
+      assignedTo = null,
+      actions = emptyList(),
+      userAccess = UserAccess.LIMITED,
+      limitedAccess = true,
+    )
+
+    @BeforeEach
+    fun setUp() {
+      every { userService.getUsername() } returns Username(username)
     }
 
     @Test
@@ -412,29 +389,39 @@ class CaseQueryServiceTest {
         )
       }
     }
-  }
 
-  @Nested
-  inner class GetCases {
+    @Test
+    fun `CaseDto is redacted when UserAccess is Limited`() {
+      every { caseRepository.mapByCrns(any()) } returns emptyMap()
 
-    @BeforeEach
-    fun setUp() {
-      every { userService.getUsername() } returns Username(username)
+      val result = caseQueryService.getCases(personDtos = personDtos)
+      assertThat(result).hasSize(personDtos.size)
+
+      val limitedCases = result.filter { it.userAccess == UserAccess.LIMITED }
+      assertThat(limitedCases).hasSize(2)
+
+      val limitedCaseDto1 = toLimitedCaseDto(crn = "CRN5")
+      val limitedCaseDto2 = toLimitedCaseDto(crn = "CRN6")
+      assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
     }
 
     @Test
     fun `should get cases as all cases from case table and populate missing data from personDtos`() {
-      val crnList = listOf(crnOne, crnTwo)
+      val limitedCrn = "limitedCrn"
+      val crnList = listOf(crnOne, crnTwo, limitedCrn)
       val staff = buildOfficer(username = username)
       val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
       val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildLimitedPersonDto(crn = limitedCrn, staff = staff)
       val personDtos = listOf(
         personDto1,
         personDto2,
+        personDto3,
       )
       val caseEntity1 = buildCaseEntity { withCrn(crnOne) }
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
-      val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2)
+      val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
+      val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
 
       val dutyToReferDto1 = buildDutyToReferDto(crn = crnOne)
       val dutyToReferDto2 = buildDutyToReferDto(crn = crnTwo)
@@ -470,15 +457,37 @@ class CaseQueryServiceTest {
       } returns eligibilityDto2
 
       val result = caseQueryService.getCases(personDtos = personDtos)
-      assertThat(result).hasSize(2)
 
-      assertThat(result.first()).isEqualTo(
-        caseDto1,
-      )
+      assertThat(result).hasSize(3)
 
-      assertThat(result.last()).isEqualTo(
-        caseDto2,
-      )
+      assertThat(result[0]).isEqualTo(caseDto1)
+      assertThat(result[1]).isEqualTo(caseDto2)
+
+      assertThat(result[2])
+        .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
+        .containsExactly(limitedCrn, true, UserAccess.LIMITED)
+    }
+  }
+
+  @Nested
+  inner class IsCaseRecordInDb {
+
+    @Test
+    fun `should return true when case record exists in db`() {
+      every { caseRepository.findByCrn(crnOne) } returns buildCaseEntity { withCrn(crnOne) }
+
+      val result = caseQueryService.isPersistedCase(crnOne)
+
+      assertThat(result).isTrue
+    }
+
+    @Test
+    fun `should return false when case record does not exist in db`() {
+      every { caseRepository.findByCrn(crnOne) } returns null
+
+      val result = caseQueryService.isPersistedCase(crnOne)
+
+      assertThat(result).isFalse
     }
   }
 
@@ -502,7 +511,6 @@ class CaseQueryServiceTest {
           crn = crnOne,
           person = person,
           cpr = caseOrchestrationDto.cpr,
-          roshDetails = caseOrchestrationDto.roshDetails,
           tier = caseOrchestrationDto.tier,
         ),
       )
@@ -513,10 +521,9 @@ class CaseQueryServiceTest {
     fun `should return case with upstream failures on partial success`() {
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
       val failures = listOf(
-        buildUpstreamFailure(callKey = "getRoshDetail"),
         buildUpstreamFailure(callKey = "getTierByCrn"),
       )
-      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, roshDetails = null, tier = null)
+      val caseOrchestrationDto = buildCaseOrchestrationDto(crn = crnOne, tier = null)
 
       every { caseOrchestrationService.getCase(username, crnOne) } returns OrchestrationResultDto(
         data = caseOrchestrationDto,
@@ -524,8 +531,56 @@ class CaseQueryServiceTest {
       )
 
       val result = caseQueryService.getCase(crnOne)
-      assertThat(result.data.riskLevel).isNull()
-      assertThat(result.upstreamFailures).hasSize(2)
+      assertThat(result.data.tierScore).isNull()
+      assertThat(result.upstreamFailures).hasSize(1)
+    }
+  }
+
+  @Nested
+  inner class GetCaseFromDelius {
+
+    @Test
+    fun `should return case from delius with no upstream failures when all calls succeed`() {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      val caseOrchestrationDto = buildCaseOrchestrationDto(
+        crn = crnOne,
+        cpr = null,
+        tier = null,
+        case = buildCase(crnOne),
+      )
+
+      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+      )
+
+      val result = caseQueryService.getCaseFromDelius(crnOne)
+
+      assertThat(result.data).isEqualTo(toPersonDto(caseOrchestrationDto.case!!))
+      assertThat(result.upstreamFailures).isEmpty()
+    }
+
+    @Test
+    fun `should return null case from delius with upstream failures`() {
+      every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
+      val failures = listOf(
+        buildUpstreamFailure(callKey = "getCase"),
+      )
+      val caseOrchestrationDto = buildCaseOrchestrationDto(
+        crn = crnOne,
+        cpr = null,
+        tier = null,
+        case = null,
+      )
+
+      every { caseOrchestrationService.getCaseFromDelius(username, crnOne) } returns OrchestrationResultDto(
+        data = caseOrchestrationDto,
+        upstreamFailures = failures,
+      )
+
+      val result = caseQueryService.getCaseFromDelius(crnOne)
+
+      assertThat(result.data).isNull()
+      assertThat(result.upstreamFailures).hasSize(1)
     }
   }
 }

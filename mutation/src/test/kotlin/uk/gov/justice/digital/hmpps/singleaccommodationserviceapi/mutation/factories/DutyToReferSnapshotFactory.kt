@@ -19,6 +19,8 @@ fun buildDutyToReferSnapshot(
   withdrawalReason: WithdrawalReason? = null,
   withdrawalReasonOther: String? = null,
   outcomeReason: OutcomeReason? = null,
+  submissionNote: String? = null,
+  outcomeNote: String? = null,
 ) = DutyToReferSnapshot(
   id = id,
   caseId = caseId,
@@ -30,6 +32,8 @@ fun buildDutyToReferSnapshot(
   withdrawalReason = withdrawalReason,
   withdrawalReasonOther = withdrawalReasonOther,
   outcomeReason = outcomeReason,
+  submissionNote = submissionNote,
+  outcomeNote = outcomeNote,
 )
 
 fun buildDutyToReferNote(id: UUID = UUID.randomUUID(), note: String = "Test Note") = DutyToReferNote(id, note)

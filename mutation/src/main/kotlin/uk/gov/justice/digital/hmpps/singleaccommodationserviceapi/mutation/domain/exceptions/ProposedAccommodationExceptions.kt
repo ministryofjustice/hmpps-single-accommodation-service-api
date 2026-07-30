@@ -1,5 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions
 
 const val VERIFICATION_NOT_PASSED_ERROR_KEY = "verificationNotPassed"
+const val PERSON_CANNOT_ARRIVE_ERROR_KEY = "personCannotArrive"
+const val ACCOMMODATION_TYPE_REQUIRED_ON_CREATE_ERROR_KEY = "accommodationTypeRequiredOnCreate"
 
 class AccommodationVerificationNotPassedException : DomainException(VERIFICATION_NOT_PASSED_ERROR_KEY)
+class AccommodationPersonCannotArriveException : DomainException(PERSON_CANNOT_ARRIVE_ERROR_KEY)
+class AccommodationTypeRequiredOnCreateException : DomainException(ACCOMMODATION_TYPE_REQUIRED_ON_CREATE_ERROR_KEY)

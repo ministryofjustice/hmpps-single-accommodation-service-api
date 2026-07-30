@@ -3,6 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 enum class ProcessedStatus {
   PENDING,
   PROCESSED,
-  NOT_PROCESSED,
+  IGNORED,
   FAILED,
 }

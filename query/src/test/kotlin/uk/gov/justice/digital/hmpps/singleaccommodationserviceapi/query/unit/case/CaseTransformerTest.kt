@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -34,7 +33,7 @@ class CaseTransformerTest {
 
   @Test
   fun `returns UserAccess of UKNOWN when personDto is missing`() {
-    val result = toCaseDto(crn = crn, person = null, cpr = null, roshDetails = null, tier = null)
+    val result = toCaseDto(crn = crn, person = null, cpr = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.userAccess).isEqualTo(UserAccess.UNKNOWN)
   }
@@ -42,7 +41,7 @@ class CaseTransformerTest {
   @Test
   fun `returns UserAccess FULL when personDto is FullPersonDto`() {
     val person = buildFullPersonDto(crn)
-    val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
     assertThat(fromOrchestrationDto.userAccess).isEqualTo(UserAccess.FULL)
 
@@ -53,7 +52,7 @@ class CaseTransformerTest {
   @Test
   fun `returns UserAccess of FULL when personDto is FullPersonDto and limitedAccess is true`() {
     val person = buildFullPersonDto(crn, limitedAccess = true)
-    val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    val result = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
     assertThat(result.limitedAccess).isTrue
@@ -66,7 +65,7 @@ class CaseTransformerTest {
   @Test
   fun `returns UserAccess of LIMITED when personDto is LimitedPersonDto`() {
     val person = buildLimitedPersonDto(crn)
-    val result = toCaseDto(crn = crn, person = person, cpr = null, roshDetails = null, tier = null)
+    val result = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     assertThat(result.crn).isEqualTo(crn)
     assertThat(result.userAccess).isEqualTo(UserAccess.LIMITED)
     assertThat(result.limitedAccess).isTrue()
@@ -88,7 +87,6 @@ class CaseTransformerTest {
       toCaseDto(
         crn = CRN,
         cpr = caseOrchestrationDto.cpr,
-        roshDetails = caseOrchestrationDto.roshDetails,
         tier = caseOrchestrationDto.tier,
         person = toPersonDto(caseOrchestrationDto.case!!),
       ),
@@ -101,7 +99,13 @@ class CaseTransformerTest {
     val name = buildName()
     val personDto = buildFullPersonDto(crn = CRN, name = name)
     val eligibilityDto = buildEligibilityDto(CRN)
-    val caseDto = buildCaseDto(crn = CRN, name = name.fullName)
+    val caseDto = buildCaseDto(
+      crn = CRN,
+      name = name.fullName,
+      forename = name.forename,
+      middleNames = name.middleName,
+      surname = name.surname,
+    )
 
     assertThat(personDto.toCaseDto(caseEntity = caseEntity, eligibility = eligibilityDto)).isEqualTo(caseDto)
   }
@@ -136,22 +140,21 @@ class CaseTransformerTest {
 
     private val caseDtoWhenAllDataSupplied = CaseDto(
       name = "First Middle Last",
+      forename = "First",
+      middleNames = "Middle",
+      surname = "Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",
-      tierScore = TierScore.A1,
+      tierScore = "A1",
       riskLevel = RiskLevel.VERY_HIGH,
       pncReference = "Some PNC Reference",
       assignedTo = AssignedToDto(
         forename = "First",
         surname = "Last",
         username = "user1",
-        staffCode = "ABCD1234",
       ),
       photoUrl = null,
-      currentAccommodation = null,
-      nextAccommodation = null,
-      status = null,
       actions = emptyList(),
       userAccess = UserAccess.FULL,
       limitedAccess = false,

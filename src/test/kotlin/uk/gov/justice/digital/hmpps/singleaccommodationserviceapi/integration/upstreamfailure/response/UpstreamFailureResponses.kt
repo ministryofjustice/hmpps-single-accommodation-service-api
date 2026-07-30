@@ -4,16 +4,22 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 private fun caseJson(
   name: String? = "First Middle Last",
+  forename: String? = "First",
+  middleNames: String? = "Middle",
+  surname: String? = "Last",
   dateOfBirth: String? = "2000-12-03",
   crn: String = "FAKECRN1",
   prisonNumber: String? = "PRI1",
   tierScore: String? = "A1",
   riskLevel: String? = "VERY_HIGH",
   pncReference: String? = "Some PNC Reference",
-  assignedTo: String = """{"forename":"First","surname":"Last","username":"user1","staffCode":"ABCD1234"}""",
+  assignedTo: String = """{"forename":"First","surname":"Last","username":"user1"}""",
 ) = """
 {
   "name": ${if (name != null) "\"$name\"" else "null"},
+  "forename": ${if (forename != null) "\"$forename\"" else "null"},
+  "middleNames": ${if (middleNames != null) "\"$middleNames\"" else "null"},
+  "surname": ${if (surname != null) "\"$surname\"" else "null"},
   "dateOfBirth": ${if (dateOfBirth != null) "\"$dateOfBirth\"" else "null"},
   "crn": "$crn",
   "prisonNumber": ${if (prisonNumber != null) "\"$prisonNumber\"" else "null"},
@@ -22,9 +28,6 @@ private fun caseJson(
   "riskLevel": ${if (riskLevel != null) "\"$riskLevel\"" else "null"},
   "pncReference": ${if (pncReference != null) "\"$pncReference\"" else "null"},
   "assignedTo": $assignedTo,
-  "currentAccommodation": null,
-  "nextAccommodation": null,
-  "status": null,
   "actions": [],
   "userAccess": "FULL",
   "limitedAccess": false
@@ -55,28 +58,6 @@ private fun cprServerErrorFailure(identifierCrn: String? = null) = failureJson(
   identifierCrn = identifierCrn,
 )
 
-private fun cprTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
-  endpoint = "getCorePersonRecordByCrn",
-  failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/person/probation/$crn\\\": Request cancelled",
-  identifierCrn = identifierCrn,
-)
-
-private fun roshServerErrorFailure(identifierCrn: String? = null) = failureJson(
-  endpoint = "getRoshSummaryByCrn",
-  failureType = "UPSTREAM_HTTP_ERROR",
-  httpResponseStatus = "500 INTERNAL_SERVER_ERROR",
-  message = "500 Internal Server Error: [no body]",
-  identifierCrn = identifierCrn,
-)
-
-private fun roshTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
-  endpoint = "getRoshSummaryByCrn",
-  failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/rosh/$crn\\\": Request cancelled",
-  identifierCrn = identifierCrn,
-)
-
 private fun tierServerErrorFailure(identifierCrn: String? = null) = failureJson(
   endpoint = "getTierByCrn",
   failureType = "UPSTREAM_HTTP_ERROR",
@@ -88,7 +69,7 @@ private fun tierServerErrorFailure(identifierCrn: String? = null) = failureJson(
 private fun tierTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
   endpoint = "getTierByCrn",
   failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/crn/$crn/tier\\\": Request cancelled",
+  message = "I/O error on GET request for \\\"http://localhost:PORT/v2/crn/$crn/tier\\\": Request cancelled",
   identifierCrn = identifierCrn,
 )
 
@@ -101,31 +82,7 @@ private fun tierNotFoundFailure(identifierCrn: String? = null) = failureJson(
 )
 
 @TestData
-fun expectedSingleCrnCprServerError() = """{ "data": ${caseJson(name = null, dateOfBirth = null, prisonNumber = null, pncReference = null)}, "upstreamFailures": [${cprServerErrorFailure()}] }"""
-
-@TestData
-fun expectedSingleCrnCprTimeout() = """{ "data": ${caseJson(name = null, dateOfBirth = null, prisonNumber = null, pncReference = null)}, "upstreamFailures": [${cprTimeoutFailure("FAKECRN1")}] }"""
-
-@TestData
-fun expectedSingleCrnRoshServerError() = """{ "data": ${caseJson(riskLevel = null)}, "upstreamFailures": [${roshServerErrorFailure()}] }"""
-
-@TestData
-fun expectedSingleCrnRoshTimeout() = """{ "data": ${caseJson(riskLevel = null)}, "upstreamFailures": [${roshTimeoutFailure("FAKECRN1")}] }"""
-
-@TestData
 fun expectedSingleCrnTierServerError() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierServerErrorFailure()}] }"""
 
 @TestData
 fun expectedSingleCrnTierTimeout() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierTimeoutFailure("FAKECRN1")}] }"""
-
-@TestData
-fun expectedSingleCrnAllUpstreamFailures() = """{ "data": ${
-  caseJson(
-    name = null,
-    dateOfBirth = null,
-    prisonNumber = null,
-    pncReference = null,
-    tierScore = null,
-    riskLevel = null,
-  )
-}, "upstreamFailures": [${cprServerErrorFailure()}, ${roshServerErrorFailure()}, ${tierServerErrorFailure()}] }"""

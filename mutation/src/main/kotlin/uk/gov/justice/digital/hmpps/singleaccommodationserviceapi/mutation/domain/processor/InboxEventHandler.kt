@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
+import java.net.URI
+import java.util.UUID
 
 /**
  * Handles processing of a specific inbox event type. Each handler is responsible for a single event
@@ -13,22 +13,41 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
  */
 interface InboxEventHandler {
 
-  /** The event type this handler supports. Only one handler per type*/
-  fun supportedEventType(): IncomingHmppsDomainEventType
+  /**
+   * The event type this handler supports (typically the value of IncomingHmppsDomainEventType.typeName). Only one handler per type
+   *
+   * We use a non-bounded type here so we can use custom handlers during integration testing
+   **/
+  fun supportedEventType(): String
 
   /**
    * Partition key for serialising processing. Events with the same key are never processed
    * concurrently. Return null to process independently (each event in its own partition).
    */
-  fun getPartitionKey(inboxEvent: InboxEventEntity): String? = null
+  fun getPartitionKey(inboxEvent: InboxEvent): String? = null
 
   /**
    * Process the inbox event. Should run in its own transaction to make success or failure isolated per
-   * event. Handler must update inboxEvent.processedStatus and inboxEvent.processedAt before
-   * returning.
+   * event. This function should be idempotent.
    *
-   * Do not rethrow - persist FAILED status and allow dispatcher to continue with next event
+   * If [Result.FAILED] is returned an alert will be raised by the caller
    *
+   * Exceptions can be rethrown to the caller, in which case an alert will be raised and the event will
+   * be treated as if [Result.FAILED] has been returned
    */
-  fun handle(inboxEvent: InboxEventEntity)
+  fun handle(inboxEvent: InboxEvent): Result
+
+  enum class Result {
+    PROCESSED,
+    IGNORED,
+    FAILED,
+  }
+
+  data class InboxEvent(
+    val id: UUID,
+    val eventDetailUrl: String?,
+    val payload: String,
+  ) {
+    fun uri(): URI = URI.create(requireNotNull(eventDetailUrl) { "Missing detail url" })
+  }
 }

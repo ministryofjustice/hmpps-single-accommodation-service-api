@@ -7,7 +7,6 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.MaleRiskEligibilityRule
@@ -19,7 +18,7 @@ class MaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.MaleRiskRuleTest#provideSexAndTierToPass")
-  fun `candidate passes`(sex: SexCode, tierScore: TierScore) {
+  fun `candidate passes`(sex: SexCode, tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
       sex = sex,
@@ -32,7 +31,7 @@ class MaleRiskRuleTest {
 
   @ParameterizedTest
   @MethodSource("uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.eligibility.MaleRiskRuleTest#provideSexAndTierToFail")
-  fun `candidate fails`(sex: SexCode, tierScore: TierScore) {
+  fun `candidate fails`(sex: SexCode, tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
       sex = sex,
@@ -52,33 +51,33 @@ class MaleRiskRuleTest {
   private companion object {
 
     private val highRiskTiers = listOf(
-      TierScore.A3,
-      TierScore.A2,
-      TierScore.A1,
-      TierScore.A3S,
-      TierScore.A2S,
-      TierScore.A1S,
-      TierScore.B3,
-      TierScore.B2,
-      TierScore.B1,
-      TierScore.B3S,
-      TierScore.B2S,
-      TierScore.B1S,
+      "A3",
+      "A2",
+      "A1",
+      "A3S",
+      "A2S",
+      "A1S",
+      "B3",
+      "B2",
+      "B1",
+      "B3S",
+      "B2S",
+      "B1S",
     )
 
     private val lowRiskTiers = listOf(
-      TierScore.C3,
-      TierScore.C3S,
-      TierScore.C2,
-      TierScore.C1,
-      TierScore.C2S,
-      TierScore.C1S,
-      TierScore.D3,
-      TierScore.D2,
-      TierScore.D1,
-      TierScore.D3S,
-      TierScore.D2S,
-      TierScore.D1S,
+      "C3",
+      "C3S",
+      "C2",
+      "C1",
+      "C2S",
+      "C1S",
+      "D3",
+      "D2",
+      "D1",
+      "D3S",
+      "D2S",
+      "D1S",
     )
 
     private val allTiers = highRiskTiers + lowRiskTiers

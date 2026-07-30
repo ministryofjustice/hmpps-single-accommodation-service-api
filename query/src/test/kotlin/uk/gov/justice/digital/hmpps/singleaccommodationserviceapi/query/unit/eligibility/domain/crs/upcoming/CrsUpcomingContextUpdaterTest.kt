@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -10,22 +12,19 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming.CrsUpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
 class CrsUpcomingContextUpdaterTest {
-  private val clock = MutableClock()
-  private val updater = CrsUpcomingContextUpdater(clock)
+  private val updater = CrsUpcomingContextUpdater()
 
   @Nested
   inner class UpdateTests {
     @Test
     fun `update returns UPCOMING with accommodation referral action for male`() {
-      val today = LocalDate.of(2025, 1, 1)
-      clock.setNow(today)
+      val endDate = LocalDate.of(2025, 1, 1).plusYears(2)
       val data = buildDomainData(
         sex = SexCode.M,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusYears(2)),
+        currentAccommodation = buildAccommodationSummaryDto(endDate = endDate),
       )
       val context = EvaluationContext(
         data = data,
@@ -36,7 +35,10 @@ class CrsUpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
-          action = "Submit a CRS accommodation referral in 646 days",
+          action = CaseAction(
+            type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
+            startDate = endDate.minusWeeks(12),
+          ),
         ),
       )
 
@@ -47,11 +49,10 @@ class CrsUpcomingContextUpdaterTest {
 
     @Test
     fun `update returns UPCOMING with generic referral action for non male`() {
-      val today = LocalDate.of(2025, 1, 1)
-      clock.setNow(today)
+      val endDate = LocalDate.of(2025, 1, 1).plusYears(2)
       val data = buildDomainData(
         sex = null,
-        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusYears(2)),
+        currentAccommodation = buildAccommodationSummaryDto(endDate = endDate),
       )
       val context = EvaluationContext(
         data = data,
@@ -62,7 +63,10 @@ class CrsUpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
-          action = "Submit a CRS referral in 646 days",
+          action = CaseAction(
+            type = CaseActionType.SUBMIT_CRS_REFERRAL,
+            startDate = endDate.minusWeeks(12),
+          ),
         ),
       )
 

@@ -21,6 +21,8 @@ fun buildDutyToReferEntity(
   withdrawalReason: WithdrawalReason? = null,
   withdrawalReasonOther: String? = null,
   outcomeReason: OutcomeReason? = null,
+  submissionNote: String? = null,
+  outcomeNote: String? = null,
   createdByUserId: UUID? = null,
   createdAt: Instant = Instant.now(),
   lastUpdatedByUserId: UUID? = null,
@@ -35,6 +37,8 @@ fun buildDutyToReferEntity(
   withdrawalReason = withdrawalReason,
   withdrawalReasonOther = withdrawalReasonOther,
   outcomeReason = outcomeReason,
+  submissionNote = submissionNote,
+  outcomeNote = outcomeNote,
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt

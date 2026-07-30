@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.util.UUID
 
 fun expectedGetAccommodationHistoryResponse(): String = """
@@ -134,38 +135,105 @@ fun expectedGetCurrentAccommodationPrisonResponse(crn: String): String = """
 }
 """.trimIndent()
 
+fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
+  crn: String,
+  startDate: String,
+  endDate: String,
+): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "startDate":"$startDate",
+      "endDate":"$endDate",
+      "address":{
+         "postcode":"SW1A 1AA",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":"1",
+         "thoroughfareName":"Some Street",
+         "dependentLocality":null,
+         "postTown":"London",
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "status":{
+         "code":"M",
+         "description":"Main"
+      },
+      "type":{
+         "code":"A02",
+         "description":"Approved Premises"
+      }
+   }
+}
+""".trimIndent()
+
+fun expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
+  crn: String,
+  startDate: String,
+  endDate: String,
+): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "startDate":"$startDate",
+      "endDate":"$endDate",
+      "address":{
+         "postcode":"SW1A 1AA",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":"1",
+         "thoroughfareName":"Some Street",
+         "dependentLocality":null,
+         "postTown":"London",
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "status":{
+         "code":"M",
+         "description":"Main"
+      },
+      "type":{
+         "code":"A17",
+         "description":"CAS3"
+      }
+   }
+}
+""".trimIndent()
+
 fun expectedGetNextAccommodationsResponse(
   prStartDate: String,
   prEndDate: String,
   crn: String,
 ): String = """
 {
-   "data":
-      {
-         "crn":"$crn",
-         "startDate":"$prStartDate",
-         "endDate":"$prEndDate",
-         "address":{
-            "postcode":"W5 2AB",
-            "subBuildingName":null,
-            "buildingName":null,
-            "buildingNumber":"1",
-            "thoroughfareName":"Another Street",
-            "dependentLocality":null,
-            "postTown":"London",
-            "county":null,
-            "country":null,
-            "uprn":null
-         },
-         "status":{
-            "code":"PR",
-            "description":"Proposed"
-         },
-         "type":{
-            "code":"A07A",
-            "description":"Friends/Family (transient)"
-         }
+   "data":{
+      "crn":"$crn",
+      "startDate":"$prStartDate",
+      "endDate":"$prEndDate",
+      "address":{
+         "postcode":"SW1A 1AB",
+         "subBuildingName":null,
+         "buildingName":null,
+         "buildingNumber":null,
+         "thoroughfareName":"123 Test Street",
+         "dependentLocality":"Test Village",
+         "postTown":"Test Town",
+         "county":null,
+         "country":null,
+         "uprn":null
+      },
+      "status":{
+         "code":"PR",
+         "description":"Proposed"
+      },
+      "type":{
+         "code":"A02",
+         "description":"Approved Premises"
       }
+   }
 }
 """.trimIndent()
 
@@ -175,6 +243,20 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = ""
    "upstreamFailures":[
       {
          "endpoint":"getCorePersonRecordByCrn",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
+         "message":"500 Internal Server Error: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas1CurrentPremises",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
+         "message":"500 Internal Server Error: [no body]",
+         "identifier":null
+      },
+            {
+         "endpoint":"getCas3CurrentPremises",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "message":"500 Internal Server Error: [no body]",
@@ -194,7 +276,8 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = ""
 fun expectedGetAccommodationByIdResponse(
   crn: String,
   cprAddressId: UUID,
-  createdAt: String,
+  startDate: String,
+  endDate: String,
 ): String = """
 {
     "data": {
@@ -202,8 +285,8 @@ fun expectedGetAccommodationByIdResponse(
         "cprAddressId" : "$cprAddressId",
         "noFixedAbode": false,
         "typeVerified": true,
-        "startDate": "$createdAt",
-        "endDate": null,
+        "startDate": "$startDate",
+        "endDate": "$endDate",
         "address": {
             "buildingName": "test building name",
             "buildingNumber": "4",
@@ -242,3 +325,73 @@ fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
   ]
 }
 """.trimIndent()
+
+val expectedNoFixedAbodeResponse =
+  """{"data":{"caseAccommodationStatus":"NO_FIXED_ABODE","currentAccommodation":null,"nextAccommodation":null}}"""
+
+fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
+  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"}},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
+""".trimIndent()
+
+fun expectedAccommodationStatusResponse(
+  crn: String,
+  settledType: CaseAccommodationStatus?,
+  nextCode: String,
+  nextDescription: String,
+) = """
+  {
+   "data":{
+      "caseAccommodationStatus":${settledType?.let { "\"$it\"" }},
+      "currentAccommodation":{
+         "crn":"$crn",
+         "startDate":"2026-01-11",
+         "endDate":null,
+         "address":{
+            "postcode":"SW1A 1AA",
+            "subBuildingName":null,
+            "buildingName":null,
+            "buildingNumber":"1",
+            "thoroughfareName":"Some Street",
+            "dependentLocality":null,
+            "postTown":"London",
+            "county":null,
+            "country":null,
+            "uprn":null
+         },
+         "status":{
+            "code":"M",
+            "description":"Main"
+         },
+         "type":{
+            "code":"A07B",
+            "description":"Friends/Family (settled)"
+         }
+      },
+      "nextAccommodation":{
+         "crn":"$crn",
+         "startDate":null,
+         "endDate":null,
+         "address":{
+            "postcode":"SW1A 1AA",
+            "subBuildingName":null,
+            "buildingName":null,
+            "buildingNumber":"1",
+            "thoroughfareName":"Some Street",
+            "dependentLocality":null,
+            "postTown":"London",
+            "county":null,
+            "country":null,
+            "uprn":null
+         },
+         "status":{
+            "code":"PR",
+            "description":"Proposed"
+         },
+         "type":{
+            "code":"$nextCode",
+            "description":"$nextDescription"
+         }
+      }
+   }
+}
+""".trimMargin()

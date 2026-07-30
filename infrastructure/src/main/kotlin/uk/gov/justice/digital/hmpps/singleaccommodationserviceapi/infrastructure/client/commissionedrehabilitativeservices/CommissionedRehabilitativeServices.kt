@@ -26,7 +26,6 @@ data class CrsReferralServiceProvider(
 )
 
 enum class CrsReferralStatus {
-  DRAFT,
   LIVE,
   COMPLETED,
   WITHDRAWN,

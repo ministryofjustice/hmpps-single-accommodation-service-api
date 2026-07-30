@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.buildUpcomingAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInThePast
@@ -117,46 +115,6 @@ class EligibilityUtilsTest {
       val endDate = today.minusWeeks(numOfWeeks).minusDays(1)
       val result = isLessThanXWeeksInThePast(endDate, today, numOfWeeks)
       assertThat(result).isFalse()
-    }
-  }
-
-  @Nested
-  inner class BuildUpcomingAction {
-    @Test
-    fun `Build action when date to start referral is 3 days in future`() {
-      clock.setNow(LocalDate.parse("2025-01-01"))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.plusDays(3))
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 3 days"
-      assertThat(result).isEqualTo(expectedResult)
-    }
-
-    @Test
-    fun `Build action when date to start referral is 1 day in future`() {
-      clock.setNow(LocalDate.parse("2025-01-01"))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.plusDays(1))
-      val expectedResult = "${EligibilityKeys.START_APPROVED_PREMISE_APPLICATION} in 1 day"
-
-      assertThat(result).isEqualTo(expectedResult)
-    }
-
-    @Test
-    fun `Build action when date to start referral is today`() {
-      clock.setNow(LocalDate.parse("2025-01-01"))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today)
-      val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
-      assertThat(result).isEqualTo(expectedResult)
-    }
-
-    @Test
-    fun `Build action when date to start referral is in the past`() {
-      clock.setNow(LocalDate.parse("2025-01-01"))
-      val today = LocalDate.now(clock)
-      val result = buildUpcomingAction(today, EligibilityKeys.START_APPROVED_PREMISE_APPLICATION, today.minusDays(3))
-      val expectedResult = EligibilityKeys.START_APPROVED_PREMISE_APPLICATION
-      assertThat(result).isEqualTo(expectedResult)
     }
   }
 }

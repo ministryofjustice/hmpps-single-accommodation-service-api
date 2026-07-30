@@ -19,6 +19,10 @@ enum class SingleAccommodationServiceDomainEventType(
     "sas.accommodation.deleted",
     "Accommodation has been deleted",
   ),
+  SAS_ACCOMMODATION_PERSON_ARRIVED(
+    "sas.accommodation.person.arrived",
+    "Person arrived at Accommodation",
+  ),
   SAS_DUTY_TO_REFER_UPDATED(
     "sas.duty-to-refer.updated",
     "SAS duty to refer has been updated",

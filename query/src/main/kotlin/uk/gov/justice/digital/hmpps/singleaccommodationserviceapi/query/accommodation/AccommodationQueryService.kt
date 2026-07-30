@@ -3,17 +3,25 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommo
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -32,48 +40,129 @@ class AccommodationQueryService(
   private val caseRepository: CaseRepository,
 ) {
   private val excludedAddressStatuses = setOf(AddressStatusCode.PR.name, AddressStatusCode.PR1.name)
+  private val transientAccommodationTypeCodes: Set<String> by lazy {
+    accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
+      AccommodationSettledType.TRANSIENT,
+    ).map { it.code }.toSet()
+  }
+  private val settledAccommodationTypeCodes: Set<String> by lazy {
+    accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
+      AccommodationSettledType.SETTLED,
+    ).map { it.code }.toSet()
+  }
+  private val homelessAccommodationTypeCodes: Set<String> by lazy {
+    accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().map { it.code }.toSet()
+  }
+
+  private fun getPrisonNumber(crn: String): String? = caseRepository.findByCrn(crn)?.latestPrisonNumber()
+
+  private fun getOrchestrationResult(crn: String): OrchestrationResultDto<AccommodationOrchestrationDto> {
+    val prisonNumber = getPrisonNumber(crn)
+    return accommodationOrchestrationService.getAccommodationOrchestration(crn, prisonNumber)
+  }
 
   fun getCurrentAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
+    val orchestrationResult = getOrchestrationResult(crn)
     return if (orchestrationResult.upstreamFailures.isNotEmpty()) {
       toApiResponseDto(
         data = null,
         upstreamFailures = orchestrationResult.upstreamFailures,
       )
     } else {
-      val currentAccommodation = getCurrentAccommodation(crn = crn, addresses = orchestrationResult.data.cpr?.addresses, prisoner = orchestrationResult.data.prisoner)
+      val currentAccommodation = getCurrentAccommodation(
+        crn = crn,
+        addresses = orchestrationResult.data.cpr?.addresses,
+        prisoner = orchestrationResult.data.prisoner,
+        cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
+        cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
+      )
       toApiResponseDto(
         data = currentAccommodation,
       )
     }
   }
 
-  fun getNextAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
-    val orchestrationResult = accommodationOrchestrationService.getNextAccommodationData(crn)
-    val currentAccommodation = getCurrentAccommodation(crn = crn, addresses = orchestrationResult.data.cpr?.addresses, prisoner = orchestrationResult.data.prisoner)
-    val nextAccommodations = getNextAccommodations(
+  private fun getAccommodationSummaries(crn: String): Pair<AccommodationSummariesDto, List<UpstreamFailure>> {
+    val prisonNumber = getPrisonNumber(crn)
+    val orchestrationResult = accommodationOrchestrationService.getNextAccommodationOrchestration(crn, prisonNumber)
+    val currentAccommodation = getCurrentAccommodation(
+      crn = crn,
+      addresses = orchestrationResult.data.cpr?.addresses,
+      prisoner = orchestrationResult.data.prisoner,
+      cas1CurrentPremises = orchestrationResult.data.cas1CurrentPremises,
+      cas3CurrentPremises = orchestrationResult.data.cas3CurrentPremises,
+    )
+
+    val nextAccommodation = getNextAccommodations(
       crn,
       addresses = orchestrationResult.data.cpr?.addresses,
       cas1Application = orchestrationResult.data.cas1Application,
       cas3Application = orchestrationResult.data.cas3Application,
       currentAccommodation = currentAccommodation,
-    )
+    ).firstOrNull()
 
+    val caseAccommodationStatus =
+      calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation)
+    return AccommodationSummariesDto(
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      caseAccommodationStatus = caseAccommodationStatus,
+    ) to orchestrationResult.upstreamFailures
+  }
+
+  fun getAccommodationSummariesResponse(crn: String): ApiResponseDto<AccommodationSummariesDto> {
+    val (accommodationSummaries, upstreamFailures) = getAccommodationSummaries(crn)
+    return toApiResponseDto(data = accommodationSummaries, upstreamFailures = upstreamFailures)
+  }
+
+  fun getNextAccommodation(crn: String): ApiResponseDto<AccommodationSummaryDto?> {
+    val (accommodationSummaries, upstreamFailures) = getAccommodationSummaries(crn)
     return toApiResponseDto(
-      data = nextAccommodations.firstOrNull(),
-      upstreamFailures = orchestrationResult.upstreamFailures,
+      data = accommodationSummaries.nextAccommodation,
+      upstreamFailures = upstreamFailures,
     )
   }
 
-  fun getCurrentAccommodation(crn: String, addresses: List<CanonicalAddress>?, prisoner: Prisoner?): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
+  fun getCurrentAccommodation(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+    prisoner: Prisoner?,
+    cas1CurrentPremises: Cas1PremisesSummary?,
+    cas3CurrentPremises: Cas3PremisesSummary?,
+  ): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
     toAccommodationSummary(crn, prisoner)
   } else {
     addresses
-      ?.firstOrNull { it.status.code == AddressStatusCode.M.name }
-      ?.let { toAccommodationSummary(crn, address = it) }
+      ?.firstOrNull { it.status.code == AddressStatusCode.M.name }?.let { mainAddress ->
+        when {
+          isAddressWithUsageCode(mainAddress, AddressUsageCode.A02) && postcodesMatch(cas1CurrentPremises?.postcode, mainAddress.postcode) ->
+            toAccommodationSummary(
+              crn,
+              startDate = cas1CurrentPremises?.startDate,
+              endDate = cas1CurrentPremises?.endDate,
+              address = mainAddress,
+            )
+
+          isAddressWithUsageCode(mainAddress, AddressUsageCode.A17) && postcodesMatch(cas3CurrentPremises?.postcode, mainAddress.postcode) ->
+            toAccommodationSummary(
+              crn,
+              startDate = cas3CurrentPremises?.startDate,
+              endDate = cas3CurrentPremises?.endDate,
+              address = mainAddress,
+            )
+
+          else ->
+            toAccommodationSummary(
+              crn,
+              address = mainAddress,
+            )
+        }
+      }
   }
+
+  private fun postcodesMatch(postcode1: String?, postcode2: String?) = postcode1?.filterNot(Char::isWhitespace).equals(postcode2?.filterNot(Char::isWhitespace), ignoreCase = true)
+
+  private fun isAddressWithUsageCode(address: CanonicalAddress, usageCode: AddressUsageCode): Boolean = address.usages.find { it.usageCode.code == usageCode.name && it.isActive } != null
 
   fun getNextAccommodations(
     crn: String,
@@ -92,51 +181,40 @@ class AccommodationQueryService(
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
 
-    return (
-      (
-        addresses
-          ?.filter { it.status.code == AddressStatusCode.PR.name || it.status.code == AddressStatusCode.PR1.name }
-          ?.map { toAccommodationSummary(crn, address = it) } ?: emptyList()
-        ) + cas1NextAccommodation + cas3NextAccommodation
-      ).mapNotNull { it }
+    val nextApprovedPremisesAccommodations = listOfNotNull(cas1NextAccommodation, cas3NextAccommodation)
+
+    val nextCprProposedAccommodations = addresses
+      .orEmpty()
+      .filter { it.status.code in excludedAddressStatuses }
+      .filter { !it.postcode.isNullOrBlank() }
+      .filter { it.endDate == null }
+      .map { toAccommodationSummary(crn, address = it, maskDates = true) }
+
+    return (nextApprovedPremisesAccommodations + nextCprProposedAccommodations)
   }
 
-  fun getCurrentAndAllAccommodations(crn: String): ApiResponseDto<Pair<AccommodationSummaryDto?, List<AccommodationDetailDto>>> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-    val orchestrationResult = accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
-
+  fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {
+    val orchestrationResult = accommodationOrchestrationService.getAccommodationOrchestration(crn)
     val allAccommodations = orchestrationResult.data.cpr?.let {
       it.addresses.map { toAccommodationDetail(crn, address = it) }
     } ?: emptyList()
 
-    val currentAccommodation = getCurrentAccommodation(
-      crn = crn,
-      addresses = orchestrationResult.data.cpr?.addresses,
-      prisoner = orchestrationResult.data.prisoner,
-    )
-
     return toApiResponseDto(
-      data = Pair(currentAccommodation, allAccommodations),
+      data = allAccommodations,
       upstreamFailures = orchestrationResult.upstreamFailures,
     )
   }
 
   fun getAccommodationHistory(crn: String): ApiResponseDto<List<AccommodationSummaryDto>> {
-    val caseEntity = caseRepository.findByCrn(crn)
-    val prisonNumber = caseEntity?.latestPrisonNumber()
-
-    val orchestrationResult =
-      accommodationOrchestrationService.getAccommodationsOrchestration(crn, prisonNumber)
-
+    val prisonNumber = getPrisonNumber(crn)
+    val orchestrationResult = accommodationOrchestrationService.getCprAndPrisonOrchestration(crn, prisonNumber)
     val data = orchestrationResult.data
-    val prisoner = data.prisoner
 
-    val prisonAddress = prisoner
+    val prisonAddress = data.prisoner
       ?.takeIf { it.inOutStatus == InOutStatus.IN }
       ?.let { toAccommodationSummary(crn, prisoner = it) }
 
-    val notProposedAddresses = data.cpr?.addresses?.filter { it.status.code !in excludedAddressStatuses }
+    val notProposedAddresses = data.cpr?.addresses?.filter { it.status.code !in excludedAddressStatuses }?.sortedByDescending { it.startDate }
 
     val accommodationHistory = listOfNotNull(prisonAddress) +
       notProposedAddresses?.map { toAccommodationSummary(crn, address = it) }.orEmpty()
@@ -150,8 +228,9 @@ class AccommodationQueryService(
   fun getAccommodation(id: UUID): AccommodationDetailDto {
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val case = caseRepository.findWithIdentifiersById(proposedAccommodationEntity.caseId).orThrowNotFound("id" to proposedAccommodationEntity.id)
-    val accommodationTypeEntity = accommodationTypeRepository.findByIdOrNull(proposedAccommodationEntity.accommodationTypeId)
-      .orThrowNotFound("id" to proposedAccommodationEntity.accommodationTypeId)
+    val accommodationTypeEntity = proposedAccommodationEntity.accommodationTypeId?.let {
+      accommodationTypeRepository.findByIdOrNull(it).orThrowNotFound("id" to it)
+    }
     val accommodationStatusEntity = proposedAccommodationEntity.accommodationStatusId?.let {
       accommodationStatusRepository.findByIdOrNull(it).orThrowNotFound("id" to it)
     }
@@ -162,4 +241,30 @@ class AccommodationQueryService(
       accommodationStatusEntity = accommodationStatusEntity,
     )
   }
+
+  private fun calculateCaseAccommodationStatus(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ): CaseAccommodationStatus? = when {
+    isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
+
+    isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+
+    else -> {
+      null
+    }
+  }
+
+  private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?) = currentAccommodation == null ||
+    isHomelessType(currentAccommodation)
+
+  private fun isRiskOfNoFixedAbode(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = (!isSettledType(currentAccommodation) && nextAccommodation == null) ||
+    (isSettledType(currentAccommodation) && isHomelessType(nextAccommodation) || isTransientType(nextAccommodation))
+
+  private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
+  private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
+  private fun isHomelessType(dto: AccommodationSummaryDto?) = dto?.type?.code in homelessAccommodationTypeCodes
 }

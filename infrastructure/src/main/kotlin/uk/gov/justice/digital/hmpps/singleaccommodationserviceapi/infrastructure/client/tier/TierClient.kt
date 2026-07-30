@@ -10,7 +10,7 @@ import java.net.URI
 
 interface TierClient {
 
-  @GetExchange(value = "/crn/{crn}/tier")
+  @GetExchange(value = "/v2/crn/{crn}/tier")
   fun getTier(@PathVariable crn: String): Tier
 
   @GetExchange

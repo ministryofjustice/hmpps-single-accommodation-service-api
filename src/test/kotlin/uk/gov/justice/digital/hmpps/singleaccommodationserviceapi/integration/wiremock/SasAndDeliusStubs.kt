@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
@@ -12,8 +13,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelp
 
 object SasAndDeliusStubs {
 
-  fun stubGetCaseListByUsername(
+  fun stubCaseList(
     deliusUsername: String,
+    teamCode: String? = null,
     cases: List<Case>,
     pageSize: Int,
   ) {
@@ -21,7 +23,11 @@ object SasAndDeliusStubs {
 
     cases.forEachIndexed { page, case ->
       sasWiremock.stubFor(
-        get(WireMock.urlPathEqualTo("/case-list/$deliusUsername"))
+        get(WireMock.urlPathEqualTo("/case-list/$deliusUsername")).apply {
+          if (!teamCode.isNullOrBlank()) {
+            withQueryParam("teamCode", WireMock.equalTo(teamCode))
+          }
+        }
           .withQueryParam("page", WireMock.equalTo(page.toString()))
           .withQueryParam("size", WireMock.equalTo(pageSize.toString()))
           .willReturn(
@@ -61,6 +67,16 @@ object SasAndDeliusStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
         .willReturn(serverError()),
+    )
+  }
+
+  fun stubGetCaseNotFoundFailure(
+    deliusUsername: String,
+    crn: String,
+  ) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
+        .willReturn(notFound()),
     )
   }
 }

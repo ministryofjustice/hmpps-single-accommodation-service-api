@@ -6,12 +6,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1AssessmentStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2Status
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
-import java.time.Instant
-import java.time.ZoneOffset
+import java.time.LocalDate
 import java.util.UUID
 
 object AccommodationReferralTransformer {
@@ -19,67 +21,43 @@ object AccommodationReferralTransformer {
     toAccommodationReferralDto(
       id = it.id,
       type = AccommodationService.CAS1,
-      status = toCasReferralStatus(it.status),
-      date = it.createdAt,
+      status = toCasReferralStatus(it.placementStatus, it.requestForPlacementStatus, it.applicationStatus),
+      requestForPlacementStatus = it.requestForPlacementStatus?.value,
+      date = it.date,
       referralRejectionReason = it.referralRejectionReason,
       referralRejectionReasonDetail = it.referralRejectionReasonDetail,
       localAuthorityArea = it.localAuthorityArea,
       pdu = it.pdu,
       referredBy = it.referredBy,
       placementAddress = it.placementAddress,
-      placementStatus = it.placementStatus,
+      placementStatus = it.placementStatus?.value,
+      uiUrl = it.uiUrl,
     )
   } +
-    dto.cas2Referrals.map {
-      toAccommodationReferralDto(
-        id = it.id,
-        type = AccommodationService.CAS2,
-        status = toCasReferralStatus(it.status),
-        date = it.createdAt,
-        referralRejectionReason = it.referralRejectionReason,
-        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
-        localAuthorityArea = it.localAuthorityArea,
-        pdu = it.pdu,
-        referredBy = it.referredBy,
-        placementAddress = it.placementAddress,
-        placementStatus = it.placementStatus,
-      )
-    } +
-    dto.cas2v2Referrals.map {
-      toAccommodationReferralDto(
-        id = it.id,
-        type = AccommodationService.CAS2v2,
-        status = toCasReferralStatus(it.status),
-        date = it.createdAt,
-        referralRejectionReason = it.referralRejectionReason,
-        referralRejectionReasonDetail = it.referralRejectionReasonDetail,
-        localAuthorityArea = it.localAuthorityArea,
-        pdu = it.pdu,
-        referredBy = it.referredBy,
-        placementAddress = it.placementAddress,
-        placementStatus = it.placementStatus,
-      )
-    } +
     dto.cas3Referrals.map {
       toAccommodationReferralDto(
         id = it.id,
         type = AccommodationService.CAS3,
-        status = toCasReferralStatus(it.status),
-        date = it.createdAt,
+        status = toCasReferralStatus(it.bookingStatus, it.assessmentStatus, it.applicationStatus, it.referralRejectionReason),
+        assessmentStatus = it.assessmentStatus?.value,
+        requestForPlacementStatus = null,
+        date = it.date,
         referralRejectionReason = it.referralRejectionReason,
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
         pdu = it.pdu,
         referredBy = it.referredBy,
         placementAddress = it.placementAddress,
-        placementStatus = it.placementStatus,
+        placementStatus = it.bookingStatus?.value,
+        uiUrl = it.uiUrl,
       )
     } + dtrs.map {
       toAccommodationReferralDto(
         id = it.submission!!.id,
         type = AccommodationService.DTR,
         status = toCasReferralStatus(it.status),
-        date = it.submission!!.submissionDate.atStartOfDay().toInstant(ZoneOffset.UTC),
+        requestForPlacementStatus = null,
+        date = it.submission!!.submissionDate,
         referralRejectionReason = it.submission!!.withdrawalReason?.name,
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
@@ -87,10 +65,10 @@ object AccommodationReferralTransformer {
         referredBy = DeliusUserDto(
           name = it.submission!!.createdBy,
           username = it.submission!!.createdByUsername,
-          staffCode = null,
         ),
         placementAddress = null,
         placementStatus = it.submission!!.outcomeReason?.name,
+        uiUrl = null,
       )
     }
 
@@ -98,7 +76,9 @@ object AccommodationReferralTransformer {
     id: UUID,
     type: AccommodationService,
     status: AccommodationReferralStatus,
-    date: Instant,
+    assessmentStatus: String? = null,
+    requestForPlacementStatus: String?,
+    date: LocalDate,
     referralRejectionReason: String?,
     referralRejectionReasonDetail: String?,
     localAuthorityArea: String?,
@@ -106,10 +86,13 @@ object AccommodationReferralTransformer {
     referredBy: DeliusUserDto?,
     placementAddress: String?,
     placementStatus: String?,
+    uiUrl: String?,
   ) = AccommodationReferralDto(
     id = id,
     type = type,
     status = status,
+    assessmentStatus = assessmentStatus,
+    requestForPlacementStatus = requestForPlacementStatus,
     date = date,
     referralRejectionReason = referralRejectionReason,
     referralRejectionReasonDetail = referralRejectionReasonDetail,
@@ -118,51 +101,80 @@ object AccommodationReferralTransformer {
     referredBy = toStaffDetailsDto(referredBy),
     placementAddress = placementAddress,
     placementStatus = placementStatus,
+    uiUrl = uiUrl,
   )
 
   fun toStaffDetailsDto(referredBy: DeliusUserDto?) = referredBy?.let {
     StaffDetailsDto(
       it.name,
       it.username,
-      it.staffCode,
     )
   }
 
-  fun toCasReferralStatus(status: Cas1AssessmentStatus): AccommodationReferralStatus = when (status) {
-    Cas1AssessmentStatus.COMPLETED -> AccommodationReferralStatus.ACCEPTED
-    Cas1AssessmentStatus.REALLOCATED -> AccommodationReferralStatus.REJECTED
-    Cas1AssessmentStatus.AWAITING_RESPONSE,
-    Cas1AssessmentStatus.IN_PROGRESS,
-    Cas1AssessmentStatus.NOT_STARTED,
-    -> AccommodationReferralStatus.PENDING
+  fun toCasReferralStatus(placementStatus: Cas1SpaceBookingStatus?, requestForPlacementStatus: RequestForPlacementStatus?, applicationStatus: ApprovedPremisesApplicationStatus): AccommodationReferralStatus {
+    placementStatus?.let {
+      return when (it) {
+        Cas1SpaceBookingStatus.NOT_ARRIVED -> AccommodationReferralStatus.NOT_ARRIVED
+        Cas1SpaceBookingStatus.DEPARTED -> AccommodationReferralStatus.DEPARTED
+        Cas1SpaceBookingStatus.CANCELLED -> AccommodationReferralStatus.CANCELLED
+        Cas1SpaceBookingStatus.ARRIVED,
+        Cas1SpaceBookingStatus.UPCOMING,
+        -> AccommodationReferralStatus.ACCEPTED
+      }
+    }
+
+    requestForPlacementStatus?.let {
+      when (it) {
+        RequestForPlacementStatus.REQUEST_REJECTED -> return AccommodationReferralStatus.REQUEST_REJECTED
+        RequestForPlacementStatus.REQUEST_WITHDRAWN -> return AccommodationReferralStatus.REQUEST_WITHDRAWN
+        RequestForPlacementStatus.PLACEMENT_BOOKED -> return AccommodationReferralStatus.ACCEPTED
+        RequestForPlacementStatus.REQUEST_UNSUBMITTED,
+        RequestForPlacementStatus.REQUEST_SUBMITTED,
+        RequestForPlacementStatus.AWAITING_MATCH,
+        -> Unit
+      }
+    }
+
+    return when (applicationStatus) {
+      ApprovedPremisesApplicationStatus.EXPIRED -> AccommodationReferralStatus.EXPIRED
+      ApprovedPremisesApplicationStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+      ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED -> AccommodationReferralStatus.ACCEPTED
+      ApprovedPremisesApplicationStatus.REJECTED,
+      ApprovedPremisesApplicationStatus.INAPPLICABLE,
+      -> AccommodationReferralStatus.REJECTED
+      else -> AccommodationReferralStatus.PENDING
+    }
   }
 
-  fun toCasReferralStatus(status: Cas2Status): AccommodationReferralStatus = when (status) {
-    Cas2Status.PLACE_OFFERED,
-    Cas2Status.OFFER_ACCEPTED,
-    -> AccommodationReferralStatus.ACCEPTED
+  fun toCasReferralStatus(bookingStatus: Cas3BookingStatus?, assessmentStatus: AssessmentStatus?, applicationStatus: ApplicationStatus, referralRejectionReason: String?): AccommodationReferralStatus {
+    bookingStatus?.let {
+      when (it) {
+        Cas3BookingStatus.DEPARTED -> return AccommodationReferralStatus.DEPARTED
+        Cas3BookingStatus.CANCELLED -> return AccommodationReferralStatus.CANCELLED
+        Cas3BookingStatus.NOT_MINUS_ARRIVED,
+        Cas3BookingStatus.ARRIVED,
+        Cas3BookingStatus.CONFIRMED,
+        -> return AccommodationReferralStatus.ACCEPTED
+        Cas3BookingStatus.PROVISIONAL,
+        Cas3BookingStatus.CLOSED,
+        -> Unit
+      }
+    }
 
-    Cas2Status.OFFER_DECLINED_OR_WITHDRAWN,
-    Cas2Status.REFERRAL_CANCELLED,
-    Cas2Status.REFERRAL_WITHDRAWN,
-    -> AccommodationReferralStatus.REJECTED
+    if (assessmentStatus == AssessmentStatus.CLOSED) {
+      return AccommodationReferralStatus.ARCHIVED
+    }
 
-    Cas2Status.MORE_INFORMATION_REQUESTED,
-    Cas2Status.AWAITING_ARRIVAL,
-    Cas2Status.ON_WAITING_LIST,
-    Cas2Status.AWAITING_DECISION,
-    -> AccommodationReferralStatus.PENDING
-  }
+    val isRejected = assessmentStatus == AssessmentStatus.REJECTED || applicationStatus == ApplicationStatus.REJECTED
+    if (isRejected) {
+      return if (referralRejectionReason != null) {
+        AccommodationReferralStatus.REJECTED
+      } else {
+        AccommodationReferralStatus.ARCHIVED
+      }
+    }
 
-  fun toCasReferralStatus(status: TemporaryAccommodationAssessmentStatus): AccommodationReferralStatus = when (status) {
-    TemporaryAccommodationAssessmentStatus.READY_TO_PLACE -> AccommodationReferralStatus.ACCEPTED
-    TemporaryAccommodationAssessmentStatus.CLOSED,
-    TemporaryAccommodationAssessmentStatus.REJECTED,
-    -> AccommodationReferralStatus.REJECTED
-
-    TemporaryAccommodationAssessmentStatus.UNALLOCATED,
-    TemporaryAccommodationAssessmentStatus.IN_REVIEW,
-    -> AccommodationReferralStatus.PENDING
+    return AccommodationReferralStatus.PENDING
   }
 
   fun toCasReferralStatus(status: DtrStatus): AccommodationReferralStatus = when (status) {

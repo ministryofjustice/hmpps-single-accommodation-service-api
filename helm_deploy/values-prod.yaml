@@ -10,14 +10,11 @@ generic-service:
     JAVA_OPTS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: prod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
-    HMPPS_SQS_ENABLED: false
+    HMPPS_SQS_ENABLED: true
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     SERVICE_SAS-AND-DELIUS_BASE-URL: https://single-accommodation-and-delius.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-AND-DELIUS_BASE-URL: https://approved-premises-and-delius.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-AND-OASYS_BASE-URL: https://approved-premises-and-oasys.hmpps.service.justice.gov.uk
     SERVICE_APPROVED-PREMISES-API_BASE-URL: https://approved-premises-api.hmpps.service.justice.gov.uk
-    SERVICE_APPROVED-PREMISES-UI_BASE-URL: https://approved-premises.hmpps.service.justice.gov.uk
-    SERVICE_TEMPORARY-ACCOMMODATION-UI_BASE-URL: https://transitional-accommodation.hmpps.service.justice.gov.uk
     SERVICE_COMMISSIONED-REHABILITATIVE-SERVICES-UI_BASE-URL: https://find-and-refer-intervention.hmpps.service.justice.gov.uk
     SERVICE_CORE-PERSON-RECORD_BASE-URL: https://hmpps-person-record.hmpps.service.justice.gov.uk
     SERVICE_PRISONER-SEARCH_BASE-URL: https://prisoner-search.prison.service.justice.gov.uk
@@ -32,8 +29,22 @@ generic-service:
     SPRINGDOC_SWAGGER_UI_ENABLED: false
 
     SCHEDULING_ENABLED: true
+    TIER_V3-ENABLED: false
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: hmpps-approved-premises
+  elastiCacheAlertsClusterIds:
+    cp-4f07c1a0333a5596: "SAS Redis - Prod"
+  rdsAlertsDatabases:
+    cloud-platform-420403d544f82496: "SAS DB - Prod"
+  # API pool users = 20 per pod
+  # Max expected connections for 4 x pods = 80 + additional 10 (buffer for direct connections)
+  rdsAlertsConnectionThreshold: 90
+  sqsAlertsQueueNames:
+    - "hmpps-community-accommodation-live-prod-sas_domain_events_queue"
+    - "hmpps-community-accommodation-live-prod-sas_domain_events_dlq"
+  sqsAlertsOldestThreshold: 30
+  sqsAlertsTotalMessagesThreshold: 10
+

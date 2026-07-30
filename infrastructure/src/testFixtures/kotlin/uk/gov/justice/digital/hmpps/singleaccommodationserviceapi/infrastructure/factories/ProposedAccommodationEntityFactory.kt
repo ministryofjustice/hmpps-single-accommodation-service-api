@@ -20,7 +20,7 @@ fun buildProposedAccommodationEntity(
   cprAddressId: UUID? = null,
   accommodationSource: AccommodationSource = AccommodationSource.SAS,
   name: String? = "Test Accommodation",
-  accommodationTypeEntity: AccommodationTypeEntity = buildAccommodationTypeEntity(),
+  accommodationTypeEntity: AccommodationTypeEntity? = buildAccommodationTypeEntity(),
   accommodationStatusEntity: AccommodationStatusEntity? = buildAccommodationStatusEntity(),
   verificationStatus: VerificationStatus? = VerificationStatus.NOT_CHECKED_YET,
   nextAccommodationStatus: NextAccommodationStatus? = NextAccommodationStatus.TO_BE_DECIDED,
@@ -32,7 +32,7 @@ fun buildProposedAccommodationEntity(
   subBuildingName: String? = null,
   buildingName: String? = null,
   buildingNumber: String? = "10",
-  throughfareName: String? = "Downing Street",
+  thoroughfareName: String? = "Downing Street",
   dependentLocality: String? = null,
   postTown: String? = "London",
   county: String? = null,
@@ -46,8 +46,7 @@ fun buildProposedAccommodationEntity(
   id = id,
   caseId = caseId,
   cprAddressId = cprAddressId,
-  name = name,
-  accommodationTypeId = accommodationTypeEntity.id,
+  accommodationTypeId = accommodationTypeEntity?.id,
   accommodationStatusId = accommodationStatusEntity?.id,
   verificationStatus = verificationStatus,
   nextAccommodationStatus = nextAccommodationStatus,
@@ -57,7 +56,7 @@ fun buildProposedAccommodationEntity(
   subBuildingName = subBuildingName,
   buildingName = buildingName,
   buildingNumber = buildingNumber,
-  throughfareName = throughfareName,
+  thoroughfareName = thoroughfareName,
   dependentLocality = dependentLocality,
   postTown = postTown,
   county = county,
@@ -101,6 +100,7 @@ fun buildAccommodationTypeEntity(
   isPrison: Boolean = false,
   isCas1: Boolean = false,
   isCas2: Boolean = false,
+  isHomeless: Boolean = false,
 ) = AccommodationTypeEntity(
   id,
   name = name,
@@ -112,6 +112,7 @@ fun buildAccommodationTypeEntity(
   isPrison = isPrison,
   isCas1 = isCas1,
   isCas2 = isCas2,
+  isHomeless = isHomeless,
 )
 
 @TestData

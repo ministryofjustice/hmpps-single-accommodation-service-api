@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.util.UUID
 
@@ -15,7 +14,7 @@ class CaseAggregateTest {
 
   @Test
   fun `hydrate loads aggregate correctly`() {
-    val tierScore = TierScore.A1
+    val tierScore = "A1"
     val cas1ApplicationId = UUID.randomUUID()
     val cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED
     val cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED
@@ -54,15 +53,15 @@ class CaseAggregateTest {
   }
 
   @Test
-  fun `updateTier() should update TierScore`() {
+  fun `updateTier() should update tier`() {
     val aggregate = CaseAggregate.hydrateNew()
 
     val beforeUpdate = aggregate.snapshot()
     assertThat(beforeUpdate.tierScore).isNull()
 
-    aggregate.updateTier(TierScore.A1)
+    aggregate.updateTier("A1")
     val afterUpdate = aggregate.snapshot()
-    assertThat(afterUpdate.tierScore).isEqualTo(TierScore.A1)
+    assertThat(afterUpdate.tierScore).isEqualTo("A1")
   }
 
   @Test
@@ -77,14 +76,14 @@ class CaseAggregateTest {
     assertThat(beforeUpdate.cas1ApplicationPlacementStatus).isNull()
 
     aggregate.upsertCase(
-      tierScore = TierScore.A1,
+      tierScore = "A1",
       cas1ApplicationId = cas1ApplicationId,
       cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       cas1ApplicationPlacementStatus = Cas1PlacementStatus.ARRIVED,
     )
     val afterUpdate = aggregate.snapshot()
-    assertThat(afterUpdate.tierScore).isEqualTo(TierScore.A1)
+    assertThat(afterUpdate.tierScore).isEqualTo("A1")
     assertThat(afterUpdate.cas1ApplicationId).isEqualTo(cas1ApplicationId)
     assertThat(afterUpdate.cas1ApplicationApplicationStatus).isEqualTo(Cas1ApplicationStatus.PLACEMENT_ALLOCATED)
     assertThat(afterUpdate.cas1ApplicationRequestForPlacementStatus).isEqualTo(Cas1RequestForPlacementStatus.PLACEMENT_BOOKED)

@@ -8,7 +8,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSetStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
@@ -45,7 +44,7 @@ class RulesEngineTest {
   fun `rules engine passes cas1Eligibility rules`() {
     val data = buildDomainData(
       crn = crn,
-      tierScore = TierScore.A1,
+      tierScore = "A1",
       sex = SexCode.M,
       currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
     )
@@ -60,7 +59,7 @@ class RulesEngineTest {
   fun `rules engine fails some cas1Eligibility rules`() {
     val data = buildDomainData(
       crn = crn,
-      tierScore = TierScore.C1S,
+      tierScore = "C1S",
       sex = SexCode.F,
       currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now().plusMonths(7)),
     )

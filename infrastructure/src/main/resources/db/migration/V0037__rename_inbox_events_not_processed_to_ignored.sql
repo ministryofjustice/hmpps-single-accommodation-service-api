@@ -1,0 +1,1 @@
+update inbox_event set processed_status = 'IGNORED' where processed_status ='NOT_PROCESSED'

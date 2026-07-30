@@ -7,6 +7,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferInvalidStatusTransitionException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeNoteNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonChangedOnWithdrawal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonNotApplicableException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DutyToReferWithdrawalReasonNotApplicableException
@@ -40,6 +42,8 @@ class DutyToReferAggregate private constructor(
   private var withdrawalReason: WithdrawalReason? = null,
   private var withdrawalReasonOther: String? = null,
   private var outcomeReason: OutcomeReason? = null,
+  private var submissionNote: String? = null,
+  private var outcomeNote: String? = null,
   private var notes: MutableList<DutyToReferNote> = mutableListOf(),
 ) {
   private val domainEvents = mutableListOf<SingleAccommodationServiceDomainEvent>()
@@ -61,6 +65,8 @@ class DutyToReferAggregate private constructor(
       withdrawalReason: WithdrawalReason? = null,
       withdrawalReasonOther: String? = null,
       outcomeReason: OutcomeReason? = null,
+      submissionNote: String? = null,
+      outcomeNote: String? = null,
     ) = DutyToReferAggregate(
       id = id,
       caseId = caseId,
@@ -71,6 +77,8 @@ class DutyToReferAggregate private constructor(
       withdrawalReason = withdrawalReason,
       withdrawalReasonOther = withdrawalReasonOther,
       outcomeReason = outcomeReason,
+      submissionNote = submissionNote,
+      outcomeNote = outcomeNote,
       notes = notes.toMutableList(),
     )
   }
@@ -83,12 +91,16 @@ class DutyToReferAggregate private constructor(
     withdrawalReason: WithdrawalReason? = null,
     withdrawalReasonOther: String? = null,
     outcomeReason: OutcomeReason? = null,
+    submissionNote: String? = null,
+    outcomeNote: String? = null,
   ) {
     validateStatusTransition(status)
     validateWithdrawal(status, withdrawalReason, withdrawalReasonOther)
-    validateOutcome(status, outcomeReason)
 
     val previousStatus = this.status
+    val previousOutcomeReason = this.outcomeReason
+
+    validateOutcome(status, outcomeReason, outcomeNote, previousStatus, previousOutcomeReason)
 
     this.localAuthorityAreaId = localAuthorityAreaId
     this.submissionDate = submissionDate
@@ -98,9 +110,29 @@ class DutyToReferAggregate private constructor(
     this.withdrawalReasonOther = withdrawalReasonOther
     this.outcomeReason = outcomeReason
 
+    // submission note can be changed when updating with any status (user can go back and edit after adding outcome)
+    this.submissionNote = submissionNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
+    // outcome note can only change when updating with an outcome status
+    if (status == DtrStatus.ACCEPTED || status == DtrStatus.NOT_ACCEPTED) {
+      this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
+    }
+
     if (previousStatus != status) {
       domainEvents += DutyToReferUpdatedDomainEvent(id)
     }
+  }
+
+  fun withdrawDutyToRefer(withdrawalReason: WithdrawalReason) {
+    if (this.status == DtrStatus.WITHDRAWN) return
+    validateStatusTransition(DtrStatus.WITHDRAWN)
+    validateWithdrawal(DtrStatus.WITHDRAWN, withdrawalReason, null)
+
+    this.status = DtrStatus.WITHDRAWN
+    this.withdrawalReason = withdrawalReason
+    this.withdrawalReasonOther = null
+    this.outcomeReason = null
+
+    domainEvents += DutyToReferUpdatedDomainEvent(id)
   }
 
   fun addNote(note: String) {
@@ -115,6 +147,10 @@ class DutyToReferAggregate private constructor(
     if (note.isBlank()) {
       throw NoteIsEmptyException()
     }
+    validateNoteLength(note)
+  }
+
+  private fun validateNoteLength(note: String) {
     if (note.length > NOTE_MAX_LENGTH) {
       throw NoteIsGreaterThanMaxLengthException()
     }
@@ -149,21 +185,58 @@ class DutyToReferAggregate private constructor(
     }
   }
 
-  // validate the outcome reason for incoming change
-  private fun validateOutcome(newStatus: DtrStatus, outcomeReason: OutcomeReason?) {
+  // validate the outcome reason and note for incoming change
+  private fun validateOutcome(newStatus: DtrStatus, outcomeReason: OutcomeReason?, outcomeNote: String?, previousStatus: DtrStatus?, prevOutcomeReason: OutcomeReason?) {
     when (newStatus) {
-      // accepted outcomes must have a valid accepted reason
-      DtrStatus.ACCEPTED -> if (outcomeReason !in ACCEPTED_OUTCOME_REASONS) {
-        if (outcomeReason == null) throw DutyToReferOutcomeReasonRequiredException()
-        throw DutyToReferOutcomeReasonNotApplicableException()
+      DtrStatus.WITHDRAWN -> when (previousStatus) {
+        DtrStatus.ACCEPTED -> validateOutcomeReasonUnchanged(outcomeReason, prevOutcomeReason, ACCEPTED_OUTCOME_REASONS)
+        DtrStatus.NOT_ACCEPTED -> validateOutcomeReasonUnchanged(outcomeReason, prevOutcomeReason, NOT_ACCEPTED_OUTCOME_REASONS)
+        else -> validateNoOutcome(outcomeReason, outcomeNote)
       }
-      // not accepted outcomes must have a valid not accepted reason
-      DtrStatus.NOT_ACCEPTED -> if (outcomeReason !in NOT_ACCEPTED_OUTCOME_REASONS) {
-        if (outcomeReason == null) throw DutyToReferOutcomeReasonRequiredException()
+
+      DtrStatus.ACCEPTED -> validateOutcomeReason(outcomeReason, ACCEPTED_OUTCOME_REASONS)
+      DtrStatus.NOT_ACCEPTED -> validateOutcomeReason(outcomeReason, NOT_ACCEPTED_OUTCOME_REASONS)
+      else -> validateNoOutcome(outcomeReason, outcomeNote)
+    }
+  }
+
+  private fun validateOutcomeReason(
+    outcomeReason: OutcomeReason?,
+    validReasons: Set<OutcomeReason>,
+  ) {
+    when {
+      outcomeReason == null ->
+        throw DutyToReferOutcomeReasonRequiredException()
+
+      outcomeReason !in validReasons ->
         throw DutyToReferOutcomeReasonNotApplicableException()
-      }
-      // any other status then an outcome reason is not applicable
-      else -> if (outcomeReason != null) throw DutyToReferOutcomeReasonNotApplicableException()
+    }
+  }
+
+  private fun validateOutcomeReasonUnchanged(
+    outcomeReason: OutcomeReason?,
+    previousOutcomeReason: OutcomeReason?,
+    validReasons: Set<OutcomeReason>,
+  ) {
+    when {
+      outcomeReason != previousOutcomeReason ->
+        throw DutyToReferOutcomeReasonChangedOnWithdrawal()
+
+      outcomeReason !in validReasons ->
+        throw DutyToReferOutcomeReasonNotApplicableException()
+    }
+  }
+
+  private fun validateNoOutcome(
+    outcomeReason: OutcomeReason?,
+    outcomeNote: String?,
+  ) {
+    if (outcomeReason != null) {
+      throw DutyToReferOutcomeReasonNotApplicableException()
+    }
+
+    if (!outcomeNote.isNullOrBlank()) {
+      throw DutyToReferOutcomeNoteNotApplicableException()
     }
   }
 
@@ -180,6 +253,8 @@ class DutyToReferAggregate private constructor(
     withdrawalReason = withdrawalReason,
     withdrawalReasonOther = withdrawalReasonOther,
     outcomeReason = outcomeReason,
+    submissionNote = submissionNote,
+    outcomeNote = outcomeNote,
   )
 
   data class DutyToReferSnapshot(
@@ -193,6 +268,8 @@ class DutyToReferAggregate private constructor(
     val withdrawalReason: WithdrawalReason? = null,
     val withdrawalReasonOther: String? = null,
     val outcomeReason: OutcomeReason? = null,
+    val submissionNote: String? = null,
+    val outcomeNote: String? = null,
   )
 
   data class DutyToReferNote(

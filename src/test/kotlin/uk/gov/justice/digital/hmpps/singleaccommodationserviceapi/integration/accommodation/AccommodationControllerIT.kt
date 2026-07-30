@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation
 
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
@@ -14,9 +17,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SuitablePremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -24,6 +27,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -33,18 +38,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedAccommodationStatusResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetAccommodationByIdResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationCas1CurrentPremisesResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationCas3CurrentPremisesResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationPrisonResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetCurrentAccommodationWithAllUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationWithUpstreamFailureResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationsResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedNoFixedAbodeResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedRiskOfNoFixedAbodeResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.UUID
 
 class AccommodationControllerIT : IntegrationTestBase() {
@@ -68,7 +78,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    proposedAccommodationRepository.deleteAll()
+    databaseUtils.truncate(DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION)
     crn = UUID.randomUUID().toString()
     prisonNumber = "PR1"
     caseEntity = caseRepository.save(
@@ -79,6 +89,154 @@ class AccommodationControllerIT : IntegrationTestBase() {
     )
     createTestDataSetupUserAndDeliusUser()
     HmppsAuthStubs.stubGrantToken()
+  }
+
+  @Nested
+  inner class AccommodationsSummary {
+
+    val currentAddress = buildCanonicalAddress(
+      cprAddressId = UUID.randomUUID(),
+      typeVerified = true,
+      noFixedAbode = false,
+      postcode = "SW1A 1AA",
+      thoroughfareName = "Some Street",
+      postTown = "London",
+      startDate = LocalDate.of(2026, 1, 11),
+      endDate = null,
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A07B.name,
+            description = AddressUsageCode.A07B.description,
+          ),
+          isActive = true,
+        ),
+      ),
+    )
+
+    fun nextAddress(accommodationType: AccommodationTypeEntity, noFixedAbode: Boolean = false) = buildCanonicalAddress(
+      cprAddressId = UUID.randomUUID(),
+      noFixedAbode = noFixedAbode,
+      startDate = LocalDate.of(2025, 10, 17),
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.PR.name,
+        description = AddressStatusCode.PR.description,
+      ),
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = accommodationType.code,
+            description = accommodationType.name,
+          ),
+          isActive = true,
+        ),
+      ),
+    )
+
+    @Test
+    fun `should return NO_FIXED_ABODE when no current accommodation`() {
+      val corePersonRecord = buildCorePersonRecord(addresses = emptyList())
+
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, corePersonRecord)
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(expectedNoFixedAbodeResponse)
+        }
+    }
+
+    @Test
+    fun `should return current accommodation with RISK_OF_NO_FIXED_ABODE when next accommodation is homeless type`() {
+      val accommodationType = accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().first()
+      val nextAddress = nextAddress(accommodationType, noFixedAbode = true)
+
+      val corePersonRecord = buildCorePersonRecord(
+        addresses = listOf(currentAddress, nextAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, corePersonRecord)
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(expectedRiskOfNoFixedAbodeResponse(crn))
+        }
+    }
+
+    @Test
+    fun `returns null caseAccommodationStatus when current accommodation is settled and has no next accommodation`() {
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.caseAccommodationStatus").isEmpty
+    }
+
+    @Test
+    fun `should return current and next accommodation and return caseAccommodationStatus as NULL when next accommodation is SETTLED type`() {
+      val accommodationType =
+        accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED).first()
+      val nextAddress = nextAddress(accommodationType)
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(nextAddress, currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedAccommodationStatusResponse(
+              crn,
+              settledType = null,
+              nextCode = accommodationType.code,
+              nextDescription = accommodationType.name,
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return current and next accommodation and return RISK_OF_NO_FIXED_ABODE when next accommodation is TRANSIENT type`() {
+      val accommodationType =
+        accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT).first()
+      val nextAddress = nextAddress(accommodationType)
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(nextAddress, currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedAccommodationStatusResponse(
+              crn,
+              settledType = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              nextCode = accommodationType.code,
+              nextDescription = accommodationType.name,
+            ),
+          )
+        }
+    }
   }
 
   @Test
@@ -98,12 +256,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.P.name,
             description = AddressStatusCode.P.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -119,12 +279,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -144,6 +306,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get current accommodation for crn when it is a prison`() {
+    val cas1CurrentPremises = buildCas1PremisesSummary()
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -159,12 +322,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.P.name,
             description = AddressStatusCode.P.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07A.name,
-              description = AddressUsageCode.A07A.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
         buildCanonicalAddress(
@@ -179,12 +344,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -193,6 +360,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
+    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
     PrisonerSearchStubs.getPrisonerOKResponse(
       prisonNumber = prisonNumber,
       response = buildPrisoner(
@@ -213,9 +381,179 @@ class AccommodationControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `get current accommodation should return partial success when CPR Addresses call returns server error`() {
+  fun `should get current accommodation for crn when it is a cas1 current premises`() {
+    val postcode = "SW1A 1AA"
+    val cas1CurrentPremises = buildCas1PremisesSummary(postcode = postcode, startDate = LocalDate.of(2026, 1, 11), endDate = LocalDate.of(2026, 5, 11))
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
+      addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "W5 2AB",
+          thoroughfareName = "Another Street",
+          postTown = "London",
+          startDate = LocalDate.of(2025, 10, 17),
+          endDate = LocalDate.of(2026, 1, 10),
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.P.name,
+            description = AddressStatusCode.P.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = postcode,
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A02.name,
+                description = AddressUsageCode.A02.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = corePersonRecord,
+    )
+    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = prisonNumber,
+      response = buildPrisoner(
+        prisonNumber = prisonNumber,
+        prisonId = "WWI",
+        prisonName = "Wandsworth",
+        inOutStatus = InOutStatus.OUT,
+        releaseDate = LocalDate.of(2025, 10, 17),
+      ),
+    )
+    restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
+            crn = crn,
+            startDate = cas1CurrentPremises.startDate.toString(),
+            endDate = cas1CurrentPremises.endDate.toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should get current accommodation for crn when it is a cas3 current premises`() {
+    val postcode1 = "SW1A 1AA"
+    val postcode2 = "Sw1A1AA    "
+
+    val cas3CurrentPremises = buildCas3PremisesSummary(postcode = postcode2)
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
+      addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "W5 2AB",
+          thoroughfareName = "Another Street",
+          postTown = "London",
+          startDate = LocalDate.of(2025, 10, 17),
+          endDate = LocalDate.of(2026, 1, 10),
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.P.name,
+            description = AddressStatusCode.P.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07A.name,
+                description = AddressUsageCode.A07A.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = postcode1,
+          thoroughfareName = "Some Street",
+          postTown = "London",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = null,
+          status = CanonicalAddressStatus(
+            code = AddressStatusCode.M.name,
+            description = AddressStatusCode.M.description,
+          ),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A17.name,
+                description = AddressUsageCode.A17.description,
+              ),
+              isActive = true,
+            ),
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+      crn = crn,
+      response = corePersonRecord,
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesOKResponse(crn, cas3CurrentPremises)
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = prisonNumber,
+      response = buildPrisoner(
+        prisonNumber = prisonNumber,
+        prisonId = "WWI",
+        prisonName = "Wandsworth",
+        inOutStatus = InOutStatus.OUT,
+        releaseDate = LocalDate.of(2025, 10, 17),
+      ),
+    )
+    restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
+            crn = crn,
+            startDate = cas3CurrentPremises.startDate.toString(),
+            endDate = cas3CurrentPremises.endDate.toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `get current accommodation should return no success when CPR Addresses call returns server error`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     PrisonerSearchStubs.getPrisonerServerErrorResponse(prisonNumber)
+    ApprovedPremisesStubs.getCas1CurrentPremisesServerErrorResponse(crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesServerErrorResponse(crn)
 
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -228,7 +566,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get accommodation by id with ROLE_SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD role`() {
-    val entity = createAndSaveProposedAccommodation()
+    val startDate = LocalDate.now().minusMonths(5)
+    val endDate = LocalDate.now().minusMonths(1)
+    val entity = createAndSaveProposedAccommodation(startDate, endDate)
 
     restTestClient.get().uri("/accommodations/{id}", entity.id)
       .withClientCredentialsJwt(
@@ -241,7 +581,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
           expectedGetAccommodationByIdResponse(
             crn = crn,
             cprAddressId = cprAddressId,
-            createdAt = entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+            startDate = startDate.toString(),
+            endDate = endDate.toString(),
           ),
         )
       }
@@ -259,15 +600,16 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should return 403 when get accommodation by id with Delius JWT`() {
-    val entity = createAndSaveProposedAccommodation()
-
-    restTestClient.get().uri("/accommodations/{id}", entity.id)
+    restTestClient.get().uri("/accommodations/{id}", UUID.randomUUID())
       .withDeliusUserJwt()
       .exchange()
       .expectStatus().isForbidden
   }
 
-  private fun createAndSaveProposedAccommodation(): ProposedAccommodationEntity {
+  private fun createAndSaveProposedAccommodation(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): ProposedAccommodationEntity {
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")
     val accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")
     val entity = buildProposedAccommodationEntity(
@@ -279,10 +621,12 @@ class AccommodationControllerIT : IntegrationTestBase() {
       nextAccommodationStatus = NextAccommodationStatus.YES,
       accommodationTypeEntity = accommodationTypeEntity!!,
       accommodationStatusEntity = accommodationStatusEntity,
+      startDate = startDate,
+      endDate = endDate,
       subBuildingName = "test sub building name",
       buildingName = "test building name",
       buildingNumber = "4",
-      throughfareName = "test thoroughfare",
+      thoroughfareName = "test thoroughfare",
       dependentLocality = "test dependent locality",
       postTown = "test post town",
       county = "test county",
@@ -306,12 +650,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
         code = AddressStatusCode.PR.name,
         description = AddressStatusCode.PR.description,
       ),
-      usage = CanonicalAddressUsage(
-        usageCode = CanonicalAddressUsageCode(
-          code = AddressUsageCode.A07A.name,
-          description = AddressUsageCode.A07A.description,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A07A.name,
+            description = AddressUsageCode.A07A.description,
+          ),
+          isActive = true,
         ),
-        isActive = true,
       ),
     )
     val corePersonRecord = buildCorePersonRecord(
@@ -330,12 +676,14 @@ class AccommodationControllerIT : IntegrationTestBase() {
             code = AddressStatusCode.M.name,
             description = AddressStatusCode.M.description,
           ),
-          usage = CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.A07B.name,
-              description = AddressUsageCode.A07B.description,
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(
+                code = AddressUsageCode.A07B.name,
+                description = AddressUsageCode.A07B.description,
+              ),
+              isActive = true,
             ),
-            isActive = true,
           ),
         ),
       ),
@@ -346,7 +694,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     )
     val cas1Application = buildCas1Application(
       placementStatus = Cas1PlacementStatus.UPCOMING,
-      premises = buildCas1SuitablePremisesDto(
+      premises = buildCas1PremisesSummary(
         postcode = "SW1A 1AB",
       ),
     )
@@ -356,7 +704,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     )
     val cas3Application = buildCas3Application(
       bookingStatus = Cas3BookingStatus.CONFIRMED,
-      premises = buildCas3SuitablePremisesDto(
+      premises = buildCas3PremisesSummary(
         postcode = "SW1A 1A4",
       ),
     )
@@ -367,13 +715,13 @@ class AccommodationControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetNextAccommodationsResponse(
             crn = crn,
-            prStartDate = nextAddress.startDate.toString(),
-            prEndDate = nextAddress.endDate.toString(),
+            prStartDate = cas1Application.premises!!.startDate.toString(),
+            prEndDate = cas1Application.premises!!.endDate.toString(),
           ),
         )
       }

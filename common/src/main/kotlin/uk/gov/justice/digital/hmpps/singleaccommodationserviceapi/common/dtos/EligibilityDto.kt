@@ -9,14 +9,15 @@ data class EligibilityDto(
   val dtr: DtrServiceResult,
   val crs: CrsServiceResult,
   val pa: PaServiceResult,
-  val caseActions: List<String>,
+  val caseActions: List<CaseAction>,
 )
 
 data class ServiceResult(
   val serviceStatus: ServiceStatus,
-  val action: String? = null,
+  val action: CaseAction? = null,
   val link: String? = null,
   val url: String? = null,
+  val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 )
 
@@ -46,6 +47,7 @@ data class CrsServiceResult(
 )
 
 enum class ServiceStatus {
+  NOT_REQUIRED,
   NOT_ELIGIBLE, // NO APPLICATION
   UPCOMING, // NO APPLICATION
   NOT_STARTED,
@@ -73,6 +75,13 @@ enum class ServiceStatus {
   CANNOT_START_YET,
 }
 
+enum class LinkType {
+  CAS1_START_APPLICATION,
+  CAS1_VIEW_APPLICATION,
+  CAS3_START_REFERRAL,
+  CAS3_VIEW_REFERRAL,
+}
+
 enum class FailureReason {
   S_TIER,
   MALE_NOT_HIGH_RISK_TIER,
@@ -83,7 +92,7 @@ enum class FailureReason {
   CRS_NOT_SUBMITTED,
   HAS_NEXT_ACCOMMODATION,
   DTR_REFERRAL_EXPIRED,
-  INVALID_APPLICATION_STATE,
   SUITABLE_CAS1_APPLICATION,
   SUITABLE_CAS3_APPLICATION,
+  IS_SETTLED,
 }

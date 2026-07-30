@@ -26,9 +26,8 @@ open class ProposedAccommodationEntity(
   val caseId: UUID,
   @DiffIgnore
   var cprAddressId: UUID?,
-  var name: String?,
-  @Column(name = "accommodation_type_id", nullable = false)
-  var accommodationTypeId: UUID,
+  @Column(name = "accommodation_type_id", nullable = true)
+  var accommodationTypeId: UUID?,
   @DiffIgnore
   @Column(name = "accommodation_status_id", nullable = true)
   var accommodationStatusId: UUID?,
@@ -36,13 +35,16 @@ open class ProposedAccommodationEntity(
   var verificationStatus: VerificationStatus?,
   @Enumerated(EnumType.STRING)
   var nextAccommodationStatus: NextAccommodationStatus?,
+  @DiffIgnore
   var startDate: LocalDate?,
+  @DiffIgnore
   var endDate: LocalDate?,
   var postcode: String?,
   var subBuildingName: String?,
   var buildingName: String?,
   var buildingNumber: String?,
-  var throughfareName: String?,
+  @Column("throughfare_name")
+  var thoroughfareName: String?,
   var dependentLocality: String?,
   var postTown: String?,
   var county: String?,
@@ -65,6 +67,10 @@ open class ProposedAccommodationEntity(
     orphanRemoval = true,
   )
   var notes: MutableList<ProposedAccommodationNoteEntity> = mutableListOf(),
+
+  @DiffIgnore
+  @Column(nullable = false)
+  var deleted: Boolean = false,
 
 ) : BaseAuditedEntity()
 

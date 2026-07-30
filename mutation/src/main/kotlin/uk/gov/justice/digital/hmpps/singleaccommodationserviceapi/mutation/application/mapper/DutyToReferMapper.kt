@@ -27,6 +27,8 @@ object DutyToReferMapper {
     withdrawalReason = snapshot.withdrawalReason?.let { EntityWithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = snapshot.withdrawalReasonOther,
     outcomeReason = snapshot.outcomeReason?.let { EntityOutcomeReason.valueOf(it.name) },
+    submissionNote = snapshot.submissionNote,
+    outcomeNote = snapshot.outcomeNote,
   )
 
   fun merge(snapshot: DutyToReferSnapshot, entity: DutyToReferEntity): DutyToReferEntity {
@@ -37,6 +39,8 @@ object DutyToReferMapper {
     entity.withdrawalReason = snapshot.withdrawalReason?.let { EntityWithdrawalReason.valueOf(it.name) }
     entity.withdrawalReasonOther = snapshot.withdrawalReasonOther
     entity.outcomeReason = snapshot.outcomeReason?.let { EntityOutcomeReason.valueOf(it.name) }
+    entity.submissionNote = snapshot.submissionNote
+    entity.outcomeNote = snapshot.outcomeNote
     entity.addMissingNotes(snapshot.notes)
     return entity
   }
@@ -71,6 +75,8 @@ object DutyToReferMapper {
     withdrawalReason = entity.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
     withdrawalReasonOther = entity.withdrawalReasonOther,
     outcomeReason = entity.outcomeReason?.let { OutcomeReason.valueOf(it.name) },
+    submissionNote = entity.submissionNote,
+    outcomeNote = entity.outcomeNote,
   )
 
   fun toDto(
@@ -96,6 +102,8 @@ object DutyToReferMapper {
       withdrawalReason = snapshot.withdrawalReason,
       withdrawalReasonOther = snapshot.withdrawalReasonOther,
       outcomeReason = snapshot.outcomeReason,
+      submissionNote = snapshot.submissionNote,
+      outcomeNote = snapshot.outcomeNote,
     ),
   )
 }

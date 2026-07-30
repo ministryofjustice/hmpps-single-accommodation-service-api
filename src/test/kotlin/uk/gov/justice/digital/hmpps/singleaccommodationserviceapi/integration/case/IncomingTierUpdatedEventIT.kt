@@ -1,38 +1,29 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.test.context.TestPropertySource
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTierV3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
-import uk.gov.justice.hmpps.sqs.HmppsQueueService
-import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
@@ -47,124 +38,178 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
   lateinit var inboxEventRepository: InboxEventRepository
 
   @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
-
-  @Autowired
   lateinit var jsonMapper: JsonMapper
 
-  private val domainTopic by lazy {
-    hmppsQueueService.findByTopicId("hmpps-domain-event-topic") ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
-  }
+  @Autowired
+  lateinit var tierEventHandlerConfig: TierEventHandlerConfig
+
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
-  private val eventType = "tier.calculation.complete"
+  private val eventType = "tier.calculation.changed"
   private val eventDescription = "Tier calculation complete from Tier service"
-  private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/crn/$crn/tier"
+  private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v3/crn/$crn/tier"
 
-  @BeforeEach
-  fun setup() {
-    crn = UUID.randomUUID().toString()
-    HmppsAuthStubs.stubGrantToken()
-    databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
+  @AfterAll
+  fun tearDown() {
+    tierEventHandlerConfig.v3Enabled = false
   }
 
-  @Test
-  fun `should process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on existing record`() {
-    caseRepository.save(buildCaseEntity(tierScore = TierScore.A1) { withCrn(crn) })
-    val tier = buildTier(tierScore = TierScore.A3)
-    TierStubs.getTierOKResponse(crn, response = tier)
-
-    // when
-    publishTierEvent()
-
-    // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
-
-    val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    assertThat(case.tierScore).isEqualTo(TierScore.A3)
-  }
-
-  @Test
-  fun `should call CorePersonRecord and update identifiers when incoming HMPPS TIER_CALCULATION_COMPLETE domain events does not match existing record`() {
-    val knownCrn = UUID.randomUUID().toString()
-    caseRepository.save(buildCaseEntity(tierScore = TierScore.A1) { withCrn(knownCrn) })
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = TierScore.A3))
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn, knownCrn))),
-    )
-
-    publishTierEvent()
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
-
-    val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    assertThat(case.tierScore).isEqualTo(TierScore.A3)
-  }
-
-  @Test
-  fun `should not process incoming HMPPS TIER_CALCULATION_COMPLETE domain events on unknown record`() {
-    val tier = buildTier(tierScore = TierScore.A3)
-    TierStubs.getTierOKResponse(crn, response = tier)
-    val cpr = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)
-
-    assertThat(caseRepository.findAll()).hasSize(0)
-
-    // when
-    publishTierEvent()
-
-    // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-
-    waitFor { assertThatSingleInboxEventIsAsExpected(ProcessedStatus.PROCESSED) }
-    assertThat(caseRepository.findAll()).hasSize(0)
-  }
-
-  @Test
-  fun `should FAIL to process incoming HMPPS TIER_CALCULATION_COMPLETE domain event as callback URL fails with 404`() {
-    TierStubs.getTierServerErrorResponse(
-      crn,
-    )
-
-    publishTierEvent()
-
-    waitFor {
-      assertThat(caseRepository.findAll().size).isEqualTo(0)
-      assertThatSingleInboxEventIsAsExpected(ProcessedStatus.FAILED)
-      assertThat(
-        inboxEventRepository.findAllByProcessedStatus(
-          ProcessedStatus.FAILED,
-          PageRequest.of(
-            0,
-            10,
-            Sort.by("eventOccurredAt").ascending(),
-          ),
-        ),
-      ).isNotEmpty()
+  @Nested
+  inner class TierV2 {
+    @BeforeEach
+    fun setup() {
+      tierEventHandlerConfig.v3Enabled = false
+      crn = UUID.randomUUID().toString()
+      HmppsAuthStubs.stubGrantToken()
+      databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
+      createSasSystemUser()
     }
-    assertThat(caseRepository.findAll().size).isEqualTo(0)
 
-    val inboxRecord = inboxEventRepository.findAll().first()
-    assertThat(inboxRecord.eventType).isEqualTo(eventType)
-    assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl())
-    assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    @Test
+    fun `should process incoming HMPPS TIER_CALCULATION_CHANGED domain events on existing record`() {
+      caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+      val tier = buildTier(tierScore = "A3")
+      TierStubs.getTierOKResponse(crn, response = tier)
+
+      publishTierEvent()
+
+      inboxEventHelper.assertMessageProcessed()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+
+      val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
+      assertThat(case.tierScore).isEqualTo("A3")
+    }
+
+    @Test
+    fun `process multiple incoming HMPPS TIER_CALCULATION_CHANGED domain events for the same CRN, updating the same database row`() {
+      databaseUtils.truncate(INBOX_EVENT)
+      caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+
+      TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A2"))
+      publishTierEvent()
+
+      inboxEventHelper.assertMessageProcessed()
+
+      val caseUpdate1 = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
+      assertThat(caseUpdate1.tierScore).isEqualTo("A2")
+
+      TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
+      publishTierEvent()
+
+      inboxEventHelper.assertAllInboxMessagesProcessed(2)
+
+      val caseUpdate2 = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
+      assertThat(caseUpdate2.tierScore).isEqualTo("A3")
+
+      assertThat(caseRepository.findAll()).hasSize(1)
+    }
+
+    @Test
+    fun `should not process incoming HMPPS TIER_CALCULATION_CHANGED domain events on unknown record`() {
+      val tier = buildTier(tierScore = "A3")
+      TierStubs.getTierOKResponse(crn, response = tier)
+
+      assertThat(caseRepository.findAll()).hasSize(0)
+
+      publishTierEvent()
+
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+      assertThat(caseRepository.findAll()).hasSize(0)
+    }
+
+    @Test
+    fun `should FAIL to process incoming HMPPS TIER_CALCULATION_CHANGED domain event as callback URL fails with 404`() {
+      TierStubs.getTierNotFoundResponse(
+        crn,
+      )
+
+      publishTierEvent()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.FAILED)
+
+      assertThat(caseRepository.findAll().size).isEqualTo(0)
+
+      val inboxRecord = inboxEventRepository.findAll().first()
+      assertThat(inboxRecord.eventType).isEqualTo(eventType)
+      assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl())
+      assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    }
   }
 
-  private fun assertPublishedSNSEvent(
-    detailUrl: String,
-  ) {
-    testSqsDomainEventListener.assertMessageReceived(
-      typeName = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeName,
-      eventDescription = IncomingHmppsDomainEventType.TIER_CALCULATION_COMPLETE.typeDescription,
-      detailUrl = detailUrl,
-    )
+  @Nested
+  inner class TierV3 {
+
+    @BeforeEach
+    fun setup() {
+      crn = UUID.randomUUID().toString()
+      HmppsAuthStubs.stubGrantToken()
+      databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, OUTBOX_EVENT, INBOX_EVENT)
+      tierEventHandlerConfig.v3Enabled = true
+      createSasSystemUser()
+    }
+
+    @Test
+    fun `should process incoming HMPPS TIER_CALCULATION_CHANGED domain events on existing record`() {
+      caseRepository.save(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+      val tier = buildTierV3(tierScore = "B")
+      TierStubs.getTierOKResponseV3(crn, response = tier)
+
+      publishTierEvent()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+
+      val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
+      assertThat(case.tierScore).isEqualTo("B")
+    }
+
+    @Test
+    fun `process multiple incoming HMPPS TIER_CALCULATION_CHANGED domain events for the same CRN, updating the same database row`() {
+      caseRepository.saveAndFlush(buildCaseEntity(tierScore = "A") { withCrn(crn) })
+
+      TierStubs.getTierOKResponseV3(crn, response = buildTierV3(tierScore = "B"))
+      publishTierEvent()
+
+      inboxEventHelper.assertMessageProcessed()
+
+      val caseUpdate1 = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
+      assertThat(caseUpdate1.tierScore).isEqualTo("B")
+
+      TierStubs.getTierOKResponseV3(crn, response = buildTierV3(tierScore = "C"))
+      publishTierEvent()
+      inboxEventHelper.assertAllInboxMessagesProcessed(2)
+
+      val caseUpdate2 = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
+
+      assertThat(caseUpdate2.tierScore).isEqualTo("C")
+
+      assertThat(caseRepository.findAll()).hasSize(1)
+    }
+
+    @Test
+    fun `should not process incoming HMPPS TIER_CALCULATION_CHANGED domain events on unknown record`() {
+      val tier = buildTierV3(tierScore = "A")
+      TierStubs.getTierOKResponseV3(crn, response = tier)
+
+      assertThat(caseRepository.findAll()).hasSize(0)
+
+      publishTierEvent()
+
+      inboxEventHelper.assertMessageProcessed()
+      assertThat(caseRepository.findAll()).hasSize(0)
+    }
+
+    @Test
+    fun `should FAIL to process incoming HMPPS TIER_CALCULATION_CHANGED domain event as callback URL fails with 404`() {
+      TierStubs.getTierNotFoundResponseV3(crn)
+
+      publishTierEvent()
+      inboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.FAILED)
+
+      assertThat(caseRepository.findAll().size).isEqualTo(0)
+
+      val inboxRecord = inboxEventRepository.findAll().first()
+      assertThat(inboxRecord.eventType).isEqualTo(eventType)
+      assertThat(inboxRecord.eventDetailUrl).isEqualTo(eventDetailUrl())
+      assertThat(inboxRecord.processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    }
   }
 
   private fun publishTierEvent() {
@@ -187,27 +232,6 @@ class IncomingTierUpdatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    domainTopic.snsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainTopic.arn)
-        .message(snsEvent)
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        ).build(),
-    )
-  }
-
-  private fun assertThatSingleInboxEventIsAsExpected(processedStatus: ProcessedStatus) {
-    val inboxEvents = inboxEventRepository.findAll()
-    assertThat(inboxEvents).hasSize(1)
-    val inboxEvent = inboxEvents.first()
-    val tierDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    assertThat(tierDomainEvent.personReference.findCrn()).isEqualTo(crn)
-
-    assertThat(inboxEvent.eventType).isEqualTo(eventType)
-    assertThat(inboxEvent.eventDetailUrl).isEqualTo(eventDetailUrl())
-    assertThat(inboxEvent.processedStatus).isEqualTo(processedStatus)
+    inboxEventHelper.publish(snsEvent, eventType)
   }
 }

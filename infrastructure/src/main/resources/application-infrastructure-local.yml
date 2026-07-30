@@ -9,8 +9,6 @@ service:
     base-url: https://single-accommodation-and-delius-dev.hmpps.service.justice.gov.uk
   approved-premises-and-delius:
     base-url: https://approved-premises-and-delius-dev.hmpps.service.justice.gov.uk
-  approved-premises-and-oasys:
-    base-url: https://approved-premises-and-oasys-dev.hmpps.service.justice.gov.uk
   approved-premises-api:
     base-url: https://approved-premises-api-dev.hmpps.service.justice.gov.uk
   core-person-record:

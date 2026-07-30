@@ -9,4 +9,5 @@ interface AccommodationStatusRepository :
   ReferenceDataRepository<AccommodationStatusEntity> {
   override fun findAllByActiveIsTrueOrderByName(): List<AccommodationStatusEntity>
   fun findByCodeAndActiveIsTrue(code: String): AccommodationStatusEntity?
+  fun findByCode(code: String): AccommodationStatusEntity?
 }

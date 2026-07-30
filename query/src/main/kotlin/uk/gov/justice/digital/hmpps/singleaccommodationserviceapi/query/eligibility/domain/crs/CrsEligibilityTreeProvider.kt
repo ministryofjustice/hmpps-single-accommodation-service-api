@@ -44,12 +44,12 @@ class CrsEligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible()
+    val notRequired = builder.notRequired()
 
     val eligibilityNode = builder
       .ruleSet("CrsEligibility", eligibility)
       .onPass(confirmed)
-      .onFail(notEligible)
+      .onFail(notRequired)
       .build()
 
     val completionNode = builder

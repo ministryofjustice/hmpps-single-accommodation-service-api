@@ -13,6 +13,7 @@ detekt {
 
 dependencies {
   implementation(project(":common"))
+  implementation(project(":infrastructure"))
   implementation(project(":query"))
   implementation(project(":mutation"))
 
@@ -26,8 +27,6 @@ dependencies {
 
   // Due to use of a spring bom in hmpps-starter we have to force some versions to override them locally
   implementation(enforcedPlatform(libs.postgres))
-  implementation(enforcedPlatform(libs.app.insights.core))
-  implementation(enforcedPlatform(libs.micrometer.registry.azure))
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
@@ -41,7 +40,9 @@ dependencies {
   testImplementation(libs.redisson.boot)
 
   testImplementation(libs.awaitility)
+  testImplementation(libs.webtestclient)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation(libs.sartestsupport)
 }
 
 kotlin {
@@ -85,6 +86,11 @@ tasks.named("check") {
 }
 
 allprojects {
+  pluginManager.apply("org.owasp.dependencycheck")
+  dependencyCheck {
+    skipConfigurations.addAll(listOf("detekt", "detektPlugins"))
+  }
+
   tasks.register<Test>("integrationTest") {
     failFast = true
     group = "verification"

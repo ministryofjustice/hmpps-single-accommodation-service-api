@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas1.suitability
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
@@ -24,7 +23,7 @@ class Cas1ApplicationSuitabilityRuleTest {
       "UNALLOCATED_ASSESSMENT",
       "ASSESSMENT_IN_PROGRESS",
       "AWAITING_PLACEMENT",
-      "REQUEST_FOR_FURTHER_INFORMATION",
+      "REQUESTED_FURTHER_INFORMATION",
       "PENDING_PLACEMENT_REQUEST",
     ],
   )
@@ -95,22 +94,6 @@ class Cas1ApplicationSuitabilityRuleTest {
 
     val data = buildDomainData(
       cas1Application = cas1Application,
-    )
-
-    val result = Cas1ApplicationSuitabilityRule().evaluate(data)
-
-    assertThat(result).isEqualTo(
-      RuleResult(
-        description = description,
-        ruleStatus = RuleStatus.FAIL,
-      ),
-    )
-  }
-
-  @Test
-  fun `application is not present so rule fails`() {
-    val data = buildDomainData(
-      cas1Application = null,
     )
 
     val result = Cas1ApplicationSuitabilityRule().evaluate(data)

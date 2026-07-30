@@ -15,7 +15,7 @@ spring:
       pool-name: Single-Accommodation-Service-CP
       connectionTimeout: 1000
       validationTimeout: 500
-      maximumPoolSize: 25
+      maximumPoolSize: 20
       auto-commit: false
       connection-test-query: SELECT 1
   security:
@@ -30,9 +30,6 @@ spring:
         provider:
           hmpps-auth:
             token-uri: ${hmpps-auth.url}/oauth/token
-  threads:
-    virtual:
-      enabled: true
 
 redisson:
   timeout: 3000
@@ -54,12 +51,11 @@ redis:
     token:
 
 service:
+  connection-timeout: 1s
   # seconds must be whole numbers :)
   sas-and-delius:
     read-timeout: 15s
   approved-premises-and-delius:
-    read-timeout: 4s
-  approved-premises-and-oasys:
     read-timeout: 4s
   approved-premises-api:
     read-timeout: 4s

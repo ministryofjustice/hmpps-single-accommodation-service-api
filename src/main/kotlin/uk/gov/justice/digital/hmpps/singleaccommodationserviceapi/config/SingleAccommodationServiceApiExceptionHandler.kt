@@ -12,13 +12,17 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.DomainException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
-class SingleAccommodationServiceApiExceptionHandler {
+class SingleAccommodationServiceApiExceptionHandler(
+  private val sentryService: SentryService,
+) {
   @ExceptionHandler(DomainException::class)
   fun handleDomainException(e: DomainException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(BAD_REQUEST)
@@ -83,11 +87,14 @@ class SingleAccommodationServiceApiExceptionHandler {
         userMessage = "Unexpected error: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.error("Unexpected exception", e) }
+    ).also {
+      log.error("Unexpected exception", e)
+      sentryService.captureException(e)
+    }
 
   @ExceptionHandler(UpstreamFailureException::class)
   fun handleUpstreamFailureException(e: UpstreamFailureException): ResponseEntity<ErrorResponse> {
-    val firstUpstreamFailure = e.upstreamFailures.first()
+    val firstUpstreamFailure = e.failure
     val httpStatusCode = firstUpstreamFailure.httpResponseStatus?.value() ?: INTERNAL_SERVER_ERROR.value()
     val httpStatus = HttpStatus.valueOf(httpStatusCode)
     return ResponseEntity
@@ -98,10 +105,19 @@ class SingleAccommodationServiceApiExceptionHandler {
           userMessage = e.message,
           developerMessage = e.message,
         ),
-      ).also { log.error("{}: {}", httpStatus.name, e.message) }
+      ).also {
+        log.error("{}: {}", httpStatus.name, e.message)
+        sentryService.captureException(e)
+      }
   }
 
-  private companion object {
+  companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    fun handleUpstreamFailure(upstreamFailures: List<UpstreamFailureDto>) {
+      if (upstreamFailures.isNotEmpty()) {
+        throw UpstreamFailureException(upstreamFailures.first())
+      }
+    }
   }
 }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
@@ -16,8 +17,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class Cas3CompletionContextUpdaterTest {
-  val cas3UiUrl = "CAS3_UI_URL"
-  private val updater = Cas3CompletionContextUpdater(cas3UiUrl)
+  private val updater = Cas3CompletionContextUpdater()
 
   @Nested
   inner class UpdateTests {
@@ -42,7 +42,8 @@ class Cas3CompletionContextUpdaterTest {
       assertThat(result.currentResult.action).isNull()
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
-      assertThat(result.currentResult.url).isEqualTo(cas3UiUrl)
+      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_VIEW_REFERRAL)
+      assertThat(result.currentResult.url).isNull()
     }
   }
 }

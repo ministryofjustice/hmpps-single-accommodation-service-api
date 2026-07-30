@@ -17,16 +17,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Us
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesandoasys.RiskLevel
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRosh
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -37,10 +34,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseUnknownResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationOasysStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
@@ -70,26 +66,35 @@ class CaseControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
 
     stubInitialCorePersonRecords()
-    stubInitialRoshAndTier()
+    ApprovedPremisesStubs.getCas1UrlTemplatesOKResponse()
+    ApprovedPremisesStubs.getCas3UrlTemplatesOKResponse()
+    val tier = buildTier()
+    TierStubs.getTierOKResponse(crns[0], tier)
+    TierStubs.getTierOKResponse(crns[1], tier)
   }
 
   @Test
-  fun `matches a case by all identifiers from CorePersonRecord and adds the latest ones`() {
+  fun `does not add identifiers from CorePersonRecord`() {
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
-    val unkownCrnCase1 = "crnToAddForCase1"
-    val unkownPrisonNumberCase1 = "prisonNumberToAddForCase1"
 
     // case 2 identifiers
     val knownCrnForCase2 = "knownCrnForCase2"
     val knownPrisonNumberCase2 = "knownPrisonNumberForCase2"
-    val unknownCrnCase2 = "crnToAddForCase2"
-    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase2"
 
-    // cas3 3 identifiers
+    // case 3 identifiers
     val unknownCaseCrn = "unknownCRN"
     val unknownCasePrisonNumber = "unknownPrisonNumber"
 
+    // case 4 identifiers
+    val unkownCrnCase4 = "crnToAddForCase4"
+    val unkownPrisonNumberCase4 = "prisonNumberToAddForCase4"
+
+    // case 5 identifiers
+    val unknownCrnCase2 = "crnToAddForCase5"
+    val unknownPrisonNumberCase2 = "prisonNumberToAddForCase5"
+
+    // save some known about cases
     val case1 = buildCaseEntity {
       withCrn(knownCrnForCase1)
     }
@@ -102,8 +107,9 @@ class CaseControllerIT : IntegrationTestBase() {
 
     val staff = buildOfficer(username = deliusUser.username)
 
+    // build a case-list for the 3 unknown cases
     val cases = listOf(
-      buildCase(crn = unkownCrnCase1, nomsNumber = unkownPrisonNumberCase1, staff = staff),
+      buildCase(crn = unkownCrnCase4, nomsNumber = unkownPrisonNumberCase4, staff = staff),
       buildCase(crn = unknownCrnCase2, nomsNumber = unknownPrisonNumberCase2, staff = staff),
       buildCase(crn = unknownCaseCrn, nomsNumber = unknownCasePrisonNumber, staff = staff),
     )
@@ -116,33 +122,13 @@ class CaseControllerIT : IntegrationTestBase() {
       ),
     ).hasSize(0)
 
-    SasAndDeliusStubs.stubGetCaseListByUsername(
+    SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = cases,
       pageSize = pageSize.toInt(),
     )
 
-    // returns the unknown CRN from the caselist, and the persisted CRN for the case
-    stubCorePersonRecord(
-      crn = unkownCrnCase1,
-      prisonNumber = unkownPrisonNumberCase1,
-      additionalCrns = listOf(knownCrnForCase1),
-    )
-
-    // returns the CRN from the case list, and the persisted Prison Number for the case
-    stubCorePersonRecord(
-      crn = unknownCrnCase2,
-      prisonNumber = knownPrisonNumberCase2,
-      additionalCrns = listOf(knownCrnForCase2),
-      additionalPrisonNumbers = listOf(unknownPrisonNumberCase2),
-    )
-
-    // returns the data for the unknown case
-    stubCorePersonRecord(
-      crn = unknownCaseCrn,
-      prisonNumber = unknownCasePrisonNumber,
-    )
-
+    // SAS knows about 2 cases
     assertThat(caseRepository.findAll()).hasSize(2)
 
     restTestClient.get().uri { it.path("/case-list").build() }
@@ -151,21 +137,17 @@ class CaseControllerIT : IntegrationTestBase() {
       .expectBody()
       .jsonPath("$.data.length()").isEqualTo(3)
 
-    assertThat(caseRepository.findAll()).hasSize(3)
+    // the 3 unknown ones should be added
+    assertThat(caseRepository.findAll()).hasSize(5)
 
     assertCaseIdentifiers(
-      crn = unkownCrnCase1,
-      expectedIdentifiers = listOf(knownCrnForCase1, unkownCrnCase1, unkownPrisonNumberCase1),
+      crn = unkownCrnCase4,
+      expectedIdentifiers = listOf(unkownCrnCase4, unkownPrisonNumberCase4),
     )
 
     assertCaseIdentifiers(
       crn = unknownCrnCase2,
-      expectedIdentifiers = listOf(
-        knownCrnForCase2,
-        knownPrisonNumberCase2,
-        unknownCrnCase2,
-        unknownPrisonNumberCase2,
-      ),
+      expectedIdentifiers = listOf(unknownCrnCase2, unknownPrisonNumberCase2),
     )
 
     assertCaseIdentifiers(
@@ -205,9 +187,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     result.expectBody().jsonPath("$.data.length()").isEqualTo(20)
 
-    // TODO this returns 18 (instead of 20) because we currently do not persist case-list results from delius that fail CPR calls,
-    // but still return them in the case list...
-    assertThat(caseRepository.findAll().size).isEqualTo(18)
+    assertThat(caseRepository.findAll().size).isEqualTo(20)
 
     result.expectBody(String::class.java)
       .value {
@@ -219,6 +199,50 @@ class CaseControllerIT : IntegrationTestBase() {
       20,
       getRequestedFor(WireMock.urlPathMatching("/case-list/$USERNAME_OF_LOGGED_IN_DELIUS_USER")),
     )
+  }
+
+  @Test
+  fun `should only save cases that match the filtered response`() {
+    val team = buildCaseTeam("TestTeam")
+    val staff = buildOfficer(username = deliusUser.username)
+    val assignedCase = buildCase(crn = "crn1", staff = staff, team = team)
+
+    val otherStaff = buildOfficer(username = "otherStaff", code = "otherStaff")
+    val teamCase = buildCase(crn = "crn2", nomsNumber = "noms2", staff = otherStaff, team = team)
+
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = deliusUser.username,
+      cases = listOf(assignedCase, teamCase),
+      pageSize = pageSize.toInt(),
+    )
+
+    assertThat(caseRepository.findAll()).hasSize(0)
+
+    // request with no parameters defaults to only the cases assigned to the user, so should only return `assignedCase`
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+      .jsonPath("$.data[0].assignedTo.username").isEqualTo("DELIUS_USER")
+
+    assertThat(caseRepository.findAll()).hasSize(1)
+
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = deliusUser.username,
+      teamCode = team.code,
+      cases = listOf(teamCase),
+      pageSize = pageSize.toInt(),
+    )
+
+    restTestClient.get().uri { it.path("/case-list").queryParam("teamCode", team.code).build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+      .jsonPath("$.data[0].assignedTo.username").isEqualTo("otherStaff")
+
+    assertThat(caseRepository.findAll()).hasSize(2)
   }
 
   @Test
@@ -305,12 +329,51 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `returns UserAccess UNKOWN when delius doesn't return a result`() {
+  fun `returns ServerError when delius returns ServerError`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    getCaseResponse(crn).value {
-      assertThatJson(it!!).matchesExpectedJson(expectedGetCaseUnknownResponse())
-    }
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
+  }
+
+  @Test
+  fun `returns NotFound error when delius returns NotFound error`() {
+    val crn = crns[0]
+    SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isNotFound
+  }
+
+  @Test
+  fun `returns ServerError when CPR returns ServerError`() {
+    val crn = "12345"
+    val case = buildCase(crn = crn)
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
+  }
+
+  @Test
+  fun `returns NotFound error when CPR returns NotFound error`() {
+    val crn = "12345"
+    val case = buildCase(crn = crn)
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    CorePersonRecordStubs.getCorePersonRecordNotFoundResponse(crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isNotFound
   }
 
   private fun stubInitialCorePersonRecords() {
@@ -326,21 +389,6 @@ class CaseControllerIT : IntegrationTestBase() {
       firstName = "Zack",
       lastName = "Smith",
     )
-  }
-
-  private fun stubInitialRoshAndTier() {
-    ProbationIntegrationOasysStubs.getRoshOKResponse(
-      crns[0],
-      buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.VERY_HIGH)),
-    )
-    ProbationIntegrationOasysStubs.getRoshOKResponse(
-      crns[1],
-      buildRoshDetails(rosh = buildRosh(riskChildrenCommunity = RiskLevel.MEDIUM)),
-    )
-
-    val tier = buildTier()
-    TierStubs.getTierOKResponse(crns[0], tier)
-    TierStubs.getTierOKResponse(crns[1], tier)
   }
 
   private fun stubCaseList() {
@@ -373,7 +421,7 @@ class CaseControllerIT : IntegrationTestBase() {
       )
     }
 
-    SasAndDeliusStubs.stubGetCaseListByUsername(
+    SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = cases,
       pageSize = pageSize.toInt(),
@@ -384,39 +432,39 @@ class CaseControllerIT : IntegrationTestBase() {
     val entities = listOf(
       buildCaseEntity { withCrn(crns[5]) },
       buildCaseEntity(
-        tierScore = TierScore.A1S,
+        tierScore = "A1S",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crns[6]) },
       buildCaseEntity(
-        tierScore = TierScore.C1,
+        tierScore = "C1",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
       ) { withCrn(crns[7]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
       ) { withCrn(crns[8]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
         cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
         cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
       ) { withCrn(crns[9]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUEST_FOR_FURTHER_INFORMATION,
+        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
       ) { withCrn(crns[10]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REJECTED,
       ) { withCrn(crns[11]) },
       buildCaseEntity(
-        tierScore = TierScore.B3,
+        tierScore = "B3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.STARTED,
       ) { withCrn(crns[12]) },
@@ -426,7 +474,7 @@ class CaseControllerIT : IntegrationTestBase() {
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.WITHDRAWN,
       ) { withCrn(crns[13]) },
       buildCaseEntity(
-        tierScore = TierScore.D3,
+        tierScore = "D3",
         cas1ApplicationId = UUID.randomUUID(),
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.INAPPLICABLE,
       ) { withCrn(crns[14]) },

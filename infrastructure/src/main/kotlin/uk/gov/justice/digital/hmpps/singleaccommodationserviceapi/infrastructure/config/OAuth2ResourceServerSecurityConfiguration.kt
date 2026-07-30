@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.AbstractAuthenticationToken
+import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserPrincipal
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 
 @Configuration
@@ -28,6 +30,7 @@ import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 @EnableWebSecurity
 class OAuth2ResourceServerSecurityConfiguration(
   private val userService: UserService,
+  private val sentryService: SentryService,
 ) {
   @Bean
   @Throws(Exception::class)
@@ -36,7 +39,7 @@ class OAuth2ResourceServerSecurityConfiguration(
       csrf { disable() }
       anonymous { disable() }
       oauth2ResourceServer {
-        jwt { jwtAuthenticationConverter = AuthAwareTokenConverter(userService) }
+        jwt { jwtAuthenticationConverter = AuthAwareTokenConverter(userService, sentryService) }
 
         authenticationEntryPoint = AuthenticationEntryPoint { _, response, _ ->
           response.apply {
@@ -63,7 +66,10 @@ class OAuth2ResourceServerSecurityConfiguration(
   }
 }
 
-class AuthAwareTokenConverter(private val userService: UserService) : Converter<Jwt, AbstractAuthenticationToken> {
+class AuthAwareTokenConverter(
+  private val userService: UserService,
+  private val sentryService: SentryService,
+) : Converter<Jwt, AbstractAuthenticationToken> {
   private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> =
     JwtGrantedAuthoritiesConverter()
 
@@ -78,24 +84,29 @@ class AuthAwareTokenConverter(private val userService: UserService) : Converter<
   private fun convertForAuthorizationCodeFlow(jwt: Jwt): AuthAwareAuthenticationToken {
     val authSource = AuthSource.findBySource(jwt.claims[CLAIM_AUTH_SOURCE] as String)
     val username = findUsername(jwt.claims)
-    val principal = when (authSource) {
-      AuthSource.DELIUS -> {
-        val user = userService.getAndUpsertDeliusUser(username)
-        UserPrincipal(
-          sasUserId = user.id,
-          username = username,
-          authSource = authSource,
-        )
+    val principal = try {
+      when (authSource) {
+        AuthSource.DELIUS -> {
+          val user = userService.getAndUpsertDeliusUser(username)
+          UserPrincipal(
+            sasUserId = user.id,
+            username = username,
+            authSource = authSource,
+          )
+        }
+        AuthSource.NOMIS -> {
+          val user = userService.getAndUpdateNomisUserOrCreate(username, jwt)
+          UserPrincipal(
+            sasUserId = user.id,
+            username = username,
+            authSource = authSource,
+          )
+        }
+        else -> throw RuntimeException("JWT auth_source claim is not appropriate for authorization code flow: $authSource")
       }
-      AuthSource.NOMIS -> {
-        val user = userService.getAndUpdateNomisUserOrCreate(username, jwt)
-        UserPrincipal(
-          sasUserId = user.id,
-          username = username,
-          authSource = authSource,
-        )
-      }
-      else -> throw RuntimeException("JWT auth_source claim is not appropriate for authorization code flow: $authSource")
+    } catch (ex: Exception) {
+      sentryService.captureException(ex)
+      throw InsufficientAuthenticationException("Failed to resolve '$authSource' user '$username' during authorization flow", ex)
     }
     val authorities = extractAuthorities(jwt)
     return AuthAwareAuthenticationToken(

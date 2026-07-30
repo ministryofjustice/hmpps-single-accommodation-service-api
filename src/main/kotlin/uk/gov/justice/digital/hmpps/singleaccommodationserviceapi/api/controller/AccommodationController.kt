@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
@@ -22,6 +23,10 @@ class AccommodationController(
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/accommodations/next")
   fun getNextAccommodation(@PathVariable crn: String): ResponseEntity<ApiResponseDto<AccommodationSummaryDto?>> = ResponseEntity.ok(accommodationQueryService.getNextAccommodation(crn))
+
+  @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/cases/{crn}/accommodations/summary")
+  fun getAccommodations(@PathVariable crn: String): ResponseEntity<ApiResponseDto<AccommodationSummariesDto>> = ResponseEntity.ok(accommodationQueryService.getAccommodationSummariesResponse(crn))
 
   @PreAuthorize("hasRole('ROLE_SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD')")
   @GetMapping("/accommodations/{id}")

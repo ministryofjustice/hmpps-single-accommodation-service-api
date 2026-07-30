@@ -37,4 +37,16 @@ class UserControllerIT : IntegrationTestBase() {
 
     assertThatJson(result).matchesExpectedJson(expectedResponse)
   }
+
+  @Test
+  fun `returns 401 when the delius staff record is not found during authentication`() {
+    // does not create a delius user so that authentication has to look the staff record up
+    HmppsAuthStubs.stubGrantToken()
+    ProbationIntegrationDeliusStubs.stubGetStaffByUsernameNotFound(USERNAME_OF_LOGGED_IN_DELIUS_USER)
+
+    restTestClient.get().uri("/user/teams")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isUnauthorized
+  }
 }

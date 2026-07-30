@@ -1,22 +1,22 @@
 [versions]
-hmpps-spring-boot = "2.5.0"
-hmpps-sqs = "7.3.2"
+hmpps-spring-boot = "3.0.0"
+hmpps-sqs = "7.4.0"
 springdoc = "3.0.3"
 wiremock = "3.13.2"
-redisson = "4.5.0"
+redisson = "4.6.1"
 mockk = "1.14.11"
 shedlock = "7.7.0"
 coroutines = "1.10.2"
-swagger-parser = "2.1.43"
-hmpps-gradle-spring-boot = "10.3.1"
-kotlin = "2.4.0"
+swagger-parser = "2.1.45"
+hmpps-gradle-spring-boot = "11.0.1"
+kotlin = "2.4.10"
 apache-commons-csv = "1.14.1"
-detekt = "2.0.0-alpha.3"
+detekt = "2.0.0-alpha.5"
 awaitility = "4.3.0"
-javers = "7.11.1"
-postgres = "42.7.11"
-app-insights-core = "2.6.4"
-micrometer-registry-azure = "1.16.5"
+javers = "7.11.5"
+postgres = "42.7.13"
+sentry = "8.50.0"
+sar-test-support = "2.6.1"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -35,13 +35,10 @@ spring-restclient = { module = "org.springframework.boot:spring-boot-restclient"
 spring-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
 spring-resttestclient = { module = "org.springframework.boot:spring-boot-resttestclient" }
+sentry-spring-boot-starter-jakarta = { module = "io.sentry:sentry-spring-boot-4", version.ref = "sentry" }
 
 # Springdoc
 springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
-
-# App Insights
-app-insights-core = { module = "com.microsoft.azure:applicationinsights-core", version.ref = "app-insights-core" }
-micrometer-registry-azure = { module = "io.micrometer:micrometer-registry-azure-monitor", version.ref = "micrometer-registry-azure" }
 
 # Coroutines
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -62,6 +59,8 @@ swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref =
 awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+sartestsupport = { module = "uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support", version.ref = "sar-test-support" }
+webtestclient = { module = "org.springframework.boot:spring-boot-webtestclient" }
 
 # Runtime
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }

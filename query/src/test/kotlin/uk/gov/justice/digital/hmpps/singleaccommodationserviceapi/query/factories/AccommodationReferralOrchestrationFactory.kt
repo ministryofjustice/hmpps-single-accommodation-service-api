@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
@@ -10,50 +9,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommod
 fun buildAccommodationReferralOrchestrationDto(
   cas1Referrals: List<Cas1ReferralHistory> = listOf(
     buildReferralHistory(
-      Cas1ReferralHistory.Cas1AssessmentStatus.COMPLETED,
+      Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED,
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
       referredBy = buildDeliusUserDto(),
       placementAddress = "Some address",
-      placementStatus = "Some status",
-    ),
-  ),
-  cas2Referrals: List<Cas2ReferralHistory> = listOf(
-    buildReferralHistory(
-      Cas2ReferralHistory.Cas2Status.PLACE_OFFERED,
-      referralRejectionReason = "Some reason",
-      localAuthorityArea = "Some area",
-      pdu = "Some pdu",
-      referredBy = buildDeliusUserDto(),
-      placementAddress = "Some address",
-      placementStatus = "Some status",
-    ),
-  ),
-  cas2v2Referrals: List<Cas2ReferralHistory> = listOf(
-    buildReferralHistory(
-      Cas2ReferralHistory.Cas2Status.AWAITING_DECISION,
-      referralRejectionReason = "Some reason",
-      localAuthorityArea = "Some area",
-      pdu = "Some pdu",
-      referredBy = buildDeliusUserDto(),
-      placementAddress = "Some address",
-      placementStatus = "Some status",
+      placementStatus = Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED,
     ),
   ),
   cas3Referrals: List<Cas3ReferralHistory> = listOf(
     buildReferralHistory(
-      Cas3ReferralHistory.TemporaryAccommodationAssessmentStatus.READY_TO_PLACE,
+      Cas3ReferralHistory.ApplicationStatus.SUBMITTED,
+      Cas3ReferralHistory.AssessmentStatus.READY_TO_PLACE,
       referralRejectionReason = "Some reason",
       localAuthorityArea = "Some area",
       pdu = "Some pdu",
       placementAddress = "Some address",
-      placementStatus = "Some status",
+      bookingStatus = Cas3ReferralHistory.Cas3BookingStatus.DEPARTED,
     ),
   ),
 ) = AccommodationReferralOrchestrationDto(
   cas1Referrals = cas1Referrals,
-  cas2Referrals = cas2Referrals,
-  cas2v2Referrals = cas2v2Referrals,
   cas3Referrals = cas3Referrals,
 )

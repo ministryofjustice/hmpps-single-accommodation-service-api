@@ -63,9 +63,9 @@ enum class IncomingHmppsDomainEventType(
   val typeName: String,
   val typeDescription: String,
 ) {
-  TIER_CALCULATION_COMPLETE(
-    "tier.calculation.complete",
-    "Tier calculation complete from Tier service",
+  TIER_CALCULATION_CHANGED(
+    "tier.calculation.changed",
+    "Tier calculation resulted in an updated tier value",
   ),
   MY_NEW_EVENT(                    // Add your event type
     "my.new.event.type",
@@ -120,7 +120,7 @@ class MyNewEventHandler(
 If the event comes from SQS, ensure the queue subscription filter includes your event type. See `application-test.yml` for the filter pattern:
 
 ```yaml
-hmpps.sqs.queues.sas-domain-events-queue.subscribeFilter: '{"eventType":["tier.calculation.complete","my.new.event.type"]}'
+hmpps.sqs.queues.sas-domain-events-queue.subscribeFilter: '{"eventType":["tier.calculation.changed","my.new.event.type"]}'
 ```
 
 #### Update Cloud infrastructure to listen to events

@@ -3,9 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.eligibility.STierEligibilityRule
@@ -15,9 +14,8 @@ class STierRuleTest {
   private val description = "FAIL if candidate is S Tier"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(
-    value = TierScore::class,
-    names = [
+  @ValueSource(
+    strings = [
       "A3",
       "A2",
       "A1",
@@ -32,7 +30,7 @@ class STierRuleTest {
       "D1",
     ],
   )
-  fun `candidate passes`(tierScore: TierScore) {
+  fun `candidate passes`(tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
     )
@@ -43,9 +41,8 @@ class STierRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(
-    value = TierScore::class,
-    names = [
+  @ValueSource(
+    strings = [
       "A3S",
       "A2S",
       "A1S",
@@ -58,9 +55,10 @@ class STierRuleTest {
       "D3S",
       "D2S",
       "D1S",
+      "Z9S",
     ],
   )
-  fun `candidate fails`(tierScore: TierScore) {
+  fun `candidate fails`(tierScore: String) {
     val data = buildDomainData(
       tierScore = tierScore,
     )

@@ -11,7 +11,6 @@ import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierScore
 import java.util.UUID
 
 @Entity
@@ -21,8 +20,7 @@ class CaseEntity(
   @Id
   val id: UUID,
 
-  @Enumerated(EnumType.STRING)
-  var tierScore: TierScore? = null,
+  var tierScore: String? = null,
 
   @OneToMany(
     mappedBy = "caseEntity",

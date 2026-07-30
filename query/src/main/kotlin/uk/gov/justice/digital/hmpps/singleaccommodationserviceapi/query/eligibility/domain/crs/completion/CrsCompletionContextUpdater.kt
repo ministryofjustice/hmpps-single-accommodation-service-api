@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -18,7 +20,9 @@ class CrsCompletionContextUpdater(
 
   override fun toServiceResult(context: EvaluationContext) = ServiceResult(
     serviceStatus = ServiceStatus.NOT_STARTED,
-    action = if (context.data.sex == SexCode.M) EligibilityKeys.SUBMIT_CRS_ACCOMMODATION_REFERRAL else EligibilityKeys.SUBMIT_CRS_REFERRAL,
+    action = CaseAction(
+      type = if (context.data.sex == SexCode.M) CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL else CaseActionType.SUBMIT_CRS_REFERRAL,
+    ),
     link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     url = url,
   )

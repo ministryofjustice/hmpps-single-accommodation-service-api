@@ -1,17 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
+import java.time.Clock
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit.DAYS
 
-fun buildUpcomingAction(today: LocalDate, initialText: String, dateToStartReferral: LocalDate): String {
-  val daysUntilReferralMustStart = DAYS.between(today, dateToStartReferral).toInt()
+const val DTR_EXPIRY_WEEKS = 26L
 
-  return when {
-    daysUntilReferralMustStart > 1 -> "$initialText in $daysUntilReferralMustStart days"
-    daysUntilReferralMustStart == 1 -> "$initialText in 1 day"
-    else -> initialText
-  }
-}
+fun isDtrExpired(submissionDate: LocalDate?, clock: Clock): Boolean = !isLessThanXWeeksInThePast(submissionDate, LocalDate.now(clock), DTR_EXPIRY_WEEKS)
 
 fun isLessThanXWeeksInTheFuture(endDate: LocalDate?, today: LocalDate, numOfWeeks: Long): Boolean {
   if (endDate == null) return true

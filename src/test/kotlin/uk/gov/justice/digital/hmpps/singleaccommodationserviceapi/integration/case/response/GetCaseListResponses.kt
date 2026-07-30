@@ -8,6 +8,9 @@ fun expectedGetCaseListResponse(): String = """
    "data":[
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN1",
          "prisonNumber":"PRI1",
@@ -18,22 +21,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"Zack Middle Smith",
+         "forename":"Zack",
+         "middleNames":"Middle",
+         "surname":"Smith",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN2",
          "prisonNumber":"PRI2",
@@ -44,22 +55,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN3",
          "prisonNumber":"PRI3",
@@ -70,22 +89,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN4",
          "prisonNumber":"PRI4",
@@ -96,22 +123,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN5",
          "prisonNumber":"PRI5",
@@ -122,22 +157,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN6",
          "prisonNumber":"PRI6",
@@ -148,23 +191,34 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral",
-            "Start an approved premises (CAS1) application",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"START_APPROVED_PREMISE_APPLICATION",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN7",
          "prisonNumber":"PRI7",
@@ -175,21 +229,26 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN8",
          "prisonNumber":"PRI8",
@@ -200,21 +259,26 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN9",
          "prisonNumber":"PRI9",
@@ -225,21 +289,26 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS referral"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN10",
          "prisonNumber":"PRI10",
@@ -250,21 +319,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"CREATE_PLACEMENT",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN11",
          "prisonNumber":"PRI11",
@@ -275,22 +353,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Provide further information on an approved premises (CAS1) application"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"PROVIDE_INFORMATION",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN12",
          "prisonNumber":"PRI12",
@@ -301,23 +387,34 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Start an approved premises (CAS1) application",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"START_APPROVED_PREMISE_APPLICATION",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN13",
          "prisonNumber":"PRI13",
@@ -328,23 +425,34 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Continue an approved premises (CAS1) application",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"CONTINUE_APPROVED_PREMISE_APPLICATION",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN14",
          "prisonNumber":"PRI14",
@@ -355,22 +463,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN15",
          "prisonNumber":"PRI15",
@@ -381,22 +497,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN16",
          "prisonNumber":"PRI16",
@@ -407,22 +531,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN17",
          "prisonNumber":"PRI17",
@@ -433,22 +565,30 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":"First Middle Last",
+         "forename":"First",
+         "middleNames":"Middle",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
          "crn":"FAKECRN18",
          "prisonNumber":"PRI18",
@@ -459,38 +599,38 @@ fun expectedGetCaseListResponse(): String = """
          "assignedTo":{
             "forename":"First",
             "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
+            "username":"DELIUS_USER"
          },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
          "actions":[
-            "Add DTR referral details",
-            "Submit a CRS accommodation referral",
-            "Add and confirm proposed address"
+            {
+               "type":"ADD_DTR_REFERRAL_DETAILS",
+               "startDate":null
+            },
+            {
+               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
+            }
          ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
       {
          "name":null,
+         "forename":null,
+         "middleNames":null,
+         "surname":null,
          "dateOfBirth":null,
          "crn":"FAKECRN19",
-         "prisonNumber":"PRI19",
+         "prisonNumber":null,
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":null,
          "pncReference":null,
-         "assignedTo":{
-            "forename":"First",
-            "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
+         "assignedTo":null,
          "actions":[
             
          ],
@@ -499,39 +639,22 @@ fun expectedGetCaseListResponse(): String = """
       },
       {
          "name":null,
+         "forename":null,
+         "middleNames":null,
+         "surname":null,
          "dateOfBirth":null,
          "crn":"FAKECRN20",
-         "prisonNumber":"PRI20",
+         "prisonNumber":null,
          "photoUrl":null,
          "tierScore":null,
          "riskLevel":null,
          "pncReference":null,
-         "assignedTo":{
-            "forename":"First",
-            "surname":"Last",
-            "username":"DELIUS_USER",
-            "staffCode":"ABCD1234"
-         },
-         "currentAccommodation":null,
-         "nextAccommodation":null,
-         "status":null,
+         "assignedTo":null,
          "actions":[
             
          ],
          "userAccess":"LIMITED",
          "limitedAccess":true
-      }
-   ],
-   "upstreamFailures":[
-      {
-         "endpoint":"getCorePersonRecordByCrn",
-         "failureType":"UPSTREAM_HTTP_ERROR",
-         "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
-         "identifier":{
-            "type":"CRN",
-            "value":"FAKECRN17"
-         }
       }
    ]
 }

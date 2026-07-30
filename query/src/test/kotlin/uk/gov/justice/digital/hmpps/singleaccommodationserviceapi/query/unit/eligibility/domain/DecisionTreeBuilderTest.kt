@@ -95,7 +95,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `confirmed preserves failureReasons when status is NOT_ELIGIBLE`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE)
+    val failureReasons = listOf(FailureReason.S_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE, failureReasons = failureReasons),
@@ -112,7 +112,7 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
-      currentResult = buildServiceResult(ServiceStatus.NOT_STARTED, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE)),
+      currentResult = buildServiceResult(ServiceStatus.NOT_STARTED, failureReasons = listOf(FailureReason.S_TIER)),
     )
 
     val result = builder.confirmed().eval(context)
@@ -175,6 +175,63 @@ class DecisionTreeBuilderTest {
     val result = builder.notEligible().eval(context)
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+    assertThat(result.failureReasons).isEqualTo(failureReasons)
+  }
+
+  @Test
+  fun `notRequired creates OutcomeNode with NOT_REQUIRED status`() {
+    val builder = DecisionTreeBuilder(engine)
+
+    val result = builder.notRequired()
+
+    assertThat(result).isInstanceOf(OutcomeNode::class.java)
+    val evaluationContext =
+      EvaluationContext(
+        data = buildDomainData(),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+      )
+    val actualResult = result.eval(evaluationContext)
+    assertThat(actualResult.serviceStatus).isEqualTo(ServiceStatus.NOT_REQUIRED)
+  }
+
+  @Test
+  fun `notRequired always returns same result regardless of context`() {
+    val builder = DecisionTreeBuilder(engine)
+    val context1 =
+      EvaluationContext(
+        data = buildDomainData(),
+        currentResult = buildServiceResult(ServiceStatus.PLACEMENT_BOOKED),
+      )
+    val context2 =
+      EvaluationContext(
+        data = buildDomainData(),
+        currentResult = buildServiceResult(ServiceStatus.SUBMITTED),
+      )
+
+    val notRequiredNode = builder.notRequired()
+
+    val result1 = notRequiredNode.eval(context1)
+    val result2 = notRequiredNode.eval(context2)
+
+    assertThat(result1).isEqualTo(result2)
+    assertThat(result1.serviceStatus).isEqualTo(ServiceStatus.NOT_REQUIRED)
+  }
+
+  @Test
+  fun `notRequired carries failureReasons from current context`() {
+    val builder = DecisionTreeBuilder(engine)
+    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = buildServiceResult(
+        serviceStatus = ServiceStatus.NOT_STARTED,
+        failureReasons = failureReasons,
+      ),
+    )
+
+    val result = builder.notRequired().eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_REQUIRED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
 }

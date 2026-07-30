@@ -12,12 +12,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.CountryCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
-import java.time.Instant
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @TestData
@@ -61,11 +60,13 @@ fun buildCanonicalAddress(
     code = null,
   ),
   typeVerified: Boolean = false,
-  usage: CanonicalAddressUsage = CanonicalAddressUsage(
-    usageCode = CanonicalAddressUsageCode(
-      code = null,
+  usages: List<CanonicalAddressUsage> = listOf(
+    CanonicalAddressUsage(
+      usageCode = CanonicalAddressUsageCode(
+        code = AddressUsageCode.A07B.name,
+      ),
+      isActive = true,
     ),
-    isActive = true,
   ),
   uprn: String? = null,
 ) = CanonicalAddress(
@@ -85,15 +86,16 @@ fun buildCanonicalAddress(
   countryCode = countryCode,
   status = status,
   typeVerified = typeVerified,
-  usages = listOf(usage),
+  usages = usages,
   uprn = uprn,
 )
 
 @TestData
 fun buildProbationCreateAddress(
   noFixedAbode: Boolean = false,
-  startDate: Instant = Instant.now(),
-  endDate: Instant? = null,
+  typeVerified: Boolean = false,
+  startDate: ZonedDateTime = ZonedDateTime.now(),
+  endDate: ZonedDateTime? = null,
   postcode: String? = "SW1A 1AA",
   subBuildingName: String? = null,
   buildingName: String? = null,
@@ -102,7 +104,6 @@ fun buildProbationCreateAddress(
   dependentLocality: String? = null,
   postTown: String? = "London",
   county: String? = null,
-  countryCode: CountryCode? = null,
   comment: String? = null,
   statusCode: AddressStatusCode = AddressStatusCode.PR1,
   usage: AddressUsage = AddressUsage(
@@ -113,6 +114,7 @@ fun buildProbationCreateAddress(
   contacts: List<AddressContact> = emptyList(),
 ) = ProbationCreateAddress(
   noFixedAbode = noFixedAbode,
+  typeVerified = typeVerified,
   startDate = startDate,
   endDate = endDate,
   postcode = postcode,
@@ -123,7 +125,6 @@ fun buildProbationCreateAddress(
   dependentLocality = dependentLocality,
   postTown = postTown,
   county = county,
-  countryCode = countryCode,
   comment = comment,
   statusCode = statusCode,
   usages = listOf(usage),

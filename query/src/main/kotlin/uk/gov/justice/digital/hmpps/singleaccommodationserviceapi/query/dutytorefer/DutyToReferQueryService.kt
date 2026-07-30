@@ -5,23 +5,27 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CreateFieldChangeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpdateFieldChangeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.ACCEPTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.NOT_ACCEPTED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus.WITHDRAWN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isDtrExpired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.Clock
 import java.util.UUID
 
 private const val LOCAL_AUTHORITY_AREA_NAME = "localAuthorityAreaName"
+private val HISTORY_STATUSES = listOf(ACCEPTED, NOT_ACCEPTED, WITHDRAWN)
 
 @Service
 class DutyToReferQueryService(
@@ -30,20 +34,25 @@ class DutyToReferQueryService(
   private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
   private val caseRepository: CaseRepository,
   private val auditService: AuditService,
+  private val clock: Clock,
 ) {
-  fun getDutyToRefer(crn: String): DutyToReferDto {
-    val caseEntity = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
-    return getDutyToRefer(caseEntity, crn).orThrowNotFound("crn" to crn)
-  }
-
   fun getDutyToReferHistory(crn: String): List<DutyToReferDto> {
     val caseEntity = caseRepository.findByCrn(crn) ?: return emptyList()
     return getDutyToReferHistory(caseEntity, crn)
   }
 
+  private fun isActiveDtr(dtr: DutyToReferEntity): Boolean = dtr.status != WITHDRAWN && !isDtrExpired(dtr.submissionDate, clock)
+
+  private fun getActiveDtrId(caseId: UUID): UUID? = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseId)
+    ?.takeIf { isActiveDtr(it) }
+    ?.id
+
   fun getDutyToReferHistory(caseEntity: CaseEntity, crn: String): List<DutyToReferDto> {
-    // Only show not accepted and withdrawn, submitted and accepted don't appear in the history section form the prototype.
-    val dtrEntities = dutyToReferRepository.findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, listOf(NOT_ACCEPTED, WITHDRAWN))
+    val activeDtrId = getActiveDtrId(caseEntity.id)
+
+    val dtrEntities = dutyToReferRepository
+      .findByCaseIdAndStatusInOrderByCreatedAtDesc(caseEntity.id, HISTORY_STATUSES)
+      .filter { it.id != activeDtrId }
     if (dtrEntities.isEmpty()) return emptyList()
 
     val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()
@@ -71,7 +80,13 @@ class DutyToReferQueryService(
     val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
-    return DutyToReferTransformer.toDutyToReferDto(entity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
+    return DutyToReferTransformer.toDutyToReferDto(
+      entity,
+      crn,
+      createdByUser!!.displayName(),
+      localAuthorityArea!!.name,
+      active = entity.id == getActiveDtrId(entity.caseId),
+    )
   }
 
   fun getDutyToRefer(id: UUID): DutyToReferDto {
@@ -113,7 +128,7 @@ class DutyToReferQueryService(
 
     val laIdPerRecord = sorted.map { record ->
       val atCommit = effectiveLaId
-      val laIdChange = record.changes.filterIsInstance<UpdateFieldChangeDto>().firstOrNull { it.field == "localAuthorityAreaId" }
+      val laIdChange = record.changes.firstOrNull { it.field == "localAuthorityAreaId" && it.oldValue != null }
       if (laIdChange != null) {
         effectiveLaId = laIdChange.oldValue?.let(UUID::fromString)
       }
@@ -142,9 +157,10 @@ class DutyToReferQueryService(
       AuditRecordDto(
         type = AuditRecordType.NOTE,
         author = createdByUser!!.displayName(),
+        authorDetails = createdByUser.toAssignedToDto(),
         commitDate = it.createdAt!!,
         changes = listOf(
-          CreateFieldChangeDto(
+          FieldChange(
             field = "note",
             value = it.note,
           ),

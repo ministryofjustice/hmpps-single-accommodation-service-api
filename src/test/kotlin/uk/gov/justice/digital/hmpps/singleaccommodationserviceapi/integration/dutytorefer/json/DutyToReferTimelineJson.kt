@@ -14,31 +14,42 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"CREATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$createCommitTime",
          "changes":[
             {
                "field":"id",
-               "value":"$dutyToReferId"
+               "value":"$dutyToReferId",
+               "oldValue":null
             },
             {
                "field":"caseId",
-               "value":"$caseId"
+               "value":"$caseId",
+               "oldValue":null
             },
             {
                "field":"localAuthorityAreaId",
-               "value":"$localAuthorityAreaId"
+               "value":"$localAuthorityAreaId",
+               "oldValue":null
             },
             {
                "field":"referenceNumber",
-               "value":"DTR-REF-001"
+               "value":"DTR-REF-001",
+               "oldValue":null
             },
             {
                "field":"submissionDate",
-               "value":"2026-01-15"
+               "value":"2026-01-15",
+               "oldValue":null
             },
             {
                "field":"status",
-               "value":"SUBMITTED"
+               "value":"SUBMITTED",
+               "oldValue":null
             }
          ],
          "extraInformation":{
@@ -66,6 +77,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"UPDATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$update2CommitTime",
          "changes":[
             {
@@ -91,6 +107,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"UPDATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$update1CommitTime",
          "changes":[
             {
@@ -116,42 +137,59 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"NOTE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$createNoteCommitTime",
          "changes":[
             {
                "field":"note",
-               "value":"Test note"
+               "value":"Test note",
+               "oldValue":null
             }
          ]
       },
       {
          "type":"CREATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$createCommitTime",
          "changes":[
             {
                "field":"id",
-               "value":"$dutyToReferId"
+               "value":"$dutyToReferId",
+               "oldValue":null
             },
             {
                "field":"caseId",
-               "value":"$caseId"
+               "value":"$caseId",
+               "oldValue":null
             },
             {
                "field":"localAuthorityAreaId",
-               "value":"$initialLocalAuthorityAreaId"
+               "value":"$initialLocalAuthorityAreaId",
+               "oldValue":null
             },
             {
                "field":"referenceNumber",
-               "value":"DTR-REF-001"
+               "value":"DTR-REF-001",
+               "oldValue":null
             },
             {
                "field":"submissionDate",
-               "value":"2026-01-15"
+               "value":"2026-01-15",
+               "oldValue":null
             },
             {
                "field":"status",
-               "value":"SUBMITTED"
+               "value":"SUBMITTED",
+               "oldValue":null
             }
          ],
          "extraInformation":{
