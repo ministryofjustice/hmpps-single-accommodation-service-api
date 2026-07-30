@@ -28,8 +28,6 @@ class RestClientConfig(
   @Value($$"${service.connection-timeout:1s}") private val connectionTimeout: Duration,
 ) {
 
-  private val connectionTimeout = Duration.ofSeconds(1)
-
   @Bean
   fun probationIntegrationSasDeliusClient(
     @Value($$"${service.sas-and-delius.base-url}") baseUrl: String,
