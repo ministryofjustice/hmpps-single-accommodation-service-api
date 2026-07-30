@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.isProposedAccommodationStatus
 import java.util.UUID
 
 @Component
@@ -39,7 +39,7 @@ class CprProbationAddressCreatedHandler(
     return event.personReference.findCrn()
   }
 
-  private fun isProposedAccommodationAddress(probationAddress: CanonicalAddress): Boolean = probationAddress.status.code == AddressStatusCode.PR.name || probationAddress.status.code == AddressStatusCode.PR1.name
+  private fun isProposedAccommodationAddress(probationAddress: CanonicalAddress) = probationAddress.status.code.isProposedAccommodationStatus()
 
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
