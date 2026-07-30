@@ -1,0 +1,152 @@
+<h1 class="title">Single Accommodation Service</h1>
+{{#ProposedAccommodations}}
+    <h2>Proposed Accommodation</h2>
+
+    <h3>Accommodation Details</h3>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Arrangement type</td>
+            <td class="data-column-25">Settled type</td>
+            <td class="data-column-25">Verification status</td>
+            <td class="data-column-25">Next accommodation status</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue accommodationType.description }}</td>
+            <td>{{ optionalValue settledType }}</td>
+            <td>{{ optionalValue verificationStatus }}</td>
+            <td>{{ optionalValue nextAccommodationStatus }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Created at</td>
+            <td class="data-column-25">Last updated at</td>
+            <td class="data-column-25">Created by user</td>
+            <td class="data-column-25">Last updated by user</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue (formatDate createdAt) }}</td>
+            <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+            <td>{{ optionalValue createdBy }}</td>
+            <td>{{ optionalValue lastUpdatedBy }}</td>
+        </tr>
+    </table>
+
+    <h3>Address Details</h3>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Building number</td>
+            <td class="data-column-25">Building name</td>
+            <td class="data-column-25">Sub building name</td>
+            <td class="data-column-25">Thoroughfare name</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue address.buildingNumber }}</td>
+            <td>{{ optionalValue address.buildingName }}</td>
+            <td>{{ optionalValue address.subBuildingName }}</td>
+            <td>{{ optionalValue address.thoroughfareName }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Postcode</td>
+            <td class="data-column-25">Post-town</td>
+            <td class="data-column-25">County</td>
+            <td class="data-column-25">Country</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue address.postcode }}</td>
+            <td>{{ optionalValue address.postTown }}</td>
+            <td>{{ optionalValue address.county }}</td>
+            <td>{{ optionalValue address.country }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Dependent locality</td>
+            <td class="data-column-25">Unique Property Reference Number</td>
+            <td class="data-column-50">CRN</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue address.dependentLocality }}</td>
+            <td>{{ optionalValue address.uprn }}</td>
+            <td>{{ optionalValue crn }}</td>
+        </tr>
+    </table>
+
+    <h3>Proposed Accommodation Notes</h3>
+    {{#accommodation_notes}}
+        <table class="data-table">
+            <tr>
+                <td class="data-column-95">Note</td>
+            </tr>
+            <tr>
+                <td>{{ optionalValue note }}</td>
+            </tr>
+        </table>
+        <table class="data-table">
+            <tr>
+                <td class="data-column-25">Created at</td>
+                <td class="data-column-25">Last updated at</td>
+                <td class="data-column-25">Created by user</td>
+                <td class="data-column-25">Last updated by user</td>
+            </tr>
+            <tr>
+                <td>{{ optionalValue (formatDate createdAt) }}</td>
+                <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+                <td>{{ optionalValue createdBy }}</td>
+                <td>{{ optionalValue lastUpdatedBy }}</td>
+            </tr>
+        </table>
+    {{/accommodation_notes}}
+    {{^accommodation_notes}}
+        <p>No Data Held</p>
+    {{/accommodation_notes}}
+
+{{/ProposedAccommodations}}
+{{^ProposedAccommodations}}
+    <p>No Data Held</p>
+{{/ProposedAccommodations}}
+
+<h3>Duty to Refer</h3>
+{{#DutyToRefer}}
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">CRN</td>
+            <td class="data-column-25">Reference number</td>
+            <td class="data-column-25">Submission date</td>
+            <td class="data-column-25">Status</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue crn }}</td>
+            <td>{{ optionalValue submission.referenceNumber }}</td>
+            <td>{{ optionalValue (formatDate submission.submissionDate) }}</td>
+            <td>{{ optionalValue status }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Local authority area</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue submission.localAuthority.localAuthorityAreaName }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Created at</td>
+            <td class="data-column-25">Last updated at</td>
+            <td class="data-column-25">Created by user</td>
+            <td class="data-column-25">Last updated by user</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue (formatDate submission.createdAt) }}</td>
+            <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
+            <td>{{ optionalValue submission.createdBy }}</td>
+            <td>{{ optionalValue lastUpdatedBy }}</td>
+        </tr>
+    </table>
+{{/DutyToRefer}}
+{{^DutyToRefer}}
+    <p>No Data Held</p>
+{{/DutyToRefer}}
