@@ -10,7 +10,6 @@ import java.time.LocalDate
 
 fun buildCaseDto(
   crn: String,
-  name: String = "First Middle Last",
   forename: String = "First",
   middleNames: String? = "Middle",
   surname: String = "Last",

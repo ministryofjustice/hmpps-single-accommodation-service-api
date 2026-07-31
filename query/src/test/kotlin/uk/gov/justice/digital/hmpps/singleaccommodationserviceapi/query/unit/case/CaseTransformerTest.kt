@@ -100,7 +100,6 @@ class CaseTransformerTest {
     val eligibilityDto = buildEligibilityDto(CRN)
     val caseDto = buildCaseDto(
       crn = CRN,
-      name = name.fullName,
       forename = name.forename,
       middleNames = name.middleName,
       surname = name.surname,
