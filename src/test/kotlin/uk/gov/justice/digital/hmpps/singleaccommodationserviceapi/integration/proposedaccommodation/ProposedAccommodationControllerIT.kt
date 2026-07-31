@@ -113,6 +113,7 @@ class ProposedAccommodationControllerIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
     createDeliusSyncUser()
+    createSasSystemUser()
     stubCurrentAccommodationIsCas1(crn)
     databaseUtils.truncate(PROPOSED_ACCOMMODATION, OUTBOX_EVENT)
     cacheManager.setCacheNames(listOf(GET_CORE_PERSON_RECORD_BY_CRN))

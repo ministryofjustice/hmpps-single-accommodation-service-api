@@ -27,6 +27,7 @@ class CaseAggregateTest {
       cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
       cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+      hasSyncedCprProposedAccommodation = true,
     )
 
     assertThat(hydrated.snapshot()).satisfies(
@@ -37,6 +38,7 @@ class CaseAggregateTest {
         assertThat(it.cas1ApplicationApplicationStatus).isEqualTo(cas1ApplicationApplicationStatus)
         assertThat(it.cas1ApplicationRequestForPlacementStatus).isEqualTo(cas1ApplicationRequestForPlacementStatus)
         assertThat(it.cas1ApplicationPlacementStatus).isEqualTo(cas1ApplicationPlacementStatus)
+        assertThat(it.hasSyncedCprProposedAccommodation).isTrue()
       },
     )
   }
@@ -50,6 +52,18 @@ class CaseAggregateTest {
     assertThat(newAggregate.snapshot().cas1ApplicationApplicationStatus).isNull()
     assertThat(newAggregate.snapshot().cas1ApplicationRequestForPlacementStatus).isNull()
     assertThat(newAggregate.snapshot().cas1ApplicationPlacementStatus).isNull()
+    assertThat(newAggregate.snapshot().hasSyncedCprProposedAccommodation).isFalse()
+  }
+
+  @Test
+  fun `markCaseAsSyncedWithCprProposedAccommodation() should set hasSyncedCprProposedAccommodation to true`() {
+    val aggregate = CaseAggregate.hydrateNew()
+
+    assertThat(aggregate.snapshot().hasSyncedCprProposedAccommodation).isFalse()
+
+    aggregate.markCaseAsSyncedWithCprProposedAccommodation()
+
+    assertThat(aggregate.snapshot().hasSyncedCprProposedAccommodation).isTrue()
   }
 
   @Test

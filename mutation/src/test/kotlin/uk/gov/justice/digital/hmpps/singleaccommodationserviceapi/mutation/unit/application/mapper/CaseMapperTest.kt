@@ -27,6 +27,7 @@ class CaseMapperTest {
       cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       cas1ApplicationPlacementStatus = Cas1PlacementStatus.UPCOMING,
+      hasSyncedCprProposedAccommodation = true,
     )
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
@@ -38,7 +39,18 @@ class CaseMapperTest {
       { assertThat(snapshot.cas1ApplicationApplicationStatus).isNotNull.isEqualTo(caseEntity.cas1ApplicationApplicationStatus) },
       { assertThat(snapshot.cas1ApplicationRequestForPlacementStatus).isNotNull.isEqualTo(caseEntity.cas1ApplicationRequestForPlacementStatus) },
       { assertThat(snapshot.cas1ApplicationPlacementStatus).isNotNull.isEqualTo(caseEntity.cas1ApplicationPlacementStatus) },
+      { assertThat(snapshot.hasSyncedCprProposedAccommodation).isTrue() },
     )
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `toAggregate maps hasSyncedCprProposedAccommodation correctly`(hasSyncedCprProposedAccommodation: Boolean) {
+    val caseEntity = buildCaseEntity(hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation)
+    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val snapshot = caseAggregate.snapshot()
+
+    assertThat(snapshot.hasSyncedCprProposedAccommodation).isEqualTo(hasSyncedCprProposedAccommodation)
   }
 
   @Test
@@ -71,6 +83,7 @@ class CaseMapperTest {
       cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
       cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       cas1ApplicationPlacementStatus = Cas1PlacementStatus.ARRIVED,
+      hasSyncedCprProposedAccommodation = false,
     ) { withCrn(identifier) }
     val caseAggregate = CaseAggregate.hydrate(
       id,
@@ -79,6 +92,7 @@ class CaseMapperTest {
       cas1ApplicationApplicationStatus = caseEntity.cas1ApplicationApplicationStatus,
       cas1ApplicationRequestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = caseEntity.cas1ApplicationPlacementStatus,
+      hasSyncedCprProposedAccommodation = caseEntity.hasSyncedCprProposedAccommodation,
     )
 
     val identifiersToMerge = mapOf(
@@ -94,6 +108,7 @@ class CaseMapperTest {
       cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
       cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
     )
+    caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
     val mergedEntity = CaseMapper.merge(
       entity = caseEntity,
@@ -114,6 +129,7 @@ class CaseMapperTest {
       { assertThat(mergedEntity.cas1ApplicationApplicationStatus).isNotNull.isEqualTo(Cas1ApplicationStatus.WITHDRAWN) },
       { assertThat(mergedEntity.cas1ApplicationRequestForPlacementStatus).isNotNull.isEqualTo(Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN) },
       { assertThat(mergedEntity.cas1ApplicationPlacementStatus).isNotNull.isEqualTo(Cas1PlacementStatus.CANCELLED) },
+      { assertThat(mergedEntity.hasSyncedCprProposedAccommodation).isTrue() },
     )
   }
 
@@ -219,6 +235,7 @@ class CaseMapperTest {
       cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
       cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
     )
+    caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
     val crn = UUID.randomUUID().toString()
 
@@ -248,6 +265,7 @@ class CaseMapperTest {
         )
       },
       { assertThat(mergedEntity.cas1ApplicationPlacementStatus).isNotNull.isEqualTo(Cas1PlacementStatus.CANCELLED) },
+      { assertThat(mergedEntity.hasSyncedCprProposedAccommodation).isTrue() },
     )
   }
 }
