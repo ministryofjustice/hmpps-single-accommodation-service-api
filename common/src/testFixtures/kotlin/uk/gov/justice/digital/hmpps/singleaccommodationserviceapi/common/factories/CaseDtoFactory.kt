@@ -24,7 +24,6 @@ fun buildCaseDto(
   userAccess: UserAccess = UserAccess.FULL,
   limitedAccess: Boolean = false,
 ) = CaseDto(
-  name = name,
   forename = forename,
   middleNames = middleNames,
   surname = surname,
