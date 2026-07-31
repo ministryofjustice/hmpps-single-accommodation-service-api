@@ -42,5 +42,9 @@ class RetryConfig {
     multiplierExpression = $$"${spring.retry.multiplier}",
     maxDelayExpression = $$"${spring.retry.max-interval}",
   ),
+  value = [
+    org.springframework.web.client.HttpServerErrorException::class,
+    org.springframework.web.client.ResourceAccessException::class,
+  ],
 )
 annotation class DefaultRetry
