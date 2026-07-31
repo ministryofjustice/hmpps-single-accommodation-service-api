@@ -16,6 +16,7 @@ fun buildCaseEntity(
   cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
   cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
   cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
+  hasSyncedCprProposedAccommodation: Boolean = false,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
   id = id,
@@ -24,6 +25,7 @@ fun buildCaseEntity(
   cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
   cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
   cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+  hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation,
 ).also { case ->
 
   if (customise != null) {

@@ -288,7 +288,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
          "authorDetails":{
             "forename":"nDelius",
             "surname":"user",
-            "username":"DELIUS_SYNC_USER"
+            "username":"SAS_SYSTEM_USER"
          },
          "commitDate":null,
          "changes":[
@@ -305,7 +305,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
          "authorDetails":{
             "forename":"nDelius",
             "surname":"user",
-            "username":"DELIUS_SYNC_USER"
+            "username":"SAS_SYSTEM_USER"
          },
          "commitDate":null,
          "changes":[
@@ -415,7 +415,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             "authorDetails":{
                "forename":"nDelius",
                "surname":"user",
-               "username":"DELIUS_SYNC_USER"
+               "username":"SAS_SYSTEM_USER"
             },
             "commitDate":null,
             "changes":[
@@ -432,7 +432,7 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
             "authorDetails":{
                "forename":"nDelius",
                "surname":"user",
-               "username":"DELIUS_SYNC_USER"
+               "username":"SAS_SYSTEM_USER"
             },
             "commitDate":null,
             "changes":[
@@ -510,4 +510,113 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          }
       ]
    }
+""".trimIndent()
+
+fun expectedProposedAccommodationTimeResponseForDeliusAndLegacyDeliusAudits(
+  proposedAccommodationId: UUID,
+  caseId: UUID,
+): String = """
+   {
+     "data":[
+        {
+           "type":"UPDATE",
+           "author":"nDelius user",
+           "authorDetails":{
+              "forename":"nDelius",
+              "surname":"user",
+              "username":"DELIUS_SYNC_USER"
+           },
+           "commitDate":null,
+           "changes":[
+              {
+                 "field":"buildingNumber",
+                 "value":"20",
+                 "oldValue":"15"
+              }
+           ]
+        },
+        {
+           "type":"CREATE",
+           "author":"nDelius user",
+           "authorDetails":{
+              "forename":"nDelius",
+              "surname":"user",
+              "username":"SAS_SYSTEM_USER"
+           },
+           "commitDate":null,
+           "changes":[
+              {
+                 "field":"id",
+                 "value":"$proposedAccommodationId",
+                 "oldValue":null
+              },
+              {
+                 "field":"caseId",
+                 "value":"$caseId",
+                 "oldValue":null
+              },
+              {
+                 "field":"accommodationTypeDescription",
+                 "value":"Living in the home of a friend, family member or partner: transient",
+                 "oldValue":null
+              },
+              {
+                 "field":"verificationStatus",
+                 "value":"PASSED",
+                 "oldValue":null
+              },
+              {
+                 "field":"nextAccommodationStatus",
+                 "value":"YES",
+                 "oldValue":null
+              },
+              {
+                 "field":"postcode",
+                 "value":"Delius postcode",
+                 "oldValue":null
+              },
+              {
+                 "field":"subBuildingName",
+                 "value":"Delius subBuildingName",
+                 "oldValue":null
+              },
+              {
+                 "field":"buildingName",
+                 "value":"Delius buildingName",
+                 "oldValue":null
+              },
+              {
+                 "field":"buildingNumber",
+                 "value":"15",
+                 "oldValue":null
+              },
+              {
+                 "field":"thoroughfareName",
+                 "value":"Delius thoroughfareName",
+                 "oldValue":null
+              },
+              {
+                 "field":"dependentLocality",
+                 "value":"Delius dependentLocality",
+                 "oldValue":null
+              },
+              {
+                 "field":"postTown",
+                 "value":"Delius postTown",
+                 "oldValue":null
+              },
+              {
+                 "field":"county",
+                 "value":"Delius county",
+                 "oldValue":null
+              },
+              {
+                 "field":"uprn",
+                 "value":"Delius uprn",
+                 "oldValue":null
+              }
+           ]
+        }
+     ]
+  }
 """.trimIndent()

@@ -19,7 +19,7 @@ class CaseEntity(
 
   @Id
   val id: UUID,
-
+  var hasSyncedCprProposedAccommodation: Boolean,
   var tierScore: String? = null,
 
   @OneToMany(

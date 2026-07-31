@@ -69,6 +69,8 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
 
   fun findByIdAndAccommodationStatusId(id: UUID, accommodationStatusId: UUID): ProposedAccommodationEntity?
 
+  fun findByIdAndBuildingNumber(id: UUID, buildingNumber: String): ProposedAccommodationEntity?
+
   @Query(
     """
     select distinct pa from ProposedAccommodationEntity pa

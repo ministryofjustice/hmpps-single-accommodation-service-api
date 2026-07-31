@@ -7,14 +7,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import java.util.UUID
 import kotlin.collections.get
 
@@ -23,13 +22,12 @@ class ProposedAccommodationTimelineService(
   private val auditService: AuditService,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val accommodationTypeRepository: AccommodationTypeRepository,
+  private val userService: UserService,
   private val userRepository: UserRepository,
 ) {
   fun getProposedAccommodationTimeline(id: UUID, crn: String): List<AuditRecordDto> {
-    val deliusSyncUser = userRepository.findByUsernameAndAuthSource(
-      username = Username("DELIUS_SYNC_USER"),
-      authSource = AuthSource.DELIUS,
-    )!!
+    val deliusSyncUser = userService.getNationalDeliusSystemUser()
+    val sasSystemUser = userService.getSystemUser()
     val proposedAccommodationEntity = proposedAccommodationRepository.findByIdAndCrnWithNotes(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val proposedAccommodationAuditHistory = auditService.fullAuditHistory(id = proposedAccommodationEntity.id, ProposedAccommodationEntity::class.java)
     val accommodationTypes = accommodationTypeRepository.findAll()
@@ -41,11 +39,13 @@ class ProposedAccommodationTimelineService(
       return nullifyCommitAndUpdateDatesForDeliusSyncUserAudits(
         proposedAccommodationAuditHistory = fullHistory,
         deliusSyncUser,
+        sasSystemUser,
       )
     }
     return nullifyCommitAndUpdateDatesForDeliusSyncUserAudits(
       proposedAccommodationAuditHistory = auditHistoryWithAccommodationTypesTransformed,
       deliusSyncUser,
+      sasSystemUser,
     )
   }
 
@@ -66,9 +66,12 @@ class ProposedAccommodationTimelineService(
   private fun nullifyCommitAndUpdateDatesForDeliusSyncUserAudits(
     proposedAccommodationAuditHistory: List<AuditRecordDto>,
     deliusSyncUser: UserEntity,
+    sasSystemUser: UserEntity,
   ): List<AuditRecordDto> = proposedAccommodationAuditHistory.map { auditRecord ->
     // TODO - switch to auditRecord.authorDetails?.username == deliusSyncUser.username when .author is removed
-    if (auditRecord.author == deliusSyncUser.displayName()) {
+    if (auditRecord.author == deliusSyncUser.displayName() ||
+      auditRecord.author == sasSystemUser.displayName()
+    ) {
       auditRecord.copy(
         commitDate = null,
       )
