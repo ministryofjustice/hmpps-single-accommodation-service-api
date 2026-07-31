@@ -327,7 +327,7 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(count)
       // check we can see cases in other teams
       if (teamCode == "TestTeam2") {
-        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactly("Second.User", username)
+        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactlyInAnyOrder("Second.User", username)
       } else {
         assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
       }
