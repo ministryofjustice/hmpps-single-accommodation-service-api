@@ -129,7 +129,13 @@ class CaseQueryService(
     searchTerm.isNullOrBlank() -> true
     crn.trim().equals(searchTerm, true) -> true
     nomsNumber?.trim().equals(searchTerm, true) -> true
-    this is Identifiable && "$forename $middleNames $surname".contains(searchTerm, true) -> true
+    this is Identifiable -> {
+      val fullName = "$forename ${middleNames ?: ""} $surname"
+      searchTerm
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .all { fullName.contains(it, ignoreCase = true) }
+    }
     else -> false
   }
 }
