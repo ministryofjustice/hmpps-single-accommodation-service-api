@@ -5,9 +5,12 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.ClientHttpResponse
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.ClientAuthorizationException
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
@@ -35,7 +38,18 @@ class HmppsAuthInterceptor(
       .withClientRegistrationId(registrationId)
       .principal(authentication)
       .build()
-    return clientManager.authorize(request)?.accessToken?.tokenValue
+    return authorize(request)
       ?: throw OAuth2AuthenticationException("Unable to retrieve access token")
   }
+
+  @Retryable(
+    value = [ClientAuthorizationException::class],
+    maxAttemptsExpression = $$"${spring.retry.max-attempts}",
+    backoff = Backoff(
+      delayExpression = $$"${spring.retry.initial-interval}",
+      multiplierExpression = $$"${spring.retry.multiplier}",
+      maxDelayExpression = $$"${spring.retry.max-interval}",
+    ),
+  )
+  private fun authorize(request: OAuth2AuthorizeRequest) = clientManager.authorize(request)?.accessToken?.tokenValue
 }
