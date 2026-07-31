@@ -51,7 +51,12 @@ class CaseQueryService(
       } &&
         it.matchesSearch(searchTerm) &&
         it.matchesRiskLevel(riskLevel)
-    }.toList()
+    }
+    .sortedWith(
+      compareBy<PersonDto>({ it !is Identifiable })
+        .thenBy { (it as? Identifiable)?.surname?.lowercase() }
+        .thenBy { (it as? Identifiable)?.forename?.lowercase() },
+    )
 
   fun getCases(
     personDtos: List<PersonDto>,

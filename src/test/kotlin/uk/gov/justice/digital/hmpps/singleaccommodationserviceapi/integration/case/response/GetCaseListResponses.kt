@@ -7,16 +7,16 @@ fun expectedGetCaseListResponse(): String = """
 {
    "data":[
       {
-         "name":"First Middle Last",
-         "forename":"First",
+         "name":"Zack Middle Aardvark",
+         "forename":"Zack",
          "middleNames":"Middle",
-         "surname":"Last",
+         "surname":"Aardvark",
          "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN1",
-         "prisonNumber":"PRI1",
+         "crn":"FAKECRN2",
+         "prisonNumber":"PRI2",
          "photoUrl":null,
          "tierScore":null,
-         "riskLevel":"VERY_HIGH",
+         "riskLevel":"MEDIUM",
          "pncReference":"Some PNC Reference",
          "assignedTo":{
             "forename":"First",
@@ -41,16 +41,16 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"Zack Middle Smith",
-         "forename":"Zack",
+         "name":"First Middle Last",
+         "forename":"First",
          "middleNames":"Middle",
-         "surname":"Smith",
+         "surname":"Last",
          "dateOfBirth":"2000-12-03",
-         "crn":"FAKECRN2",
-         "prisonNumber":"PRI2",
+         "crn":"FAKECRN1",
+         "prisonNumber":"PRI1",
          "photoUrl":null,
          "tierScore":null,
-         "riskLevel":"MEDIUM",
+         "riskLevel":"VERY_HIGH",
          "pncReference":"Some PNC Reference",
          "assignedTo":{
             "forename":"First",

@@ -406,7 +406,7 @@ class CaseControllerIT : IntegrationTestBase() {
           5, 8 -> "Not Known / Not Recorded"
           else -> "Male"
         },
-        name = if (i == 1) buildName("Zack", "Smith") else buildName(),
+        name = if (i == 1) buildName("Zack", "Aardvark") else buildName(),
         roshLevel = if (i == 1) {
           buildRoshLevel("RMRH", "Medium")
         } else {
