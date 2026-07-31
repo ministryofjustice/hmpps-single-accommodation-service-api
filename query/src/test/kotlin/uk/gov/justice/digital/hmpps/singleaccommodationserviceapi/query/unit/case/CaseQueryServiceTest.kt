@@ -198,7 +198,7 @@ class CaseQueryServiceTest {
       val unorderedPersonDtos = listOf(
         buildFullPersonDto(
           crn = "CRN1",
-          name = buildName(forename = "Charlie", surname = "Brown"),
+          name = buildName(forename = "CHARLIE", surname = "BROWN"),
           assignedTo = assignedTo,
         ),
         buildFullPersonDto(
@@ -212,7 +212,7 @@ class CaseQueryServiceTest {
         ),
         buildFullPersonDto(
           crn = "CRN4",
-          name = buildName(forename = "Alice", surname = "Brown"),
+          name = buildName(forename = "alice", surname = "brown"),
           assignedTo = assignedTo,
         ),
       )
