@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
-class DefaultRetryIT : IntegrationTestBase() {
+class RestClientRe0tryIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var sasAndDeliusCachingService: SasAndDeliusCachingService

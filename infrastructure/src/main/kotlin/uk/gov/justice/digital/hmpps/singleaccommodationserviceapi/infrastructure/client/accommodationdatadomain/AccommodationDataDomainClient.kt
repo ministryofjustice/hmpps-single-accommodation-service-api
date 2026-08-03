@@ -2,14 +2,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import org.springframework.stereotype.Service
 import org.springframework.web.service.annotation.GetExchange
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.DefaultRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRe0try
 
 interface AccommodationDataDomainClient {
   @GetExchange(value = "/health")
   fun getHealth(): String
 }
 
-@DefaultRetry
+@RestClientRe0try
 @Service
 class AccommodationDataDomainCachingService(
   private val accommodationDataDomainClient: AccommodationDataDomainClient,

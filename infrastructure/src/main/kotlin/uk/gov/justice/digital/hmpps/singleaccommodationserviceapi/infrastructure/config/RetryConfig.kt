@@ -47,4 +47,4 @@ class RetryConfig {
     org.springframework.web.client.ResourceAccessException::class,
   ],
 )
-annotation class DefaultRetry
+annotation class RestClientRe0try
