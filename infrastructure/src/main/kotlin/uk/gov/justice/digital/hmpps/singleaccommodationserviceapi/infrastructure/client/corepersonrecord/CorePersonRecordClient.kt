@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 import java.net.URI
 
 interface CorePersonRecordClient {
@@ -28,6 +29,7 @@ interface CorePersonRecordClient {
   fun getProbationAddress(uri: URI): CanonicalAddress
 }
 
+@RestClientRetry
 @Service
 class CorePersonRecordCachingService(
   private val corePersonRecordClient: CorePersonRecordClient,

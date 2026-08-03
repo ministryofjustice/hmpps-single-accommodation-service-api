@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpRequest
 import org.springframework.http.client.ClientHttpRequestExecution
@@ -8,6 +9,7 @@ import org.springframework.http.client.ClientHttpResponse
 import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.ClientAuthorizationException
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
@@ -15,7 +17,11 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 class HmppsAuthInterceptor(
   private val clientManager: OAuth2AuthorizedClientManager,
   private val registrationId: String,
+
 ) : ClientHttpRequestInterceptor {
+
+  private val log = LoggerFactory.getLogger(javaClass)
+
   override fun intercept(
     request: HttpRequest,
     body: ByteArray,
@@ -35,7 +41,14 @@ class HmppsAuthInterceptor(
       .withClientRegistrationId(registrationId)
       .principal(authentication)
       .build()
-    return clientManager.authorize(request)?.accessToken?.tokenValue
+    return authorizeTokenWithRetry(request)
       ?: throw OAuth2AuthenticationException("Unable to retrieve access token")
+  }
+
+  private fun authorizeTokenWithRetry(request: OAuth2AuthorizeRequest): String? = try {
+    clientManager.authorize(request)?.accessToken?.tokenValue
+  } catch (e: ClientAuthorizationException) {
+    log.info("Authorization failed, retrying...", e)
+    clientManager.authorize(request)?.accessToken?.tokenValue
   }
 }
