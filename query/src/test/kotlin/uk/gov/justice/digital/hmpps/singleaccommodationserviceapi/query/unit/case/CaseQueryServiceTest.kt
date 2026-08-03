@@ -338,7 +338,6 @@ class CaseQueryServiceTest {
   inner class GetCases {
 
     private fun toLimitedCaseDto(crn: String) = CaseDto(
-      name = null,
       dateOfBirth = null,
       crn = crn,
       prisonNumber = null,

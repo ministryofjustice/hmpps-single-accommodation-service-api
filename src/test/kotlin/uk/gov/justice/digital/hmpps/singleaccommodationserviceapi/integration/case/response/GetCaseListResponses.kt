@@ -7,7 +7,6 @@ fun expectedGetCaseListResponse(): String = """
 {
    "data":[
       {
-         "name":"Zack Middle Aardvark",
          "forename":"Zack",
          "middleNames":"Middle",
          "surname":"Aardvark",
@@ -41,7 +40,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -75,7 +73,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -109,7 +106,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -143,7 +139,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -177,7 +172,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -215,7 +209,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -245,7 +238,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -275,7 +267,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -305,7 +296,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -339,7 +329,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -373,7 +362,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -411,7 +399,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -449,7 +436,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -483,7 +469,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -517,7 +502,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -551,7 +535,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -585,7 +568,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":"First Middle Last",
          "forename":"First",
          "middleNames":"Middle",
          "surname":"Last",
@@ -619,7 +601,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":false
       },
       {
-         "name":null,
          "forename":null,
          "middleNames":null,
          "surname":null,
@@ -638,7 +619,6 @@ fun expectedGetCaseListResponse(): String = """
          "limitedAccess":true
       },
       {
-         "name":null,
          "forename":null,
          "middleNames":null,
          "surname":null,
