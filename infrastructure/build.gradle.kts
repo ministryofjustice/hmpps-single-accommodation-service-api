@@ -3,7 +3,6 @@ plugins {
 }
 dependencies {
   implementation(project(":common"))
-
   implementation(libs.hmpps.starter)
   implementation(libs.hmpps.sqs)
   implementation(libs.spring.cache)

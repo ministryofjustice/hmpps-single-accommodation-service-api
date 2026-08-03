@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.excepti
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
@@ -27,6 +26,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.SyncType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.isProposedAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -58,7 +58,7 @@ class AccommodationSyncService(
         val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
           cprAddressId = cprAccommodation.cprAddressId!!,
         )
-        if (!sasAccommodationRecordExists(sasProposedAccommodationRecord) && isProposedAccommodation(accommodation = cprAccommodation)) {
+        if (!sasAccommodationRecordExists(sasProposedAccommodationRecord) && cprAccommodation.status?.code.isProposedAccommodationStatus()) {
           insertDeliusOriginProposedAccommodationRecord(
             case = case,
             cprProposedAccommodationRecord = cprAccommodation,
@@ -74,13 +74,10 @@ class AccommodationSyncService(
 
   private fun sasAccommodationRecordExists(sasProposedAccommodationRecord: ProposedAccommodationEntity?) = sasProposedAccommodationRecord != null
 
-  private fun isProposedAccommodation(accommodation: AccommodationDetailDto): Boolean = AddressStatusCode.PR.name == accommodation.status?.code ||
-    AddressStatusCode.PR1.name == accommodation.status?.code
-
   private fun insertDeliusOriginProposedAccommodationRecord(
     case: CaseEntity,
     cprProposedAccommodationRecord: AccommodationDetailDto,
-  ) {
+  ): Boolean {
     val (isAccommodationTypeNullOrExists, accommodationTypeEntityToUpdate) = accommodationTypeIsNullOrExists(cprProposedAccommodationRecord)
     val (isAccommodationStatusNullOrExists, accommodationStatusEntityToUpdate) = accommodationStatusIsNullOrExists(cprProposedAccommodationRecord)
     if (isAccommodationTypeNullOrExists && isAccommodationStatusNullOrExists) {
@@ -116,8 +113,19 @@ class AccommodationSyncService(
         accommodationStatusEntityToUpdate,
       )
       saveProposedAccommodation(proposedAccommodationEntityToCreate)
+      return true
     }
+    return false
   }
+
+  fun createAccommodationRecordWithCprAddressCreate(
+    crn: String,
+    case: CaseEntity,
+    cprAddressRecord: CanonicalAddress,
+  ): Boolean = insertDeliusOriginProposedAccommodationRecord(
+    case = case,
+    cprProposedAccommodationRecord = toAccommodationDetail(crn, cprAddressRecord),
+  )
 
   private fun saveProposedAccommodation(
     proposedAccommodationEntity: ProposedAccommodationEntity,
