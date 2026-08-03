@@ -18,6 +18,9 @@ object PersonTransformer {
     FullPersonDto(
       crn = case.crn,
       name = case.name.fullName,
+      forename = case.name.forename,
+      middleNames = case.name.middleName,
+      surname = case.name.surname,
       nomsNumber = case.nomsNumber,
       pncNumber = case.pncNumber,
       dateOfBirth = case.dateOfBirth,

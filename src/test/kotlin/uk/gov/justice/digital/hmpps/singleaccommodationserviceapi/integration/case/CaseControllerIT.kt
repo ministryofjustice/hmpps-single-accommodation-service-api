@@ -285,7 +285,9 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("searchTerm", "FIR", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "first", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "FiRsT M", 17, listOf(containsNoLimitedCases())),
-    CaseListFilter("searchTerm", "FiRsT M Last", 0),
+    CaseListFilter("searchTerm", "FiRsT M Last", 17, listOf(containsNoLimitedCases())),
+    CaseListFilter("searchTerm", "fOrst Last", 0),
+    CaseListFilter("searchTerm", "last first", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "Zack", 1, listOf(containsNoLimitedCases())),
     CaseListFilter("riskLevel", "VERY_HIGH", 17, listOf(containsNoLimitedCases())),
     CaseListFilter("riskLevel", "MEDIUM", 1, listOf(containsNoLimitedCases())),
@@ -404,7 +406,7 @@ class CaseControllerIT : IntegrationTestBase() {
           5, 8 -> "Not Known / Not Recorded"
           else -> "Male"
         },
-        name = if (i == 1) buildName("Zack", "Smith") else buildName(),
+        name = if (i == 1) buildName("Zack", "Aardvark") else buildName(),
         roshLevel = if (i == 1) {
           buildRoshLevel("RMRH", "Medium")
         } else {

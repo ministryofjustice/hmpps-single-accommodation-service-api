@@ -51,7 +51,12 @@ class CaseQueryService(
       } &&
         it.matchesSearch(searchTerm) &&
         it.matchesRiskLevel(riskLevel)
-    }.toList()
+    }
+    .sortedWith(
+      compareBy<PersonDto>({ it !is Identifiable })
+        .thenBy { (it as? Identifiable)?.surname?.lowercase() }
+        .thenBy { (it as? Identifiable)?.forename?.lowercase() },
+    )
 
   fun getCases(
     personDtos: List<PersonDto>,
@@ -129,7 +134,13 @@ class CaseQueryService(
     searchTerm.isNullOrBlank() -> true
     crn.trim().equals(searchTerm, true) -> true
     nomsNumber?.trim().equals(searchTerm, true) -> true
-    this is Identifiable && name.contains(searchTerm, true) -> true
+    this is Identifiable -> {
+      val fullName = "$forename ${middleNames ?: ""} $surname"
+      searchTerm
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .all { fullName.contains(it, ignoreCase = true) }
+    }
     else -> false
   }
 }

@@ -45,6 +45,11 @@ class AccommodationQueryService(
       AccommodationSettledType.TRANSIENT,
     ).map { it.code }.toSet()
   }
+  private val settledAccommodationTypeCodes: Set<String> by lazy {
+    accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
+      AccommodationSettledType.SETTLED,
+    ).map { it.code }.toSet()
+  }
   private val homelessAccommodationTypeCodes: Set<String> by lazy {
     accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().map { it.code }.toSet()
   }
@@ -241,15 +246,25 @@ class AccommodationQueryService(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ): CaseAccommodationStatus? = when {
-    currentAccommodation == null ||
-      currentAccommodation.type?.code in homelessAccommodationTypeCodes -> CaseAccommodationStatus.NO_FIXED_ABODE
+    isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
 
-    nextAccommodation == null ||
-      nextAccommodation.type?.code in homelessAccommodationTypeCodes ||
-      nextAccommodation.type?.code in transientAccommodationTypeCodes -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+    isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
 
     else -> {
       null
     }
   }
+
+  private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?) = currentAccommodation == null ||
+    isHomelessType(currentAccommodation)
+
+  private fun isRiskOfNoFixedAbode(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = (!isSettledType(currentAccommodation) && nextAccommodation == null) ||
+    (isSettledType(currentAccommodation) && isHomelessType(nextAccommodation) || isTransientType(nextAccommodation))
+
+  private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
+  private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
+  private fun isHomelessType(dto: AccommodationSummaryDto?) = dto?.type?.code in homelessAccommodationTypeCodes
 }

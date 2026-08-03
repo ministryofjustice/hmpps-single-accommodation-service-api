@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.OutboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -69,7 +70,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class, SarIntegrationTestHelperConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
