@@ -10,7 +10,6 @@ import java.time.LocalDate
 
 fun buildCaseDto(
   crn: String,
-  name: String = "First Middle Last",
   forename: String = "First",
   middleNames: String? = "Middle",
   surname: String = "Last",
@@ -24,7 +23,6 @@ fun buildCaseDto(
   userAccess: UserAccess = UserAccess.FULL,
   limitedAccess: Boolean = false,
 ) = CaseDto(
-  name = name,
   forename = forename,
   middleNames = middleNames,
   surname = surname,
