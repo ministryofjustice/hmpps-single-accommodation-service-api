@@ -765,7 +765,7 @@ class AccommodationQueryServiceTest {
       every { caseRepository.findByCrn(crn) } returns caseEntity
       val cas3CurrentPremises = buildCas3PremisesSummary(postcode = postcode1)
       val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
-      val uuid= UUID.randomUUID()
+      val uuid = UUID.randomUUID()
       val mainAddress = buildCanonicalAddress(
         cprAddressId = uuid,
         noFixedAbode = false,
@@ -1336,7 +1336,7 @@ class AccommodationQueryServiceTest {
     fun `getNextAccommodations get the next accommodations`() {
       val uuid = UUID.randomUUID()
       val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
-      val listProposedAccommodationEntity = listOf( proposedAccommodationEntity)
+      val listProposedAccommodationEntity = listOf(proposedAccommodationEntity)
       every { proposedAccommodationRepository.findByCprAddressIds(listOf(uuid)) } returns listProposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
@@ -1409,7 +1409,7 @@ class AccommodationQueryServiceTest {
     fun `getNextAccommodations get the next accommodations without cas1`() {
       val uuid = UUID.randomUUID()
       val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
-      val listProposedAccommodationEntity = listOf( proposedAccommodationEntity)
+      val listProposedAccommodationEntity = listOf(proposedAccommodationEntity)
       every { proposedAccommodationRepository.findByCprAddressIds(listOf(uuid)) } returns listProposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
@@ -1480,7 +1480,7 @@ class AccommodationQueryServiceTest {
     fun `getNextAccommodations get the next accommodations without cas 1 and cas3`() {
       val uuid = UUID.randomUUID()
       val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
-      val listProposedAccommodationEntity = listOf( proposedAccommodationEntity)
+      val listProposedAccommodationEntity = listOf(proposedAccommodationEntity)
       every { proposedAccommodationRepository.findByCprAddressIds(listOf(uuid)) } returns listProposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
@@ -1543,6 +1543,7 @@ class AccommodationQueryServiceTest {
       assertThat(result[0].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[0].status!!.code).isEqualTo("PR")
     }
+
     @Test
     fun `getNextAccommodations get the next accommodations and map cpr to proposed accommodations`() {
       val uuid1 = UUID.randomUUID()
@@ -1551,7 +1552,7 @@ class AccommodationQueryServiceTest {
       val uuids = listOf(uuid1, uuid2, uuid3)
       val proposedAccommodationEntity1 = buildProposedAccommodationEntity(cprAddressId = uuid1)
       val proposedAccommodationEntity2 = buildProposedAccommodationEntity(cprAddressId = uuid2)
-      val listProposedAccommodationEntity = listOf( proposedAccommodationEntity1, proposedAccommodationEntity2)
+      val listProposedAccommodationEntity = listOf(proposedAccommodationEntity1, proposedAccommodationEntity2)
       every { proposedAccommodationRepository.findByCprAddressIds(uuids) } returns listProposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
@@ -1577,7 +1578,7 @@ class AccommodationQueryServiceTest {
         ),
       )
 
-      val result = accommodationQueryService.getNextAccommodations(crn, addresses, null,null,null)
+      val result = accommodationQueryService.getNextAccommodations(crn, addresses, null, null, null)
       assertThat(result.size).isEqualTo(3)
       assertThat(result[0].cprAddressId).isEqualTo(uuid1.toString())
       assertThat(result[0].isProposedAccommodation).isTrue()
@@ -1585,13 +1586,13 @@ class AccommodationQueryServiceTest {
       assertThat(result[1].isProposedAccommodation).isTrue()
       assertThat(result[2].cprAddressId).isEqualTo(uuid3.toString())
       assertThat(result[2].isProposedAccommodation).isFalse()
-
     }
+
     @Test
     fun `getNextAccommodations is empty when only proposed accommodation with end dates`() {
       val uuid = UUID.randomUUID()
       val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
-      val listProposedAccommodationEntity = listOf( proposedAccommodationEntity)
+      val listProposedAccommodationEntity = listOf(proposedAccommodationEntity)
       every { proposedAccommodationRepository.findByCprAddressIds(listOf(uuid)) } returns listProposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
@@ -1723,7 +1724,7 @@ class AccommodationQueryServiceTest {
     fun `getNextAccommodations get the next accommodations without cas3`() {
       val uuid = UUID.randomUUID()
       val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
-      val listProposedAccommodationEntity = listOf( proposedAccommodationEntity)
+      val listProposedAccommodationEntity = listOf(proposedAccommodationEntity)
       every { proposedAccommodationRepository.findByCprAddressIds(listOf(uuid)) } returns listProposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
