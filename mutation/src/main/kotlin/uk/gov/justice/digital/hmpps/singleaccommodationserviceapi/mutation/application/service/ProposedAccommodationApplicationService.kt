@@ -34,6 +34,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationTypeRequiredOnCreateException
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Service
@@ -91,7 +93,6 @@ class ProposedAccommodationApplicationService(
       currentAccommodation = currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
-      newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = AccommodationTypeDto(
         code = accommodationTypeEntity.code,
         description = accommodationTypeEntity.name,
@@ -99,8 +100,8 @@ class ProposedAccommodationApplicationService(
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
-      newStartDate = proposedAccommodationDetailCommand.startDate,
-      newEndDate = proposedAccommodationDetailCommand.endDate,
+      newStartDate = LocalDate.now(clock),
+      newEndDate = null,
       newNoFixedAbode = false,
     )
     val accommodationStatusEntity = aggregate.snapshot().accommodationStatus
@@ -129,8 +130,8 @@ class ProposedAccommodationApplicationService(
         address = ProbationCreateAddress(
           noFixedAbode = false,
           typeVerified = false,
-          startDate = Instant.now(clock),
-          endDate = null,
+          startDate = aggregateSnapshot.startDate!!.atStartOfDay(ZoneOffset.UTC),
+          endDate = aggregateSnapshot.endDate?.atStartOfDay(ZoneOffset.UTC),
           postcode = aggregateSnapshot.address.postcode,
           subBuildingName = aggregateSnapshot.address.subBuildingName,
           buildingName = aggregateSnapshot.address.buildingName,
@@ -217,7 +218,6 @@ class ProposedAccommodationApplicationService(
       currentAccommodation,
     )
     aggregate.updateProposedAccommodation(
-      newName = proposedAccommodationDetailCommand.name,
       newAccommodationType = accommodationTypeEntityToUpdate?.let {
         AccommodationTypeDto(
           code = accommodationTypeEntityToUpdate.code,
@@ -227,8 +227,8 @@ class ProposedAccommodationApplicationService(
       newVerificationStatus = proposedAccommodationDetailCommand.verificationStatus,
       newNextAccommodationStatus = proposedAccommodationDetailCommand.nextAccommodationStatus,
       newAddress = proposedAccommodationDetailCommand.address,
-      newStartDate = proposedAccommodationDetailCommand.startDate,
-      newEndDate = proposedAccommodationDetailCommand.endDate,
+      newStartDate = proposedAccommodationEntity.startDate,
+      newEndDate = proposedAccommodationEntity.endDate,
       newNoFixedAbode = false,
     )
     val mergedRecord = merge(

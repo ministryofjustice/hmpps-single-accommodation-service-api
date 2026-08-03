@@ -66,11 +66,12 @@ fun expectedDtrResponseBody(
   outcomeReason: String? = null,
   submissionNote: String? = null,
   outcomeNote: String? = null,
+  active: Boolean? = null,
 ): String = """
 {
   "caseId": "$caseId",
   "crn": "$crn",
-  "status": "$status",
+  "status": "$status",${if (active != null) "\n  \"active\": $active," else ""}
   "submission": {
     "id": "$id",
     "localAuthority": {
@@ -106,7 +107,8 @@ fun expectedGetDtrResponseBody(
   outcomeReason: String? = null,
   submissionNote: String? = null,
   outcomeNote: String? = null,
-): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther, outcomeReason, submissionNote, outcomeNote)}}"""
+  active: Boolean? = null,
+): String = """{"data": ${expectedDtrResponseBody(id, caseId, crn, localAuthorityAreaId, localAuthorityAreaName, submissionDate, referenceNumber, status, createdBy, createdAt, withdrawalReason, withdrawalReasonOther, outcomeReason, submissionNote, outcomeNote, active)}}"""
 
 fun dtrNoteRequestBody(note: String): String = """
   {

@@ -7,15 +7,17 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface SasAndDeliusClient {
   @GetExchange(value = "/case-list/{username}")
-  fun getCaseList(@PathVariable username: String, @RequestParam page: Long, @RequestParam size: Long): CaseList
+  fun getCaseList(@PathVariable username: String, @RequestParam(required = false) teamCode: String?, @RequestParam page: Long, @RequestParam size: Long): CaseList
 
   @GetExchange(value = "/case/{username}/{crn}")
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
 }
 
+@RestClientRetry
 @Service
 class SasAndDeliusCachingService(
   val sasAndDeliusClient: SasAndDeliusClient,
@@ -24,11 +26,12 @@ class SasAndDeliusCachingService(
 
   fun getCaseList(
     username: String,
+    teamCode: String?,
     page: Long,
     size: Long,
   ): CaseList {
-    log.debug("Calling getCaseList for username: $username, size: $size, page: $page")
-    return sasAndDeliusClient.getCaseList(username = username, page = page, size = size)
+    log.debug("Calling getCaseList for username: {}, teamCode: {}, size: {}, page: {}", username, teamCode, size, page)
+    return sasAndDeliusClient.getCaseList(username = username, teamCode = teamCode, page = page, size = size)
   }
 
   @Cacheable(ApiCallKeys.GET_CASE, sync = true)

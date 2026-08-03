@@ -281,7 +281,7 @@ class DecisionNodeTest {
       val contextUpdater = object : ContextUpdater() {
         override fun toServiceResult(context: EvaluationContext): ServiceResult = buildServiceResult(
           serviceStatus = ServiceStatus.NOT_ELIGIBLE,
-          failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE),
+          failureReasons = listOf(FailureReason.S_TIER),
         )
       }
 
@@ -308,7 +308,7 @@ class DecisionNodeTest {
       ruleSetNode.eval(initialContext)
 
       assertThat(capturedContext.captured.currentResult.failureReasons)
-        .containsExactly(FailureReason.INVALID_APPLICATION_STATE)
+        .containsExactly(FailureReason.S_TIER)
     }
   }
 }

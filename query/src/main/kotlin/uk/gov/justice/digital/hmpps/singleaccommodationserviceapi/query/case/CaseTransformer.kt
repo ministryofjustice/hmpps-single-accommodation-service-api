@@ -26,7 +26,9 @@ object CaseTransformer {
     userAccess: UserAccess,
     limitedAccess: Boolean,
   ) = CaseDto(
-    name = cpr?.toFullName(),
+    forename = cpr?.firstName,
+    middleNames = cpr?.middleNames,
+    surname = cpr?.lastName,
     dateOfBirth = cpr?.dateOfBirth,
     crn = person.crn,
     prisonNumber = cpr?.identifiers?.prisonNumbers?.firstOrNull(),
@@ -46,7 +48,9 @@ object CaseTransformer {
   ): CaseDto = when (this) {
     is FullPersonDto -> {
       CaseDto(
-        name = name,
+        forename = forename,
+        middleNames = middleNames,
+        surname = surname,
         dateOfBirth = dateOfBirth,
         crn = crn,
         prisonNumber = nomsNumber,

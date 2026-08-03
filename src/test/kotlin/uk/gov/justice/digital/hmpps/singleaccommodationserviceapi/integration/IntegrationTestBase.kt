@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
-import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -24,16 +23,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.CacheHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventAsserter
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxEventHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.OutboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -69,7 +70,7 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class])
+@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class, SarIntegrationTestHelperConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
@@ -83,10 +84,10 @@ abstract class IntegrationTestBase {
   protected val userIdOfSasSystemUser: UUID = UUID.fromString("21c60402-79cd-4952-9add-3dd15f1110fa")
 
   @Autowired
-  lateinit var applicationContext: ApplicationContext
+  protected lateinit var applicationContext: ApplicationContext
 
   @Autowired
-  lateinit var restTestClient: RestTestClient
+  protected lateinit var restTestClient: RestTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
@@ -98,23 +99,28 @@ abstract class IntegrationTestBase {
   protected lateinit var databaseUtils: DatabaseUtils
 
   @Autowired
-  lateinit var hmppsQueueService: HmppsQueueService
+  protected lateinit var hmppsQueueService: HmppsQueueService
 
   @Autowired
   protected lateinit var cacheManager: ConcurrentMapCacheManager
 
   @Autowired
-  lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
+  protected lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
 
   @Autowired
-  lateinit var inboxEventAsserter: InboxEventAsserter
+  protected lateinit var inboxEventHelper: InboxEventHelper
+
+  @Autowired
+  protected lateinit var outboxEventHelper: OutboxEventHelper
+
+  @Autowired
+  protected lateinit var cacheHelper: CacheHelper
 
   @BeforeAll
   fun beforeAll() {
     await
       .atMost(ofSeconds(10))
       .pollInterval(ofMillis(100))
-      .logging()
       .untilAsserted {
         restTestClient.get().uri("/health/readiness")
           .exchange()
@@ -160,7 +166,6 @@ abstract class IntegrationTestBase {
     surname = SURNAME_OF_TEST_DATA_SETUP_USER,
     email = USERNAME_OF_TEST_DATA_SETUP_USER,
     telephoneNumber = null,
-    deliusStaffCode = null,
     nomisStaffId = null,
     nomisAccountType = null,
     nomisActiveCaseloadId = null,
@@ -177,7 +182,6 @@ abstract class IntegrationTestBase {
     surname = SURNAME_OF_LOGGED_IN_DELIUS_USER,
     email = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     telephoneNumber = null,
-    deliusStaffCode = null,
     nomisStaffId = null,
     nomisAccountType = null,
     nomisActiveCaseloadId = null,
@@ -194,7 +198,6 @@ abstract class IntegrationTestBase {
     surname = SURNAME_OF_DELIUS_SYNC_USER,
     email = USERNAME_OF_DELIUS_SYNC_USER,
     telephoneNumber = null,
-    deliusStaffCode = null,
     nomisStaffId = null,
     nomisAccountType = null,
     nomisActiveCaseloadId = null,
@@ -211,7 +214,6 @@ abstract class IntegrationTestBase {
     surname = SURNAME_OF_SAS_SYSTEM_USER,
     email = USERNAME_OF_SAS_SYSTEM_USER,
     telephoneNumber = null,
-    deliusStaffCode = null,
     nomisStaffId = null,
     nomisAccountType = null,
     nomisActiveCaseloadId = null,
@@ -274,36 +276,4 @@ abstract class IntegrationTestBase {
       ),
     )
   }
-
-  fun assertMessageReceived(
-    typeName: String,
-    eventDescription: String,
-    detailUrl: String?,
-    cprAddressId: UUID? = null,
-  ): HmppsDomainEvent {
-    var matchedMessage: HmppsDomainEvent? = null
-
-    await.logging()
-      .atMost(ofSeconds(5))
-      .pollInterval(ofMillis(100))
-      .untilAsserted {
-        matchedMessage = testSqsDomainEventListener.takeMessageOrNull(typeName, eventDescription, detailUrl, cprAddressId)
-        assertThat(matchedMessage).isNotNull()
-      }
-    return matchedMessage!!
-  }
-
-  protected fun cacheValueByCrn(
-    crn: String,
-    cacheKey: String,
-    cacheValue: Any,
-  ) {
-    cacheManager.getCache(cacheKey)!!.put(crn, cacheValue)
-    assertThat(cacheManager.getCache(cacheKey)!!.get(crn)).isNotNull
-  }
-
-  protected fun isCacheEvicted(
-    crn: String,
-    cacheKey: String,
-  ): Boolean = cacheManager.getCache(cacheKey)!!.get(crn) == null
 }

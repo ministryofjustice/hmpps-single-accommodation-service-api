@@ -60,6 +60,19 @@ class RuleSetNodeBuilderTest {
   }
 
   @Test
+  fun `continueWith sets both onPass and onFail`() {
+    val node: DecisionNode = OutcomeNode { _ ->
+      buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)
+    }
+
+    val builder = RuleSetNodeBuilder(ruleSetName, ruleSet, contextUpdater, engine)
+    val chainedBuilder = builder.continueWith(node)
+
+    assertThat(chainedBuilder).isSameAs(builder)
+    assertThat(builder.build()).isInstanceOf(RuleSetNode::class.java)
+  }
+
+  @Test
   fun `build creates RuleSetNode with correct properties`() {
     val onPassNode: DecisionNode = OutcomeNode { _ ->
       buildServiceResult(ServiceStatus.PLACEMENT_BOOKED)

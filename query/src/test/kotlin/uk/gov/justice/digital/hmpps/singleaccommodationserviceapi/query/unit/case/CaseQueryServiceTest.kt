@@ -71,14 +71,12 @@ class CaseQueryServiceTest {
     forename = "Firstname",
     surname = "Surname",
     username = username,
-    staffCode = "5318008",
   )
 
   val assignedToOther = AssignedToDto(
     forename = "Second",
     surname = "User",
     username = "Second.User",
-    staffCode = "12345678",
   )
 
   val personDtos = listOf(
@@ -144,9 +142,9 @@ class CaseQueryServiceTest {
 
       every { userService.authorizeAndRetrieveUser() } returns buildUserEntity(username = username)
 
-      every { caseOrchestrationService.getCaseList(username) } returns caseList
+      every { caseOrchestrationService.getCaseList(username, "testTeam") } returns caseList
 
-      val result = caseQueryService.getCaseList()
+      val result = caseQueryService.getCaseList("testTeam")
       assertThat(result.data).hasSize(2)
 
       val firstPerson = result.data.first() as FullPersonDto
@@ -158,7 +156,6 @@ class CaseQueryServiceTest {
       assertThat(firstPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
       assertThat(firstPerson.assignedTo.surname).isEqualTo(case1.staff.name.surname)
       assertThat(firstPerson.assignedTo.username).isEqualTo(case1.staff.username)
-      assertThat(firstPerson.assignedTo.staffCode).isEqualTo(case1.staff.code)
       assertThat(firstPerson.gender).isEqualTo(case1.gender)
       assertThat(firstPerson.riskLevel).isEqualTo(RiskLevel.VERY_HIGH)
 
@@ -168,10 +165,9 @@ class CaseQueryServiceTest {
       assertThat(lastPerson.nomsNumber).isEqualTo(case2.nomsNumber)
       assertThat(lastPerson.pncNumber).isEqualTo(case2.pncNumber)
       assertThat(lastPerson.dateOfBirth).isEqualTo(case2.dateOfBirth)
-      assertThat(lastPerson.assignedTo.forename).isEqualTo(case1.staff.name.forename)
+      assertThat(lastPerson.assignedTo.forename).isEqualTo(case2.staff.name.forename)
       assertThat(lastPerson.assignedTo.surname).isEqualTo(case2.staff.name.surname)
       assertThat(lastPerson.assignedTo.username).isEqualTo(case2.staff.username)
-      assertThat(lastPerson.assignedTo.staffCode).isEqualTo(case2.staff.code)
       assertThat(lastPerson.gender).isEqualTo(case2.gender)
       assertThat(lastPerson.riskLevel).isEqualTo(RiskLevel.MEDIUM)
     }
@@ -195,6 +191,35 @@ class CaseQueryServiceTest {
       )
       assertThat(result).hasSize(6)
       assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
+    }
+
+    @Test
+    fun `orders cases alphabetically by surname then forename by default`() {
+      val unorderedPersonDtos = listOf(
+        buildFullPersonDto(
+          crn = "CRN1",
+          name = buildName(forename = "CHARLIE", surname = "BROWN"),
+          assignedTo = assignedTo,
+        ),
+        buildFullPersonDto(
+          crn = "CRN2",
+          name = buildName(forename = "Zoe", surname = "Adams"),
+          assignedTo = assignedTo,
+        ),
+        buildLimitedPersonDto(
+          crn = "CRN3",
+          assignedTo = assignedTo,
+        ),
+        buildFullPersonDto(
+          crn = "CRN4",
+          name = buildName(forename = "alice", surname = "brown"),
+          assignedTo = assignedTo,
+        ),
+      )
+
+      val result = caseQueryService.applyCaseListFilters(personDtos = unorderedPersonDtos)
+
+      assertThat(result.map { it.crn }).containsExactly("CRN2", "CRN4", "CRN1", "CRN3")
     }
 
     @ParameterizedTest
@@ -251,8 +276,10 @@ class CaseQueryServiceTest {
         "fI,3",
         "rSt,3",
         "rSt Mid,3",
-        "First Middle Last,2", // Currently the search includes middle name. Will be changed in a future PR.
-        "First Last,0",
+        "First Middle Last,2",
+        "First Last,2",
+        "lAsT fIrSt,2",
+        " Last   First ,2",
         "MultiCaseSurname,1",
         "Multi,1",
         "CASE,1",
@@ -300,7 +327,7 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(count)
       // check we can see cases in other teams
       if (teamCode == "TestTeam2") {
-        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactly(username, "Second.User")
+        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactlyInAnyOrder("Second.User", username)
       } else {
         assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
       }
@@ -311,7 +338,6 @@ class CaseQueryServiceTest {
   inner class GetCases {
 
     private fun toLimitedCaseDto(crn: String) = CaseDto(
-      name = null,
       dateOfBirth = null,
       crn = crn,
       prisonNumber = null,

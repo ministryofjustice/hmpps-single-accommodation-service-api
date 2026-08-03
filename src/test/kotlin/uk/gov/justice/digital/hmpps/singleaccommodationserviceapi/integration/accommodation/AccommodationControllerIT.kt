@@ -55,7 +55,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.UUID
 
 class AccommodationControllerIT : IntegrationTestBase() {
@@ -168,6 +167,21 @@ class AccommodationControllerIT : IntegrationTestBase() {
         .value {
           assertThatJson(it!!).matchesExpectedJson(expectedRiskOfNoFixedAbodeResponse(crn))
         }
+    }
+
+    @Test
+    fun `returns null caseAccommodationStatus when current accommodation is settled and has no next accommodation`() {
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.caseAccommodationStatus").isEmpty
     }
 
     @Test
@@ -552,7 +566,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get accommodation by id with ROLE_SINGLE_ACCOMMODATION_SERVICE__CORE_PERSON_RECORD role`() {
-    val entity = createAndSaveProposedAccommodation()
+    val startDate = LocalDate.now().minusMonths(5)
+    val endDate = LocalDate.now().minusMonths(1)
+    val entity = createAndSaveProposedAccommodation(startDate, endDate)
 
     restTestClient.get().uri("/accommodations/{id}", entity.id)
       .withClientCredentialsJwt(
@@ -565,7 +581,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
           expectedGetAccommodationByIdResponse(
             crn = crn,
             cprAddressId = cprAddressId,
-            createdAt = entity.createdAt!!.atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+            startDate = startDate.toString(),
+            endDate = endDate.toString(),
           ),
         )
       }
@@ -589,7 +606,10 @@ class AccommodationControllerIT : IntegrationTestBase() {
       .expectStatus().isForbidden
   }
 
-  private fun createAndSaveProposedAccommodation(): ProposedAccommodationEntity {
+  private fun createAndSaveProposedAccommodation(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): ProposedAccommodationEntity {
     val accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue("A07B")
     val accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR")
     val entity = buildProposedAccommodationEntity(
@@ -601,6 +621,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
       nextAccommodationStatus = NextAccommodationStatus.YES,
       accommodationTypeEntity = accommodationTypeEntity!!,
       accommodationStatusEntity = accommodationStatusEntity,
+      startDate = startDate,
+      endDate = endDate,
       subBuildingName = "test sub building name",
       buildingName = "test building name",
       buildingNumber = "4",

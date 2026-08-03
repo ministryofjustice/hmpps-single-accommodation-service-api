@@ -40,7 +40,9 @@ dependencies {
   testImplementation(libs.redisson.boot)
 
   testImplementation(libs.awaitility)
+  testImplementation(libs.webtestclient)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation(libs.sartestsupport)
 }
 
 kotlin {

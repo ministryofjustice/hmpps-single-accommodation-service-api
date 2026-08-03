@@ -60,7 +60,6 @@ class UserService(
     forename = staffDetail.name.forename,
     middleNames = staffDetail.name.middleName,
     surname = staffDetail.name.surname,
-    deliusStaffCode = staffDetail.code,
     email = staffDetail.email,
     telephoneNumber = staffDetail.telephoneNumber,
     isActive = staffDetail.active,
@@ -93,7 +92,6 @@ class UserService(
         nomisStaffId = nomisUserDetails.staffId,
         nomisAccountType = nomisUserDetails.accountType,
         nomisActiveCaseloadId = nomisUserDetails.activeCaseloadId,
-        deliusStaffCode = null,
         telephoneNumber = null,
       ),
     )

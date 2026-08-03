@@ -3,17 +3,21 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 private fun caseJson(
-  name: String? = "First Middle Last",
+  forename: String? = "First",
+  middleNames: String? = "Middle",
+  surname: String? = "Last",
   dateOfBirth: String? = "2000-12-03",
   crn: String = "FAKECRN1",
   prisonNumber: String? = "PRI1",
   tierScore: String? = "A1",
   riskLevel: String? = "VERY_HIGH",
   pncReference: String? = "Some PNC Reference",
-  assignedTo: String = """{"forename":"First","surname":"Last","username":"user1","staffCode":"ABCD1234"}""",
+  assignedTo: String = """{"forename":"First","surname":"Last","username":"user1"}""",
 ) = """
 {
-  "name": ${if (name != null) "\"$name\"" else "null"},
+  "forename": ${if (forename != null) "\"$forename\"" else "null"},
+  "middleNames": ${if (middleNames != null) "\"$middleNames\"" else "null"},
+  "surname": ${if (surname != null) "\"$surname\"" else "null"},
   "dateOfBirth": ${if (dateOfBirth != null) "\"$dateOfBirth\"" else "null"},
   "crn": "$crn",
   "prisonNumber": ${if (prisonNumber != null) "\"$prisonNumber\"" else "null"},

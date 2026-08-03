@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -99,41 +98,23 @@ class CaseTransformerTest {
     val name = buildName()
     val personDto = buildFullPersonDto(crn = CRN, name = name)
     val eligibilityDto = buildEligibilityDto(CRN)
-    val caseDto = buildCaseDto(crn = CRN, name = name.fullName)
+    val caseDto = buildCaseDto(
+      crn = CRN,
+      forename = name.forename,
+      middleNames = name.middleName,
+      surname = name.surname,
+    )
 
     assertThat(personDto.toCaseDto(caseEntity = caseEntity, eligibility = eligibilityDto)).isEqualTo(caseDto)
-  }
-
-  @ParameterizedTest
-  @CsvSource(
-    value = [
-      "John,Paul Andrew, Smith, John Paul Andrew Smith",
-      "John, null, Smith, John Smith",
-      "John, '', Smith, John Smith",
-      "John, '       ', Smith, John Smith",
-      "Firstname, MiddleName, null, Firstname MiddleName",
-      "null, MiddleName, Lastname, MiddleName Lastname",
-      "Alice, X, Wonderland, Alice X Wonderland",
-      "Alice, X Y Z 1, Wonder land, Alice X Y Z 1 Wonder land",
-      "null, null, null, ''",
-    ],
-    nullValues = ["null"],
-  )
-  fun `should format full-name correctly`(
-    firstname: String?,
-    middleNames: String?,
-    lastName: String?,
-    expected: String,
-  ) {
-    val cpr = buildCorePersonRecord(firstName = firstname, middleNames = middleNames, lastName = lastName)
-    assertThat(cpr.toFullName()).isEqualTo(expected)
   }
 
   private companion object {
     private const val CRN = "X12345"
 
     private val caseDtoWhenAllDataSupplied = CaseDto(
-      name = "First Middle Last",
+      forename = "First",
+      middleNames = "Middle",
+      surname = "Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
       crn = CRN,
       prisonNumber = "PRI1",
@@ -144,7 +125,6 @@ class CaseTransformerTest {
         forename = "First",
         surname = "Last",
         username = "user1",
-        staffCode = "ABCD1234",
       ),
       photoUrl = null,
       actions = emptyList(),

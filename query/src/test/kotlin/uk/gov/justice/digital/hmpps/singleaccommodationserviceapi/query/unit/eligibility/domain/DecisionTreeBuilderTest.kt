@@ -95,7 +95,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `confirmed preserves failureReasons when status is NOT_ELIGIBLE`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE)
+    val failureReasons = listOf(FailureReason.S_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResult(ServiceStatus.NOT_ELIGIBLE, failureReasons = failureReasons),
@@ -112,7 +112,7 @@ class DecisionTreeBuilderTest {
     val builder = DecisionTreeBuilder(engine)
     val context = EvaluationContext(
       data = buildDomainData(),
-      currentResult = buildServiceResult(ServiceStatus.NOT_STARTED, failureReasons = listOf(FailureReason.INVALID_APPLICATION_STATE)),
+      currentResult = buildServiceResult(ServiceStatus.NOT_STARTED, failureReasons = listOf(FailureReason.S_TIER)),
     )
 
     val result = builder.confirmed().eval(context)

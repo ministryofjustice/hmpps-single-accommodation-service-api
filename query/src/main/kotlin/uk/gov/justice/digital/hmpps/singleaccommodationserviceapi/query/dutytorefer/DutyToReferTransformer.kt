@@ -17,11 +17,13 @@ object DutyToReferTransformer {
     crn: String,
     createdByName: String,
     localAuthorityAreaName: String?,
+    active: Boolean? = null,
   ) = DutyToReferDto(
     caseId = entity.caseId,
     crn = crn,
     status = toStatus(entity.status),
     submission = toSubmission(entity, createdByName, localAuthorityAreaName),
+    active = active,
   )
 
   fun toDutyToReferDto(
@@ -29,11 +31,13 @@ object DutyToReferTransformer {
     crn: String,
     createdByUser: UserEntity,
     localAuthorityAreaName: String?,
+    active: Boolean? = null,
   ) = DutyToReferDto(
     caseId = entity.caseId,
     crn = crn,
     status = toStatus(entity.status),
     submission = toSubmission(entity, createdByUser, localAuthorityAreaName),
+    active = active,
   )
 
   fun toSubmission(

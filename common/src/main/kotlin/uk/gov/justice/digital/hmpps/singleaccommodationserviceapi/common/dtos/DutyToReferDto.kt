@@ -11,6 +11,8 @@ data class DutyToReferDto(
   val crn: String,
   val status: DtrStatus,
   val submission: DtrSubmissionDto?,
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  val active: Boolean? = null,
 )
 
 data class DtrSubmissionDto(
@@ -51,11 +53,11 @@ data class DtrCommand(
   val outcomeNote: String? = null,
 )
 
-enum class DtrStatus {
-  SUBMITTED,
-  ACCEPTED,
-  NOT_ACCEPTED,
-  WITHDRAWN,
+enum class DtrStatus(override val title: String) : TitleEnum {
+  SUBMITTED("Submitted"),
+  ACCEPTED("Accepted"),
+  NOT_ACCEPTED("Not Accepted"),
+  WITHDRAWN("Withdrawn"),
 }
 
 enum class WithdrawalReason {

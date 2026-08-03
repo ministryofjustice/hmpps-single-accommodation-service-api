@@ -13,6 +13,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"CREATE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER"
+      },
       "commitDate":"$createCommitTime",
       "changes":[
          {
@@ -101,7 +106,9 @@ fun expectedGetProposedAccommodationTimelineResponse(
   updatedAccommodationTypeDescription: String,
   createCommitTime: String,
   createNoteCommitTime: String,
-  update1Author: String,
+  update1AuthorForename: String,
+  update1AuthorSurname: String,
+  update1AuthorUsername: String,
   update1CommitTime: String,
   update2CommitTime: String,
 ) = """
@@ -110,6 +117,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"UPDATE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER"
+      },
       "commitDate":"$update2CommitTime",
       "changes":[
          {
@@ -131,7 +143,12 @@ fun expectedGetProposedAccommodationTimelineResponse(
    },
    {
       "type":"UPDATE",
-      "author":"$update1Author",
+      "author":"$update1AuthorForename $update1AuthorSurname",
+      "authorDetails":{
+         "forename":"$update1AuthorForename",
+         "surname":"$update1AuthorSurname",
+         "username":"$update1AuthorUsername"
+      },
       "commitDate":"$update1CommitTime",
       "changes":[
          {
@@ -159,6 +176,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"NOTE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER"
+      },
       "commitDate":"$createNoteCommitTime",
       "changes":[
          {
@@ -171,6 +193,11 @@ fun expectedGetProposedAccommodationTimelineResponse(
    {
       "type":"CREATE",
       "author":"Delius User",
+      "authorDetails":{
+         "forename":"Delius",
+         "surname":"User",
+         "username":"DELIUS_USER"
+      },
       "commitDate":"$createCommitTime",
       "changes":[
          {
@@ -258,6 +285,11 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
       {
          "type":"UPDATE",
          "author":"nDelius user",
+         "authorDetails":{
+            "forename":"nDelius",
+            "surname":"user",
+            "username":"DELIUS_SYNC_USER"
+         },
          "commitDate":null,
          "changes":[
             {
@@ -270,6 +302,11 @@ fun expectedProposedAccommodationTimeResponseForDeliusOriginAudits(
       {
          "type":"CREATE",
          "author":"nDelius user",
+         "authorDetails":{
+            "forename":"nDelius",
+            "surname":"user",
+            "username":"DELIUS_SYNC_USER"
+         },
          "commitDate":null,
          "changes":[
             {
@@ -358,6 +395,11 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          {
             "type":"UPDATE",
             "author":"Delius User",
+            "authorDetails":{
+               "forename":"Delius",
+               "surname":"User",
+               "username":"DELIUS_USER"
+            },
             "commitDate":"$sasCommitDateTime",
             "changes":[
                {
@@ -370,6 +412,11 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          {
             "type":"UPDATE",
             "author":"nDelius user",
+            "authorDetails":{
+               "forename":"nDelius",
+               "surname":"user",
+               "username":"DELIUS_SYNC_USER"
+            },
             "commitDate":null,
             "changes":[
                {
@@ -382,6 +429,11 @@ fun expectedProposedAccommodationTimeResponseForDeliusAndSasAudits(
          {
             "type":"CREATE",
             "author":"nDelius user",
+            "authorDetails":{
+               "forename":"nDelius",
+               "surname":"user",
+               "username":"DELIUS_SYNC_USER"
+            },
             "commitDate":null,
             "changes":[
                {

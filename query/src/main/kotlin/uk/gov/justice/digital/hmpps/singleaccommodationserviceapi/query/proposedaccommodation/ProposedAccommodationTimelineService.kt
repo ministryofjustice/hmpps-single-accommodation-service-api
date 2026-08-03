@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.toAssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
@@ -66,6 +67,7 @@ class ProposedAccommodationTimelineService(
     proposedAccommodationAuditHistory: List<AuditRecordDto>,
     deliusSyncUser: UserEntity,
   ): List<AuditRecordDto> = proposedAccommodationAuditHistory.map { auditRecord ->
+    // TODO - switch to auditRecord.authorDetails?.username == deliusSyncUser.username when .author is removed
     if (auditRecord.author == deliusSyncUser.displayName()) {
       auditRecord.copy(
         commitDate = null,
@@ -97,6 +99,7 @@ class ProposedAccommodationTimelineService(
       AuditRecordDto(
         type = AuditRecordType.NOTE,
         author = createdByUser!!.displayName(),
+        authorDetails = createdByUser.toAssignedToDto(),
         commitDate = it.createdAt!!,
         changes = listOf(
           FieldChange(

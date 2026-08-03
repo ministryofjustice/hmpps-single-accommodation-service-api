@@ -8,10 +8,12 @@ import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
+import java.util.UUID
 
 object CorePersonRecordStubs {
 
@@ -48,6 +50,13 @@ object CorePersonRecordStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/person/probation/$crn"))
         .willReturn(okJson("{}").withFixedDelay(6000)),
+    )
+  }
+
+  fun getProbationAddressOKResponse(crn: String, cprAddressId: UUID, response: CanonicalAddress) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/person/probation/$crn/address/$cprAddressId"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
 }

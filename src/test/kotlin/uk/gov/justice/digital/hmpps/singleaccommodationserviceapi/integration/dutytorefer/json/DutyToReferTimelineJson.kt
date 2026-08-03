@@ -14,6 +14,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"CREATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$createCommitTime",
          "changes":[
             {
@@ -72,6 +77,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"UPDATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$update2CommitTime",
          "changes":[
             {
@@ -97,6 +107,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"UPDATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$update1CommitTime",
          "changes":[
             {
@@ -122,6 +137,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"NOTE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$createNoteCommitTime",
          "changes":[
             {
@@ -134,6 +154,11 @@ fun expectedGetDutyToReferTimelineResponse(
       {
          "type":"CREATE",
          "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
          "commitDate":"$createCommitTime",
          "changes":[
             {
