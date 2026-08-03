@@ -82,4 +82,11 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     """,
   )
   fun findAllForSar(caseId: UUID, startDate: Instant, endDate: Instant): List<ProposedAccommodationEntity>
+
+  @Query("""
+  select pa from ProposedAccommodationEntity pa
+  where pa.cprAddressId in :addressIds
+  and pa.deleted = false
+""")
+  fun findByCprAddressIds(addressIds: List<UUID>): List<ProposedAccommodationEntity>
 }
