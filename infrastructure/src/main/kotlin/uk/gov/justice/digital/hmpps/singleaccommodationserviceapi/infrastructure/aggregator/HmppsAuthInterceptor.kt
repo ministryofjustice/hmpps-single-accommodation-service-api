@@ -45,11 +45,10 @@ class HmppsAuthInterceptor(
       ?: throw OAuth2AuthenticationException("Unable to retrieve access token")
   }
 
-  private fun authorizeTokenWithRetry(request: OAuth2AuthorizeRequest): String? =
-    try {
-      clientManager.authorize(request)?.accessToken?.tokenValue
-    } catch (e: ClientAuthorizationException) {
-      log.info("Authorization failed, retrying...", e)
-      clientManager.authorize(request)?.accessToken?.tokenValue
-    }
+  private fun authorizeTokenWithRetry(request: OAuth2AuthorizeRequest): String? = try {
+    clientManager.authorize(request)?.accessToken?.tokenValue
+  } catch (e: ClientAuthorizationException) {
+    log.info("Authorization failed, retrying...", e)
+    clientManager.authorize(request)?.accessToken?.tokenValue
+  }
 }
