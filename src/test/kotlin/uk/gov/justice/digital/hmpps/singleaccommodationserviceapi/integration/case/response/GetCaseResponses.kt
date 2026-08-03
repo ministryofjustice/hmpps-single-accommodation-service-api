@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 fun expectedGetCaseResponse(): String = """
 {
   "data": {
-    "name": "First Middle Last",
     "forename": "First",
     "middleNames": "Middle",
     "surname": "Last",
