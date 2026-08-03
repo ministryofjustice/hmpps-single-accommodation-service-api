@@ -24,7 +24,7 @@ class RetryConfig {
       throwable: Throwable,
     ) {
       log.warn(
-        "*** Retry attempt {} due to {}: {}",
+        "Retryable error occurred. Retry attempt {} due to {}: {}",
         context.retryCount,
         throwable.javaClass.simpleName,
         throwable.message,
@@ -36,15 +36,15 @@ class RetryConfig {
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @Retryable(
-  maxAttemptsExpression = $$"${spring.retry.max-attempts}",
+  maxAttemptsExpression = $$"${spring.retry.rest-client.max-attempts}",
   backoff = Backoff(
-    delayExpression = $$"${spring.retry.initial-interval}",
-    multiplierExpression = $$"${spring.retry.multiplier}",
-    maxDelayExpression = $$"${spring.retry.max-interval}",
+    delayExpression = $$"${spring.retry.rest-client.initial-interval}",
+    multiplierExpression = $$"${spring.retry.rest-client.multiplier}",
+    maxDelayExpression = $$"${spring.retry.rest-client.max-interval}",
   ),
   value = [
     org.springframework.web.client.HttpServerErrorException::class,
     org.springframework.web.client.ResourceAccessException::class,
   ],
 )
-annotation class RestClientRe0try
+annotation class RestClientRetry

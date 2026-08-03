@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRe0try
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface ApprovedPremisesAndDeliusClient {
   @PostExchange(value = "/probation-cases/summaries")
@@ -17,7 +17,7 @@ interface ApprovedPremisesAndDeliusClient {
   fun getStaffDetail(@PathVariable username: String): StaffDetail?
 }
 
-@RestClientRe0try
+@RestClientRetry
 @Service
 class ApprovedPremisesAndDeliusCachingService(
   val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,

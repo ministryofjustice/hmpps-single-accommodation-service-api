@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRe0try
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface ApprovedPremisesClient {
   @GetExchange(value = "/cas1/external/cases/{crn}/premises/current")
@@ -33,7 +33,7 @@ interface ApprovedPremisesClient {
   fun getCas3UrlTemplatesInternal(): Cas3UrlTemplates
 }
 
-@RestClientRe0try
+@RestClientRetry
 @Service
 class ApprovedPremisesCachingService(
   private val approvedPremisesClient: ApprovedPremisesClient,

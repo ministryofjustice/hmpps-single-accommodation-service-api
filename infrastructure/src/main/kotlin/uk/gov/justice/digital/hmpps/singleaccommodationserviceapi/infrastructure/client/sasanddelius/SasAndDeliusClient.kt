@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRe0try
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface SasAndDeliusClient {
   @GetExchange(value = "/case-list/{username}")
@@ -17,7 +17,7 @@ interface SasAndDeliusClient {
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
 }
 
-@RestClientRe0try
+@RestClientRetry
 @Service
 class SasAndDeliusCachingService(
   val sasAndDeliusClient: SasAndDeliusClient,

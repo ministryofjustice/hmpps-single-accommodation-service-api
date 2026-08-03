@@ -1,12 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpRequest
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.ClientHttpResponse
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
 import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.context.SecurityContextHolder
@@ -18,7 +17,11 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 class HmppsAuthInterceptor(
   private val clientManager: OAuth2AuthorizedClientManager,
   private val registrationId: String,
+
 ) : ClientHttpRequestInterceptor {
+
+  private val log = LoggerFactory.getLogger(javaClass)
+
   override fun intercept(
     request: HttpRequest,
     body: ByteArray,
@@ -38,18 +41,15 @@ class HmppsAuthInterceptor(
       .withClientRegistrationId(registrationId)
       .principal(authentication)
       .build()
-    return authorize(request)
+    return authorizeTokenWithRetry(request)
       ?: throw OAuth2AuthenticationException("Unable to retrieve access token")
   }
 
-  @Retryable(
-    value = [ClientAuthorizationException::class],
-    maxAttemptsExpression = $$"${spring.retry.max-attempts}",
-    backoff = Backoff(
-      delayExpression = $$"${spring.retry.initial-interval}",
-      multiplierExpression = $$"${spring.retry.multiplier}",
-      maxDelayExpression = $$"${spring.retry.max-interval}",
-    ),
-  )
-  private fun authorize(request: OAuth2AuthorizeRequest) = clientManager.authorize(request)?.accessToken?.tokenValue
+  private fun authorizeTokenWithRetry(request: OAuth2AuthorizeRequest): String? =
+    try {
+      clientManager.authorize(request)?.accessToken?.tokenValue
+    } catch (e: ClientAuthorizationException) {
+      log.info("Authorization failed, retrying...", e)
+      clientManager.authorize(request)?.accessToken?.tokenValue
+    }
 }

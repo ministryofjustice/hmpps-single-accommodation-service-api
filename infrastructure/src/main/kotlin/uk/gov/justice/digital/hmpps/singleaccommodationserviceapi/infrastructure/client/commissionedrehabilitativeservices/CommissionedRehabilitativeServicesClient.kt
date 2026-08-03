@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRe0try
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface CommissionedRehabilitativeServicesClient {
 
@@ -13,7 +13,7 @@ interface CommissionedRehabilitativeServicesClient {
   fun getCrs(@PathVariable crn: String): List<CommissionedRehabilitativeServices>
 }
 
-@RestClientRe0try
+@RestClientRetry
 @Service
 class CommissionedRehabilitativeServicesCachingService(
   val commissionedRehabilitativeServicesClient: CommissionedRehabilitativeServicesClient,
