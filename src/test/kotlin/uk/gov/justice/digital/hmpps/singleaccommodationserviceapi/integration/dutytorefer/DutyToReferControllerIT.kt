@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DutyToReferNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OutboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.WithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -97,7 +99,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
         roles = listOf("ROLE_SINGLE_ACCOMMODATION_SERVICE__ACCOMMODATION_DATA_DOMAIN"),
       )
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetDtrResponseBody(
@@ -140,7 +142,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetDtrResponseBody(
@@ -176,7 +178,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/dtr/{id}", crn, entity.id)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetDtrResponseBody(
@@ -209,13 +211,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 404 when crn does not match for GET by crn and id`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val entity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val entity = createDtr(localAuthorityArea.id)
 
     restTestClient.get().uri("/cases/{crn}/dtr/{id}", "OTHERCRN", entity.id)
       .withDeliusUserJwt()
@@ -239,7 +235,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     val persistedRecord = dutyToReferRepository.findByCaseId(case.id)!!
@@ -263,7 +259,9 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       dutyToReferId = persistedRecord.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
-    assertThatOutboxIsAsExpected(persistedRecord.id)
+
+    val message = waitForMessage(persistedRecord.id)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(persistedRecord.id))
   }
 
   @Test
@@ -292,7 +290,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     // existing referral is now WITHDRAWN with reason NEW_REFERRAL
@@ -348,7 +346,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
@@ -371,7 +369,9 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
-    assertThatOutboxIsAsExpected(existingEntity.id)
+
+    val message = waitForMessage(existingEntity.id)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(existingEntity.id))
   }
 
   @Test
@@ -404,7 +404,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
@@ -428,7 +428,8 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
-    assertThatOutboxIsAsExpected(existingEntity.id)
+    val message = waitForMessage(existingEntity.id)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(existingEntity.id))
   }
 
   @Test
@@ -452,13 +453,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should return 404 when updating DTR with CRN that does not match duty to refer`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/OTHERCRN/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -477,13 +472,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should withdraw duty to refer with a non-OTHER reason and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityArea.id)
 
     val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -496,7 +485,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
@@ -517,7 +506,8 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
-    assertThatOutboxIsAsExpected(existingEntity.id)
+    val message = waitForMessage(existingEntity.id)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(existingEntity.id))
   }
 
   @Test
@@ -556,13 +546,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should withdraw duty to refer with OTHER reason and free text and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityArea.id)
 
     val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -576,7 +560,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
@@ -598,20 +582,15 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
-    assertThatOutboxIsAsExpected(existingEntity.id)
+    val message = waitForMessage(existingEntity.id)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(existingEntity.id))
   }
 
   @Test
   fun `should return 400 when withdrawing duty to refer without a reason`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -656,13 +635,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 400 when providing withdrawal reason for a non-WITHDRAWN status`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -682,13 +655,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 400 when withdrawing with OTHER reason and no free text`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -708,13 +675,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 400 when withdrawing with OTHER reason and free text exceeding 4000 characters`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -735,13 +696,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 400 when withdrawing with non-OTHER reason and free text`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -762,13 +717,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should reject DTR referral with an outcome reason and return 200`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityArea.id)
 
     val result = restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -781,7 +730,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     assertThatJson(result).matchesExpectedJson(
@@ -802,20 +751,15 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       dutyToReferId = existingEntity.id,
       eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
     )
-    assertThatOutboxIsAsExpected(existingEntity.id)
+    val message = waitForMessage(existingEntity.id)
+    assertThatJson(message.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(existingEntity.id))
   }
 
   @Test
   fun `should return 400 when accepting DTR referral without an outcome reason`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -834,13 +778,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 400 when accepting DTR referral with a NOT_ACCEPTED outcome reason`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -860,13 +798,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should return 400 when providing an outcome reason for a SUBMITTED status`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -885,13 +817,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should update duty to refer and not publish domain event when status stays the same`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -912,13 +838,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should create a note for dtr`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
     val note1Value = "Test note 1"
     val note2Value = "Test note 2"
     restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
@@ -967,13 +887,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should not create a note when crn not found`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
     restTestClient.post().uri("/cases/${UUID.randomUUID()}/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -989,13 +903,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should fail with Bad Request for empty note`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
     val note = ""
     restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
@@ -1010,13 +918,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should fail with Bad Request for note exceeding 4000 characters`() {
     val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityAreaId)
     val note = "a".repeat(4001)
     restTestClient.post().uri("/cases/$crn/dtr/${existingEntity.id}/notes")
       .contentType(MediaType.APPLICATION_JSON)
@@ -1044,7 +946,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     val createdDtrId = ObjectMapper().readTree(createdDtr).get("submission").get("id").asText()
@@ -1054,7 +956,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetDutyToReferTimelineResponse(
@@ -1085,7 +987,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     val createdDtrId = ObjectMapper().readTree(createdDtr).get("submission").get("id").asText()
@@ -1132,7 +1034,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", crn, createdDtrId)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetDutyToReferTimelineResponse(
@@ -1162,13 +1064,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   @Test
   fun `should return 404 for timeline when crn does not match`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-    val entity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val entity = createDtr(localAuthorityArea.id)
 
     restTestClient.get().uri("/cases/{crn}/dtr/{id}/timeline", "OTHERCRN", entity.id)
       .withDeliusUserJwt()
@@ -1204,9 +1100,12 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   private fun assertPublishedSNSEvent(
     dutyToReferId: UUID,
     eventType: SingleAccommodationServiceDomainEventType,
-    detailUrl: String = "http://api-host/duty-to-refers",
   ) {
-    testSqsDomainEventListener.assertMessageReceived(eventType.typeName, eventType.typeDescription, "$detailUrl/$dutyToReferId")
+    testSqsDomainEventListener.assertMessageReceived(
+      eventType.typeName,
+      eventType.typeDescription,
+      "http://api-host/duty-to-refers/$dutyToReferId",
+    )
   }
 
   @Test
@@ -1227,7 +1126,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     val persistedRecord = dutyToReferRepository.findByCaseId(case.id)!!
@@ -1298,7 +1197,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
@@ -1326,13 +1225,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
   fun `should update duty to refer with blank note and not overwrite existing outcome note`() {
     val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
 
-    val existingEntity = dutyToReferRepository.save(
-      buildDutyToReferEntity(
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityArea.id,
-        status = EntityDtrStatus.SUBMITTED,
-      ),
-    )
+    val existingEntity = createDtr(localAuthorityArea.id)
 
     restTestClient.put().uri("/cases/$crn/dtr/${existingEntity.id}")
       .contentType(MediaType.APPLICATION_JSON)
@@ -1377,7 +1270,7 @@ class DutyToReferControllerIT : IntegrationTestBase() {
       )
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .returnResult().responseBody!!
 
     val updatedRecord = dutyToReferRepository.findByCaseId(case.id)!!
@@ -1433,12 +1326,21 @@ class DutyToReferControllerIT : IntegrationTestBase() {
     assertThat(updatedRecord.outcomeNote).isEqualTo(outcomeNoteText)
   }
 
-  private fun assertThatOutboxIsAsExpected(dutyToReferId: UUID) {
-    val outboxRecord = outboxEventRepository.findAll().first()
-    assertThat(outboxRecord.aggregateId).isEqualTo(dutyToReferId)
-    assertThat(outboxRecord.aggregateType).isEqualTo("DutyToRefer")
-    assertThat(outboxRecord.domainEventType).isEqualTo(SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED.name)
-    assertThatJson(outboxRecord.payload).matchesExpectedJson(expectedDutyToReferUpdatedDomainEventJson(dutyToReferId))
-    assertThat(outboxRecord.processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
+  private fun waitForMessage(aggregateId: UUID): OutboxEventEntity = outboxEventHelper.waitForMessage(
+    aggregateId = aggregateId,
+    aggregateType = "DutyToRefer",
+    eventType = SingleAccommodationServiceDomainEventType.SAS_DUTY_TO_REFER_UPDATED,
+    processedStatus = ProcessedStatus.PROCESSED,
+  )
+
+  private fun createDtr(localAuthorityAreaId: UUID): DutyToReferEntity {
+    val existingEntity = dutyToReferRepository.save(
+      buildDutyToReferEntity(
+        caseId = case.id,
+        localAuthorityAreaId = localAuthorityAreaId,
+        status = EntityDtrStatus.SUBMITTED,
+      ),
+    )
+    return existingEntity
   }
 }

@@ -170,6 +170,21 @@ class AccommodationControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `returns null caseAccommodationStatus when current accommodation is settled and has no next accommodation`() {
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody()
+        .jsonPath("$.data.caseAccommodationStatus").isEmpty
+    }
+
+    @Test
     fun `should return current and next accommodation and return caseAccommodationStatus as NULL when next accommodation is SETTLED type`() {
       val accommodationType =
         accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED).first()
