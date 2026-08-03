@@ -16,7 +16,7 @@ awaitility = "4.3.0"
 javers = "7.11.5"
 postgres = "42.7.13"
 sentry = "8.51.0"
-sar-test-support = "2.6.1"
+sar-test-support = "2.7.0"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
