@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 private fun caseJson(
-  name: String? = "First Middle Last",
   forename: String? = "First",
   middleNames: String? = "Middle",
   surname: String? = "Last",
@@ -16,7 +15,6 @@ private fun caseJson(
   assignedTo: String = """{"forename":"First","surname":"Last","username":"user1"}""",
 ) = """
 {
-  "name": ${if (name != null) "\"$name\"" else "null"},
   "forename": ${if (forename != null) "\"$forename\"" else "null"},
   "middleNames": ${if (middleNames != null) "\"$middleNames\"" else "null"},
   "surname": ${if (surname != null) "\"$surname\"" else "null"},
