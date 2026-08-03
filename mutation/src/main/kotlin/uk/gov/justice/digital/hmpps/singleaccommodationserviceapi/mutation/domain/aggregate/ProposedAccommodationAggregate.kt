@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.AccommodationVerificationNotPassedException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.isProposedAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -230,7 +231,7 @@ class ProposedAccommodationAggregate private constructor(
     if (
       isRegisteredWithCpr() &&
       NextAccommodationStatus.YES == nextAccommodationStatus &&
-      (AddressStatusCode.PR.name == accommodationStatus?.code || AddressStatusCode.PR1.name == accommodationStatus?.code)
+      accommodationStatus?.code.isProposedAccommodationStatus()
     ) {
       return true
     }

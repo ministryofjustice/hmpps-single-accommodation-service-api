@@ -4,6 +4,10 @@ enum class IncomingHmppsDomainEventType(
   val typeName: String,
   val typeDescription: String,
 ) {
+  CPR_PROBATION_ADDRESS_CREATED(
+    "core-person-record.probation.address.created",
+    "A probation address has been created for a person",
+  ),
   CPR_PROBATION_ADDRESS_UPDATED(
     "core-person-record.probation.address.updated",
     "A probation address has been updated for a person",

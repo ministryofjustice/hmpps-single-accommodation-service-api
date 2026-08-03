@@ -193,6 +193,35 @@ class CaseQueryServiceTest {
       assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
     }
 
+    @Test
+    fun `orders cases alphabetically by surname then forename by default`() {
+      val unorderedPersonDtos = listOf(
+        buildFullPersonDto(
+          crn = "CRN1",
+          name = buildName(forename = "CHARLIE", surname = "BROWN"),
+          assignedTo = assignedTo,
+        ),
+        buildFullPersonDto(
+          crn = "CRN2",
+          name = buildName(forename = "Zoe", surname = "Adams"),
+          assignedTo = assignedTo,
+        ),
+        buildLimitedPersonDto(
+          crn = "CRN3",
+          assignedTo = assignedTo,
+        ),
+        buildFullPersonDto(
+          crn = "CRN4",
+          name = buildName(forename = "alice", surname = "brown"),
+          assignedTo = assignedTo,
+        ),
+      )
+
+      val result = caseQueryService.applyCaseListFilters(personDtos = unorderedPersonDtos)
+
+      assertThat(result.map { it.crn }).containsExactly("CRN2", "CRN4", "CRN1", "CRN3")
+    }
+
     @ParameterizedTest
     @CsvSource(
       value = [
@@ -247,8 +276,10 @@ class CaseQueryServiceTest {
         "fI,3",
         "rSt,3",
         "rSt Mid,3",
-        "First Middle Last,2", // Currently the search includes middle name. Will be changed in a future PR.
-        "First Last,0",
+        "First Middle Last,2",
+        "First Last,2",
+        "lAsT fIrSt,2",
+        " Last   First ,2",
         "MultiCaseSurname,1",
         "Multi,1",
         "CASE,1",
@@ -296,7 +327,7 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(count)
       // check we can see cases in other teams
       if (teamCode == "TestTeam2") {
-        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactly(username, "Second.User")
+        assertThat(result.mapNotNull { it.assignedTo.username }.distinct()).containsExactlyInAnyOrder("Second.User", username)
       } else {
         assertThat(result).noneMatch { it.assignedTo.username == assignedToOther.username }
       }

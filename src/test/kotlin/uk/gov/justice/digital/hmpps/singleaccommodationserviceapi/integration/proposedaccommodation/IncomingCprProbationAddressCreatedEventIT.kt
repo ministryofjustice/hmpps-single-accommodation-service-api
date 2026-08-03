@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.p
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
@@ -34,7 +36,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
+class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var caseRepository: CaseRepository
 
@@ -48,8 +50,8 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
   private lateinit var accommodationStatusRepository: AccommodationStatusRepository
 
   lateinit var crn: String
-  private val eventType = "core-person-record.probation.address.updated"
-  private val eventDescription = "A probation address has been updated for a person"
+  private val eventType = "core-person-record.probation.address.created"
+  private val eventDescription = "A probation address has been created for a person"
 
   private val cprAddressId = UUID.randomUUID()
   private lateinit var caseEntity: CaseEntity
@@ -71,8 +73,97 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
   }
 
+  @ParameterizedTest
+  @EnumSource(value = AddressStatusCode::class, names = ["PR", "PR1"])
+  fun `should create a new proposed accommodation record when CRN matches a case, address status is PR and SAS does NOT already have a matching record`(
+    proposedAddressStatusCode: AddressStatusCode,
+  ) {
+    val newlyCreatedAddressInCpr = buildCanonicalAddress(
+      cprAddressId = cprAddressId,
+      noFixedAbode = false,
+      typeVerified = true,
+      startDate = LocalDate.now(ZoneOffset.UTC),
+      endDate = null,
+      postcode = "New postcode",
+      subBuildingName = "New subBuildingName",
+      buildingName = "New buildingName",
+      buildingNumber = "New buildingNumber",
+      thoroughfareName = "New thoroughfareName",
+      dependentLocality = "New dependentLocality",
+      postTown = "New postTown",
+      county = "New county",
+      country = "New country",
+      uprn = "New uprn",
+      status = CanonicalAddressStatus(
+        code = proposedAddressStatusCode.name,
+        description = proposedAddressStatusCode.description,
+      ),
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(
+            code = AddressUsageCode.A07B.name,
+            description = AddressUsageCode.A07B.description,
+          ),
+          isActive = true,
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getProbationAddressOKResponse(
+      crn = crn,
+      cprAddressId = cprAddressId,
+      response = newlyCreatedAddressInCpr,
+    )
+
+    publishCprProbationAddressCreatedEvent(
+      cprAddressId = cprAddressId,
+    )
+
+    waitForEntity {
+      proposedAccommodationRepository.findByCprAddressId(cprAddressId)
+    }
+
+    val newlyCreatedProposedAccommodation = proposedAccommodationRepository.findByCprAddressId(cprAddressId)
+    assertThat(newlyCreatedProposedAccommodation).isNotNull
+    assertThat(newlyCreatedProposedAccommodation?.caseId).isEqualTo(caseEntity.id)
+    assertThat(newlyCreatedProposedAccommodation?.cprAddressId?.toString()).isEqualTo(cprAddressId.toString())
+    assertThat(newlyCreatedProposedAccommodation?.accommodationTypeId).isEqualTo(
+      accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!.id,
+    )
+    assertThat(newlyCreatedProposedAccommodation?.accommodationStatusId).isEqualTo(
+      accommodationStatusRepository.findByCodeAndActiveIsTrue(proposedAddressStatusCode.name)!!.id,
+    )
+    assertThat(newlyCreatedProposedAccommodation?.startDate).isEqualTo(newlyCreatedAddressInCpr.startDate?.let(LocalDate::parse))
+    assertThat(newlyCreatedProposedAccommodation?.endDate).isNull()
+    assertThat(newlyCreatedProposedAccommodation?.postcode).isEqualTo(newlyCreatedAddressInCpr.postcode)
+    assertThat(newlyCreatedProposedAccommodation?.subBuildingName).isEqualTo(newlyCreatedAddressInCpr.subBuildingName)
+    assertThat(newlyCreatedProposedAccommodation?.buildingName).isEqualTo(newlyCreatedAddressInCpr.buildingName)
+    assertThat(newlyCreatedProposedAccommodation?.buildingNumber).isEqualTo(newlyCreatedAddressInCpr.buildingNumber)
+    assertThat(newlyCreatedProposedAccommodation?.thoroughfareName).isEqualTo(newlyCreatedAddressInCpr.thoroughfareName)
+    assertThat(newlyCreatedProposedAccommodation?.dependentLocality).isEqualTo(newlyCreatedAddressInCpr.dependentLocality)
+    assertThat(newlyCreatedProposedAccommodation?.postTown).isEqualTo(newlyCreatedAddressInCpr.postTown)
+    assertThat(newlyCreatedProposedAccommodation?.county).isEqualTo(newlyCreatedAddressInCpr.county)
+    assertThat(newlyCreatedProposedAccommodation?.country).isNull()
+    assertThat(newlyCreatedProposedAccommodation?.uprn).isEqualTo(newlyCreatedAddressInCpr.uprn)
+    assertThat(newlyCreatedProposedAccommodation?.accommodationSource).isEqualTo(AccommodationSource.DELIUS)
+    assertThat(newlyCreatedProposedAccommodation?.noFixedAbode).isEqualTo(newlyCreatedAddressInCpr.noFixedAbode)
+    assertThat(newlyCreatedProposedAccommodation?.typeVerified).isEqualTo(newlyCreatedAddressInCpr.typeVerified)
+    assertThat(newlyCreatedProposedAccommodation?.deleted).isFalse()
+    // The exact auditor recorded for a brand new insert can resolve to either the DELIUS system user (set explicitly
+    // around the save) or the SAS system user (the security context under which the inbox event is processed),
+    // depending on Hibernate flush timing - so we only assert it is one of these two expected system users.
+    assertThat(newlyCreatedProposedAccommodation?.createdByUserId).isIn(userIdOfDeliusSyncUser, userIdOfSasSystemUser)
+    assertThat(newlyCreatedProposedAccommodation?.lastUpdatedByUserId).isIn(userIdOfDeliusSyncUser, userIdOfSasSystemUser)
+
+    inboxEventHelper.assertInboxEvent(
+      crn = crn,
+      eventType = eventType,
+      eventDetailUrl = eventDetailUrl(cprAddressId),
+      processedStatus = ProcessedStatus.PROCESSED,
+    )
+  }
+
   @Test
-  fun `should process incoming HMPPS CPR_PROBATION_ADDRESS_UPDATED domain event and update related record when SAS has a matching record`() {
+  fun `should update the existing matching record for idempotency when SAS already has a record for the created address`() {
     val startDate = LocalDate.now(ZoneOffset.UTC).minusDays(20)
     val sasOriginProposedAccommodationEntity = buildProposedAccommodationEntity(
       caseId = caseEntity.id,
@@ -138,7 +229,7 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
       response = equivalentRecordInCprWithUpdatesOnAllFields,
     )
 
-    publishCprProbationAddressUpdatedEvent(
+    publishCprProbationAddressCreatedEvent(
       cprAddressId = cprAddressId,
     )
 
@@ -192,53 +283,73 @@ class IncomingCprProbationAddressUpdatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should ignore incoming HMPPS CPR_PROBATION_ADDRESS_UPDATED domain event when SAS does NOT have a matching record`() {
-    val preExistingProposedAccommodation = buildProposedAccommodationEntity(
-      caseId = caseEntity.id,
-      cprAddressId = cprAddressId,
-      accommodationSource = AccommodationSource.SAS,
-      name = null,
-      accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
-      accommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(AddressUsageCode.A07B.name)!!,
-      verificationStatus = VerificationStatus.PASSED,
-      nextAccommodationStatus = NextAccommodationStatus.YES,
-    )
-    proposedAccommodationRepository.save(preExistingProposedAccommodation)
+  fun `should ignore incoming HMPPS CPR_PROBATION_ADDRESS_CREATED domain event when the CRN does NOT match a SAS case`() {
+    val unmatchedCrn = UUID.randomUUID().toString()
 
-    val unmatchingCprAddressId = UUID.randomUUID()
-    publishCprProbationAddressUpdatedEvent(
-      cprAddressId = unmatchingCprAddressId,
+    publishCprProbationAddressCreatedEvent(
+      cprAddressId = cprAddressId,
+      crnOverride = unmatchedCrn,
     )
 
     inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
 
-    val latestProposedAccommodation = proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)
-    assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
-    assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
+    assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
     inboxEventHelper.assertInboxEvent(
-      crn = crn,
+      crn = unmatchedCrn,
       eventType = eventType,
-      eventDetailUrl = eventDetailUrl(unmatchingCprAddressId),
+      eventDetailUrl = eventDetailUrl(cprAddressId, unmatchedCrn),
       processedStatus = ProcessedStatus.IGNORED,
     )
   }
 
-  private fun eventDetailUrl(cprAddressId: UUID) = "${sasWiremock.baseUrl()}/person/probation/$crn/address/$cprAddressId"
+  @Test
+  fun `should ignore incoming HMPPS CPR_PROBATION_ADDRESS_CREATED domain event when the address status is NOT PR or PR1 and SAS does NOT have a matching record`() {
+    val mainAddressInCpr = buildCanonicalAddress(
+      cprAddressId = cprAddressId,
+      status = CanonicalAddressStatus(
+        code = AddressStatusCode.M.name,
+        description = AddressStatusCode.M.description,
+      ),
+    )
+    CorePersonRecordStubs.getProbationAddressOKResponse(
+      crn = crn,
+      cprAddressId = cprAddressId,
+      response = mainAddressInCpr,
+    )
 
-  private fun publishCprProbationAddressUpdatedEvent(cprAddressId: UUID) {
+    publishCprProbationAddressCreatedEvent(
+      cprAddressId = cprAddressId,
+    )
+
+    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+
+    assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
+
+    inboxEventHelper.assertInboxEvent(
+      crn = crn,
+      eventType = eventType,
+      eventDetailUrl = eventDetailUrl(cprAddressId),
+      processedStatus = ProcessedStatus.IGNORED,
+    )
+  }
+
+  private fun eventDetailUrl(cprAddressId: UUID, eventCrn: String = crn) = "${sasWiremock.baseUrl()}/person/probation/$eventCrn/address/$cprAddressId"
+
+  private fun publishCprProbationAddressCreatedEvent(cprAddressId: UUID, crnOverride: String? = null) {
+    val eventCrn = crnOverride ?: crn
     val snsEvent = """ 
       {
        "eventType":"$eventType",
        "version":1,
        "occurredAt":"2026-07-24T13:58:28.076572456+01:00",
        "description":"$eventDescription",
-       "detailUrl":"${eventDetailUrl(cprAddressId)}",
+       "detailUrl":"${eventDetailUrl(cprAddressId, eventCrn)}",
        "personReference":{
           "identifiers":[
              {
                 "type":"CRN",
-                "value":"$crn"
+                "value":"$eventCrn"
              }
           ]
        },
