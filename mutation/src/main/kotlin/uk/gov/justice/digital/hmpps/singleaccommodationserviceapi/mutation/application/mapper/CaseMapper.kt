@@ -7,6 +7,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 
 object CaseMapper {
 
+  private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
+    put(crn, IdentifierType.CRN)
+    prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
+  }
+
   fun toAggregate(entity: CaseEntity): CaseAggregate = CaseAggregate.hydrate(
     id = entity.id,
     tierScore = entity.tierScore,
@@ -16,7 +21,7 @@ object CaseMapper {
     cas1ApplicationPlacementStatus = entity.cas1ApplicationPlacementStatus,
   )
 
-  fun create(snapshot: CaseAggregate.CaseSnapshot, identifiers: Map<String, IdentifierType>): CaseEntity {
+  fun create(snapshot: CaseAggregate.CaseSnapshot, crn: String, prisonNumber: String?): CaseEntity {
     val entity = CaseEntity(
       id = snapshot.id,
       tierScore = snapshot.tierScore,
@@ -25,7 +30,7 @@ object CaseMapper {
       cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus,
     )
-    entity.addMissingIdentifiers(identifiers)
+    entity.addIdentifiers(buildIdentifiers(crn, prisonNumber))
     return entity
   }
 
@@ -40,12 +45,12 @@ object CaseMapper {
     entity.cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus
     entity.cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus
 
-    identifiers?.let { entity.addMissingIdentifiers(it) }
+    identifiers?.let { entity.addIdentifiers(it) }
 
     return entity
   }
 
-  fun CaseEntity.addMissingIdentifiers(identifiers: Map<String, IdentifierType>) {
+  fun CaseEntity.addIdentifiers(identifiers: Map<String, IdentifierType>) {
     val existingIdentifiers = this.caseIdentifiers.associate { it.identifier to it.identifierType }
 
     identifiers.forEach { (identifier, type) ->
