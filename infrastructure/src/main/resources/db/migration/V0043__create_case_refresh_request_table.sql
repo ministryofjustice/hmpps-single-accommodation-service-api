@@ -1,29 +1,26 @@
-ALTER TABLE case_refresh_request
-    DROP CONSTRAINT IF EXISTS case_refresh_request_status_check;
+CREATE TABLE case_refresh_request
+(
+    case_id               UUID PRIMARY KEY REFERENCES sas_case (id) ON DELETE CASCADE,
+    generation            BIGINT                   NOT NULL DEFAULT 1,
+    processing_generation BIGINT,
+    status                VARCHAR(20)              NOT NULL,
+    priority              VARCHAR(10)              NOT NULL DEFAULT 'LIVE',
+    requested_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    claimed_at            TIMESTAMP WITH TIME ZONE,
+    claim_id              UUID,
+    attempt_count         INTEGER                  NOT NULL DEFAULT 0,
+    next_attempt_at       TIMESTAMP WITH TIME ZONE,
+    last_failure_category VARCHAR(40),
+    last_failure_detail   TEXT,
+    failed_at             TIMESTAMP WITH TIME ZONE,
 
-ALTER TABLE case_refresh_request
-    ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN next_attempt_at TIMESTAMP WITH TIME ZONE,
-    ADD COLUMN last_failure_category VARCHAR(40),
-    ADD COLUMN last_failure_detail TEXT,
-    ADD COLUMN failed_at TIMESTAMP WITH TIME ZONE,
-    ADD COLUMN claim_id UUID;
-
-UPDATE case_refresh_request
-SET next_attempt_at = requested_at
-WHERE next_attempt_at IS NULL;
-
-UPDATE case_refresh_request
-SET status = 'PENDING',
-    processing_generation = NULL,
-    claimed_at = NULL,
-    next_attempt_at = requested_at
-WHERE status = 'PROCESSING';
-
-ALTER TABLE case_refresh_request
-    ADD CONSTRAINT chk_case_refresh_request_status
+    CONSTRAINT chk_case_refresh_request_status
         CHECK (status IN ('PENDING', 'PROCESSING', 'FAILED')),
-    ADD CONSTRAINT chk_case_refresh_request_failure_category
+
+    CONSTRAINT chk_case_refresh_request_priority
+        CHECK (priority IN ('LIVE', 'BULK')),
+
+    CONSTRAINT chk_case_refresh_request_failure_category
         CHECK (
             last_failure_category IS NULL
                 OR last_failure_category IN (
@@ -35,7 +32,8 @@ ALTER TABLE case_refresh_request
                                              'UNEXPECTED_ERROR'
                 )
             ),
-    ADD CONSTRAINT chk_case_refresh_request_state
+
+    CONSTRAINT chk_case_refresh_request_state
         CHECK (
             (
                 status = 'PENDING'
@@ -60,7 +58,8 @@ ALTER TABLE case_refresh_request
                     AND claim_id IS NULL
                     AND failed_at IS NOT NULL
                 )
-            );
+            )
+);
 
 CREATE INDEX idx_case_refresh_request_pending
     ON case_refresh_request (next_attempt_at, requested_at)
