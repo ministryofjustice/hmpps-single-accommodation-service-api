@@ -197,22 +197,29 @@ class AccommodationQueryService(
       .filter { !it.postcode.isNullOrBlank() }
       .filter { it.endDate == null }
 
-    val cprAddressIds = candidateAddresses.mapNotNull { address ->
-      address.cprAddressId.takeIf { it.isNotBlank() }?.let { UUID.fromString(it) }
-    }
-    val proposedCprAddressIds = if (cprAddressIds.isNotEmpty()) {
-      proposedAccommodationRepository.findByCprAddressIds(cprAddressIds)
-        .map { it.cprAddressId.toString() }
-    } else {
-      emptyList()
-    }
+    val cprAddressIds = candidateAddresses
+      .mapNotNull { address ->
+        address.cprAddressId.takeIf { it.isNotBlank() }?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+      }
+      .distinct()
+
+    val proposedCprAddressIds: Set<String> =
+      if (cprAddressIds.isNotEmpty()) {
+        proposedAccommodationRepository.findByCprAddressIds(cprAddressIds)
+          .asSequence()
+          .map { it.cprAddressId.toString() }
+          .toSet()
+      } else {
+        emptySet()
+      }
+
     return candidateAddresses.map { address ->
-      val cprAddressUUID = address.cprAddressId.takeIf { it.isNotBlank() }
+      val cprAddressId = address.cprAddressId.takeIf { it.isNotBlank() }
       toAccommodationSummary(
         crn,
         address = address,
         maskDates = true,
-        isProposedAccommodation = cprAddressUUID != null && proposedCprAddressIds.contains(cprAddressUUID),
+        isProposedAccommodation = cprAddressId != null && cprAddressId in proposedCprAddressIds,
       )
     }
   }
