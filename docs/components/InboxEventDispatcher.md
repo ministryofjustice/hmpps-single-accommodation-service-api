@@ -146,7 +146,7 @@ filter_policy = jsonencode({
 
 ### Handler contract
 
-- **`supportedEventTypes()`**: Return the event types this handler supports. One handler per type.
+- **`supportedEventTypes()`**: Return the event types this handler supports. One handler per type - if two handlers claim the same type the application will fail to start.
 - **`getPartitionKey(event)`**: Return a key (e.g. CRN) to serialise events for the same resource. Return `null` to process each event independently.
 - **`handle(event)`**: Process the event. Use `@Transactional` for your own transaction. Do not rethrow—set `processedStatus` to `FAILED` and save. The dispatcher will continue with the next event.
 

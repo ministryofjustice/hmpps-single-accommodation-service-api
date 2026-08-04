@@ -7,6 +7,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
@@ -144,6 +145,28 @@ class InboxEventDispatcherTest {
     verify { inboxEventService.updateInboxEventStatusAndSave(firstTypeEvent, ProcessedStatus.PROCESSED) }
     verify { inboxEventService.updateInboxEventStatusAndSave(secondTypeEvent, ProcessedStatus.PROCESSED) }
     verify { inboxEventService.updateInboxEventStatusAndSave(thirdTypeEvent, ProcessedStatus.PROCESSED) }
+  }
+
+  @Test
+  fun `two handlers declare the same event type and application should fail on construction`() {
+    val handlers = listOf(
+      MockEventHandler(
+        supportedEventTypes = setOf("test.event1", "test.event2"),
+        result = InboxEventHandler.Result.PROCESSED,
+      ),
+      MockEventHandler(
+        supportedEventTypes = setOf("test.event2", "test.event3"),
+        result = InboxEventHandler.Result.PROCESSED,
+      ),
+    )
+
+    val exception = assertThrows<IllegalArgumentException> {
+      inboxEventDispatcher(handlers = handlers)
+    }
+
+    assertThat(exception.message).isEqualTo(
+      "Multiple handlers registered for the same event type [eventType=test.event2, handlers=[MockEventHandler, MockEventHandler]]",
+    )
   }
 
   @Test

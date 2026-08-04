@@ -14,7 +14,8 @@ import java.util.UUID
 interface InboxEventHandler {
 
   /**
-   * The event types this handler supports (typically values of IncomingHmppsDomainEventType.typeName). Only one handler per type
+   * The event types this handler supports (typically values of IncomingHmppsDomainEventType.typeName). Only one handler
+   * per type - if two handlers claim the same type the application will fail to start
    *
    * We use a non-bounded type here so we can use custom handlers during integration testing
    **/
