@@ -82,7 +82,7 @@ class CaseProjectionRefreshHandlerIT : IntegrationTestBase() {
     publishProjectionChangeEvent()
     publishProjectionChangeEvent()
 
-    inboxEventAsserter.assertAllInboxMessagesProcessed(2)
+    inboxEventHelper.assertAllInboxMessagesProcessed(2)
     val refreshRequest = caseRefreshRequestRepository.findAll().single()
     assertThat(refreshRequest.generation).isEqualTo(2)
     assertThat(caseRepository.findAll()).hasSize(1)
