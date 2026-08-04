@@ -582,7 +582,7 @@ class AccommodationQueryServiceTest {
       val cas1CurrentPremises = buildCas1PremisesSummary(postcode = postcode1)
       val cas3CurrentPremises = buildCas3PremisesSummary()
       val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
-      var uuid = UUID.randomUUID()
+      val uuid = UUID.randomUUID()
       val mainAddress = buildCanonicalAddress(
         cprAddressId = uuid,
         noFixedAbode = false,
