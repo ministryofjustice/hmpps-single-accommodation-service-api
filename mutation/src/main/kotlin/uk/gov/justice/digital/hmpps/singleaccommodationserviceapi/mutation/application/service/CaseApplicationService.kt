@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseProjectionMapper
 
 @Service
 class CaseApplicationService(
@@ -46,36 +46,15 @@ class CaseApplicationService(
     ?.let { updateCase(crn, it) } ?: createNewCase(crn, prisonNumber)
 
   private fun updateCase(crn: String, caseEntity: CaseEntity) {
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
-    caseAggregate.upsertCase(
-      tierScore = caseOrchestrationDto.tier?.tierScore,
-      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
-      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
-      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
-      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
-    )
-    caseRepository.save(
-      CaseMapper.merge(
-        entity = caseEntity,
-        snapshot = caseAggregate.snapshot(),
-      ),
-    )
+    caseRepository.save(CaseProjectionMapper.merge(caseEntity, caseOrchestrationDto))
   }
 
   private fun createNewCase(crn: String, prisonNumber: String?) {
-    val caseAggregate = CaseAggregate.hydrateNew()
     val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
-    caseAggregate.upsertCase(
-      tierScore = caseOrchestrationDto.tier?.tierScore,
-      cas1ApplicationId = caseOrchestrationDto.cas1Application?.id,
-      cas1ApplicationApplicationStatus = caseOrchestrationDto.cas1Application?.applicationStatus,
-      cas1ApplicationRequestForPlacementStatus = caseOrchestrationDto.cas1Application?.requestForPlacementStatus,
-      cas1ApplicationPlacementStatus = caseOrchestrationDto.cas1Application?.placementStatus,
-    )
     caseRepository.save(
-      CaseMapper.create(
-        snapshot = caseAggregate.snapshot(),
+      CaseProjectionMapper.create(
+        projection = caseOrchestrationDto,
         identifiers = buildIdentifiers(crn, prisonNumber),
       ),
     )
