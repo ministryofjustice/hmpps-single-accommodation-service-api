@@ -149,15 +149,17 @@ class InboxEventDispatcherTest {
 
   @Test
   fun `two handlers declare the same event type and application should fail on construction`() {
+    data class OtherMockEventHandler(val supportedEventTypes: Set<String>) : InboxEventHandler {
+      override fun supportedEventTypes() = supportedEventTypes
+      override fun handle(inboxEvent: InboxEventHandler.InboxEvent) = InboxEventHandler.Result.PROCESSED
+    }
+
     val handlers = listOf(
       MockEventHandler(
         supportedEventTypes = setOf("test.event1", "test.event2"),
         result = InboxEventHandler.Result.PROCESSED,
       ),
-      MockEventHandler(
-        supportedEventTypes = setOf("test.event2", "test.event3"),
-        result = InboxEventHandler.Result.PROCESSED,
-      ),
+      OtherMockEventHandler(supportedEventTypes = setOf("test.event2", "test.event3")),
     )
 
     val exception = assertThrows<IllegalArgumentException> {
@@ -165,7 +167,7 @@ class InboxEventDispatcherTest {
     }
 
     assertThat(exception.message).isEqualTo(
-      "Multiple handlers registered for the same event type [eventType=test.event2, handlers=[MockEventHandler, MockEventHandler]]",
+      "Multiple handlers registered for event type 'test.event2': MockEventHandler and OtherMockEventHandler",
     )
   }
 

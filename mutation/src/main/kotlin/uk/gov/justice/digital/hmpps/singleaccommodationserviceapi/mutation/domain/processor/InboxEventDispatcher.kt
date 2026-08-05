@@ -50,7 +50,7 @@ class DispatcherConfig(
 )
 @Component
 class InboxEventDispatcher(
-  handlers: List<InboxEventHandler>,
+  private val handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
   private val inboxEventService: InboxEventService,
   private val sentryService: SentryService,
@@ -58,11 +58,17 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val eventTypeToHandlers: Map<String, InboxEventHandler> =
-    handlers.flatMap { handler -> handler.supportedEventTypes().map { it to handler } }
-      .groupBy({ (eventType, _) -> eventType }, { (_, handler) -> handler })
-      .also { it.assertNoDuplicateHandlers() }
-      .mapValues { (_, handlersForType) -> handlersForType.single() }
+  private val eventTypeToHandlers: Map<String, InboxEventHandler> = buildMap {
+    for (handler in handlers) {
+      for (eventType in handler.supportedEventTypes()) {
+        val previousHandler = put(eventType, handler) // put returns the original value
+        require(previousHandler == null) {
+          "Multiple handlers registered for event type '$eventType': " +
+            "${previousHandler?.javaClass?.simpleName} and ${handler.javaClass.simpleName}"
+        }
+      }
+    }
+  }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
@@ -197,14 +203,4 @@ class InboxEventDispatcher(
     eventDetailUrl = this.eventDetailUrl,
     payload = this.payload,
   )
-}
-
-private fun Map<String, List<InboxEventHandler>>.assertNoDuplicateHandlers() {
-  val duplicates = this.filterValues { it.size > 1 }
-  require(duplicates.isEmpty()) {
-    "Multiple handlers registered for the same event type " +
-      duplicates.entries.joinToString(", ") { (eventType, handlers) ->
-        "[eventType=$eventType, handlers=${handlers.map { it.javaClass.simpleName }.sorted()}]"
-      }
-  }
 }
