@@ -7,6 +7,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
@@ -93,7 +94,7 @@ class InboxEventDispatcherTest {
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       result = InboxEventHandler.Result.PROCESSED,
     )
 
@@ -115,13 +116,69 @@ class InboxEventDispatcherTest {
   }
 
   @Test
+  fun `handler supports multiple event types`() {
+    val firstTypeEvent = buildPendingInboxEventEntity(eventType = "test.event1")
+    val secondTypeEvent = buildPendingInboxEventEntity(eventType = "test.event2")
+    val thirdTypeEvent = buildPendingInboxEventEntity(eventType = "test.event3")
+
+    every { inboxEventService.findPendingOldestFirst(10) } returns listOf(firstTypeEvent, secondTypeEvent, thirdTypeEvent)
+
+    val handler = MockEventHandler(
+      supportedEventTypes = setOf("test.event1", "test.event2", "test.event3"),
+      result = InboxEventHandler.Result.PROCESSED,
+    )
+
+    val stats = inboxEventDispatcher(
+      handlers = listOf(handler),
+      maxEventsPerBatch = 10,
+    ).process()
+
+    handler.assertThatHasProcessedEvent(firstTypeEvent)
+    handler.assertThatHasProcessedEvent(secondTypeEvent)
+    handler.assertThatHasProcessedEvent(thirdTypeEvent)
+
+    assertThat(stats.processedCount).isEqualTo(3)
+    assertThat(stats.ignoredCount).isEqualTo(0)
+    assertThat(stats.skippedCount).isEqualTo(0)
+    assertThat(stats.failedCount).isEqualTo(0)
+
+    verify { inboxEventService.updateInboxEventStatusAndSave(firstTypeEvent, ProcessedStatus.PROCESSED) }
+    verify { inboxEventService.updateInboxEventStatusAndSave(secondTypeEvent, ProcessedStatus.PROCESSED) }
+    verify { inboxEventService.updateInboxEventStatusAndSave(thirdTypeEvent, ProcessedStatus.PROCESSED) }
+  }
+
+  @Test
+  fun `two handlers declare the same event type and application should fail on construction`() {
+    data class OtherMockEventHandler(val supportedEventTypes: Set<String>) : InboxEventHandler {
+      override fun supportedEventTypes() = supportedEventTypes
+      override fun handle(inboxEvent: InboxEventHandler.InboxEvent) = InboxEventHandler.Result.PROCESSED
+    }
+
+    val handlers = listOf(
+      MockEventHandler(
+        supportedEventTypes = setOf("test.event1", "test.event2"),
+        result = InboxEventHandler.Result.PROCESSED,
+      ),
+      OtherMockEventHandler(supportedEventTypes = setOf("test.event2", "test.event3")),
+    )
+
+    val exception = assertThrows<IllegalArgumentException> {
+      inboxEventDispatcher(handlers = handlers)
+    }
+
+    assertThat(exception.message).isEqualTo(
+      "Multiple handlers registered for event type 'test.event2': MockEventHandler and OtherMockEventHandler",
+    )
+  }
+
+  @Test
   fun `handler returns IGNORED, update event processed state to IGNORED`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       result = InboxEventHandler.Result.IGNORED,
     )
 
@@ -149,7 +206,7 @@ class InboxEventDispatcherTest {
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       result = InboxEventHandler.Result.FAILED,
     )
 
@@ -180,7 +237,7 @@ class InboxEventDispatcherTest {
     val exception = Exception("error message")
 
     val handler = MockEventHandler(
-      supportedEventType = "test.event",
+      supportedEventTypes = setOf("test.event"),
       responseException = exception,
       result = InboxEventHandler.Result.FAILED,
     )
@@ -221,12 +278,12 @@ class InboxEventDispatcherTest {
   )
 
   private data class MockEventHandler(
-    val supportedEventType: String,
+    val supportedEventTypes: Set<String>,
     val result: InboxEventHandler.Result,
     val responseException: Throwable? = null,
     val processedEvents: MutableList<InboxEventHandler.InboxEvent> = mutableListOf(),
   ) : InboxEventHandler {
-    override fun supportedEventType() = supportedEventType
+    override fun supportedEventTypes() = supportedEventTypes
     override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
       processedEvents.add(inboxEvent)
 

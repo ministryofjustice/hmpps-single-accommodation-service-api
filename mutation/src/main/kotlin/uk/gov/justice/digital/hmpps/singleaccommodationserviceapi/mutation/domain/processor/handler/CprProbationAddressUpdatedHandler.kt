@@ -22,7 +22,7 @@ class CprProbationAddressUpdatedHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_UPDATED.typeName
+  override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_UPDATED.typeName)
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val cprProbationAddressUpdatedEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)

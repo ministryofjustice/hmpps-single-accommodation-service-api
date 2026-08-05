@@ -34,7 +34,7 @@ class MockInboxEventHandler(
     return snsDomainEvent.personReference.findCrn()
   }
 
-  override fun supportedEventType() = EVENT_TYPE
+  override fun supportedEventTypes() = setOf(EVENT_TYPE)
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     val c = currentCount.incrementAndGet()
