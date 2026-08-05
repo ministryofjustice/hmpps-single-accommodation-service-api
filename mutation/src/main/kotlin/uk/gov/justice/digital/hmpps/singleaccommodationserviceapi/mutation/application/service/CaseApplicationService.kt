@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseProjectionMapper
@@ -55,7 +54,8 @@ class CaseApplicationService(
     caseRepository.save(
       CaseProjectionMapper.create(
         projection = caseOrchestrationDto,
-        identifiers = buildIdentifiers(crn, prisonNumber),
+        crn = crn,
+        prisonNumber = prisonNumber,
       ),
     )
   }
@@ -70,8 +70,4 @@ class CaseApplicationService(
   }
 }
 
-fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
-  put(crn, IdentifierType.CRN)
-  prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
-}
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)

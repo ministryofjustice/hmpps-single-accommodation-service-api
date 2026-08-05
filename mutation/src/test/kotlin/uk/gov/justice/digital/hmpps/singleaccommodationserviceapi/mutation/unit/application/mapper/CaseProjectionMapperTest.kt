@@ -25,10 +25,6 @@ class CaseProjectionMapperTest {
       requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
       placementStatus = Cas1PlacementStatus.UPCOMING,
     )
-    val identifiers = mapOf(
-      crn to IdentifierType.CRN,
-      "A1234AA" to IdentifierType.PRISON_NUMBER,
-    )
 
     val entity = CaseProjectionMapper.create(
       projection = buildCaseMutationOrchestrationDto(
@@ -36,7 +32,8 @@ class CaseProjectionMapperTest {
         tier = buildTier("A1"),
         cas1Application = cas1Application,
       ),
-      identifiers = identifiers,
+      crn = crn,
+      prisonNumber = "A1234AA",
     )
 
     assertAll(
@@ -45,10 +42,7 @@ class CaseProjectionMapperTest {
       { assertThat(entity.cas1ApplicationApplicationStatus).isEqualTo(Cas1ApplicationStatus.PLACEMENT_ALLOCATED) },
       { assertThat(entity.cas1ApplicationRequestForPlacementStatus).isEqualTo(Cas1RequestForPlacementStatus.PLACEMENT_BOOKED) },
       { assertThat(entity.cas1ApplicationPlacementStatus).isEqualTo(Cas1PlacementStatus.UPCOMING) },
-      {
-        assertThat(entity.caseIdentifiers.associate { it.identifier to it.identifierType })
-          .isEqualTo(identifiers)
-      },
+      { assertThat(entity.caseIdentifiers.map { it.identifier to it.identifierType }).containsAll(listOf(crn to IdentifierType.CRN, "A1234AA" to IdentifierType.PRISON_NUMBER)) },
     )
   }
 
