@@ -30,7 +30,7 @@ object CaseMapper {
       cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus,
     )
-    entity.addMissingIdentifiers(buildIdentifiers(crn, prisonNumber))
+    entity.addIdentifiers(buildIdentifiers(crn, prisonNumber))
     return entity
   }
 
@@ -45,12 +45,12 @@ object CaseMapper {
     entity.cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus
     entity.cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus
 
-    identifiers?.let { entity.addMissingIdentifiers(it) }
+    identifiers?.let { entity.addIdentifiers(it) }
 
     return entity
   }
 
-  fun CaseEntity.addMissingIdentifiers(identifiers: Map<String, IdentifierType>) {
+  fun CaseEntity.addIdentifiers(identifiers: Map<String, IdentifierType>) {
     val existingIdentifiers = this.caseIdentifiers.associate { it.identifier to it.identifierType }
 
     identifiers.forEach { (identifier, type) ->

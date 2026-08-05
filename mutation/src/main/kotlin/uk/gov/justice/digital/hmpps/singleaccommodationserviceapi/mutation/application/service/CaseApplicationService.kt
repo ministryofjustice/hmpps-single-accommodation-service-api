@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseProjectionMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
 @Service
 class CaseApplicationService(
@@ -41,24 +41,32 @@ class CaseApplicationService(
   }
 
   @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?) = caseRepository.findByIdentifiers(crns = listOf(crn), prisonNumbers = prisonNumber?.let { listOf(it) })
-    ?.let { updateCase(crn, it) } ?: createNewCase(crn, prisonNumber)
+  fun upsertCase(crn: String, prisonNumber: String?): CaseEntity {
+    val caseDto = caseOrchestrationService.getCase(crn)
 
-  private fun updateCase(crn: String, caseEntity: CaseEntity) {
-    val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
-    caseRepository.save(CaseProjectionMapper.merge(caseEntity, caseOrchestrationDto))
-  }
-
-  private fun createNewCase(crn: String, prisonNumber: String?) {
-    val caseOrchestrationDto = caseOrchestrationService.getCase(crn)
-    caseRepository.save(
-      CaseProjectionMapper.create(
-        projection = caseOrchestrationDto,
-        crn = crn,
-        prisonNumber = prisonNumber,
-      ),
+    val existingCase = caseRepository.findByIdentifiers(
+      crns = listOf(crn),
+      prisonNumbers = prisonNumber?.let(::listOf),
     )
+
+    val snapshot = (existingCase?.let(CaseMapper::toAggregate) ?: CaseAggregate.hydrateNew())
+      .upsertCase(caseDto)
+      .snapshot()
+
+    val entity = existingCase?.let {
+      CaseMapper.merge(it, snapshot)
+    } ?: CaseMapper.create(snapshot, crn, prisonNumber)
+
+    return caseRepository.save(entity)
   }
+
+  private fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
+    tierScore = caseMutationOrchestrationDto.tier?.tierScore,
+    cas1ApplicationId = caseMutationOrchestrationDto.cas1Application?.id,
+    cas1ApplicationApplicationStatus = caseMutationOrchestrationDto.cas1Application?.applicationStatus,
+    cas1ApplicationRequestForPlacementStatus = caseMutationOrchestrationDto.cas1Application?.requestForPlacementStatus,
+    cas1ApplicationPlacementStatus = caseMutationOrchestrationDto.cas1Application?.placementStatus,
+  )
 
   @Transactional
   fun updateTier(tier: Tier, crn: String) {
