@@ -40,18 +40,19 @@ class ProposedAccommodationController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
   fun getAll(@PathVariable crn: String): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
-    if (!caseQueryService.isPersistedCase(crn)) {
+    val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
       val result = caseQueryService.getCaseFromDelius(crn)
       handleUpstreamFailure(result.upstreamFailures)
       caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
     }
-
-    val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
-    handleUpstreamFailure(cprAccommodations.upstreamFailures)
-    accommodationSyncService.syncAccommodationFromCpr(
-      crn,
-      cprAccommodations.data,
-    )
+    if (!persistedCase.hasSyncedCprProposedAccommodation) {
+      val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
+      handleUpstreamFailure(cprAccommodations.upstreamFailures)
+      accommodationSyncService.syncAccommodationFromCpr(
+        crn,
+        cprAccommodations.data,
+      )
+    }
     return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn)))
   }
 

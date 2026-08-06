@@ -19,6 +19,7 @@ object CaseMapper {
     cas1ApplicationApplicationStatus = entity.cas1ApplicationApplicationStatus,
     cas1ApplicationRequestForPlacementStatus = entity.cas1ApplicationRequestForPlacementStatus,
     cas1ApplicationPlacementStatus = entity.cas1ApplicationPlacementStatus,
+    hasSyncedCprProposedAccommodation = entity.hasSyncedCprProposedAccommodation,
   )
 
   fun create(snapshot: CaseAggregate.CaseSnapshot, crn: String, prisonNumber: String?): CaseEntity {
@@ -29,6 +30,7 @@ object CaseMapper {
       cas1ApplicationApplicationStatus = snapshot.cas1ApplicationApplicationStatus,
       cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus,
+      hasSyncedCprProposedAccommodation = snapshot.hasSyncedCprProposedAccommodation,
     )
     entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
     return entity
@@ -44,6 +46,7 @@ object CaseMapper {
     entity.cas1ApplicationApplicationStatus = snapshot.cas1ApplicationApplicationStatus
     entity.cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus
     entity.cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus
+    entity.hasSyncedCprProposedAccommodation = snapshot.hasSyncedCprProposedAccommodation
 
     identifiers?.let { entity.addIdentifiers(it) }
 
