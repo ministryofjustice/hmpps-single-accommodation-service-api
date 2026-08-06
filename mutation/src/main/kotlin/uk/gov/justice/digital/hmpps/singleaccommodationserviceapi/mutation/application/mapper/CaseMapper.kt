@@ -30,7 +30,7 @@ object CaseMapper {
       cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus,
     )
-    entity.addIdentifiers(buildIdentifiers(crn, prisonNumber))
+    entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
     return entity
   }
 
