@@ -9,7 +9,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Entity
-@Table(name = "case_refresh_request")
+@Table(name = "sas_case_refresh_request")
 class CaseRefreshRequestEntity(
   @Id
   val caseId: UUID,

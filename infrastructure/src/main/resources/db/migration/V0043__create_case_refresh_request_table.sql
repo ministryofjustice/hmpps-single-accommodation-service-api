@@ -1,4 +1,4 @@
-CREATE TABLE case_refresh_request
+CREATE TABLE sas_case_refresh_request
 (
     case_id               UUID PRIMARY KEY REFERENCES sas_case (id) ON DELETE CASCADE,
     generation            BIGINT                   NOT NULL DEFAULT 1,
@@ -14,13 +14,13 @@ CREATE TABLE case_refresh_request
     last_failure_detail   TEXT,
     failed_at             TIMESTAMP WITH TIME ZONE,
 
-    CONSTRAINT chk_case_refresh_request_status
+    CONSTRAINT chk_sas_case_refresh_request_status
         CHECK (status IN ('PENDING', 'PROCESSING', 'FAILED')),
 
-    CONSTRAINT chk_case_refresh_request_priority
+    CONSTRAINT chk_sas_case_refresh_request_priority
         CHECK (priority IN ('LIVE', 'BULK')),
 
-    CONSTRAINT chk_case_refresh_request_failure_category
+    CONSTRAINT chk_sas_case_refresh_request_failure_category
         CHECK (
             last_failure_category IS NULL
                 OR last_failure_category IN (
@@ -33,7 +33,7 @@ CREATE TABLE case_refresh_request
                 )
             ),
 
-    CONSTRAINT chk_case_refresh_request_state
+    CONSTRAINT chk_sas_case_refresh_request_state
         CHECK (
             (
                 status = 'PENDING'
@@ -61,10 +61,10 @@ CREATE TABLE case_refresh_request
             )
 );
 
-CREATE INDEX idx_case_refresh_request_pending
-    ON case_refresh_request (next_attempt_at, requested_at)
+CREATE INDEX idx_sas_case_refresh_request_pending
+    ON sas_case_refresh_request (next_attempt_at, requested_at)
     WHERE status = 'PENDING';
 
-CREATE INDEX idx_case_refresh_request_abandoned
-    ON case_refresh_request (claimed_at)
+CREATE INDEX idx_sas_case_refresh_request_abandoned
+    ON sas_case_refresh_request (claimed_at)
     WHERE status = 'PROCESSING';

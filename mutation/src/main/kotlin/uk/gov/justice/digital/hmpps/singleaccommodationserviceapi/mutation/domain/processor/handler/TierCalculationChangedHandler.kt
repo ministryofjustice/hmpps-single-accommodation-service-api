@@ -3,12 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 
 @Component
@@ -21,8 +21,9 @@ data class TierEventHandlerConfig(
 class TierCalculationChangedHandler(
   private val caseApplicationService: CaseApplicationService,
   private val jsonMapper: JsonMapper,
-  private val tierClient: TierClient,
+  private val caseRepository: CaseRepository,
   private val tierEventHandlerConfig: TierEventHandlerConfig,
+  private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -34,28 +35,17 @@ class TierCalculationChangedHandler(
     return tierDomainEvent.personReference.findCrn()
   }
 
-  @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
-    log.debug("Tier callback URL [detailUrl={}]", inboxEvent.eventDetailUrl)
-
-    val tier = if (tierEventHandlerConfig.v3Enabled) {
-      tierClient.getTier(uri = inboxEvent.uri())
-    } else {
-      tierClient.getTier(checkNotNull(getPartitionKey(inboxEvent)))
-    }
-
-    log.info("Tier fetched successfully [inboxEventId={}, tierScore={}]", inboxEvent.id, tier.tierScore)
-    log.debug("Tier response [inboxEventId={}, tier={}]", inboxEvent.id, tier)
-
     val crn = checkNotNull(getPartitionKey(inboxEvent)) {
       "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
 
-    log.debug("Updating case [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-    caseApplicationService.updateTier(tier = tier, crn = crn)
-    log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+    if (caseRepository.findByCrn(crn) != null) {
+      caseRefreshRequestService?.requestLiveRefresh(crn)
+      log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+      return InboxEventHandler.Result.PROCESSED
+    }
 
-    return InboxEventHandler.Result.PROCESSED
+    return InboxEventHandler.Result.IGNORED
   }
 }

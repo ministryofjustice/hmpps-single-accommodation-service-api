@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
+import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.PageRequest
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
@@ -12,6 +14,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
+@Profile(value = ["local", "test", "dev"])
 @Service
 class CaseRefreshRequestService(
   private val caseRepository: CaseRepository,
@@ -20,6 +23,7 @@ class CaseRefreshRequestService(
   private val clock: Clock,
 ) {
 
+  @Async
   @Transactional
   fun requestLiveRefresh(crn: String): Result {
     val caseEntity = caseRepository.findByCrn(crn) ?: return Result.CASE_NOT_FOUND

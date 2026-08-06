@@ -50,8 +50,8 @@ class CaseRefreshProcessor(
     projection: CaseMutationOrchestrationDto,
   ): Result = try {
     when (caseRefreshCompletionService.completeRefresh(claim, projection)) {
-      CaseRefreshCompletionService.Result.Applied -> Result.Refreshed
-      CaseRefreshCompletionService.Result.IgnoredStaleClaim -> Result.IgnoredStaleClaim
+      CaseRefreshCompletionService.Result.APPLIED -> Result.Refreshed
+      CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
     }
   } catch (exception: Exception) {
     log.error("Unexpected error completing Case projection refresh [caseId={}]", claim.caseId, exception)

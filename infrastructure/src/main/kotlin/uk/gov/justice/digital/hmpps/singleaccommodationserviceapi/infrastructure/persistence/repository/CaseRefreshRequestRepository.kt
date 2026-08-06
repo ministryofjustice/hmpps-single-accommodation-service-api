@@ -18,7 +18,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   @Query(
     nativeQuery = true,
     value = """
-      INSERT INTO case_refresh_request (
+      INSERT INTO sas_case_refresh_request (
         case_id,
         generation,
         status,
@@ -29,25 +29,25 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
       )
       VALUES (:caseId, 1, 'PENDING', 'LIVE', :requestedAt, 0, :requestedAt)
       ON CONFLICT (case_id) DO UPDATE
-      SET generation = case_refresh_request.generation + 1,
+      SET generation = sas_case_refresh_request.generation + 1,
           status = CASE
-              WHEN case_refresh_request.status = 'FAILED' THEN 'PENDING'
-              ELSE case_refresh_request.status
+              WHEN sas_case_refresh_request.status = 'FAILED' THEN 'PENDING'
+              ELSE sas_case_refresh_request.status
           END,
           priority = 'LIVE',
-          requested_at = LEAST(case_refresh_request.requested_at, EXCLUDED.requested_at),
-          next_attempt_at = GREATEST(case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at),
+          requested_at = LEAST(sas_case_refresh_request.requested_at, EXCLUDED.requested_at),
+          next_attempt_at = GREATEST(sas_case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at),
           failed_at = NULL,
           processing_generation = CASE
-              WHEN case_refresh_request.status = 'PROCESSING' THEN case_refresh_request.processing_generation
+              WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.processing_generation
               ELSE NULL
           END,
           claimed_at = CASE
-              WHEN case_refresh_request.status = 'PROCESSING' THEN case_refresh_request.claimed_at
+              WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.claimed_at
               ELSE NULL
           END,
           claim_id = CASE
-              WHEN case_refresh_request.status = 'PROCESSING' THEN case_refresh_request.claim_id
+              WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.claim_id
               ELSE NULL
           END
     """,
@@ -59,7 +59,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   @Query(
     nativeQuery = true,
     value = """
-      INSERT INTO case_refresh_request (
+      INSERT INTO sas_case_refresh_request (
         case_id,
         generation,
         status,

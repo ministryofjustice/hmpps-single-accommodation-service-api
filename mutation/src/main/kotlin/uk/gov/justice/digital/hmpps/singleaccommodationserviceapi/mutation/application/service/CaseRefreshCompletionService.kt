@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.AggregatorService
@@ -30,7 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseProjectionMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 
 @Service
 class CaseRefreshCompletionService(
@@ -44,25 +45,28 @@ class CaseRefreshCompletionService(
     projection: CaseMutationOrchestrationDto,
   ): Result {
     val request = caseRefreshRequestRepository.findByCaseIdForUpdate(claim.caseId)
-      ?: return Result.IgnoredStaleClaim
+      ?: return Result.IGNORED_STALE_CLAIM
     if (!request.isOwnedBy(claim.generation, claim.claimId)) {
-      return Result.IgnoredStaleClaim
+      return Result.IGNORED_STALE_CLAIM
     }
 
-    val caseEntity = caseRepository.findById(claim.caseId)
-      .orElseThrow { IllegalStateException("Case not found while completing refresh [caseId=${claim.caseId}]") }
-    caseRepository.save(CaseProjectionMapper.merge(caseEntity, projection))
+    val caseEntity = requireNotNull(caseRepository.findByIdOrNull(claim.caseId)) {
+      "Case not found while completing refresh [caseId=${claim.caseId}]"
+    }
+    val snapshot = CaseMapper.toAggregate(entity = caseEntity).upsertCase(projection).snapshot()
+    caseRepository.save(CaseMapper.merge(caseEntity, snapshot))
+
     if (request.generation == claim.generation) {
       caseRefreshRequestRepository.delete(request)
     } else {
       request.releaseAfterSuccess()
     }
-    return Result.Applied
+    return Result.APPLIED
   }
 
   enum class Result {
-    Applied,
-    IgnoredStaleClaim,
+    APPLIED,
+    IGNORED_STALE_CLAIM,
   }
 }
 

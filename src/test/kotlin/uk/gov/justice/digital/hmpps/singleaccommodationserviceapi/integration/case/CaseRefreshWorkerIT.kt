@@ -423,7 +423,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
           cas1Application = null,
         ),
       ),
-    ).isEqualTo(CaseRefreshCompletionService.Result.IgnoredStaleClaim)
+    ).isEqualTo(CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM)
 
     val request = caseRefreshRequestRepository.findAll().single()
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PROCESSING)
