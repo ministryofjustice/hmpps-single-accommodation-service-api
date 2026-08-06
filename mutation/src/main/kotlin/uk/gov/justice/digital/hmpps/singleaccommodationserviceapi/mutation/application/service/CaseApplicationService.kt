@@ -55,7 +55,7 @@ class CaseApplicationService(
 
     val entity = existingCase?.let {
       CaseMapper.merge(it, snapshot)
-    } ?: CaseMapper.create(snapshot, crn, prisonNumber)
+    } ?: CaseMapper.create(snapshot = snapshot, crn = crn, prisonNumber = prisonNumber)
 
     return caseRepository.save(entity)
   }
