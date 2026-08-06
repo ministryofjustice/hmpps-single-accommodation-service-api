@@ -182,15 +182,46 @@ class AccommodationQueryService(
       }
 
     val nextApprovedPremisesAccommodations = listOfNotNull(cas1NextAccommodation, cas3NextAccommodation)
+    val nextCprProposedAccommodations = getNextCprProposedAccommodations(crn, addresses)
 
-    val nextCprProposedAccommodations = addresses
+    return (nextApprovedPremisesAccommodations + nextCprProposedAccommodations)
+  }
+
+  private fun getNextCprProposedAccommodations(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+  ): List<AccommodationSummaryDto> {
+    val candidateAddresses = addresses
       .orEmpty()
       .filter { it.status.code in excludedAddressStatuses }
       .filter { !it.postcode.isNullOrBlank() }
       .filter { it.endDate == null }
-      .map { toAccommodationSummary(crn, address = it, maskDates = true) }
 
-    return (nextApprovedPremisesAccommodations + nextCprProposedAccommodations)
+    val cprAddressIds = candidateAddresses
+      .mapNotNull { address ->
+        address.cprAddressId.takeIf { it.isNotBlank() }?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+      }
+      .distinct()
+
+    val proposedCprAddressIds: Set<String> =
+      if (cprAddressIds.isNotEmpty()) {
+        proposedAccommodationRepository.findByCprAddressIds(cprAddressIds)
+          .asSequence()
+          .map { it.cprAddressId.toString() }
+          .toSet()
+      } else {
+        emptySet()
+      }
+
+    return candidateAddresses.map { address ->
+      val cprAddressId = address.cprAddressId.takeIf { it.isNotBlank() }
+      toAccommodationSummary(
+        crn,
+        address = address,
+        maskDates = true,
+        isProposedAccommodation = cprAddressId != null && cprAddressId in proposedCprAddressIds,
+      )
+    }
   }
 
   fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {
