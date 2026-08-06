@@ -171,7 +171,7 @@ class AccommodationQueryService(
     cas3Application: Cas3Application?,
     currentAccommodation: AccommodationSummaryDto?,
   ): List<AccommodationSummaryDto> {
-    val cas1NextAccommodation = cas1Application?.takeIf { it.placementStatus == Cas1PlacementStatus.UPCOMING }
+    val cas1NextAccommodation = cas1Application?.placement?.takeIf { it.status == Cas1PlacementStatus.UPCOMING }
       ?.premises?.let {
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }

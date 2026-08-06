@@ -4,17 +4,39 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PremisesSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1AssessmentSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PlacementPairDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PlacementSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PremisesSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1RequestForPlacementSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1AssessmentSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementPair
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -31,22 +53,187 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AssessmentDecision as InfraAssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as InfraCas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as InfraCas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus as InfraCas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus as InfraCas3ApplicationStatus
 
 class EligibilityTransformerTest {
 
   @Test
   fun `should transform to eligibility`() {
+    val today = LocalDate.now()
+    val now = OffsetDateTime.now()
+    val id = UUID.randomUUID()
     val cas1Application = buildCas1Application(
-      applicationStatus = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+      application = buildCas1ApplicationSummary(
+        status = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+        id = id,
+        createdAt = now.plusDays(1),
+        createdBy = Cas1Staff(
+          name = "Bob",
+          username = "bob1234",
+          staffCode = "1234",
+        ),
+        submittedAt = now.plusDays(2),
+        expiresAt = today.plusDays(3),
+      ),
+      uiUrl = "https://cas1.example.com/applications/1234",
+      assessment = buildCas1AssessmentSummary(
+        decision = InfraAssessmentDecision.ACCEPTED,
+        rejectionRationale = "rejection rationale",
+      ),
+      requestForPlacement = buildCas1RequestForPlacementSummary(
+        status = InfraCas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+        decision = "accepted",
+        rejectionReason = "rejection reason",
+        submittedBy = buildCas1Staff(
+          name = "Anne",
+          username = "anne5678",
+          staffCode = "5678",
+        ),
+        submittedAt = today.plusDays(4),
+        withdrawalReason = "relatedApplicationWithdrawn",
+        withdrawalDate = today.plusDays(5),
+        expectedArrivalDate = today.plusDays(6),
+        durationDays = 12,
+      ),
+      placement = buildCas1PlacementSummary(
+        status = InfraCas1PlacementStatus.DEPARTED,
+        actualArrivalDate = today.plusDays(7),
+        actualDepartureDate = today.plusDays(8),
+        cancellationReason = "cancellation reason",
+        premises = buildCas1PremisesSummary(
+          startDate = today.plusDays(9),
+          endDate = today.plusDays(10),
+          addressLine1 = "123 Main St",
+          addressLine2 = "Apt 1",
+          town = "London",
+          postcode = "SW1A 1AA",
+        ),
+      ),
+      placementHistory = listOf(
+        buildCas1PlacementPair(
+          requestForPlacement = buildCas1RequestForPlacementSummary(
+            status = InfraCas1RequestForPlacementStatus.REQUEST_REJECTED,
+            decision = "rejected",
+            rejectionReason = "rejection reason 2",
+            submittedBy = Cas1Staff(
+              name = "Carl",
+              username = "carl9999",
+              staffCode = "9999",
+            ),
+            submittedAt = today.plusDays(11),
+            withdrawalReason = "withdrawnByPP",
+            withdrawalDate = today.plusDays(12),
+            expectedArrivalDate = today.plusDays(13),
+            durationDays = 14,
+          ),
+          placement = buildCas1PlacementSummary(
+            status = InfraCas1PlacementStatus.UPCOMING,
+            actualArrivalDate = today.plusDays(14),
+            actualDepartureDate = today.plusDays(15),
+            cancellationReason = "cancellation reason 2",
+            premises = buildCas1PremisesSummary(
+              startDate = today.plusDays(16),
+              endDate = today.plusDays(17),
+              addressLine1 = "123 Main St 2",
+              addressLine2 = "Apt 2",
+              town = "London 2",
+              postcode = "SW1A 1AB",
+            ),
+          ),
+          dateApplied = today.plusDays(18),
+        ),
+      ),
     )
     val cas3Application = buildCas3Application(
       applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
     )
     val cas1ApplicationDto = buildCas1ApplicationDto(
-      id = cas1Application.id,
-      applicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+      application = buildCas1ApplicationSummaryDto(
+        status = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+        id = id,
+        createdAt = now.plusDays(1),
+        createdBy = Cas1StaffDto(
+          name = "Bob",
+          username = "bob1234",
+          staffCode = "1234",
+        ),
+        submittedAt = now.plusDays(2),
+        expiresAt = today.plusDays(3),
+      ),
+      uiUrl = "https://cas1.example.com/applications/1234",
+      assessment = buildCas1AssessmentSummaryDto(
+        decision = AssessmentDecision.ACCEPTED,
+        rejectionRationale = "rejection rationale",
+      ),
+      requestForPlacement = buildCas1RequestForPlacementSummaryDto(
+        status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+        decision = PlacementApplicationDecision.ACCEPTED,
+        rejectionReason = "rejection reason",
+        submittedBy = buildCas1StaffDto(
+          name = "Anne",
+          username = "anne5678",
+          staffCode = "5678",
+        ),
+        submittedAt = today.plusDays(4),
+        withdrawalReason = WithdrawPlacementRequestReason.RELATED_APPLICATION_WITHDRAWN,
+        withdrawalDate = today.plusDays(5),
+        expectedArrivalDate = today.plusDays(6),
+        durationDays = 12,
+      ),
+      placement = buildCas1PlacementSummaryDto(
+        status = Cas1PlacementStatus.DEPARTED,
+        actualArrivalDate = today.plusDays(7),
+        actualDepartureDate = today.plusDays(8),
+        cancellationReason = "cancellation reason",
+        premises = Cas1PremisesSummaryDto(
+          startDate = today.plusDays(9),
+          endDate = today.plusDays(10),
+          addressLine1 = "123 Main St",
+          addressLine2 = "Apt 1",
+          town = "London",
+          postcode = "SW1A 1AA",
+        ),
+      ),
+      placementHistory = listOf(
+        buildCas1PlacementPairDto(
+          requestForPlacement = buildCas1RequestForPlacementSummaryDto(
+            status = Cas1RequestForPlacementStatus.REQUEST_REJECTED,
+            decision = PlacementApplicationDecision.REJECTED,
+            rejectionReason = "rejection reason 2",
+            submittedBy = Cas1StaffDto(
+              name = "Carl",
+              username = "carl9999",
+              staffCode = "9999",
+            ),
+            submittedAt = today.plusDays(11),
+            withdrawalReason = WithdrawPlacementRequestReason.WITHDRAWN_BY_PP,
+            withdrawalDate = today.plusDays(12),
+            expectedArrivalDate = today.plusDays(13),
+            durationDays = 14,
+          ),
+          placement = buildCas1PlacementSummaryDto(
+            status = Cas1PlacementStatus.UPCOMING,
+            actualArrivalDate = today.plusDays(14),
+            actualDepartureDate = today.plusDays(15),
+            cancellationReason = "cancellation reason 2",
+            premises = buildCas1PremisesSummaryDto(
+              startDate = today.plusDays(16),
+              endDate = today.plusDays(17),
+              addressLine1 = "123 Main St 2",
+              addressLine2 = "Apt 2",
+              town = "London 2",
+              postcode = "SW1A 1AB",
+            ),
+          ),
+          dateApplied = today.plusDays(18),
+        ),
+      ),
     )
     val cas3ApplicationDto = buildCas3ApplicationDto(
       id = cas3Application.id,

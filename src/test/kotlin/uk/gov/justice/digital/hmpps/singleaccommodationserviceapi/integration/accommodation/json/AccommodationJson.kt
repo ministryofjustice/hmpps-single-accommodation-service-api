@@ -225,9 +225,9 @@ fun expectedGetNextAccommodationsResponse(
          "subBuildingName":null,
          "buildingName":null,
          "buildingNumber":null,
-         "thoroughfareName":"123 Test Street",
-         "dependentLocality":"Test Village",
-         "postTown":"Test Town",
+         "thoroughfareName":"100 Some Street",
+         "dependentLocality":"Some Place",
+         "postTown":"London",
          "county":null,
          "country":null,
          "uprn":null

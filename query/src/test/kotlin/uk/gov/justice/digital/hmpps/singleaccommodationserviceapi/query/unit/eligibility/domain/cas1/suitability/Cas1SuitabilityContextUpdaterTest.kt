@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Li
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
@@ -26,8 +27,7 @@ class Cas1SuitabilityContextUpdaterTest {
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         cas1Application = buildCas1Application(
-          id = applicationId,
-          applicationStatus = Cas1ApplicationStatus.STARTED,
+          application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.STARTED, id = applicationId),
         ),
       )
       val context = EvaluationContext(

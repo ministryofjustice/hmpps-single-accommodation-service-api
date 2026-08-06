@@ -40,7 +40,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -462,9 +465,15 @@ class EligibilityServiceTest {
 
         val cas1Application = s.cas1ApplicationStatus?.let {
           buildCas1Application(
-            applicationStatus = it,
-            placementStatus = s.cas1PlacementStatus,
-            requestForPlacementStatus = s.cas1RequestForPlacementStatus,
+            application = buildCas1ApplicationSummary(
+              status = it,
+            ),
+            placement = buildCas1PlacementSummary(
+              status = s.cas1PlacementStatus,
+            ),
+            requestForPlacement = buildCas1RequestForPlacementSummary(
+              status = s.cas1RequestForPlacementStatus,
+            ),
           )
         }
         val currentAccommodation = s.currentAccommodationEndDate?.let {
@@ -855,9 +864,15 @@ class EligibilityServiceTest {
 
         val cas1Application = if (s.isSubmittedCas1.toBoolean()) {
           buildCas1Application(
-            applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-            requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-            placementStatus = Cas1PlacementStatus.UPCOMING,
+            application = buildCas1ApplicationSummary(
+              status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
+            ),
+            requestForPlacement = buildCas1RequestForPlacementSummary(
+              status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+            ),
+            placement = buildCas1PlacementSummary(
+              status = Cas1PlacementStatus.UPCOMING,
+            ),
           )
         } else {
           null
@@ -1008,9 +1023,11 @@ class EligibilityServiceTest {
       val data = buildDomainData(
         nextAccommodations = emptyList(),
         cas1Application = buildCas1Application(
-          applicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
-          requestForPlacementStatus = null,
-          placementStatus = null,
+          application = buildCas1ApplicationSummary(
+            status = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+          ),
+          requestForPlacement = null,
+          placement = null,
         ),
         cas3Application = null,
       )
