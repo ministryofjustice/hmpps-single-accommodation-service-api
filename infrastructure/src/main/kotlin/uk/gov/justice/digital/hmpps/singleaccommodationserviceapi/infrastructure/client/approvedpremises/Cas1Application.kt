@@ -2,15 +2,44 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 data class Cas1Application(
   val id: UUID,
+  val uiUrl: String,
+
+// application info
   val applicationStatus: Cas1ApplicationStatus,
+  val applicationStartedAt: OffsetDateTime,
+  val applicationStartedBy: String,
+  val applicationSubmittedAt: OffsetDateTime?,
+  val applicationSubmittedBy: String?,
+  val applicationExpiresAt: LocalDate?,
+
+// assessment info
+  val assessmentDecision: String?,
+  val assessmentRejectionRationale: String?,
+
+// request for placement info
   val requestForPlacementStatus: Cas1RequestForPlacementStatus?,
+  val requestForPlacementDecision: String?,
+  val requestForPlacementRejectionReason: String?,
+  val requestSubmittedBy: String?,
+  val requestSubmittedAt: LocalDate?,
+  val withdrawalReason: String?,
+  val withdrawalDate: LocalDate?,
+
+// placement info
   val placementStatus: Cas1PlacementStatus?,
   val premises: Cas1PremisesSummary?,
-  val uiUrl: String?,
+  val actualArrivalDate: LocalDate?,
+  val actualDepartureDate: LocalDate?,
+  val cancellationReason: String?,
+
+// multiple
+  val expectedArrivalDate: LocalDate?,
+  val duration: Int?,
 )
 
 data class Cas1PremisesSummary(

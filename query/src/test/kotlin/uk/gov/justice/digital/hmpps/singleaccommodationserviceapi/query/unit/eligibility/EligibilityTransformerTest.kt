@@ -47,6 +47,7 @@ class EligibilityTransformerTest {
     val cas1ApplicationDto = buildCas1ApplicationDto(
       id = cas1Application.id,
       applicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+      applicationStartedAt = cas1Application.applicationStartedAt,
     )
     val cas3ApplicationDto = buildCas3ApplicationDto(
       id = cas3Application.id,

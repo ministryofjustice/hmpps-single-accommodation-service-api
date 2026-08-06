@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PremisesSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
@@ -136,6 +138,19 @@ object EligibilityTransformer {
     )
   }
 
+  private fun toCas1PremisesSummaryDto(
+    premises: Cas1PremisesSummary?,
+  ) = premises?.let { premises ->
+    Cas1PremisesSummaryDto(
+      startDate = premises.startDate,
+      endDate = premises.endDate,
+      addressLine1 = premises.addressLine1,
+      addressLine2 = premises.addressLine2,
+      town = premises.town,
+      postcode = premises.postcode,
+    )
+  }
+
   private fun toCas1ApplicationDto(
     cas1Application: Cas1Application?,
   ) = cas1Application?.let { application ->
@@ -144,6 +159,26 @@ object EligibilityTransformer {
       applicationStatus = toCas1ApplicationStatus(application.applicationStatus),
       requestForPlacementStatus = toCas1RequestForPlacementStatus(application.requestForPlacementStatus),
       placementStatus = toCas1PlacementStatus(application.placementStatus),
+      uiUrl = application.uiUrl,
+      applicationStartedAt = application.applicationStartedAt,
+      applicationStartedBy = application.applicationStartedBy,
+      applicationSubmittedAt = application.applicationSubmittedAt,
+      applicationSubmittedBy = application.applicationSubmittedBy,
+      applicationExpiresAt = application.applicationExpiresAt,
+      assessmentDecision = application.assessmentDecision,
+      assessmentRejectionRationale = application.assessmentRejectionRationale,
+      requestForPlacementDecision = application.requestForPlacementDecision,
+      requestForPlacementRejectionReason = application.requestForPlacementRejectionReason,
+      requestSubmittedBy = application.requestSubmittedBy,
+      requestSubmittedAt = application.requestSubmittedAt,
+      withdrawalReason = application.withdrawalReason,
+      withdrawalDate = application.withdrawalDate,
+      premises = toCas1PremisesSummaryDto(application.premises),
+      actualArrivalDate = application.actualArrivalDate,
+      actualDepartureDate = application.actualDepartureDate,
+      cancellationReason = application.cancellationReason,
+      expectedArrivalDate = application.expectedArrivalDate,
+      duration = application.duration,
     )
   }
 

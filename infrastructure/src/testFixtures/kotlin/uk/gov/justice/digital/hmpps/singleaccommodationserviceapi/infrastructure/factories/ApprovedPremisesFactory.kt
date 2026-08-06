@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 fun buildCas1Application(
@@ -20,6 +21,24 @@ fun buildCas1Application(
   requestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
   premises: Cas1PremisesSummary? = null,
   uiUrl: String = "https://cas1-ui/applications/$id",
+  applicationStartedAt: OffsetDateTime = OffsetDateTime.now(),
+  applicationStartedBy: String = "A User",
+  applicationSubmittedAt: OffsetDateTime? = null,
+  applicationSubmittedBy: String? = null,
+  applicationExpiresAt: LocalDate? = null,
+  assessmentDecision: String? = null,
+  assessmentRejectionRationale: String? = null,
+  requestForPlacementDecision: String? = null,
+  requestForPlacementRejectionReason: String? = null,
+  requestSubmittedBy: String? = null,
+  requestSubmittedAt: LocalDate? = null,
+  withdrawalReason: String? = null,
+  withdrawalDate: LocalDate? = null,
+  actualArrivalDate: LocalDate? = null,
+  actualDepartureDate: LocalDate? = null,
+  cancellationReason: String? = null,
+  expectedArrivalDate: LocalDate? = null,
+  duration: Int? = null,
 ) = Cas1Application(
   id = id,
   applicationStatus = applicationStatus,
@@ -27,6 +46,24 @@ fun buildCas1Application(
   requestForPlacementStatus = requestForPlacementStatus,
   premises = premises,
   uiUrl = uiUrl,
+  applicationStartedAt = applicationStartedAt,
+  applicationStartedBy = applicationStartedBy,
+  applicationSubmittedAt = applicationSubmittedAt,
+  applicationSubmittedBy = applicationSubmittedBy,
+  applicationExpiresAt = applicationExpiresAt,
+  assessmentDecision = assessmentDecision,
+  assessmentRejectionRationale = assessmentRejectionRationale,
+  requestForPlacementDecision = requestForPlacementDecision,
+  requestForPlacementRejectionReason = requestForPlacementRejectionReason,
+  requestSubmittedBy = requestSubmittedBy,
+  requestSubmittedAt = requestSubmittedAt,
+  withdrawalReason = withdrawalReason,
+  withdrawalDate = withdrawalDate,
+  actualArrivalDate = actualArrivalDate,
+  actualDepartureDate = actualDepartureDate,
+  cancellationReason = cancellationReason,
+  expectedArrivalDate = expectedArrivalDate,
+  duration = duration,
 )
 
 fun buildCas1PremisesSummary(
