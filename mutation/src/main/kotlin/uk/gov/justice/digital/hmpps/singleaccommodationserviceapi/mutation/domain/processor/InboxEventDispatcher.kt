@@ -25,6 +25,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * manage their own transactions. Add new event types by implementing [InboxEventHandler] and
  * registering as a Spring bean.
  *
+ * An event type may only be claimed by one handler. If two handlers claim the same type the
+ * application will fail to start.
+ *
  * Partitions events by [InboxEventHandler.getPartitionKey] so that events for the same key are
  * never processed concurrently. This avoids race conditions when updating the same resource. Events
  * with different keys run in parallel using coroutines. Events are fetched ordered by
@@ -47,7 +50,7 @@ class DispatcherConfig(
 )
 @Component
 class InboxEventDispatcher(
-  handlers: List<InboxEventHandler>,
+  private val handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
   private val inboxEventService: InboxEventService,
   private val sentryService: SentryService,
@@ -55,9 +58,17 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  // should we fail here if 2 handlers integrate the same event type?
-  private val eventTypeToHandlers: Map<String, InboxEventHandler> =
-    handlers.flatMap { handler -> handler.supportedEventTypes().map { it to handler } }.toMap()
+  private val eventTypeToHandlers: Map<String, InboxEventHandler> = buildMap {
+    for (handler in handlers) {
+      for (eventType in handler.supportedEventTypes()) {
+        val previousHandler = put(eventType, handler) // put returns the original value
+        require(previousHandler == null) {
+          "Multiple handlers registered for event type '$eventType': " +
+            "${previousHandler?.javaClass?.simpleName} and ${handler.javaClass.simpleName}"
+        }
+      }
+    }
+  }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
