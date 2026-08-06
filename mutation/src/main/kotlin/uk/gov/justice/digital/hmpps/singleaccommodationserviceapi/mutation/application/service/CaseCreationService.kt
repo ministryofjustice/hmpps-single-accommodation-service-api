@@ -24,8 +24,9 @@ class CaseCreationService(private val caseRepository: CaseRepository) {
       .filter { it.crn in unpersistedCrns }
       .map {
         CaseMapper.create(
-          CaseAggregate.hydrateNew().snapshot(),
-          buildIdentifiers(it.crn, it.prisonNumber),
+          snapshot = CaseAggregate.hydrateNew().snapshot(),
+          crn = it.crn,
+          prisonNumber = it.prisonNumber,
         )
       }
 
