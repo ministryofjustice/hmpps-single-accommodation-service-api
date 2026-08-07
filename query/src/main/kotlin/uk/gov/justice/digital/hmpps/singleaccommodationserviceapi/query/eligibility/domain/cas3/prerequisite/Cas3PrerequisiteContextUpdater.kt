@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3PrerequisiteContextUpdater : ContextUpdater() {
+  override val propagatesFailureReasons: Boolean = true
   override fun toServiceResult(context: EvaluationContext) = ServiceResult(
     serviceStatus = ServiceStatus.CANNOT_START_YET,
     action = CaseAction(

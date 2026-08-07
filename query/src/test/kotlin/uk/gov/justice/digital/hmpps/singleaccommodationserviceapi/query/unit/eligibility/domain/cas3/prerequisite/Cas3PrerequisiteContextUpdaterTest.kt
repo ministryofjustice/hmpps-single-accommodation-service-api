@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
@@ -33,16 +34,18 @@ class Cas3PrerequisiteContextUpdaterTest {
           applicationStatus = Cas3ApplicationStatus.REJECTED,
         ),
       )
-
+      val failureReasons = listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED, FailureReason.CRS_EXPIRED)
       val context = EvaluationContext(
         data = data,
         currentResult = buildServiceResult(),
       )
 
-      val result = updater.update(context)
+      val result = updater.update(context, failureReasons)
 
       assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL))
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CANNOT_START_YET)
+      assertThat(result.currentResult.failureReasons).isEqualTo(failureReasons)
+      assertThat(updater.propagatesFailureReasons).isTrue
     }
 
     @Test
