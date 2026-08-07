@@ -277,7 +277,6 @@ class InboxEventDispatcherTest {
     inboxEventService = inboxEventService,
     sentryService = sentryService,
     userContextService = userContextService,
-    caseRefreshRequestService = null,
   )
 
   private data class MockEventHandler(

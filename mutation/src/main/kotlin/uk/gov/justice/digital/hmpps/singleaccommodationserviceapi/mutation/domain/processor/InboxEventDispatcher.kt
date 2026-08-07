@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.InboxEventService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserContextService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -56,7 +55,6 @@ class InboxEventDispatcher(
   private val inboxEventService: InboxEventService,
   private val sentryService: SentryService,
   private val userContextService: UserContextService,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
