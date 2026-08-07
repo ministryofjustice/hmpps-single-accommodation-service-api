@@ -60,14 +60,6 @@ class CaseApplicationService(
     return caseRepository.save(entity)
   }
 
-  private fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
-    tierScore = caseMutationOrchestrationDto.tier?.tierScore,
-    cas1ApplicationId = caseMutationOrchestrationDto.cas1Application?.id,
-    cas1ApplicationApplicationStatus = caseMutationOrchestrationDto.cas1Application?.applicationStatus,
-    cas1ApplicationRequestForPlacementStatus = caseMutationOrchestrationDto.cas1Application?.requestForPlacementStatus,
-    cas1ApplicationPlacementStatus = caseMutationOrchestrationDto.cas1Application?.placementStatus,
-  )
-
   @Transactional
   fun updateTier(tier: Tier, crn: String) {
     val caseEntity: CaseEntity = caseRepository.findByCrn(crn) ?: return
@@ -77,5 +69,13 @@ class CaseApplicationService(
     caseRepository.save(CaseMapper.merge(caseEntity, caseAggregate.snapshot()))
   }
 }
+
+fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
+  tierScore = caseMutationOrchestrationDto.tier?.tierScore,
+  cas1ApplicationId = caseMutationOrchestrationDto.cas1Application?.id,
+  cas1ApplicationApplicationStatus = caseMutationOrchestrationDto.cas1Application?.applicationStatus,
+  cas1ApplicationRequestForPlacementStatus = caseMutationOrchestrationDto.cas1Application?.requestForPlacementStatus,
+  cas1ApplicationPlacementStatus = caseMutationOrchestrationDto.cas1Application?.placementStatus,
+)
 
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)

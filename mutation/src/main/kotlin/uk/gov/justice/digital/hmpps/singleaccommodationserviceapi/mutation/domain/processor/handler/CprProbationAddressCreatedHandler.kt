@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.isProposedAccommodationStatus
 import java.util.UUID
@@ -22,6 +23,8 @@ class CprProbationAddressCreatedHandler(
   private val caseRepository: CaseRepository,
   private val corePersonRecordClient: CorePersonRecordClient,
   private val jsonMapper: JsonMapper,
+  private val caseRefreshRequestService: CaseRefreshRequestService?,
+
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -73,6 +76,11 @@ class CprProbationAddressCreatedHandler(
         cprAddressRecord = probationAddress,
       )
     }
-    return if (result) InboxEventHandler.Result.PROCESSED else InboxEventHandler.Result.FAILED
+    return if (result) {
+      caseRefreshRequestService?.requestLiveRefresh(crn)
+      InboxEventHandler.Result.PROCESSED
+    } else {
+      InboxEventHandler.Result.FAILED
+    }
   }
 }
