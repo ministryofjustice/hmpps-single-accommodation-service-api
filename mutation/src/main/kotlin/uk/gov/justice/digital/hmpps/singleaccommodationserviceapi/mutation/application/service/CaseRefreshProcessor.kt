@@ -1,9 +1,14 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 
+@ConditionalOnProperty(
+  name = ["case-refresh.enabled"],
+  havingValue = "true",
+)
 @Service
 class CaseRefreshProcessor(
   private val caseRepository: CaseRepository,

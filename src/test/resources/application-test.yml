@@ -67,6 +67,16 @@ event:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
     duty-to-refer-updated: http://api-host/duty-to-refers/#id
 
+case-refresh:
+  enabled: true
+  worker:
+    fixed-delay: 50ms
+    max-requests-per-run: 10
+    max-attempts: 2
+    initial-backoff: 1m
+    max-backoff: 5m
+    abandoned-claim-timeout: 10m
+
 hmpps:
   sqs:
     enabled: true

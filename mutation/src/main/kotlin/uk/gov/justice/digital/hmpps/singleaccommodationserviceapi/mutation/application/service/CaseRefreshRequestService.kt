@@ -1,20 +1,21 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
-import org.springframework.context.annotation.Profile
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.domain.PageRequest
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.CaseRefreshWorker
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
-@Profile(value = ["local", "test", "dev"])
+@ConditionalOnBean(CaseRefreshWorker::class)
 @Service
 class CaseRefreshRequestService(
   private val caseRepository: CaseRepository,
@@ -23,7 +24,12 @@ class CaseRefreshRequestService(
   private val clock: Clock,
 ) {
 
-  @Async
+  @Transactional
+  fun requestLiveRefresh(caseId: UUID): Result {
+    caseRefreshRequestRepository.upsertLiveRequest(caseId, Instant.now(clock))
+    return Result.REQUESTED
+  }
+
   @Transactional
   fun requestLiveRefresh(crn: String): Result {
     val caseEntity = caseRepository.findByCrn(crn) ?: return Result.CASE_NOT_FOUND
@@ -63,7 +69,7 @@ class CaseRefreshRequestService(
     claim: Claim,
     failure: CaseRefreshFailure,
   ): FailureDisposition {
-    val request = caseRefreshRequestRepository.findByCaseIdForUpdate(claim.caseId)
+    val request = caseRefreshRequestRepository.findByCaseId(claim.caseId)
       ?: return FailureDisposition.IgnoredStaleClaim
     if (!request.isOwnedBy(claim.generation, claim.claimId)) {
       return FailureDisposition.IgnoredStaleClaim

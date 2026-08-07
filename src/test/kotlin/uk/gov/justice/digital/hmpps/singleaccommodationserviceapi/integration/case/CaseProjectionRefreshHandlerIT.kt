@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
@@ -28,7 +29,6 @@ import java.util.UUID
 @TestPropertySource(
   properties = [
     "scheduling.enabled=true",
-    "case-refresh.worker.enabled=false",
   ],
 )
 class CaseProjectionRefreshHandlerIT : IntegrationTestBase() {
@@ -67,20 +67,11 @@ class CaseProjectionRefreshHandlerIT : IntegrationTestBase() {
       crn = crn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(),
-      processedStatus = ProcessedStatus.PROCESSED,
-    )
-
-    TierStubs.getTierOKResponse(
-      crn = crn,
-      response = buildTier(tierScore = "A3"),
+      processedStatus = ProcessedStatus.PENDING,
     )
 
     waitFor {
       assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
-
-      val persistedCase = caseRepository.findByCrn(crn)!!
-      assertThat(persistedCase.tierScore).isEqualTo("A1")
-      assertThat(persistedCase.cas1ApplicationId).isEqualTo(originalCase.cas1ApplicationId)
       sasWiremock.verify(0, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
     }
   }

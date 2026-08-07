@@ -40,8 +40,8 @@ class TierCalculationChangedHandler(
       "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
 
-    if (caseRepository.findByCrn(crn) != null) {
-      caseRefreshRequestService?.requestLiveRefresh(crn)
+    caseRepository.findByCrn(crn)?.let { entity ->
+      caseRefreshRequestService?.requestLiveRefresh(entity.id)
       log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
       return InboxEventHandler.Result.PROCESSED
     }

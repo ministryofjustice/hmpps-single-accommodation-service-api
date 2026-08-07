@@ -44,7 +44,7 @@ class CaseRefreshCompletionService(
     claim: CaseRefreshRequestService.Claim,
     projection: CaseMutationOrchestrationDto,
   ): Result {
-    val request = caseRefreshRequestRepository.findByCaseIdForUpdate(claim.caseId)
+    val request = caseRefreshRequestRepository.findByCaseId(claim.caseId)
       ?: return Result.IGNORED_STALE_CLAIM
     if (!request.isOwnedBy(claim.generation, claim.claimId)) {
       return Result.IGNORED_STALE_CLAIM

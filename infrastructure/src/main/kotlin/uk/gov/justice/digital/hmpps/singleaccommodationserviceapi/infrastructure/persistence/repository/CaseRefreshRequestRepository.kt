@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository
 
 import jakarta.persistence.LockModeType
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
@@ -100,12 +102,5 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   ): List<CaseRefreshRequestEntity>
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query(
-    """
-      SELECT request
-      FROM CaseRefreshRequestEntity request
-      WHERE request.caseId = :caseId
-    """,
-  )
-  fun findByCaseIdForUpdate(caseId: UUID): CaseRefreshRequestEntity?
+  fun findByCaseId(caseId: UUID): CaseRefreshRequestEntity?
 }

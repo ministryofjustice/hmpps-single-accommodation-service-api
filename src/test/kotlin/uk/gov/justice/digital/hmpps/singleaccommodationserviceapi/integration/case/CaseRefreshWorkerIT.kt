@@ -42,15 +42,7 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
-@TestPropertySource(
-  properties = [
-    "case-refresh.worker.enabled=true",
-    "case-refresh.worker.max-attempts=2",
-    "case-refresh.worker.initial-backoff=1m",
-    "case-refresh.worker.max-backoff=5m",
-    "case-refresh.worker.abandoned-claim-timeout=10m",
-  ],
-)
+
 class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Autowired
