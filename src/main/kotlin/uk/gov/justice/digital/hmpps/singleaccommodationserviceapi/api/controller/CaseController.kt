@@ -37,19 +37,29 @@ class CaseController(
     @Parameter(description = "Team code to retrieve cases for all users in a team rather than the current user.")
     @RequestParam(required = false) teamCode: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
-    val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
-    val personDtos = caseQueryService.getCaseList(normalizedTeamCode)
-    val upstreamFailures = personDtos.upstreamFailures.toMutableList()
+    val (result, upstreamFailures) = if (searchTerm.isCrn()) {
+      val result = caseQueryService.getCase(searchTerm!!)
+      listOf(result.data) to result.upstreamFailures
+    } else {
+      val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
+      val result = caseQueryService.getCaseList(normalizedTeamCode)
+      val filteredCaseList =
+        caseQueryService.applyCaseListFilters(result.data, searchTerm, riskLevel, normalizedTeamCode)
+      val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
+      // TODO: Change this to upsertCases after MVP
+      caseApplicationService.createCases(crnsToPrisonNumbers)
+      val caseDtos = caseQueryService.getCases(filteredCaseList)
+      caseDtos to result.upstreamFailures
+    }
 
-    val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
-    val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-    // TODO: Change this to upsertCases after MVP
-    caseApplicationService.createCases(crnsToPrisonNumbers)
-    val caseDtos = caseQueryService.getCases(filteredCaseList)
-    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
+    return ResponseEntity.ok(ApiResponseDto(data = result, upstreamFailures = upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCase(crn))
 }
+
+private fun String?.isCrn(): Boolean = this?.matches(Regex("[A-Z][0-9]{6}", RegexOption.IGNORE_CASE)) ?: false
+
+private fun String?.isPrisonNumber(): Boolean = this?.matches(Regex("[A-Z][0-9]{4}[A-Z]{2}", RegexOption.IGNORE_CASE)) ?: false
