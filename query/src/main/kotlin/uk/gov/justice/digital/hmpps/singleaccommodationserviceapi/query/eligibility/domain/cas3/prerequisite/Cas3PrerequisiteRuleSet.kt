@@ -3,20 +3,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 
 @Component
 class Cas3PrerequisiteRuleSet(
   dtrExpiredReferral: DtrExpiredReferralRule,
-  crsExpired: CrsExpiredRule,
-  crsSubmitted: CrsSubmittedRule,
+  crsCompletionSet: CrsCompletionRuleSet,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(
     dtrExpiredReferral,
-    crsExpired,
-    crsSubmitted,
+    *crsCompletionSet.getRules().toTypedArray(),
   )
 
   override fun getRules(): List<Rule> = rules

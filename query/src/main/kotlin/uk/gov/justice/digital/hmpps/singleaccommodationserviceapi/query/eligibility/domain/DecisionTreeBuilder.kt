@@ -60,4 +60,10 @@ class DecisionTreeBuilder(
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
   fun notEligible() = OutcomeNode { ctx -> toNotEligibleServiceStatus(ctx.currentResult.failureReasons) }
   fun notRequired() = OutcomeNode { ctx -> toNotRequiredServiceStatus(ctx.currentResult.failureReasons) }
+
+  /** Creates a terminal outcome node that returns the current context's ServiceResult with failure reasons. */
+  fun outcomeWithFailureResults() = OutcomeNode { ctx ->
+    val result = ctx.currentResult
+    result.copy(serviceStatus = result.serviceStatus, failureReasons = result.failureReasons)
+  }
 }
