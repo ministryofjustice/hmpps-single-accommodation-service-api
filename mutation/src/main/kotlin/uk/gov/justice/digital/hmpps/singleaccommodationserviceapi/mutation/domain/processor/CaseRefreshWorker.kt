@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 @Component
 @ConditionalOnProperty(
   name = ["case-refresh.enabled"],
-  havingValue = "true"
+  havingValue = "true",
 )
 class CaseRefreshWorker(
   private val caseRefreshRequestService: CaseRefreshRequestService,
