@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
@@ -26,6 +27,7 @@ class Cas3EligibilityTreeProvider(
   private val completionContextUpdater: Cas3CompletionContextUpdater,
   private val eligibility: Cas3EligibilityRuleSet,
   private val prerequisite: Cas3PrerequisiteRuleSet,
+  private val prerequisiteContextUpdater: Cas3PrerequisiteContextUpdater,
 ) : EligibilityTreeProvider {
 
   private val tree: DecisionNode by lazy { build() }
@@ -40,15 +42,15 @@ class Cas3EligibilityTreeProvider(
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible()
-    val cannotStartYet = builder.outcome(ServiceResult(serviceStatus = ServiceStatus.CANNOT_START_YET))
+    val outcome = builder.outcomeWithFailureResults()
     val bookingConfirmed = builder.outcome(
       serviceResult(),
     )
 
     val prerequisiteNode = builder
-      .ruleSet("Cas3Prerequisite", prerequisite)
+      .ruleSet("Cas3Prerequisite", prerequisite, prerequisiteContextUpdater)
       .onPass(confirmed)
-      .onFail(cannotStartYet)
+      .onFail(outcome)
       .build()
 
     val eligibilityWithPrereqNode = builder
