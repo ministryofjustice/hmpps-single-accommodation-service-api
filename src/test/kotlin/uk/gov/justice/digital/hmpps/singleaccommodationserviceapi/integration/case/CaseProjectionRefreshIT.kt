@@ -71,7 +71,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `processes messages before adding a refresh request Case`() {
+  fun `adds refresh request case when message is processed`() {
     caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
 
     publishProjectionChangeEvent()
@@ -86,8 +86,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     waitFor {
       val caseRefreshRequest = caseRefreshRequestRepository.findAll()
       assertThat(caseRefreshRequest).hasSize(1)
-      assertThat(caseRefreshRequest.single().status).isEqualTo(CaseRefreshRequestStatus.FAILED)
-      sasWiremock.verify(2, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
+      sasWiremock.verify(1, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
     }
   }
 

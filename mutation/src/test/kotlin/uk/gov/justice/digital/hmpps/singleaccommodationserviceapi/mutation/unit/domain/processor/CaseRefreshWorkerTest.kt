@@ -53,7 +53,7 @@ class CaseRefreshWorkerTest {
     every { failureClassifier.unexpected(exception) } returns failure
     every {
       caseRefreshRequestService.recordFailure(claim, failure)
-    } returns CaseRefreshRequestService.FailureDisposition.Handled
+    } returns CaseRefreshRequestService.FailureDisposition.HANDLED
 
     val stats = worker().process()
 

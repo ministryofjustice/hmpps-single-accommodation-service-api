@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
@@ -58,15 +57,6 @@ class CaseApplicationService(
     } ?: CaseMapper.create(snapshot = snapshot, crn = crn, prisonNumber = prisonNumber)
 
     return caseRepository.save(entity)
-  }
-
-  @Transactional
-  fun updateTier(tier: Tier, crn: String) {
-    val caseEntity: CaseEntity = caseRepository.findByCrn(crn) ?: return
-
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
-    caseAggregate.updateTier(tier.tierScore)
-    caseRepository.save(CaseMapper.merge(caseEntity, caseAggregate.snapshot()))
   }
 }
 

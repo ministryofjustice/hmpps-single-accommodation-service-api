@@ -69,24 +69,24 @@ class CaseRefreshRequestService(
     failure: CaseRefreshFailure,
   ): FailureDisposition {
     val request = caseRefreshRequestRepository.findByCaseId(claim.caseId)
-      ?: return FailureDisposition.IgnoredStaleClaim
+      ?: return FailureDisposition.IGNORED_STALE_CLAIM
     if (!request.isOwnedBy(claim.generation, claim.claimId)) {
-      return FailureDisposition.IgnoredStaleClaim
+      return FailureDisposition.IGNORED_STALE_CLAIM
     }
     if (request.generation != claim.generation) {
       request.releaseForNewerGeneration()
-      return FailureDisposition.Handled
+      return FailureDisposition.HANDLED
     }
 
     val failedAt = Instant.now(clock)
     return when (val decision = retryPolicy.decide(failure, request.attemptCount, failedAt)) {
       is CaseRefreshRetryDecision.RetryAt -> {
         request.scheduleRetry(failure.category, failure.detail, decision.nextAttemptAt)
-        FailureDisposition.Handled
+        FailureDisposition.HANDLED
       }
       CaseRefreshRetryDecision.FailPermanently -> {
         request.failPermanently(failure.category, failure.detail, failedAt)
-        FailureDisposition.Handled
+        FailureDisposition.HANDLED
       }
     }
   }
@@ -98,8 +98,8 @@ class CaseRefreshRequestService(
   )
 
   enum class FailureDisposition {
-    Handled,
-    IgnoredStaleClaim,
+    HANDLED,
+    IGNORED_STALE_CLAIM,
   }
 
   enum class Result {

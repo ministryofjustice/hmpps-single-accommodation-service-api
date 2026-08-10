@@ -115,7 +115,7 @@ class CaseMutationOrchestrationService(
     loadPersonRecord: () -> CorePersonRecord,
     loadPrisoner: (() -> Prisoner)? = null,
   ): OrchestrationResultDto<CaseMutationOrchestrationDto> {
-    val calls = buildMap<String, () -> Any> {
+    val calls = buildMap {
       put(GET_TIER, loadTier)
       put(GET_CORE_PERSON_RECORD_BY_CRN, loadPersonRecord)
       put(GET_CAS_1_CURRENT_PREMISES, loadCas1CurrentPremises)

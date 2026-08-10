@@ -67,8 +67,8 @@ class CaseRefreshProcessor(
     claim: CaseRefreshRequestService.Claim,
     failure: CaseRefreshFailure,
   ): Result = when (caseRefreshRequestService.recordFailure(claim, failure)) {
-    CaseRefreshRequestService.FailureDisposition.Handled -> Result.Failed
-    CaseRefreshRequestService.FailureDisposition.IgnoredStaleClaim -> Result.IgnoredStaleClaim
+    CaseRefreshRequestService.FailureDisposition.HANDLED -> Result.Failed
+    CaseRefreshRequestService.FailureDisposition.IGNORED_STALE_CLAIM -> Result.IgnoredStaleClaim
   }
 
   sealed interface Result {
