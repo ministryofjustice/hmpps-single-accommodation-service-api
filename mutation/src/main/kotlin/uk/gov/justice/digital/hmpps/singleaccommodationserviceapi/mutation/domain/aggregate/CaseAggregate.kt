@@ -20,7 +20,7 @@ class CaseAggregate private constructor(
     cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
     cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,
     cas1ApplicationPlacementStatus: Cas1PlacementStatus?,
-  ) {
+  ): CaseAggregate {
     updateTier(tierScore)
     updateCas1ApplicationData(
       cas1ApplicationId,
@@ -28,6 +28,7 @@ class CaseAggregate private constructor(
       cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus,
     )
+    return this
   }
 
   fun updateCas1ApplicationData(

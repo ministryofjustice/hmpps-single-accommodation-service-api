@@ -220,24 +220,24 @@ class CaseMapperTest {
       cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
     )
 
-    val identifier = UUID.randomUUID().toString()
-    val identifiersToMerge = mapOf(
-      "NEW" to IdentifierType.PRISON_NUMBER,
-      identifier to IdentifierType.CRN,
-    )
+    val crn = UUID.randomUUID().toString()
 
     val mergedEntity = CaseMapper.create(
       snapshot = caseAggregate.snapshot(),
-      identifiers = identifiersToMerge,
+      crn = crn,
+      prisonNumber = "NEW",
     )
 
     assertAll(
       { assertThat(mergedEntity.caseIdentifiers).hasSize(2) },
       {
-        assertThat(
-          mergedEntity.caseIdentifiers
-            .associate { it.identifier to it.identifierType },
-        ).isEqualTo(identifiersToMerge)
+        val actualIdentifiers = mergedEntity.caseIdentifiers
+          .associate { it.identifier to it.identifierType }
+        val expectedIdentifiers = mapOf(
+          "NEW" to IdentifierType.PRISON_NUMBER,
+          crn to IdentifierType.CRN,
+        )
+        assertThat(actualIdentifiers).isEqualTo(expectedIdentifiers)
       },
       { assertThat(mergedEntity.tierScore).isEqualTo("A3S") },
       { assertThat(mergedEntity.cas1ApplicationId).isNotNull.isEqualTo(newCas1ApplicationId) },
