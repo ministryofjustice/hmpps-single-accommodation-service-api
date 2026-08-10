@@ -9,13 +9,19 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTierV3
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE_REFRESH_REQUEST
@@ -28,7 +34,7 @@ import java.util.UUID
     "scheduling.enabled=true",
   ],
 )
-class CaseProjectionRefreshHandlerIT : IntegrationTestBase() {
+class CaseProjectionRefreshIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var caseRepository: CaseRepository
@@ -42,21 +48,31 @@ class CaseProjectionRefreshHandlerIT : IntegrationTestBase() {
   @Autowired
   lateinit var jsonMapper: JsonMapper
 
+  @Autowired
+  lateinit var tierEventHandlerConfig: TierEventHandlerConfig
+
   private lateinit var crn: String
   private val eventType = "tier.calculation.changed"
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v3/crn/$crn/tier"
 
   @BeforeEach
   fun setup() {
+    HmppsAuthStubs.stubGrantToken()
     crn = UUID.randomUUID().toString()
     databaseUtils.truncate(SAS_CASE, INBOX_EVENT, SAS_CASE_REFRESH_REQUEST)
+
+    if (tierEventHandlerConfig.v3Enabled) {
+      TierStubs.getTierOKResponseV3(crn, buildTierV3("A", provisional = false))
+    } else {
+      TierStubs.getTierOKResponse(crn, buildTier("A3"))
+    }
 
     createSasSystemUser()
   }
 
   @Test
-  fun `requests asynchronous Case projection refresh for an existing Case without calling upstream services`() {
-    val originalCase = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+  fun `processes messages before adding a refresh request Case`() {
+    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
 
     publishProjectionChangeEvent()
 
@@ -64,12 +80,14 @@ class CaseProjectionRefreshHandlerIT : IntegrationTestBase() {
       crn = crn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(),
-      processedStatus = ProcessedStatus.PENDING,
+      processedStatus = ProcessedStatus.PROCESSED,
     )
 
     waitFor {
-      assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
-      sasWiremock.verify(0, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
+      val caseRefreshRequest = caseRefreshRequestRepository.findAll()
+      assertThat(caseRefreshRequest).hasSize(1)
+      assertThat(caseRefreshRequest.single().status).isEqualTo(CaseRefreshRequestStatus.FAILED)
+      sasWiremock.verify(2, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
     }
   }
 
