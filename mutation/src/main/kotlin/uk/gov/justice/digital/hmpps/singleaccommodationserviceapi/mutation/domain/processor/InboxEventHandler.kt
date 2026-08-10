@@ -4,9 +4,9 @@ import java.net.URI
 import java.util.UUID
 
 /**
- * Handles processing of a specific inbox event type. Each handler is responsible for a single event
- * type and manages its own transaction boundary. Add new handlers by implementing this interface
- * and registering as a Spring bean.
+ * Handles processing of inbox events. Each handler is responsible for one or more event types and
+ * manages its own transaction boundary. Add new handlers by implementing this interface and
+ * registering as a Spring bean.
  *
  * Events with the same [getPartitionKey] are processed sequentially to avoid concurrent updates to
  * the same resource (e.g. case per CRN). Events with different keys are processed in parallel.
@@ -14,11 +14,12 @@ import java.util.UUID
 interface InboxEventHandler {
 
   /**
-   * The event type this handler supports (typically the value of IncomingHmppsDomainEventType.typeName). Only one handler per type
+   * The event types this handler supports (typically values of IncomingHmppsDomainEventType.typeName). Only one handler
+   * per type - if two handlers claim the same type the application will fail to start
    *
    * We use a non-bounded type here so we can use custom handlers during integration testing
    **/
-  fun supportedEventType(): String
+  fun supportedEventTypes(): Set<String>
 
   /**
    * Partition key for serialising processing. Events with the same key are never processed

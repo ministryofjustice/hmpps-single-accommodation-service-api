@@ -20,7 +20,7 @@ class CprProbationAddressDeletedHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_DELETED.typeName
+  override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_DELETED.typeName)
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
     val cprProbationAddressDeletedEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
