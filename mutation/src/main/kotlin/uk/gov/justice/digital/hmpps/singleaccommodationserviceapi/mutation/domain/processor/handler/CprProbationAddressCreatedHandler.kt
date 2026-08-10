@@ -77,7 +77,6 @@ class CprProbationAddressCreatedHandler(
       )
     }
     return if (result) {
-      caseRefreshRequestService?.requestLiveRefresh(crn)
       InboxEventHandler.Result.PROCESSED
     } else {
       InboxEventHandler.Result.FAILED
