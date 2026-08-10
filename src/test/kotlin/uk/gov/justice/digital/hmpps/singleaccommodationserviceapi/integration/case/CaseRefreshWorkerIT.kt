@@ -81,7 +81,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
   @Test
   fun `refreshes the full Case projection`() {
     val prisonNumber = "A1234AA"
-    caseRepository.save(
+    val case = caseRepository.save(
       buildCaseEntity(
         tierScore = "A1",
         cas1ApplicationId = UUID.randomUUID(),
@@ -93,7 +93,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
         withPrisonNumber(prisonNumber)
       },
     )
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
     val cas1Application = buildCas1Application(
       id = UUID.randomUUID(),
@@ -125,14 +125,14 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
   @Test
   fun `retains the previous projection and refresh request when an upstream service fails`() {
     val originalApplicationId = UUID.randomUUID()
-    caseRepository.save(
+    val case = caseRepository.save(
       buildCaseEntity(
         tierScore = "A1",
         cas1ApplicationId = originalApplicationId,
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crn) },
     )
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
     ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
 
@@ -159,8 +159,8 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `retains a newer refresh request that arrives while Tier is loading`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"), delayMs = 200)
 
     val workerRun = CompletableFuture.runAsync { caseRefreshWorker.process() }
@@ -169,7 +169,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
         .isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     }
 
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     workerRun.get(5, TimeUnit.SECONDS)
 
     val retainedRequest = caseRefreshRequestRepository.findAll().single()
@@ -180,13 +180,13 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `refreshes all supported fields when the Case changes during upstream loading`() {
-    caseRepository.save(
+    val case = caseRepository.save(
       buildCaseEntity(
         tierScore = "A1",
         cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crn) },
     )
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"), delayMs = 200)
     ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
 
@@ -207,10 +207,10 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `atomically coalesces concurrent refresh requests`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
 
     val requests = (1..5).map {
-      CompletableFuture.runAsync { caseRefreshRequestService.requestLiveRefresh(crn) }
+      CompletableFuture.runAsync { caseRefreshRequestService.requestLiveRefresh(case.id) }
     }
     CompletableFuture.allOf(*requests.toTypedArray()).get(5, TimeUnit.SECONDS)
 
@@ -221,8 +221,8 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `allows only one concurrent worker to claim a Case`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
 
     val claimAttempts = (1..2).map {
       CompletableFuture.supplyAsync {
@@ -237,8 +237,8 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `moves repeatedly failing work to terminal failure and reopens it for a new event`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
     ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
 
@@ -253,7 +253,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
     assertThat(terminalRequest.failedAt).isEqualTo(now.plus(Duration.ofMinutes(1)))
 
     clock.freezeAt(now.plus(Duration.ofMinutes(2)))
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
 
     val reopenedRequest = caseRefreshRequestRepository.findAll().single()
     assertThat(reopenedRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
@@ -272,15 +272,15 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `retains the backoff and attempt count when a new event arrives for failing work`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
     ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
 
     caseRefreshWorker.process()
 
     clock.freezeAt(now.plus(Duration.ofSeconds(10)))
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
 
     val churnedRequest = caseRefreshRequestRepository.findAll().single()
     assertThat(churnedRequest.generation).isEqualTo(2)
@@ -303,8 +303,8 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `clears the failure history when a refresh succeeds while a newer event is waiting`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
 
     val failedClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
     caseRefreshRequestService.recordFailure(
@@ -326,7 +326,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
         .isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     }
 
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     workerRun.get(5, TimeUnit.SECONDS)
 
     val retainedRequest = caseRefreshRequestRepository.findAll().single()
@@ -347,7 +347,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
     val liveCase = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    caseRefreshRequestService.requestLiveRefresh(liveCase.id)
 
     clock.freezeAt(now.plus(Duration.ofMinutes(2)))
     val firstClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
@@ -359,11 +359,11 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `bulk preload leaves an existing refresh request untouched`() {
-    val caseEntity = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
 
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
-    caseRefreshRequestService.requestBulkRefresh(listOf(caseEntity.id))
+    caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
 
     val request = caseRefreshRequestRepository.findAll().single()
     assertThat(request.priority).isEqualTo(CaseRefreshPriority.LIVE)
@@ -374,8 +374,8 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `bulk preload does not reopen terminally failed work`() {
-    val caseEntity = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
     ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
 
@@ -386,7 +386,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
       .isEqualTo(CaseRefreshRequestStatus.FAILED)
 
     clock.freezeAt(now.plus(Duration.ofMinutes(2)))
-    caseRefreshRequestService.requestBulkRefresh(listOf(caseEntity.id))
+    caseRefreshRequestService.requestBulkRefresh(listOf(case.id))
 
     val request = caseRefreshRequestRepository.findAll().single()
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.FAILED)
@@ -395,8 +395,8 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
 
   @Test
   fun `reclaims abandoned work with a new token and rejects the original claimant`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
-    caseRefreshRequestService.requestLiveRefresh(crn)
+    val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+    caseRefreshRequestService.requestLiveRefresh(case.id)
     val originalClaim = caseRefreshRequestService.claimPending(1, Duration.ofMinutes(10)).single()
 
     clock.freezeAt(now.plus(Duration.ofMinutes(11)))

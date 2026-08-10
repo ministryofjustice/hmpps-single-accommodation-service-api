@@ -24,17 +24,7 @@ class CaseRefreshRequestService(
 ) {
 
   @Transactional
-  fun requestLiveRefresh(caseId: UUID): Result {
-    caseRefreshRequestRepository.upsertLiveRequest(caseId, Instant.now(clock))
-    return Result.REQUESTED
-  }
-
-  @Transactional
-  fun requestLiveRefresh(crn: String): Result {
-    val caseEntity = caseRepository.findByCrn(crn) ?: return Result.CASE_NOT_FOUND
-    caseRefreshRequestRepository.upsertLiveRequest(caseEntity.id, Instant.now(clock))
-    return Result.REQUESTED
-  }
+  fun requestLiveRefresh(caseId: UUID) = caseRefreshRequestRepository.upsertLiveRequest(caseId, Instant.now(clock))
 
   // entry point for a bulk refresh (case list pre-load) & not triggered yet
   @Transactional

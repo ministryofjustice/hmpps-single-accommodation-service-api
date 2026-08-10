@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.domain.processor
 
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
@@ -21,10 +23,10 @@ import java.util.UUID
 @ExtendWith(MockKExtension::class)
 class CaseRefreshWorkerTest {
 
-  @RelaxedMockK
+  @MockK
   lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
-  @RelaxedMockK
+  @MockK
   lateinit var caseRefreshProcessor: CaseRefreshProcessor
 
   @RelaxedMockK
@@ -33,8 +35,72 @@ class CaseRefreshWorkerTest {
   @RelaxedMockK
   lateinit var sentryService: SentryService
 
-  @RelaxedMockK
+  @MockK
   lateinit var failureClassifier: CaseRefreshFailureClassifier
+
+  private val properties = CaseRefreshProperties()
+
+  @InjectMockKs
+  lateinit var caseRefreshWorker: CaseRefreshWorker
+
+  @Test
+  fun `returns zero stats when there are no pending claims`() {
+    every { caseRefreshRequestService.claimPending(any(), any()) } returns emptyList()
+
+    val stats = caseRefreshWorker.process()
+
+    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 0))
+    verify(exactly = 0) { caseRefreshProcessor.process(any()) }
+    verify(exactly = 0) { userContextService.setUserContextAsSasSystemUser() }
+    verify(exactly = 0) { userContextService.clearContext() }
+  }
+
+  @Test
+  fun `counts refreshed and failed outcomes across claims`() {
+    val refreshedClaim = CaseRefreshRequestService.Claim(
+      caseId = UUID.randomUUID(),
+      generation = 1,
+      claimId = UUID.randomUUID(),
+    )
+    val failedClaim = CaseRefreshRequestService.Claim(
+      caseId = UUID.randomUUID(),
+      generation = 1,
+      claimId = UUID.randomUUID(),
+    )
+    every { caseRefreshRequestService.claimPending(any(), any()) } returns listOf(refreshedClaim, failedClaim)
+    every { caseRefreshProcessor.process(refreshedClaim) } returns CaseRefreshProcessor.Result.Refreshed
+    every { caseRefreshProcessor.process(failedClaim) } returns CaseRefreshProcessor.Result.Failed
+
+    val stats = caseRefreshWorker.process()
+
+    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 1, failedCount = 1))
+    verify(exactly = 2) { userContextService.setUserContextAsSasSystemUser() }
+    verify(exactly = 2) { userContextService.clearContext() }
+  }
+
+  @Test
+  fun `does not increment stats for case not found and stale claim outcomes`() {
+    val caseNotFoundClaim = CaseRefreshRequestService.Claim(
+      caseId = UUID.randomUUID(),
+      generation = 1,
+      claimId = UUID.randomUUID(),
+    )
+    val staleClaim = CaseRefreshRequestService.Claim(
+      caseId = UUID.randomUUID(),
+      generation = 1,
+      claimId = UUID.randomUUID(),
+    )
+    every { caseRefreshRequestService.claimPending(any(), any()) } returns listOf(caseNotFoundClaim, staleClaim)
+    every { caseRefreshProcessor.process(caseNotFoundClaim) } returns CaseRefreshProcessor.Result.CaseNotFound
+    every { caseRefreshProcessor.process(staleClaim) } returns CaseRefreshProcessor.Result.IgnoredStaleClaim
+
+    val stats = caseRefreshWorker.process()
+
+    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 0))
+    verify(exactly = 0) { caseRefreshRequestService.recordFailure(any(), any()) }
+    verify(exactly = 0) { sentryService.captureException(any()) }
+    verify(exactly = 2) { userContextService.clearContext() }
+  }
 
   @Test
   fun `records an unexpected processor exception through the retry policy`() {
@@ -55,7 +121,7 @@ class CaseRefreshWorkerTest {
       caseRefreshRequestService.recordFailure(claim, failure)
     } returns CaseRefreshRequestService.FailureDisposition.HANDLED
 
-    val stats = worker().process()
+    val stats = caseRefreshWorker.process()
 
     assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 1))
     verify { caseRefreshRequestService.recordFailure(claim, failure) }
@@ -63,12 +129,30 @@ class CaseRefreshWorkerTest {
     verify { userContextService.clearContext() }
   }
 
-  private fun worker() = CaseRefreshWorker(
-    caseRefreshRequestService = caseRefreshRequestService,
-    caseRefreshProcessor = caseRefreshProcessor,
-    userContextService = userContextService,
-    properties = CaseRefreshProperties(),
-    sentryService = sentryService,
-    failureClassifier = failureClassifier,
-  )
+  @Test
+  fun `captures error when recording unexpected failure also fails`() {
+    val claim = CaseRefreshRequestService.Claim(
+      caseId = UUID.randomUUID(),
+      generation = 1,
+      claimId = UUID.randomUUID(),
+    )
+    val processingException = IllegalStateException("Unexpected failure")
+    val failure = CaseRefreshFailure(
+      category = CaseRefreshFailureCategory.UNEXPECTED_ERROR,
+      detail = processingException.message!!,
+    )
+    val recordingException = RuntimeException("Database unavailable")
+
+    every { caseRefreshRequestService.claimPending(any(), any()) } returns listOf(claim)
+    every { caseRefreshProcessor.process(claim) } throws processingException
+    every { failureClassifier.unexpected(processingException) } returns failure
+    every { caseRefreshRequestService.recordFailure(claim, failure) } throws recordingException
+
+    val stats = caseRefreshWorker.process()
+
+    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 1))
+    verify { sentryService.captureException(processingException) }
+    verify { sentryService.captureException(recordingException) }
+    verify { userContextService.clearContext() }
+  }
 }
