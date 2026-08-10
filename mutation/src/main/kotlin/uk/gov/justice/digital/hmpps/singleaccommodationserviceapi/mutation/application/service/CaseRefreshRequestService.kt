@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.CaseRefreshWorker
 import java.time.Clock
 import java.time.Duration
@@ -17,7 +16,6 @@ import java.util.UUID
 @ConditionalOnBean(CaseRefreshWorker::class)
 @Service
 class CaseRefreshRequestService(
-  private val caseRepository: CaseRepository,
   private val caseRefreshRequestRepository: CaseRefreshRequestRepository,
   private val retryPolicy: CaseRefreshRetryPolicy,
   private val clock: Clock,
@@ -90,10 +88,5 @@ class CaseRefreshRequestService(
   enum class FailureDisposition {
     HANDLED,
     IGNORED_STALE_CLAIM,
-  }
-
-  enum class Result {
-    REQUESTED,
-    CASE_NOT_FOUND,
   }
 }
