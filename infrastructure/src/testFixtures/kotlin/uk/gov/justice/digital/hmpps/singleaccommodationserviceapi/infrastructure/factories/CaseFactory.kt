@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
@@ -12,18 +9,12 @@ import java.util.UUID
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
   tierScore: String? = "A1",
-  cas1ApplicationId: UUID? = null,
-  cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
-  cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
-  cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
+  hasSyncedCprProposedAccommodation: Boolean = false,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
   id = id,
   tierScore = tierScore,
-  cas1ApplicationId = cas1ApplicationId,
-  cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
-  cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
-  cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+  hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation,
 ).also { case ->
 
   if (customise != null) {

@@ -2,15 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import java.util.UUID
 
 @Entity
@@ -19,7 +14,7 @@ class CaseEntity(
 
   @Id
   val id: UUID,
-
+  var hasSyncedCprProposedAccommodation: Boolean,
   var tierScore: String? = null,
 
   @OneToMany(
@@ -29,13 +24,6 @@ class CaseEntity(
     orphanRemoval = true,
   )
   var caseIdentifiers: MutableSet<CaseIdentifierEntity> = mutableSetOf(),
-  var cas1ApplicationId: UUID? = null,
-  @Enumerated(EnumType.STRING)
-  var cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
-  @Enumerated(EnumType.STRING)
-  var cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
-  @Enumerated(EnumType.STRING)
-  var cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
 
 ) {
   fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }

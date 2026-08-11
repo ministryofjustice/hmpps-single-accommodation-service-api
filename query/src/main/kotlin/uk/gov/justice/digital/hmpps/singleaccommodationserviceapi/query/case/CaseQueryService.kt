@@ -83,7 +83,7 @@ class CaseQueryService(
     }
   }
 
-  fun isPersistedCase(crn: String) = caseRepository.findByCrn(crn) != null
+  fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val user = userService.authorizeAndRetrieveUser()

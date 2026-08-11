@@ -61,8 +61,8 @@ const val FORENAME_OF_DELIUS_SYNC_USER: String = "nDelius"
 const val SURNAME_OF_DELIUS_SYNC_USER: String = "user"
 
 const val USERNAME_OF_SAS_SYSTEM_USER = "SAS_SYSTEM_USER"
-const val FORENAME_OF_SAS_SYSTEM_USER: String = "SAS"
-const val SURNAME_OF_SAS_SYSTEM_USER: String = "system user"
+const val FORENAME_OF_SAS_SYSTEM_USER: String = "nDelius"
+const val SURNAME_OF_SAS_SYSTEM_USER: String = "user"
 
 const val USERNAME_OF_LOGGED_IN_NOMIS_USER = "NOMIS_USER"
 
