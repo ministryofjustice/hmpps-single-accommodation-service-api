@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -10,18 +12,27 @@ class CaseAggregate private constructor(
   private var lastName: String? = null,
   private var dateOfBirth: LocalDate? = null,
   private var hasSyncedCprProposedAccommodation: Boolean = false,
+  private var currentAccommodation: AccommodationSummaryDto? = null,
+  private var nextAccommodation: AccommodationSummaryDto? = null,
+  private var accommodationStatus: CaseAccommodationStatus? = null,
 ) {
 
   fun upsertCase(
     tierScore: String?,
-    firstName: String? = null,
-    lastName: String? = null,
-    dateOfBirth: LocalDate? = null,
+    firstName: String?,
+    lastName: String?,
+    dateOfBirth: LocalDate?,
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+    accommodationStatus: CaseAccommodationStatus?,
   ): CaseAggregate {
     updateTier(tierScore)
     this.firstName = firstName
     this.lastName = lastName
     this.dateOfBirth = dateOfBirth
+    this.currentAccommodation = currentAccommodation
+    this.nextAccommodation = nextAccommodation
+    this.accommodationStatus = accommodationStatus
     return this
   }
 
@@ -33,6 +44,9 @@ class CaseAggregate private constructor(
       firstName: String? = null,
       lastName: String? = null,
       dateOfBirth: LocalDate? = null,
+      currentAccommodation: AccommodationSummaryDto? = null,
+      nextAccommodation: AccommodationSummaryDto? = null,
+      accommodationStatus: CaseAccommodationStatus? = null,
     ) = CaseAggregate(
       id = id,
       tierScore = tierScore,
@@ -40,6 +54,9 @@ class CaseAggregate private constructor(
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = dateOfBirth,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      accommodationStatus = accommodationStatus,
     )
 
     fun hydrateNew() = CaseAggregate(
@@ -64,6 +81,9 @@ class CaseAggregate private constructor(
     val firstName: String?,
     val lastName: String?,
     val dateOfBirth: LocalDate?,
+    val currentAccommodation: AccommodationSummaryDto?,
+    val nextAccommodation: AccommodationSummaryDto?,
+    val accommodationStatus: CaseAccommodationStatus?,
   )
 
   fun snapshot() = CaseSnapshot(
@@ -73,5 +93,8 @@ class CaseAggregate private constructor(
     firstName,
     lastName,
     dateOfBirth,
+    currentAccommodation,
+    nextAccommodation,
+    accommodationStatus,
   )
 }

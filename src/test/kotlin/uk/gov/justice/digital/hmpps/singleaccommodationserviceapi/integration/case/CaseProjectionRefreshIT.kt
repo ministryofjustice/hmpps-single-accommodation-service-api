@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTierV3
@@ -43,9 +42,6 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
-
-  @Autowired
-  lateinit var jsonMapper: JsonMapper
 
   @Autowired
   lateinit var tierEventHandlerConfig: TierEventHandlerConfig

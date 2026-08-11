@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.time.LocalDate
 import java.util.UUID
@@ -77,30 +79,25 @@ class CaseAggregateTest {
     assertThat(beforeUpdate.tierScore).isNull()
 
     val dateOfBirth = LocalDate.of(1985, 6, 15)
+    val currentAccommodation = buildAccommodationSummaryDto(crn = "X12345")
+    val nextAccommodation = buildAccommodationSummaryDto(crn = "X12345")
 
     aggregate.upsertCase(
       tierScore = "A1",
       firstName = "First",
       lastName = "Last",
       dateOfBirth = dateOfBirth,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
     )
     val afterUpdate = aggregate.snapshot()
     assertThat(afterUpdate.tierScore).isEqualTo("A1")
     assertThat(afterUpdate.firstName).isEqualTo("First")
     assertThat(afterUpdate.lastName).isEqualTo("Last")
     assertThat(afterUpdate.dateOfBirth).isEqualTo(dateOfBirth)
-  }
-
-  @Test
-  fun `upsertCase() should set null person detail fields onto the aggregate when not provided`() {
-    val aggregate = CaseAggregate.hydrateNew()
-
-    aggregate.upsertCase(
-      tierScore = "A1",
-    )
-    val afterUpdate = aggregate.snapshot()
-    assertThat(afterUpdate.firstName).isNull()
-    assertThat(afterUpdate.lastName).isNull()
-    assertThat(afterUpdate.dateOfBirth).isNull()
+    assertThat(afterUpdate.currentAccommodation).isEqualTo(currentAccommodation)
+    assertThat(afterUpdate.nextAccommodation).isEqualTo(nextAccommodation)
+    assertThat(afterUpdate.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
   }
 }

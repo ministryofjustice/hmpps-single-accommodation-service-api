@@ -5,16 +5,21 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.time.LocalDate
 import java.util.UUID
 
 class CaseMapperTest {
+  private val caseMapper = CaseMapper(jsonMapper)
 
   @Test
   fun `toAggregate maps all fields correctly`() {
@@ -25,7 +30,7 @@ class CaseMapperTest {
       lastName = "Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
     )
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val caseAggregate = caseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
 
     assertAll(
@@ -42,7 +47,7 @@ class CaseMapperTest {
   @ValueSource(booleans = [true, false])
   fun `toAggregate maps hasSyncedCprProposedAccommodation correctly`(hasSyncedCprProposedAccommodation: Boolean) {
     val caseEntity = buildCaseEntity(hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation)
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val caseAggregate = caseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
 
     assertThat(snapshot.hasSyncedCprProposedAccommodation).isEqualTo(hasSyncedCprProposedAccommodation)
@@ -53,10 +58,42 @@ class CaseMapperTest {
     val caseEntity = buildCaseEntity(
       tierScore = null,
     )
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val caseAggregate = caseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
 
     assertThat(snapshot.tierScore).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps accommodation fields correctly`() {
+    val currentAccommodation = buildAccommodationSummaryDto(crn = "X12345")
+    val nextAccommodation = buildAccommodationSummaryDto(crn = "X12345")
+    val caseEntity = buildCaseEntity().apply {
+      this.currentAccommodation = jsonMapper.writeValueAsString(currentAccommodation)
+      this.nextAccommodation = jsonMapper.writeValueAsString(nextAccommodation)
+      this.accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+    }
+
+    val snapshot = caseMapper.toAggregate(caseEntity).snapshot()
+
+    assertAll(
+      { assertThat(snapshot.currentAccommodation).isEqualTo(currentAccommodation) },
+      { assertThat(snapshot.nextAccommodation).isEqualTo(nextAccommodation) },
+      { assertThat(snapshot.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE) },
+    )
+  }
+
+  @Test
+  fun `toAggregate maps null accommodation fields as null`() {
+    val caseEntity = buildCaseEntity()
+
+    val snapshot = caseMapper.toAggregate(caseEntity).snapshot()
+
+    assertAll(
+      { assertThat(snapshot.currentAccommodation).isNull() },
+      { assertThat(snapshot.nextAccommodation).isNull() },
+      { assertThat(snapshot.accommodationStatus).isNull() },
+    )
   }
 
   @Test
@@ -80,15 +117,20 @@ class CaseMapperTest {
     )
 
     val dateOfBirth = LocalDate.of(1995, 3, 20)
+    val currentAccommodation = buildAccommodationSummaryDto(crn = identifier)
+    val nextAccommodation = buildAccommodationSummaryDto(crn = identifier)
     caseAggregate.upsertCase(
       tierScore = "A3S",
       firstName = "Updated",
       lastName = "Person",
       dateOfBirth = dateOfBirth,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
-    val mergedEntity = CaseMapper.merge(
+    val mergedEntity = caseMapper.merge(
       entity = caseEntity,
       snapshot = caseAggregate.snapshot(),
       identifiers = identifiersToMerge,
@@ -107,6 +149,15 @@ class CaseMapperTest {
       { assertThat(mergedEntity.firstName).isEqualTo("Updated") },
       { assertThat(mergedEntity.lastName).isEqualTo("Person") },
       { assertThat(mergedEntity.dateOfBirth).isEqualTo(dateOfBirth) },
+      {
+        assertThat(jsonMapper.readValue(mergedEntity.currentAccommodation, AccommodationSummaryDto::class.java))
+          .isEqualTo(currentAccommodation)
+      },
+      {
+        assertThat(jsonMapper.readValue(mergedEntity.nextAccommodation, AccommodationSummaryDto::class.java))
+          .isEqualTo(nextAccommodation)
+      },
+      { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE) },
     )
   }
 
@@ -136,7 +187,7 @@ class CaseMapperTest {
 
     caseAggregate.updateTier("A3S")
 
-    val mergedEntity = CaseMapper.merge(
+    val mergedEntity = caseMapper.merge(
       entity = caseEntity,
       snapshot = caseAggregate.snapshot(),
       identifiers = identifiersToMerge,
@@ -159,7 +210,7 @@ class CaseMapperTest {
     tierScore: String,
   ) {
     val caseEntity = buildCaseEntity(tierScore = tierScore)
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
+    val caseAggregate = caseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
 
     assertThat(snapshot.tierScore).isEqualTo(caseEntity.tierScore)
@@ -169,17 +220,22 @@ class CaseMapperTest {
   fun `toEntity maps all fields correctly`() {
     val caseAggregate = CaseAggregate.hydrateNew()
     val dateOfBirth = LocalDate.of(1992, 8, 11)
+    val currentAccommodation = buildAccommodationSummaryDto(crn = "X12345")
+    val nextAccommodation = buildAccommodationSummaryDto(crn = "X12345")
     caseAggregate.upsertCase(
       tierScore = "A3S",
       firstName = "First",
       lastName = "Last",
       dateOfBirth = dateOfBirth,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
     val crn = UUID.randomUUID().toString()
 
-    val mergedEntity = CaseMapper.create(
+    val mergedEntity = caseMapper.create(
       snapshot = caseAggregate.snapshot(),
       crn = crn,
       prisonNumber = "NEW",
@@ -201,6 +257,15 @@ class CaseMapperTest {
       { assertThat(mergedEntity.firstName).isEqualTo("First") },
       { assertThat(mergedEntity.lastName).isEqualTo("Last") },
       { assertThat(mergedEntity.dateOfBirth).isEqualTo(dateOfBirth) },
+      {
+        assertThat(jsonMapper.readValue(mergedEntity.currentAccommodation, AccommodationSummaryDto::class.java))
+          .isEqualTo(currentAccommodation)
+      },
+      {
+        assertThat(jsonMapper.readValue(mergedEntity.nextAccommodation, AccommodationSummaryDto::class.java))
+          .isEqualTo(nextAccommodation)
+      },
+      { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE) },
     )
   }
 }

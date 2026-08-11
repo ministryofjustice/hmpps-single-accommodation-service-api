@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
@@ -115,6 +116,9 @@ abstract class IntegrationTestBase {
 
   @Autowired
   protected lateinit var cacheHelper: CacheHelper
+
+  @Autowired
+  protected lateinit var jsonMapper: JsonMapper
 
   @BeforeAll
   fun beforeAll() {

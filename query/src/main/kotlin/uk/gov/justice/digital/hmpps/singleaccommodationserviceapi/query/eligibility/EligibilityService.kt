@@ -7,12 +7,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ap
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DeeplinkResolver
@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.A
 
 @Service
 class EligibilityService(
-  private val accommodationQueryService: AccommodationQueryService,
+  private val accommodationSummaryCalculator: AccommodationSummaryCalculator,
   private val accommodationTypeRepository: AccommodationTypeRepository,
   private val caseRepository: CaseRepository,
   private val dutyToReferQueryService: DutyToReferQueryService,
@@ -128,7 +128,7 @@ class EligibilityService(
 
     val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) }
 
-    val currentAccommodation = accommodationQueryService.getCurrentAccommodation(
+    val currentAccommodation = accommodationSummaryCalculator.calculateCurrentAccommodation(
       crn = crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       prisoner = eligibilityOrchestrationDto.prisoner,
@@ -136,7 +136,7 @@ class EligibilityService(
       cas3CurrentPremises = eligibilityOrchestrationDto.cas3CurrentPremises,
     )
 
-    val nextAccommodations = accommodationQueryService.getNextAccommodations(
+    val nextAccommodations = accommodationSummaryCalculator.calculateNextAccommodations(
       crn,
       addresses = eligibilityOrchestrationDto.cpr?.addresses,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
