@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ProposedAccommodationMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ProposedAccommodationAggregate
@@ -49,27 +50,23 @@ class AccommodationSyncService(
   ) {
     val case = caseRepository.findByCrn(crn)
       .orThrowNotFound("crn" to crn)
-    syncAccommodationRecordsWithCpr(case, cprAccommodations)
-  }
-
-  private fun syncAccommodationRecordsWithCpr(case: CaseEntity, cprAccommodations: List<AccommodationDetailDto>) {
     cprAccommodations
       .forEach { cprAccommodation ->
-        val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
-          cprAddressId = cprAccommodation.cprAddressId!!,
-        )
-        if (!sasAccommodationRecordExists(sasProposedAccommodationRecord) && cprAccommodation.status?.code.isProposedAccommodationStatus()) {
-          insertDeliusOriginProposedAccommodationRecord(
-            case = case,
-            cprProposedAccommodationRecord = cprAccommodation,
+        if (cprAccommodation.status?.code.isProposedAccommodationStatus()) {
+          val sasProposedAccommodationRecord = proposedAccommodationRepository.findByCprAddressId(
+            cprAddressId = cprAccommodation.cprAddressId!!,
           )
-        } else if (sasAccommodationRecordExists(sasProposedAccommodationRecord)) {
-          updateAccommodationRecordWithCprAddressUpdate(
-            sasAccommodationRecord = sasProposedAccommodationRecord!!,
-            cprAccommodationRecord = cprAccommodation,
-          )
+          if (!sasAccommodationRecordExists(sasProposedAccommodationRecord)) {
+            insertDeliusOriginProposedAccommodationRecord(
+              case = case,
+              cprProposedAccommodationRecord = cprAccommodation,
+            )
+          }
         }
       }
+    val caseAggregate = CaseMapper.toAggregate(case)
+    caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
+    caseRepository.save(CaseMapper.merge(case, caseAggregate.snapshot()))
   }
 
   private fun sasAccommodationRecordExists(sasProposedAccommodationRecord: ProposedAccommodationEntity?) = sasProposedAccommodationRecord != null
@@ -130,8 +127,8 @@ class AccommodationSyncService(
   private fun saveProposedAccommodation(
     proposedAccommodationEntity: ProposedAccommodationEntity,
   ): ProposedAccommodationEntity {
-    val deliusSystemUser = userService.getNationalDeliusSystemUser()
-    return AuditOverrideContext.withAuditorId(deliusSystemUser.id) {
+    val systemUser = userService.getSystemUser()
+    return AuditOverrideContext.withAuditorId(systemUser.id) {
       proposedAccommodationRepository.save(proposedAccommodationEntity)
     }
   }

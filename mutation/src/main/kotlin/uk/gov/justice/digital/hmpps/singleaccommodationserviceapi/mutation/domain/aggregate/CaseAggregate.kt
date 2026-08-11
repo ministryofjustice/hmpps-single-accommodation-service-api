@@ -12,6 +12,7 @@ class CaseAggregate private constructor(
   private var cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
   private var cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
   private var cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
+  private var hasSyncedCprProposedAccommodation: Boolean = false,
 ) {
 
   fun upsertCase(
@@ -51,6 +52,7 @@ class CaseAggregate private constructor(
       cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
       cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,
       cas1ApplicationPlacementStatus: Cas1PlacementStatus?,
+      hasSyncedCprProposedAccommodation: Boolean,
     ) = CaseAggregate(
       id = id,
       tierScore = tierScore,
@@ -58,6 +60,7 @@ class CaseAggregate private constructor(
       cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
       cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
       cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+      hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation,
     )
 
     fun hydrateNew() = CaseAggregate(
@@ -71,6 +74,10 @@ class CaseAggregate private constructor(
     this.tierScore = tierScore
   }
 
+  fun markCaseAsSyncedWithCprProposedAccommodation() {
+    hasSyncedCprProposedAccommodation = true
+  }
+
   data class CaseSnapshot(
     val id: UUID,
     val tierScore: String?,
@@ -78,6 +85,7 @@ class CaseAggregate private constructor(
     val cas1ApplicationApplicationStatus: Cas1ApplicationStatus?,
     val cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus?,
     val cas1ApplicationPlacementStatus: Cas1PlacementStatus?,
+    val hasSyncedCprProposedAccommodation: Boolean,
   )
 
   fun snapshot() = CaseSnapshot(
@@ -87,5 +95,6 @@ class CaseAggregate private constructor(
     cas1ApplicationApplicationStatus,
     cas1ApplicationRequestForPlacementStatus,
     cas1ApplicationPlacementStatus,
+    hasSyncedCprProposedAccommodation,
   )
 }
