@@ -31,7 +31,7 @@ class CaseRefreshRequestService(
   fun requestBulkRefresh(caseIds: List<UUID>) {
     if (caseIds.isEmpty()) return
     caseRefreshRequestRepository.insertBulkRequests(
-      caseIds.map(UUID::toString).toTypedArray(),
+      caseIds.toTypedArray(),
       Instant.now(clock),
     )
   }

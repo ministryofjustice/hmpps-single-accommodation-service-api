@@ -14,6 +14,13 @@ import java.util.UUID
 
 interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity, UUID> {
 
+  // Atomic upsert used by live triggers.
+  // Invariants:
+  // - Always bump generation when a trigger arrives.
+  // - Promote to LIVE priority.
+  // - Reopen FAILED work to PENDING.
+  // - Preserve active claim metadata only while PROCESSING.
+  // - Preserve the most restrictive timing window by keeping earliest requested_at and latest next_attempt_at.
   @Modifying
   @Query(
     nativeQuery = true,
@@ -69,11 +76,11 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         next_attempt_at
       )
       SELECT case_id, 1, 'PENDING', 'BULK', :requestedAt, 0, :requestedAt
-      FROM unnest((:caseIds)::uuid[]) AS case_id
+      FROM unnest(cast(:caseIds as uuid[])) AS case_id
       ON CONFLICT (case_id) DO NOTHING
     """,
   )
-  fun insertBulkRequests(caseIds: Array<String>, requestedAt: Instant)
+  fun insertBulkRequests(caseIds: Array<UUID>, requestedAt: Instant)
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
