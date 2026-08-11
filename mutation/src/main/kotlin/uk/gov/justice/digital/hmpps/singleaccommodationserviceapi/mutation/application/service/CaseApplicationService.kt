@@ -62,10 +62,6 @@ class CaseApplicationService(
 
   private fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
     tierScore = caseMutationOrchestrationDto.tier?.tierScore,
-    cas1ApplicationId = caseMutationOrchestrationDto.cas1Application?.id,
-    cas1ApplicationApplicationStatus = caseMutationOrchestrationDto.cas1Application?.applicationStatus,
-    cas1ApplicationRequestForPlacementStatus = caseMutationOrchestrationDto.cas1Application?.requestForPlacementStatus,
-    cas1ApplicationPlacementStatus = caseMutationOrchestrationDto.cas1Application?.placementStatus,
   )
 
   @Transactional

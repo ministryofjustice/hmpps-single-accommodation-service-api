@@ -59,18 +59,7 @@ data class DomainData(
     currentAccommodation = null,
     currentAccommodationTypeEntity = null,
     nextAccommodations = emptyList(),
-    cas1Application = if (caseEntity?.cas1ApplicationId != null && caseEntity.cas1ApplicationApplicationStatus != null) {
-      Cas1Application(
-        id = caseEntity.cas1ApplicationId!!,
-        applicationStatus = caseEntity.cas1ApplicationApplicationStatus!!,
-        requestForPlacementStatus = caseEntity.cas1ApplicationRequestForPlacementStatus,
-        placementStatus = caseEntity.cas1ApplicationPlacementStatus,
-        premises = null,
-        uiUrl = null,
-      )
-    } else {
-      null
-    },
+    cas1Application = null,
     cas3Application = null,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = null,

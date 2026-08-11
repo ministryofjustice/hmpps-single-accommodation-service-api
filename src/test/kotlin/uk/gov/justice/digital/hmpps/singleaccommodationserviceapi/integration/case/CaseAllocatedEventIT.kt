@@ -6,12 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
 import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -28,7 +23,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -90,14 +84,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
 
-    val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      placementStatus = Cas1PlacementStatus.ARRIVED,
-      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
-
     // when
     publishCaseAllocatedEvent()
 
@@ -134,14 +120,13 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier and cas API calls fail`() {
+  fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier API call fails`() {
     CorePersonRecordStubs.getCorePersonRecordOKResponse(
       crn,
       buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
     )
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn = crn)
 
     // when
     publishCaseAllocatedEvent()
@@ -149,7 +134,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     assertSuccessful(
-      expectedCas1Application = null,
       expectedTier = null,
     )
   }
@@ -162,46 +146,22 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
 
-    val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      placementStatus = Cas1PlacementStatus.ARRIVED,
-      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
-
     // when
     publishCaseAllocatedEvent()
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    assertSuccessful(cas1Application)
+    assertSuccessful()
   }
 
   private fun assertSuccessful(
-    expectedCas1Application: Cas1Application?,
     expectedTier: String? = "A3",
   ) {
     inboxEventHelper.assertMessageProcessed()
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    if (expectedCas1Application != null) {
-      assertThat(case.tierScore).isEqualTo(expectedTier)
-    } else {
-      assertThat(case.tierScore).isNull()
-    }
-    if (expectedCas1Application != null) {
-      assertThat(case.cas1ApplicationId).isEqualTo(expectedCas1Application.id)
-      assertThat(case.cas1ApplicationApplicationStatus).isEqualTo(expectedCas1Application.applicationStatus)
-      assertThat(case.cas1ApplicationRequestForPlacementStatus).isEqualTo(expectedCas1Application.requestForPlacementStatus)
-      assertThat(case.cas1ApplicationPlacementStatus).isEqualTo(expectedCas1Application.placementStatus)
-    } else {
-      assertThat(case.cas1ApplicationId).isNull()
-      assertThat(case.cas1ApplicationApplicationStatus).isNull()
-      assertThat(case.cas1ApplicationRequestForPlacementStatus).isNull()
-      assertThat(case.cas1ApplicationPlacementStatus).isNull()
-    }
+    assertThat(case.tierScore).isEqualTo(expectedTier)
   }
 
   private fun assertPublishedSNSEvent(
