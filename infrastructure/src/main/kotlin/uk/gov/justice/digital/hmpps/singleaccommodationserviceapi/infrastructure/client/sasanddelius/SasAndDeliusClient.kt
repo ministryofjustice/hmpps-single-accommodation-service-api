@@ -15,6 +15,9 @@ interface SasAndDeliusClient {
 
   @GetExchange(value = "/case/{username}/{crn}")
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
+
+  @GetExchange(value = "/team/{teamCode}/case-list")
+  fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
 }
 
 @RestClientRetry
@@ -36,4 +39,13 @@ class SasAndDeliusCachingService(
 
   @Cacheable(ApiCallKeys.GET_CASE, sync = true)
   fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
+
+  fun getCasesByTeamCode(
+    teamCode: String,
+    page: Long,
+    size: Long,
+  ): TeamCaseList {
+    log.debug("Calling getCasesByTeamCode for teamCode: {}, size: {}, page: {}", teamCode, size, page)
+    return sasAndDeliusClient.getCasesByTeamCode(teamCode = teamCode, page = page, size = size)
+  }
 }
