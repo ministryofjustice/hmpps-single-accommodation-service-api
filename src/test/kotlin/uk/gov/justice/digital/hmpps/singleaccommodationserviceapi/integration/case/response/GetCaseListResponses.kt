@@ -232,6 +232,10 @@ fun expectedGetCaseListResponse(): String = """
             {
                "type":"SUBMIT_CRS_REFERRAL",
                "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
             }
          ],
          "userAccess":"FULL",
@@ -261,6 +265,10 @@ fun expectedGetCaseListResponse(): String = """
             {
                "type":"SUBMIT_CRS_REFERRAL",
                "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
+               "startDate":null
             }
          ],
          "userAccess":"FULL",
@@ -289,6 +297,14 @@ fun expectedGetCaseListResponse(): String = """
             },
             {
                "type":"SUBMIT_CRS_REFERRAL",
+               "startDate":null
+            },
+            {
+               "type":"START_APPROVED_PREMISE_APPLICATION",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
                "startDate":null
             }
          ],
@@ -321,7 +337,11 @@ fun expectedGetCaseListResponse(): String = """
                "startDate":null
             },
             {
-               "type":"CREATE_PLACEMENT",
+               "type":"START_APPROVED_PREMISE_APPLICATION",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
                "startDate":null
             }
          ],
@@ -354,7 +374,11 @@ fun expectedGetCaseListResponse(): String = """
                "startDate":null
             },
             {
-               "type":"PROVIDE_INFORMATION",
+               "type":"START_APPROVED_PREMISE_APPLICATION",
+               "startDate":null
+            },
+            {
+               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
                "startDate":null
             }
          ],
@@ -424,7 +448,7 @@ fun expectedGetCaseListResponse(): String = """
                "startDate":null
             },
             {
-               "type":"CONTINUE_APPROVED_PREMISE_APPLICATION",
+               "type":"START_APPROVED_PREMISE_APPLICATION",
                "startDate":null
             },
             {

@@ -14,9 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.ass
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
@@ -42,7 +39,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
-import java.util.UUID
 
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
@@ -435,50 +431,30 @@ class CaseControllerIT : IntegrationTestBase() {
       buildCaseEntity { withCrn(crns[5]) },
       buildCaseEntity(
         tierScore = "A1S",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crns[6]) },
       buildCaseEntity(
         tierScore = "C1",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.UNALLOCATED_ASSESSMENT,
       ) { withCrn(crns[7]) },
       buildCaseEntity(
         tierScore = "B3",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.ASSESSMENT_IN_PROGRESS,
       ) { withCrn(crns[8]) },
       buildCaseEntity(
         tierScore = "B3",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-        cas1ApplicationPlacementStatus = Cas1PlacementStatus.CANCELLED,
       ) { withCrn(crns[9]) },
       buildCaseEntity(
         tierScore = "B3",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
       ) { withCrn(crns[10]) },
       buildCaseEntity(
         tierScore = "B3",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REJECTED,
       ) { withCrn(crns[11]) },
       buildCaseEntity(
         tierScore = "B3",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.STARTED,
       ) { withCrn(crns[12]) },
       buildCaseEntity(
         tierScore = null,
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.WITHDRAWN,
       ) { withCrn(crns[13]) },
       buildCaseEntity(
         tierScore = "D3",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.INAPPLICABLE,
       ) { withCrn(crns[14]) },
     )
 
