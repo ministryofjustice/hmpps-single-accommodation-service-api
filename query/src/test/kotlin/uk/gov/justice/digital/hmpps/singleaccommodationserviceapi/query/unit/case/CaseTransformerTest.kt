@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import java.time.LocalDate
@@ -44,7 +43,7 @@ class CaseTransformerTest {
     assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
     assertThat(fromOrchestrationDto.userAccess).isEqualTo(UserAccess.FULL)
 
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
     assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
   }
 
@@ -56,7 +55,7 @@ class CaseTransformerTest {
     assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
     assertThat(result.limitedAccess).isTrue
 
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
     assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
     assertThat(result.limitedAccess).isTrue
   }
@@ -69,7 +68,7 @@ class CaseTransformerTest {
     assertThat(result.userAccess).isEqualTo(UserAccess.LIMITED)
     assertThat(result.limitedAccess).isTrue()
 
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null, eligibility = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
     assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.LIMITED)
     assertThat(fromSasAndDelius.limitedAccess).isTrue
   }
@@ -97,7 +96,6 @@ class CaseTransformerTest {
     val caseEntity = buildCaseEntity { withCrn(CRN) }
     val name = buildName()
     val personDto = buildFullPersonDto(crn = CRN, name = name)
-    val eligibilityDto = buildEligibilityDto(CRN)
     val caseDto = buildCaseDto(
       crn = CRN,
       forename = name.forename,
@@ -105,7 +103,7 @@ class CaseTransformerTest {
       surname = name.surname,
     )
 
-    assertThat(personDto.toCaseDto(caseEntity = caseEntity, eligibility = eligibilityDto)).isEqualTo(caseDto)
+    assertThat(personDto.toCaseDto(caseEntity = caseEntity)).isEqualTo(caseDto)
   }
 
   private companion object {
@@ -127,7 +125,6 @@ class CaseTransformerTest {
         username = "user1",
       ),
       photoUrl = null,
-      actions = emptyList(),
       userAccess = UserAccess.FULL,
       limitedAccess = false,
     )

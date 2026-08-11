@@ -21,7 +21,6 @@ fun expectedGetCaseResponse(): String = """
       "surname": "Last",
       "username": "user1"
     },
-    "actions": [],
     "userAccess": "FULL",
     "limitedAccess": false
   }
