@@ -10,6 +10,12 @@ import java.util.UUID
 @Service
 class CaseRefreshRequestLifecycleService {
   fun claim(request: CaseRefreshRequestEntity, claimId: UUID, claimedAt: Instant) {
+    require(
+      request.status == CaseRefreshRequestStatus.PENDING ||
+        request.status == CaseRefreshRequestStatus.PROCESSING,
+    ) {
+      "Cannot claim request in status ${request.status}; only PENDING or abandoned PROCESSING requests can be claimed"
+    }
     request.status = CaseRefreshRequestStatus.PROCESSING
     request.processingGeneration = request.generation
     request.claimedAt = claimedAt
@@ -24,11 +30,19 @@ class CaseRefreshRequestLifecycleService {
     request.claimId == claim.claimId
 
   fun releaseForNewerGeneration(request: CaseRefreshRequestEntity) {
+    require(request.status == CaseRefreshRequestStatus.PROCESSING) {
+      "Cannot release for newer generation on status ${request.status}; only PROCESSING requests can be released"
+    }
+    requireNotNull(request.nextAttemptAt) { "Must have next attempt set" }
     request.status = CaseRefreshRequestStatus.PENDING
     clearClaim(request)
   }
 
   fun releaseAfterSuccess(request: CaseRefreshRequestEntity) {
+    require(request.status == CaseRefreshRequestStatus.PROCESSING) {
+      "Cannot release after success on status ${request.status}; only PROCESSING requests can be released"
+    }
+    requireNotNull(request.nextAttemptAt) { "Must have next attempt set" }
     request.status = CaseRefreshRequestStatus.PENDING
     request.attemptCount = 0
     request.lastFailureCategory = null
@@ -42,6 +56,9 @@ class CaseRefreshRequestLifecycleService {
     failureDetail: String,
     nextAttemptAt: Instant,
   ) {
+    require(request.status == CaseRefreshRequestStatus.PROCESSING) {
+      "Cannot schedule retry on status ${request.status}; only PROCESSING requests can retry"
+    }
     request.attemptCount += 1
     request.lastFailureCategory = failureCategory
     request.lastFailureDetail = failureDetail
@@ -57,6 +74,9 @@ class CaseRefreshRequestLifecycleService {
     failureDetail: String,
     failedAt: Instant,
   ) {
+    require(request.status == CaseRefreshRequestStatus.PROCESSING) {
+      "Cannot fail request with status ${request.status}; only PROCESSING requests can fail"
+    }
     request.attemptCount += 1
     request.lastFailureCategory = failureCategory
     request.lastFailureDetail = failureDetail

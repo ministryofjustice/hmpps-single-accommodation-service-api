@@ -24,15 +24,20 @@ class CaseRefreshRequestService(
 ) {
 
   @Transactional
-  fun requestLiveRefresh(caseId: UUID) = caseRefreshRequestRepository.upsertLiveRequest(caseId, Instant.now(clock))
+  fun requestLiveRefresh(caseId: UUID) = caseRefreshRequestRepository.upsertRequest(
+    caseId = caseId,
+    priority = CaseRefreshPriority.LIVE,
+    requestedAt = Instant.now(clock),
+  )
 
   // entry point for a bulk refresh (case list pre-load) & not triggered yet
   @Transactional
   fun requestBulkRefresh(caseIds: List<UUID>) {
     if (caseIds.isEmpty()) return
     caseRefreshRequestRepository.insertBulkRequests(
-      caseIds.toTypedArray(),
-      Instant.now(clock),
+      caseIds = caseIds.toTypedArray(),
+      priority = CaseRefreshPriority.BULK,
+      requestedAt = Instant.now(clock),
     )
   }
 

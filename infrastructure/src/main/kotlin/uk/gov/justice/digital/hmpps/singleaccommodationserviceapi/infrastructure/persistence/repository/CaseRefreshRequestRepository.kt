@@ -34,16 +34,16 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         attempt_count,
         next_attempt_at
       )
-      VALUES (:caseId, 1, 'PENDING', 'LIVE', :requestedAt, 0, :requestedAt)
+      VALUES (:caseId, 1, 'PENDING', :priority, :requestedAt, 0, :requestedAt)
       ON CONFLICT (case_id) DO UPDATE
       SET generation = sas_case_refresh_request.generation + 1,
           status = CASE
               WHEN sas_case_refresh_request.status = 'FAILED' THEN 'PENDING'
               ELSE sas_case_refresh_request.status
           END,
-          priority = 'LIVE',
+          priority = :priority,
           requested_at = LEAST(sas_case_refresh_request.requested_at, EXCLUDED.requested_at),
-          next_attempt_at = GREATEST(sas_case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at),
+          next_attempt_at = GREATEST(COALESCE(sas_case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at), EXCLUDED.next_attempt_at),
           failed_at = NULL,
           processing_generation = CASE
               WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.processing_generation
@@ -59,7 +59,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
           END
     """,
   )
-  fun upsertLiveRequest(caseId: UUID, requestedAt: Instant)
+  fun upsertRequest(caseId: UUID, priority: CaseRefreshPriority, requestedAt: Instant)
 
   // bulk refresh for a case that does not have a live request already
   @Modifying
@@ -75,12 +75,12 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         attempt_count,
         next_attempt_at
       )
-      SELECT case_id, 1, 'PENDING', 'BULK', :requestedAt, 0, :requestedAt
+      SELECT case_id, 1, 'PENDING', :prioirty, :requestedAt, 0, :requestedAt
       FROM unnest(cast(:caseIds as uuid[])) AS case_id
       ON CONFLICT (case_id) DO NOTHING
     """,
   )
-  fun insertBulkRequests(caseIds: Array<UUID>, requestedAt: Instant)
+  fun insertBulkRequests(caseIds: Array<UUID>, priority: CaseRefreshPriority, requestedAt: Instant)
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
