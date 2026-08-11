@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.CaseRefreshWorker
@@ -17,6 +18,7 @@ import java.util.UUID
 @Service
 class CaseRefreshRequestService(
   private val caseRefreshRequestRepository: CaseRefreshRequestRepository,
+  private val lifecycleService: CaseRefreshRequestLifecycleService,
   private val retryPolicy: CaseRefreshRetryPolicy,
   private val clock: Clock,
 ) {
@@ -46,35 +48,41 @@ class CaseRefreshRequestService(
       pageable = PageRequest.of(0, maxRequests),
     ).map { request ->
       val claimId = UUID.randomUUID()
-      request.claim(claimId, claimedAt)
+      lifecycleService.claim(request, claimId, claimedAt)
       Claim(request.caseId, request.generation, claimId)
     }
+  }
+
+  @Transactional
+  fun findOwnedRequest(claim: Claim): CaseRefreshRequestEntity? {
+    val request = caseRefreshRequestRepository.findByCaseId(claim.caseId) ?: return null
+    return request.takeIf { lifecycleService.isOwnedBy(it, claim) }
   }
 
   @Transactional
   fun recordFailure(
     claim: Claim,
     failure: CaseRefreshFailure,
-  ): FailureDisposition {
-    val request = caseRefreshRequestRepository.findByCaseId(claim.caseId)
-      ?: return FailureDisposition.IGNORED_STALE_CLAIM
-    if (!request.isOwnedBy(claim.generation, claim.claimId)) {
-      return FailureDisposition.IGNORED_STALE_CLAIM
-    }
-    if (request.generation != claim.generation) {
-      request.releaseForNewerGeneration()
-      return FailureDisposition.HANDLED
-    }
+  ): FailureDisposition = when (val request = findOwnedRequest(claim)) {
+    null -> FailureDisposition.IGNORED_STALE_CLAIM
 
-    val failedAt = Instant.now(clock)
-    return when (val decision = retryPolicy.decide(failure, request.attemptCount, failedAt)) {
-      is CaseRefreshRetryDecision.RetryAt -> {
-        request.scheduleRetry(failure.category, failure.detail, decision.nextAttemptAt)
+    else -> {
+      if (request.generation != claim.generation) {
+        lifecycleService.releaseForNewerGeneration(request)
         FailureDisposition.HANDLED
-      }
-      CaseRefreshRetryDecision.FailPermanently -> {
-        request.failPermanently(failure.category, failure.detail, failedAt)
-        FailureDisposition.HANDLED
+      } else {
+        val failedAt = Instant.now(clock)
+        when (val decision = retryPolicy.decide(failure, request.attemptCount, failedAt)) {
+          is CaseRefreshRetryDecision.RetryAt -> {
+            lifecycleService.scheduleRetry(request, failure.category, failure.detail, decision.nextAttemptAt)
+            FailureDisposition.HANDLED
+          }
+
+          CaseRefreshRetryDecision.FailPermanently -> {
+            lifecycleService.failPermanently(request, failure.category, failure.detail, failedAt)
+            FailureDisposition.HANDLED
+          }
+        }
       }
     }
   }

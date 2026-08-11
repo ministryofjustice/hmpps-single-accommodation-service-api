@@ -28,65 +28,7 @@ class CaseRefreshRequestEntity(
   var lastFailureCategory: CaseRefreshFailureCategory?,
   var lastFailureDetail: String?,
   var failedAt: Instant?,
-) {
-  fun claim(claimId: UUID, claimedAt: Instant) {
-    status = CaseRefreshRequestStatus.PROCESSING
-    processingGeneration = generation
-    this.claimedAt = claimedAt
-    this.claimId = claimId
-  }
-
-  fun isOwnedBy(generation: Long, claimId: UUID): Boolean = status == CaseRefreshRequestStatus.PROCESSING &&
-    processingGeneration == generation &&
-    this.claimId == claimId
-
-  fun releaseForNewerGeneration() {
-    status = CaseRefreshRequestStatus.PENDING
-    clearClaim()
-  }
-
-  fun releaseAfterSuccess() {
-    status = CaseRefreshRequestStatus.PENDING
-    attemptCount = 0
-    lastFailureCategory = null
-    lastFailureDetail = null
-    clearClaim()
-  }
-
-  fun scheduleRetry(
-    failureCategory: CaseRefreshFailureCategory,
-    failureDetail: String,
-    nextAttemptAt: Instant,
-  ) {
-    attemptCount += 1
-    lastFailureCategory = failureCategory
-    lastFailureDetail = failureDetail
-    failedAt = null
-    status = CaseRefreshRequestStatus.PENDING
-    this.nextAttemptAt = nextAttemptAt
-    clearClaim()
-  }
-
-  fun failPermanently(
-    failureCategory: CaseRefreshFailureCategory,
-    failureDetail: String,
-    failedAt: Instant,
-  ) {
-    attemptCount += 1
-    lastFailureCategory = failureCategory
-    lastFailureDetail = failureDetail
-    this.failedAt = failedAt
-    status = CaseRefreshRequestStatus.FAILED
-    nextAttemptAt = null
-    clearClaim()
-  }
-
-  private fun clearClaim() {
-    processingGeneration = null
-    claimedAt = null
-    claimId = null
-  }
-}
+)
 
 enum class CaseRefreshRequestStatus {
   PENDING,

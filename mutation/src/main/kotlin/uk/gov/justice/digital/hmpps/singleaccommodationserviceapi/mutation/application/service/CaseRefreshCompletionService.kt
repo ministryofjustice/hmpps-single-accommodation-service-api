@@ -37,31 +37,31 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 class CaseRefreshCompletionService(
   private val caseRepository: CaseRepository,
   private val caseRefreshRequestRepository: CaseRefreshRequestRepository,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
+  private val lifecycle: CaseRefreshRequestLifecycleService,
 ) {
 
   @Transactional
   fun completeRefresh(
     claim: CaseRefreshRequestService.Claim,
     projection: CaseMutationOrchestrationDto,
-  ): Result {
-    val request = caseRefreshRequestRepository.findByCaseId(claim.caseId)
-      ?: return Result.IGNORED_STALE_CLAIM
-    if (!request.isOwnedBy(claim.generation, claim.claimId)) {
-      return Result.IGNORED_STALE_CLAIM
-    }
+  ): Result = when (val request = caseRefreshRequestService.findOwnedRequest(claim)) {
+    null -> Result.IGNORED_STALE_CLAIM
 
-    val caseEntity = requireNotNull(caseRepository.findByIdOrNull(claim.caseId)) {
-      "Case not found while completing refresh [caseId=${claim.caseId}]"
-    }
-    val snapshot = CaseMapper.toAggregate(entity = caseEntity).upsertCase(projection).snapshot()
-    caseRepository.save(CaseMapper.merge(caseEntity, snapshot))
+    else -> {
+      val caseEntity = requireNotNull(caseRepository.findByIdOrNull(claim.caseId)) {
+        "Case not found while completing refresh [caseId=${claim.caseId}]"
+      }
+      val snapshot = CaseMapper.toAggregate(entity = caseEntity).upsertCase(projection).snapshot()
+      caseRepository.save(CaseMapper.merge(caseEntity, snapshot))
 
-    if (request.generation == claim.generation) {
-      caseRefreshRequestRepository.delete(request)
-    } else {
-      request.releaseAfterSuccess()
+      if (request.generation == claim.generation) {
+        caseRefreshRequestRepository.delete(request)
+      } else {
+        lifecycle.releaseAfterSuccess(request)
+      }
+      Result.APPLIED
     }
-    return Result.APPLIED
   }
 
   enum class Result {

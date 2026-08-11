@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.unit.persistence.entity
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.service
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -6,10 +6,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestLifecycleService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import java.time.Instant
 import java.util.UUID
 
-class CaseRefreshRequestEntityTest {
+class CaseRefreshRequestLifecycleServiceTest {
+  private val lifecycle = CaseRefreshRequestLifecycleService()
   private val now: Instant = Instant.parse("2026-07-20T10:00:00Z")
   private val claimId: UUID = UUID.randomUUID()
 
@@ -17,23 +20,24 @@ class CaseRefreshRequestEntityTest {
   fun `claim records ownership of the current generation`() {
     val request = refreshRequest()
 
-    request.claim(claimId, now)
+    lifecycle.claim(request, claimId, now)
 
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     assertThat(request.processingGeneration).isEqualTo(1)
     assertThat(request.claimedAt).isEqualTo(now)
     assertThat(request.claimId).isEqualTo(claimId)
-    assertThat(request.isOwnedBy(1, claimId)).isTrue()
-    assertThat(request.isOwnedBy(1, UUID.randomUUID())).isFalse()
+    assertThat(lifecycle.isOwnedBy(request, claim(request, claimId))).isTrue()
+    assertThat(lifecycle.isOwnedBy(request, claim(request, UUID.randomUUID()))).isFalse()
   }
 
   @Test
   fun `schedule retry clears claim and records next attempt with failure details`() {
     val request = refreshRequest()
-    request.claim(claimId, now)
+    lifecycle.claim(request, claimId, now)
     val nextAttemptAt = now.plusSeconds(300)
 
-    request.scheduleRetry(
+    lifecycle.scheduleRetry(
+      request = request,
       failureCategory = CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR,
       failureDetail = "Tier returned 500",
       nextAttemptAt = nextAttemptAt,
@@ -51,11 +55,12 @@ class CaseRefreshRequestEntityTest {
 
   @Test
   fun `permanent failure becomes inspectable terminal work`() {
-    val request = refreshRequest(attemptCount = 2)
-    request.claim(claimId, now)
+    val request = refreshRequest().apply { attemptCount = 2 }
+    lifecycle.claim(request, claimId, now)
     val failedAt = now.plusSeconds(1)
 
-    request.failPermanently(
+    lifecycle.failPermanently(
+      request = request,
       failureCategory = CaseRefreshFailureCategory.UPSTREAM_TIMEOUT,
       failureDetail = "Tier timed out",
       failedAt = failedAt,
@@ -74,12 +79,12 @@ class CaseRefreshRequestEntityTest {
   @Test
   fun `release for newer generation retains the next attempt set by the trigger`() {
     val newerRequestAt = now.plusSeconds(1)
-    val request = refreshRequest(nextAttemptAt = newerRequestAt)
-    request.claim(claimId, now)
+    val request = refreshRequest().apply { nextAttemptAt = newerRequestAt }
+    lifecycle.claim(request, claimId, now)
     request.generation = 2
     request.nextAttemptAt = newerRequestAt
 
-    request.releaseForNewerGeneration()
+    lifecycle.releaseForNewerGeneration(request)
 
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     assertThat(request.generation).isEqualTo(2)
@@ -91,16 +96,16 @@ class CaseRefreshRequestEntityTest {
   @Test
   fun `release after success clears the failure history and keeps the next attempt`() {
     val newerRequestAt = now.plusSeconds(1)
-    val request = refreshRequest(
-      attemptCount = 2,
-      nextAttemptAt = newerRequestAt,
-      lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR,
-      lastFailureDetail = "Tier returned 500",
-    )
-    request.claim(claimId, now)
+    val request = refreshRequest().apply {
+      attemptCount = 2
+      nextAttemptAt = newerRequestAt
+      lastFailureCategory = CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR
+      lastFailureDetail = "Tier returned 500"
+    }
+    lifecycle.claim(request, claimId, now)
     request.generation = 2
 
-    request.releaseAfterSuccess()
+    lifecycle.releaseAfterSuccess(request)
 
     assertThat(request.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     assertThat(request.generation).isEqualTo(2)
@@ -112,26 +117,28 @@ class CaseRefreshRequestEntityTest {
     assertThat(request.processingGeneration).isNull()
   }
 
-  private fun refreshRequest(
-    status: CaseRefreshRequestStatus = CaseRefreshRequestStatus.PENDING,
-    attemptCount: Int = 0,
-    nextAttemptAt: Instant? = now,
-    lastFailureCategory: CaseRefreshFailureCategory? = null,
-    lastFailureDetail: String? = null,
-    failedAt: Instant? = null,
-  ) = CaseRefreshRequestEntity(
+  private fun claim(
+    request: CaseRefreshRequestEntity,
+    claimId: UUID,
+  ): CaseRefreshRequestService.Claim = CaseRefreshRequestService.Claim(
+    caseId = request.caseId,
+    generation = request.generation,
+    claimId = claimId,
+  )
+
+  private fun refreshRequest() = CaseRefreshRequestEntity(
     caseId = UUID.randomUUID(),
     generation = 1,
     processingGeneration = null,
-    status = status,
+    status = CaseRefreshRequestStatus.PENDING,
     priority = CaseRefreshPriority.LIVE,
     requestedAt = now,
     claimedAt = null,
     claimId = null,
-    attemptCount = attemptCount,
-    nextAttemptAt = nextAttemptAt,
-    lastFailureCategory = lastFailureCategory,
-    lastFailureDetail = lastFailureDetail,
-    failedAt = failedAt,
+    attemptCount = 0,
+    nextAttemptAt = now,
+    lastFailureCategory = null,
+    lastFailureDetail = null,
+    failedAt = null,
   )
 }
