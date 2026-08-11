@@ -4,7 +4,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -26,7 +24,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
@@ -35,10 +32,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
@@ -49,16 +43,10 @@ class CaseQueryServiceTest {
   lateinit var caseOrchestrationService: CaseOrchestrationService
 
   @MockK
-  lateinit var dutyToReferQueryService: DutyToReferQueryService
-
-  @MockK
   lateinit var userService: UserService
 
   @MockK
   lateinit var caseRepository: CaseRepository
-
-  @MockK(relaxed = true)
-  lateinit var eligibilityService: EligibilityService
 
   @InjectMockKs
   lateinit var caseQueryService: CaseQueryService
@@ -346,7 +334,6 @@ class CaseQueryServiceTest {
       riskLevel = null,
       pncReference = null,
       assignedTo = null,
-      actions = emptyList(),
       userAccess = UserAccess.LIMITED,
       limitedAccess = true,
     )
@@ -354,70 +341,6 @@ class CaseQueryServiceTest {
     @BeforeEach
     fun setUp() {
       every { userService.getUsername() } returns Username(username)
-    }
-
-    @Test
-    fun `does not call eligibility service when UserAccess is LIMITED`() {
-      val limited = listOf(buildLimitedPersonDto(crn = "limited"))
-      every { caseRepository.mapByCrns(any()) } returns emptyMap()
-      caseQueryService.getCases(limited)
-      verify(exactly = 0) {
-        eligibilityService.getEligibility(any(), any(), any(), any())
-      }
-    }
-
-    @Test
-    fun `calls eligibility service for full person`() {
-      val person = personDtos[0] as FullPersonDto
-      val crn = person.crn
-
-      every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
-      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
-      every {
-        dutyToReferQueryService.getDutyToRefer(
-          any(CaseEntity::class),
-          any(String::class),
-        )
-      } returns buildDutyToReferDto(crn)
-
-      caseQueryService.getCases(listOf(person))
-
-      verify {
-        eligibilityService.getEligibility(
-          crn = crn,
-          gender = person.gender,
-          caseEntity = any(),
-          dutyToRefer = any(),
-        )
-      }
-    }
-
-    @Test
-    fun `calls eligibility service for FULL person with limited access`() {
-      val person = personDtos[3] as FullPersonDto
-      val crn = person.crn
-
-      every { caseRepository.mapByCrns(any()) } returns mapOf(crn to buildCaseEntity { withCrn(crn) })
-      every { eligibilityService.getEligibility(any(), any(), any(), any()) } returns buildEligibilityDto(crn)
-      every {
-        dutyToReferQueryService.getDutyToRefer(
-          any(CaseEntity::class),
-          any(String::class),
-        )
-      } returns buildDutyToReferDto(crn)
-
-      val result = caseQueryService.getCases(listOf(person))
-
-      assertThat(result.single().limitedAccess).isTrue
-
-      verify {
-        eligibilityService.getEligibility(
-          crn = crn,
-          gender = person.gender,
-          caseEntity = any(),
-          dutyToRefer = any(),
-        )
-      }
     }
 
     @Test
@@ -453,38 +376,10 @@ class CaseQueryServiceTest {
       val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
       val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
 
-      val dutyToReferDto1 = buildDutyToReferDto(crn = crnOne)
-      val dutyToReferDto2 = buildDutyToReferDto(crn = crnTwo)
-
-      val eligibilityDto1 = buildEligibilityDto(
-        crn = crnOne,
-      )
-      val eligibilityDto2 = buildEligibilityDto(
-        crn = crnTwo,
-      )
-
       val caseDto1 = buildCaseDto(crn = crnOne)
       val caseDto2 = buildCaseDto(crn = crnTwo)
 
-      every { dutyToReferQueryService.getDutyToRefer(caseEntity1, crnOne) } returns dutyToReferDto1
-      every { dutyToReferQueryService.getDutyToRefer(caseEntity2, crnTwo) } returns dutyToReferDto2
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
-      every {
-        eligibilityService.getEligibility(
-          personDto1.crn,
-          personDto1.gender,
-          caseEntity1,
-          dutyToReferDto1,
-        )
-      } returns eligibilityDto1
-      every {
-        eligibilityService.getEligibility(
-          personDto2.crn,
-          personDto2.gender,
-          caseEntity2,
-          dutyToReferDto2,
-        )
-      } returns eligibilityDto2
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
