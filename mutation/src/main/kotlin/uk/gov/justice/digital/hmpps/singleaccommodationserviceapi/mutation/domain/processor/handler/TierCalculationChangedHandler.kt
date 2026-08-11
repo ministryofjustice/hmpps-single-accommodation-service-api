@@ -34,14 +34,20 @@ class TierCalculationChangedHandler(
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     log.info("Processing tier calculation event [inboxEventId={}]", inboxEvent.id)
 
+    if (caseRefreshRequestService == null) return InboxEventHandler.Result.IGNORED
+
     val crn = requireNotNull(getPartitionKey(inboxEvent)) {
       "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
 
-    val case = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
+    return when (val case = caseRepository.findByCrn(crn)) {
+      null -> InboxEventHandler.Result.IGNORED
 
-    caseRefreshRequestService?.requestLiveRefresh(case.id)
-    log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-    return InboxEventHandler.Result.PROCESSED
+      else -> {
+        caseRefreshRequestService.requestLiveRefresh(case.id)
+        log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
+        InboxEventHandler.Result.PROCESSED
+      }
+    }
   }
 }
