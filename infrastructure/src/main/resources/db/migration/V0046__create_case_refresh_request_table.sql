@@ -17,22 +17,6 @@ CREATE TABLE sas_case_refresh_request
     CONSTRAINT chk_sas_case_refresh_request_status
         CHECK (status IN ('PENDING', 'PROCESSING', 'FAILED')),
 
-    CONSTRAINT chk_sas_case_refresh_request_priority
-        CHECK (priority IN ('LIVE', 'BULK')),
-
-    CONSTRAINT chk_sas_case_refresh_request_failure_category
-        CHECK (
-            last_failure_category IS NULL
-                OR last_failure_category IN (
-                                             'CURRENT_TIER_NOT_FOUND',
-                                             'UPSTREAM_CLIENT_ERROR',
-                                             'UPSTREAM_SERVER_ERROR',
-                                             'UPSTREAM_TIMEOUT',
-                                             'UPSTREAM_UNEXPECTED_ERROR',
-                                             'UNEXPECTED_ERROR'
-                )
-            ),
-
     CONSTRAINT chk_sas_case_refresh_request_state
         CHECK (
             (

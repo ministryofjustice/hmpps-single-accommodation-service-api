@@ -84,10 +84,6 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
     val case = caseRepository.save(
       buildCaseEntity(
         tierScore = "A1",
-        cas1ApplicationId = UUID.randomUUID(),
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_PLACEMENT,
-        cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.AWAITING_MATCH,
-        cas1ApplicationPlacementStatus = Cas1PlacementStatus.UPCOMING,
       ) {
         withCrn(crn)
         withPrisonNumber(prisonNumber)
@@ -95,53 +91,33 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
     TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
-    val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-      placementStatus = Cas1PlacementStatus.ARRIVED,
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn, cas1Application)
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber, buildPrisoner(prisonNumber))
 
     caseRefreshWorker.process()
 
     val refreshedCase = caseRepository.findByCrn(crn)!!
     assertThat(refreshedCase.tierScore).isEqualTo("A3")
-    assertThat(refreshedCase.cas1ApplicationId).isEqualTo(cas1Application.id)
-    assertThat(refreshedCase.cas1ApplicationApplicationStatus).isEqualTo(cas1Application.applicationStatus)
-    assertThat(refreshedCase.cas1ApplicationRequestForPlacementStatus).isEqualTo(cas1Application.requestForPlacementStatus)
-    assertThat(refreshedCase.cas1ApplicationPlacementStatus).isEqualTo(cas1Application.placementStatus)
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
     sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/v2/crn/$crn/tier")))
     sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/person/probation/$crn")))
-    sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/cas1/external/cases/$crn/premises/current")))
-    sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/cas3/external/cases/$crn/premises/current")))
-    sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable")))
-    sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable")))
     sasWiremock.verify(1, getRequestedFor(urlPathEqualTo("/prisoner/$prisonNumber")))
   }
 
   @Test
   fun `retains the previous projection and refresh request when an upstream service fails`() {
-    val originalApplicationId = UUID.randomUUID()
     val case = caseRepository.save(
       buildCaseEntity(
         tierScore = "A1",
-        cas1ApplicationId = originalApplicationId,
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crn) },
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
+    TierStubs.getTierServerErrorResponse(crn)
     ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
 
     val result = caseRefreshWorker.process()
 
     val unchangedCase = caseRepository.findByCrn(crn)!!
     assertThat(unchangedCase.tierScore).isEqualTo("A1")
-    assertThat(unchangedCase.cas1ApplicationId).isEqualTo(originalApplicationId)
-    assertThat(unchangedCase.cas1ApplicationApplicationStatus).isEqualTo(Cas1ApplicationStatus.AWAITING_ASSESSMENT)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(1)
     assertThat(result.refreshedCount).isZero()
     assertThat(result.failedCount).isEqualTo(1)
@@ -183,7 +159,6 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
     val case = caseRepository.save(
       buildCaseEntity(
         tierScore = "A1",
-        cas1ApplicationApplicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
       ) { withCrn(crn) },
     )
     caseRefreshRequestService.requestLiveRefresh(case.id)
@@ -196,13 +171,11 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
         .isEqualTo(CaseRefreshRequestStatus.PROCESSING)
     }
     val concurrentlyUpdatedCase = caseRepository.findByCrn(crn)!!
-    concurrentlyUpdatedCase.cas1ApplicationApplicationStatus = Cas1ApplicationStatus.REJECTED
     caseRepository.saveAndFlush(concurrentlyUpdatedCase)
     workerRun.get(5, TimeUnit.SECONDS)
 
     val refreshedCase = caseRepository.findByCrn(crn)!!
     assertThat(refreshedCase.tierScore).isEqualTo("A3")
-    assertThat(refreshedCase.cas1ApplicationApplicationStatus).isNull()
   }
 
   @Test
@@ -239,8 +212,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
   fun `moves repeatedly failing work to terminal failure and reopens it for a new event`() {
     val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+    TierStubs.getTierServerErrorResponse(crn)
 
     caseRefreshWorker.process()
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
@@ -274,8 +246,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
   fun `retains the backoff and attempt count when a new event arrives for failing work`() {
     val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+    TierStubs.getTierServerErrorResponse(crn)
 
     caseRefreshWorker.process()
 
@@ -376,8 +347,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
   fun `bulk preload does not reopen terminally failed work`() {
     val case = caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
     caseRefreshRequestService.requestLiveRefresh(case.id)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A3"))
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn)
+    TierStubs.getTierServerErrorResponse(crn)
 
     caseRefreshWorker.process()
     clock.freezeAt(now.plus(Duration.ofMinutes(1)))
@@ -410,7 +380,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
           crn = crn,
           cpr = null,
           tier = buildTier(tierScore = "A9"),
-          cas1Application = null,
+          prisoner = null,
         ),
       ),
     ).isEqualTo(CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM)
