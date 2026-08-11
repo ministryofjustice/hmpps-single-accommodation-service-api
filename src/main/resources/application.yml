@@ -88,8 +88,8 @@ case-list:
   onboarded-teams: []
 
 case-refresh:
+  enabled: true
   worker:
-    enabled: true
     fixed-delay: 500ms
     max-requests-per-run: 10
     max-attempts: 3
