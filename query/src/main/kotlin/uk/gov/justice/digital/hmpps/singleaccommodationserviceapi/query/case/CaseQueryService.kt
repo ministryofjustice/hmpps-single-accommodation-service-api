@@ -15,8 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
 @Service
@@ -24,8 +22,6 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  private val eligibilityService: EligibilityService,
-  private val dutyToReferQueryService: DutyToReferQueryService,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
@@ -69,15 +65,7 @@ class CaseQueryService(
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
 
         is FullPersonDto -> {
-          val caseEntity = caseEntitiesByCrn[personDto.crn]
-          val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(it, personDto.crn) }
-          val eligibility = eligibilityService.getEligibility(
-            crn = personDto.crn,
-            gender = personDto.gender,
-            caseEntity = caseEntity,
-            dutyToRefer = dutyToRefer,
-          )
-          personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn], eligibility = eligibility)
+          personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn])
         }
       }
     }

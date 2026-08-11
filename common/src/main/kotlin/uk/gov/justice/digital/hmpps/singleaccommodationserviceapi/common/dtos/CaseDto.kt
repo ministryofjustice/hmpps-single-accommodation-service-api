@@ -16,7 +16,6 @@ data class CaseDto(
   val riskLevel: RiskLevel? = null,
   val pncReference: String? = null,
   val assignedTo: AssignedToDto? = null,
-  val actions: List<CaseAction> = emptyList(),
   val userAccess: UserAccess,
   val limitedAccess: Boolean?,
 )

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -37,14 +36,12 @@ object CaseTransformer {
     pncReference = cpr?.identifiers?.pncs?.firstOrNull(),
     assignedTo = person.assignedTo,
     photoUrl = null,
-    actions = emptyList(),
     userAccess = userAccess,
     limitedAccess = limitedAccess,
   )
 
   fun PersonDto.toCaseDto(
     caseEntity: CaseEntity?,
-    eligibility: EligibilityDto?,
   ): CaseDto = when (this) {
     is FullPersonDto -> {
       CaseDto(
@@ -59,7 +56,6 @@ object CaseTransformer {
         assignedTo = assignedTo,
         photoUrl = null,
         tierScore = caseEntity?.tierScore,
-        actions = eligibility?.caseActions.orEmpty(),
         userAccess = UserAccess.FULL,
         limitedAccess = this.limitedAccess,
       )
