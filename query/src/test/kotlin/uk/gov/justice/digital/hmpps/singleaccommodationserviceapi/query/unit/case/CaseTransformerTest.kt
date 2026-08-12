@@ -2,9 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -23,157 +20,162 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import java.time.LocalDate
 import java.util.UUID
-import java.util.stream.Stream
 
 class CaseTransformerTest {
-
-  private val crn: String = UUID.randomUUID().toString()
+  private val crn = UUID.randomUUID().toString()
 
   @Test
-  fun `returns UserAccess of UKNOWN when personDto is missing`() {
+  fun `returns UserAccess of UNKNOWN when personDto is missing`() {
     val result = toCaseDto(crn = crn, person = null, cpr = null, tier = null)
+
     assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.userAccess).isEqualTo(UserAccess.UNKNOWN)
+    assertUserAccess(result, UserAccess.UNKNOWN)
   }
 
   @Test
   fun `returns UserAccess FULL when personDto is FullPersonDto`() {
     val person = buildFullPersonDto(crn)
-    val fromOrchestrationDto = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    assertThat(fromOrchestrationDto.crn).isEqualTo(crn)
-    assertThat(fromOrchestrationDto.userAccess).isEqualTo(UserAccess.FULL)
 
+    val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     val fromSasAndDelius = person.toCaseDto(caseEntity = null)
-    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
+
+    assertThat(fromOrchestration.crn).isEqualTo(crn)
+    assertUserAccess(fromOrchestration, UserAccess.FULL)
+    assertUserAccess(fromSasAndDelius, UserAccess.FULL)
   }
 
   @Test
   fun `returns UserAccess of FULL when personDto is FullPersonDto and limitedAccess is true`() {
     val person = buildFullPersonDto(crn, limitedAccess = true)
-    val result = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
-    assertThat(result.limitedAccess).isTrue
 
+    val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     val fromSasAndDelius = person.toCaseDto(caseEntity = null)
-    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
-    assertThat(result.limitedAccess).isTrue
+
+    assertThat(fromOrchestration.crn).isEqualTo(crn)
+    assertUserAccess(fromOrchestration, UserAccess.FULL, limitedAccess = true)
+    assertUserAccess(fromSasAndDelius, UserAccess.FULL, limitedAccess = true)
   }
 
   @Test
   fun `returns UserAccess of LIMITED when personDto is LimitedPersonDto`() {
     val person = buildLimitedPersonDto(crn)
-    val result = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.userAccess).isEqualTo(UserAccess.LIMITED)
-    assertThat(result.limitedAccess).isTrue()
 
+    val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     val fromSasAndDelius = person.toCaseDto(caseEntity = null)
-    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.LIMITED)
-    assertThat(fromSasAndDelius.limitedAccess).isTrue
+
+    assertThat(fromOrchestration.crn).isEqualTo(crn)
+    assertUserAccess(fromOrchestration, UserAccess.LIMITED, limitedAccess = true)
+    assertUserAccess(fromSasAndDelius, UserAccess.LIMITED, limitedAccess = true)
   }
 
   @Test
   fun `uses crn and prisonNumber from personDto`() {
-    val person = buildFullPersonDto(crn = crn, nomsNumber = "prisonNumber1")
+    val prisonNumber = "prisonNumber1"
+    val person = buildFullPersonDto(crn = crn, nomsNumber = prisonNumber)
     val identifiers = buildIdentifiers(
       crns = listOf(UUID.randomUUID().toString(), UUID.randomUUID().toString(), crn),
-      prisonNumbers = listOf(UUID.randomUUID().toString(), "prisonNumber1"),
+      prisonNumbers = listOf(UUID.randomUUID().toString(), prisonNumber),
     )
-    val result =
+
+    val fromOrchestration =
       toCaseDto(crn = crn, person = person, cpr = buildCorePersonRecord(identifiers = identifiers), tier = null)
-    assertThat(result.crn).isEqualTo(crn)
-    assertThat(result.prisonNumber).isEqualTo("prisonNumber1")
-    assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
+    assertThat(fromOrchestration.crn).isEqualTo(crn)
+    assertThat(fromOrchestration.prisonNumber).isEqualTo(prisonNumber)
+    assertUserAccess(fromOrchestration, UserAccess.FULL)
 
     val fromSasAndDelius = person.toCaseDto(caseEntity = null)
     assertThat(fromSasAndDelius.crn).isEqualTo(crn)
-    assertThat(fromSasAndDelius.prisonNumber).isEqualTo("prisonNumber1")
-    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
+    assertThat(fromSasAndDelius.prisonNumber).isEqualTo(prisonNumber)
+    assertUserAccess(fromSasAndDelius, UserAccess.FULL)
   }
 
-  @ParameterizedTest
-  @MethodSource(
-    "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case.CaseTransformerTest#caseTransformationCases",
-  )
-  fun `should transform from case orchestration dto to case dto`(
-    caseOrchestrationDto: CaseOrchestrationDto,
-    expectedCaseDto: CaseDto,
-  ) {
-    assertThat(
-      toCaseDto(
-        crn = CRN,
-        cpr = caseOrchestrationDto.cpr,
-        tier = caseOrchestrationDto.tier,
-        person = toPersonDto(caseOrchestrationDto.case!!),
+  @Test
+  fun `should transform case orchestration dto to case dto when all data supplied`() {
+    assertCaseOrchestrationTransform(orchestratedCaseDto, expectedCaseDto)
+  }
+
+  @Test
+  fun `should transform case orchestration dto to case dto when cpr identifiers are missing`() {
+    val caseWithNoIdentifiers = orchestratedCaseDto.copy(
+      cpr = buildCorePersonRecord(identifiers = null),
+    )
+
+    assertCaseOrchestrationTransform(caseWithNoIdentifiers, expectedCaseWithoutPnc)
+  }
+
+  @Test
+  fun `should transform case orchestration dto to case dto when prison and pnc identifiers are empty`() {
+    val caseWithEmptyPrisonAndPncIdentifiers = orchestratedCaseDto.copy(
+      cpr = buildCorePersonRecord(
+        identifiers = buildIdentifiers(
+          crns = listOf(crn),
+          prisonNumbers = emptyList(),
+          pncs = emptyList(),
+        ),
       ),
-    ).isEqualTo(expectedCaseDto)
+    )
+
+    assertCaseOrchestrationTransform(caseWithEmptyPrisonAndPncIdentifiers, expectedCaseWithoutPnc)
   }
 
   @Test
   fun `should transform from case entity and person dto to case dto`() {
-    val caseEntity = buildCaseEntity { withCrn(CRN) }
+    val caseEntity = buildCaseEntity { withCrn(crn) }
     val name = buildName()
-    val personDto = buildFullPersonDto(crn = CRN, name = name)
-    val caseDto = buildCaseDto(
-      crn = CRN,
+    val personDto = buildFullPersonDto(crn = crn, name = name)
+
+    val expected = buildCaseDto(
+      crn = crn,
       forename = name.forename,
       middleNames = name.middleName,
       surname = name.surname,
     )
 
-    assertThat(personDto.toCaseDto(caseEntity = caseEntity)).isEqualTo(caseDto)
+    assertThat(personDto.toCaseDto(caseEntity = caseEntity)).isEqualTo(expected)
   }
 
-  private companion object {
-    private const val CRN = "X12345"
+  private fun assertUserAccess(caseDto: CaseDto, expectedAccess: UserAccess, limitedAccess: Boolean? = null) {
+    assertThat(caseDto.userAccess).isEqualTo(expectedAccess)
+    limitedAccess?.let { assertThat(caseDto.limitedAccess).isEqualTo(it) }
+  }
 
-    private val caseDtoWhenAllDataSupplied = CaseDto(
-      forename = "First",
-      middleNames = "Middle",
-      surname = "Last",
-      dateOfBirth = LocalDate.of(2000, 12, 3),
-      crn = CRN,
-      prisonNumber = "PRI1",
-      tierScore = "A1",
-      riskLevel = RiskLevel.VERY_HIGH,
-      pncReference = "Some PNC Reference",
-      assignedTo = AssignedToDto(
-        forename = "First",
-        surname = "Last",
-        username = "user1",
-      ),
-      photoUrl = null,
-      userAccess = UserAccess.FULL,
-      limitedAccess = false,
+  private fun assertCaseOrchestrationTransform(
+    caseOrchestrationDto: CaseOrchestrationDto,
+    expectedCaseDto: CaseDto,
+  ) {
+    val result = toCaseDto(
+      crn = crn,
+      cpr = caseOrchestrationDto.cpr,
+      tier = caseOrchestrationDto.tier,
+      person = toPersonDto(caseOrchestrationDto.case!!),
     )
 
-    @JvmStatic
-    fun caseTransformationCases(): Stream<Arguments> {
-      val caseWithAllData = buildCaseOrchestrationDto(crn = CRN)
-      val caseWithCprWithNoIdentifiers = caseWithAllData.copy(
-        cpr = buildCorePersonRecord(identifiers = null),
-      )
-      val caseWithCprWithEmptyPrisonNumberAndPncsIdentifiers = caseWithAllData.copy(
-        cpr = buildCorePersonRecord(
-          identifiers = buildIdentifiers(
-            crns = listOf(CRN),
-            prisonNumbers = emptyList(),
-            pncs = emptyList(),
-          ),
-        ),
-      )
-
-      val expectedCaseWithoutPrisonNumberData = caseDtoWhenAllDataSupplied.copy(
-        prisonNumber = null,
-        pncReference = null,
-      )
-
-      return Stream.of(
-        Arguments.of(caseWithAllData, caseDtoWhenAllDataSupplied),
-        Arguments.of(caseWithCprWithNoIdentifiers, expectedCaseWithoutPrisonNumberData),
-        Arguments.of(caseWithCprWithEmptyPrisonNumberAndPncsIdentifiers, expectedCaseWithoutPrisonNumberData),
-      )
-    }
+    assertThat(result).isEqualTo(expectedCaseDto)
   }
+
+  private val expectedCaseDto = CaseDto(
+    forename = "First",
+    middleNames = "Middle",
+    surname = "Last",
+    dateOfBirth = LocalDate.of(2000, 12, 3),
+    crn = crn,
+    prisonNumber = "YY09876Y",
+    tierScore = "A1",
+    riskLevel = RiskLevel.VERY_HIGH,
+    pncReference = "Some PNC Reference",
+    assignedTo = AssignedToDto(
+      forename = "First",
+      surname = "Last",
+      username = "user1",
+    ),
+    photoUrl = null,
+    userAccess = UserAccess.FULL,
+    limitedAccess = false,
+  )
+
+  private val orchestratedCaseDto = buildCaseOrchestrationDto(crn = crn)
+
+  private val expectedCaseWithoutPnc = expectedCaseDto.copy(
+    pncReference = null,
+  )
 }
