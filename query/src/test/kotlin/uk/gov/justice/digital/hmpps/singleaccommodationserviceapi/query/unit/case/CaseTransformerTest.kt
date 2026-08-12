@@ -73,6 +73,28 @@ class CaseTransformerTest {
     assertThat(fromSasAndDelius.limitedAccess).isTrue
   }
 
+  @Test
+  fun `uses crn and prisonNumber from personDto`() {
+    val person = buildFullPersonDto(crn = crn, nomsNumber = "prisonNumber1")
+    val identifiers = buildIdentifiers(
+      crns = listOf(UUID.randomUUID().toString(), UUID.randomUUID().toString(), crn),
+      prisonNumbers = listOf(
+        UUID.randomUUID().toString(),
+        "prisonNumber1",
+      ),
+    )
+    val result =
+      toCaseDto(crn = crn, person = person, cpr = buildCorePersonRecord(identifiers = identifiers), tier = null)
+    assertThat(result.crn).isEqualTo(crn)
+    assertThat(result.prisonNumber).isEqualTo("prisonNumber1")
+    assertThat(result.userAccess).isEqualTo(UserAccess.FULL)
+
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
+    assertThat(fromSasAndDelius.crn).isEqualTo(crn)
+    assertThat(fromSasAndDelius.prisonNumber).isEqualTo("prisonNumber1")
+    assertThat(fromSasAndDelius.userAccess).isEqualTo(UserAccess.FULL)
+  }
+
   @ParameterizedTest
   @MethodSource(
     "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case.CaseTransformerTest#caseTransformationCases",
