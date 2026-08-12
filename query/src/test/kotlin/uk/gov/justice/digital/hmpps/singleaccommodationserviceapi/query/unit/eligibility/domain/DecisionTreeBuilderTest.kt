@@ -236,7 +236,7 @@ class DecisionTreeBuilderTest {
   }
 
   @Test
-  fun `outcomeWithFailureResults carries context`() {
+  fun `outcomeWithFailureReasons carries context`() {
     val builder = DecisionTreeBuilder(engine)
     val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
     val context = EvaluationContext(
