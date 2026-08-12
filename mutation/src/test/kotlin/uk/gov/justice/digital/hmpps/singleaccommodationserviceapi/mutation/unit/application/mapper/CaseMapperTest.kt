@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import java.time.LocalDate
 import java.util.UUID
 
 class CaseMapperTest {
@@ -20,6 +21,9 @@ class CaseMapperTest {
     val caseEntity = buildCaseEntity(
       tierScore = "A1",
       hasSyncedCprProposedAccommodation = true,
+      firstName = "First",
+      lastName = "Last",
+      dateOfBirth = LocalDate.of(2000, 12, 3),
     )
     val caseAggregate = CaseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
@@ -28,6 +32,9 @@ class CaseMapperTest {
       { assertThat(snapshot.id).isEqualTo(caseEntity.id) },
       { assertThat(snapshot.tierScore).isNotNull.isEqualTo(caseEntity.tierScore) },
       { assertThat(snapshot.hasSyncedCprProposedAccommodation).isTrue() },
+      { assertThat(snapshot.firstName).isEqualTo(caseEntity.firstName) },
+      { assertThat(snapshot.lastName).isEqualTo(caseEntity.lastName) },
+      { assertThat(snapshot.dateOfBirth).isEqualTo(caseEntity.dateOfBirth) },
     )
   }
 
@@ -72,8 +79,12 @@ class CaseMapperTest {
       identifier to IdentifierType.CRN,
     )
 
+    val dateOfBirth = LocalDate.of(1995, 3, 20)
     caseAggregate.upsertCase(
       tierScore = "A3S",
+      firstName = "Updated",
+      lastName = "Person",
+      dateOfBirth = dateOfBirth,
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
@@ -93,6 +104,9 @@ class CaseMapperTest {
       },
       { assertThat(mergedEntity.tierScore).isEqualTo("A3S") },
       { assertThat(mergedEntity.hasSyncedCprProposedAccommodation).isTrue() },
+      { assertThat(mergedEntity.firstName).isEqualTo("Updated") },
+      { assertThat(mergedEntity.lastName).isEqualTo("Person") },
+      { assertThat(mergedEntity.dateOfBirth).isEqualTo(dateOfBirth) },
     )
   }
 
@@ -154,8 +168,12 @@ class CaseMapperTest {
   @Test
   fun `toEntity maps all fields correctly`() {
     val caseAggregate = CaseAggregate.hydrateNew()
+    val dateOfBirth = LocalDate.of(1992, 8, 11)
     caseAggregate.upsertCase(
       tierScore = "A3S",
+      firstName = "First",
+      lastName = "Last",
+      dateOfBirth = dateOfBirth,
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
@@ -180,6 +198,9 @@ class CaseMapperTest {
       },
       { assertThat(mergedEntity.tierScore).isEqualTo("A3S") },
       { assertThat(mergedEntity.hasSyncedCprProposedAccommodation).isTrue() },
+      { assertThat(mergedEntity.firstName).isEqualTo("First") },
+      { assertThat(mergedEntity.lastName).isEqualTo("Last") },
+      { assertThat(mergedEntity.dateOfBirth).isEqualTo(dateOfBirth) },
     )
   }
 }
