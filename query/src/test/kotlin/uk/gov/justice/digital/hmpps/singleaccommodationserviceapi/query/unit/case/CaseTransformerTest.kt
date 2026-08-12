@@ -78,10 +78,7 @@ class CaseTransformerTest {
     val person = buildFullPersonDto(crn = crn, nomsNumber = "prisonNumber1")
     val identifiers = buildIdentifiers(
       crns = listOf(UUID.randomUUID().toString(), UUID.randomUUID().toString(), crn),
-      prisonNumbers = listOf(
-        UUID.randomUUID().toString(),
-        "prisonNumber1",
-      ),
+      prisonNumbers = listOf(UUID.randomUUID().toString(), "prisonNumber1"),
     )
     val result =
       toCaseDto(crn = crn, person = person, cpr = buildCorePersonRecord(identifiers = identifiers), tier = null)
