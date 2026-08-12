@@ -3,9 +3,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanOneYearInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInTheFuture
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.isLessThanXWeeksInThePast
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.mapSexToCaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 
@@ -115,6 +121,25 @@ class EligibilityUtilsTest {
       val endDate = today.minusWeeks(numOfWeeks).minusDays(1)
       val result = isLessThanXWeeksInThePast(endDate, today, numOfWeeks)
       assertThat(result).isFalse()
+    }
+  }
+
+  @Nested
+  inner class MapSexToCaseActionType {
+    @Test
+    fun `Returns accommodation referral action for male sex`() {
+      val result = mapSexToCaseActionType(SexCode.M)
+
+      assertThat(result).isEqualTo(CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL)
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+    fun `Returns standard referral action for non-male or missing sex`(sexCode: SexCode?) {
+      val result = mapSexToCaseActionType(sexCode)
+
+      assertThat(result).isEqualTo(CaseActionType.SUBMIT_CRS_REFERRAL)
     }
   }
 }

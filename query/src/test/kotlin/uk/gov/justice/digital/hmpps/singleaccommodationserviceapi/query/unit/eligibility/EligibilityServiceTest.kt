@@ -82,7 +82,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
@@ -184,7 +183,6 @@ class EligibilityServiceTest {
       CrsExpiredRule(clock),
     ),
   )
-  var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
 
   // DTR
   var dtrUpcomingRuleSet = DtrUpcomingRuleSet(ReleaseWithinEightWeeksRule(clock))
@@ -245,7 +243,6 @@ class EligibilityServiceTest {
     completionContextUpdater = cas3CompletionContextUpdater,
     eligibility = cas3EligibilityRuleSet,
     prerequisite = cas3PrerequisiteRuleSet,
-    prerequisiteContextUpdater = cas3PrerequisiteContextUpdater,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(

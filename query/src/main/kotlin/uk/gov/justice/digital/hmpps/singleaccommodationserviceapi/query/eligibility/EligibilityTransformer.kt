@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus as Cas1RequestForPlacementStatusInfra
@@ -120,6 +121,21 @@ object EligibilityTransformer {
     serviceStatus = ServiceStatus.NOT_REQUIRED,
     failureReasons = failureReasons,
   )
+
+  fun toCannotStartYetStatus(context: EvaluationContext): ServiceResult {
+    val action = if (context.currentResult.failureReasons.contains(FailureReason.CRS_EXPIRED) || context.currentResult.failureReasons.contains(FailureReason.CRS_NOT_SUBMITTED)) {
+      CaseAction(
+        type = mapSexToCaseActionType(context.data.sex),
+      )
+    } else {
+      null
+    }
+    return ServiceResult(
+      serviceStatus = ServiceStatus.CANNOT_START_YET,
+      action,
+      failureReasons = context.currentResult.failureReasons,
+    )
+  }
 
   // DTR/CRS referral data should only be surfaced when a referral exists and has relevant service status to show the data
   private val surfacingStatuses = setOf(ServiceStatus.SUBMITTED, ServiceStatus.ACCEPTED, ServiceStatus.NOT_ACCEPTED)

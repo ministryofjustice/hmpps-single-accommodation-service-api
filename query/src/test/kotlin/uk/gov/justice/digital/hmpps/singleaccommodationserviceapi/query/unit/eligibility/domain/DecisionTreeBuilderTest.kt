@@ -247,7 +247,7 @@ class DecisionTreeBuilderTest {
       ),
     )
 
-    val result = builder.outcomeWithFailureResults().eval(context)
+    val result = builder.outcomeWithFailureReasons().eval(context)
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)

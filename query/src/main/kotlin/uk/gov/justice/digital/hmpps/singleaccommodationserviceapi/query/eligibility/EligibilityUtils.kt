@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import java.time.Clock
 import java.time.LocalDate
 
@@ -24,4 +26,10 @@ fun isLessThanXWeeksInThePast(endDate: LocalDate?, today: LocalDate, numOfWeeks:
   val xWeeksInThePast = today.minusWeeks(numOfWeeks)
 
   return endDate >= xWeeksInThePast
+}
+
+fun mapSexToCaseActionType(sexCode: SexCode?): CaseActionType = if (sexCode == SexCode.M) {
+  CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL
+} else {
+  CaseActionType.SUBMIT_CRS_REFERRAL
 }
