@@ -70,7 +70,6 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         placementStatus = NOT_ARRIVED,
         requestForPlacementStatus = AWAITING_MATCH,
         referredBy = referredByUser,
-        withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
       ),
     )
 
@@ -99,7 +98,6 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             dtrId = dutyToRefer.id,
             dtrStatus = "WITHDRAWN",
             dtrSubmissionDate = "2026-01-15",
-            withdrawalReason = DUPLICATE_PLACEMENT_REQUEST.value,
           ),
         )
       }

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.WITHDRAWN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
@@ -22,7 +23,7 @@ fun buildReferralHistory(
   placementAddress: String? = null,
   placementStatus: Cas1ReferralHistory.Cas1SpaceBookingStatus? = null,
   uiUrl: String = "https://example.com/referral",
-  withdrawalReason: WithdrawPlacementRequestReason? = DUPLICATE_PLACEMENT_REQUEST,
+  withdrawalReason: WithdrawPlacementRequestReason? = if (applicationStatus == WITHDRAWN) DUPLICATE_PLACEMENT_REQUEST else null,
 ) = Cas1ReferralHistory(
   id = id,
   applicationId = applicationId,

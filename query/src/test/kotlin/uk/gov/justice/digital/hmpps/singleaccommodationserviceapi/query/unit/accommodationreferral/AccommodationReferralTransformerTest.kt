@@ -53,7 +53,7 @@ class AccommodationReferralTransformerTest {
         }
         AccommodationService.CAS1 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
-          assertThat(it.withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
+          assertThat(it.withdrawalReason).isNull()
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
@@ -240,26 +240,6 @@ class AccommodationReferralTransformerTest {
     )
 
     assertThat(result).hasSize(1)
-    assertThat(result.first().withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
-  }
-
-  @Test
-  fun `should prefer referralRejectionReason over withdrawalReason for CAS1`() {
-    val referral = buildReferralHistory(
-      applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
-      referralRejectionReason = "Actually rejected",
-      withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
-      referredBy = buildDeliusUserDto(),
-    )
-    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas3Referrals = emptyList())
-
-    val result = AccommodationReferralTransformer.transformReferrals(
-      orchestrationDto,
-      emptyList(),
-    )
-
-    assertThat(result).hasSize(1)
-    assertThat(result.first().referralRejectionReason).isEqualTo("Actually rejected")
     assertThat(result.first().withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
   }
 }
