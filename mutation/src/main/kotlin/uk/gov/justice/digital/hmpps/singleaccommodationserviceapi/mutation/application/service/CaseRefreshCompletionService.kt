@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +24,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 
+@ConditionalOnProperty(
+  name = ["case-refresh.enabled"],
+  havingValue = "true",
+)
 @Service
 class CaseRefreshCompletionService(
   private val caseRepository: CaseRepository,
