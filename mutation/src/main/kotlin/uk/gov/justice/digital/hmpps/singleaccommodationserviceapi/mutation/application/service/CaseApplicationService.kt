@@ -40,7 +40,10 @@ class CaseApplicationService(
   }
 
   @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?): CaseEntity {
+  fun upsertCase(crn: String, prisonNumber: String?) = upsertCase(crn = crn, prisonNumber = prisonNumber, upsertData = true)
+
+  @Transactional
+  fun upsertCase(crn: String, prisonNumber: String?, upsertData: Boolean): CaseEntity {
     val caseDto = caseOrchestrationService.getCase(crn)
 
     val existingCase = caseRepository.findByIdentifiers(
@@ -48,13 +51,14 @@ class CaseApplicationService(
       prisonNumbers = prisonNumber?.let(::listOf),
     )
 
-    val snapshot = (existingCase?.let(CaseMapper::toAggregate) ?: CaseAggregate.hydrateNew())
-      .upsertCase(caseDto)
-      .snapshot()
+    val aggregate = existingCase?.let(CaseMapper::toAggregate) ?: CaseAggregate.hydrateNew()
+    if (upsertData) {
+      aggregate.upsertCase(caseDto)
+    }
 
     val entity = existingCase?.let {
-      CaseMapper.merge(it, snapshot)
-    } ?: CaseMapper.create(snapshot = snapshot, crn = crn, prisonNumber = prisonNumber)
+      CaseMapper.merge(it, aggregate.snapshot())
+    } ?: CaseMapper.create(snapshot = aggregate.snapshot(), crn = crn, prisonNumber = prisonNumber)
 
     return caseRepository.save(entity)
   }
