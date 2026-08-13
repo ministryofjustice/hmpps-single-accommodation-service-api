@@ -13,9 +13,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 
@@ -40,6 +43,7 @@ class AccommodationReferralTransformerTest {
       when (it.type) {
         AccommodationService.DTR -> {
           assertThat(it.referralRejectionReason).isEqualTo("NOT_ELIGIBLE")
+          assertThat(it.withdrawalReason).isEqualTo("NOT_ELIGIBLE")
           assertThat(it.localAuthorityArea).isEqualTo("localAuthorityAreaName")
           assertThat(it.pdu).isEqualTo("localAuthorityAreaName")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER"))
@@ -49,6 +53,7 @@ class AccommodationReferralTransformerTest {
         }
         AccommodationService.CAS1 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
@@ -57,6 +62,7 @@ class AccommodationReferralTransformerTest {
         }
         AccommodationService.CAS3 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.withdrawalReason).isNull()
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
@@ -217,5 +223,43 @@ class AccommodationReferralTransformerTest {
       DtrStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
     }
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expected)
+  }
+
+  @Test
+  fun `should transform CAS1 withdrawal reason`() {
+    val referral = buildReferralHistory(
+      applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
+      withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
+      referredBy = buildDeliusUserDto(),
+    )
+    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas3Referrals = emptyList())
+
+    val result = AccommodationReferralTransformer.transformReferrals(
+      orchestrationDto,
+      emptyList(),
+    )
+
+    assertThat(result).hasSize(1)
+    assertThat(result.first().withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
+  }
+
+  @Test
+  fun `should prefer referralRejectionReason over withdrawalReason for CAS1`() {
+    val referral = buildReferralHistory(
+      applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
+      referralRejectionReason = "Actually rejected",
+      withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
+      referredBy = buildDeliusUserDto(),
+    )
+    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas3Referrals = emptyList())
+
+    val result = AccommodationReferralTransformer.transformReferrals(
+      orchestrationDto,
+      emptyList(),
+    )
+
+    assertThat(result).hasSize(1)
+    assertThat(result.first().referralRejectionReason).isEqualTo("Actually rejected")
+    assertThat(result.first().withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
   }
 }

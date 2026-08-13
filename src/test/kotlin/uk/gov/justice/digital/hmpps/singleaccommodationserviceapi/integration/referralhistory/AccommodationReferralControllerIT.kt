@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus.AWAITING_MATCH
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
@@ -69,6 +70,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         placementStatus = NOT_ARRIVED,
         requestForPlacementStatus = AWAITING_MATCH,
         referredBy = referredByUser,
+        withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
       ),
     )
 
@@ -97,8 +99,33 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
             dtrId = dutyToRefer.id,
             dtrStatus = "WITHDRAWN",
             dtrSubmissionDate = "2026-01-15",
+            withdrawalReason = DUPLICATE_PLACEMENT_REQUEST.value,
           ),
         )
       }
+  }
+
+  @Test
+  fun `fetchAllReferralsAggregated includes withdrawalReason for CAS1`() {
+    val crn = "X12345"
+    val referredByUser = buildDeliusUserDto()
+
+    val cas1Response: List<Cas1ReferralHistory> = listOf(
+      buildReferralHistory(
+        date = LocalDate.parse("2025-03-01"),
+        applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
+        withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
+        referredBy = referredByUser,
+      ),
+    )
+
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
+
+    restTestClient.get().uri("/cases/{crn}/applications", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data[0].withdrawalReason").isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
   }
 }

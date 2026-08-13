@@ -21,6 +21,7 @@ data class Cas1ReferralHistory(
   val placementAddress: String?,
   val placementStatus: Cas1SpaceBookingStatus?,
   val uiUrl: String,
+  val withdrawalReason: WithdrawPlacementRequestReason?,
 ) : CasReferralHistory {
   enum class ApprovedPremisesApplicationStatus(val value: String) {
     STARTED("started"),
@@ -72,6 +73,29 @@ data class Cas1ReferralHistory(
       @JvmStatic
       @JsonCreator
       fun forValue(value: String): Cas1SpaceBookingStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
+    }
+  }
+
+  enum class WithdrawPlacementRequestReason(@get:JsonValue val value: String) {
+
+    DUPLICATE_PLACEMENT_REQUEST("DuplicatePlacementRequest"),
+    ALTERNATIVE_PROVISION_IDENTIFIED("AlternativeProvisionIdentified"),
+    CHANGE_IN_CIRCUMSTANCES("ChangeInCircumstances"),
+    CHANGE_IN_RELEASE_DECISION("ChangeInReleaseDecision"),
+    NO_CAPACITY_DUE_TO_LOST_BED("NoCapacityDueToLostBed"),
+    NO_CAPACITY_DUE_TO_PLACEMENT_PRIORITISATION("NoCapacityDueToPlacementPrioritisation"),
+    NO_CAPACITY("NoCapacity"),
+    ERROR_IN_PLACEMENT_REQUEST("ErrorInPlacementRequest"),
+    WITHDRAWN_BY_PP("WithdrawnByPP"),
+    RELATED_APPLICATION_WITHDRAWN("RelatedApplicationWithdrawn"),
+    RELATED_PLACEMENT_REQUEST_WITHDRAWN("RelatedPlacementRequestWithdrawn"),
+    RELATED_PLACEMENT_APPLICATION_WITHDRAWN("RelatedPlacementApplicationWithdrawn"),
+    ;
+
+    companion object {
+      @JvmStatic
+      @JsonCreator
+      fun forValue(value: String): WithdrawPlacementRequestReason = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
     }
   }
 }
