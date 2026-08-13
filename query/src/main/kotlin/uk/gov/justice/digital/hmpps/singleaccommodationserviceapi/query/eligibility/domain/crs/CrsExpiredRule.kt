@@ -14,7 +14,7 @@ import java.time.LocalDate
 @Component
 class CrsExpiredRule(val clock: Clock) : Rule {
   override val description = "FAIL if CRS not within 12 weeks"
-   private var useSexCode = false
+  private var useSexCode = false
 
   override fun evaluate(data: DomainData): RuleResult {
     val today = LocalDate.now(clock)
