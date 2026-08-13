@@ -234,4 +234,22 @@ class DecisionTreeBuilderTest {
     assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_REQUIRED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
   }
+
+  @Test
+  fun `currentOutcome carries context`() {
+    val builder = DecisionTreeBuilder(engine)
+    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
+    val context = EvaluationContext(
+      data = buildDomainData(),
+      currentResult = buildServiceResult(
+        serviceStatus = ServiceStatus.NOT_STARTED,
+        failureReasons = failureReasons,
+      ),
+    )
+
+    val result = builder.currentOutcome().eval(context)
+
+    assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
+    assertThat(result.failureReasons).isEqualTo(failureReasons)
+  }
 }
