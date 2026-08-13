@@ -44,7 +44,7 @@ class CaseApplicationService(
 
   @Transactional
   fun upsertCase(crn: String, prisonNumber: String?, upsertData: Boolean): CaseEntity {
-    val caseDto = caseOrchestrationService.getCase(crn)
+    val caseDto = caseOrchestrationService.getCurrentCaseResult(crn).data
 
     val existingCase = caseRepository.findByIdentifiers(
       crns = listOf(crn),
