@@ -12,5 +12,7 @@ class CrsCompletionRuleSet(
   crsExpired: CrsExpiredRule,
 ) : RuleSet {
   private val rules: List<Rule> = listOf(crsSubmitted, crsExpired)
+  private val rulesWithSexCode: List<Rule> = listOf(crsSubmitted.withSexCode(), crsExpired.withSexCode())
   override fun getRules(): List<Rule> = rules
+  fun getRulesWithSexCode(): List<Rule> = rulesWithSexCode
 }

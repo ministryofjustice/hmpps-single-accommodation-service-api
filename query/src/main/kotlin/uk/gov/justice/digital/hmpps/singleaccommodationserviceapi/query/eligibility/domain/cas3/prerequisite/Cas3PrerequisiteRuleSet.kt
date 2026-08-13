@@ -11,7 +11,7 @@ class Cas3PrerequisiteRuleSet(
   dtrExpiredReferral: DtrExpiredReferralRule,
   crsCompletionSet: CrsCompletionRuleSet,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(dtrExpiredReferral) + crsCompletionSet.getRules()
+  private val rules: List<Rule> = listOf(dtrExpiredReferral) + crsCompletionSet.getRulesWithSexCode()
 
   override fun getRules(): List<Rule> = rules
 }
