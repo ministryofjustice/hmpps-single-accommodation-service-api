@@ -17,6 +17,7 @@ class DatabaseUtils(
     INBOX_EVENT("inbox_event"),
     OUTBOX_EVENT("outbox_event"),
     PROPOSED_ACCOMMODATION("proposed_accommodation"),
+    SAS_CASE_REFRESH_REQUEST("sas_case_refresh_request"),
   }
 
   @Transactional
