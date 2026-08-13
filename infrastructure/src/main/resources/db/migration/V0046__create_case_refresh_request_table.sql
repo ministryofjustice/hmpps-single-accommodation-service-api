@@ -4,7 +4,7 @@ CREATE TABLE sas_case_refresh_request
     generation            BIGINT                   NOT NULL DEFAULT 1,
     processing_generation BIGINT,
     status                VARCHAR(20)              NOT NULL,
-    priority              VARCHAR(10)              NOT NULL DEFAULT 'LIVE',
+    priority              VARCHAR(10)              NOT NULL,
     requested_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     claimed_at            TIMESTAMP WITH TIME ZONE,
     claim_id              UUID,
@@ -15,34 +15,7 @@ CREATE TABLE sas_case_refresh_request
     failed_at             TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT chk_sas_case_refresh_request_status
-        CHECK (status IN ('PENDING', 'PROCESSING', 'FAILED')),
-
-    CONSTRAINT chk_sas_case_refresh_request_state
-        CHECK (
-            (
-                status = 'PENDING'
-                    AND next_attempt_at IS NOT NULL
-                    AND processing_generation IS NULL
-                    AND claimed_at IS NULL
-                    AND claim_id IS NULL
-                    AND failed_at IS NULL
-                )
-                OR (
-                status = 'PROCESSING'
-                    AND processing_generation IS NOT NULL
-                    AND claimed_at IS NOT NULL
-                    AND claim_id IS NOT NULL
-                    AND failed_at IS NULL
-                )
-                OR (
-                status = 'FAILED'
-                    AND next_attempt_at IS NULL
-                    AND processing_generation IS NULL
-                    AND claimed_at IS NULL
-                    AND claim_id IS NULL
-                    AND failed_at IS NOT NULL
-                )
-            )
+        CHECK (status IN ('PENDING', 'PROCESSING', 'FAILED'))
 );
 
 CREATE INDEX idx_sas_case_refresh_request_pending
