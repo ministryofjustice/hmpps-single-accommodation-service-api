@@ -236,7 +236,7 @@ class DecisionTreeBuilderTest {
   }
 
   @Test
-  fun `outcomeWithFailureReasons carries context`() {
+  fun `currentOutcome carries context`() {
     val builder = DecisionTreeBuilder(engine)
     val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
     val context = EvaluationContext(
@@ -247,7 +247,7 @@ class DecisionTreeBuilderTest {
       ),
     )
 
-    val result = builder.outcomeWithFailureReasons().eval(context)
+    val result = builder.currentOutcome().eval(context)
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_STARTED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)

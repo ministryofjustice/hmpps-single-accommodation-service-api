@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -22,7 +21,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResult
@@ -262,75 +260,38 @@ class EligibilityTransformerTest {
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
 
-  @Nested
-  inner class ToCannotStartYetStatusTests {
-    @Test
-    fun `should transform to not required service status`() {
-      val expectedServiceStatus = buildServiceResult(ServiceStatus.NOT_REQUIRED)
+  @Test
+  fun `does not include case actions for non actionable statuses`() {
+    val nonActionableCas3Action = CaseAction(type = CaseActionType.SUBMIT_DTR_BEFORE_CAS3)
+    val actionableDtrAction = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS)
 
-      val actualEligibility = toNotRequiredServiceStatus()
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(),
+      cas3 = buildServiceResult(serviceStatus = ServiceStatus.CANNOT_START_YET, action = nonActionableCas3Action),
+      dtr = buildServiceResult(serviceStatus = ServiceStatus.NOT_STARTED, action = actionableDtrAction),
+      crs = buildServiceResult(),
+      pa = buildServiceResult(),
+      data = buildDomainData(),
+    )
 
-      assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
-    }
-//
-//    @ParameterizedTest(name = "{0}")
-//    @NullSource
-//    @EnumSource(value = SexCode::class)
-//    fun `should transform to cannot start yet service status depending on sex`(sexCode: SexCode?) {
-//      val failureReasons = listOf(
-//        FailureReason.CRS_NOT_SUBMITTED,
-//        FailureReason.CRS_EXPIRED,
-//        FailureReason.DTR_REFERRAL_EXPIRED,
-//      )
-//      val expectedServiceStatus = buildServiceResult(
-//        ServiceStatus.CANNOT_START_YET,
-//        action = CaseAction(
-//          type =
-//          if (sexCode == SexCode.M) CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL else CaseActionType.SUBMIT_CRS_REFERRAL,
-//        ),
-//        failureReasons = failureReasons,
-//      )
-//
-//      val actualEligibility = toCannotStartYetStatus(
-//        EvaluationContext(
-//          data = buildDomainData(sex = sexCode),
-//          currentResult = buildServiceResult(failureReasons = failureReasons),
-//        ),
-//      )
-//
-//      assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
-//    }
-//
-//    @ParameterizedTest(name = "{0}")
-//    @NullSource
-//    @EnumSource(
-//      value = FailureReason::class,
-//      names = ["CRS_NOT_SUBMITTED", "CRS_EXPIRED", "DTR_REFERRAL_EXPIRED"],
-//      mode = EnumSource.Mode.INCLUDE,
-//    )
-//    fun `should transform to cannot start yet service status depending on failure reason`(failureReason: FailureReason?) {
-//      val failureReasons = if (failureReason != null) listOf(failureReason) else emptyList()
-//      val expectedServiceStatus = buildServiceResult(
-//        ServiceStatus.CANNOT_START_YET,
-//        action = if (failureReason == FailureReason.CRS_NOT_SUBMITTED || failureReason == FailureReason.CRS_EXPIRED) {
-//          CaseAction(
-//            type =
-//            CaseActionType.SUBMIT_CRS_REFERRAL,
-//          )
-//        } else {
-//          null
-//        },
-//        failureReasons = failureReasons,
-//      )
-//
-//      val actualEligibility = toCannotStartYetStatus(
-//        EvaluationContext(
-//          data = buildDomainData(),
-//          currentResult = buildServiceResult(failureReasons = failureReasons),
-//        ),
-//      )
-//
-//      assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
-//    }
+    assertThat(actualEligibility.caseActions).containsExactly(actionableDtrAction)
+  }
+
+  @Test
+  fun `does not include null actions when building case actions`() {
+    val actionablePaAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS)
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      cas3 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      dtr = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      crs = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      pa = buildServiceResult(serviceStatus = ServiceStatus.NOT_STARTED, action = actionablePaAction),
+      data = buildDomainData(),
+    )
+
+    assertThat(actualEligibility.caseActions).containsExactly(actionablePaAction)
   }
 }
