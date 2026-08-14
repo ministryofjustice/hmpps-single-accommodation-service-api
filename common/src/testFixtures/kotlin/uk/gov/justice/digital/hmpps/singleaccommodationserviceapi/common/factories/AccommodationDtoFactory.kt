@@ -41,7 +41,6 @@ fun buildAccommodationAddressDetails(
   country: String? = "England",
   uprn: String? = "1234567890",
 ) = AccommodationAddressDetails(
-  proposedAccommodationId = proposedAccommodationId?.toString(),
   postcode = postcode,
   subBuildingName = subBuildingName,
   buildingName = buildingName,

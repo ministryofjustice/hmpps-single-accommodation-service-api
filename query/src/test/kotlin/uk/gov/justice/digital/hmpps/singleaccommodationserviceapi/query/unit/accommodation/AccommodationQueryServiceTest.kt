@@ -1393,15 +1393,15 @@ class AccommodationQueryServiceTest {
       assertThat(result.size).isEqualTo(3)
       assertThat(result[0].address.postcode).isEqualTo("SW1A 1AB")
       assertThat(result[0].status!!.code).isEqualTo("PR")
-      assertThat(result[0].address.proposedAccommodationId).isNull()
+      assertThat(result[0].proposedAccommodationId).isNull()
 
       assertThat(result[1].address.postcode).isEqualTo("SW1A 1A4")
       assertThat(result[1].status!!.code).isEqualTo("PR")
-      assertThat(result[1].address.proposedAccommodationId).isNull()
+      assertThat(result[1].proposedAccommodationId).isNull()
 
       assertThat(result[2].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[2].status!!.code).isEqualTo("PR")
-      assertThat(result[2].address.proposedAccommodationId).isEqualTo(uuid.toString())
+      assertThat(result[2].proposedAccommodationId).isEqualTo(uuid.toString())
     }
 
     @Test
@@ -1469,11 +1469,11 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[0].address.postcode).isEqualTo("SW1A 1A4")
       assertThat(result[0].status!!.code).isEqualTo("PR")
-      assertThat(result[0].address.proposedAccommodationId).isNull()
+      assertThat(result[0].proposedAccommodationId).isNull()
 
       assertThat(result[1].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[1].status!!.code).isEqualTo("PR")
-      assertThat(result[1].address.proposedAccommodationId).isEqualTo(uuid.toString())
+      assertThat(result[1].proposedAccommodationId).isEqualTo(uuid.toString())
     }
 
     @Test
@@ -1541,7 +1541,7 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[0].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[0].status!!.code).isEqualTo("PR")
-      assertThat(result[0].address.proposedAccommodationId).isEqualTo(uuid.toString())
+      assertThat(result[0].proposedAccommodationId).isEqualTo(uuid.toString())
     }
 
     @Test

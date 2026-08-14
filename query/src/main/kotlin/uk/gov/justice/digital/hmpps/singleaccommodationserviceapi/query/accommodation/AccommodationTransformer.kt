@@ -42,8 +42,8 @@ object AccommodationTransformer {
     crn = crn,
     startDate = address.startDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
     endDate = address.endDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
+    proposedAccommodationId = proposedAccommodationId?.toString(),
     address = AccommodationAddressDetails(
-      proposedAccommodationId = proposedAccommodationId?.toString(),
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,
       buildingName = address.buildingName,
