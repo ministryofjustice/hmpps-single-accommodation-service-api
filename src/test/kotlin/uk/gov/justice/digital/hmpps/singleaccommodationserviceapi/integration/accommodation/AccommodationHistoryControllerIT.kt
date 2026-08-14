@@ -30,8 +30,6 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get accommodation history for crn`() {
-    val cprAddressId1 = UUID.randomUUID()
-    val cprAddressId2 = UUID.randomUUID()
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -58,7 +56,6 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = cprAddressId1,
           noFixedAbode = false,
           postcode = "SW1A 1AA",
           thoroughfareName = "Some Street",
@@ -80,7 +77,6 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = cprAddressId2,
           noFixedAbode = false,
           postcode = null,
           thoroughfareName = null,
@@ -112,7 +108,7 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryResponse(cprAddressId1.toString(), cprAddressId2.toString()))
+        assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryResponse())
       }
   }
 

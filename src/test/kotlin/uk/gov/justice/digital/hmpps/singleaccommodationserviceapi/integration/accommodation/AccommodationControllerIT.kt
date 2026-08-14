@@ -165,7 +165,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
         .exchangeSuccessfully()
         .expectBody<String>()
         .value {
-          assertThatJson(it!!).matchesExpectedJson(expectedRiskOfNoFixedAbodeResponse(crn, currentAddress.cprAddressId, nextAddress.cprAddressId))
+          assertThatJson(it!!).matchesExpectedJson(expectedRiskOfNoFixedAbodeResponse(crn))
         }
     }
 
@@ -206,8 +206,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
               settledType = null,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
-              currentCprAddressId = currentAddress.cprAddressId,
-              nextCprAddressId = nextAddress.cprAddressId,
             ),
           )
         }
@@ -235,8 +233,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
               settledType = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
-              currentCprAddressId = currentAddress.cprAddressId,
-              nextCprAddressId = nextAddress.cprAddressId,
             ),
           )
         }
@@ -245,7 +241,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should get current accommodation for crn`() {
-    val cprAddressId = UUID.randomUUID()
     val corePersonRecord = buildCorePersonRecord(
       identifiers = buildIdentifiers(crns = listOf(crn)),
       addresses = listOf(
@@ -272,7 +267,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = cprAddressId,
           typeVerified = true,
           noFixedAbode = false,
           postcode = "SW1A 1AA",
@@ -305,7 +299,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
       .exchangeSuccessfully()
       .expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationResponse(crn, cprAddressId))
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationResponse(crn))
       }
   }
 

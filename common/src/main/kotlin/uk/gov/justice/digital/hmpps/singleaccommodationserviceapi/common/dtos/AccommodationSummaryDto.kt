@@ -16,8 +16,6 @@ data class AccommodationSummaryDto(
   val address: AccommodationAddressDetails,
   val status: AccommodationStatusDto? = null,
   val type: AccommodationTypeDto? = null,
-  val cprAddressId: String? = null,
-  val isProposedAccommodation: Boolean? = null,
 )
 
 data class AccommodationDetailDto(
@@ -43,6 +41,7 @@ data class AccommodationTypeDto(
 )
 
 data class AccommodationAddressDetails(
+  val proposedAccommodationId: String? = null,
   val postcode: String? = null,
   val subBuildingName: String? = null,
   val buildingName: String? = null,

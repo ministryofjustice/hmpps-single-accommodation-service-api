@@ -29,6 +29,7 @@ fun buildProposedAccommodationDto(
 )
 
 fun buildAccommodationAddressDetails(
+  proposedAccommodationId: UUID? = null,
   postcode: String? = "SW1A 1AA",
   subBuildingName: String? = "The Sub-Building",
   buildingName: String? = "The Building",
@@ -40,6 +41,7 @@ fun buildAccommodationAddressDetails(
   country: String? = "England",
   uprn: String? = "1234567890",
 ) = AccommodationAddressDetails(
+  proposedAccommodationId = proposedAccommodationId?.toString(),
   postcode = postcode,
   subBuildingName = subBuildingName,
   buildingName = buildingName,

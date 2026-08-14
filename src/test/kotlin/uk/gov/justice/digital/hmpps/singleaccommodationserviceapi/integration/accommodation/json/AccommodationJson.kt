@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.util.UUID
 
-fun expectedGetAccommodationHistoryResponse(cprAddressId1: String, cprAddressId2: String): String = """
+fun expectedGetAccommodationHistoryResponse(): String = """
 {
    "data":[
       {
@@ -11,6 +11,7 @@ fun expectedGetAccommodationHistoryResponse(cprAddressId1: String, cprAddressId2
          "startDate":"2025-10-17",
          "endDate":"2026-10-17",
          "address":{
+            "proposedAccommodationId":null,
             "postcode":"SW1A 1AA",
             "subBuildingName":null,
             "buildingName":null,
@@ -29,15 +30,14 @@ fun expectedGetAccommodationHistoryResponse(cprAddressId1: String, cprAddressId2
          "type": {
             "code":"A07A",
             "description":"Friends/Family (transient)"
-         },
-         "cprAddressId":"$cprAddressId1",
-         "isProposedAccommodation":false
+         }
       },
       {
          "crn":"FAKECRN",
          "startDate":"2024-10-17",
          "endDate":"2025-10-17",
          "address":{
+            "proposedAccommodationId":null,
             "postcode":null,
             "subBuildingName":null,
             "buildingName":null,
@@ -56,9 +56,7 @@ fun expectedGetAccommodationHistoryResponse(cprAddressId1: String, cprAddressId2
          "type":{
             "code":"A08A",
             "description":"Homeless - Rough Sleeping"
-         },
-         "cprAddressId":"$cprAddressId2",
-         "isProposedAccommodation":false
+         }
       }
    ]
 }
@@ -79,13 +77,14 @@ fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(): String = """
 }
 """.trimIndent()
 
-fun expectedGetCurrentAccommodationResponse(crn: String, cprAddressId: UUID): String = """
+fun expectedGetCurrentAccommodationResponse(crn: String): String = """
 {
    "data":{
       "crn":"$crn",
       "startDate":"2026-01-11",
       "endDate":null,
       "address":{
+         "proposedAccommodationId":null,
          "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
@@ -104,9 +103,7 @@ fun expectedGetCurrentAccommodationResponse(crn: String, cprAddressId: UUID): St
       "type":{
          "code":"A07B",
          "description":"Friends/Family (settled)"
-      },
-      "cprAddressId":"$cprAddressId",
-      "isProposedAccommodation":false
+      }
    }
 }
 """.trimIndent()
@@ -117,9 +114,8 @@ fun expectedGetCurrentAccommodationPrisonResponse(crn: String): String = """
       "crn":"$crn",
       "startDate":null,
       "endDate":"2025-10-17",
-      "cprAddressId":null,
-      "isProposedAccommodation":null,
       "address":{
+         "proposedAccommodationId":null,
          "postcode":null,
          "subBuildingName":null,
          "buildingName":"Wandsworth",
@@ -154,6 +150,7 @@ fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
       "startDate":"$startDate",
       "endDate":"$endDate",
       "address":{
+         "proposedAccommodationId":null,
          "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
@@ -172,9 +169,7 @@ fun expectedGetCurrentAccommodationCas1CurrentPremisesResponse(
       "type":{
          "code":"A02",
          "description":"Approved Premises"
-      },
-      "cprAddressId":null,
-      "isProposedAccommodation":null
+      }
    }
 }
 """.trimIndent()
@@ -189,9 +184,8 @@ fun expectedGetCurrentAccommodationCas3CurrentPremisesResponse(
       "crn":"$crn",
       "startDate":"$startDate",
       "endDate":"$endDate",
-      "cprAddressId":null,
-      "isProposedAccommodation":null,
       "address":{
+         "proposedAccommodationId":null,
          "postcode":"SW1A 1AA",
          "subBuildingName":null,
          "buildingName":null,
@@ -226,6 +220,7 @@ fun expectedGetNextAccommodationsResponse(
       "startDate":"$prStartDate",
       "endDate":"$prEndDate",
       "address":{
+         "proposedAccommodationId":null,
          "postcode":"SW1A 1AB",
          "subBuildingName":null,
          "buildingName":null,
@@ -244,9 +239,7 @@ fun expectedGetNextAccommodationsResponse(
       "type":{
          "code":"A02",
          "description":"Approved Premises"
-      },
-      "cprAddressId":null,
-      "isProposedAccommodation":null
+      }
    }
 }
 """.trimIndent()
@@ -302,6 +295,7 @@ fun expectedGetAccommodationByIdResponse(
         "startDate": "$startDate",
         "endDate": "$endDate",
         "address": {
+            "proposedAccommodationId": null,
             "buildingName": "test building name",
             "buildingNumber": "4",
             "country": "England",
@@ -343,8 +337,8 @@ fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
 val expectedNoFixedAbodeResponse =
   """{"data":{"caseAccommodationStatus":"NO_FIXED_ABODE","currentAccommodation":null,"nextAccommodation":null}}"""
 
-fun expectedRiskOfNoFixedAbodeResponse(crn: String, currentCprAddressId: String, nextCprAddressId: String) = """
-  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"},"cprAddressId":"$currentCprAddressId","isProposedAccommodation":false},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"},"cprAddressId":"$nextCprAddressId","isProposedAccommodation":false}}}
+fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
+  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":null,"address":{"proposedAccommodationId":null,"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"}},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"address":{"proposedAccommodationId":null,"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
 """.trimIndent()
 
 fun expectedAccommodationStatusResponse(
@@ -352,8 +346,6 @@ fun expectedAccommodationStatusResponse(
   settledType: CaseAccommodationStatus?,
   nextCode: String,
   nextDescription: String,
-  currentCprAddressId: String,
-  nextCprAddressId: String,
 ) = """
   {
    "data":{
@@ -363,6 +355,7 @@ fun expectedAccommodationStatusResponse(
          "startDate":"2026-01-11",
          "endDate":null,
          "address":{
+            "proposedAccommodationId":null,
             "postcode":"SW1A 1AA",
             "subBuildingName":null,
             "buildingName":null,
@@ -381,15 +374,14 @@ fun expectedAccommodationStatusResponse(
          "type":{
             "code":"A07B",
             "description":"Friends/Family (settled)"
-         },
-         "cprAddressId":"$currentCprAddressId",
-         "isProposedAccommodation":false
+         }
       },
       "nextAccommodation":{
          "crn":"$crn",
          "startDate":null,
          "endDate":null,
          "address":{
+            "proposedAccommodationId":null,
             "postcode":"SW1A 1AA",
             "subBuildingName":null,
             "buildingName":null,
@@ -408,9 +400,7 @@ fun expectedAccommodationStatusResponse(
          "type":{
             "code":"$nextCode",
             "description":"$nextDescription"
-         },
-         "cprAddressId":"$nextCprAddressId",
-         "isProposedAccommodation":false
+         }
       }
    }
 }

@@ -37,13 +37,13 @@ object AccommodationTransformer {
     crn: String,
     address: CanonicalAddress,
     maskDates: Boolean = false,
-    isProposedAccommodation: Boolean = false,
+    proposedAccommodationId: UUID? = null,
   ) = AccommodationSummaryDto(
     crn = crn,
-    cprAddressId = address.cprAddressId,
     startDate = address.startDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
     endDate = address.endDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
     address = AccommodationAddressDetails(
+      proposedAccommodationId = proposedAccommodationId?.toString(),
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,
       buildingName = address.buildingName,
@@ -69,7 +69,6 @@ object AccommodationTransformer {
           description = it.usageCode.description,
         )
       },
-    isProposedAccommodation = isProposedAccommodation,
   )
 
   fun toAccommodationSummary(
