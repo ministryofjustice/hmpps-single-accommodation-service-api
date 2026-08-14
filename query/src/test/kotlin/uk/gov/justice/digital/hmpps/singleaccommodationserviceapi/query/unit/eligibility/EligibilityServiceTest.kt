@@ -82,6 +82,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
@@ -178,9 +179,12 @@ class EligibilityServiceTest {
   )
   var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
     DtrExpiredReferralRule(clock),
-    CrsExpiredRule(clock),
-    CrsSubmittedRule(),
+    CrsCompletionRuleSet(
+      CrsSubmittedRule(),
+      CrsExpiredRule(clock),
+    ),
   )
+  var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
 
   // DTR
   var dtrUpcomingRuleSet = DtrUpcomingRuleSet(ReleaseWithinEightWeeksRule(clock))
@@ -241,6 +245,7 @@ class EligibilityServiceTest {
     completionContextUpdater = cas3CompletionContextUpdater,
     eligibility = cas3EligibilityRuleSet,
     prerequisite = cas3PrerequisiteRuleSet,
+    cas3PrerequisiteContextUpdater = cas3PrerequisiteContextUpdater,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(
@@ -610,6 +615,7 @@ class EligibilityServiceTest {
             expectedCas3Url = row["expectedCas3Url"]?.takeIf { it.isNotBlank() },
             crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
             isCrsStatusTerminated = row["isCrsStatusTerminated"]!!,
+            sexCode = row["sexCode"]?.let { SexCode.valueOf(it) },
             expectedFailureReasons = row["expectedFailureReasons"]
               ?.takeIf { it.isNotBlank() }
               ?.split(",")
@@ -691,7 +697,7 @@ class EligibilityServiceTest {
         val data = buildDomainData(
           crn = s.testCaseId,
           tierScore = null,
-          sex = null,
+          sex = s.sexCode,
           currentAccommodation = currentAccommodation,
           nextAccommodations = nextAccommodations,
           cas3Application = cas3Application,
@@ -1080,6 +1086,7 @@ data class Cas3Scenario(
   val cas3AssessmentStatus: Cas3AssessmentStatus?,
   val cas3BookingStatus: Cas3BookingStatus?,
   val expectedCas3Status: ServiceStatus?,
+  val sexCode: SexCode?,
   val expectedCas3Action: CaseActionType?,
   val expectedCas3Link: String?,
   val expectedCas3Url: String?,

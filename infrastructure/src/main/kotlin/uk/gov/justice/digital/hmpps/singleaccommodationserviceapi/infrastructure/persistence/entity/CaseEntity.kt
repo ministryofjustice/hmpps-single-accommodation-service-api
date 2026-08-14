@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -16,6 +17,9 @@ class CaseEntity(
   val id: UUID,
   var hasSyncedCprProposedAccommodation: Boolean,
   var tierScore: String? = null,
+  var firstName: String? = null,
+  var lastName: String? = null,
+  var dateOfBirth: LocalDate? = null,
 
   @OneToMany(
     mappedBy = "caseEntity",

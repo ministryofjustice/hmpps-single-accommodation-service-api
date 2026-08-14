@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
@@ -41,37 +40,35 @@ class CaseApplicationService(
   }
 
   @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?): CaseEntity {
-    val caseDto = caseOrchestrationService.getCase(crn)
+  fun upsertCase(crn: String, prisonNumber: String?) = upsertCase(crn = crn, prisonNumber = prisonNumber, upsertData = true)
+
+  @Transactional
+  fun upsertCase(crn: String, prisonNumber: String?, upsertData: Boolean): CaseEntity {
+    val caseDto = caseOrchestrationService.getCurrentCaseResult(crn).data
 
     val existingCase = caseRepository.findByIdentifiers(
       crns = listOf(crn),
       prisonNumbers = prisonNumber?.let(::listOf),
     )
 
-    val snapshot = (existingCase?.let(CaseMapper::toAggregate) ?: CaseAggregate.hydrateNew())
-      .upsertCase(caseDto)
-      .snapshot()
+    val aggregate = existingCase?.let(CaseMapper::toAggregate) ?: CaseAggregate.hydrateNew()
+    if (upsertData) {
+      aggregate.upsertCase(caseDto)
+    }
 
     val entity = existingCase?.let {
-      CaseMapper.merge(it, snapshot)
-    } ?: CaseMapper.create(snapshot = snapshot, crn = crn, prisonNumber = prisonNumber)
+      CaseMapper.merge(it, aggregate.snapshot())
+    } ?: CaseMapper.create(snapshot = aggregate.snapshot(), crn = crn, prisonNumber = prisonNumber)
 
     return caseRepository.save(entity)
   }
-
-  private fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
-    tierScore = caseMutationOrchestrationDto.tier?.tierScore,
-  )
-
-  @Transactional
-  fun updateTier(tier: Tier, crn: String) {
-    val caseEntity: CaseEntity = caseRepository.findByCrn(crn) ?: return
-
-    val caseAggregate = CaseMapper.toAggregate(caseEntity)
-    caseAggregate.updateTier(tier.tierScore)
-    caseRepository.save(CaseMapper.merge(caseEntity, caseAggregate.snapshot()))
-  }
 }
+
+fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
+  tierScore = caseMutationOrchestrationDto.tier?.tierScore,
+  firstName = caseMutationOrchestrationDto.cpr?.firstName,
+  lastName = caseMutationOrchestrationDto.cpr?.lastName,
+  dateOfBirth = caseMutationOrchestrationDto.cpr?.dateOfBirth,
+)
 
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)
