@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus.AWAITING_MATCH
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
@@ -112,7 +111,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       buildReferralHistory(
         date = LocalDate.parse("2025-03-01"),
         applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
-        withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
+        withdrawalReason = "DuplicatePlacementRequest",
         referredBy = referredByUser,
       ),
     )
@@ -124,6 +123,6 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
-      .jsonPath("$.data[0].withdrawalReason").isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
+      .jsonPath("$.data[0].withdrawalReason").isEqualTo("DuplicatePlacementRequest")
   }
 }

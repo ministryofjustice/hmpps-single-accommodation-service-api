@@ -32,7 +32,7 @@ object AccommodationReferralTransformer {
       placementAddress = it.placementAddress,
       placementStatus = it.placementStatus?.value,
       uiUrl = it.uiUrl,
-      withdrawalReason = it.withdrawalReason?.value,
+      withdrawalReason = it.withdrawalReason,
     )
   } +
     dto.cas3Referrals.map {

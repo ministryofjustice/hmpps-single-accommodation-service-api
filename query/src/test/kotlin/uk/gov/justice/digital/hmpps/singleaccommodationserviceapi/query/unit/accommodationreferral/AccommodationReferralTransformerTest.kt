@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
@@ -229,7 +228,7 @@ class AccommodationReferralTransformerTest {
   fun `should transform CAS1 withdrawal reason`() {
     val referral = buildReferralHistory(
       applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
-      withdrawalReason = DUPLICATE_PLACEMENT_REQUEST,
+      withdrawalReason = "DuplicatePlacementRequest",
       referredBy = buildDeliusUserDto(),
     )
     val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas3Referrals = emptyList())
@@ -240,6 +239,6 @@ class AccommodationReferralTransformerTest {
     )
 
     assertThat(result).hasSize(1)
-    assertThat(result.first().withdrawalReason).isEqualTo(DUPLICATE_PLACEMENT_REQUEST.value)
+    assertThat(result.first().withdrawalReason).isEqualTo("DuplicatePlacementRequest")
   }
 }
