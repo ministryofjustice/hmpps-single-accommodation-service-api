@@ -43,7 +43,7 @@ class ProposedAccommodationController(
     val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
       val result = caseQueryService.getCaseFromDelius(crn)
       handleUpstreamFailure(result.upstreamFailures)
-      caseApplicationService.upsertCase(crn, result.data!!.nomsNumber)
+      caseApplicationService.upsertCase(crn, result.data!!.nomsNumber, upsertData = false)
     }
     if (!persistedCase.hasSyncedCprProposedAccommodation) {
       val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
