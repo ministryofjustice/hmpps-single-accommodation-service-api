@@ -44,7 +44,7 @@ class CaseApplicationService(
 
   @Transactional
   fun upsertCase(crn: String, prisonNumber: String?, upsertData: Boolean): CaseEntity {
-    val caseDto = caseOrchestrationService.getCase(crn)
+    val caseDto = caseOrchestrationService.getCurrentCaseResult(crn).data
 
     val existingCase = caseRepository.findByIdentifiers(
       crns = listOf(crn),
@@ -66,7 +66,9 @@ class CaseApplicationService(
 
 fun CaseAggregate.upsertCase(caseMutationOrchestrationDto: CaseMutationOrchestrationDto): CaseAggregate = this.upsertCase(
   tierScore = caseMutationOrchestrationDto.tier?.tierScore,
-
+  firstName = caseMutationOrchestrationDto.cpr?.firstName,
+  lastName = caseMutationOrchestrationDto.cpr?.lastName,
+  dateOfBirth = caseMutationOrchestrationDto.cpr?.dateOfBirth,
 )
 
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)

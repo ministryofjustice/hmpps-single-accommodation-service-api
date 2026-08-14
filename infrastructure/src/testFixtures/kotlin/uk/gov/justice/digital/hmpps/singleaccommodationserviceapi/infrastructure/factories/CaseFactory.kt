@@ -4,17 +4,24 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
   tierScore: String? = "A1",
   hasSyncedCprProposedAccommodation: Boolean = false,
+  firstName: String? = "First",
+  lastName: String? = "Last",
+  dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
   id = id,
   tierScore = tierScore,
   hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation,
+  firstName = firstName,
+  lastName = lastName,
+  dateOfBirth = dateOfBirth,
 ).also { case ->
 
   if (customise != null) {
