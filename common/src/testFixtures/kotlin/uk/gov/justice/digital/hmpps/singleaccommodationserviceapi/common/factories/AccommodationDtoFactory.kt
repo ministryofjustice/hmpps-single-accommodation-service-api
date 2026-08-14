@@ -29,7 +29,6 @@ fun buildProposedAccommodationDto(
 )
 
 fun buildAccommodationAddressDetails(
-  proposedAccommodationId: UUID? = null,
   postcode: String? = "SW1A 1AA",
   subBuildingName: String? = "The Sub-Building",
   buildingName: String? = "The Building",

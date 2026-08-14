@@ -56,6 +56,7 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
           ),
         ),
         buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = "SW1A 1AA",
           thoroughfareName = "Some Street",
@@ -77,6 +78,7 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
           ),
         ),
         buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
           noFixedAbode = false,
           postcode = null,
           thoroughfareName = null,

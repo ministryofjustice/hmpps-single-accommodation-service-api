@@ -267,6 +267,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
           ),
         ),
         buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
           typeVerified = true,
           noFixedAbode = false,
           postcode = "SW1A 1AA",
