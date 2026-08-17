@@ -1401,7 +1401,7 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[2].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[2].status!!.code).isEqualTo("PR")
-      assertThat(result[2].proposedAccommodationId).isEqualTo(uuid.toString())
+      assertThat(result[2].proposedAccommodationId).isEqualTo(uuid)
     }
 
     @Test
@@ -1473,7 +1473,7 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[1].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[1].status!!.code).isEqualTo("PR")
-      assertThat(result[1].proposedAccommodationId).isEqualTo(uuid.toString())
+      assertThat(result[1].proposedAccommodationId).isEqualTo(uuid)
     }
 
     @Test
@@ -1541,7 +1541,7 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[0].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[0].status!!.code).isEqualTo("PR")
-      assertThat(result[0].proposedAccommodationId).isEqualTo(uuid.toString())
+      assertThat(result[0].proposedAccommodationId).isEqualTo(uuid)
     }
 
     @Test
@@ -1613,7 +1613,6 @@ class AccommodationQueryServiceTest {
     @Test
     fun `getNextAccommodations is empty when only proposed accommodation with no postcode`() {
       val id = UUID.randomUUID()
-      val createdByUserId = UUID.randomUUID()
       val proposedAccommodationEntity = buildProposedAccommodationEntity()
       every { proposedAccommodationRepository.findByIdOrNull(id) } returns proposedAccommodationEntity
       val addresses = listOf(

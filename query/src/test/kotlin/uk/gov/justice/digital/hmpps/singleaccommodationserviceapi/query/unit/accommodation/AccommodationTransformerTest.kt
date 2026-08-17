@@ -429,7 +429,7 @@ class AccommodationTransformerTest {
       assertThat(result.startDate).isEqualTo(LocalDate.parse(address.startDate!!))
       assertThat(result.endDate).isEqualTo(LocalDate.parse(address.endDate!!))
     }
-    assertThat(result.proposedAccommodationId).isEqualTo(uuid.toString())
+    assertThat(result.proposedAccommodationId).isEqualTo(uuid)
     assertThat(result.crn).isEqualTo("X92123")
     assertThat(result.status).isNotNull()
     assertThat(result.status!!.code).isEqualTo(AddressStatusCode.PR.name)

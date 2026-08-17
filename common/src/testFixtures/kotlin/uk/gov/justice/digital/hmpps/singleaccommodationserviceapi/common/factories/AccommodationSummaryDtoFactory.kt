@@ -13,7 +13,6 @@ fun buildAccommodationSummaryDto(
   endDate: LocalDate? = null,
   status: AccommodationStatusDto? = buildAccommodationStatusDto(),
   type: AccommodationTypeDto? = buildAccommodationTypeDto(),
-  proposedAccommodationId: String? = null,
 ) = AccommodationSummaryDto(
   crn = crn,
   address = address,
@@ -21,7 +20,6 @@ fun buildAccommodationSummaryDto(
   endDate = endDate,
   status = status,
   type = type,
-  proposedAccommodationId = proposedAccommodationId,
 )
 
 fun buildAccommodationTypeDto(
