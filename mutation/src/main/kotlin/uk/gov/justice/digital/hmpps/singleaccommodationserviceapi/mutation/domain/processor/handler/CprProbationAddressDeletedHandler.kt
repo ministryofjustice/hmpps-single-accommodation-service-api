@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAddtionalInformation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
 import java.util.UUID
 
 @Component
@@ -26,7 +26,7 @@ class CprProbationAddressDeletedHandler(
 
   override fun supportedEventTypes() = setOf(eventType)
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.toDomainEvent((inboxEvent)).getAddtionalInformation("cprAddressId")
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.toDomainEvent((inboxEvent)).getAdditionalInformation("cprAddressId")
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     log.info("Processing {} event [inboxEventId={}]", eventType, inboxEvent.id)

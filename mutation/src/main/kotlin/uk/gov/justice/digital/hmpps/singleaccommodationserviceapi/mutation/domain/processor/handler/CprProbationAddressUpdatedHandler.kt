@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAddtionalInformation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
 import java.util.UUID
 
 @Component
@@ -30,7 +30,7 @@ class CprProbationAddressUpdatedHandler(
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String {
     val cprProbationAddressCreatedEvent = inboxEventHelper.toDomainEvent((inboxEvent))
-    val cprAddressId = cprProbationAddressCreatedEvent.getAddtionalInformation("cprAddressId")
+    val cprAddressId = cprProbationAddressCreatedEvent.getAdditionalInformation("cprAddressId")
     return cprAddressId
   }
 
