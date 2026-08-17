@@ -103,9 +103,9 @@ class CprProbationAddressCreatedHandlerTest {
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
   }
 
-  @ParameterizedTest(name = "{0}")
+  @ParameterizedTest(name = "should process create message: {0} expectedResult: {1}, calls to case refresh: {2}")
   @CsvSource(value = ["true,PROCESSED,1", "false,FAILED,1"])
-  fun `should regresh case and process created message when updateAccommodationRecordWithCprAddressUpdate is true`(
+  fun `should refresh case and process created message when updateAccommodationRecordWithCprAddressUpdate is true`(
     shouldUpdate: Boolean,
     expectedResult: InboxEventHandler.Result,
     count: Int,
