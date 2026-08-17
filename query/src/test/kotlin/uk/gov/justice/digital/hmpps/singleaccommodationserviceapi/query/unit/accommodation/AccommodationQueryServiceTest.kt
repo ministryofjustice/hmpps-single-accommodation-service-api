@@ -476,7 +476,7 @@ class AccommodationQueryServiceTest {
 
       val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises)
 
-      assertThat(result).isEqualTo(expectedResult)
+      assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult)
     }
 
     @Test
@@ -566,7 +566,7 @@ class AccommodationQueryServiceTest {
 
       val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises)
 
-      assertThat(result).isEqualTo(expectedResult)
+      assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult)
     }
 
     @Test
@@ -582,8 +582,9 @@ class AccommodationQueryServiceTest {
       val cas1CurrentPremises = buildCas1PremisesSummary(postcode = postcode1)
       val cas3CurrentPremises = buildCas3PremisesSummary()
       val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
+      val uuid = UUID.randomUUID()
       val mainAddress = buildCanonicalAddress(
-        cprAddressId = null,
+        cprAddressId = uuid,
         noFixedAbode = false,
         postcode = postcode2,
         thoroughfareName = "Some Street",
@@ -657,7 +658,7 @@ class AccommodationQueryServiceTest {
 
       val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises)
 
-      assertThat(result).isEqualTo(expectedResult)
+      assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult)
     }
 
     @Test
@@ -747,7 +748,7 @@ class AccommodationQueryServiceTest {
 
       val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, null, cas3CurrentPremises)
 
-      assertThat(result).isEqualTo(expectedResult)
+      assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult)
     }
 
     @Test
@@ -762,8 +763,9 @@ class AccommodationQueryServiceTest {
       every { caseRepository.findByCrn(crn) } returns caseEntity
       val cas3CurrentPremises = buildCas3PremisesSummary(postcode = postcode1)
       val prisoner = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.OUT, prisonName = "A Prison")
+      val uuid = UUID.randomUUID()
       val mainAddress = buildCanonicalAddress(
-        cprAddressId = null,
+        cprAddressId = uuid,
         noFixedAbode = false,
         postcode = postcode2,
         thoroughfareName = "Some Street",
@@ -838,7 +840,7 @@ class AccommodationQueryServiceTest {
 
       val result = accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, null, cas3CurrentPremises)
 
-      assertThat(result).isEqualTo(expectedResult)
+      assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult)
     }
 
     @Test
@@ -1328,6 +1330,10 @@ class AccommodationQueryServiceTest {
 
     @Test
     fun `getNextAccommodations get the next accommodations`() {
+      val uuid = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
+
+      every { proposedAccommodationRepository.findByCprAddressId(uuid) } returns proposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
@@ -1350,7 +1356,7 @@ class AccommodationQueryServiceTest {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
+          cprAddressId = uuid,
           noFixedAbode = false,
           postcode = "GL53 8GH",
           thoroughfareName = "",
@@ -1387,16 +1393,22 @@ class AccommodationQueryServiceTest {
       assertThat(result.size).isEqualTo(3)
       assertThat(result[0].address.postcode).isEqualTo("SW1A 1AB")
       assertThat(result[0].status!!.code).isEqualTo("PR")
+      assertThat(result[0].proposedAccommodationId).isNull()
 
       assertThat(result[1].address.postcode).isEqualTo("SW1A 1A4")
       assertThat(result[1].status!!.code).isEqualTo("PR")
+      assertThat(result[1].proposedAccommodationId).isNull()
 
       assertThat(result[2].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[2].status!!.code).isEqualTo("PR")
+      assertThat(result[2].proposedAccommodationId).isEqualTo(uuid)
     }
 
     @Test
     fun `getNextAccommodations get the next accommodations without cas1`() {
+      val uuid = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
+      every { proposedAccommodationRepository.findByCprAddressId(uuid) } returns proposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
@@ -1419,7 +1431,7 @@ class AccommodationQueryServiceTest {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
+          cprAddressId = uuid,
           noFixedAbode = false,
           postcode = "GL53 8GH",
           thoroughfareName = "",
@@ -1457,13 +1469,18 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[0].address.postcode).isEqualTo("SW1A 1A4")
       assertThat(result[0].status!!.code).isEqualTo("PR")
+      assertThat(result[0].proposedAccommodationId).isNull()
 
       assertThat(result[1].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[1].status!!.code).isEqualTo("PR")
+      assertThat(result[1].proposedAccommodationId).isEqualTo(uuid)
     }
 
     @Test
     fun `getNextAccommodations get the next accommodations without cas 1 and cas3`() {
+      val uuid = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
+      every { proposedAccommodationRepository.findByCprAddressId(uuid) } returns proposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
@@ -1486,7 +1503,7 @@ class AccommodationQueryServiceTest {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
+          cprAddressId = uuid,
           noFixedAbode = false,
           postcode = "GL53 8GH",
           thoroughfareName = "",
@@ -1524,10 +1541,14 @@ class AccommodationQueryServiceTest {
 
       assertThat(result[0].address.postcode).isEqualTo("GL53 8GH")
       assertThat(result[0].status!!.code).isEqualTo("PR")
+      assertThat(result[0].proposedAccommodationId).isEqualTo(uuid)
     }
 
     @Test
     fun `getNextAccommodations is empty when only proposed accommodation with end dates`() {
+      val uuid = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
+      every { proposedAccommodationRepository.findByCprAddressId(uuid) } returns proposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
@@ -1551,7 +1572,7 @@ class AccommodationQueryServiceTest {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
+          cprAddressId = uuid,
           noFixedAbode = false,
           postcode = "GL53 8GH",
           thoroughfareName = "",
@@ -1591,6 +1612,9 @@ class AccommodationQueryServiceTest {
 
     @Test
     fun `getNextAccommodations is empty when only proposed accommodation with no postcode`() {
+      val id = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity()
+      every { proposedAccommodationRepository.findByIdOrNull(id) } returns proposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
@@ -1652,6 +1676,9 @@ class AccommodationQueryServiceTest {
 
     @Test
     fun `getNextAccommodations get the next accommodations without cas3`() {
+      val uuid = UUID.randomUUID()
+      val proposedAccommodationEntity = buildProposedAccommodationEntity(uuid)
+      every { proposedAccommodationRepository.findByCprAddressId(uuid) } returns proposedAccommodationEntity
       val addresses = listOf(
         buildCanonicalAddress(
           cprAddressId = UUID.randomUUID(),
@@ -1674,7 +1701,7 @@ class AccommodationQueryServiceTest {
           ),
         ),
         buildCanonicalAddress(
-          cprAddressId = UUID.randomUUID(),
+          cprAddressId = uuid,
           noFixedAbode = false,
           postcode = "GL53 8GH",
           thoroughfareName = "",

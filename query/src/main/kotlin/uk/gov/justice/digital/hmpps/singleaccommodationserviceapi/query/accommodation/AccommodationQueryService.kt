@@ -182,16 +182,28 @@ class AccommodationQueryService(
       }
 
     val nextApprovedPremisesAccommodations = listOfNotNull(cas1NextAccommodation, cas3NextAccommodation)
-
-    val nextCprProposedAccommodations = addresses
-      .orEmpty()
-      .filter { it.status.code in excludedAddressStatuses }
-      .filter { !it.postcode.isNullOrBlank() }
-      .filter { it.endDate == null }
-      .map { toAccommodationSummary(crn, address = it, maskDates = true) }
+    val nextCprProposedAccommodations = getNextCprProposedAccommodations(crn, addresses)
 
     return (nextApprovedPremisesAccommodations + nextCprProposedAccommodations)
   }
+
+  private fun getNextCprProposedAccommodations(
+    crn: String,
+    addresses: List<CanonicalAddress>?,
+  ): List<AccommodationSummaryDto> = addresses
+    .orEmpty()
+    .filter { it.status.code in excludedAddressStatuses }
+    .filter { !it.postcode.isNullOrBlank() }
+    .filter { it.endDate == null }
+    .map { address ->
+      val proposedAccommodationEntity = proposedAccommodationRepository.findByCprAddressId(UUID.fromString(address.cprAddressId))
+      toAccommodationSummary(
+        crn,
+        address = address,
+        maskDates = true,
+        proposedAccommodationId = proposedAccommodationEntity?.id,
+      )
+    }
 
   fun getAllAccommodations(crn: String): ApiResponseDto<List<AccommodationDetailDto>> {
     val orchestrationResult = accommodationOrchestrationService.getAccommodationOrchestration(crn)
