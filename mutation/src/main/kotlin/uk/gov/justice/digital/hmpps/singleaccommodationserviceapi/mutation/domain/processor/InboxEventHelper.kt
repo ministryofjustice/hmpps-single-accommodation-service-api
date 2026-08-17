@@ -12,7 +12,7 @@ class InboxEventHelper(private val jsonMapper: JsonMapper) {
 
   fun findCrn(inboxEvent: InboxEventHandler.InboxEvent): String {
     val crn =
-      requireNotNull(toDomainEvent(inboxEvent).personReference.findCrn()) { "[crn={}] not found in [inboxEventId=${inboxEvent.id}]" }
+      requireNotNull(toDomainEvent(inboxEvent).personReference.findCrn()) { "CRN not found in [inboxEventId=${inboxEvent.id}]" }
     log.debug("Found [crn={}] in [inboxEventId={}] ", crn, inboxEvent.id)
     return crn
   }
