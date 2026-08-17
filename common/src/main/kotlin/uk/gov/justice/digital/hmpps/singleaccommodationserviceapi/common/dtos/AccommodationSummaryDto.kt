@@ -16,6 +16,7 @@ data class AccommodationSummaryDto(
   val address: AccommodationAddressDetails,
   val status: AccommodationStatusDto? = null,
   val type: AccommodationTypeDto? = null,
+  val proposedAccommodationId: UUID? = null,
 )
 
 data class AccommodationDetailDto(

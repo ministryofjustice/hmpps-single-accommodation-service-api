@@ -22,20 +22,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -55,20 +41,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -88,20 +60,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -121,20 +79,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -154,20 +98,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -187,24 +117,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"START_APPROVED_PREMISE_APPLICATION",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -224,20 +136,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -257,20 +155,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -290,24 +174,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"START_APPROVED_PREMISE_APPLICATION",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -327,24 +193,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"START_APPROVED_PREMISE_APPLICATION",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -364,24 +212,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"START_APPROVED_PREMISE_APPLICATION",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -401,24 +231,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"START_APPROVED_PREMISE_APPLICATION",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -438,24 +250,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"START_APPROVED_PREMISE_APPLICATION",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -475,20 +269,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -508,20 +288,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -541,20 +307,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -574,20 +326,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -607,20 +345,6 @@ fun expectedGetCaseListResponse(): String = """
             "surname":"Last",
             "username":"DELIUS_USER"
          },
-         "actions":[
-            {
-               "type":"ADD_DTR_REFERRAL_DETAILS",
-               "startDate":null
-            },
-            {
-               "type":"SUBMIT_CRS_ACCOMMODATION_REFERRAL",
-               "startDate":null
-            },
-            {
-               "type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS",
-               "startDate":null
-            }
-         ],
          "userAccess":"FULL",
          "limitedAccess":false
       },
@@ -636,9 +360,6 @@ fun expectedGetCaseListResponse(): String = """
          "riskLevel":null,
          "pncReference":null,
          "assignedTo":null,
-         "actions":[
-            
-         ],
          "userAccess":"LIMITED",
          "limitedAccess":true
       },
@@ -654,9 +375,6 @@ fun expectedGetCaseListResponse(): String = """
          "riskLevel":null,
          "pncReference":null,
          "assignedTo":null,
-         "actions":[
-            
-         ],
          "userAccess":"LIMITED",
          "limitedAccess":true
       }

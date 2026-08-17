@@ -21,6 +21,7 @@ data class Cas1ReferralHistory(
   val placementAddress: String?,
   val placementStatus: Cas1SpaceBookingStatus?,
   val uiUrl: String,
+  val withdrawalReason: String?,
 ) : CasReferralHistory {
   enum class ApprovedPremisesApplicationStatus(val value: String) {
     STARTED("started"),

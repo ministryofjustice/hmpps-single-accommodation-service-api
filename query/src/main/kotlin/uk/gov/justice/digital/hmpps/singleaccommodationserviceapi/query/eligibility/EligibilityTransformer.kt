@@ -66,14 +66,9 @@ object EligibilityTransformer {
     pa = PaServiceResult(
       serviceResult = pa,
     ),
-    caseActions =
-    listOf(
-      dtr.action,
-      crs.action,
-      cas1.action,
-      cas3.action,
-      pa.action,
-    ).mapNotNull { it }
+    caseActions = listOf(dtr, crs, cas1, cas3, pa)
+      .filterNot { it.serviceStatus in nonActionableStatuses }
+      .mapNotNull { it.action }
       .sortedWith(compareBy(nullsLast()) { it.startDate }),
   )
 
@@ -120,6 +115,10 @@ object EligibilityTransformer {
     serviceStatus = ServiceStatus.NOT_REQUIRED,
     failureReasons = failureReasons,
   )
+
+  // A service that cannot start yet has no single action of its own - its action is explaining
+  // what is blocking it and underlying to-do actions are surfaced by individual services
+  private val nonActionableStatuses = setOf(ServiceStatus.CANNOT_START_YET)
 
   // DTR/CRS referral data should only be surfaced when a referral exists and has relevant service status to show the data
   private val surfacingStatuses = setOf(ServiceStatus.SUBMITTED, ServiceStatus.ACCEPTED, ServiceStatus.NOT_ACCEPTED)

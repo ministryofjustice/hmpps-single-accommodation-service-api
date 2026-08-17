@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
 
@@ -40,6 +42,7 @@ class AccommodationReferralTransformerTest {
       when (it.type) {
         AccommodationService.DTR -> {
           assertThat(it.referralRejectionReason).isEqualTo("NOT_ELIGIBLE")
+          assertThat(it.withdrawalReason).isEqualTo("NOT_ELIGIBLE")
           assertThat(it.localAuthorityArea).isEqualTo("localAuthorityAreaName")
           assertThat(it.pdu).isEqualTo("localAuthorityAreaName")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto("Someone", "TEST_USER"))
@@ -49,6 +52,7 @@ class AccommodationReferralTransformerTest {
         }
         AccommodationService.CAS1 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.withdrawalReason).isNull()
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
@@ -57,6 +61,7 @@ class AccommodationReferralTransformerTest {
         }
         AccommodationService.CAS3 -> {
           assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.withdrawalReason).isNull()
           assertThat(it.localAuthorityArea).isEqualTo("Some area")
           assertThat(it.pdu).isEqualTo("Some pdu")
           assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs"))
@@ -217,5 +222,23 @@ class AccommodationReferralTransformerTest {
       DtrStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
     }
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expected)
+  }
+
+  @Test
+  fun `should transform CAS1 withdrawal reason`() {
+    val referral = buildReferralHistory(
+      applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
+      withdrawalReason = "DuplicatePlacementRequest",
+      referredBy = buildDeliusUserDto(),
+    )
+    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas3Referrals = emptyList())
+
+    val result = AccommodationReferralTransformer.transformReferrals(
+      orchestrationDto,
+      emptyList(),
+    )
+
+    assertThat(result).hasSize(1)
+    assertThat(result.first().withdrawalReason).isEqualTo("DuplicatePlacementRequest")
   }
 }

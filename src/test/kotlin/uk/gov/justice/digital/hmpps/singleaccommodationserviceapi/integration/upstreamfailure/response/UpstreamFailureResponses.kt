@@ -26,7 +26,6 @@ private fun caseJson(
   "riskLevel": ${if (riskLevel != null) "\"$riskLevel\"" else "null"},
   "pncReference": ${if (pncReference != null) "\"$pncReference\"" else "null"},
   "assignedTo": $assignedTo,
-  "actions": [],
   "userAccess": "FULL",
   "limitedAccess": false
 }
@@ -80,7 +79,11 @@ private fun tierNotFoundFailure(identifierCrn: String? = null) = failureJson(
 )
 
 @TestData
-fun expectedSingleCrnTierServerError() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierServerErrorFailure()}] }"""
+fun expectedSingleCrnTierServerError(crn: String, prisonNumber: String) = """{ "data": ${caseJson(tierScore = null, crn = crn, prisonNumber = prisonNumber)}, 
+  |"upstreamFailures": [${tierServerErrorFailure()}] }
+""".trimMargin()
 
 @TestData
-fun expectedSingleCrnTierTimeout() = """{ "data": ${caseJson(tierScore = null)}, "upstreamFailures": [${tierTimeoutFailure("FAKECRN1")}] }"""
+fun expectedSingleCrnTierTimeout(crn: String, prisonNumber: String = "PRI1") = """{ "data": ${caseJson(tierScore = null, crn = crn, prisonNumber = prisonNumber)}, 
+  |"upstreamFailures": [${tierTimeoutFailure(crn)}] }
+""".trimMargin()

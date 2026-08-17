@@ -419,8 +419,8 @@ class AccommodationTransformerTest {
       ),
       uprn = "test uprn",
     )
-
-    val result = AccommodationTransformer.toAccommodationSummary("X92123", address, maskDates)
+    val uuid = UUID.randomUUID()
+    val result = AccommodationTransformer.toAccommodationSummary("X92123", address, maskDates, uuid)
 
     if (maskDates) {
       assertThat(result.startDate).isNull()
@@ -429,7 +429,7 @@ class AccommodationTransformerTest {
       assertThat(result.startDate).isEqualTo(LocalDate.parse(address.startDate!!))
       assertThat(result.endDate).isEqualTo(LocalDate.parse(address.endDate!!))
     }
-
+    assertThat(result.proposedAccommodationId).isEqualTo(uuid)
     assertThat(result.crn).isEqualTo("X92123")
     assertThat(result.status).isNotNull()
     assertThat(result.status!!.code).isEqualTo(AddressStatusCode.PR.name)

@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
@@ -52,6 +53,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
@@ -305,7 +307,9 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     val crn = "ABCDEFG"
     val prisonNumber = "PRI1"
     val case = buildCase(crn, nomsNumber = prisonNumber)
+
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    TierStubs.getTierOKResponse(crn, response = buildTier(crn))
 
     shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,
@@ -322,6 +326,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       ?.firstOrNull { it.identifierType == IdentifierType.PRISON_NUMBER }
 
     assertThat(newCaseInserted).isNotNull
+    assertThat(newCaseInserted!!.tierScore).isNull()
     assertThat(newCaseCrnIdentifier).isNotNull
     assertThat(newCasePrisonNumberIdentifier).isNotNull
     assertThat(newCaseCrnIdentifier!!.identifier).isEqualTo(crn)

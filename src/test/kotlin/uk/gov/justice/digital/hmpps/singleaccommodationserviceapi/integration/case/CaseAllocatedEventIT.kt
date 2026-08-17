@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -90,7 +91,12 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     inboxEventHelper.assertMessageProcessed()
-    assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
+
+    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
+    assertThat(case).isNotNull()
+    assertThat(case?.firstName).isNull()
+    assertThat(case?.lastName).isNull()
+    assertThat(case?.dateOfBirth).isNull()
   }
 
   @Test
@@ -121,10 +127,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
   @Test
   fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier API call fails`() {
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
-    )
+    val cpr = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierServerErrorResponse(crn)
 
@@ -135,14 +139,13 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     assertSuccessful(
       expectedTier = null,
+      cpr = cpr,
     )
   }
 
   private fun shouldProcessCaseAllocationEventSuccessfully() {
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
-    )
+    val cpr = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
 
@@ -152,16 +155,20 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
 
-    assertSuccessful()
+    assertSuccessful(cpr = cpr)
   }
 
   private fun assertSuccessful(
     expectedTier: String? = "A3",
+    cpr: CorePersonRecord? = null,
   ) {
     inboxEventHelper.assertMessageProcessed()
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
     assertThat(case.tierScore).isEqualTo(expectedTier)
+    assertThat(case.firstName).isEqualTo(cpr?.firstName)
+    assertThat(case.lastName).isEqualTo(cpr?.lastName)
+    assertThat(case.dateOfBirth).isEqualTo(cpr?.dateOfBirth)
   }
 
   private fun assertPublishedSNSEvent(
