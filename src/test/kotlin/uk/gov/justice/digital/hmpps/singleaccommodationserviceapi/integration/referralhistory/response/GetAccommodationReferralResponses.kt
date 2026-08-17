@@ -13,6 +13,7 @@ fun expectedGetReferralHistory(
   dtrId: UUID,
   dtrStatus: String? = null,
   dtrSubmissionDate: String? = null,
+  withdrawalReason: String? = null,
 ): String =
   """
   {
@@ -31,7 +32,8 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Test Data Setup User","username":"TEST_DATA_SETUP_USER"},
         "placementAddress": null,
         "placementStatus": null,
-        "uiUrl": null
+        "uiUrl": null,
+        "withdrawalReason": null
      },
      {
         "id":"$id1",
@@ -47,7 +49,8 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Joe Bloggs","username":"user1"},
         "placementAddress": $placementAddress,
         "placementStatus": "notArrived",
-        "uiUrl": "https://example.com/referral"
+        "uiUrl": "https://example.com/referral",
+        "withdrawalReason": ${if (withdrawalReason != null) "\"$withdrawalReason\"" else "null"}
      },
      {
         "id":"$id4",
@@ -63,7 +66,8 @@ fun expectedGetReferralHistory(
         "referredBy": {"name":"Joe Bloggs","username":"user1"},
         "placementAddress": $placementAddress,
         "placementStatus": "departed",
-        "uiUrl": "https://example.com/referral"
+        "uiUrl": "https://example.com/referral",
+        "withdrawalReason": null
      }
     ]
   }

@@ -16,6 +16,9 @@ object CaseMapper {
     id = entity.id,
     tierScore = entity.tierScore,
     hasSyncedCprProposedAccommodation = entity.hasSyncedCprProposedAccommodation,
+    firstName = entity.firstName,
+    lastName = entity.lastName,
+    dateOfBirth = entity.dateOfBirth,
   )
 
   fun create(snapshot: CaseAggregate.CaseSnapshot, crn: String, prisonNumber: String?): CaseEntity {
@@ -23,6 +26,9 @@ object CaseMapper {
       id = snapshot.id,
       tierScore = snapshot.tierScore,
       hasSyncedCprProposedAccommodation = snapshot.hasSyncedCprProposedAccommodation,
+      firstName = snapshot.firstName,
+      lastName = snapshot.lastName,
+      dateOfBirth = snapshot.dateOfBirth,
     )
     entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
     return entity
@@ -35,6 +41,9 @@ object CaseMapper {
   ): CaseEntity {
     entity.tierScore = snapshot.tierScore
     entity.hasSyncedCprProposedAccommodation = snapshot.hasSyncedCprProposedAccommodation
+    entity.firstName = snapshot.firstName
+    entity.lastName = snapshot.lastName
+    entity.dateOfBirth = snapshot.dateOfBirth
 
     identifiers?.let { entity.addIdentifiers(it) }
 

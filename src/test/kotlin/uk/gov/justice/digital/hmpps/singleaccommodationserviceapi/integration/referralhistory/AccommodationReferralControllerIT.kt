@@ -101,4 +101,28 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         )
       }
   }
+
+  @Test
+  fun `fetchAllReferralsAggregated includes withdrawalReason for CAS1`() {
+    val crn = "X12345"
+    val referredByUser = buildDeliusUserDto()
+
+    val cas1Response: List<Cas1ReferralHistory> = listOf(
+      buildReferralHistory(
+        date = LocalDate.parse("2025-03-01"),
+        applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
+        withdrawalReason = "DuplicatePlacementRequest",
+        referredBy = referredByUser,
+      ),
+    )
+
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
+
+    restTestClient.get().uri("/cases/{crn}/applications", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data[0].withdrawalReason").isEqualTo("DuplicatePlacementRequest")
+  }
 }

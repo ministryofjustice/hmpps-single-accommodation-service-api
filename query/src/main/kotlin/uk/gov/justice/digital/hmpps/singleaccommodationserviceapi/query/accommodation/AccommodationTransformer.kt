@@ -37,10 +37,12 @@ object AccommodationTransformer {
     crn: String,
     address: CanonicalAddress,
     maskDates: Boolean = false,
+    proposedAccommodationId: UUID? = null,
   ) = AccommodationSummaryDto(
     crn = crn,
     startDate = address.startDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
     endDate = address.endDate?.let { LocalDate.parse(it) }.takeIf { !maskDates },
+    proposedAccommodationId = proposedAccommodationId,
     address = AccommodationAddressDetails(
       postcode = address.postcode,
       subBuildingName = address.subBuildingName,
