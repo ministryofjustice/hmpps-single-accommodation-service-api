@@ -22,8 +22,10 @@ class BulkLoadCasesService(
   fun bulkLoadCases(teamCodes: List<String>, dryRun: Boolean): ApiResponseDto<BulkLoadCasesResultDto> {
     caseRefreshRequestService ?: throw IllegalStateException("Case refresh request service is not enabled")
 
-    val normalizedTeamCodes = teamCodes.map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
-    if (normalizedTeamCodes.isEmpty()) throw TeamCodesRequiredException()
+    val normalizedTeamCodes = teamCodes.map { it.trim().uppercase() }
+      .filter(String::isNotEmpty)
+      .distinct()
+      .ifEmpty { throw TeamCodesRequiredException() }
 
     log.info("Bulk loading {} team(s), dryRun={}", normalizedTeamCodes.size, dryRun)
 
