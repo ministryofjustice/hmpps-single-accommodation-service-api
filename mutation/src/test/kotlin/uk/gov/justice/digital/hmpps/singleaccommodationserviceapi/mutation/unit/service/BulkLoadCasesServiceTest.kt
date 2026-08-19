@@ -125,16 +125,16 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `records a failing team as an error and carries on with the rest`() {
-    stubTeamCases(TeamCase(crn = "CRN1", prisonNumber = null), teamCode = "brokenTeam")
-    stubTeamCases(TeamCase(crn = "CRN2", prisonNumber = null), teamCode = "okTeam")
+    stubTeamCases(TeamCase(crn = "CRN1", prisonNumber = null), teamCode = "BROKENTEAM")
+    stubTeamCases(TeamCase(crn = "CRN2", prisonNumber = null), teamCode = "OKTEAM")
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
     every { caseRepository.findByCrns(listOf("CRN1")) } throws RuntimeException("error inserting case for this team")
     every { caseRepository.findByCrns(listOf("CRN2")) } returns listOf(buildCaseEntity())
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf("brokenTeam", "okTeam"), dryRun = false).data
+    val result = bulkLoadCasesService.bulkLoadCases(listOf("BROKENTEAM", "OKTEAM"), dryRun = false).data
 
     assertThat(result.teamsProcessed).isEqualTo(1)
-    assertThat(result.errors).containsExactly(BulkLoadCasesErrorDto(teamCode = "brokenTeam", message = "error inserting case for this team"))
+    assertThat(result.errors).containsExactly(BulkLoadCasesErrorDto(teamCode = "BROKENTEAM", message = "error inserting case for this team"))
     assertThat(result.refreshesRequested).isEqualTo(1)
   }
 
