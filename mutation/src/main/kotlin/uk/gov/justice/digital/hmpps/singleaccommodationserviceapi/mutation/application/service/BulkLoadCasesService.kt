@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Bu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
 
 @Service
 class BulkLoadCasesService(
@@ -22,7 +23,7 @@ class BulkLoadCasesService(
     caseRefreshRequestService ?: throw IllegalStateException("Case refresh request service is not enabled")
 
     val normalizedTeamCodes = teamCodes.map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
-    require(normalizedTeamCodes.isNotEmpty()) { "At least one team code is required" }
+    if (normalizedTeamCodes.isEmpty()) throw TeamCodesRequiredException()
 
     log.info("Bulk loading {} team(s), dryRun={}", normalizedTeamCodes.size, dryRun)
 

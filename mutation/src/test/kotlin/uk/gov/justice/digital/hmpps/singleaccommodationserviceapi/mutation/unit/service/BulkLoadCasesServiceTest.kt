@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.TeamCaseOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
@@ -168,11 +169,10 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `fails when no usable team codes are supplied`() {
-    val exception = assertThrows<IllegalArgumentException> {
+    assertThrows<TeamCodesRequiredException> {
       bulkLoadCasesService.bulkLoadCases(listOf("", "  "), dryRun = false)
     }
 
-    assertThat(exception.message).contains("At least one team code is required")
     verify(exactly = 0) { teamCaseOrchestrationService.getCasesByTeamCode(any()) }
     verify(exactly = 0) { caseApplicationService.createCases(any()) }
   }
