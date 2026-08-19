@@ -9,7 +9,7 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
@@ -29,8 +29,8 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   private val teamCode = "TEAM1"
   private val teamCases = listOf(
-    TeamCase(crn = "CRN1", prisonNumber = "PN1"),
-    TeamCase(crn = "CRN2", prisonNumber = null),
+    TeamCaseIdentifiers(crn = "CRN1", prisonNumber = "PN1"),
+    TeamCaseIdentifiers(crn = "CRN2", prisonNumber = null),
   )
   private val crns = teamCases.map { it.crn }
 

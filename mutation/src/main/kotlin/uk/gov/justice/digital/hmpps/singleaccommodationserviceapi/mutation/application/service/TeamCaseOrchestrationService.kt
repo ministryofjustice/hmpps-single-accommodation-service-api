@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASES_BY_TEAM
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseList
 
 @Service
@@ -23,7 +23,7 @@ class TeamCaseOrchestrationService(
   private val log = LoggerFactory.getLogger(javaClass)
   private val initialPage = 0L
 
-  fun getCasesByTeamCode(teamCode: String): OrchestrationResultDto<List<TeamCase>> {
+  fun getCasesByTeamCode(teamCode: String): OrchestrationResultDto<List<TeamCaseIdentifiers>> {
     log.debug("Retrieving cases from PI for team {}", teamCode)
 
     val initialCall = mapOf(
@@ -48,7 +48,7 @@ class TeamCaseOrchestrationService(
       )
 
       getRemainingCases(list.page, teamCode)
-    } ?: (emptyList<TeamCase>() to emptyList())
+    } ?: (emptyList<TeamCaseIdentifiers>() to emptyList())
 
     return OrchestrationResultDto(
       data = teamCaseList?.cases?.plus(additionalCases) ?: emptyList(),
