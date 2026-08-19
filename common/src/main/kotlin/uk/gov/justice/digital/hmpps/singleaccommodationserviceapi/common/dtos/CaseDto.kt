@@ -18,6 +18,7 @@ data class CaseDto(
   val assignedTo: AssignedToDto? = null,
   val userAccess: UserAccess,
   val limitedAccess: Boolean?,
+  val accommodationSummaries: AccommodationSummariesDto? = null,
 )
 
 data class AssignedToDto(

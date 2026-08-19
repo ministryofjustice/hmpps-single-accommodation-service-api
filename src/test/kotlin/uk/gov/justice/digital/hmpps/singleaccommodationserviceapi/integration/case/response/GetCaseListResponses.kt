@@ -23,7 +23,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -42,7 +43,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -61,7 +63,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -80,7 +83,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -99,7 +103,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -118,7 +123,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -137,7 +143,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -156,7 +163,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -175,7 +183,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -194,7 +203,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -213,7 +223,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -232,7 +243,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -251,7 +263,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -270,7 +283,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -289,7 +303,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -308,7 +323,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -327,7 +343,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":"First",
@@ -346,7 +363,8 @@ fun expectedGetCaseListResponse(): String = """
             "username":"DELIUS_USER"
          },
          "userAccess":"FULL",
-         "limitedAccess":false
+         "limitedAccess":false,
+         "accommodationSummaries":null
       },
       {
          "forename":null,
@@ -361,7 +379,8 @@ fun expectedGetCaseListResponse(): String = """
          "pncReference":null,
          "assignedTo":null,
          "userAccess":"LIMITED",
-         "limitedAccess":true
+         "limitedAccess":true,
+         "accommodationSummaries":null
       },
       {
          "forename":null,
@@ -376,7 +395,8 @@ fun expectedGetCaseListResponse(): String = """
          "pncReference":null,
          "assignedTo":null,
          "userAccess":"LIMITED",
-         "limitedAccess":true
+         "limitedAccess":true,
+         "accommodationSummaries":null
       }
    ]
 }

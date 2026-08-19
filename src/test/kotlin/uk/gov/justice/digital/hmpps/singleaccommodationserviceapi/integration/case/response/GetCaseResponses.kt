@@ -22,7 +22,8 @@ fun expectedGetCaseResponse(): String = """
       "username": "user1"
     },
     "userAccess": "FULL",
-    "limitedAccess": false
+    "limitedAccess": false,
+    "accommodationSummaries": null
   }
 }
 """.trimIndent()

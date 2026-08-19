@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 
-@Component
 @ConfigurationProperties(prefix = "tier")
 data class TierEventHandlerConfig(
   var v3Enabled: Boolean = false,
