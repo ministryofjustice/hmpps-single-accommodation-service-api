@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * it will be recorded as FAILED and a sentry alert raised
  */
 
-@Component
 @ConfigurationProperties(prefix = "hmpps.sqs.dispatcher")
 class DispatcherConfig(
   var maxEventsPerBatch: Int = 10,
