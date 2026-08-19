@@ -27,7 +27,8 @@ private fun caseJson(
   "pncReference": ${if (pncReference != null) "\"$pncReference\"" else "null"},
   "assignedTo": $assignedTo,
   "userAccess": "FULL",
-  "limitedAccess": false
+  "limitedAccess": false,
+  "accommodationSummaries": null
 }
 """.trimIndent()
 

@@ -368,10 +368,10 @@ fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
 """.trimIndent()
 
 val expectedNoFixedAbodeResponse =
-  """{"data":{"caseAccommodationStatus":"NO_FIXED_ABODE","currentAccommodation":null,"nextAccommodation":null}}"""
+  """{"data":{"caseAccommodationStatus":"NO_FIXED_ABODE","caseAccommodationStatusDate":null,"currentAccommodation":null,"nextAccommodation":null}}"""
 
 fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
-  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"proposedAccommodationId":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
+  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"proposedAccommodationId":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
 """.trimIndent()
 
 fun expectedAccommodationStatusResponse(
@@ -383,6 +383,7 @@ fun expectedAccommodationStatusResponse(
   {
    "data":{
       "caseAccommodationStatus":${settledType?.let { "\"$it\"" }},
+      "caseAccommodationStatusDate": null,
       "currentAccommodation":{
          "crn":"$crn",
          "startDate":"2026-01-11",
