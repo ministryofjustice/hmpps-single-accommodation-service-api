@@ -36,7 +36,7 @@ class CprProbationAddressCreatedHandler(
   }
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing {} event [inboxEventId={}]", eventType, inboxEvent.id)
+
     val crn = inboxEventHelper.findCrn(inboxEvent)
     val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
     // this triggers a refresh regardless of whether processing the message fails later.

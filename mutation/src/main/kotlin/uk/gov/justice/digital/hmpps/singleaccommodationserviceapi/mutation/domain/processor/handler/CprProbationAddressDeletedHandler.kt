@@ -29,8 +29,6 @@ class CprProbationAddressDeletedHandler(
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.toDomainEvent((inboxEvent)).getAdditionalInformation("cprAddressId")
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing {} event [inboxEventId={}]", eventType, inboxEvent.id)
-
     val crn = inboxEventHelper.findCrn(inboxEvent)
     val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
     // this triggers a refresh regardless of whether we successfully process this message.
