@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.Duration
 import java.time.Instant
 
-@Component
 @ConfigurationProperties(prefix = "case-refresh.worker")
 class CaseRefreshProperties(
   var maxRequestsPerRun: Int = 10,
