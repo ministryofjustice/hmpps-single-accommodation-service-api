@@ -39,6 +39,7 @@ class AccommodationSyncService(
   private val caseRepository: CaseRepository,
   private val userService: UserService,
   private val corePersonRecordCachingService: CorePersonRecordCachingService,
+  private val caseMapper: CaseMapper,
 ) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -64,9 +65,9 @@ class AccommodationSyncService(
           }
         }
       }
-    val caseAggregate = CaseMapper.toAggregate(case)
+    val caseAggregate = caseMapper.toAggregate(case)
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
-    caseRepository.save(CaseMapper.merge(case, caseAggregate.snapshot()))
+    caseRepository.save(caseMapper.merge(case, caseAggregate.snapshot()))
   }
 
   private fun sasAccommodationRecordExists(sasProposedAccommodationRecord: ProposedAccommodationEntity?) = sasProposedAccommodationRecord != null

@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
 @Service
-class CaseCreationService(private val caseRepository: CaseRepository) {
+class CaseCreationService(private val caseRepository: CaseRepository, private val caseMapper: CaseMapper) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
@@ -23,7 +23,7 @@ class CaseCreationService(private val caseRepository: CaseRepository) {
     val entities = crnsToPrisonNumbers
       .filter { it.crn in unpersistedCrns }
       .map {
-        CaseMapper.create(
+        caseMapper.create(
           snapshot = CaseAggregate.hydrateNew().snapshot(),
           crn = it.crn,
           prisonNumber = it.prisonNumber,

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
@@ -37,9 +36,6 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var inboxEventDispatcher: InboxEventDispatcher
-
-  @Autowired
-  lateinit var jsonMapper: JsonMapper
 
   @Autowired
   lateinit var dispatcherConfig: DispatcherConfig

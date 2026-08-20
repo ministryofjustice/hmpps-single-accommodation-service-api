@@ -1,16 +1,18 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit.service
 
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import java.util.UUID
@@ -24,8 +26,13 @@ class CaseCreationServiceTest {
     @MockK
     lateinit var caseRepository: CaseRepository
 
-    @InjectMockKs
-    lateinit var caseCreationService: CaseCreationService
+    private val caseMapper = CaseMapper(jsonMapper)
+    private lateinit var caseCreationService: CaseCreationService
+
+    @BeforeEach
+    fun setUp() {
+      caseCreationService = CaseCreationService(caseRepository, caseMapper)
+    }
 
     @Test
     fun `saveUnpersistedCases persists only unpersisted Crns`() {

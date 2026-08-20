@@ -7,6 +7,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -67,10 +68,16 @@ class CprProbationAddressDeletedHandlerTest {
     payload = "payload",
   )
 
-  @Test
-  fun `should not refresh case and should ignore deleted message when case is not known`() {
-    every { caseRepository.findByCrn(crn) } returns null
+  @BeforeEach
+  fun setup() {
+    every { inboxEventHelper.toDomainEvent(inboxEvent) } returns domainEvent
     every { inboxEventHelper.findCrn(inboxEvent) } returns crn
+  }
+
+  @Test
+  fun `should not refresh case and should delete when case is not known but address is`() {
+    every { caseRepository.findByCrn(crn) } returns null
+    every { proposedAccommodationRepository.findByCprAddressId(any()) } returns null
     assertThat(handler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
@@ -94,5 +101,6 @@ class CprProbationAddressDeletedHandlerTest {
     every { proposedAccommodationRepository.findByCprAddressId(any()) } returns proposedAccommodationEntity
     assertThat(handler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify { caseRefreshRequestService.requestLiveRefresh(case.id) }
+    verify { accommodationSyncService.softDeleteAccommodationRecordNoLongerInCpr(proposedAccommodationEntity) }
   }
 }

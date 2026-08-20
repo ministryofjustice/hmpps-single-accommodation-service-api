@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationDetailDto

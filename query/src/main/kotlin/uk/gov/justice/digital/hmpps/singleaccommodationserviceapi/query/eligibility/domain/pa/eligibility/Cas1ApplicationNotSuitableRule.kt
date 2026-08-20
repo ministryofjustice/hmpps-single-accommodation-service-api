@@ -23,7 +23,7 @@ class Cas1ApplicationNotSuitableRule : Rule {
       Cas1ApplicationStatus.PENDING_PLACEMENT_REQUEST,
     )
 
-    val isFail = suitableStatuses.contains(data.cas1Application?.applicationStatus)
+    val isFail = suitableStatuses.contains(data.cas1Application?.application?.status)
 
     return RuleResult(
       description = description,

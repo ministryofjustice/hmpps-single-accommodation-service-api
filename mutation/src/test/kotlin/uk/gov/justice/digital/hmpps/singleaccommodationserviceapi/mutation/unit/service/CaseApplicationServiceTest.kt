@@ -14,9 +14,11 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.dao.DataIntegrityViolationException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import java.util.UUID
 
@@ -36,6 +38,12 @@ class CaseApplicationServiceTest {
 
     @MockK
     lateinit var caseCreationService: CaseCreationService
+
+    @RelaxedMockK
+    lateinit var caseSnapshotAssembler: CaseSnapshotAssembler
+
+    @MockK
+    lateinit var caseMapper: CaseMapper
 
     @Test
     fun `createCases() retries multiple times on DataIntegrityViolation exception`() {

@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -92,10 +93,20 @@ class CprProbationAddressUpdatedHandlerTest {
   }
 
   @Test
-  fun `should refresh case and ignore updated message when case is not known`() {
-    every { caseRepository.findByCrn(any()) } returns null
-    assertThat(handler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
+  fun `should not refresh case and should update when case is not known but accommodation is`() {
+    every { caseRepository.findByCrn(crn) } returns null
+    every { proposedAccommodationRepository.findByCprAddressId(any()) } returns null
+    every { proposedAccommodationRepository.findWithNotesByCprAddressId(any()) } returns buildProposedAccommodationEntity()
+    every { corePersonRecordClient.getProbationAddress(URI.create(domainEvent.detailUrl!!)) } returns buildCanonicalAddress()
+    every {
+      accommodationSyncService.updateAccommodationRecordWithCprAddressUpdate(
+        any(),
+        any(),
+        any(),
+      )
+    } returns true
+    assertThat(handler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
   @ParameterizedTest(name = "should process update message: {0} expectedResult: {1}, calls to case refresh: {2}")
@@ -122,5 +133,12 @@ class CprProbationAddressUpdatedHandlerTest {
 
     assertThat(handler.handle(inboxEvent)).isEqualTo(expectedResult)
     verify(exactly = count) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
+    verify(exactly = count) {
+      accommodationSyncService.updateAccommodationRecordWithCprAddressUpdate(
+        crn = crn,
+        sasAccommodationRecord = proposedAccommodationEntity,
+        cprAddressRecord = address,
+      )
+    }
   }
 }

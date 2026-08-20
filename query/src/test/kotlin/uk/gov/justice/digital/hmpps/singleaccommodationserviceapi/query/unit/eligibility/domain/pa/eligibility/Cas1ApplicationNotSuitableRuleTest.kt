@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas1ApplicationNotSuitableRule
@@ -31,10 +32,9 @@ class Cas1ApplicationNotSuitableRuleTest {
   )
   fun `application is suitable so rule fails`(status: Cas1ApplicationStatus) {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = status,
-      placementStatus = null,
-      requestForPlacementStatus = null,
+      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
+      placement = null,
+      requestForPlacement = null,
     )
 
     val data = buildDomainData(
@@ -65,10 +65,9 @@ class Cas1ApplicationNotSuitableRuleTest {
   )
   fun `application does not have a suitable status so rule passes`(status: Cas1ApplicationStatus) {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = status,
-      placementStatus = null,
-      requestForPlacementStatus = null,
+      application = buildCas1ApplicationSummary(status = status, id = UUID.randomUUID()),
+      placement = null,
+      requestForPlacement = null,
     )
 
     val data = buildDomainData(

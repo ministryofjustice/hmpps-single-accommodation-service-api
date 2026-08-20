@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -47,8 +46,8 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
   @Autowired
   lateinit var inboxEventRepository: InboxEventRepository
 
-  @Autowired
-  lateinit var jsonMapper: JsonMapper
+  @MockitoSpyBean
+  lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   @MockitoSpyBean
   lateinit var caseRefreshRequestService: CaseRefreshRequestService

@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
@@ -31,8 +33,7 @@ class Cas1CompletionContextUpdaterTest {
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         cas1Application = buildCas1Application(
-          id = applicationId,
-          applicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+          application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.AWAITING_ASSESSMENT, id = applicationId),
         ),
       )
       val context = EvaluationContext(
@@ -60,9 +61,9 @@ class Cas1CompletionContextUpdaterTest {
   ) {
     val data = buildDomainData(
       cas1Application = buildCas1Application(
-        applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        requestForPlacementStatus = requestForPlacementStatus,
-        placementStatus = null,
+        application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED),
+        requestForPlacement = buildCas1RequestForPlacementSummary(status = requestForPlacementStatus),
+        placement = null,
       ),
     )
     val context = EvaluationContext(

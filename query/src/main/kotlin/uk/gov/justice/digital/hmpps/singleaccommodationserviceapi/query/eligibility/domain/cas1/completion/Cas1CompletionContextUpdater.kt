@@ -17,9 +17,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class Cas1CompletionContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext): ServiceResult {
-    val applicationStatus = context.data.cas1Application?.applicationStatus
-    val requestForPlacementStatus = context.data.cas1Application?.requestForPlacementStatus
-    val placementStatus = context.data.cas1Application?.placementStatus
+    val applicationStatus = context.data.cas1Application?.application?.status
+    val requestForPlacementStatus = context.data.cas1Application?.requestForPlacement?.status
+    val placementStatus = context.data.cas1Application?.placement?.status
 
     return when {
       placementStatus != null ->
