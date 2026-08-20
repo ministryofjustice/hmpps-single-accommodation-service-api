@@ -257,7 +257,7 @@ class AccommodationQueryServiceTest {
       val result = accommodationQueryService.getAccommodationHistory(crn)
 
       assertThat(result.data.size).isEqualTo(3)
-      assertThat(result.data[0].address.buildingName).isEqualTo(prisoner.prisonName)
+      assertThat(result.data[0].address.buildingName).isNull()
       assertThat(result.data[0].status!!.code).isEqualTo("C")
       assertThat(result.data[1].address.postcode).isEqualTo("SW1A 1AA")
       assertThat(result.data[1].status!!.code).isEqualTo(AddressStatusCode.M.name)
@@ -355,7 +355,7 @@ class AccommodationQueryServiceTest {
       val result = accommodationQueryService.getAccommodationHistory(crn)
 
       assertThat(result.data.size).isEqualTo(4)
-      assertThat(result.data[0].address.buildingName).isEqualTo(prisoner.prisonName)
+      assertThat(result.data[0].address.buildingName).isNull()
       assertThat(result.data[0].status!!.code).isEqualTo("C")
       assertThat(result.data[1].address.postcode).isEqualTo("SW1A 1AA")
       assertThat(result.data[1].status!!.code).isEqualTo(AddressStatusCode.M.name)

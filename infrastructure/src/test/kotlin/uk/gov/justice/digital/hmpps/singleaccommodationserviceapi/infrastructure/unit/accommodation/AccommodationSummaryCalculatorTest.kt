@@ -120,7 +120,7 @@ class AccommodationSummaryCalculatorTest {
         address = buildAccommodationAddressDetails(
           subBuildingName = null,
           postcode = null,
-          buildingName = prisoner.prisonName,
+          buildingName = null,
           buildingNumber = null,
           thoroughfareName = null,
           dependentLocality = null,
