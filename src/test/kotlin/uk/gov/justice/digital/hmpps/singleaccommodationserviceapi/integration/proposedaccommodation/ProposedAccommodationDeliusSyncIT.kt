@@ -1071,6 +1071,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

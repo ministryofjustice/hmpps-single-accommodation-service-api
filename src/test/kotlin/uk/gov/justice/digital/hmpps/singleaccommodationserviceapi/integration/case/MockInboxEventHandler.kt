@@ -3,10 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 import org.assertj.core.api.Assertions.assertThat
 import org.springframework.stereotype.Service
 import org.springframework.test.context.event.annotation.BeforeTestMethod
-import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -18,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Service
 class MockInboxEventHandler(
-  private val jsonMapper: JsonMapper,
+  private val inboxEventHelper: InboxEventHelper,
   val currentCount: AtomicInteger = AtomicInteger(0),
   val maxConcurrent: AtomicInteger = AtomicInteger(0),
 ) : InboxEventHandler {
@@ -29,10 +28,7 @@ class MockInboxEventHandler(
 
   val processedEvents: MutableList<InboxEventHandler.InboxEvent> = CopyOnWriteArrayList()
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
-    val snsDomainEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    return snsDomainEvent.personReference.findCrn()
-  }
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.findCrn(inboxEvent)
 
   override fun supportedEventTypes() = setOf(EVENT_TYPE)
 

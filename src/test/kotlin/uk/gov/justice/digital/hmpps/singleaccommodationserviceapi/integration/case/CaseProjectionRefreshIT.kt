@@ -75,7 +75,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
     publishProjectionChangeEvent()
 
-    inboxEventHelper.assertInboxEvent(
+    testInboxEventHelper.assertInboxEvent(
       crn = crn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(),
@@ -96,7 +96,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     publishProjectionChangeEvent()
     publishProjectionChangeEvent()
 
-    inboxEventHelper.assertAllInboxMessagesProcessed(2)
+    testInboxEventHelper.assertAllInboxMessagesProcessed(2)
     val refreshRequest = caseRefreshRequestRepository.findAll().single()
     assertThat(refreshRequest.generation).isEqualTo(2)
     assertThat(caseRepository.findAll()).hasSize(1)
@@ -106,7 +106,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
   fun `ignores a projection change event for an unknown Case`() {
     publishProjectionChangeEvent()
 
-    inboxEventHelper.assertExpectedInboxEvents(
+    testInboxEventHelper.assertExpectedInboxEvents(
       processedStatus = ProcessedStatus.IGNORED,
       count = 1,
     )
@@ -136,6 +136,6 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

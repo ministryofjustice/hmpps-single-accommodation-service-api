@@ -5,9 +5,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -30,6 +33,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -48,6 +52,9 @@ class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var accommodationStatusRepository: AccommodationStatusRepository
+
+  @MockitoSpyBean
+  lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   lateinit var crn: String
   private val eventType = "core-person-record.probation.address.created"
@@ -154,12 +161,13 @@ class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
     assertThat(newlyCreatedProposedAccommodation?.createdByUserId).isIn(userIdOfDeliusSyncUser, userIdOfSasSystemUser)
     assertThat(newlyCreatedProposedAccommodation?.lastUpdatedByUserId).isIn(userIdOfDeliusSyncUser, userIdOfSasSystemUser)
 
-    inboxEventHelper.assertInboxEvent(
+    testInboxEventHelper.assertInboxEvent(
       crn = crn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
     )
+    verify(caseRefreshRequestService).requestLiveRefresh(caseEntity.id)
   }
 
   @Test
@@ -274,12 +282,14 @@ class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
     assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
-    inboxEventHelper.assertInboxEvent(
+    testInboxEventHelper.assertInboxEvent(
       crn = crn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.PROCESSED,
     )
+
+    verify(caseRefreshRequestService).requestLiveRefresh(caseEntity.id)
   }
 
   @Test
@@ -291,16 +301,17 @@ class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
       crnOverride = unmatchedCrn,
     )
 
-    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
 
     assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
-    inboxEventHelper.assertInboxEvent(
+    testInboxEventHelper.assertInboxEvent(
       crn = unmatchedCrn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId, unmatchedCrn),
       processedStatus = ProcessedStatus.IGNORED,
     )
+    verify(caseRefreshRequestService, times(0)).requestLiveRefresh(caseEntity.id)
   }
 
   @Test
@@ -322,16 +333,18 @@ class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
       cprAddressId = cprAddressId,
     )
 
-    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
 
     assertThat(proposedAccommodationRepository.findByCprAddressId(cprAddressId)).isNull()
 
-    inboxEventHelper.assertInboxEvent(
+    testInboxEventHelper.assertInboxEvent(
       crn = crn,
       eventType = eventType,
       eventDetailUrl = eventDetailUrl(cprAddressId),
       processedStatus = ProcessedStatus.IGNORED,
     )
+
+    verify(caseRefreshRequestService, times(1)).requestLiveRefresh(caseEntity.id)
   }
 
   private fun eventDetailUrl(cprAddressId: UUID, eventCrn: String = crn) = "${sasWiremock.baseUrl()}/person/probation/$eventCrn/address/$cprAddressId"
@@ -360,6 +373,6 @@ class IncomingCprProbationAddressCreatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

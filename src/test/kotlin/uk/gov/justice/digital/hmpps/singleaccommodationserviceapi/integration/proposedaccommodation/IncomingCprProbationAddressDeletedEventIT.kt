@@ -3,9 +3,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.p
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
@@ -24,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Instant
 import java.time.ZoneOffset
@@ -45,6 +49,9 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var jsonMapper: JsonMapper
+
+  @MockitoSpyBean
+  lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   lateinit var crn: String
   private val eventType = "core-person-record.probation.address.deleted"
@@ -101,8 +108,9 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     assertThat(latestProposedAccommodation?.createdByUserId).isEqualTo(userIdOfTestDataSetupUser)
     assertThat(latestProposedAccommodation?.lastUpdatedByUserId).isEqualTo(userIdOfSasSystemUser)
 
-    inboxEventHelper.assertMessageProcessed()
+    testInboxEventHelper.assertMessageProcessed()
     cacheHelper.assertCacheEntryEvicted(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    verify(caseRefreshRequestService).requestLiveRefresh(caseEntity.id)
   }
 
   @Test
@@ -121,7 +129,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     val unmatchingCprAddressId = UUID.randomUUID()
     publishCprProbationAddressDeletedEvent(cprAddressId = unmatchingCprAddressId)
 
-    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
 
     val latestProposedAccommodation =
       proposedAccommodationRepository.findByIdOrNull(preExistingProposedAccommodation.id)!!
@@ -131,6 +139,7 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     assertThat(latestProposedAccommodation.lastUpdatedByUserId).isEqualTo(userIdOfTestDataSetupUser)
 
     cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
+    verify(caseRefreshRequestService, times(1)).requestLiveRefresh(caseEntity.id)
   }
 
   private fun publishCprProbationAddressDeletedEvent(cprAddressId: UUID) {
@@ -155,6 +164,6 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

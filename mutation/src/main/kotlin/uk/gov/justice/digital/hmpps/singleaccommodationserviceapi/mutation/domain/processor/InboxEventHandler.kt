@@ -25,7 +25,7 @@ interface InboxEventHandler {
    * Partition key for serialising processing. Events with the same key are never processed
    * concurrently. Return null to process independently (each event in its own partition).
    */
-  fun getPartitionKey(inboxEvent: InboxEvent): String? = null
+  fun getPartitionKey(inboxEvent: InboxEvent): String?
 
   /**
    * Process the inbox event. Should run in its own transaction to make success or failure isolated per
