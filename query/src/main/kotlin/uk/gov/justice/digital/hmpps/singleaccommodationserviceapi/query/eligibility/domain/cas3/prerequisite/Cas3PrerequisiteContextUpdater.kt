@@ -13,11 +13,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3PrerequisiteContextUpdater : ContextUpdater() {
 
-  private val crsFailureReasons = setOf(FailureReason.CRS_NOT_SUBMITTED, FailureReason.CRS_EXPIRED)
-
   override fun toServiceResult(context: EvaluationContext): ServiceResult {
     val failureReasons = context.currentResult.failureReasons
-    val crsOutstanding = failureReasons.any { it in crsFailureReasons }
+    val crsOutstanding = FailureReason.CRS_NOT_SUBMITTED in failureReasons
     val dtrOutstanding = FailureReason.DTR_REFERRAL_EXPIRED in failureReasons
 
     val isMale = context.data.sex == SexCode.M
