@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -696,9 +697,16 @@ class AccommodationControllerIT : IntegrationTestBase() {
       response = corePersonRecord,
     )
     val cas1Application = buildCas1Application(
-      placementStatus = Cas1PlacementStatus.UPCOMING,
-      premises = buildCas1PremisesSummary(
-        postcode = "SW1A 1AB",
+      placement = buildCas1PlacementSummary(
+        status = Cas1PlacementStatus.UPCOMING,
+        premises = buildCas1PremisesSummary(
+          postcode = "SW1A 1AB",
+          startDate = LocalDate.of(2026, 1, 11),
+          endDate = LocalDate.of(2026, 1, 12),
+          addressLine1 = "100 Some Street",
+          addressLine2 = "Some Place",
+          town = "London",
+        ),
       ),
     )
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
@@ -723,8 +731,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetNextAccommodationsResponse(
             crn = crn,
-            prStartDate = cas1Application.premises!!.startDate.toString(),
-            prEndDate = cas1Application.premises!!.endDate.toString(),
+            prStartDate = cas1Application.placement!!.premises!!.startDate.toString(),
+            prEndDate = cas1Application.placement!!.premises!!.endDate.toString(),
           ),
         )
       }

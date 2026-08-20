@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
@@ -1149,9 +1150,11 @@ class AccommodationQueryServiceTest {
             ),
           ),
           cas1Application = buildCas1Application(
-            placementStatus = Cas1PlacementStatus.UPCOMING,
-            premises = buildCas1PremisesSummary(
-              postcode = "SW1A 1AB",
+            placement = buildCas1PlacementSummary(
+              status = Cas1PlacementStatus.UPCOMING,
+              premises = buildCas1PremisesSummary(
+                postcode = "SW1A 1AB",
+              ),
             ),
           ),
           cas3Application = buildCas3Application(
@@ -1204,9 +1207,11 @@ class AccommodationQueryServiceTest {
             ),
           ),
           cas1Application = buildCas1Application(
-            placementStatus = Cas1PlacementStatus.UPCOMING,
-            premises = buildCas1PremisesSummary(
-              postcode = "SW1A 1AB",
+            placement = buildCas1PlacementSummary(
+              status = Cas1PlacementStatus.UPCOMING,
+              premises = buildCas1PremisesSummary(
+                postcode = "SW1A 1AB",
+              ),
             ),
           ),
           cas3Application = buildCas3Application(
@@ -1377,9 +1382,11 @@ class AccommodationQueryServiceTest {
         ),
       )
       val cas1Application = buildCas1Application(
-        placementStatus = Cas1PlacementStatus.UPCOMING,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.UPCOMING,
+          premises = buildCas1PremisesSummary(
+            postcode = "SW1A 1AB",
+          ),
         ),
       )
       val cas3Application = buildCas3Application(
@@ -1452,9 +1459,11 @@ class AccommodationQueryServiceTest {
         ),
       )
       val cas1Application = buildCas1Application(
-        placementStatus = Cas1PlacementStatus.ARRIVED,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.ARRIVED,
+          premises = buildCas1PremisesSummary(
+            postcode = "SW1A 1AB",
+          ),
         ),
       )
       val cas3Application = buildCas3Application(
@@ -1524,9 +1533,11 @@ class AccommodationQueryServiceTest {
         ),
       )
       val cas1Application = buildCas1Application(
-        placementStatus = Cas1PlacementStatus.ARRIVED,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.ARRIVED,
+          premises = buildCas1PremisesSummary(
+            postcode = "SW1A 1AB",
+          ),
         ),
       )
       val cas3Application = buildCas3Application(
@@ -1594,9 +1605,11 @@ class AccommodationQueryServiceTest {
         ),
       )
       val cas1Application = buildCas1Application(
-        placementStatus = Cas1PlacementStatus.ARRIVED,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.ARRIVED,
+          premises = buildCas1PremisesSummary(
+            postcode = "SW1A 1AB",
+          ),
         ),
       )
       val cas3Application = buildCas3Application(
@@ -1658,9 +1671,11 @@ class AccommodationQueryServiceTest {
         ),
       )
       val cas1Application = buildCas1Application(
-        placementStatus = Cas1PlacementStatus.ARRIVED,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.ARRIVED,
+          premises = buildCas1PremisesSummary(
+            postcode = "SW1A 1AB",
+          ),
         ),
       )
       val cas3Application = buildCas3Application(
@@ -1722,9 +1737,11 @@ class AccommodationQueryServiceTest {
         ),
       )
       val cas1Application = buildCas1Application(
-        placementStatus = Cas1PlacementStatus.UPCOMING,
-        premises = buildCas1PremisesSummary(
-          postcode = "SW1A 1AB",
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.UPCOMING,
+          premises = buildCas1PremisesSummary(
+            postcode = "SW1A 1AB",
+          ),
         ),
       )
       val cas3Application = buildCas3Application(

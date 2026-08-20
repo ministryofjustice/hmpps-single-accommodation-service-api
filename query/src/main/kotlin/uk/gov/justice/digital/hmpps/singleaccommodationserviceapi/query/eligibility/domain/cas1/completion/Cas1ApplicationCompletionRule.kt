@@ -12,7 +12,7 @@ class Cas1ApplicationCompletionRule : Rule {
   override val description = "FAIL if placement is not upcoming"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val ruleStatus = if (data.cas1Application?.placementStatus == Cas1PlacementStatus.UPCOMING) RuleStatus.PASS else RuleStatus.FAIL
+    val ruleStatus = if (data.cas1Application?.placement?.status == Cas1PlacementStatus.UPCOMING) RuleStatus.PASS else RuleStatus.FAIL
 
     return RuleResult(
       description = description,
