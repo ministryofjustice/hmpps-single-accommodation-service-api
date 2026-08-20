@@ -7,6 +7,8 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationRelevantExpiredRule
@@ -26,8 +28,10 @@ class Cas1ApplicationRelevantExpiredRuleTest {
   )
   fun `application is not expired so rule passes`(status: Cas1ApplicationStatus) {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = status,
+      application = buildCas1ApplicationSummary(
+        status = status,
+        id = UUID.randomUUID(),
+      ),
     )
 
     val data = buildDomainData(
@@ -54,9 +58,8 @@ class Cas1ApplicationRelevantExpiredRuleTest {
   )
   fun `application is expired and UPCOMING or ARRIVED rule passes`(status: Cas1PlacementStatus) {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.EXPIRED,
-      placementStatus = status,
+      application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.EXPIRED, id = UUID.randomUUID()),
+      placement = buildCas1PlacementSummary(status = status),
     )
 
     val data = buildDomainData(
@@ -84,9 +87,11 @@ class Cas1ApplicationRelevantExpiredRuleTest {
   )
   fun `application is expired and not UPCOMING or ARRIVED rule fails`(status: Cas1PlacementStatus) {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.EXPIRED,
-      placementStatus = status,
+      application = buildCas1ApplicationSummary(
+        status = Cas1ApplicationStatus.EXPIRED,
+        id = UUID.randomUUID(),
+      ),
+      placement = buildCas1PlacementSummary(status = status),
     )
 
     val data = buildDomainData(
@@ -107,8 +112,8 @@ class Cas1ApplicationRelevantExpiredRuleTest {
   fun `application is expired with no placement so rule fails`() {
     val data = buildDomainData(
       cas1Application = buildCas1Application(
-        applicationStatus = Cas1ApplicationStatus.EXPIRED,
-        placementStatus = null,
+        application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.EXPIRED),
+        placement = null,
       ),
     )
 

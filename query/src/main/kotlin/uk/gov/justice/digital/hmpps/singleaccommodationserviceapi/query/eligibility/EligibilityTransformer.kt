@@ -1,10 +1,19 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
+import org.slf4j.LoggerFactory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1AssessmentSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementPairDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PremisesSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
@@ -20,13 +29,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.El
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1AssessmentSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementPair
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AssessmentDecision as AssessmentDecisionInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus as Cas1RequestForPlacementStatusInfra
@@ -35,6 +54,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus as Cas3BookingStatusInfra
 
 object EligibilityTransformer {
+
+  private val log = LoggerFactory.getLogger(javaClass)
+
   fun toEligibilityDto(
     crn: String,
     cas1: ServiceResult,
@@ -135,14 +157,101 @@ object EligibilityTransformer {
     )
   }
 
+  private fun toCas1PremisesSummaryDto(
+    premises: Cas1PremisesSummary?,
+  ) = premises?.let { premises ->
+    Cas1PremisesSummaryDto(
+      startDate = premises.startDate,
+      endDate = premises.endDate,
+      addressLine1 = premises.addressLine1,
+      addressLine2 = premises.addressLine2,
+      town = premises.town,
+      postcode = premises.postcode,
+    )
+  }
+
   private fun toCas1ApplicationDto(
     cas1Application: Cas1Application?,
   ) = cas1Application?.let { application ->
     Cas1ApplicationDto(
-      id = application.id,
-      applicationStatus = toCas1ApplicationStatus(application.applicationStatus),
-      requestForPlacementStatus = toCas1RequestForPlacementStatus(application.requestForPlacementStatus),
-      placementStatus = toCas1PlacementStatus(application.placementStatus),
+      id = application.application.id,
+      applicationStatus = toCas1ApplicationStatus(application.application.status),
+      requestForPlacementStatus = toCas1RequestForPlacementStatus(application.requestForPlacement?.status),
+      placementStatus = toCas1PlacementStatus(application.placement?.status),
+      uiUrl = application.uiUrl,
+      application = toCas1ApplicationSummaryDto(application.application),
+      assessment = toCas1AssessmentSummaryDto(application.assessment),
+      requestForPlacement = toRequestForPlacementDto(application.requestForPlacement),
+      placement = toPlacementDto(application.placement),
+      placementHistory = toPlacementHistory(application.placementHistory),
+    )
+  }
+
+  private fun toPlacementHistory(
+    placementHistory: List<Cas1PlacementPair>,
+  ) = placementHistory.map { pair ->
+    Cas1PlacementPairDto(
+      requestForPlacement = toRequestForPlacementDto(pair.requestForPlacement),
+      placement = toPlacementDto(pair.placement),
+      dateApplied = pair.dateApplied,
+    )
+  }
+
+  private fun toCas1ApplicationSummaryDto(
+    application: Cas1ApplicationSummary,
+  ) = Cas1ApplicationSummaryDto(
+    id = application.id,
+    status = toCas1ApplicationStatus(application.status),
+    createdAt = application.createdAt,
+    createdBy = toCas1StaffDto(application.createdBy)!!,
+    submittedAt = application.submittedAt,
+    expiresAt = application.expiresAt,
+  )
+
+  private fun toRequestForPlacementDto(
+    requestForPlacement: Cas1RequestForPlacementSummary?,
+  ) = requestForPlacement?.let {
+    Cas1RequestForPlacementSummaryDto(
+      status = toCas1RequestForPlacementStatus(it.status),
+      decision = toRequestForPlacementDecision(it.decision),
+      rejectionReason = it.rejectionReason,
+      submittedBy = toCas1StaffDto(it.submittedBy),
+      submittedAt = it.submittedAt,
+      withdrawalReason = toWithdrawalReason(it.withdrawalReason),
+      withdrawalDate = it.withdrawalDate,
+      expectedArrivalDate = it.expectedArrivalDate,
+      durationDays = it.durationDays,
+    )
+  }
+
+  private fun toPlacementDto(
+    placement: Cas1PlacementSummary?,
+  ) = placement?.let {
+    Cas1PlacementSummaryDto(
+      status = toCas1PlacementStatus(it.status),
+      actualArrivalDate = it.actualArrivalDate,
+      actualDepartureDate = it.actualDepartureDate,
+      cancellationReason = it.cancellationReason,
+      premises = toCas1PremisesSummaryDto(it.premises),
+    )
+  }
+
+  private fun toCas1AssessmentSummaryDto(
+    assessment: Cas1AssessmentSummary?,
+  ) = assessment?.let {
+    Cas1AssessmentSummaryDto(
+      decision = toAssessmentDecision(assessment.decision),
+      rejectionRationale = assessment.rejectionRationale,
+    )
+  }
+
+  private fun toCas1StaffDto(
+    staff: Cas1Staff?,
+  ) = staff?.let {
+    Cas1StaffDto(
+      name = staff.name,
+      username = staff.username,
+      staffCode = staff.staffCode,
     )
   }
 
@@ -161,6 +270,50 @@ object EligibilityTransformer {
     CrsReferralStatus.LIVE -> CrsStatus.LIVE
     CrsReferralStatus.COMPLETED -> CrsStatus.COMPLETED
     CrsReferralStatus.WITHDRAWN -> CrsStatus.WITHDRAWN
+  }
+
+  private fun toWithdrawalReason(
+    withdrawalReason: String?,
+  ) = when (withdrawalReason) {
+    "duplicatePlacementRequest" -> WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
+    "alternativeProvisionIdentified" -> WithdrawPlacementRequestReason.ALTERNATIVE_PROVISION_IDENTIFIED
+    "changeInCircumstances" -> WithdrawPlacementRequestReason.CHANGE_IN_CIRCUMSTANCES
+    "changeInReleaseDecision" -> WithdrawPlacementRequestReason.CHANGE_IN_RELEASE_DECISION
+    "noCapacityDueToLostBed" -> WithdrawPlacementRequestReason.NO_CAPACITY_DUE_TO_LOST_BED
+    "noCapacityDueToPlacementPrioritisation" -> WithdrawPlacementRequestReason.NO_CAPACITY_DUE_TO_PLACEMENT_PRIORITISATION
+    "noCapacity" -> WithdrawPlacementRequestReason.NO_CAPACITY
+    "errorInPlacementRequest" -> WithdrawPlacementRequestReason.ERROR_IN_PLACEMENT_REQUEST
+    "withdrawnByPP" -> WithdrawPlacementRequestReason.WITHDRAWN_BY_PP
+    "relatedApplicationWithdrawn" -> WithdrawPlacementRequestReason.RELATED_APPLICATION_WITHDRAWN
+    "relatedPlacementRequestWithdrawn" -> WithdrawPlacementRequestReason.RELATED_PLACEMENT_REQUEST_WITHDRAWN
+    "relatedPlacementApplicationWithdrawn" -> WithdrawPlacementRequestReason.RELATED_PLACEMENT_APPLICATION_WITHDRAWN
+    null -> null
+    else -> {
+      log.error("Unexpected withdrawal reason: $withdrawalReason")
+      null
+    }
+  }
+
+  private fun toRequestForPlacementDecision(
+    decision: String?,
+  ) = when (decision) {
+    "accepted" -> PlacementApplicationDecision.ACCEPTED
+    "rejected" -> PlacementApplicationDecision.REJECTED
+    "withdraw" -> PlacementApplicationDecision.WITHDRAW
+    "withdrawnByPp" -> PlacementApplicationDecision.WITHDRAWN_BY_PP
+    null -> null
+    else -> {
+      log.error("Unexpected placement application decision: $decision")
+      null
+    }
+  }
+
+  private fun toAssessmentDecision(
+    decision: AssessmentDecisionInfra?,
+  ) = when (decision) {
+    AssessmentDecisionInfra.ACCEPTED -> AssessmentDecision.ACCEPTED
+    AssessmentDecisionInfra.REJECTED -> AssessmentDecision.REJECTED
+    null -> null
   }
 
   private fun toCas1ApplicationStatus(

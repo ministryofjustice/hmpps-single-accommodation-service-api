@@ -18,27 +18,115 @@ fun expectedGetEligibilityResponse(
   cas1ApplicationUrl: String,
   cas3ReferralUrl: String,
   crsUrl: String,
+  submittedAt: String,
+  requestSubmittedAt: String,
+  expectedArrivalDate: String,
+  expiresAt: String,
+  cas1ApplicationStartedAt: String,
+  startDate: String,
+  endDate: String,
+  dateApplied: String,
 ): String = """
 {
-   "data":{
-      "crn":"$crn",
-      "cas1":{
-         "serviceResult":{
-            "serviceStatus":"ARRIVED",
-            "action":null,
-            "link":"View application",
-            "url":"$cas1ApplicationUrl",
-            "linkType":"CAS1_VIEW_APPLICATION",
-            "failureReasons":[]
-         },
-         "cas1Application":{
-            "id":"$cas1ApplicationId",
-            "applicationStatus":"PLACEMENT_ALLOCATED",
-            "requestForPlacementStatus":"PLACEMENT_BOOKED",
-            "placementStatus":"ARRIVED"
-         }
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "PLACEMENT_BOOKED",
+        "action": null,
+        "link": "View application",
+        "url": "$cas1ApplicationUrl",
+        "linkType": "CAS1_VIEW_APPLICATION",
+        "failureReasons": []
       },
-      "cas3":{
+      "cas1Application": {
+        "uiUrl": "$cas1ApplicationUrl",
+        "application": {
+          "id": "$cas1ApplicationId",
+          "status": "PLACEMENT_ALLOCATED",
+          "createdAt": "$cas1ApplicationStartedAt",
+          "createdBy": {
+            "name": "Bob",
+            "username": "Bob123",
+            "staffCode": "123"
+          },
+          "submittedAt": "$submittedAt",
+          "expiresAt": "$expiresAt"
+        },
+        "assessment": {
+          "decision": "ACCEPTED",
+          "rejectionRationale": null
+        },
+        "requestForPlacement": {
+          "status": "PLACEMENT_BOOKED",
+          "decision": "ACCEPTED",
+          "rejectionReason": null,
+          "submittedBy": {
+            "name": "Bob",
+            "username": "Bob123",
+            "staffCode": "123"
+          },
+          "submittedAt": "$requestSubmittedAt",
+          "withdrawalReason": null,
+          "withdrawalDate": null,
+          "expectedArrivalDate": "$expectedArrivalDate",
+          "durationDays": 12
+        },
+        "placement": {
+          "status": "UPCOMING",
+          "actualArrivalDate": null,
+          "actualDepartureDate": null,
+          "cancellationReason": null,
+          "premises": {
+            "startDate": "$startDate",
+            "endDate": "$endDate",
+            "addressLine1": "Test House",
+            "addressLine2": "Test Road",
+            "town": "Test Town",
+            "postcode": "Test Postcode"
+          }
+        },
+        "placementHistory": [
+          {
+            "requestForPlacement": {
+              "status": "PLACEMENT_BOOKED",
+              "decision": "ACCEPTED",
+              "rejectionReason": null,
+              "submittedBy": {
+                "name": "Bob",
+                "username": "Bob123",
+                "staffCode": "123"
+              },
+              "submittedAt": "$requestSubmittedAt",
+              "withdrawalReason": null,
+              "withdrawalDate": null,
+              "expectedArrivalDate": "$expectedArrivalDate",
+              "durationDays": 12
+            },
+            "placement": {
+              "status": "CANCELLED",
+              "actualArrivalDate": null,
+              "actualDepartureDate": null,
+              "cancellationReason": "Oops",
+              "premises": {
+                "startDate": "$startDate",
+                "endDate": "$endDate",
+                "addressLine1": "Test House",
+                "addressLine2": "Test Road",
+                "town": "Test Town",
+                "postcode": "Test Postcode"
+              }
+            },
+            "dateApplied": "$dateApplied"
+          }
+        ],
+        "id": "$cas1ApplicationId",
+        "applicationStatus": "PLACEMENT_ALLOCATED",
+        "requestForPlacementStatus": "PLACEMENT_BOOKED",
+        "placementStatus": "UPCOMING"
+      }
+    },
+    "cas3":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
             "action":null,
@@ -97,15 +185,12 @@ fun expectedGetEligibilityResponse(
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
+            "serviceStatus":"COMPLETED",
             "action":null,
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[
-               "SUITABLE_CAS1_APPLICATION",
-               "SUITABLE_CAS3_APPLICATION"
-            ]
+            "failureReasons":[]
          }
       },
       "caseActions":[
@@ -206,26 +291,60 @@ fun expectedGetEligibilityResponseTierNotFound(
   cas1ApplicationUrl: String,
   cas3ReferralUrl: String,
   crsUrl: String,
+  cas1ApplicationStartedAt: String,
 ): String = """
 {
-   "data":{
-      "crn":"$crn",
-      "cas1":{
-         "serviceResult":{
-            "serviceStatus":"ARRIVED",
-            "action":null,
-            "link":"View application",
-            "url":"$cas1ApplicationUrl",
-            "linkType":"CAS1_VIEW_APPLICATION",
-            "failureReasons":[]
-         },
-         "cas1Application":{
-            "id":"$cas1ApplicationId",
-            "applicationStatus":"PLACEMENT_ALLOCATED",
-            "requestForPlacementStatus":"PLACEMENT_BOOKED",
-            "placementStatus":"ARRIVED"
-         }
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "ARRIVED",
+        "action": null,
+        "link": "View application",
+        "url": "$cas1ApplicationUrl",
+        "linkType": "CAS1_VIEW_APPLICATION",
+        "failureReasons": []
       },
+      "cas1Application": {
+        "uiUrl": "$cas1ApplicationUrl",
+        "application": {
+          "id": "$cas1ApplicationId",
+          "status": "PLACEMENT_ALLOCATED",
+          "createdAt": "$cas1ApplicationStartedAt",
+          "createdBy": {
+            "name": "Test Tester",
+            "username": "testTester",
+            "staffCode": "1234"
+          },
+          "submittedAt": null,
+          "expiresAt": null
+        },
+        "assessment": null,
+        "requestForPlacement": {
+          "status": "PLACEMENT_BOOKED",
+          "decision": null,
+          "rejectionReason": null,
+          "submittedBy": null,
+          "submittedAt": null,
+          "withdrawalReason": null,
+          "withdrawalDate": null,
+          "expectedArrivalDate": null,
+          "durationDays": null
+        },
+        "placement": {
+          "status": "ARRIVED",
+          "actualArrivalDate": null,
+          "actualDepartureDate": null,
+          "cancellationReason": null,
+          "premises": null
+        },
+        "placementHistory": [],
+        "id": "$cas1ApplicationId",
+        "applicationStatus": "PLACEMENT_ALLOCATED",
+        "requestForPlacementStatus": "PLACEMENT_BOOKED",
+        "placementStatus": "ARRIVED"
+      }
+    },
       "cas3":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -320,27 +439,44 @@ fun expectedGetEligibilityNotEligibleSTierFail(
   crsUrl: String,
 ): String = """
 {
-   "data":{
-      "crn":"$crn",
-      "cas1":{
-         "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
-            "action":null,
-            "link":null,
-            "url":null,
-            "linkType":null,
-            "failureReasons":[
-               "S_TIER"
-            ]
-         },
-         "cas1Application":{
-            "id":"$cas1ApplicationId",
-            "applicationStatus":"REJECTED",
-            "requestForPlacementStatus":null,
-            "placementStatus":null
-         }
+  "data": {
+    "crn": "$crn",
+    "cas1": {
+      "serviceResult": {
+        "serviceStatus": "NOT_ELIGIBLE",
+        "action": null,
+        "link": null,
+        "url": null,
+        "linkType": null,
+        "failureReasons": [
+          "S_TIER"
+        ]
       },
-      "cas3":{
+      "cas1Application": {
+        "uiUrl": "https://cas1-ui/applications/$cas1ApplicationId",
+        "application": {
+          "id": "$cas1ApplicationId",
+          "status": "REJECTED",
+          "createdAt": "2023-01-01T12:00:00Z",
+          "createdBy": {
+            "name": "Test Tester",
+            "username": "testTester",
+            "staffCode": "1234"
+          },
+          "submittedAt": null,
+          "expiresAt": null
+        },
+        "assessment": null,
+        "requestForPlacement": null,
+        "placement": null,
+        "placementHistory": [],
+        "id": "$cas1ApplicationId",
+        "applicationStatus": "REJECTED",
+        "requestForPlacementStatus": null,
+        "placementStatus": null
+      }
+    },
+"cas3":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
             "action":null,
