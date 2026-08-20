@@ -145,7 +145,7 @@ object AccommodationTransformer {
     address = AccommodationAddressDetails(
       postcode = null,
       subBuildingName = null,
-      buildingName = prisoner.prisonName,
+      buildingName = null,
       buildingNumber = null,
       thoroughfareName = null,
       dependentLocality = null,

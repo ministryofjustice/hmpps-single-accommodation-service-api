@@ -3,13 +3,17 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface PrisonerSearchClient {
   @GetExchange(value = "/prisoner/{prisonNumber}")
-  fun getPrisoner(@PathVariable prisonNumber: String): Prisoner
+  fun getPrisoner(
+    @PathVariable prisonNumber: String,
+    @RequestParam responseFields: String = Prisoner::class.java.declaredFields.joinToString(",") { it.name },
+  ): Prisoner
 }
 
 @RestClientRetry
