@@ -55,7 +55,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AssessmentDecision as InfraAssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as InfraCas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as InfraCas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus as InfraCas1RequestForPlacementStatus
@@ -83,7 +82,7 @@ class EligibilityTransformerTest {
       ),
       uiUrl = "https://cas1.example.com/applications/1234",
       assessment = buildCas1AssessmentSummary(
-        decision = InfraAssessmentDecision.ACCEPTED,
+        decision = "accepted",
         rejectionRationale = "rejection rationale",
       ),
       requestForPlacement = buildCas1RequestForPlacementSummary(
