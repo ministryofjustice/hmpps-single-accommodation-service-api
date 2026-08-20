@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -43,7 +42,7 @@ class Cas3PrerequisiteContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.SUBMIT_DTR_BEFORE_CAS3))
+      assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CANNOT_START_YET)
     }
 
@@ -65,17 +64,17 @@ class Cas3PrerequisiteContextUpdaterTest {
       fun `When only DTR is outstanding`(sex: SexCode) {
         val result = updater.update(context(sex), listOf(FailureReason.DTR_REFERRAL_EXPIRED))
 
-        assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_DTR_BEFORE_CAS3))
+        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
       }
 
       @Test
       fun `When DTR and CRS are outstanding - male`() {
         val result = updater.update(
           context(SexCode.M),
-          listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED),
+          listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_MALE),
         )
 
-        assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3))
+        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
       }
 
       @ParameterizedTest
@@ -83,25 +82,25 @@ class Cas3PrerequisiteContextUpdaterTest {
       fun `When DTR and CRS are outstanding - non-male`(sex: SexCode) {
         val result = updater.update(
           context(sex),
-          listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED),
+          listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_NON_MALE),
         )
 
-        assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_DTR_AND_CRS_BEFORE_CAS3))
+        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
       }
 
       @Test
       fun `When only CRS is outstanding - male`() {
-        val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_EXPIRED))
+        val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED_MALE))
 
-        assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3))
+        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
       }
 
       @ParameterizedTest
       @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
       fun `When only CRS is outstanding - non-male`(sex: SexCode) {
-        val result = updater.update(context(sex), listOf(FailureReason.CRS_EXPIRED))
+        val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED_NON_MALE))
 
-        assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_CRS_BEFORE_CAS3))
+        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
       }
     }
   }
