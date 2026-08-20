@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.w
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.nomisuserroles.NomisUserDetail
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
 object NomisUserRolesStubs {
 

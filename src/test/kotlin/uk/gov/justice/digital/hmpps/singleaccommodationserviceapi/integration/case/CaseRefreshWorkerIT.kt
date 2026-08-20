@@ -377,6 +377,10 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
           cpr = null,
           tier = buildTier(tierScore = "A9"),
           prisoner = null,
+          cas1CurrentPremises = null,
+          cas3CurrentPremises = null,
+          cas1Application = null,
+          cas3Application = null,
         ),
       ),
     ).isEqualTo(CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM)

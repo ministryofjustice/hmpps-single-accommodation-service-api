@@ -30,6 +30,7 @@ hmpps-sqs = { module = "uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-start
 
 spring-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-json = { module = "org.springframework.boot:spring-boot-starter-json" }
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 spring-restclient = { module = "org.springframework.boot:spring-boot-restclient" }
 spring-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }

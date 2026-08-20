@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions
 
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions.assertThat
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 
 class JsonAssertion(actual: String) : AbstractAssert<JsonAssertion, String>(actual, JsonAssertion::class.java) {
 

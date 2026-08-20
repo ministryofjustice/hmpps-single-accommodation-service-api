@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer.toUpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
@@ -53,7 +54,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
@@ -141,7 +141,7 @@ class EligibilityServiceTest {
 
   var rulesEngine = RulesEngine(DefaultRuleSetEvaluator())
 
-  private val accommodationQueryService = mockk<AccommodationQueryService>()
+  private val accommodationSummaryCalculator = mockk<AccommodationSummaryCalculator>()
   private val eligibilityOrchestrationService = mockk<EligibilityOrchestrationService>()
   private val dutyToReferQueryService = mockk<DutyToReferQueryService>()
 
@@ -283,7 +283,7 @@ class EligibilityServiceTest {
   }
 
   private val eligibilityService = EligibilityService(
-    accommodationQueryService = accommodationQueryService,
+    accommodationSummaryCalculator = accommodationSummaryCalculator,
     accommodationTypeRepository = accommodationTypeRepository,
     caseRepository = caseRepository,
     dutyToReferQueryService = dutyToReferQueryService,
@@ -355,9 +355,9 @@ class EligibilityServiceTest {
       val accommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true, code = "A02")
 
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationTypeEntity)
-      every { accommodationQueryService.getNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, cas1Application, cas3Application, currentAccommodation) } returns emptyList()
       every { dutyToReferQueryService.getDutyToRefer(caseEntity, crn) } returns dutyToRefer
-      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
+      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, prisoner, cas1CurrentPremises, cas3CurrentPremises) } returns currentAccommodation
       val result = eligibilityService.buildDomainData(crn, orchestrationDto.data, caseEntity)
 
       val expected = buildDomainData(

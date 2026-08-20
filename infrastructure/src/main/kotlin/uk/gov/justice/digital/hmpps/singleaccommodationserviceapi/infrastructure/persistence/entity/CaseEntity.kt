@@ -1,11 +1,17 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
 
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -20,6 +26,17 @@ class CaseEntity(
   var firstName: String? = null,
   var lastName: String? = null,
   var dateOfBirth: LocalDate? = null,
+
+  @Column(columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  var currentAccommodation: String? = null,
+
+  @Column(columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  var nextAccommodation: String? = null,
+
+  @Enumerated(EnumType.STRING)
+  var accommodationStatus: CaseAccommodationStatus? = null,
 
   @OneToMany(
     mappedBy = "caseEntity",
