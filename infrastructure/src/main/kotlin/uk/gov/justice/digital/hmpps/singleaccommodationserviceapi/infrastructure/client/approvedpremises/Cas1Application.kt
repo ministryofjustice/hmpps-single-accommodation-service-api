@@ -30,14 +30,9 @@ data class Cas1ApplicationSummary(
 )
 
 data class Cas1AssessmentSummary(
-  val decision: AssessmentDecision?,
+  val decision: String?,
   val rejectionRationale: String?,
 )
-
-enum class AssessmentDecision {
-  ACCEPTED,
-  REJECTED,
-}
 
 data class Cas1RequestForPlacementSummary(
   val status: Cas1RequestForPlacementStatus?,

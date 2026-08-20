@@ -45,7 +45,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AssessmentDecision as AssessmentDecisionInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as Cas1ApplicationStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as Cas1PlacementStatusInfra
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus as Cas1RequestForPlacementStatusInfra
@@ -309,11 +308,18 @@ object EligibilityTransformer {
   }
 
   private fun toAssessmentDecision(
-    decision: AssessmentDecisionInfra?,
+    decision: String?,
   ) = when (decision) {
-    AssessmentDecisionInfra.ACCEPTED -> AssessmentDecision.ACCEPTED
-    AssessmentDecisionInfra.REJECTED -> AssessmentDecision.REJECTED
     null -> null
+
+    "accepted" -> AssessmentDecision.ACCEPTED
+
+    "rejected" -> AssessmentDecision.REJECTED
+
+    else -> {
+      log.error("Unexpected assessment decision: $decision")
+      null
+    }
   }
 
   private fun toCas1ApplicationStatus(

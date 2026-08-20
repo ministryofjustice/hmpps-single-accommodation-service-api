@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
@@ -101,7 +100,7 @@ fun buildCas1RequestForPlacementSummary(
 
 fun buildCas1AssessmentSummary(
   rejectionRationale: String? = null,
-  decision: AssessmentDecision? = null,
+  decision: String? = null,
 ) = Cas1AssessmentSummary(
   decision = decision,
   rejectionRationale = rejectionRationale,
