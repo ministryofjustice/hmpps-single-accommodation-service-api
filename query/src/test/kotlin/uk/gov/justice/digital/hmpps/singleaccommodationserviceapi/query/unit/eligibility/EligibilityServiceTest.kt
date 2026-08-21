@@ -400,8 +400,8 @@ class EligibilityServiceTest {
       )
 
       every { accommodationTypeRepository.findAll() } returns emptyList()
-      every { accommodationQueryService.getCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
-      every { accommodationQueryService.getNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
+      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
+      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
 
       val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
 
