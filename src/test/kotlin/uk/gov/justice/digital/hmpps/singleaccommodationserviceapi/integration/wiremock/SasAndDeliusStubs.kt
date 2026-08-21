@@ -7,7 +7,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 
@@ -77,6 +79,44 @@ object SasAndDeliusStubs {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/case/$deliusUsername/$crn"))
         .willReturn(notFound()),
+    )
+  }
+
+  fun stubGetCasesByTeamCode(
+    teamCode: String,
+    cases: List<CaseIdentifiers>,
+    pageSize: Int = 1,
+  ) {
+    val pages = cases.chunked(pageSize).ifEmpty { listOf(emptyList()) }
+
+    pages.forEachIndexed { page, casesInPage ->
+      sasWiremock.stubFor(
+        get(WireMock.urlPathEqualTo("/team/$teamCode/case-list"))
+          .withQueryParam("page", WireMock.equalTo(page.toString()))
+          .withQueryParam("size", WireMock.equalTo(pageSize.toString()))
+          .willReturn(
+            okJson(
+              jsonMapper.writeValueAsString(
+                TeamCaseList(
+                  content = casesInPage,
+                  page = PageMetadata(
+                    size = pageSize.toLong(),
+                    number = page.toLong(),
+                    totalElements = cases.size.toLong(),
+                    totalPages = pages.size.toLong(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      )
+    }
+  }
+
+  fun stubGetCasesByTeamCodeFailure(teamCode: String) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/team/$teamCode/case-list"))
+        .willReturn(serverError()),
     )
   }
 }

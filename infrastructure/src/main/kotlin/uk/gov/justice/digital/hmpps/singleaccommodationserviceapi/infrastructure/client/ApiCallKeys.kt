@@ -8,6 +8,7 @@ object ApiCallKeys {
   // probation-integration SAS and Delius service
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
+  const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
 
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
