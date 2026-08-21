@@ -99,7 +99,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
     )
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
-      applicationStatus = Cas3ApplicationStatus.REJECTED,
+      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
       uiUrl = cas3ReferralUiUrl,
     )
