@@ -29,7 +29,8 @@ fun expectedGetEligibilityResponse(
             "link":"View application",
             "url":"$cas1ApplicationUrl",
             "linkType":"CAS1_VIEW_APPLICATION",
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
@@ -45,7 +46,8 @@ fun expectedGetEligibilityResponse(
             "link":"View referral",
             "url":"$cas3ReferralUrl",
             "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -61,7 +63,8 @@ fun expectedGetEligibilityResponse(
             "link":"Add outcome",
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -88,7 +91,8 @@ fun expectedGetEligibilityResponse(
             "link":"View refer and monitor",
             "url":"$crsUrl",
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
             "status":"COMPLETED",
@@ -105,7 +109,8 @@ fun expectedGetEligibilityResponse(
             "failureReasons":[
                "SUITABLE_CAS1_APPLICATION",
                "SUITABLE_CAS3_APPLICATION"
-            ]
+            ],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[
@@ -128,7 +133,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas1Application":null
       },
@@ -139,7 +145,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas3Application":null
       },
@@ -150,7 +157,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":null,
          "submission":null
@@ -162,7 +170,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":null
       },
@@ -173,7 +182,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[]
@@ -217,7 +227,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "link":"View application",
             "url":"$cas1ApplicationUrl",
             "linkType":"CAS1_VIEW_APPLICATION",
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
@@ -233,7 +244,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "link":"View referral",
             "url":"$cas3ReferralUrl",
             "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -249,7 +261,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "link":"Add outcome",
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -276,7 +289,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "link":"View refer and monitor",
             "url":"$crsUrl",
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
             "status":"COMPLETED",
@@ -293,7 +307,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "failureReasons":[
                "SUITABLE_CAS1_APPLICATION",
                "SUITABLE_CAS3_APPLICATION"
-            ]
+            ],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[
@@ -331,7 +346,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "linkType":null,
             "failureReasons":[
                "S_TIER"
-            ]
+            ],
+            "blockingStatusReason":null
          },
          "cas1Application":{
             "id":"$cas1ApplicationId",
@@ -347,7 +363,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "link":"View referral",
             "url":"$cas3ReferralUrl",
             "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas3Application":{
             "id":"$cas3ApplicationId",
@@ -363,7 +380,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "link":"Add outcome",
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -390,7 +408,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "link":"View refer and monitor",
             "url":"$crsUrl",
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
             "status":"COMPLETED",
@@ -406,11 +425,105 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "linkType":null,
             "failureReasons":[
                "SUITABLE_CAS3_APPLICATION"
-            ]
+            ],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[
          {"type":"ADD_DTR_OUTCOME","startDate":null}
+      ]
+   }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityResponseCannotStartYet(
+  crn: String,
+  cas1ApplicationId: UUID,
+  cas3ApplicationId: UUID,
+  crsSubmissionDate: String,
+  cas1ApplicationUrl: String,
+  crsUrl: String,
+): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "cas1":{
+         "serviceResult":{
+            "serviceStatus":"ARRIVED",
+            "action":null,
+            "link":"View application",
+            "url":"$cas1ApplicationUrl",
+            "linkType":"CAS1_VIEW_APPLICATION",
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas1Application":{
+            "id":"$cas1ApplicationId",
+            "applicationStatus":"PLACEMENT_ALLOCATED",
+            "requestForPlacementStatus":"PLACEMENT_BOOKED",
+            "placementStatus":"ARRIVED"
+         }
+      },
+      "cas3":{
+         "serviceResult":{
+            "serviceStatus":"CANNOT_START_YET",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":["DTR_REFERRAL_EXPIRED"],
+            "blockingStatusReason":"SUBMIT_DTR_BEFORE_CAS3"
+         },
+         "cas3Application":{
+            "id":"$cas3ApplicationId",
+            "applicationStatus":"REJECTED",
+            "assessmentStatus":null,
+            "bookingStatus":null
+         }
+      },
+      "dtr":{
+         "serviceResult":{
+            "serviceStatus":"NOT_STARTED",
+            "action":{"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            "link":"Add referral details",
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "caseId":null,
+         "submission":null
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"SUBMITTED",
+            "action":null,
+            "link":"View refer and monitor",
+            "url":"$crsUrl",
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "commissionedRehabilitativeServices":{
+            "status":"COMPLETED",
+            "submissionDate":"$crsSubmissionDate"
+         }
+      },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[
+               "SUITABLE_CAS1_APPLICATION"
+            ],
+            "blockingStatusReason":null
+         }
+      },
+      "caseActions":[
+         {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null}
       ]
    }
 }

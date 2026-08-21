@@ -47,7 +47,7 @@ class Cas3PrerequisiteContextUpdaterTest {
     }
 
     @Nested
-    inner class SetsCaseActionTypeDependingOnFailureReasonAndSexCode {
+    inner class SetsBlockingReason {
       private fun context(sex: SexCode): EvaluationContext {
         val data = buildDomainData(
           cas3Application = buildCas3Application(),
@@ -59,48 +59,99 @@ class Cas3PrerequisiteContextUpdaterTest {
         )
       }
 
-      @ParameterizedTest
-      @EnumSource(value = SexCode::class)
-      fun `When only DTR is outstanding`(sex: SexCode) {
-        val result = updater.update(context(sex), listOf(FailureReason.DTR_REFERRAL_EXPIRED))
+      @Nested
+      inner class WhenOnlyDtrFails {
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class)
+        fun `returns SUBMIT_DTR_BEFORE_CAS3`(sex: SexCode) {
+          val result = updater.update(context(sex), listOf(FailureReason.DTR_REFERRAL_EXPIRED))
 
-        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+        }
       }
 
-      @Test
-      fun `When DTR and CRS are outstanding - male`() {
-        val result = updater.update(
-          context(SexCode.M),
-          listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_MALE),
-        )
+      @Nested
+      inner class WhenDtrFailsAndCrsNotSubmitted {
+        @Test
+        fun `returns SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
+          val result = updater.update(
+            context(SexCode.M),
+            listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_MALE),
+          )
 
-        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+        fun `returns SUBMIT_DTR_AND_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
+          val result = updater.update(
+            context(sex),
+            listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_NON_MALE),
+          )
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
+        }
       }
 
-      @ParameterizedTest
-      @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
-      fun `When DTR and CRS are outstanding - non-male`(sex: SexCode) {
-        val result = updater.update(
-          context(sex),
-          listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_NON_MALE),
-        )
+      @Nested
+      inner class WhenDtrFailsAndCrsExpired {
+        @Test
+        fun `returns SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
+          val result = updater.update(
+            context(SexCode.M),
+            listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_EXPIRED_MALE),
+          )
 
-        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+        fun `returns SUBMIT_DTR_AND_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
+          val result = updater.update(
+            context(sex),
+            listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_EXPIRED_NON_MALE),
+          )
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
+        }
       }
 
-      @Test
-      fun `When only CRS is outstanding - male`() {
-        val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED_MALE))
+      @Nested
+      inner class WhenOnlyCrsNotSubmitted {
+        @Test
+        fun `returns SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
+          val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED_MALE))
 
-        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+        fun `returns SUBMIT_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
+          val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED_NON_MALE))
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
+        }
       }
 
-      @ParameterizedTest
-      @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
-      fun `When only CRS is outstanding - non-male`(sex: SexCode) {
-        val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED_NON_MALE))
+      @Nested
+      inner class WhenOnlyCrsExpired {
+        @Test
+        fun `returns SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
+          val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_EXPIRED_MALE))
 
-        assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+        fun `returns SUBMIT_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
+          val result = updater.update(context(sex), listOf(FailureReason.CRS_EXPIRED_NON_MALE))
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
+        }
       }
     }
   }
