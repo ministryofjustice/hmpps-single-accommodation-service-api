@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.FailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.BulkLoadCasesService
@@ -50,7 +50,7 @@ class BulkLoadCasesServiceTest {
   @Test
   fun `creates the cases it does not hold and requests refreshes`() {
     val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN1", prisonNumber = "PN1"), TeamCaseIdentifiers(crn = "CRN2", prisonNumber = null))
+    stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = "PN1"), CaseIdentifiers(crn = "CRN2", prisonerNumber = null))
     every { caseRepository.findUnpersistedCrns(any()) } returns listOf("CRN2")
     every { caseRepository.findByCrns(listOf("CRN1", "CRN2")) } returns caseIds.map { buildCaseEntity(id = it) }
 
@@ -86,7 +86,7 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `a dry run reports what it would do without writing anything`() {
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN1", prisonNumber = null), TeamCaseIdentifiers(crn = "CRN2", prisonNumber = null))
+    stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), CaseIdentifiers(crn = "CRN2", prisonerNumber = null))
     every { caseRepository.findUnpersistedCrns(any()) } returns listOf("CRN2")
 
     val result = bulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = true).data
@@ -126,8 +126,8 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `records a failing team as an error and carries on with the rest`() {
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN1", prisonNumber = null), teamCode = "BROKENTEAM")
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN2", prisonNumber = null), teamCode = "OKTEAM")
+    stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), teamCode = "BROKENTEAM")
+    stubTeamCases(CaseIdentifiers(crn = "CRN2", prisonerNumber = null), teamCode = "OKTEAM")
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
     every { caseRepository.findByCrns(listOf("CRN1")) } throws RuntimeException("error inserting case for this team")
     every { caseRepository.findByCrns(listOf("CRN2")) } returns listOf(buildCaseEntity())
@@ -141,8 +141,8 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `aggregates the counts across every team`() {
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN1", prisonNumber = null), teamCode = "TEAM1")
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN2", prisonNumber = null), TeamCaseIdentifiers(crn = "CRN3", prisonNumber = null), teamCode = "TEAM2")
+    stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), teamCode = "TEAM1")
+    stubTeamCases(CaseIdentifiers(crn = "CRN2", prisonerNumber = null), CaseIdentifiers(crn = "CRN3", prisonerNumber = null), teamCode = "TEAM2")
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
     every { caseRepository.findByCrns(any()) } answers {
       firstArg<List<String>>().map { buildCaseEntity() }
@@ -157,7 +157,7 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `trims, uppercases and de-duplicates the team codes before use`() {
-    stubTeamCases(TeamCaseIdentifiers(crn = "CRN1", prisonNumber = null))
+    stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null))
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
 
     val result = bulkLoadCasesService.bulkLoadCases(listOf(" team1 ", "TEAM1"), dryRun = true).data
@@ -195,7 +195,7 @@ class BulkLoadCasesServiceTest {
     verify(exactly = 0) { caseApplicationService.createCases(any()) }
   }
 
-  private fun stubTeamCases(vararg cases: TeamCaseIdentifiers, teamCode: String = this.teamCode) {
+  private fun stubTeamCases(vararg cases: CaseIdentifiers, teamCode: String = this.teamCode) {
     every { teamCaseOrchestrationService.getCasesByTeamCode(teamCode) } returns OrchestrationResultDto(
       data = cases.toList(),
       upstreamFailures = emptyList(),

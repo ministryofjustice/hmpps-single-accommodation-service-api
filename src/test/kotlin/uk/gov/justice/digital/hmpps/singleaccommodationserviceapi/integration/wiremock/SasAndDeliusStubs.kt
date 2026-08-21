@@ -7,8 +7,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseList
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseList
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
@@ -84,7 +84,7 @@ object SasAndDeliusStubs {
 
   fun stubGetCasesByTeamCode(
     teamCode: String,
-    cases: List<TeamCaseIdentifiers>,
+    cases: List<CaseIdentifiers>,
     pageSize: Int = 1,
   ) {
     val pages = cases.chunked(pageSize).ifEmpty { listOf(emptyList()) }
@@ -98,7 +98,7 @@ object SasAndDeliusStubs {
             okJson(
               jsonMapper.writeValueAsString(
                 TeamCaseList(
-                  cases = casesInPage,
+                  content = casesInPage,
                   page = PageMetadata(
                     size = pageSize.toLong(),
                     number = page.toLong(),

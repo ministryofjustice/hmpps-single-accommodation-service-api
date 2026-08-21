@@ -9,7 +9,7 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
@@ -29,8 +29,8 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   private val teamCode = "TEAM1"
   private val teamCases = listOf(
-    TeamCaseIdentifiers(crn = "CRN1", prisonNumber = "PN1"),
-    TeamCaseIdentifiers(crn = "CRN2", prisonNumber = null),
+    CaseIdentifiers(crn = "CRN1", prisonerNumber = "PN1"),
+    CaseIdentifiers(crn = "CRN2", prisonerNumber = null),
   )
   private val crns = teamCases.map { it.crn }
 
@@ -80,6 +80,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(caseRepository.findUnpersistedCrns(crns.toTypedArray())).isEmpty()
 
     val persistedCases = caseRepository.findByCrns(crns)
+    assertThat(caseRepository.findByCrn("CRN1")?.latestPrisonNumber()).isEqualTo("PN1")
+    assertThat(caseRepository.findByCrn("CRN2")?.latestPrisonNumber()).isNull()
+
     val refreshRequests = caseRefreshRequestRepository.findAll()
     assertThat(refreshRequests.map { it.caseId }).containsExactlyInAnyOrderElementsOf(persistedCases.map { it.id })
     assertThat(refreshRequests).allSatisfy {

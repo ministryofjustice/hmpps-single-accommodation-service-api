@@ -85,7 +85,7 @@ class BulkLoadCasesService(
       return TeamLoadResult(crnsFound = teamCases.size, casesAlreadyPresent = casesAlreadyPresent)
     }
 
-    caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonNumber) })
+    caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) })
 
     val caseIds = caseRepository.findByCrns(teamCases.map { it.crn }).map { it.id }
     caseRefreshRequestService?.requestBulkRefresh(caseIds)

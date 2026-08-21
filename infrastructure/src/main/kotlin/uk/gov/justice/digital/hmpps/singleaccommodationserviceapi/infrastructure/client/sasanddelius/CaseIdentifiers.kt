@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PageMetadata
 
 data class TeamCaseList(
-  val cases: List<TeamCaseIdentifiers>,
+  val content: List<CaseIdentifiers>,
   val page: PageMetadata,
 )
 
-data class TeamCaseIdentifiers(
+data class CaseIdentifiers(
   val crn: String,
-  val prisonNumber: String?,
+  val prisonerNumber: String?,
 )
