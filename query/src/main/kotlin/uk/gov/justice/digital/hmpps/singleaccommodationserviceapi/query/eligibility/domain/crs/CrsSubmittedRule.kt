@@ -10,22 +10,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class CrsSubmittedRule : Rule {
-  override val description = "FAIL if CRS not submitted"
+  override val description = "FAIL if no live CRS referral"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val status = data.commissionedRehabilitativeServices?.status
-    val isFail = status !in SUBMITTED_STATUSES
+    val isFail = data.commissionedRehabilitativeServices?.status != CrsReferralStatus.LIVE
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
       failureReason = if (isFail) FailureReason.CRS_NOT_SUBMITTED else null,
-    )
-  }
-
-  companion object {
-    private val SUBMITTED_STATUSES = setOf(
-      CrsReferralStatus.LIVE,
-      CrsReferralStatus.COMPLETED,
     )
   }
 }

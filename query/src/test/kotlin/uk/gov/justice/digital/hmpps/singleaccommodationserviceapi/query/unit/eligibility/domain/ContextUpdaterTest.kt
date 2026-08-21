@@ -23,7 +23,7 @@ class ContextUpdaterTest {
   )
 
   private val failureReasons = listOf(
-    FailureReason.CRS_EXPIRED,
+    FailureReason.CRS_NOT_SUBMITTED,
     FailureReason.DTR_REFERRAL_EXPIRED,
   )
 

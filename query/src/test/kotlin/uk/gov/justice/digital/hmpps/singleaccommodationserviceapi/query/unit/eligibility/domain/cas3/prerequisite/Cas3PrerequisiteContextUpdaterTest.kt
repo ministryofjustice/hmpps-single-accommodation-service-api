@@ -91,7 +91,7 @@ class Cas3PrerequisiteContextUpdaterTest {
 
       @Test
       fun `When only CRS is outstanding - male`() {
-        val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_EXPIRED))
+        val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED))
 
         assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3))
       }
@@ -99,7 +99,7 @@ class Cas3PrerequisiteContextUpdaterTest {
       @ParameterizedTest
       @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
       fun `When only CRS is outstanding - non-male`(sex: SexCode) {
-        val result = updater.update(context(sex), listOf(FailureReason.CRS_EXPIRED))
+        val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED))
 
         assertThat(result.currentResult.action).isEqualTo(CaseAction(CaseActionType.SUBMIT_CRS_BEFORE_CAS3))
       }

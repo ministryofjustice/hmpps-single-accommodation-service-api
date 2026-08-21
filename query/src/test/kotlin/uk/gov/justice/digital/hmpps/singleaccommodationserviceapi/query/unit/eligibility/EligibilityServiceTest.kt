@@ -94,7 +94,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
@@ -130,6 +129,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Cs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -184,7 +184,6 @@ class EligibilityServiceTest {
     DtrExpiredReferralRule(clock),
     CrsCompletionRuleSet(
       CrsSubmittedRule(),
-      CrsExpiredRule(clock),
     ),
   )
   var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
@@ -211,7 +210,6 @@ class EligibilityServiceTest {
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     CrsSubmittedRule(),
-    CrsExpiredRule(clock),
   )
   var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsUiUrl)
   var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
@@ -335,7 +333,7 @@ class EligibilityServiceTest {
       )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, submission = null)
-      val crs = buildCommissionedRehabilitativeServices()
+      val crs = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE)
       val prisoner = buildPrisoner()
       val orchestrationDto = OrchestrationResultDto(
         data = EligibilityOrchestrationDto(
@@ -374,6 +372,40 @@ class EligibilityServiceTest {
       )
 
       assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `getDomainData selects the most recent live referral and ignores the rest`() {
+      val cpr = buildCorePersonRecord()
+      val currentAccommodation = buildAccommodationSummaryDto()
+      val latestLiveReferral = buildCommissionedRehabilitativeServices(
+        status = CrsReferralStatus.LIVE,
+        sentAt = OffsetDateTime.now().minusDays(30),
+      )
+      val orchestrationDto = EligibilityOrchestrationDto(
+        crn = crn,
+        cpr = cpr,
+        tier = null,
+        cas1Application = null,
+        cas3Application = null,
+        commissionedRehabilitativeServices = listOf(
+          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.COMPLETED, sentAt = OffsetDateTime.now()),
+          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.WITHDRAWN, sentAt = OffsetDateTime.now()),
+          latestLiveReferral,
+          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE, sentAt = OffsetDateTime.now().minusDays(60)),
+        ),
+        cas1CurrentPremises = null,
+        cas3CurrentPremises = null,
+        prisoner = null,
+      )
+
+      every { accommodationTypeRepository.findAll() } returns emptyList()
+      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
+      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
+
+      val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
+
+      assertThat(result.commissionedRehabilitativeServices).isEqualTo(latestLiveReferral)
     }
   }
 

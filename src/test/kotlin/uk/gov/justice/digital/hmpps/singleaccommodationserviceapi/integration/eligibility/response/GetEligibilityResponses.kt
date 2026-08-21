@@ -179,7 +179,7 @@ fun expectedGetEligibilityResponse(
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },
@@ -398,7 +398,7 @@ fun expectedGetEligibilityResponseTierNotFound(
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },
@@ -529,7 +529,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "failureReasons":[]
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },

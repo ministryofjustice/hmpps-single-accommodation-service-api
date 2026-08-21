@@ -145,7 +145,7 @@ class EligibilityService(
     )
 
     val suitableCrsReferral = eligibilityOrchestrationDto.commissionedRehabilitativeServices
-      ?.filter { it.status == CrsReferralStatus.LIVE || it.status == CrsReferralStatus.COMPLETED }
+      ?.filter { it.status == CrsReferralStatus.LIVE }
       ?.filter { it.sentAt != null }
       ?.maxByOrNull { it.sentAt!! }
 
