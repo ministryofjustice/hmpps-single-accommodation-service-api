@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs
 
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -21,7 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 class CrsEligibilityTreeProvider(
   private val builder: DecisionTreeBuilder,
   private val eligibility: CrsEligibilityRuleSet,
-  @Qualifier("crsCompletionRuleSet") private val completion: CrsCompletionRuleSet,
+  private val completion: CrsCompletionRuleSet,
   private val completionContextUpdater: CrsCompletionContextUpdater,
   private val upcoming: CrsUpcomingRuleSet,
   private val upcomingContextUpdater: CrsUpcomingContextUpdater,
