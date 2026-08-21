@@ -62,6 +62,16 @@ object SasAndDeliusStubs {
     )
   }
 
+  fun stubGetCase(
+    crn: String,
+    response: Case,
+  ) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/case/$crn"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
   fun stubGetCaseFailure(
     deliusUsername: String,
     crn: String,

@@ -23,6 +23,7 @@ class CaseAggregateTest {
       firstName = "First",
       lastName = "Last",
       dateOfBirth = dateOfBirth,
+      roshLevelCode = "RMRH",
     )
 
     assertThat(hydrated.snapshot()).satisfies(
@@ -33,6 +34,7 @@ class CaseAggregateTest {
         assertThat(it.firstName).isEqualTo("First")
         assertThat(it.lastName).isEqualTo("Last")
         assertThat(it.dateOfBirth).isEqualTo(dateOfBirth)
+        assertThat(it.roshLevelCode).isEqualTo("RMRH")
       },
     )
   }
@@ -46,6 +48,7 @@ class CaseAggregateTest {
     assertThat(newAggregate.snapshot().firstName).isNull()
     assertThat(newAggregate.snapshot().lastName).isNull()
     assertThat(newAggregate.snapshot().dateOfBirth).isNull()
+    assertThat(newAggregate.snapshot().roshLevelCode).isNull()
   }
 
   @Test
@@ -90,6 +93,7 @@ class CaseAggregateTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+      roshLevelCode = "RVHR",
     )
     val afterUpdate = aggregate.snapshot()
     assertThat(afterUpdate.tierScore).isEqualTo("A1")
@@ -99,5 +103,6 @@ class CaseAggregateTest {
     assertThat(afterUpdate.currentAccommodation).isEqualTo(currentAccommodation)
     assertThat(afterUpdate.nextAccommodation).isEqualTo(nextAccommodation)
     assertThat(afterUpdate.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
+    assertThat(afterUpdate.roshLevelCode).isEqualTo("RVHR")
   }
 }
