@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
-import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Bu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.BulkLoadCasesService
 
-@Hidden
 @RestController
 class AdminJobController(
   private val bulkLoadCasesService: BulkLoadCasesService,
