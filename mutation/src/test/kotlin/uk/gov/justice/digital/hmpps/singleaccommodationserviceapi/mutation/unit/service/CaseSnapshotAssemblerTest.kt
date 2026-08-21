@@ -12,8 +12,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
@@ -36,6 +38,7 @@ class CaseSnapshotAssemblerTest {
     val tier = buildTier(tierScore = "A1")
     val currentAccommodation = buildAccommodationSummaryDto(crn = crn)
     val nextAccommodation = buildAccommodationSummaryDto(crn = crn)
+    val case = buildCase(crn = crn, roshLevel = buildRoshLevel(code = "RMRH"))
 
     val dto = CaseMutationOrchestrationDto(
       crn = crn,
@@ -46,6 +49,7 @@ class CaseSnapshotAssemblerTest {
       cas3CurrentPremises = null,
       cas1Application = null,
       cas3Application = null,
+      case = case,
     )
 
     every {
@@ -88,6 +92,7 @@ class CaseSnapshotAssemblerTest {
     assertThat(snapshot.currentAccommodation).isEqualTo(currentAccommodation)
     assertThat(snapshot.nextAccommodation).isEqualTo(nextAccommodation)
     assertThat(snapshot.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+    assertThat(snapshot.roshLevelCode).isEqualTo("RMRH")
   }
 
   @Test
@@ -102,6 +107,7 @@ class CaseSnapshotAssemblerTest {
       cas3CurrentPremises = null,
       cas1Application = null,
       cas3Application = null,
+      case = null,
     )
 
     every {
@@ -123,5 +129,6 @@ class CaseSnapshotAssemblerTest {
     assertThat(snapshot.currentAccommodation).isNull()
     assertThat(snapshot.nextAccommodation).isNull()
     assertThat(snapshot.accommodationStatus).isNull()
+    assertThat(snapshot.roshLevelCode).isNull()
   }
 }

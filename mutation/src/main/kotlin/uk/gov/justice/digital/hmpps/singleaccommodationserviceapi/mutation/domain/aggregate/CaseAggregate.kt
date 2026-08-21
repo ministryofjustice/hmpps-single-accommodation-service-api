@@ -15,6 +15,7 @@ class CaseAggregate private constructor(
   private var currentAccommodation: AccommodationSummaryDto? = null,
   private var nextAccommodation: AccommodationSummaryDto? = null,
   private var accommodationStatus: CaseAccommodationStatus? = null,
+  private var roshLevelCode: String? = null,
 ) {
 
   fun upsertCase(
@@ -25,6 +26,7 @@ class CaseAggregate private constructor(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
     accommodationStatus: CaseAccommodationStatus?,
+    roshLevelCode: String?,
   ): CaseAggregate {
     updateTier(tierScore)
     this.firstName = firstName
@@ -33,6 +35,7 @@ class CaseAggregate private constructor(
     this.currentAccommodation = currentAccommodation
     this.nextAccommodation = nextAccommodation
     this.accommodationStatus = accommodationStatus
+    this.roshLevelCode = roshLevelCode
     return this
   }
 
@@ -47,6 +50,7 @@ class CaseAggregate private constructor(
       currentAccommodation: AccommodationSummaryDto? = null,
       nextAccommodation: AccommodationSummaryDto? = null,
       accommodationStatus: CaseAccommodationStatus? = null,
+      roshLevelCode: String? = null,
     ) = CaseAggregate(
       id = id,
       tierScore = tierScore,
@@ -57,6 +61,7 @@ class CaseAggregate private constructor(
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = accommodationStatus,
+      roshLevelCode = roshLevelCode,
     )
 
     fun hydrateNew() = CaseAggregate(
@@ -84,6 +89,7 @@ class CaseAggregate private constructor(
     val currentAccommodation: AccommodationSummaryDto?,
     val nextAccommodation: AccommodationSummaryDto?,
     val accommodationStatus: CaseAccommodationStatus?,
+    val roshLevelCode: String?,
   )
 
   fun snapshot() = CaseSnapshot(
@@ -96,5 +102,6 @@ class CaseAggregate private constructor(
     currentAccommodation,
     nextAccommodation,
     accommodationStatus,
+    roshLevelCode,
   )
 }
