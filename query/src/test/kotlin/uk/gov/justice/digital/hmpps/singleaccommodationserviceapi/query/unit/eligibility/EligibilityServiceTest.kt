@@ -87,6 +87,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
@@ -182,9 +184,8 @@ class EligibilityServiceTest {
   )
   var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
     DtrExpiredReferralRule(clock),
-    CrsCompletionRuleSet(
-      CrsSubmittedRule(),
-    ),
+    CrsSubmittedRuleMale(),
+    CrsSubmittedRuleNonMale(),
   )
   var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
 

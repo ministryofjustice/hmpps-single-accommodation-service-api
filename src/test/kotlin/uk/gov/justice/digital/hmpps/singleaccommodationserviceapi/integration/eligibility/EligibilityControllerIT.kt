@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
@@ -39,6 +40,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityNotEligibleSTierFail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseCannotStartYet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseTierNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityUpstreamFailuresResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
@@ -237,6 +239,40 @@ class EligibilityControllerIT : IntegrationTestBase() {
             startDate = cas1Application.placement?.premises?.startDate.toString(),
             endDate = cas1Application.placement?.premises?.endDate.toString(),
             dateApplied = cas1Application.placementHistory.firstOrNull()?.dateApplied.toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should get eligibility for cas 3 blocking reason`() {
+    val entity = buildCaseEntity(id = dutyToReferCaseId) {
+      withCrn(crn)
+      withPrisonNumber(prisonNumber)
+    }
+    caseRepository.save(entity)
+    PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber, inOutStatus = InOutStatus.IN))
+
+    val cas3Application = buildCas3Application(
+      id = cas3ApplicationId,
+      applicationStatus = Cas3ApplicationStatus.REJECTED,
+      uiUrl = cas3ReferralUiUrl,
+    )
+    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetEligibilityResponseCannotStartYet(
+            crn = crn,
+            cas1ApplicationId = cas1ApplicationId,
+            cas3ApplicationId = cas3ApplicationId,
+            crsSubmissionDate = crsSubmissionDate.toString(),
+            cas1ApplicationUrl = cas1ApplicationUiUrl,
+            crsUrl = crsUrl,
           ),
         )
       }
