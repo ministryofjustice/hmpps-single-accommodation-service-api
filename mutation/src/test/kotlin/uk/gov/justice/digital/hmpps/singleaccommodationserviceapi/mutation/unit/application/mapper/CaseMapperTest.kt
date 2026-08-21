@@ -29,6 +29,7 @@ class CaseMapperTest {
       firstName = "First",
       lastName = "Last",
       dateOfBirth = LocalDate.of(2000, 12, 3),
+      roshLevelCode = "RMRH",
     )
     val caseAggregate = caseMapper.toAggregate(caseEntity)
     val snapshot = caseAggregate.snapshot()
@@ -40,6 +41,7 @@ class CaseMapperTest {
       { assertThat(snapshot.firstName).isEqualTo(caseEntity.firstName) },
       { assertThat(snapshot.lastName).isEqualTo(caseEntity.lastName) },
       { assertThat(snapshot.dateOfBirth).isEqualTo(caseEntity.dateOfBirth) },
+      { assertThat(snapshot.roshLevelCode).isEqualTo(caseEntity.roshLevelCode) },
     )
   }
 
@@ -62,6 +64,15 @@ class CaseMapperTest {
     val snapshot = caseAggregate.snapshot()
 
     assertThat(snapshot.tierScore).isNull()
+  }
+
+  @Test
+  fun `toAggregate maps null roshLevelCode as null`() {
+    val caseEntity = buildCaseEntity(roshLevelCode = null)
+    val caseAggregate = caseMapper.toAggregate(caseEntity)
+    val snapshot = caseAggregate.snapshot()
+
+    assertThat(snapshot.roshLevelCode).isNull()
   }
 
   @Test
@@ -127,6 +138,7 @@ class CaseMapperTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+      roshLevelCode = "RMRH",
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
@@ -158,6 +170,7 @@ class CaseMapperTest {
           .isEqualTo(nextAccommodation)
       },
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE) },
+      { assertThat(mergedEntity.roshLevelCode).isEqualTo("RMRH") },
     )
   }
 
@@ -230,6 +243,7 @@ class CaseMapperTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+      roshLevelCode = "RVHR",
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
 
@@ -266,6 +280,7 @@ class CaseMapperTest {
           .isEqualTo(nextAccommodation)
       },
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE) },
+      { assertThat(mergedEntity.roshLevelCode).isEqualTo("RVHR") },
     )
   }
 }

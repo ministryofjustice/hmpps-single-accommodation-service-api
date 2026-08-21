@@ -28,6 +28,7 @@ class CaseMapper(
     currentAccommodation = entity.currentAccommodation?.let { jsonMapper.readValue(it, AccommodationSummaryDto::class.java) },
     nextAccommodation = entity.nextAccommodation?.let { jsonMapper.readValue(it, AccommodationSummaryDto::class.java) },
     accommodationStatus = entity.accommodationStatus,
+    roshLevelCode = entity.roshLevelCode,
   )
 
   fun create(snapshot: CaseAggregate.CaseSnapshot, crn: String, prisonNumber: String?): CaseEntity {
@@ -41,6 +42,7 @@ class CaseMapper(
       currentAccommodation = snapshot.currentAccommodation?.let { jsonMapper.writeValueAsString(it) },
       nextAccommodation = snapshot.nextAccommodation?.let { jsonMapper.writeValueAsString(it) },
       accommodationStatus = snapshot.accommodationStatus,
+      roshLevelCode = snapshot.roshLevelCode,
     )
     entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
     return entity
@@ -59,6 +61,7 @@ class CaseMapper(
     entity.currentAccommodation = snapshot.currentAccommodation?.let { jsonMapper.writeValueAsString(it) }
     entity.nextAccommodation = snapshot.nextAccommodation?.let { jsonMapper.writeValueAsString(it) }
     entity.accommodationStatus = snapshot.accommodationStatus
+    entity.roshLevelCode = snapshot.roshLevelCode
 
     identifiers?.let { entity.addIdentifiers(it) }
 

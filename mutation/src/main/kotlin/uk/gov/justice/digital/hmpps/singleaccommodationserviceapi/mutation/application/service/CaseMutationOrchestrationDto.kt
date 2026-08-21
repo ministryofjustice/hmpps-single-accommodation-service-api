@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 
 data class CaseMutationOrchestrationDto(
@@ -17,4 +18,5 @@ data class CaseMutationOrchestrationDto(
   val cas3CurrentPremises: Cas3PremisesSummary?,
   val cas1Application: Cas1Application?,
   val cas3Application: Cas3Application?,
+  val case: Case?,
 )

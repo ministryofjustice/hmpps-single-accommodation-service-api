@@ -14,6 +14,7 @@ fun buildCaseEntity(
   firstName: String? = "First",
   lastName: String? = "Last",
   dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
+  roshLevelCode: String? = null,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
   id = id,
@@ -22,6 +23,7 @@ fun buildCaseEntity(
   firstName = firstName,
   lastName = lastName,
   dateOfBirth = dateOfBirth,
+  roshLevelCode = roshLevelCode,
 ).also { case ->
 
   if (customise != null) {
