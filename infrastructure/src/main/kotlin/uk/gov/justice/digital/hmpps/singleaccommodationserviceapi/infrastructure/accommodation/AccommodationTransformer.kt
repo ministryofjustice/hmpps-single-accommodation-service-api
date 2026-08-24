@@ -138,6 +138,7 @@ object AccommodationTransformer {
   fun toAccommodationSummary(
     crn: String,
     prisoner: Prisoner,
+    includePrisonNameInAddress: Boolean,
   ) = AccommodationSummaryDto(
     crn = crn,
     startDate = null,
@@ -145,7 +146,7 @@ object AccommodationTransformer {
     address = AccommodationAddressDetails(
       postcode = null,
       subBuildingName = null,
-      buildingName = null,
+      buildingName = if (includePrisonNameInAddress) prisoner.prisonName else null,
       buildingNumber = null,
       thoroughfareName = null,
       dependentLocality = null,
