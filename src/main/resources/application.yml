@@ -88,6 +88,9 @@ case-list:
   onboarded-teams: []
   v2-enabled: false
 
+bulk-load:
+  page-size: 10000
+
 case-refresh:
   enabled: true
   worker:

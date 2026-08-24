@@ -113,6 +113,9 @@ test-data-setup:
 case-list:
   page-size: 1
   onboarded-teams: 12345
+
+bulk-load:
+  page-size: 1
 logging:
   level:
     root: WARN

@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class TeamCaseOrchestrationService(
   private val aggregatorService: AggregatorService,
   private val sasAndDeliusClient: SasAndDeliusClient,
-  @param:Value($$"${case-list.page-size:100}") private val pageSize: Long,
+  @param:Value($$"${bulk-load.page-size:10000}") private val pageSize: Long,
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
