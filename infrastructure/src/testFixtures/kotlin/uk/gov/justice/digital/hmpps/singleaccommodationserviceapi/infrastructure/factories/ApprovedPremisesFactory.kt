@@ -15,7 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -139,6 +142,11 @@ fun buildCas3Application(
   bookingStatus: Cas3BookingStatus? = null,
   premises: Cas3PremisesSummary? = null,
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
+  applicationSubmittedDate: LocalDate? = null,
+  applicationSubmittedBy: Cas3Staff = buildCas3Staff(),
+  applicationRejectedReason: String? = null,
+  bookingProvisionalOfferSentDate: LocalDate? = null,
+  previousBookings: List<Cas3ExternalPreviousBooking>? = emptyList(),
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
@@ -146,6 +154,37 @@ fun buildCas3Application(
   assessmentStatus = assessmentStatus,
   premises = premises,
   uiUrl = uiUrl,
+  applicationSubmittedDate = applicationSubmittedDate,
+  applicationSubmittedBy = applicationSubmittedBy,
+  applicationRejectedReason = applicationRejectedReason,
+  bookingProvisionalOfferSentDate = bookingProvisionalOfferSentDate,
+  previousBookings = previousBookings,
+)
+
+fun buildCas3Staff(
+  name: String = "Test Tester",
+  username: String = "TestTester",
+  staffCode: String = "Test1234",
+) = Cas3Staff(
+  name = name,
+  username = username,
+  staffCode = staffCode,
+)
+
+fun buildCas3ExternalPreviousBooking(
+  bookingStatus: Cas3BookingStatus? = null,
+  cancellation: Cas3ExternalPreviousBookingCancellation? = null,
+) = Cas3ExternalPreviousBooking(
+  bookingStatus = bookingStatus,
+  cancellation = cancellation,
+)
+
+fun buildCas3ExternalPreviousBookingCancellation(
+  cancellationDate: LocalDate? = null,
+  cancellationReason: String? = null,
+) = Cas3ExternalPreviousBookingCancellation(
+  cancellationDate = cancellationDate,
+  cancellationReason = cancellationReason,
 )
 
 fun buildCas3PremisesSummary(

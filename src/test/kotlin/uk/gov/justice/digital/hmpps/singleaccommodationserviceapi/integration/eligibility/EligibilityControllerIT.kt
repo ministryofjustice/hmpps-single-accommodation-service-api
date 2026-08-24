@@ -8,8 +8,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.ass
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
@@ -24,6 +26,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -188,7 +194,39 @@ class EligibilityControllerIT : IntegrationTestBase() {
         ),
       ),
     )
+
+    val cas3Application = Cas3Application(
+      id = cas3ApplicationId,
+      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
+      applicationSubmittedBy = buildCas3Staff(),
+      applicationRejectedReason = "Oops",
+      assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+      bookingStatus = Cas3BookingStatus.CONFIRMED,
+      bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+      previousBookings = listOf(
+        buildCas3ExternalPreviousBooking(
+          bookingStatus = Cas3BookingStatus.CANCELLED,
+          cancellation = buildCas3ExternalPreviousBookingCancellation(
+            cancellationDate = LocalDate.parse("2023-01-03"),
+            cancellationReason = "Mistake",
+          ),
+        ),
+      ),
+      premises = buildCas3PremisesSummary(
+        name = "Test Premises",
+        startDate = LocalDate.parse("2023-01-04"),
+        endDate = LocalDate.parse("2023-01-05"),
+        addressLine1 = "123 Test Street",
+        addressLine2 = "Test Road",
+        town = "Test Town",
+        postcode = "Test Postcode",
+      ),
+      uiUrl = cas3ReferralUiUrl,
+    )
+
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 
     TierStubs.getTierOKResponse(crn = crn, tier)
 
@@ -270,6 +308,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
           expectedGetEligibilityResponseCannotStartYet(
             crn = crn,
             cas3ApplicationId = cas3ApplicationId,
+            cas3Url = cas3ReferralUiUrl,
             crsSubmissionDate = crsSubmissionDate.toString(),
             crsUrl = crsUrl,
           ),

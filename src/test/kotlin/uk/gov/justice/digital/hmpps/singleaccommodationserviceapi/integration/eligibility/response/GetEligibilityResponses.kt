@@ -127,23 +127,50 @@ fun expectedGetEligibilityResponse(
         "placementStatus": "UPCOMING"
       }
     },
-    "cas3":{
-         "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":null,
-            "link":"View referral",
-            "url":"$cas3ReferralUrl",
-            "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[],
-            "blockingStatusReason":null
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"SUBMITTED",
-            "assessmentStatus":"UNALLOCATED",
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "BOOKING_CONFIRMED",
+        "action": null,
+        "link": "View referral",
+        "url": "$cas3ReferralUrl",
+        "linkType": "CAS3_VIEW_REFERRAL",
+        "failureReasons": [],
+        "blockingStatusReason":null
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": "2023-01-01",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": "Oops",
+        "assessmentStatus": "READY_TO_PLACE",
+        "bookingStatus": "CONFIRMED",
+        "bookingProvisionalOfferSentDate": "2023-01-02",
+        "previousBookings": [
+          {
+            "bookingStatus": "CANCELLED",
+            "cancellation": {
+              "cancellationDate": "2023-01-03",
+              "cancellationReason": "Mistake"
+            }
+          }
+        ],
+        "premises": {
+          "name": "Test Premises",
+          "startDate": "2023-01-04",
+          "endDate": "2023-01-05",
+          "addressLine1": "123 Test Street",
+          "addressLine2": "Test Road",
+          "town": "Test Town",
+          "postcode": "Test Postcode"
+        },
+        "uiUrl": "$cas3ReferralUrl"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -356,23 +383,34 @@ fun expectedGetEligibilityResponseTierNotFound(
         "placementStatus": "ARRIVED"
       }
     },
-      "cas3":{
-         "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":null,
-            "link":"View referral",
-            "url":"$cas3ReferralUrl",
-            "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[],
-            "blockingStatusReason":null
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"SUBMITTED",
-            "assessmentStatus":"UNALLOCATED",
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "SUBMITTED",
+        "action": null,
+        "link": "View referral",
+        "url": "$cas3ReferralUrl",
+        "linkType": "CAS3_VIEW_REFERRAL",
+        "failureReasons": [],
+        "blockingStatusReason":null
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": null,
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "$cas3ReferralUrl"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -492,23 +530,34 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "placementStatus": null
       }
     },
-"cas3":{
-         "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":null,
-            "link":"View referral",
-            "url":"$cas3ReferralUrl",
-            "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[],
-            "blockingStatusReason":null
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"SUBMITTED",
-            "assessmentStatus":"UNALLOCATED",
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "SUBMITTED",
+        "action": null,
+        "link": "View referral",
+        "url": "$cas3ReferralUrl",
+        "linkType": "CAS3_VIEW_REFERRAL",
+        "failureReasons": [],
+        "blockingStatusReason":null
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": null,
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "$cas3ReferralUrl"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -575,6 +624,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
 fun expectedGetEligibilityResponseCannotStartYet(
   crn: String,
   cas3ApplicationId: UUID,
+  cas3Url: String,
   crsSubmissionDate: String,
   crsUrl: String,
 ): String = """
@@ -593,23 +643,36 @@ fun expectedGetEligibilityResponseCannotStartYet(
          },
          "cas1Application": null
       },
-      "cas3":{
-         "serviceResult":{
-            "serviceStatus":"CANNOT_START_YET",
-            "action":null,
-            "link":null,
-            "url":null,
-            "linkType":null,
-            "failureReasons":["DTR_REFERRAL_EXPIRED"],
-            "blockingStatusReason":"SUBMIT_DTR_BEFORE_CAS3"
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"REJECTED",
-            "assessmentStatus":null,
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CANNOT_START_YET",
+        "action": null,
+        "link": null,
+        "url": null,
+        "linkType": null,
+        "failureReasons": [
+          "DTR_REFERRAL_EXPIRED"
+        ],
+        "blockingStatusReason": "SUBMIT_DTR_BEFORE_CAS3"
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "REJECTED",
+        "applicationSubmittedDate": null,
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": null,
+        "bookingStatus": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "$cas3Url"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"NOT_STARTED",

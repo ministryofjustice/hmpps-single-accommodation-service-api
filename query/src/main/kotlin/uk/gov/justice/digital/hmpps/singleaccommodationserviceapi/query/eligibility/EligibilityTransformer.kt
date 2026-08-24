@@ -18,7 +18,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3BookingStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ExternalPreviousBookingCancellationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ExternalPreviousBookingDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3PremisesSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CommissionedRehabilitativeServicesDto
@@ -42,6 +46,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
@@ -148,6 +156,13 @@ object EligibilityTransformer {
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
       assessmentStatus = toCas3AssessmentStatus(application.assessmentStatus),
       bookingStatus = toCas3BookingStatus(application.bookingStatus),
+      applicationSubmittedDate = application.applicationSubmittedDate,
+      applicationSubmittedBy = toCas3StaffDto(application.applicationSubmittedBy),
+      applicationRejectedReason = application.applicationRejectedReason,
+      bookingProvisionalOfferSentDate = application.bookingProvisionalOfferSentDate,
+      previousBookings = toPreviousBookings(application.previousBookings),
+      premises = toCas3PremisesSummaryDto(application.premises),
+      uiUrl = application.uiUrl,
     )
   }
 
@@ -161,6 +176,20 @@ object EligibilityTransformer {
       addressLine2 = premises.addressLine2,
       town = premises.town,
       postcode = premises.postcode,
+    )
+  }
+
+  private fun toCas3PremisesSummaryDto(
+    premises: Cas3PremisesSummary?,
+  ) = premises?.let { premises ->
+    Cas3PremisesSummaryDto(
+      startDate = premises.startDate,
+      endDate = premises.endDate,
+      addressLine1 = premises.addressLine1,
+      addressLine2 = premises.addressLine2,
+      town = premises.town,
+      postcode = premises.postcode,
+      name = premises.name,
     )
   }
 
@@ -188,6 +217,24 @@ object EligibilityTransformer {
       requestForPlacement = toRequestForPlacementDto(pair.requestForPlacement),
       placement = toPlacementDto(pair.placement),
       dateApplied = pair.dateApplied,
+    )
+  }
+
+  private fun toPreviousBookings(
+    previousBookings: List<Cas3ExternalPreviousBooking>?,
+  ) = previousBookings?.map { booking ->
+    Cas3ExternalPreviousBookingDto(
+      bookingStatus = toCas3BookingStatus(booking.bookingStatus),
+      cancellation = toCancellation(booking.cancellation),
+    )
+  }
+
+  private fun toCancellation(
+    cancellation: Cas3ExternalPreviousBookingCancellation?,
+  ) = cancellation?.let {
+    Cas3ExternalPreviousBookingCancellationDto(
+      cancellationDate = it.cancellationDate,
+      cancellationReason = it.cancellationReason,
     )
   }
 
@@ -248,6 +295,14 @@ object EligibilityTransformer {
       staffCode = staff.staffCode,
     )
   }
+
+  private fun toCas3StaffDto(
+    staff: Cas3Staff,
+  ) = Cas3StaffDto(
+    name = staff.name,
+    username = staff.username,
+    staffCode = staff.staffCode,
+  )
 
   private fun toCommissionedRehabilitativeServicesDto(
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
