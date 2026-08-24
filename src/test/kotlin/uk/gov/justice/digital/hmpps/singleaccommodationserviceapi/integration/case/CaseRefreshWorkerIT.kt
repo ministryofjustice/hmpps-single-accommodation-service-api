@@ -381,6 +381,7 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
           cas3CurrentPremises = null,
           cas1Application = null,
           cas3Application = null,
+          case = null,
         ),
       ),
     ).isEqualTo(CaseRefreshCompletionService.Result.IGNORED_STALE_CLAIM)

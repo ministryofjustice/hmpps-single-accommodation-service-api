@@ -38,6 +38,8 @@ class CaseEntity(
   @Enumerated(EnumType.STRING)
   var accommodationStatus: CaseAccommodationStatus? = null,
 
+  var roshLevelCode: String? = null,
+
   @OneToMany(
     mappedBy = "caseEntity",
     fetch = FetchType.LAZY,

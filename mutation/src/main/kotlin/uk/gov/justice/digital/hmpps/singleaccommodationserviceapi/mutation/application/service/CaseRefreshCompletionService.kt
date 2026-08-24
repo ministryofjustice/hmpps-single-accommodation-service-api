@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getFailures
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASE_WITHOUT_LAO
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
@@ -24,6 +25,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
@@ -81,6 +84,7 @@ class CaseMutationOrchestrationService(
   private val corePersonRecordClient: CorePersonRecordClient,
   private val approvedPremisesClient: ApprovedPremisesClient,
   private val prisonerSearchClient: PrisonerSearchClient,
+  private val sasAndDeliusClient: SasAndDeliusClient,
 ) {
 
   fun getCurrentCaseResult(crn: String, prisonNumber: String? = null): OrchestrationResultDto<CaseMutationOrchestrationDto> = orchestrateCase(
@@ -91,6 +95,7 @@ class CaseMutationOrchestrationService(
     loadCas3CurrentPremises = { approvedPremisesClient.getCas3CurrentPremises(crn) },
     loadCas1Application = { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) },
     loadCas3Application = { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) },
+    loadCase = { sasAndDeliusClient.getCase(crn) },
     loadPrisoner = prisonNumber?.let { num -> { prisonerSearchClient.getPrisoner(num) } },
   )
 
@@ -102,6 +107,7 @@ class CaseMutationOrchestrationService(
     loadCas3CurrentPremises: () -> Cas3PremisesSummary,
     loadCas1Application: () -> Cas1Application,
     loadCas3Application: () -> Cas3Application,
+    loadCase: () -> Case,
     loadPrisoner: (() -> Prisoner)? = null,
   ): OrchestrationResultDto<CaseMutationOrchestrationDto> {
     val calls = buildMap {
@@ -111,6 +117,7 @@ class CaseMutationOrchestrationService(
       put(GET_CAS_3_CURRENT_PREMISES, loadCas3CurrentPremises)
       put(GET_CAS_1_APPLICATION, loadCas1Application)
       put(GET_CAS_3_APPLICATION, loadCas3Application)
+      put(GET_CASE_WITHOUT_LAO, loadCase)
       loadPrisoner?.let { put(GET_PRISONER, it) }
     }
 
@@ -128,6 +135,7 @@ class CaseMutationOrchestrationService(
         cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION),
         cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION),
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
+        case = results.getResult<Case>(GET_CASE_WITHOUT_LAO),
       ),
       upstreamFailures = results.getFailures(),
     )
