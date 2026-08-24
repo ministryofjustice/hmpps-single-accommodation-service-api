@@ -127,6 +127,21 @@ fun expectedGetEligibilityResponse(
         "placementStatus": "UPCOMING"
       }
     },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "NOT_STARTED",
+        "action": {
+          "type": "START_CAS2_APPLICATION",
+          "startDate": null
+        },
+        "link": "Start application",
+        "url": null,
+        "linkType": "CAS2_START_APPLICATION",
+        "failureReasons": [],
+        "blockingStatusReason": null
+      },
+      "cas2Application": null
+    },
     "cas3": {
       "serviceResult": {
         "serviceStatus": "BOOKING_CONFIRMED",
@@ -249,6 +264,18 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "blockingStatusReason":null
          },
          "cas1Application":null
+      },
+      "cas2":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas2Application":null
       },
       "cas3":{
          "serviceResult":{
@@ -382,6 +409,21 @@ fun expectedGetEligibilityResponseTierNotFound(
         "requestForPlacementStatus": "PLACEMENT_BOOKED",
         "placementStatus": "ARRIVED"
       }
+    },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "NOT_STARTED",
+        "action": {
+          "type": "START_CAS2_APPLICATION",
+          "startDate": null
+        },
+        "link": "Start application",
+        "url": null,
+        "linkType": "CAS2_START_APPLICATION",
+        "failureReasons": [],
+        "blockingStatusReason": null
+      },
+      "cas2Application": null
     },
     "cas3": {
       "serviceResult": {
@@ -530,6 +572,21 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "placementStatus": null
       }
     },
+    "cas2": {
+      "serviceResult": {
+        "serviceStatus": "NOT_STARTED",
+        "action": {
+          "type": "START_CAS2_APPLICATION",
+          "startDate": null
+        },
+        "link": "Start application",
+        "url": null,
+        "linkType": "CAS2_START_APPLICATION",
+        "failureReasons": [],
+        "blockingStatusReason": null
+      },
+      "cas2Application": null
+    },
     "cas3": {
       "serviceResult": {
         "serviceStatus": "SUBMITTED",
@@ -642,6 +699,21 @@ fun expectedGetEligibilityResponseCannotStartYet(
             "blockingStatusReason":null
          },
          "cas1Application": null
+      },
+      "cas2": {
+        "serviceResult": {
+          "serviceStatus": "NOT_STARTED",
+          "action": {
+            "type": "START_CAS2_APPLICATION",
+            "startDate": null
+          },
+          "link": "Start application",
+          "url": null,
+          "linkType": "CAS2_START_APPLICATION",
+          "failureReasons": [],
+          "blockingStatusReason": null
+        },
+        "cas2Application": null
       },
     "cas3": {
       "serviceResult": {

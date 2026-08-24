@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildAccommodationTypeEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
@@ -46,6 +48,9 @@ class DomainDataTest {
 
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED, id = UUID.randomUUID()),
+    )
+    val cas2Application = buildCas2Application(
+      application = buildCas2ApplicationSummary(status = "STARTED", id = UUID.randomUUID()),
     )
     val cas3Application = buildCas3Application(
       UUID.randomUUID(),
@@ -82,6 +87,7 @@ class DomainDataTest {
       currentAccommodation = currentAccommodation,
       nextAccommodations = nextAccommodations,
       cas1Application = cas1Application,
+      cas2Application = cas2Application,
       cas3Application = cas3Application,
       dutyToRefer = dutyToRefer,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -93,6 +99,7 @@ class DomainDataTest {
       cpr = cpr,
       tier = tier,
       cas1Application = cas1Application,
+      cas2Application = cas2Application,
       cas3Application = cas3Application,
       currentAccommodation = currentAccommodation,
       accommodationTypes = listOf(currentAccommodationTypeEntity),

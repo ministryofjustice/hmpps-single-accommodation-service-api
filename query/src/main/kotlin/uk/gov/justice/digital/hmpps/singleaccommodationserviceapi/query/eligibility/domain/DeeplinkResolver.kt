@@ -16,6 +16,8 @@ class DeeplinkResolver(
     val url = when (result.linkType) {
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.uiUrl
+      LinkType.CAS2_START_APPLICATION -> cas2UrlTemplates()?.cas2ApplicationStart
+      LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.uiUrl
       LinkType.CAS3_START_REFERRAL -> cas3UrlTemplates()?.cas3ReferralStart
       LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.uiUrl
       null -> return result
@@ -25,6 +27,10 @@ class DeeplinkResolver(
 
   private fun cas1UrlTemplates() = runCatching { approvedPremisesCachingService.getCas1UrlTemplates() }
     .onFailure { log.warn("Failed to fetch CAS1 url templates", it) }
+    .getOrNull()
+
+  private fun cas2UrlTemplates() = runCatching { approvedPremisesCachingService.getCas2UrlTemplates() }
+    .onFailure { log.warn("Failed to fetch CAS2 url templates", it) }
     .getOrNull()
 
   private fun cas3UrlTemplates() = runCatching { approvedPremisesCachingService.getCas3UrlTemplates() }
