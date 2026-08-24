@@ -75,6 +75,12 @@ javers:
 
 hmpps:
   sqs:
+    inbox-retention-days: 30
+    inbox-retention:
+      enabled: true
+      retention-days: ${hmpps.sqs.inbox-retention-days:30}
+      batch-size: 1000
+      cron: "0 0 3 * * *"
     dispatcher:
       max-events-per-batch: 10
       max-concurrent-events: 4
@@ -112,6 +118,9 @@ shedlock:
   case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
+  inbox-retention-cleaner:
+    lock-at-most-for: PT10M
+    lock-at-least-for: PT1M
 
 tier:
   v3-enabled: false
