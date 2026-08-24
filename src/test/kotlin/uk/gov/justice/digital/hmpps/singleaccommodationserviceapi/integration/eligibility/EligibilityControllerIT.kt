@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.asJsonValue
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityNotEligibleSTierFail
@@ -231,8 +232,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
-            cas1ApplicationStartedAt = cas1Application.application.createdAt.withOffsetSameInstant(ZoneOffset.UTC).toString(),
-            submittedAt = cas1Application.application.submittedAt?.withOffsetSameInstant(ZoneOffset.UTC).toString(),
+            cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
+            submittedAt = cas1Application.application.submittedAt?.asJsonValue().toString(),
             requestSubmittedAt = cas1Application.requestForPlacement?.submittedAt.toString(),
             expectedArrivalDate = cas1Application.requestForPlacement?.expectedArrivalDate.toString(),
             expiresAt = cas1Application.application.expiresAt.toString(),
@@ -326,7 +327,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
-            cas1ApplicationStartedAt = cas1Application.application.createdAt.withOffsetSameInstant(ZoneOffset.UTC).toString(),
+            cas1ApplicationStartedAt = cas1Application.application.createdAt.asJsonValue(),
           ),
         )
       }
