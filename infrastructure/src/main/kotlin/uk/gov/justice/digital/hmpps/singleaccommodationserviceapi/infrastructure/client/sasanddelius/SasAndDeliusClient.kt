@@ -42,13 +42,4 @@ class SasAndDeliusCachingService(
 
   @Cacheable(ApiCallKeys.GET_CASE, sync = true)
   fun getCase(username: String, crn: String) = sasAndDeliusClient.getCase(username, crn)
-
-  fun getCasesByTeamCode(
-    teamCode: String,
-    page: Long,
-    size: Long,
-  ): TeamCaseList {
-    log.debug("Calling getCasesByTeamCode for teamCode: {}, size: {}, page: {}", teamCode, size, page)
-    return sasAndDeliusClient.getCasesByTeamCode(teamCode = teamCode, page = page, size = size)
-  }
 }
