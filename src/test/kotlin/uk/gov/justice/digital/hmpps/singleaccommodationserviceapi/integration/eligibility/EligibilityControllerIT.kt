@@ -268,10 +268,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityResponseCannotStartYet(
             crn = crn,
-            cas1ApplicationId = cas1ApplicationId,
             cas3ApplicationId = cas3ApplicationId,
             crsSubmissionDate = crsSubmissionDate.toString(),
-            cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
           ),
         )

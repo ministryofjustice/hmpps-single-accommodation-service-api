@@ -574,10 +574,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
 
 fun expectedGetEligibilityResponseCannotStartYet(
   crn: String,
-  cas1ApplicationId: UUID,
   cas3ApplicationId: UUID,
   crsSubmissionDate: String,
-  cas1ApplicationUrl: String,
   crsUrl: String,
 ): String = """
 {
@@ -585,20 +583,15 @@ fun expectedGetEligibilityResponseCannotStartYet(
       "crn":"$crn",
       "cas1":{
          "serviceResult":{
-            "serviceStatus":"ARRIVED",
+            "serviceStatus":"NOT_ELIGIBLE",
             "action":null,
-            "link":"View application",
-            "url":"$cas1ApplicationUrl",
-            "linkType":"CAS1_VIEW_APPLICATION",
-            "failureReasons":[],
+            "link":null,
+            "url": null,
+            "linkType":null,
+            "failureReasons":["MALE_NOT_HIGH_RISK_TIER"],
             "blockingStatusReason":null
          },
-         "cas1Application":{
-            "id":"$cas1ApplicationId",
-            "applicationStatus":"PLACEMENT_ALLOCATED",
-            "requestForPlacementStatus":"PLACEMENT_BOOKED",
-            "placementStatus":"ARRIVED"
-         }
+         "cas1Application": null
       },
       "cas3":{
          "serviceResult":{
@@ -641,25 +634,24 @@ fun expectedGetEligibilityResponseCannotStartYet(
             "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },
       "pa":{
          "serviceResult":{
-            "serviceStatus":"NOT_ELIGIBLE",
-            "action":null,
+            "serviceStatus":"NOT_STARTED",
+            "action":{"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null},
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[
-               "SUITABLE_CAS1_APPLICATION"
-            ],
+            "failureReasons":[],
             "blockingStatusReason":null
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null}
+         {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+         {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
       ]
    }
 }

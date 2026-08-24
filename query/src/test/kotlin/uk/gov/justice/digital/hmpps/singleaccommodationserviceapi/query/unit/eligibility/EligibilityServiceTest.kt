@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -663,6 +664,7 @@ class EligibilityServiceTest {
               ?.split(",")
               ?.map { FailureReason.valueOf(it.trim()) }
               ?: emptyList(),
+            expectedBlockingReason = row["blockingReason"]?.let { BlockingReason.valueOf(it) },
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -1141,6 +1143,7 @@ data class Cas3Scenario(
   val expectedCas3Link: String?,
   val expectedCas3Url: String?,
   val expectedFailureReasons: List<FailureReason>,
+  val expectedBlockingReason: BlockingReason?,
 )
 
 data class CrsScenario(
