@@ -19,6 +19,7 @@ data class ServiceResult(
   val url: String? = null,
   val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
+  val blockingStatusReason: BlockingReason? = null,
 )
 
 data class PaServiceResult(
@@ -89,9 +90,19 @@ enum class FailureReason {
   SEX_DATA_NOT_AVAILABLE,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
   CRS_NOT_SUBMITTED,
+  CRS_NOT_SUBMITTED_MALE,
+  CRS_NOT_SUBMITTED_NON_MALE,
   HAS_NEXT_ACCOMMODATION,
   DTR_REFERRAL_EXPIRED,
   SUITABLE_CAS1_APPLICATION,
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
+}
+enum class BlockingReason {
+  // CAS3 PREREQUISITES
+  SUBMIT_DTR_BEFORE_CAS3,
+  SUBMIT_CRS_BEFORE_CAS3,
+  SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
+  SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
+  SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
 }
