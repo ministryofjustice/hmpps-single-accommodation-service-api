@@ -93,8 +93,8 @@ class SubjectAccessRequestService(
     val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
     val nestedDutyToRefers = dutyToRefers.map { dtr ->
-      val dtrCreatedByUser = users[dtr.createdByUserId]
-      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]
+      val dtrCreatedByUser = users[dtr.createdByUserId]?.surname ?: "Unknown"
+      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]?.surname ?: "Unknown"
       val laa = laas[dtr.localAuthorityAreaId]
 
       val dtrDto = DutyToReferDto(
@@ -109,7 +109,7 @@ class SubjectAccessRequestService(
           ),
           referenceNumber = dtr.referenceNumber,
           submissionDate = dtr.submissionDate,
-          createdBy = dtrCreatedByUser?.displayName() ?: "Unknown",
+          createdBy = dtrCreatedByUser,
           createdAt = dtr.createdAt!!,
           withdrawalReason = dtr.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
           withdrawalReasonOther = dtr.withdrawalReasonOther,
@@ -119,15 +119,15 @@ class SubjectAccessRequestService(
         ),
       )
       val dtrMap = mapper.convertValue(dtrDto, Map::class.java).toMutableMap()
-      dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser?.displayName() ?: "Unknown"
+      dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser
       dtrMap["lastUpdatedAt"] = dtr.lastUpdatedAt
       dtrMap
     }
 
     val nestedAccommodations = accommodations.map { pa ->
       val type = accTypes[pa.accommodationTypeId]
-      val createdByUser = users[pa.createdByUserId]
-      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]
+      val createdByUser = users[pa.createdByUserId]?.surname ?: "Unknown"
+      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]?.surname ?: "Unknown"
 
       val paDto = ProposedAccommodationDto(
         id = pa.id,
@@ -150,12 +150,12 @@ class SubjectAccessRequestService(
           country = pa.country,
           uprn = pa.uprn,
         ),
-        createdBy = createdByUser?.displayName() ?: "Unknown",
+        createdBy = createdByUser,
         createdAt = pa.createdAt!!,
       )
 
       val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
-      paMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
+      paMap["lastUpdatedBy"] = lastUpdatedByUser
       paMap["lastUpdatedAt"] = pa.lastUpdatedAt
       paMap["settledType"] = when (type?.settledType) {
         AccommodationSettledType.SETTLED -> "Settled"
@@ -166,9 +166,9 @@ class SubjectAccessRequestService(
         mapOf(
           "note" to note.note,
           "createdAt" to note.createdAt,
-          "createdBy" to (users[note.createdByUserId]?.displayName() ?: "Unknown"),
+          "createdBy" to (users[note.createdByUserId]?.surname ?: "Unknown"),
           "lastUpdatedAt" to note.lastUpdatedAt,
-          "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.displayName() ?: "Unknown"),
+          "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.surname ?: "Unknown"),
         )
       }
       paMap
