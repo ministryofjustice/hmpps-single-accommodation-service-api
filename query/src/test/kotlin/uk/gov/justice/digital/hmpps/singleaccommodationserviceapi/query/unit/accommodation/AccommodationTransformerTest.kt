@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -242,8 +244,9 @@ class AccommodationTransformerTest {
     assertThat(result.address.uprn).isEqualTo("100012345678")
   }
 
-  @Test
-  fun `toAccommodationSummary() should map all fields when it is a prison`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `toAccommodationSummary() should map all fields when it is a prison`(includePrisonNameInAddress: Boolean) {
     val crn = "X92123"
 
     val prisoner = buildPrisoner(
@@ -262,7 +265,7 @@ class AccommodationTransformerTest {
       address = buildAccommodationAddressDetails(
         subBuildingName = null,
         postcode = null,
-        buildingName = null,
+        buildingName = if (includePrisonNameInAddress) prisoner.prisonName else null,
         buildingNumber = null,
         thoroughfareName = null,
         dependentLocality = null,
@@ -284,6 +287,7 @@ class AccommodationTransformerTest {
     val result = AccommodationTransformer.toAccommodationSummary(
       crn = crn,
       prisoner = prisoner,
+      includePrisonNameInAddress = includePrisonNameInAddress,
     )
 
     assertThat(result).isEqualTo(expectedResult)

@@ -118,7 +118,7 @@ fun expectedGetCurrentAccommodationPrisonResponse(crn: String): String = """
       "address":{
          "postcode":null,
          "subBuildingName":null,
-         "buildingName":null,
+         "buildingName":"Wandsworth",
          "buildingNumber":null,
          "thoroughfareName":null,
          "dependentLocality":null,
