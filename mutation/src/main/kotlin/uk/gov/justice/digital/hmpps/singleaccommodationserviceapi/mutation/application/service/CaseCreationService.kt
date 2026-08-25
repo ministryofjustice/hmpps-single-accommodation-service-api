@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
+import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -8,7 +9,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
 @Service
-class CaseCreationService(private val caseRepository: CaseRepository, private val caseMapper: CaseMapper) {
+class CaseCreationService(
+  private val caseRepository: CaseRepository,
+  private val caseMapper: CaseMapper,
+  private val entityManager: EntityManager,
+) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
@@ -20,7 +25,7 @@ class CaseCreationService(private val caseRepository: CaseRepository, private va
       return
     }
 
-    val entities = crnsToPrisonNumbers
+    crnsToPrisonNumbers
       .filter { it.crn in unpersistedCrns }
       .map {
         caseMapper.create(
@@ -29,7 +34,6 @@ class CaseCreationService(private val caseRepository: CaseRepository, private va
           prisonNumber = it.prisonNumber,
         )
       }
-
-    caseRepository.saveAll(entities)
+      .forEach(entityManager::persist)
   }
 }

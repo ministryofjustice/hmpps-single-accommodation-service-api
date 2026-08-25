@@ -3,7 +3,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import io.mockk.verify
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -26,12 +29,15 @@ class CaseCreationServiceTest {
     @MockK
     lateinit var caseRepository: CaseRepository
 
+    @MockK
+    lateinit var entityManager: EntityManager
+
     private val caseMapper = CaseMapper(jsonMapper)
     private lateinit var caseCreationService: CaseCreationService
 
     @BeforeEach
     fun setUp() {
-      caseCreationService = CaseCreationService(caseRepository, caseMapper)
+      caseCreationService = CaseCreationService(caseRepository, caseMapper, entityManager)
     }
 
     @Test
@@ -40,15 +46,13 @@ class CaseCreationServiceTest {
       val second = CrnToPrisonNumber(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
       val third = CrnToPrisonNumber(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
       val crnToPrisonNumbers = listOf(first, second, third)
-      val entityList = mutableListOf<List<CaseEntity>>()
+      val entities = mutableListOf<CaseEntity>()
 
       every { caseRepository.findUnpersistedCrns(any()) } returns listOf(first.crn, third.crn)
-      every { caseRepository.saveAll(capture(entityList)) } answers { firstArg() }
+      every { entityManager.persist(capture(entities)) } just runs
 
       caseCreationService.saveUnpersistedCases(crnToPrisonNumbers)
 
-      verify(exactly = 1) { caseRepository.saveAll(any<List<CaseEntity>>()) }
-      val entities = entityList[0]
       assertThat(entities).hasSize(2)
       assertThat(entities.map { it.latestCrn() }).containsExactly(first.crn, third.crn)
     }
@@ -67,7 +71,7 @@ class CaseCreationServiceTest {
       caseCreationService.saveUnpersistedCases(crnToPrisonNumbers)
 
       verify(exactly = 1) { caseRepository.findUnpersistedCrns(any()) }
-      verify(exactly = 0) { caseRepository.saveAll(any<Iterable<CaseEntity>>()) }
+      verify(exactly = 0) { entityManager.persist(any()) }
     }
   }
 }
