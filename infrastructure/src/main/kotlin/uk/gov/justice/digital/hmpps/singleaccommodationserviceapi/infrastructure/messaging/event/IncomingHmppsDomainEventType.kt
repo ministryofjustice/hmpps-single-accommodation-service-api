@@ -6,6 +6,7 @@ enum class IncomingHmppsDomainEventType(
   CPR_PROBATION_ADDRESS_CREATED("core-person-record.probation.address.created"),
   CPR_PROBATION_ADDRESS_UPDATED("core-person-record.probation.address.updated"),
   CPR_PROBATION_ADDRESS_DELETED("core-person-record.probation.address.deleted"),
+  CPR_PROBATION_RECORD_UPDATED("core-person-record.probation.record.updated"),
   TIER_CALCULATION_CHANGED("tier.calculation.changed"),
   PERSON_COMMUNITY_MANAGER_ALLOCATED("person.community.manager.allocated"),
   PRISONER_OFFENDER_SEARCH_PRISONER_UPDATED("prisoner-offender-search.prisoner.updated"),
