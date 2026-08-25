@@ -30,9 +30,10 @@ class CprProbationAddressDeletedHandler(
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     val crn = inboxEventHelper.findCrn(inboxEvent)
-    val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
-    // this triggers a refresh regardless of whether we successfully process this message.
-    caseRefreshRequestService?.requestLiveRefresh(caseEntity.id)
+    caseRepository.findByCrn(crn)?.let {
+      // this triggers a refresh regardless of whether we successfully process this message.
+      caseRefreshRequestService?.requestLiveRefresh(it.id)
+    }
 
     val cprAddressIdString = getPartitionKey(inboxEvent)
     val cprAddressId = UUID.fromString(cprAddressIdString)
