@@ -21,7 +21,7 @@ class CaseApplicationService(
   private val maxAttempts = 3
 
   fun createCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
-    crnsToPrisonNumbers.chunked(25).forEach(::saveChunkWithRetry)
+    crnsToPrisonNumbers.chunked(500).forEach(::saveChunkWithRetry)
   }
 
   private fun saveChunkWithRetry(chunk: List<CrnToPrisonNumber>) {
