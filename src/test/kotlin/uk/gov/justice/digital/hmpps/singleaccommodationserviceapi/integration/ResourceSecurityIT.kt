@@ -179,6 +179,11 @@ private val referenceDataControllerMap: Map<String, Set<String>> =
     "GET /reference-data" to defaultRoles,
   )
 
+private val adminJobControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
+  )
+
 private val controllerMap: Map<String, Map<String, Set<String>>> =
   mapOf(
     "UserController" to userControllerMap,
@@ -191,4 +196,5 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "CaseController" to caseControllerMap,
     "AccommodationDataDomainController" to accommodationDataDomainControllerMap,
     "ReferenceDataController" to referenceDataControllerMap,
+    "AdminJobController" to adminJobControllerMap,
   )

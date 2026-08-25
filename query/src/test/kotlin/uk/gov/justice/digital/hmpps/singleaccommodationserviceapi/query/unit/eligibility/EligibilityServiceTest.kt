@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -87,6 +88,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
@@ -182,9 +185,8 @@ class EligibilityServiceTest {
   )
   var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
     DtrExpiredReferralRule(clock),
-    CrsCompletionRuleSet(
-      CrsSubmittedRule(),
-    ),
+    CrsSubmittedRuleMale(),
+    CrsSubmittedRuleNonMale(),
   )
   var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
 
@@ -662,6 +664,7 @@ class EligibilityServiceTest {
               ?.split(",")
               ?.map { FailureReason.valueOf(it.trim()) }
               ?: emptyList(),
+            expectedBlockingReason = row["blockingReason"]?.let { BlockingReason.valueOf(it) },
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -1140,6 +1143,7 @@ data class Cas3Scenario(
   val expectedCas3Link: String?,
   val expectedCas3Url: String?,
   val expectedFailureReasons: List<FailureReason>,
+  val expectedBlockingReason: BlockingReason?,
 )
 
 data class CrsScenario(

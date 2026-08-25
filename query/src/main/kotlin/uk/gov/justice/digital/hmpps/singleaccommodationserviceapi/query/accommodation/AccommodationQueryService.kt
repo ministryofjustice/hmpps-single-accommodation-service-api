@@ -107,7 +107,7 @@ class AccommodationQueryService(
 
     val prisonAddress = data.prisoner
       ?.takeIf { it.inOutStatus == InOutStatus.IN }
-      ?.let { toAccommodationSummary(crn, prisoner = it) }
+      ?.let { toAccommodationSummary(crn, prisoner = it, includePrisonNameInAddress = false) }
 
     val notProposedAddresses = data.cpr?.addresses?.filter { it.status.code !in excludedAddressStatuses }?.sortedByDescending { it.startDate }
 

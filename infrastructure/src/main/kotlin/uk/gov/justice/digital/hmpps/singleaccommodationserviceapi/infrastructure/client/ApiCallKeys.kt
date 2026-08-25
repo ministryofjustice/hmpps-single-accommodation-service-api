@@ -8,6 +8,8 @@ object ApiCallKeys {
   // probation-integration SAS and Delius service
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
+  const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
+  const val GET_CASE_WITHOUT_LAO = "getCaseByCrnWithoutLAO"
 
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
@@ -42,5 +44,6 @@ object ApiCallKeys {
     GET_CAS_1_APPLICATION,
     GET_CAS_3_APPLICATION,
     GET_PRISONER,
+    GET_CASE_WITHOUT_LAO,
   )
 }

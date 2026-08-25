@@ -81,7 +81,7 @@ class AccommodationSummaryCalculator(
     cas1CurrentPremises: Cas1PremisesSummary?,
     cas3CurrentPremises: Cas3PremisesSummary?,
   ): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
-    toAccommodationSummary(crn, prisoner)
+    toAccommodationSummary(crn, prisoner, includePrisonNameInAddress = true)
   } else {
     addresses
       ?.firstOrNull { it.status.code == AddressStatusCode.M.name }?.let { mainAddress ->
