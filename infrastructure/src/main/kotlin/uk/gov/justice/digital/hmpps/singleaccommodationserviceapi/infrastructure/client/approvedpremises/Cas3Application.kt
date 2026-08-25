@@ -7,10 +7,31 @@ import java.util.UUID
 data class Cas3Application(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
+  val applicationSubmittedDate: LocalDate?,
+  val applicationSubmittedBy: Cas3Staff,
+  val applicationRejectedReason: String?,
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
+  val bookingProvisionalOfferSentDate: LocalDate?,
+  val previousBookings: List<Cas3ExternalPreviousBooking>?,
   val premises: Cas3PremisesSummary?,
-  val uiUrl: String?,
+  val uiUrl: String,
+)
+
+data class Cas3ExternalPreviousBooking(
+  val bookingStatus: Cas3BookingStatus?,
+  val cancellation: Cas3ExternalPreviousBookingCancellation?,
+)
+
+data class Cas3ExternalPreviousBookingCancellation(
+  val cancellationDate: LocalDate?,
+  val cancellationReason: String?,
+)
+
+data class Cas3Staff(
+  val name: String,
+  val username: String,
+  val staffCode: String,
 )
 
 data class Cas3PremisesSummary(
