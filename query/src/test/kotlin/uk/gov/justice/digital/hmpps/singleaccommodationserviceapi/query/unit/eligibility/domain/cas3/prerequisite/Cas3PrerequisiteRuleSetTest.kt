@@ -8,19 +8,17 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrExpiredReferralRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3PrerequisiteRuleSet::class,
-    CrsCompletionRuleSet::class,
     DtrExpiredReferralRule::class,
-    CrsExpiredRule::class,
-    CrsSubmittedRule::class,
+    CrsSubmittedRuleMale::class,
+    CrsSubmittedRuleNonMale::class,
     ClockConfig::class,
   ],
 )
@@ -31,8 +29,8 @@ class Cas3PrerequisiteRuleSetTest {
 
   private val expectedCas3PrerequisiteRuleNames = listOf(
     DtrExpiredReferralRule::class.simpleName,
-    CrsExpiredRule::class.simpleName,
-    CrsSubmittedRule::class.simpleName,
+    CrsSubmittedRuleMale::class.simpleName,
+    CrsSubmittedRuleNonMale::class.simpleName,
   )
 
   @Test

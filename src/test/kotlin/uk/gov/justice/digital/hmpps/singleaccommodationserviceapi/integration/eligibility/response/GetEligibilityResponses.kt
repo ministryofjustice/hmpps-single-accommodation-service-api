@@ -37,7 +37,8 @@ fun expectedGetEligibilityResponse(
         "link": "View application",
         "url": "$cas1ApplicationUrl",
         "linkType": "CAS1_VIEW_APPLICATION",
-        "failureReasons": []
+        "failureReasons": [],
+        "blockingStatusReason": null
       },
       "cas1Application": {
         "uiUrl": "$cas1ApplicationUrl",
@@ -126,22 +127,50 @@ fun expectedGetEligibilityResponse(
         "placementStatus": "UPCOMING"
       }
     },
-    "cas3":{
-         "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":null,
-            "link":"View referral",
-            "url":"$cas3ReferralUrl",
-            "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[]
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"SUBMITTED",
-            "assessmentStatus":"UNALLOCATED",
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "BOOKING_CONFIRMED",
+        "action": null,
+        "link": "View referral",
+        "url": "$cas3ReferralUrl",
+        "linkType": "CAS3_VIEW_REFERRAL",
+        "failureReasons": [],
+        "blockingStatusReason":null
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": "2023-01-01",
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": "Oops",
+        "assessmentStatus": "READY_TO_PLACE",
+        "bookingStatus": "CONFIRMED",
+        "bookingProvisionalOfferSentDate": "2023-01-02",
+        "previousBookings": [
+          {
+            "bookingStatus": "CANCELLED",
+            "cancellation": {
+              "cancellationDate": "2023-01-03",
+              "cancellationReason": "Mistake"
+            }
+          }
+        ],
+        "premises": {
+          "name": "Test Premises",
+          "startDate": "2023-01-04",
+          "endDate": "2023-01-05",
+          "addressLine1": "123 Test Street",
+          "addressLine2": "Test Road",
+          "town": "Test Town",
+          "postcode": "Test Postcode"
+        },
+        "uiUrl": "$cas3ReferralUrl"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -149,7 +178,8 @@ fun expectedGetEligibilityResponse(
             "link":"Add outcome",
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -176,10 +206,11 @@ fun expectedGetEligibilityResponse(
             "link":"View refer and monitor",
             "url":"$crsUrl",
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },
@@ -190,7 +221,8 @@ fun expectedGetEligibilityResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason": null
          }
       },
       "caseActions":[
@@ -213,7 +245,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas1Application":null
       },
@@ -224,7 +257,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "cas3Application":null
       },
@@ -235,7 +269,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":null,
          "submission":null
@@ -247,7 +282,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":null
       },
@@ -258,7 +294,8 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
             "link":null,
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[]
@@ -303,7 +340,8 @@ fun expectedGetEligibilityResponseTierNotFound(
         "link": "View application",
         "url": "$cas1ApplicationUrl",
         "linkType": "CAS1_VIEW_APPLICATION",
-        "failureReasons": []
+        "failureReasons": [],
+        "blockingStatusReason": null
       },
       "cas1Application": {
         "uiUrl": "$cas1ApplicationUrl",
@@ -345,22 +383,34 @@ fun expectedGetEligibilityResponseTierNotFound(
         "placementStatus": "ARRIVED"
       }
     },
-      "cas3":{
-         "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":null,
-            "link":"View referral",
-            "url":"$cas3ReferralUrl",
-            "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[]
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"SUBMITTED",
-            "assessmentStatus":"UNALLOCATED",
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "SUBMITTED",
+        "action": null,
+        "link": "View referral",
+        "url": "$cas3ReferralUrl",
+        "linkType": "CAS3_VIEW_REFERRAL",
+        "failureReasons": [],
+        "blockingStatusReason":null
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": null,
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "$cas3ReferralUrl"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -368,7 +418,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "link":"Add outcome",
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -395,10 +446,11 @@ fun expectedGetEligibilityResponseTierNotFound(
             "link":"View refer and monitor",
             "url":"$crsUrl",
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },
@@ -412,7 +464,8 @@ fun expectedGetEligibilityResponseTierNotFound(
             "failureReasons":[
                "SUITABLE_CAS1_APPLICATION",
                "SUITABLE_CAS3_APPLICATION"
-            ]
+            ],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[
@@ -450,7 +503,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "linkType": null,
         "failureReasons": [
           "S_TIER"
-        ]
+        ],
+        "blockingStatusReason": null
       },
       "cas1Application": {
         "uiUrl": "https://cas1-ui/applications/$cas1ApplicationId",
@@ -476,22 +530,34 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "placementStatus": null
       }
     },
-"cas3":{
-         "serviceResult":{
-            "serviceStatus":"SUBMITTED",
-            "action":null,
-            "link":"View referral",
-            "url":"$cas3ReferralUrl",
-            "linkType":"CAS3_VIEW_REFERRAL",
-            "failureReasons":[]
-         },
-         "cas3Application":{
-            "id":"$cas3ApplicationId",
-            "applicationStatus":"SUBMITTED",
-            "assessmentStatus":"UNALLOCATED",
-            "bookingStatus":null
-         }
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "SUBMITTED",
+        "action": null,
+        "link": "View referral",
+        "url": "$cas3ReferralUrl",
+        "linkType": "CAS3_VIEW_REFERRAL",
+        "failureReasons": [],
+        "blockingStatusReason":null
       },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "SUBMITTED",
+        "applicationSubmittedDate": null,
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": "UNALLOCATED",
+        "bookingStatus": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "$cas3ReferralUrl"
+      }
+    },
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
@@ -499,7 +565,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "link":"Add outcome",
             "url":null,
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "caseId":"$dutyToReferCaseId",
          "submission":{
@@ -526,10 +593,11 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "link":"View refer and monitor",
             "url":"$crsUrl",
             "linkType":null,
-            "failureReasons":[]
+            "failureReasons":[],
+            "blockingStatusReason":null
          },
          "commissionedRehabilitativeServices":{
-            "status":"COMPLETED",
+            "status":"LIVE",
             "submissionDate":"$crsSubmissionDate"
          }
       },
@@ -542,11 +610,111 @@ fun expectedGetEligibilityNotEligibleSTierFail(
             "linkType":null,
             "failureReasons":[
                "SUITABLE_CAS3_APPLICATION"
-            ]
+            ],
+            "blockingStatusReason":null
          }
       },
       "caseActions":[
          {"type":"ADD_DTR_OUTCOME","startDate":null}
+      ]
+   }
+}
+""".trimIndent()
+
+fun expectedGetEligibilityResponseCannotStartYet(
+  crn: String,
+  cas3ApplicationId: UUID,
+  cas3Url: String,
+  crsSubmissionDate: String,
+  crsUrl: String,
+): String = """
+{
+   "data":{
+      "crn":"$crn",
+      "cas1":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url": null,
+            "linkType":null,
+            "failureReasons":["MALE_NOT_HIGH_RISK_TIER"],
+            "blockingStatusReason":null
+         },
+         "cas1Application": null
+      },
+    "cas3": {
+      "serviceResult": {
+        "serviceStatus": "CANNOT_START_YET",
+        "action": null,
+        "link": null,
+        "url": null,
+        "linkType": null,
+        "failureReasons": [
+          "DTR_REFERRAL_EXPIRED"
+        ],
+        "blockingStatusReason": "SUBMIT_DTR_BEFORE_CAS3"
+      },
+      "cas3Application": {
+        "id": "$cas3ApplicationId",
+        "applicationStatus": "REJECTED",
+        "applicationSubmittedDate": null,
+        "applicationSubmittedBy": {
+          "name": "Test Tester",
+          "username": "TestTester",
+          "staffCode": "Test1234"
+        },
+        "applicationRejectedReason": null,
+        "assessmentStatus": null,
+        "bookingStatus": null,
+        "bookingProvisionalOfferSentDate": null,
+        "previousBookings": [],
+        "premises": null,
+        "uiUrl": "$cas3Url"
+      }
+    },
+      "dtr":{
+         "serviceResult":{
+            "serviceStatus":"NOT_STARTED",
+            "action":{"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            "link":"Add referral details",
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "caseId":null,
+         "submission":null
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"SUBMITTED",
+            "action":null,
+            "link":"View refer and monitor",
+            "url":"$crsUrl",
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "commissionedRehabilitativeServices":{
+            "status":"LIVE",
+            "submissionDate":"$crsSubmissionDate"
+         }
+      },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"NOT_STARTED",
+            "action":{"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null},
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
+      "caseActions":[
+         {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+         {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
       ]
    }
 }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -87,6 +88,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.CurrentAccommodationTypeRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleMale
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.CrsSubmittedRuleNonMale
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationPresentSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3ApplicationSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
@@ -94,7 +97,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
@@ -130,6 +132,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.Cs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -182,10 +185,8 @@ class EligibilityServiceTest {
   )
   var cas3PrerequisiteRuleSet = Cas3PrerequisiteRuleSet(
     DtrExpiredReferralRule(clock),
-    CrsCompletionRuleSet(
-      CrsSubmittedRule(),
-      CrsExpiredRule(clock),
-    ),
+    CrsSubmittedRuleMale(),
+    CrsSubmittedRuleNonMale(),
   )
   var cas3PrerequisiteContextUpdater = Cas3PrerequisiteContextUpdater()
 
@@ -211,7 +212,6 @@ class EligibilityServiceTest {
   )
   var crsCompletionRuleSet = CrsCompletionRuleSet(
     CrsSubmittedRule(),
-    CrsExpiredRule(clock),
   )
   var crsCompletionContextUpdater = CrsCompletionContextUpdater(crsUiUrl)
   var crsUpcomingRuleSet = CrsUpcomingRuleSet(CrsUpcomingRule(clock))
@@ -335,7 +335,7 @@ class EligibilityServiceTest {
       )
       val tier = Tier(expectedTier, UUID.randomUUID(), LocalDateTime.now(), null)
       val dutyToRefer = buildDutyToReferDto(crn, UUID.randomUUID(), DtrStatus.SUBMITTED, submission = null)
-      val crs = buildCommissionedRehabilitativeServices()
+      val crs = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE)
       val prisoner = buildPrisoner()
       val orchestrationDto = OrchestrationResultDto(
         data = EligibilityOrchestrationDto(
@@ -374,6 +374,40 @@ class EligibilityServiceTest {
       )
 
       assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `getDomainData selects the most recent live referral and ignores the rest`() {
+      val cpr = buildCorePersonRecord()
+      val currentAccommodation = buildAccommodationSummaryDto()
+      val latestLiveReferral = buildCommissionedRehabilitativeServices(
+        status = CrsReferralStatus.LIVE,
+        sentAt = OffsetDateTime.now().minusDays(30),
+      )
+      val orchestrationDto = EligibilityOrchestrationDto(
+        crn = crn,
+        cpr = cpr,
+        tier = null,
+        cas1Application = null,
+        cas3Application = null,
+        commissionedRehabilitativeServices = listOf(
+          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.COMPLETED, sentAt = OffsetDateTime.now()),
+          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.WITHDRAWN, sentAt = OffsetDateTime.now()),
+          latestLiveReferral,
+          buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE, sentAt = OffsetDateTime.now().minusDays(60)),
+        ),
+        cas1CurrentPremises = null,
+        cas3CurrentPremises = null,
+        prisoner = null,
+      )
+
+      every { accommodationTypeRepository.findAll() } returns emptyList()
+      every { accommodationSummaryCalculator.calculateCurrentAccommodation(crn, cpr.addresses, null, null, null) } returns currentAccommodation
+      every { accommodationSummaryCalculator.calculateNextAccommodations(crn, cpr.addresses, null, null, currentAccommodation) } returns emptyList()
+
+      val result = eligibilityService.buildDomainData(crn, orchestrationDto, caseEntity = null)
+
+      assertThat(result.commissionedRehabilitativeServices).isEqualTo(latestLiveReferral)
     }
   }
 
@@ -630,6 +664,7 @@ class EligibilityServiceTest {
               ?.split(",")
               ?.map { FailureReason.valueOf(it.trim()) }
               ?: emptyList(),
+            expectedBlockingReason = row["blockingReason"]?.let { BlockingReason.valueOf(it) },
           )
         } catch (e: Exception) {
           throw IllegalStateException("Row $idx failed: $row", e)
@@ -1108,6 +1143,7 @@ data class Cas3Scenario(
   val expectedCas3Link: String?,
   val expectedCas3Url: String?,
   val expectedFailureReasons: List<FailureReason>,
+  val expectedBlockingReason: BlockingReason?,
 )
 
 data class CrsScenario(
