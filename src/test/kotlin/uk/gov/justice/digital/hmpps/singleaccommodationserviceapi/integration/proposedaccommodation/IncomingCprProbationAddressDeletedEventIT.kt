@@ -49,9 +49,6 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
   @MockitoSpyBean
   lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
-  @MockitoSpyBean
-  lateinit var caseRefreshRequestService: CaseRefreshRequestService
-
   lateinit var crn: String
   private val eventType = "core-person-record.probation.address.deleted"
   private val eventDescription = "A probation address has been deleted for a person"
