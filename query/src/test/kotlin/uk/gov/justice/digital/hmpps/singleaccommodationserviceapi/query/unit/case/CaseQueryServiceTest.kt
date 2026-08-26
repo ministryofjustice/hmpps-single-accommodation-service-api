@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.case
 
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -29,7 +29,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
@@ -48,8 +49,17 @@ class CaseQueryServiceTest {
   @MockK
   lateinit var caseRepository: CaseRepository
 
-  @InjectMockKs
   lateinit var caseQueryService: CaseQueryService
+
+  @BeforeEach
+  fun setUpCaseQueryService() {
+    caseQueryService = CaseQueryService(
+      caseOrchestrationService = caseOrchestrationService,
+      userService = userService,
+      caseRepository = caseRepository,
+      caseListV2Enabled = false,
+    )
+  }
 
   private val crnOne = "X12345"
   private val crnTwo = "X12346"
@@ -343,8 +353,17 @@ class CaseQueryServiceTest {
       every { userService.getUsername() } returns Username(username)
     }
 
-    @Test
-    fun `CaseDto is redacted when UserAccess is Limited`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `CaseDto is redacted when UserAccess is Limited`(v2Enabled: Boolean) {
+      if (v2Enabled) {
+        caseQueryService = CaseQueryService(
+          caseOrchestrationService = caseOrchestrationService,
+          userService = userService,
+          caseRepository = caseRepository,
+          caseListV2Enabled = true,
+        )
+      }
       every { caseRepository.mapByCrns(any()) } returns emptyMap()
 
       val result = caseQueryService.getCases(personDtos = personDtos)
@@ -358,8 +377,17 @@ class CaseQueryServiceTest {
       assertThat(limitedCases).containsExactly(limitedCaseDto1, limitedCaseDto2)
     }
 
-    @Test
-    fun `should get cases as all cases from case table and populate missing data from personDtos`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `should get cases as all cases from case table and populate missing data from personDtos`(v2Enabled: Boolean) {
+      if (v2Enabled) {
+        caseQueryService = CaseQueryService(
+          caseOrchestrationService = caseOrchestrationService,
+          userService = userService,
+          caseRepository = caseRepository,
+          caseListV2Enabled = true,
+        )
+      }
       val limitedCrn = "limitedCrn"
       val crnList = listOf(crnOne, crnTwo, limitedCrn)
       val staff = buildOfficer(username = username)
@@ -385,8 +413,13 @@ class CaseQueryServiceTest {
 
       assertThat(result).hasSize(3)
 
-      assertThat(result[0]).isEqualTo(caseDto1)
-      assertThat(result[1]).isEqualTo(caseDto2)
+      if (v2Enabled) {
+        assertThat(result[0]).isEqualTo(personDto1.toCaseDtoV2(caseEntity = caseEntity1))
+        assertThat(result[1]).isEqualTo(personDto2.toCaseDtoV2(caseEntity = caseEntity2))
+      } else {
+        assertThat(result[0]).isEqualTo(caseDto1)
+        assertThat(result[1]).isEqualTo(caseDto2)
+      }
 
       assertThat(result[2])
         .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
@@ -432,7 +465,7 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCase(crnOne)
       assertThat(result.data).isEqualTo(
-        CaseTransformer.toCaseDto(
+        toCaseDto(
           crn = crnOne,
           person = person,
           cpr = caseOrchestrationDto.cpr,
