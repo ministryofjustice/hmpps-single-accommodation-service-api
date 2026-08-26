@@ -65,8 +65,8 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
   lateinit var tierEventHandlerConfig: TierEventHandlerConfig
 
   private lateinit var crn: String
-  private val eventType = "tier.calculation.changed"
-  private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v3/crn/$crn/tier"
+
+  private fun tierEventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v3/crn/$crn/tier"
 
   @BeforeEach
   fun setup() {
@@ -78,12 +78,12 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
   @ParameterizedTest(name = "{0}")
   @EnumSource(IncomingHmppsDomainEventType::class)
-  fun `tests enum entries for triggering a case refresh`(eventType: IncomingHmppsDomainEventType) {
+  fun `should refresh case based on event type`(eventType: IncomingHmppsDomainEventType) {
     val crn = UUID.randomUUID().toString()
     val prisonNumber = UUID.randomUUID().toString()
     val deliusCase = buildCase(crn = crn, nomsNumber = prisonNumber)
-    val cprAddressId = UUID.randomUUID()
     val expectedTierValue = UUID.randomUUID().toString()
+    val newName = UUID.randomUUID().toString()
 
     caseRepository.save(buildCaseEntity(tierScore = null) { withCrn(crn) })
 
@@ -96,14 +96,11 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       personReference = PersonReference(listOf(PersonIdentifier(type = "CRN", value = crn))),
       additionalInformation = null,
     )
+
+    // set up all stubs for downstream services
     CorePersonRecordStubs.getCorePersonRecordOKResponse(
       crn = crn,
-      response = buildCorePersonRecord(firstName = "NewFirstName", lastName = "NewLastName"),
-    )
-    CorePersonRecordStubs.getProbationAddressOKResponse(
-      crn = crn,
-      response = buildCanonicalAddress(),
-      cprAddressId = cprAddressId,
+      response = buildCorePersonRecord(firstName = newName, lastName = newName),
     )
     PrisonerSearchStubs.getPrisonerOKResponse(
       prisonNumber = prisonNumber,
@@ -121,6 +118,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     ApprovedPremisesStubs.getCas3CurrentPremisesOKResponse(crn = crn, response = buildCas3PremisesSummary())
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = buildCas3Application())
 
+    // identify which event types should trigger a case refresh, add any event specific stubs / data setup.
     val shouldRefresh = when (eventType) {
       IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_CREATED,
       IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_UPDATED,
@@ -150,22 +148,32 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
     if (shouldRefresh) {
       waitFor {
+        // these fields should now be updated on the entity after successful refresh.
         val updated = caseRepository.findByCrn(crn)
         assertThat(updated!!.tierScore).isEqualTo(expectedTierValue)
-        assertThat(updated.firstName).isEqualTo("NewFirstName")
-        assertThat(updated.lastName).isEqualTo("NewLastName")
+        assertThat(updated.firstName).isEqualTo(newName)
+        assertThat(updated.lastName).isEqualTo(newName)
       }
     } else {
-      waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(0) }
+      waitFor {
+        testInboxEventHelper.assertInboxEvent(
+          crn,
+          eventType = eventType.typeName,
+          eventDetailUrl = domainEvent.detailUrl,
+          processedStatus = ProcessedStatus.PROCESSED,
+        )
+        assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
+      }
+    }
+
+    waitFor {
+      val matchingEvents = inboxEventRepository.findAll().filter { it.payload.contains(crn) }
+      assertThat(matchingEvents).hasSize(1)
+      assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
     }
 
     // Hard-fail if any outbound request was not stubbed for this scenario.
-    waitFor {
-      val matchingEvents = inboxEventRepository.findAll().filter { it.payload.contains(crn) }
-      assertThat(matchingEvents).isNotEmpty
-      assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
-      assertThat(sasWiremock.findUnmatchedRequests().requests.map { it.url }).isEmpty()
-    }
+    assertThat(sasWiremock.findUnmatchedRequests().requests.map { it.url }).isEmpty()
   }
 
   @Test
@@ -176,8 +184,8 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
     testInboxEventHelper.assertInboxEvent(
       crn = crn,
-      eventType = eventType,
-      eventDetailUrl = eventDetailUrl(),
+      eventType = "tier.calculation.changed",
+      eventDetailUrl = tierEventDetailUrl(),
       processedStatus = ProcessedStatus.PROCESSED,
     )
 
@@ -218,11 +226,11 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
   private fun publishProjectionChangeEvent() {
     val snsEvent = """
       {
-        "eventType": "$eventType",
+        "eventType": "tier.calculation.changed",
         "externalId": "${UUID.randomUUID()}",
         "version": 1,
         "description": "Tier calculation complete from Tier service",
-        "detailUrl": "${eventDetailUrl()}",
+        "detailUrl": "${tierEventDetailUrl()}",
         "personReference": {
           "identifiers": [
             {
@@ -235,6 +243,6 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    testInboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, "tier.calculation.changed")
   }
 }
