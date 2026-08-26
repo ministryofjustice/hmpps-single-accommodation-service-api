@@ -19,10 +19,15 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.core.ParameterizedTypeReference
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -66,11 +71,13 @@ class CaseControllerIT : IntegrationTestBase() {
       caseOrchestrationService: CaseOrchestrationService,
       userService: UserService,
       caseRepository: CaseRepository,
+      jsonMapper: JsonMapper,
     ): CaseQueryService = spyk(
       CaseQueryService(
         caseOrchestrationService = caseOrchestrationService,
         userService = userService,
         caseRepository = caseRepository,
+        jsonMapper = jsonMapper,
         caseListV2Enabled = false,
       ),
     )
@@ -245,8 +252,17 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll().size).isEqualTo(20)
 
     // v2 always sets middleNames to null, since CaseEntity has no middleNames column.
+    // v2 also always returns an accommodationSummaries object (rather than null) once a CaseEntity exists
     val expectedJson = expectedGetCaseListResponse().let {
-      if (v2Enabled) it.replace("\"middleNames\":\"Middle\"", "\"middleNames\":null") else it
+      if (v2Enabled) {
+        it.replace("\"middleNames\":\"Middle\"", "\"middleNames\":null")
+          .replace(
+            "\"limitedAccess\":false,\n         \"accommodationSummaries\":null",
+            "\"limitedAccess\":false,\n         \"accommodationSummaries\":{\"caseAccommodationStatus\":null,\"caseAccommodationStatusDate\":null,\"currentAccommodation\":null,\"nextAccommodation\":null}",
+          )
+      } else {
+        it
+      }
     }
 
     result.expectBody(String::class.java)
@@ -262,7 +278,7 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should source forename, surname, dateOfBirth and tierScore from CaseEntity when caseListV2Enabled is true`() {
+  fun `should source forename, surname, dateOfBirth, tierScore and accommodationSummaries from CaseEntity when caseListV2Enabled is true`() {
     setCaseListV2Enabled(true)
 
     val crn = "crnWithDivergentDbAndDeliusData"
@@ -282,14 +298,30 @@ class CaseControllerIT : IntegrationTestBase() {
       pageSize = pageSize.toInt(),
     )
 
-    // ...while the pre-seeded CaseEntity deliberately has different values, so we can
-    // prove the v2 pathway sources forename/surname/dateOfBirth/tierScore from the database.
+    // different data in DB to verify that the API returns the DB data when v2 is enabled
     val preSeededCaseEntity = buildCaseEntity(
       firstName = "DbForename",
       lastName = "DbSurname",
       dateOfBirth = LocalDate.of(1990, 1, 1),
       tierScore = "D2",
-    ) { withCrn(crn) }
+    ) {
+      withCrn(crn)
+      currentAccommodation = jsonMapper.writeValueAsString(
+        buildAccommodationSummaryDto(
+          crn = crn,
+          status = buildAccommodationStatusDto(code = "C", description = "Custody"),
+          type = buildAccommodationTypeDto(code = "HMP", description = "Prison"),
+        ),
+      )
+      nextAccommodation = jsonMapper.writeValueAsString(
+        buildAccommodationSummaryDto(
+          crn = crn,
+          status = buildAccommodationStatusDto(code = "PR", description = "Proposed"),
+          type = buildAccommodationTypeDto(code = "A07A", description = "Friends/Family (transient)"),
+        ),
+      )
+      accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+    }
     caseRepository.saveAndFlush(preSeededCaseEntity)
 
     restTestClient.get().uri { it.path("/case-list").build() }
@@ -300,6 +332,14 @@ class CaseControllerIT : IntegrationTestBase() {
       .jsonPath("$.data[0].surname").isEqualTo(preSeededCaseEntity.lastName)
       .jsonPath("$.data[0].dateOfBirth").isEqualTo("1990-01-01")
       .jsonPath("$.data[0].tierScore").isEqualTo(preSeededCaseEntity.tierScore)
+      .jsonPath("$.data[0].accommodationSummaries.caseAccommodationStatus").isEqualTo("RISK_OF_NO_FIXED_ABODE")
+      .jsonPath("$.data[0].accommodationSummaries.currentAccommodation.status.code").isEqualTo("C")
+      .jsonPath("$.data[0].accommodationSummaries.currentAccommodation.status.description").isEqualTo("Custody")
+      .jsonPath("$.data[0].accommodationSummaries.currentAccommodation.type.code").isEqualTo("HMP")
+      .jsonPath("$.data[0].accommodationSummaries.nextAccommodation.status.code").isEqualTo("PR")
+      .jsonPath("$.data[0].accommodationSummaries.nextAccommodation.status.description").isEqualTo("Proposed")
+      .jsonPath("$.data[0].accommodationSummaries.nextAccommodation.type.code").isEqualTo("A07A")
+      .jsonPath("$.data[0].accommodationSummaries.nextAccommodation.type.description").isEqualTo("Friends/Family (transient)")
   }
 
   @ParameterizedTest

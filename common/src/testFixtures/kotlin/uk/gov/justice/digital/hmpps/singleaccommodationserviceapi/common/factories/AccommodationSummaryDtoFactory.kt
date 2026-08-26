@@ -2,9 +2,23 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factor
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.time.LocalDate
+
+fun buildAccommodationSummariesDto(
+  caseAccommodationStatus: CaseAccommodationStatus? = CaseAccommodationStatus.SETTLED,
+  caseAccommodationStatusDate: LocalDate? = null,
+  currentAccommodation: AccommodationSummaryDto? = buildAccommodationSummaryDto(),
+  nextAccommodation: AccommodationSummaryDto? = buildAccommodationSummaryDto(),
+) = AccommodationSummariesDto(
+  caseAccommodationStatus = caseAccommodationStatus,
+  caseAccommodationStatusDate = caseAccommodationStatusDate,
+  currentAccommodation = currentAccommodation,
+  nextAccommodation = nextAccommodation,
+)
 
 fun buildAccommodationSummaryDto(
   crn: String = "X12345",

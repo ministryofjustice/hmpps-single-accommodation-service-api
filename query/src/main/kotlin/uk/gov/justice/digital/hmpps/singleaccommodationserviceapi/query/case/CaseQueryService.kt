@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -24,6 +26,7 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
+  private val jsonMapper: JsonMapper,
   @param:Value($$"${case-list.v2-enabled:false}") val caseListV2Enabled: Boolean,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
@@ -68,10 +71,19 @@ class CaseQueryService(
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
 
         is FullPersonDto -> {
+          val caseEntity = caseEntitiesByCrn[personDto.crn]
           if (caseListV2Enabled) {
-            personDto.toCaseDtoV2(caseEntity = caseEntitiesByCrn[personDto.crn])
+            personDto.toCaseDtoV2(
+              caseEntity = caseEntity,
+              currentAccommodation = caseEntity?.currentAccommodation?.let {
+                jsonMapper.readValue(it, AccommodationSummaryDto::class.java)
+              },
+              nextAccommodation = caseEntity?.nextAccommodation?.let {
+                jsonMapper.readValue(it, AccommodationSummaryDto::class.java)
+              },
+            )
           } else {
-            personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn])
+            personDto.toCaseDto(caseEntity = caseEntity)
           }
         }
       }

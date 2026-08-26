@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -64,6 +67,8 @@ object CaseTransformer {
 
   fun PersonDto.toCaseDtoV2(
     caseEntity: CaseEntity?,
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
   ): CaseDto = when (this) {
     is FullPersonDto -> {
       CaseDto(
@@ -80,11 +85,29 @@ object CaseTransformer {
         tierScore = caseEntity?.tierScore,
         userAccess = UserAccess.FULL,
         limitedAccess = this.limitedAccess,
+        accommodationSummaries = caseEntity?.let {
+          toAccommodationSummariesDto(
+            accommodationStatus = it.accommodationStatus,
+            currentAccommodation = currentAccommodation,
+            nextAccommodation = nextAccommodation,
+          )
+        },
       )
     }
 
     is LimitedPersonDto -> toLimitedCaseDto()
   }
+
+  fun toAccommodationSummariesDto(
+    accommodationStatus: CaseAccommodationStatus?,
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = AccommodationSummariesDto(
+    caseAccommodationStatus = accommodationStatus,
+    caseAccommodationStatusDate = null,
+    currentAccommodation = currentAccommodation,
+    nextAccommodation = nextAccommodation,
+  )
 
   fun PersonDto.toLimitedCaseDto() = CaseDto(
     crn = crn,

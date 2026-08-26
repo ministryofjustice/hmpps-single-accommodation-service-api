@@ -12,9 +12,11 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
@@ -27,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -57,6 +60,7 @@ class CaseQueryServiceTest {
       caseOrchestrationService = caseOrchestrationService,
       userService = userService,
       caseRepository = caseRepository,
+      jsonMapper = jsonMapper,
       caseListV2Enabled = false,
     )
   }
@@ -361,6 +365,7 @@ class CaseQueryServiceTest {
           caseOrchestrationService = caseOrchestrationService,
           userService = userService,
           caseRepository = caseRepository,
+          jsonMapper = jsonMapper,
           caseListV2Enabled = true,
         )
       }
@@ -385,6 +390,7 @@ class CaseQueryServiceTest {
           caseOrchestrationService = caseOrchestrationService,
           userService = userService,
           caseRepository = caseRepository,
+          jsonMapper = jsonMapper,
           caseListV2Enabled = true,
         )
       }
@@ -399,7 +405,11 @@ class CaseQueryServiceTest {
         personDto2,
         personDto3,
       )
-      val caseEntity1 = buildCaseEntity { withCrn(crnOne) }
+      val caseEntity1 = buildCaseEntity {
+        withCrn(crnOne)
+        currentAccommodation = jsonMapper.writeValueAsString(buildAccommodationSummaryDto(crn = crnOne))
+        accommodationStatus = CaseAccommodationStatus.SETTLED
+      }
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
       val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
       val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
@@ -414,8 +424,16 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(3)
 
       if (v2Enabled) {
-        assertThat(result[0]).isEqualTo(personDto1.toCaseDtoV2(caseEntity = caseEntity1))
-        assertThat(result[1]).isEqualTo(personDto2.toCaseDtoV2(caseEntity = caseEntity2))
+        assertThat(result[0]).isEqualTo(
+          personDto1.toCaseDtoV2(
+            caseEntity = caseEntity1,
+            currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
+            nextAccommodation = null,
+          ),
+        )
+        assertThat(result[1]).isEqualTo(
+          personDto2.toCaseDtoV2(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
+        )
       } else {
         assertThat(result[0]).isEqualTo(caseDto1)
         assertThat(result[1]).isEqualTo(caseDto2)
