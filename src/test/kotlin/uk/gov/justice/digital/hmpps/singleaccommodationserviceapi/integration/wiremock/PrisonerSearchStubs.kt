@@ -14,7 +14,7 @@ object PrisonerSearchStubs {
 
   fun getPrisonerOKResponse(prisonNumber: String, response: Prisoner) {
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/prisoner/$prisonNumber?responseFields=$PRISONER_SEARCH_RESPONSE_FIELDS"))
+      get(WireMock.urlPathEqualTo("/prisoner/$prisonNumber"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
