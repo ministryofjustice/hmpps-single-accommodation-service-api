@@ -65,7 +65,7 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   @Modifying
   @Query(
     nativeQuery = true,
-    value = """c
+    value = """
       INSERT INTO sas_case_refresh_request (
         case_id,
         generation,
