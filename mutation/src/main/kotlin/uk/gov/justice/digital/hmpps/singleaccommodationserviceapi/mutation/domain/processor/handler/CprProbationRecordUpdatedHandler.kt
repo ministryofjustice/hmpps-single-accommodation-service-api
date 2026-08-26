@@ -14,7 +14,7 @@ class CprProbationRecordUpdatedHandler(
   private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) : InboxEventHandler {
 
-  private val eventType = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_CREATED.typeName
+  private val eventType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED.typeName
 
   override fun supportedEventTypes() = setOf(eventType)
 

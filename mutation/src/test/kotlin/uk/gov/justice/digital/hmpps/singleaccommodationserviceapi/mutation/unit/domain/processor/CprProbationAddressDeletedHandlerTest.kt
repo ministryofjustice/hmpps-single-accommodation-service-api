@@ -51,7 +51,7 @@ class CprProbationAddressDeletedHandlerTest {
   private val case = buildCaseEntity { withCrn(crn) }
   private val domainEvent =
     SnsDomainEvent(
-      eventType = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_UPDATED.name,
+      eventType = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_DELETED.name,
       version = 1,
       description = "test event",
       detailUrl = "localhost",

@@ -87,10 +87,10 @@ hmpps:
         arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
     queues:
       sas-domain-events-queue:
-        queueName: sas_domain_events_queue
-        dlqName: sas_domain_events_dlq
+        queueName: ${random.uuid}
+        dlqName: ${random.uuid}
         subscribeTopicId: hmpps-domain-event-topic
-        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted"]}'
+        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.probation.record.updated"]}'
       test-domain-events-queue:
         dlqName: ${random.uuid}
         queueName: ${random.uuid}
