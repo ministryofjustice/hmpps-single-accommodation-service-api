@@ -86,7 +86,7 @@ hmpps:
 case-list:
   page-size: 200
   onboarded-teams: []
-  v2-enabled: true
+  v2-enabled: false
 
 case-refresh:
   enabled: true
