@@ -284,22 +284,22 @@ class CaseControllerIT : IntegrationTestBase() {
 
     // ...while the pre-seeded CaseEntity deliberately has different values, so we can
     // prove the v2 pathway sources forename/surname/dateOfBirth/tierScore from the database.
-    val preSeededCaseEntity = buildCaseEntity(
+    val preSeededCasseEntity = buildCaseEntity(
       firstName = "DbForename",
       lastName = "DbSurname",
       dateOfBirth = LocalDate.of(1990, 1, 1),
       tierScore = "D2",
     ) { withCrn(crn) }
-    caseRepository.saveAndFlush(preSeededCaseEntity)
+    caseRepository.saveAndFlush(preSeededCasseEntity)
 
     restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
       .expectBody()
-      .jsonPath("$.data[0].forename").isEqualTo(preSeededCaseEntity.firstName)
-      .jsonPath("$.data[0].surname").isEqualTo(preSeededCaseEntity.lastName)
+      .jsonPath("$.data[0].forename").isEqualTo(preSeededCasseEntity.firstName)
+      .jsonPath("$.data[0].surname").isEqualTo(preSeededCasseEntity.lastName)
       .jsonPath("$.data[0].dateOfBirth").isEqualTo("1990-01-01")
-      .jsonPath("$.data[0].tierScore").isEqualTo(preSeededCaseEntity.tierScore)
+      .jsonPath("$.data[0].tierScore").isEqualTo(preSeededCasseEntity.tierScore)
   }
 
   @ParameterizedTest
