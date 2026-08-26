@@ -93,8 +93,8 @@ class SubjectAccessRequestService(
     val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
     val nestedDutyToRefers = dutyToRefers.map { dtr ->
-      val dtrCreatedByUser = users[dtr.createdByUserId]?.surname ?: "Unknown"
-      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]?.surname ?: "Unknown"
+      val dtrCreatedByUser = users[dtr.createdByUserId]?.username!!
+      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]?.username!!
       val laa = laas[dtr.localAuthorityAreaId]
 
       val dtrDto = DutyToReferDto(
@@ -126,8 +126,8 @@ class SubjectAccessRequestService(
 
     val nestedAccommodations = accommodations.map { pa ->
       val type = accTypes[pa.accommodationTypeId]
-      val createdByUser = users[pa.createdByUserId]?.surname ?: "Unknown"
-      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]?.surname ?: "Unknown"
+      val createdByUser = users[pa.createdByUserId]?.username!!
+      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]?.username!!
 
       val paDto = ProposedAccommodationDto(
         id = pa.id,
@@ -166,9 +166,9 @@ class SubjectAccessRequestService(
         mapOf(
           "note" to note.note,
           "createdAt" to note.createdAt,
-          "createdBy" to (users[note.createdByUserId]?.surname ?: "Unknown"),
+          "createdBy" to (users[note.createdByUserId]?.username),
           "lastUpdatedAt" to note.lastUpdatedAt,
-          "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.surname ?: "Unknown"),
+          "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.username),
         )
       }
       paMap

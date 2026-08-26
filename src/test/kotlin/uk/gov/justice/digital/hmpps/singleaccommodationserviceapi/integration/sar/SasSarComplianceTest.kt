@@ -144,6 +144,7 @@ class SasSarComplianceTest : SasSarTestBase() {
   @Test
   fun `SAS SAR report should render correctly with all domains`() {
     setupTestData()
+    sarIntegrationTestHelper.stubFindUserLastNameWith("Johnson")
     asserter.assertReportMatchesFixture(
       crn = TEST_CRN,
       fromDate = TEST_FROM_DATE,
