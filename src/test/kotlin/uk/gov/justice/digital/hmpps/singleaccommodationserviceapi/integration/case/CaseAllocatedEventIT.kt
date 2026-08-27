@@ -66,8 +66,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
 
-  private val eventType = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName
-  private val eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription
+  private val eventType = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName
+  private val eventDescription = "test event"
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v2/crn/$crn/tier"
 
   @BeforeEach
@@ -241,8 +241,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     detailUrl: String,
   ) {
     testSqsDomainEventListener.assertMessageReceived(
-      typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
-      eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
+      typeName = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName,
+      eventDescription = eventDescription,
       detailUrl = detailUrl,
     )
   }

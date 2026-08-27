@@ -2,28 +2,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 enum class IncomingHmppsDomainEventType(
   val typeName: String,
-  val typeDescription: String,
 ) {
-  CPR_PROBATION_ADDRESS_CREATED(
-    "core-person-record.probation.address.created",
-    "A probation address has been created for a person",
-  ),
-  CPR_PROBATION_ADDRESS_UPDATED(
-    "core-person-record.probation.address.updated",
-    "A probation address has been updated for a person",
-  ),
-  CPR_PROBATION_ADDRESS_DELETED(
-    "core-person-record.probation.address.deleted",
-    "A probation address has been deleted for a person",
-  ),
-  TIER_CALCULATION_CHANGED(
-    "tier.calculation.changed",
-    "Tier calculation resulted in an updated tier value",
-  ),
-  CASE_ALLOCATED(
-    "person.community.manager.allocated",
-    "Case Allocated to Probation Practitioner",
-  ),
+  CPR_PROBATION_ADDRESS_CREATED("core-person-record.probation.address.created"),
+  CPR_PROBATION_ADDRESS_UPDATED("core-person-record.probation.address.updated"),
+  CPR_PROBATION_ADDRESS_DELETED("core-person-record.probation.address.deleted"),
+  CPR_PROBATION_RECORD_UPDATED("core-person-record.probation.record.updated"),
+  TIER_CALCULATION_CHANGED("tier.calculation.changed"),
+  PERSON_COMMUNITY_MANAGER_ALLOCATED("person.community.manager.allocated"),
   ;
 
   companion object {
