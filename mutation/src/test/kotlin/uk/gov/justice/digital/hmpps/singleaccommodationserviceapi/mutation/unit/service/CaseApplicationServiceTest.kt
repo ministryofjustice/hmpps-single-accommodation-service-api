@@ -47,7 +47,7 @@ class CaseApplicationServiceTest {
 
     @Test
     fun `createCases() retries multiple times on DataIntegrityViolation exception`() {
-      val crnToPrisonNumbers = List(2000) {
+      val crnToPrisonNumbers = List(100) {
         CrnToPrisonNumber(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
       }
 
@@ -57,7 +57,7 @@ class CaseApplicationServiceTest {
 
       caseApplicationService.createCases(crnToPrisonNumbers)
 
-      // First and second call throws error, so retry, then 2000 crns / 500 batch size = 4 calls == 6 calls in total
+      // First and second call throws error, so retry, then 100 crns / 25 batch size = 4 calls == 6 calls in total
       verify(exactly = 6) { caseCreationService.saveUnpersistedCases(any()) }
     }
 
