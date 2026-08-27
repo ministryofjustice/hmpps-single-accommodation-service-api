@@ -46,6 +46,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.In
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponseSearch
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -417,6 +418,32 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(failures)
       .withFailMessage("Incorrect result for:\n%s", failures.joinToString("\n"))
       .isEmpty()
+  }
+
+  @Test
+  fun `should update existing, create new and return expected case`() {
+    val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
+    SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+    seedCaseEntities()
+
+    assertThat(caseRepository.findAll().size).isEqualTo(10)
+    val result = restTestClient.get().uri { it.path("/search/${crns[0]}").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+    println(result.expectBody())
+    result.expectBody().jsonPath("$.data.length()").isEqualTo(14)
+
+    assertThat(caseRepository.findAll().size).isEqualTo(11)
+
+    result.expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponseSearch())
+      }
+
+    sasWiremock.verify(
+      1,
+      getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/${crns[0]}")),
+    )
   }
 
   private fun caseListFilters() = listOf(

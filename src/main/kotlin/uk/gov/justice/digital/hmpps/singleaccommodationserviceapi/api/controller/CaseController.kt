@@ -52,4 +52,16 @@ class CaseController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCase(crn))
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/search/{crn}")
+  fun searchCaseByCrn(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto?>> {
+    val caseResponse = caseQueryService.getCaseFromDelius(crn)
+
+    val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
+    // TODO: Change this to upsertCases after MVP
+    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber))
+    val caseDto = caseQueryService.getCases(listOfNotNull(caseResponse.data))
+    return ResponseEntity.ok(ApiResponseDto(data = caseDto.firstOrNull(), upstreamFailures = caseResponse.upstreamFailures))
+  }
 }
