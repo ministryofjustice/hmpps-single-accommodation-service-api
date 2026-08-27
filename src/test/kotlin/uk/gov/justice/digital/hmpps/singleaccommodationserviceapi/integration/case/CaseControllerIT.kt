@@ -2,18 +2,28 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import io.mockk.every
+import io.mockk.spyk
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
@@ -27,6 +37,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -37,17 +48,42 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
+import java.time.LocalDate
 
+@Import(CaseControllerIT.CaseListV2FeatureFlagTestConfig::class)
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
+
+  @TestConfiguration
+  class CaseListV2FeatureFlagTestConfig {
+    @Bean
+    @Primary
+    fun caseQueryService(
+      caseOrchestrationService: CaseOrchestrationService,
+      userService: UserService,
+      caseRepository: CaseRepository,
+    ): CaseQueryService = spyk(
+      CaseQueryService(
+        caseOrchestrationService = caseOrchestrationService,
+        userService = userService,
+        caseRepository = caseRepository,
+        caseListV2Enabled = false,
+      ),
+    )
+  }
 
   @Value("\${case-list.page-size:1}")
   private lateinit var pageSize: String
 
   @Autowired
   private lateinit var caseRepository: CaseRepository
+
+  @Autowired
+  private lateinit var caseQueryService: CaseQueryService
 
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
@@ -69,8 +105,20 @@ class CaseControllerIT : IntegrationTestBase() {
     TierStubs.getTierOKResponse(crns[1], tier)
   }
 
-  @Test
-  fun `does not add identifiers from CorePersonRecord`() {
+  @AfterEach
+  fun resetCaseListV2Flag() {
+    every { caseQueryService.caseListV2Enabled } returns false
+  }
+
+  private fun setCaseListV2Enabled(v2Enabled: Boolean) {
+    every { caseQueryService.caseListV2Enabled } returns v2Enabled
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `does not add identifiers from CorePersonRecord`(v2Enabled: Boolean) {
+    setCaseListV2Enabled(v2Enabled)
+
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
 
@@ -166,16 +214,27 @@ class CaseControllerIT : IntegrationTestBase() {
       .containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
-  @Test
-  fun `should update existing, create new and return expected case list`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `should update existing, create new and return expected case list`(v2Enabled: Boolean) {
+    setCaseListV2Enabled(v2Enabled)
+
     // there are 20 crns created and stubbed for the case list.
-    stubCaseList()
-    // there are 10 added to the SAS database
-    seedCaseEntities()
+    val cases = stubCaseList()
+
+    val preSeededCount = if (v2Enabled) {
+      // v2 renders forename/surname/dateOfBirth from the DB CaseEntity, so pre-seed all
+      seedAllCaseEntitiesForV2(cases)
+      cases.size
+    } else {
+      // there are 10 added to the SAS database
+      seedCaseEntities()
+      tierScoresByCrn.size
+    }
     // and 10 we will need to call CPR for. 2 of these are errors.
     stubAdditionalCorePersonRecords()
 
-    assertThat(caseRepository.findAll().size).isEqualTo(10)
+    assertThat(caseRepository.findAll().size).isEqualTo(preSeededCount)
 
     val result = restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
@@ -185,9 +244,14 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findAll().size).isEqualTo(20)
 
+    // v2 always sets middleNames to null, since CaseEntity has no middleNames column.
+    val expectedJson = expectedGetCaseListResponse().let {
+      if (v2Enabled) it.replace("\"middleNames\":\"Middle\"", "\"middleNames\":null") else it
+    }
+
     result.expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
+        assertThatJson(it!!).matchesExpectedJson(expectedJson)
       }
 
     // verify we call case-list endpoint 20 times (once per CRN)
@@ -198,7 +262,51 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should only save cases that match the filtered response`() {
+  fun `should source forename, surname, dateOfBirth and tierScore from CaseEntity when caseListV2Enabled is true`() {
+    setCaseListV2Enabled(true)
+
+    val crn = "crnWithDivergentDbAndDeliusData"
+    val staff = buildOfficer(username = deliusUser.username)
+
+    // the Delius/SAS stub returns one set of name/dateOfBirth values...
+    val deliusName = buildName("DeliusForename", "DeliusSurname")
+    val case = buildCase(
+      crn = crn,
+      staff = staff,
+      name = deliusName,
+      dateOfBirth = LocalDate.of(1975, 6, 15),
+    )
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      cases = listOf(case),
+      pageSize = pageSize.toInt(),
+    )
+
+    // ...while the pre-seeded CaseEntity deliberately has different values, so we can
+    // prove the v2 pathway sources forename/surname/dateOfBirth/tierScore from the database.
+    val preSeededCaseEntity = buildCaseEntity(
+      firstName = "DbForename",
+      lastName = "DbSurname",
+      dateOfBirth = LocalDate.of(1990, 1, 1),
+      tierScore = "D2",
+    ) { withCrn(crn) }
+    caseRepository.saveAndFlush(preSeededCaseEntity)
+
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data[0].forename").isEqualTo(preSeededCaseEntity.firstName)
+      .jsonPath("$.data[0].surname").isEqualTo(preSeededCaseEntity.lastName)
+      .jsonPath("$.data[0].dateOfBirth").isEqualTo("1990-01-01")
+      .jsonPath("$.data[0].tierScore").isEqualTo(preSeededCaseEntity.tierScore)
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `should only save cases that match the filtered response`(v2Enabled: Boolean) {
+    setCaseListV2Enabled(v2Enabled)
+
     val team = buildCaseTeam("TestTeam")
     val staff = buildOfficer(username = deliusUser.username)
     val assignedCase = buildCase(crn = "crn1", staff = staff, team = team)
@@ -241,8 +349,11 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(2)
   }
 
-  @Test
-  fun `should filter cases based on provided search parameters`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `should filter cases based on provided search parameters`(v2Enabled: Boolean) {
+    setCaseListV2Enabled(v2Enabled)
+
     stubCaseList()
     seedCaseEntities()
     stubAdditionalCorePersonRecords()
@@ -389,7 +500,7 @@ class CaseControllerIT : IntegrationTestBase() {
     )
   }
 
-  private fun stubCaseList() {
+  private fun stubCaseList(): List<Case> {
     val staff = buildOfficer(username = deliusUser.username)
     val cases = crns.mapIndexed { i, crn ->
       buildCase(
@@ -424,39 +535,45 @@ class CaseControllerIT : IntegrationTestBase() {
       cases = cases,
       pageSize = pageSize.toInt(),
     )
+
+    return cases
   }
 
+  // tierScore values for the 10 crns pre-seeded in the SAS database ahead of the case-list
+  // request; all other crns default to a null tierScore (created fresh with no tier data).
+  private val tierScoresByCrn: Map<String, String?> = mapOf(
+    crns[5] to "A1",
+    crns[6] to "A1S",
+    crns[7] to "C1",
+    crns[8] to "B3",
+    crns[9] to "B3",
+    crns[10] to "B3",
+    crns[11] to "B3",
+    crns[12] to "B3",
+    crns[13] to null,
+    crns[14] to "D3",
+  )
+
   private fun seedCaseEntities() {
-    val entities = listOf(
-      buildCaseEntity { withCrn(crns[5]) },
+    val entities = tierScoresByCrn.map { (crn, tierScore) ->
+      buildCaseEntity(tierScore = tierScore) { withCrn(crn) }
+    }
+
+    caseRepository.saveAll(entities)
+  }
+
+  // Under caseListV2Enabled, forename/surname/dateOfBirth are rendered from the CaseEntity in
+  // the DB rather than the Delius/SAS stub, so pre-seed every crn with matching data to avoid
+  // depending on the async CaseRefreshWorker to backfill newly created cases.
+  private fun seedAllCaseEntitiesForV2(cases: List<Case>) {
+    val entities = cases.map { case ->
       buildCaseEntity(
-        tierScore = "A1S",
-      ) { withCrn(crns[6]) },
-      buildCaseEntity(
-        tierScore = "C1",
-      ) { withCrn(crns[7]) },
-      buildCaseEntity(
-        tierScore = "B3",
-      ) { withCrn(crns[8]) },
-      buildCaseEntity(
-        tierScore = "B3",
-      ) { withCrn(crns[9]) },
-      buildCaseEntity(
-        tierScore = "B3",
-      ) { withCrn(crns[10]) },
-      buildCaseEntity(
-        tierScore = "B3",
-      ) { withCrn(crns[11]) },
-      buildCaseEntity(
-        tierScore = "B3",
-      ) { withCrn(crns[12]) },
-      buildCaseEntity(
-        tierScore = null,
-      ) { withCrn(crns[13]) },
-      buildCaseEntity(
-        tierScore = "D3",
-      ) { withCrn(crns[14]) },
-    )
+        tierScore = tierScoresByCrn[case.crn],
+        firstName = case.name.forename,
+        lastName = case.name.surname,
+        dateOfBirth = case.dateOfBirth,
+      ) { withCrn(case.crn) }
+    }
 
     caseRepository.saveAll(entities)
   }

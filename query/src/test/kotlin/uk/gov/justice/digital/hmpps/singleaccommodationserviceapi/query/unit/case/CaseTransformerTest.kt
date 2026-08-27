@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ca
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -14,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
@@ -32,44 +35,60 @@ class CaseTransformerTest {
     assertUserAccess(result, UserAccess.UNKNOWN)
   }
 
-  @Test
-  fun `returns UserAccess FULL when personDto is FullPersonDto`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `returns UserAccess FULL when personDto is FullPersonDto`(v2Enabled: Boolean) {
     val person = buildFullPersonDto(crn)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
+    val fromSasAndDelius = if (v2Enabled) {
+      person.toCaseDtoV2(caseEntity = null)
+    } else {
+      person.toCaseDto(caseEntity = null)
+    }
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.FULL)
     assertUserAccess(fromSasAndDelius, UserAccess.FULL)
   }
 
-  @Test
-  fun `returns UserAccess of FULL when personDto is FullPersonDto and limitedAccess is true`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `returns UserAccess of FULL when personDto is FullPersonDto and limitedAccess is true`(v2Enabled: Boolean) {
     val person = buildFullPersonDto(crn, limitedAccess = true)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
+    val fromSasAndDelius = if (v2Enabled) {
+      person.toCaseDtoV2(caseEntity = null)
+    } else {
+      person.toCaseDto(caseEntity = null)
+    }
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.FULL, limitedAccess = true)
     assertUserAccess(fromSasAndDelius, UserAccess.FULL, limitedAccess = true)
   }
 
-  @Test
-  fun `returns UserAccess of LIMITED when personDto is LimitedPersonDto`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `returns UserAccess of LIMITED when personDto is LimitedPersonDto`(v2Enabled: Boolean) {
     val person = buildLimitedPersonDto(crn)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
+    val fromSasAndDelius = if (v2Enabled) {
+      person.toCaseDtoV2(caseEntity = null)
+    } else {
+      person.toCaseDto(caseEntity = null)
+    }
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.LIMITED, limitedAccess = true)
     assertUserAccess(fromSasAndDelius, UserAccess.LIMITED, limitedAccess = true)
   }
 
-  @Test
-  fun `uses crn and prisonNumber from personDto`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `uses crn and prisonNumber from personDto`(v2Enabled: Boolean) {
     val prisonNumber = "prisonNumber1"
     val person = buildFullPersonDto(crn = crn, nomsNumber = prisonNumber)
     val identifiers = buildIdentifiers(
@@ -83,7 +102,11 @@ class CaseTransformerTest {
     assertThat(fromOrchestration.prisonNumber).isEqualTo(prisonNumber)
     assertUserAccess(fromOrchestration, UserAccess.FULL)
 
-    val fromSasAndDelius = person.toCaseDto(caseEntity = null)
+    val fromSasAndDelius = if (v2Enabled) {
+      person.toCaseDtoV2(caseEntity = null)
+    } else {
+      person.toCaseDto(caseEntity = null)
+    }
     assertThat(fromSasAndDelius.crn).isEqualTo(crn)
     assertThat(fromSasAndDelius.prisonNumber).isEqualTo(prisonNumber)
     assertUserAccess(fromSasAndDelius, UserAccess.FULL)
@@ -118,20 +141,33 @@ class CaseTransformerTest {
     assertCaseOrchestrationTransform(caseWithEmptyPrisonAndPncIdentifiers, expectedCaseWithoutPnc)
   }
 
-  @Test
-  fun `should transform from case entity and person dto to case dto`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `should transform from case entity and person dto to case dto`(v2Enabled: Boolean) {
     val caseEntity = buildCaseEntity { withCrn(crn) }
     val name = buildName()
     val personDto = buildFullPersonDto(crn = crn, name = name)
 
-    val expected = buildCaseDto(
-      crn = crn,
-      forename = name.forename,
-      middleNames = name.middleName,
-      surname = name.surname,
-    )
-
-    assertThat(personDto.toCaseDto(caseEntity = caseEntity)).isEqualTo(expected)
+    if (v2Enabled) {
+      val expected = buildCaseDto(
+        crn = crn,
+        forename = caseEntity.firstName!!,
+        middleNames = null,
+        surname = caseEntity.lastName!!,
+        dateOfBirth = caseEntity.dateOfBirth!!,
+        tierScore = caseEntity.tierScore!!,
+      )
+      assertThat(personDto.toCaseDtoV2(caseEntity = caseEntity)).isEqualTo(expected)
+    } else {
+      val expected = buildCaseDto(
+        crn = crn,
+        forename = name.forename,
+        middleNames = name.middleName,
+        surname = name.surname,
+        tierScore = caseEntity.tierScore!!,
+      )
+      assertThat(personDto.toCaseDto(caseEntity = caseEntity)).isEqualTo(expected)
+    }
   }
 
   private fun assertUserAccess(caseDto: CaseDto, expectedAccess: UserAccess, limitedAccess: Boolean? = null) {
