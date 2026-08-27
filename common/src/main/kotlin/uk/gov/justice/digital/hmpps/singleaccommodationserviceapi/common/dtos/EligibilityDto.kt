@@ -5,6 +5,7 @@ import java.util.UUID
 data class EligibilityDto(
   val crn: String,
   val cas1: Cas1ServiceResult,
+  val cas2: Cas2ServiceResult,
   val cas3: Cas3ServiceResult,
   val dtr: DtrServiceResult,
   val crs: CrsServiceResult,
@@ -37,6 +38,11 @@ data class Cas1ServiceResult(
   val cas1Application: Cas1ApplicationDto?,
 )
 
+data class Cas2ServiceResult(
+  val serviceResult: ServiceResult,
+  val cas2Application: Cas2ApplicationDto?,
+)
+
 data class Cas3ServiceResult(
   val serviceResult: ServiceResult,
   val cas3Application: Cas3ApplicationDto?,
@@ -51,6 +57,7 @@ enum class ServiceStatus {
   NOT_REQUIRED,
   NOT_ELIGIBLE, // NO APPLICATION
   UPCOMING, // NO APPLICATION
+  STARTED,
   NOT_STARTED,
   NOT_SUBMITTED,
   INFO_REQUESTED,
@@ -79,6 +86,8 @@ enum class ServiceStatus {
 enum class LinkType {
   CAS1_START_APPLICATION,
   CAS1_VIEW_APPLICATION,
+  CAS2_START_APPLICATION,
+  CAS2_VIEW_APPLICATION,
   CAS3_START_REFERRAL,
   CAS3_VIEW_REFERRAL,
 }
@@ -98,6 +107,7 @@ enum class FailureReason {
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
 }
+
 enum class BlockingReason {
   // CAS3 PREREQUISITES
   SUBMIT_DTR_BEFORE_CAS3,
