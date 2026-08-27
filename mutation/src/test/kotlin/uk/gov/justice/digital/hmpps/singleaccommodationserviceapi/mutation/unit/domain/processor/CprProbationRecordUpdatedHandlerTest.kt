@@ -55,13 +55,11 @@ class CprProbationRecordUpdatedHandlerTest {
 
   @Test
   fun `should not refresh case and ignore message when case is not known`() {
-    val caseId = UUID.randomUUID()
-
     every { caseRepository.findByCrn(crn) } returns null
     every { inboxEventHelper.findCrn(any()) } returns crn
 
     assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
   @Test
