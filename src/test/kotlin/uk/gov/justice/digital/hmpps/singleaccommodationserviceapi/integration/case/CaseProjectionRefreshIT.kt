@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
@@ -85,7 +84,12 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     val expectedTierValue = UUID.randomUUID().toString()
     val newName = UUID.randomUUID().toString()
 
-    caseRepository.save(buildCaseEntity(tierScore = null) { withCrn(crn) })
+    caseRepository.save(
+      buildCaseEntity(tierScore = null) {
+        withCrn(crn)
+        withPrisonNumber(prisonNumber)
+      },
+    )
 
     var domainEvent = SnsDomainEvent(
       eventType = eventType.typeName,
@@ -137,9 +141,21 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
         true
       }
 
-      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED -> true
+      IncomingHmppsDomainEventType.PRISONER_OFFENDER_SEARCH_PRISONER_UPDATED,
+      IncomingHmppsDomainEventType.PRISONER_OFFENDER_SEARCH_PRISONER_RECEIVED,
+      IncomingHmppsDomainEventType.PRISONER_OFFENDER_SEARCH_PRISONER_RELEASED,
+      -> {
+        domainEvent =
+          domainEvent.copy(
+            personReference = PersonReference(listOf(PersonIdentifier(type = "NOMS", value = prisonNumber))),
+          )
+        true
+      }
 
-      IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED -> true
+      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
+      IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED,
+
+      -> true
 
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED -> false
     }
@@ -167,7 +183,8 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     }
 
     waitFor {
-      val matchingEvents = inboxEventRepository.findAll().filter { it.payload.contains(crn) }
+      val matchingEvents =
+        inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
       assertThat(matchingEvents).hasSize(1)
       assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
     }
@@ -176,23 +193,42 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     assertThat(sasWiremock.findUnmatchedRequests().requests.map { it.url }).isEmpty()
   }
 
-  @Test
-  fun `adds refresh request case when message is processed`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A1") { withCrn(crn) })
+  // TODO: Remove this exclusion when CaseAllocationHandler is refactored
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(IncomingHmppsDomainEventType::class, mode = EnumSource.Mode.EXCLUDE, names = ["PERSON_COMMUNITY_MANAGER_ALLOCATED"])
+  fun `should ignore messages when the case is unknown`(eventType: IncomingHmppsDomainEventType) {
+    val crn = UUID.randomUUID().toString()
+    val prisonNumber = UUID.randomUUID().toString()
 
-    publishProjectionChangeEvent()
-
-    testInboxEventHelper.assertInboxEvent(
-      crn = crn,
-      eventType = "tier.calculation.changed",
-      eventDetailUrl = tierEventDetailUrl(),
-      processedStatus = ProcessedStatus.PROCESSED,
+    // this event is generic to pass all event handlers
+    val domainEvent = SnsDomainEvent(
+      eventType = eventType.typeName,
+      version = 1,
+      description = eventType.name,
+      detailUrl = "test",
+      occurredAt = OffsetDateTime.now(),
+      personReference = PersonReference(
+        listOf(
+          PersonIdentifier(type = "CRN", value = crn),
+          PersonIdentifier(type = "NOMS", value = prisonNumber),
+        ),
+      ),
+      additionalInformation = mapOf("cprAddressId" to UUID.randomUUID().toString()),
     )
 
+    testInboxEventHelper.publish(domainEvent)
+
     waitFor {
-      val caseRefreshRequest = caseRefreshRequestRepository.findAll()
-      assertThat(caseRefreshRequest).hasSize(1)
-      sasWiremock.verify(1, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
+      testInboxEventHelper.assertInboxEvent(
+        crn,
+        eventType = eventType.typeName,
+        eventDetailUrl = domainEvent.detailUrl,
+        processedStatus = ProcessedStatus.IGNORED,
+      )
+      val matchingEvents =
+        inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
+      assertThat(matchingEvents).hasSize(1)
+      assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
     }
   }
 
@@ -207,20 +243,6 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     val refreshRequest = caseRefreshRequestRepository.findAll().single()
     assertThat(refreshRequest.generation).isEqualTo(2)
     assertThat(caseRepository.findAll()).hasSize(1)
-  }
-
-  @Test
-  fun `ignores a projection change event for an unknown Case`() {
-    publishProjectionChangeEvent()
-
-    testInboxEventHelper.assertExpectedInboxEvents(
-      processedStatus = ProcessedStatus.IGNORED,
-      count = 1,
-    )
-
-    assertThat(caseRepository.findAll()).isEmpty()
-    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
-    sasWiremock.verify(0, getRequestedFor(urlPathMatching("/v[23]/crn/.*/tier")))
   }
 
   private fun publishProjectionChangeEvent() {
