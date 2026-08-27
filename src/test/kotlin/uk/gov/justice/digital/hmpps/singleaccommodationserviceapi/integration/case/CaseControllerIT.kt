@@ -430,7 +430,6 @@ class CaseControllerIT : IntegrationTestBase() {
     val result = restTestClient.get().uri { it.path("/search/${crns[0]}").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-    println(result.expectBody())
     result.expectBody().jsonPath("$.data.length()").isEqualTo(14)
 
     assertThat(caseRepository.findAll().size).isEqualTo(11)
