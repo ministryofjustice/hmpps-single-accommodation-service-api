@@ -68,10 +68,15 @@ class CaseQueryService(
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
 
         is FullPersonDto -> {
+          val caseEntity = caseEntitiesByCrn[personDto.crn]
           if (caseListV2Enabled) {
-            personDto.toCaseDtoV2(caseEntity = caseEntitiesByCrn[personDto.crn])
+            personDto.toCaseDtoV2(
+              caseEntity = caseEntity,
+              currentAccommodation = caseEntity?.currentAccommodation,
+              nextAccommodation = caseEntity?.nextAccommodation,
+            )
           } else {
-            personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn])
+            personDto.toCaseDto(caseEntity = caseEntity)
           }
         }
       }

@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -42,7 +45,7 @@ class CaseTransformerTest {
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     val fromSasAndDelius = if (v2Enabled) {
-      person.toCaseDtoV2(caseEntity = null)
+      person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
     } else {
       person.toCaseDto(caseEntity = null)
     }
@@ -59,7 +62,7 @@ class CaseTransformerTest {
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     val fromSasAndDelius = if (v2Enabled) {
-      person.toCaseDtoV2(caseEntity = null)
+      person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
     } else {
       person.toCaseDto(caseEntity = null)
     }
@@ -76,7 +79,7 @@ class CaseTransformerTest {
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
     val fromSasAndDelius = if (v2Enabled) {
-      person.toCaseDtoV2(caseEntity = null)
+      person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
     } else {
       person.toCaseDto(caseEntity = null)
     }
@@ -103,7 +106,7 @@ class CaseTransformerTest {
     assertUserAccess(fromOrchestration, UserAccess.FULL)
 
     val fromSasAndDelius = if (v2Enabled) {
-      person.toCaseDtoV2(caseEntity = null)
+      person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
     } else {
       person.toCaseDto(caseEntity = null)
     }
@@ -144,7 +147,12 @@ class CaseTransformerTest {
   @ParameterizedTest
   @ValueSource(booleans = [true, false])
   fun `should transform from case entity and person dto to case dto`(v2Enabled: Boolean) {
-    val caseEntity = buildCaseEntity { withCrn(crn) }
+    val currentAccommodationDto = buildAccommodationSummaryDto(crn = crn)
+    val nextAccommodationDto = buildAccommodationSummaryDto(crn = crn)
+    val caseEntity = buildCaseEntity {
+      withCrn(crn)
+      accommodationStatus = CaseAccommodationStatus.SETTLED
+    }
     val name = buildName()
     val personDto = buildFullPersonDto(crn = crn, name = name)
 
@@ -156,8 +164,20 @@ class CaseTransformerTest {
         surname = caseEntity.lastName!!,
         dateOfBirth = caseEntity.dateOfBirth!!,
         tierScore = caseEntity.tierScore!!,
+        accommodationSummaries = buildAccommodationSummariesDto(
+          caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
+          caseAccommodationStatusDate = null,
+          currentAccommodation = currentAccommodationDto,
+          nextAccommodation = nextAccommodationDto,
+        ),
       )
-      assertThat(personDto.toCaseDtoV2(caseEntity = caseEntity)).isEqualTo(expected)
+      assertThat(
+        personDto.toCaseDtoV2(
+          caseEntity = caseEntity,
+          currentAccommodation = currentAccommodationDto,
+          nextAccommodation = nextAccommodationDto,
+        ),
+      ).isEqualTo(expected)
     } else {
       val expected = buildCaseDto(
         crn = crn,

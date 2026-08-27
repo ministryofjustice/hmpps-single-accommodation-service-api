@@ -4,6 +4,7 @@ dependencies {
   implementation(project(":infrastructure"))
   implementation(libs.hmpps.starter)
   implementation(libs.spring.data.jpa)
+  implementation(libs.spring.json)
 
   testImplementation(libs.hmpps.starter.test)
   testRuntimeOnly(libs.junit.platform.launcher)
