@@ -29,7 +29,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
@@ -60,7 +59,6 @@ class CaseQueryServiceTest {
       caseOrchestrationService = caseOrchestrationService,
       userService = userService,
       caseRepository = caseRepository,
-      jsonMapper = jsonMapper,
       caseListV2Enabled = false,
     )
   }
@@ -365,7 +363,6 @@ class CaseQueryServiceTest {
           caseOrchestrationService = caseOrchestrationService,
           userService = userService,
           caseRepository = caseRepository,
-          jsonMapper = jsonMapper,
           caseListV2Enabled = true,
         )
       }
@@ -390,7 +387,6 @@ class CaseQueryServiceTest {
           caseOrchestrationService = caseOrchestrationService,
           userService = userService,
           caseRepository = caseRepository,
-          jsonMapper = jsonMapper,
           caseListV2Enabled = true,
         )
       }
@@ -407,7 +403,7 @@ class CaseQueryServiceTest {
       )
       val caseEntity1 = buildCaseEntity {
         withCrn(crnOne)
-        currentAccommodation = jsonMapper.writeValueAsString(buildAccommodationSummaryDto(crn = crnOne))
+        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
         accommodationStatus = CaseAccommodationStatus.SETTLED
       }
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }

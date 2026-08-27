@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.core.ParameterizedTypeReference
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
@@ -71,13 +70,11 @@ class CaseControllerIT : IntegrationTestBase() {
       caseOrchestrationService: CaseOrchestrationService,
       userService: UserService,
       caseRepository: CaseRepository,
-      jsonMapper: JsonMapper,
     ): CaseQueryService = spyk(
       CaseQueryService(
         caseOrchestrationService = caseOrchestrationService,
         userService = userService,
         caseRepository = caseRepository,
-        jsonMapper = jsonMapper,
         caseListV2Enabled = false,
       ),
     )
@@ -306,19 +303,15 @@ class CaseControllerIT : IntegrationTestBase() {
       tierScore = "D2",
     ) {
       withCrn(crn)
-      currentAccommodation = jsonMapper.writeValueAsString(
-        buildAccommodationSummaryDto(
-          crn = crn,
-          status = buildAccommodationStatusDto(code = "C", description = "Custody"),
-          type = buildAccommodationTypeDto(code = "HMP", description = "Prison"),
-        ),
+      currentAccommodation = buildAccommodationSummaryDto(
+        crn = crn,
+        status = buildAccommodationStatusDto(code = "C", description = "Custody"),
+        type = buildAccommodationTypeDto(code = "HMP", description = "Prison"),
       )
-      nextAccommodation = jsonMapper.writeValueAsString(
-        buildAccommodationSummaryDto(
-          crn = crn,
-          status = buildAccommodationStatusDto(code = "PR", description = "Proposed"),
-          type = buildAccommodationTypeDto(code = "A07A", description = "Friends/Family (transient)"),
-        ),
+      nextAccommodation = buildAccommodationSummaryDto(
+        crn = crn,
+        status = buildAccommodationStatusDto(code = "PR", description = "Proposed"),
+        type = buildAccommodationTypeDto(code = "A07A", description = "Friends/Family (transient)"),
       )
       accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
     }
