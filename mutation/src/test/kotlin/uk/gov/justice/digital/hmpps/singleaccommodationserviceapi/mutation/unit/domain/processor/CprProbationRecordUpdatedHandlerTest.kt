@@ -64,11 +64,10 @@ class CprProbationRecordUpdatedHandlerTest {
 
   @Test
   fun `should not refresh case and should process message when inbox event handler is null`() {
-    val caseId = UUID.randomUUID()
     cprProbationRecordUpdatedHandler =
       CprProbationRecordUpdatedHandler(caseRepository, inboxEventHelper, null)
 
     assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 }

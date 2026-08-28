@@ -55,22 +55,19 @@ class PrisonerOffenderSearchHandlerTest {
 
   @Test
   fun `should not refresh case and ignore message when case is not known`() {
-    val caseId = UUID.randomUUID()
-
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
     every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
 
     assertThat(prisonerOffenderSearchHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
   @Test
   fun `should not refresh case and should process message when inbox event handler is null`() {
-    val caseId = UUID.randomUUID()
     prisonerOffenderSearchHandler =
       PrisonerOffenderSearchHandler(caseRepository, null, inboxEventHelper)
 
     assertThat(prisonerOffenderSearchHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 }
