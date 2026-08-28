@@ -158,7 +158,10 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_NOT_ARRIVED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_MADE,
-
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_ADDED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DEREGISTERED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_UPDATED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DELETED,
       -> true
 
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED -> false

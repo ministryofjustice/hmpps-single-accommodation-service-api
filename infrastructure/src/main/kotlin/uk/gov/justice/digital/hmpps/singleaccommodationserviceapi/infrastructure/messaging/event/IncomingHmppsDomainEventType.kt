@@ -16,6 +16,10 @@ enum class IncomingHmppsDomainEventType(
   APPROVED_PREMISES_BOOKING_CHANGED("approved-premises.booking.changed"),
   APPROVED_PREMISES_BOOKING_NOT_ARRIVED("approved-premises.booking.not-arrived"),
   APPROVED_PREMISES_BOOKING_MADE("approved-premises.booking.made"),
+  PROBATION_CASE_REGISTRATION_ADDED("probation-case.registration.added"),
+  PROBATION_CASE_REGISTRATION_DELETED("probation-case.registration.deleted"),
+  PROBATION_CASE_REGISTRATION_DEREGISTERED("probation-case.registration.deregistered"),
+  PROBATION_CASE_REGISTRATION_UPDATED("probation-case.registration.updated"),
   ;
 
   companion object {

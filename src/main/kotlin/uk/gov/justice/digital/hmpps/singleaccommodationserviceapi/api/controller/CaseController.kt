@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ri
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 
 @RestController
 class CaseController(
@@ -46,7 +47,11 @@ class CaseController(
     // TODO: Change this to upsertCases after MVP
     caseApplicationService.createCases(crnsToPrisonNumbers)
     val caseDtos = caseQueryService.getCases(filteredCaseList)
-    return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
+
+    // to set the risk level in the case list until we get a dedicated endpoint and store on the db.
+    val mappedDtos = personDtos.data.filterIsInstance<FullPersonDto>().associateBy { it.crn }
+    val dtosWithRosh = caseDtos.map { it.copy(riskLevel = mappedDtos[it.crn]?.riskLevel) }
+    return ResponseEntity.ok(ApiResponseDto(data = dtosWithRosh, upstreamFailures = upstreamFailures))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
