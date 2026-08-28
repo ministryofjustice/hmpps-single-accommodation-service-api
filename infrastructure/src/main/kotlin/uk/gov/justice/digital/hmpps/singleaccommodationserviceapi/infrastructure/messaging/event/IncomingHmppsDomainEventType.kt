@@ -12,6 +12,10 @@ enum class IncomingHmppsDomainEventType(
   PRISONER_OFFENDER_SEARCH_PRISONER_UPDATED("prisoner-offender-search.prisoner.updated"),
   PRISONER_OFFENDER_SEARCH_PRISONER_RECEIVED("prisoner-offender-search.prisoner.received"),
   PRISONER_OFFENDER_SEARCH_PRISONER_RELEASED("prisoner-offender-search.prisoner.released"),
+  APPROVED_PREMISES_BOOKING_CANCELLED("approved-premises.booking.cancelled"),
+  APPROVED_PREMISES_BOOKING_CHANGED("approved-premises.booking.changed"),
+  APPROVED_PREMISES_BOOKING_NOT_ARRIVED("approved-premises.booking.not-arrived"),
+  APPROVED_PREMISES_BOOKING_MADE("approved-premises.booking.made"),
   ;
 
   companion object {

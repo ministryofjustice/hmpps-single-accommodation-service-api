@@ -63,7 +63,7 @@ class PrisonerOffenderSearchHandlerTest {
   }
 
   @Test
-  fun `should not refresh case and should process message when inbox event handler is null`() {
+  fun `should not refresh case and should process message when case refresh request service is null`() {
     prisonerOffenderSearchHandler =
       PrisonerOffenderSearchHandler(caseRepository, null, inboxEventHelper)
 
