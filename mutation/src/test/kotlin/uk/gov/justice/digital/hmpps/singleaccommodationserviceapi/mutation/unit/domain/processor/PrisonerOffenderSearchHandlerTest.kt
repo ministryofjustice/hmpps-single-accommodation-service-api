@@ -14,11 +14,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.CprProbationRecordUpdatedHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.PrisonerOffenderSearchHandler
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
-class CprProbationRecordUpdatedHandlerTest {
+class PrisonerOffenderSearchHandlerTest {
 
   @RelaxedMockK
   private lateinit var caseRepository: CaseRepository
@@ -30,9 +30,9 @@ class CprProbationRecordUpdatedHandlerTest {
   private lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   @InjectMockKs
-  private lateinit var cprProbationRecordUpdatedHandler: CprProbationRecordUpdatedHandler
+  private lateinit var prisonerOffenderSearchHandler: PrisonerOffenderSearchHandler
 
-  val crn = UUID.randomUUID().toString()
+  val prisonNumber = UUID.randomUUID().toString()
 
   val inboxEvent = InboxEventHandler.InboxEvent(
     id = UUID.randomUUID(),
@@ -45,29 +45,29 @@ class CprProbationRecordUpdatedHandlerTest {
     val caseId = UUID.randomUUID()
     val caseEntity = mockk<CaseEntity>()
 
-    every { caseRepository.findByCrn(crn) } returns caseEntity
+    every { caseRepository.findByPrisonNumber(prisonNumber) } returns caseEntity
     every { caseEntity.id } returns caseId
-    every { inboxEventHelper.findCrn(any()) } returns crn
+    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
 
-    assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    assertThat(prisonerOffenderSearchHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseId) }
   }
 
   @Test
   fun `should not refresh case and ignore message when case is not known`() {
-    every { caseRepository.findByCrn(crn) } returns null
-    every { inboxEventHelper.findCrn(any()) } returns crn
+    every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
+    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
 
-    assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
+    assertThat(prisonerOffenderSearchHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
   @Test
   fun `should not refresh case and should process message when inbox event handler is null`() {
-    cprProbationRecordUpdatedHandler =
-      CprProbationRecordUpdatedHandler(caseRepository, inboxEventHelper, null)
+    prisonerOffenderSearchHandler =
+      PrisonerOffenderSearchHandler(caseRepository, null, inboxEventHelper)
 
-    assertThat(cprProbationRecordUpdatedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    assertThat(prisonerOffenderSearchHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 }

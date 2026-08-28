@@ -90,7 +90,7 @@ hmpps:
         queueName: ${random.uuid}
         dlqName: ${random.uuid}
         subscribeTopicId: hmpps-domain-event-topic
-        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.probation.record.updated"]}'
+        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted", "core-person-record.probation.record.updated", "prisoner-offender-search.prisoner.released", "prisoner-offender-search.prisoner.received", "prisoner-offender-search.prisoner.updated"]}'
       test-domain-events-queue:
         dlqName: ${random.uuid}
         queueName: ${random.uuid}

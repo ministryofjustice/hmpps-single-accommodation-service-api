@@ -9,6 +9,9 @@ enum class IncomingHmppsDomainEventType(
   CPR_PROBATION_RECORD_UPDATED("core-person-record.probation.record.updated"),
   TIER_CALCULATION_CHANGED("tier.calculation.changed"),
   PERSON_COMMUNITY_MANAGER_ALLOCATED("person.community.manager.allocated"),
+  PRISONER_OFFENDER_SEARCH_PRISONER_UPDATED("prisoner-offender-search.prisoner.updated"),
+  PRISONER_OFFENDER_SEARCH_PRISONER_RECEIVED("prisoner-offender-search.prisoner.received"),
+  PRISONER_OFFENDER_SEARCH_PRISONER_RELEASED("prisoner-offender-search.prisoner.released"),
   ;
 
   companion object {
