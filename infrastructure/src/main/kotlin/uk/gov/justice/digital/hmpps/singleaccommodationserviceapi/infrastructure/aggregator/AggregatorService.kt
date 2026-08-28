@@ -29,7 +29,7 @@ class AggregatorService(
   private val upstreamFailureReporters: List<UpstreamFailureReporter> = emptyList(),
 ) {
   private val maxConcurrency: Int = 100
-  val semaphore = Semaphore(maxConcurrency)
+  private val semaphore = Semaphore(maxConcurrency)
   private val log = LoggerFactory.getLogger(AggregatorService::class.java)
 
   fun orchestrateAsyncCalls(
