@@ -75,7 +75,7 @@ class ApprovedPremisesEventHandlerTest {
   }
 
   @Test
-  fun `should not refresh case and should process approved premises message when inbox event handler is null`() {
+  fun `should not refresh case and should process approved premises message when refresh request service is null`() {
     approvedPremisesEventHandler =
       ApprovedPremisesEventHandler(caseRepository, null, inboxEventHelper)
 
