@@ -154,6 +154,10 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
       IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
       IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED,
+      IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CANCELLED,
+      IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
+      IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_NOT_ARRIVED,
+      IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_MADE,
 
       -> true
 
