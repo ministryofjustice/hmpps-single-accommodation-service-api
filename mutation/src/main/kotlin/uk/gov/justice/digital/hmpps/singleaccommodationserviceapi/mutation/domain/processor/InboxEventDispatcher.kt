@@ -57,6 +57,8 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
+  private val semaphore = Semaphore(dispatcherConfig.maxConcurrentEvents)
+
   private val eventTypeToHandlers: Map<String, InboxEventHandler> = buildMap {
     for (handler in handlers) {
       for (eventType in handler.supportedEventTypes()) {
@@ -83,8 +85,6 @@ class InboxEventDispatcher(
       return@runBlocking progressTracker.toStats()
     }
 
-    val concurrencyLimit = Semaphore(dispatcherConfig.maxConcurrentEvents)
-
     log.info("Processing inbox batch [count={}, eventIds={}]", inboxEvents.size, inboxEvents.map { it.id })
 
     val (partitions, eventsWithoutHandlers) = partitionByKey(inboxEvents)
@@ -97,7 +97,7 @@ class InboxEventDispatcher(
     coroutineScope {
       partitions.map { (_, events) ->
         async(Dispatchers.IO) {
-          concurrencyLimit.withPermit {
+          semaphore.withPermit {
             events.forEach { dispatchEvent(it, progressTracker) }
           }
         }
