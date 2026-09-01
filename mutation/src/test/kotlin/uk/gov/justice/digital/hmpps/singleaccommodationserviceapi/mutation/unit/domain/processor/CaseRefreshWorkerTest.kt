@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserContextService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshFailure
@@ -49,7 +50,7 @@ class CaseRefreshWorkerTest {
 
     val stats = caseRefreshWorker.process()
 
-    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 0))
+    assertThat(stats.withoutDuration()).isEqualTo(CaseRefreshWorker.Stats())
     verify(exactly = 0) { caseRefreshProcessor.process(any()) }
     verify(exactly = 0) { userContextService.setUserContextAsSasSystemUser() }
     verify(exactly = 0) { userContextService.clearContext() }
@@ -57,46 +58,34 @@ class CaseRefreshWorkerTest {
 
   @Test
   fun `counts refreshed and failed outcomes across claims`() {
-    val refreshedClaim = CaseRefreshRequestService.Claim(
-      caseId = UUID.randomUUID(),
-      generation = 1,
-      claimId = UUID.randomUUID(),
-    )
-    val failedClaim = CaseRefreshRequestService.Claim(
-      caseId = UUID.randomUUID(),
-      generation = 1,
-      claimId = UUID.randomUUID(),
-    )
+    val refreshedClaim = claim()
+    val failedClaim = claim()
     every { caseRefreshRequestService.claimPending(any(), any()) } returns listOf(refreshedClaim, failedClaim)
     every { caseRefreshProcessor.process(refreshedClaim) } returns CaseRefreshProcessor.Result.Refreshed
     every { caseRefreshProcessor.process(failedClaim) } returns CaseRefreshProcessor.Result.Failed
 
     val stats = caseRefreshWorker.process()
 
-    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 1, failedCount = 1))
+    assertThat(stats.withoutDuration()).isEqualTo(
+      CaseRefreshWorker.Stats(claimedCount = 2, refreshedCount = 1, failedCount = 1),
+    )
     verify(exactly = 2) { userContextService.setUserContextAsSasSystemUser() }
     verify(exactly = 2) { userContextService.clearContext() }
   }
 
   @Test
-  fun `does not increment stats for case not found and stale claim outcomes`() {
-    val caseNotFoundClaim = CaseRefreshRequestService.Claim(
-      caseId = UUID.randomUUID(),
-      generation = 1,
-      claimId = UUID.randomUUID(),
-    )
-    val staleClaim = CaseRefreshRequestService.Claim(
-      caseId = UUID.randomUUID(),
-      generation = 1,
-      claimId = UUID.randomUUID(),
-    )
+  fun `counts case not found and stale claim outcomes separately from failures`() {
+    val caseNotFoundClaim = claim()
+    val staleClaim = claim()
     every { caseRefreshRequestService.claimPending(any(), any()) } returns listOf(caseNotFoundClaim, staleClaim)
     every { caseRefreshProcessor.process(caseNotFoundClaim) } returns CaseRefreshProcessor.Result.CaseNotFound
     every { caseRefreshProcessor.process(staleClaim) } returns CaseRefreshProcessor.Result.IgnoredStaleClaim
 
     val stats = caseRefreshWorker.process()
 
-    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 0))
+    assertThat(stats.withoutDuration()).isEqualTo(
+      CaseRefreshWorker.Stats(claimedCount = 2, caseNotFoundCount = 1, staleClaimCount = 1),
+    )
     verify(exactly = 0) { caseRefreshRequestService.recordFailure(any(), any()) }
     verify(exactly = 0) { sentryService.captureException(any()) }
     verify(exactly = 2) { userContextService.clearContext() }
@@ -104,11 +93,7 @@ class CaseRefreshWorkerTest {
 
   @Test
   fun `records an unexpected processor exception through the retry policy`() {
-    val claim = CaseRefreshRequestService.Claim(
-      caseId = UUID.randomUUID(),
-      generation = 1,
-      claimId = UUID.randomUUID(),
-    )
+    val claim = claim()
     val exception = IllegalStateException("Unexpected failure")
     val failure = CaseRefreshFailure(
       category = CaseRefreshFailureCategory.UNEXPECTED_ERROR,
@@ -123,7 +108,9 @@ class CaseRefreshWorkerTest {
 
     val stats = caseRefreshWorker.process()
 
-    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 1))
+    assertThat(stats.withoutDuration()).isEqualTo(
+      CaseRefreshWorker.Stats(claimedCount = 1, failedCount = 1),
+    )
     verify { caseRefreshRequestService.recordFailure(claim, failure) }
     verify { sentryService.captureException(exception) }
     verify { userContextService.clearContext() }
@@ -131,11 +118,7 @@ class CaseRefreshWorkerTest {
 
   @Test
   fun `captures error when recording unexpected failure also fails`() {
-    val claim = CaseRefreshRequestService.Claim(
-      caseId = UUID.randomUUID(),
-      generation = 1,
-      claimId = UUID.randomUUID(),
-    )
+    val claim = claim()
     val processingException = IllegalStateException("Unexpected failure")
     val failure = CaseRefreshFailure(
       category = CaseRefreshFailureCategory.UNEXPECTED_ERROR,
@@ -150,9 +133,20 @@ class CaseRefreshWorkerTest {
 
     val stats = caseRefreshWorker.process()
 
-    assertThat(stats).isEqualTo(CaseRefreshWorker.Stats(refreshedCount = 0, failedCount = 1))
+    assertThat(stats.withoutDuration()).isEqualTo(
+      CaseRefreshWorker.Stats(claimedCount = 1, failedCount = 1),
+    )
     verify { sentryService.captureException(processingException) }
     verify { sentryService.captureException(recordingException) }
     verify { userContextService.clearContext() }
   }
+
+  private fun claim(priority: CaseRefreshPriority = CaseRefreshPriority.BULK) = CaseRefreshRequestService.Claim(
+    caseId = UUID.randomUUID(),
+    generation = 1,
+    claimId = UUID.randomUUID(),
+    priority = priority,
+  )
+
+  private fun CaseRefreshWorker.Stats.withoutDuration() = copy(durationMillis = 0)
 }
