@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Up
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
+import java.time.Duration
 
 @Service
 class BulkLoadCasesService(
@@ -28,13 +29,17 @@ class BulkLoadCasesService(
       .ifEmpty { throw TeamCodesRequiredException() }
 
     log.info("Bulk loading {} team(s), dryRun={}", normalizedTeamCodes.size, dryRun)
+    val startedAt = System.nanoTime()
 
     val errors = mutableListOf<BulkLoadCasesErrorDto>()
     val results = normalizedTeamCodes.mapNotNull { teamCode ->
+      val teamStartedAt = System.nanoTime()
       try {
-        loadTeam(teamCode, dryRun)
+        loadTeam(teamCode, dryRun).also {
+          log.info("Team {} finished in {}ms", teamCode, millisSince(teamStartedAt))
+        }
       } catch (exception: Exception) {
-        log.error("Bulk load failed for team {}", teamCode, exception)
+        log.error("Bulk load failed for team {} after {}ms", teamCode, millisSince(teamStartedAt), exception)
         errors += BulkLoadCasesErrorDto(teamCode, exception.message ?: "Unexpected error")
         null
       }
@@ -51,11 +56,25 @@ class BulkLoadCasesService(
         errors = errors,
       ),
       upstreamFailures = results.flatMap { it.upstreamFailures },
-    ).also { log.info("Bulk load finished: {}", it.data) }
+    ).also {
+      log.info(
+        "Bulk load finished in {}ms: {}. Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
+        millisSince(startedAt),
+        it.data,
+      )
+    }
   }
 
   private fun loadTeam(teamCode: String, dryRun: Boolean): TeamLoadResult {
+    val fetchStartedAt = System.nanoTime()
     val teamCasesResult = teamCaseOrchestrationService.getCasesByTeamCode(teamCode)
+    log.info(
+      "Team {}: retrieved {} case(s) from upstream in {}ms, {} upstream failure(s)",
+      teamCode,
+      teamCasesResult.data.size,
+      millisSince(fetchStartedAt),
+      teamCasesResult.upstreamFailures.size,
+    )
 
     if (teamCasesResult.upstreamFailures.isNotEmpty()) {
       log.error("Could not retrieve cases for team {}, team has been skipped", teamCode)
@@ -85,11 +104,19 @@ class BulkLoadCasesService(
       return TeamLoadResult(crnsFound = teamCases.size, casesAlreadyPresent = casesAlreadyPresent)
     }
 
+    val writeStartedAt = System.nanoTime()
     caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) })
 
     val caseIds = caseRepository.findByCrns(teamCases.map { it.crn }).map { it.id }
     caseRefreshRequestService?.requestBulkRefresh(caseIds)
-    log.info("Team {}: requested refresh for {} of {} case(s)", teamCode, caseIds.size, teamCases.size)
+    log.info(
+      "Team {}: requested refresh for {} of {} case(s) ({} created) in {}ms",
+      teamCode,
+      caseIds.size,
+      teamCases.size,
+      unpersistedCrns.size,
+      millisSince(writeStartedAt),
+    )
 
     return TeamLoadResult(
       crnsFound = teamCases.size,
@@ -98,6 +125,8 @@ class BulkLoadCasesService(
       refreshesRequested = caseIds.size,
     )
   }
+
+  private fun millisSince(startNanos: Long) = Duration.ofNanos(System.nanoTime() - startNanos).toMillis()
 
   private data class TeamLoadResult(
     val crnsFound: Int = 0,
