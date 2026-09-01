@@ -29,6 +29,7 @@ class AggregatorService(
   private val upstreamFailureReporters: List<UpstreamFailureReporter> = emptyList(),
 ) {
   private val maxConcurrency: Int = 100
+  private val semaphore = Semaphore(maxConcurrency)
   private val log = LoggerFactory.getLogger(AggregatorService::class.java)
 
   fun orchestrateAsyncCalls(
@@ -47,8 +48,6 @@ class AggregatorService(
 
     val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
       callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
-
-    val semaphore = Semaphore(maxConcurrency)
 
     val standardDeferred = async(Dispatchers.IO) {
       if (standardCallsSuspend.isNotEmpty()) {

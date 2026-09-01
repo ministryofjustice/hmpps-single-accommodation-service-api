@@ -42,6 +42,7 @@ dependencies {
   testImplementation(libs.awaitility)
   testImplementation(libs.webtestclient)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation(testFixtures(project(":common")))
   testImplementation(libs.sartestsupport)
 }
 

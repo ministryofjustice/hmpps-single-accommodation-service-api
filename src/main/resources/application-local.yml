@@ -22,7 +22,24 @@ hmpps.sqs:
       queueName: sas_domain_events_queue
       dlqName: sas_domain_events_dlq
       subscribeTopicId: hmpps-domain-event-topic
-      subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted"]}'
+      subscribeFilter: >
+        {
+          "eventType": [
+            "tier.calculation.changed",
+            "person.community.manager.allocated",
+            "core-person-record.probation.address.created",
+            "core-person-record.probation.address.updated",
+            "core-person-record.probation.address.deleted",
+            "core-person-record.probation.record.updated",
+            "prisoner-offender-search.prisoner.released",
+            "prisoner-offender-search.prisoner.received",
+            "prisoner-offender-search.prisoner.updated",
+            "approved-premises.booking.cancelled",
+            "approved-premises.booking.changed",
+            "approved-premises.booking.not-arrived",
+            "approved-premises.booking.made"
+          ]
+        }
 spring:
   config:
     import: classpath:application-infrastructure-local.yml
@@ -44,3 +61,6 @@ scheduling:
 sentry:
   sample-rate: 1
   traces-sample-rate: 0.01
+
+case-list:
+  v2-enabled: true

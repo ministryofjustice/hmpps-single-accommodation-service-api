@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
@@ -46,6 +47,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -80,6 +83,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.ReleaseWithinOneYearRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1SexValidationRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
@@ -168,6 +181,17 @@ class EligibilityServiceTest {
   var cas1UpcomingRuleSet = Cas1UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
   val cas1SuitabilityContextUpdater = Cas1SuitabilityContextUpdater()
 
+  // CAS2
+  var cas2ApplicationStartUrl = "CAS2_APPLICATION_START_URL"
+  var cas2CompletionContextUpdater = Cas2CompletionContextUpdater()
+
+  var cas2CompletionRuleSet = Cas2CompletionRuleSet(Cas2ApplicationCompletionRule())
+  var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationPresentRule())
+  var cas2EligibilityRuleSet = Cas2EligibilityRuleSet()
+  val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
+  var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
+  val cas2SuitabilityContextUpdater = Cas2SuitabilityContextUpdater()
+
   // CAS3
   var cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
   var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
@@ -240,6 +264,17 @@ class EligibilityServiceTest {
     eligibility = cas1EligibilityRuleSet,
   )
 
+  private val cas2Tree = Cas2EligibilityTreeProvider(
+    builder = builder,
+    upcoming = cas2UpcomingRuleSet,
+    upcomingContextUpdater = cas2UpcomingContextUpdater,
+    suitability = cas2SuitabilityRuleSet,
+    suitabilityContextUpdater = cas2SuitabilityContextUpdater,
+    completion = cas2CompletionRuleSet,
+    completionContextUpdater = cas2CompletionContextUpdater,
+    eligibility = cas2EligibilityRuleSet,
+  )
+
   private val cas3Tree = Cas3EligibilityTreeProvider(
     builder = builder,
     suitability = cas3SuitabilityRuleSet,
@@ -279,6 +314,7 @@ class EligibilityServiceTest {
 
   private val approvedPremisesCachingService = mockk<ApprovedPremisesCachingService> {
     every { getCas1UrlTemplates() } returns Cas1UrlTemplates(cas1ApplicationStartUrl)
+    every { getCas2UrlTemplates() } returns Cas2UrlTemplates(cas2ApplicationStartUrl)
     every { getCas3UrlTemplates() } returns Cas3UrlTemplates(cas3ReferralStartUrl)
   }
 
@@ -290,6 +326,7 @@ class EligibilityServiceTest {
     eligibilityOrchestrationService = eligibilityOrchestrationService,
     deeplinkResolver = DeeplinkResolver(approvedPremisesCachingService),
     cas1Tree = cas1Tree,
+    cas2Tree = cas2Tree,
     cas3Tree = cas3Tree,
     dtrTree = dtrTree,
     crsTree = crsTree,
@@ -310,6 +347,7 @@ class EligibilityServiceTest {
       val expectedTier = "A1"
       val caseId = UUID.randomUUID()
       val cas1Application = buildCas1Application()
+      val cas2Application = buildCas2Application()
       val cas1CurrentPremises = buildCas1PremisesSummary()
       val cas3CurrentPremises = buildCas3PremisesSummary()
       val cas3Application = buildCas3Application()
@@ -343,6 +381,7 @@ class EligibilityServiceTest {
           cpr = cpr,
           tier = tier,
           cas1Application = cas1Application,
+          cas2Application = cas2Application,
           cas3Application = cas3Application,
           commissionedRehabilitativeServices = listOf(crs),
           prisoner = prisoner,
@@ -368,6 +407,7 @@ class EligibilityServiceTest {
         currentAccommodationTypeEntity = accommodationTypeEntity,
         nextAccommodations = emptyList(),
         cas1Application = cas1Application,
+        cas2Application = cas2Application,
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
         dutyToRefer = dutyToRefer,
@@ -389,6 +429,7 @@ class EligibilityServiceTest {
         cpr = cpr,
         tier = null,
         cas1Application = null,
+        cas2Application = null,
         cas3Application = null,
         commissionedRehabilitativeServices = listOf(
           buildCommissionedRehabilitativeServices(status = CrsReferralStatus.COMPLETED, sentAt = OffsetDateTime.now()),
@@ -424,6 +465,7 @@ class EligibilityServiceTest {
           cpr = null,
           tier = null,
           cas1Application = null,
+          cas2Application = null,
           cas3Application = null,
           commissionedRehabilitativeServices = null,
           prisoner = null,
@@ -534,6 +576,83 @@ class EligibilityServiceTest {
           null -> null
           "/applications/start" -> cas1ApplicationStartUrl
           else -> cas1Application?.uiUrl
+        }
+        assertThat(result.url).isEqualTo(expectedUrl)
+
+        assertThat(result.failureReasons)
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
+          .containsExactlyInAnyOrderElementsOf(s.expectedFailureReasons)
+      }
+    }
+  }
+
+  @Nested
+  inner class Cas2EligibilityScenarios {
+
+    fun loadCas2Scenarios(): List<Cas2Scenario> {
+      val rows = CsvReader().read("/cas2-eligibility-scenarios.csv")
+
+      return rows.mapIndexed { idx, row ->
+        try {
+          Cas2Scenario(
+            testCaseId = row["testCaseId"]!!,
+            description = row["description"],
+            referenceDate = row["referenceDate"]!!.toLocalDate(),
+            currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
+            cas2ApplicationStatus = row["cas2ApplicationStatus"],
+            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatus.valueOf(it) },
+            expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
+            expectedCas2Link = row["expectedCas2Link"],
+            expectedCas2Url = row["expectedCas2Url"],
+            expectedFailureReasons = row["expectedFailureReasons"]
+              ?.takeIf { it.isNotBlank() }
+              ?.split(",")
+              ?.map { FailureReason.valueOf(it.trim()) }
+              ?: emptyList(),
+          )
+        } catch (e: Exception) {
+          throw IllegalStateException("CAS2 CSV row $idx failed: $row", e)
+        }
+      }
+    }
+
+    @Test
+    fun `should calculate eligibility for cas2 for all scenarios`() {
+      val scenarios = loadCas2Scenarios()
+
+      runScenarios(scenarios) { s ->
+
+        clock.setNow(s.referenceDate)
+
+        val cas2Application = s.cas2ApplicationStatus?.let {
+          buildCas2Application(
+            application = buildCas2ApplicationSummary(
+              status = it,
+            ),
+          )
+        }
+        val currentAccommodation = s.currentAccommodationEndDate?.let {
+          buildAccommodationSummaryDto(endDate = it)
+        }
+        val data = buildDomainData(
+          crn = s.testCaseId,
+          currentAccommodation = currentAccommodation,
+          cas2Application = cas2Application,
+        )
+
+        val result = eligibilityService.evaluate(cas2Tree, data)
+
+        assertThat(result.serviceStatus)
+          .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
+          .isEqualTo(s.expectedCas2Status)
+
+        assertThat(result.action).isEqualTo(expectedAction(s.expectedCas2Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1)))
+        assertThat(result.link).isEqualTo(s.expectedCas2Link)
+
+        val expectedUrl = when (s.expectedCas2Url) {
+          null -> null
+          "/applications/start" -> cas2ApplicationStartUrl
+          else -> cas2Application?.uiUrl
         }
         assertThat(result.url).isEqualTo(expectedUrl)
 
@@ -1107,6 +1226,19 @@ data class Cas1Scenario(
   val expectedCas1Action: CaseActionType?,
   val expectedCas1Link: String?,
   val expectedCas1Url: String?,
+  val expectedFailureReasons: List<FailureReason>,
+)
+
+data class Cas2Scenario(
+  val testCaseId: String,
+  val description: String?,
+  val referenceDate: LocalDate,
+  val currentAccommodationEndDate: LocalDate?,
+  val cas2ApplicationStatus: String?,
+  val expectedCas2Status: ServiceStatus?,
+  val expectedCas2Action: CaseActionType?,
+  val expectedCas2Link: String?,
+  val expectedCas2Url: String?,
   val expectedFailureReasons: List<FailureReason>,
 )
 

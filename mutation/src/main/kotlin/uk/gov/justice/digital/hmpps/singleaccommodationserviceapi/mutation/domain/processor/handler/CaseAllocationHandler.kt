@@ -20,7 +20,7 @@ class CaseAllocationHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName)
+  override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName)
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.findCrn(inboxEvent)
 

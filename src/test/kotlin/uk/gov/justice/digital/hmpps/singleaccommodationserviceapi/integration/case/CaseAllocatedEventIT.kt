@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
@@ -66,8 +65,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
 
-  private val eventType = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName
-  private val eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription
+  private val eventType = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName
+  private val eventDescription = "test event"
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v2/crn/$crn/tier"
 
   @BeforeEach
@@ -225,13 +224,13 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
     assertThat(case.roshLevelCode).isEqualTo("RMRH")
 
-    val currentAccommodation = jsonMapper.readValue(case.currentAccommodation, AccommodationSummaryDto::class.java)
+    val currentAccommodation = case.currentAccommodation!!
     assertThat(currentAccommodation.address.postcode).isEqualTo("SW1A 1AA")
     assertThat(currentAccommodation.type?.code).isEqualTo(AddressUsageCode.A02.name)
     assertThat(currentAccommodation.startDate).isEqualTo(expectedCas1Premises.startDate)
     assertThat(currentAccommodation.endDate).isEqualTo(expectedCas1Premises.endDate)
 
-    val nextAccommodation = jsonMapper.readValue(case.nextAccommodation, AccommodationSummaryDto::class.java)
+    val nextAccommodation = case.nextAccommodation!!
     assertThat(nextAccommodation.address.postcode).isEqualTo("SW1A 1AD")
     assertThat(nextAccommodation.startDate).isNull()
     assertThat(nextAccommodation.endDate).isNull()
@@ -241,8 +240,8 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     detailUrl: String,
   ) {
     testSqsDomainEventListener.assertMessageReceived(
-      typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
-      eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
+      typeName = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName,
+      eventDescription = eventDescription,
       detailUrl = detailUrl,
     )
   }

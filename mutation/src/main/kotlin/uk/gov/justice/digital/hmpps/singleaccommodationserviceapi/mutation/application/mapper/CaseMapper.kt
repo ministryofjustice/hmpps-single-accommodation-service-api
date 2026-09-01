@@ -1,17 +1,13 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
 import org.springframework.stereotype.Component
-import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
 @Component
-class CaseMapper(
-  private val jsonMapper: JsonMapper,
-) {
+class CaseMapper {
 
   private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
     put(crn, IdentifierType.CRN)
@@ -25,8 +21,8 @@ class CaseMapper(
     firstName = entity.firstName,
     lastName = entity.lastName,
     dateOfBirth = entity.dateOfBirth,
-    currentAccommodation = entity.currentAccommodation?.let { jsonMapper.readValue(it, AccommodationSummaryDto::class.java) },
-    nextAccommodation = entity.nextAccommodation?.let { jsonMapper.readValue(it, AccommodationSummaryDto::class.java) },
+    currentAccommodation = entity.currentAccommodation,
+    nextAccommodation = entity.nextAccommodation,
     accommodationStatus = entity.accommodationStatus,
     roshLevelCode = entity.roshLevelCode,
   )
@@ -39,8 +35,8 @@ class CaseMapper(
       firstName = snapshot.firstName,
       lastName = snapshot.lastName,
       dateOfBirth = snapshot.dateOfBirth,
-      currentAccommodation = snapshot.currentAccommodation?.let { jsonMapper.writeValueAsString(it) },
-      nextAccommodation = snapshot.nextAccommodation?.let { jsonMapper.writeValueAsString(it) },
+      currentAccommodation = snapshot.currentAccommodation,
+      nextAccommodation = snapshot.nextAccommodation,
       accommodationStatus = snapshot.accommodationStatus,
       roshLevelCode = snapshot.roshLevelCode,
     )
@@ -58,8 +54,8 @@ class CaseMapper(
     entity.firstName = snapshot.firstName
     entity.lastName = snapshot.lastName
     entity.dateOfBirth = snapshot.dateOfBirth
-    entity.currentAccommodation = snapshot.currentAccommodation?.let { jsonMapper.writeValueAsString(it) }
-    entity.nextAccommodation = snapshot.nextAccommodation?.let { jsonMapper.writeValueAsString(it) }
+    entity.currentAccommodation = snapshot.currentAccommodation
+    entity.nextAccommodation = snapshot.nextAccommodation
     entity.accommodationStatus = snapshot.accommodationStatus
     entity.roshLevelCode = snapshot.roshLevelCode
 
