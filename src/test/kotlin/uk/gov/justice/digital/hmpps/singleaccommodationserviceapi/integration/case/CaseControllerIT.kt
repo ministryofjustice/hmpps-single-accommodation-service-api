@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
@@ -256,7 +257,7 @@ class CaseControllerIT : IntegrationTestBase() {
         it.replace("\"middleNames\":\"Middle\"", "\"middleNames\":null")
           .replace(
             "\"limitedAccess\":false,\n         \"accommodationSummaries\":null",
-            "\"limitedAccess\":false,\n         \"accommodationSummaries\":{\"caseAccommodationStatus\":null,\"caseAccommodationStatusDate\":null,\"currentAccommodation\":null,\"nextAccommodation\":null}",
+            "\"limitedAccess\":false,\n         \"accommodationSummaries\":{\"caseAccommodationStatus\":\"SETTLED\",\"caseAccommodationStatusDate\":null,\"currentAccommodation\":{\"crn\":\"X12345\",\"startDate\":null,\"endDate\":null,\"address\":{\"postcode\":\"SW1A 1AA\",\"subBuildingName\":\"The Sub-Building\",\"buildingName\":\"The Building\",\"buildingNumber\":\"123\",\"thoroughfareName\":\"The Road\",\"dependentLocality\":\"The Area\",\"postTown\":\"London\",\"county\":\"London\",\"country\":\"England\",\"uprn\":\"1234567890\"},\"status\":{\"code\":\"M\",\"description\":\"Main\"},\"type\":{\"code\":\"A02\",\"description\":\"Approved Premises\"},\"proposedAccommodationId\":null},\"nextAccommodation\":{\"crn\":\"X12345\",\"startDate\":null,\"endDate\":null,\"address\":{\"postcode\":\"SW1A 1AA\",\"subBuildingName\":\"The Sub-Building\",\"buildingName\":\"The Building\",\"buildingNumber\":\"123\",\"thoroughfareName\":\"The Road\",\"dependentLocality\":\"The Area\",\"postTown\":\"London\",\"county\":\"London\",\"country\":\"England\",\"uprn\":\"1234567890\"},\"status\":{\"code\":\"M\",\"description\":\"Main\"},\"type\":{\"code\":\"A02\",\"description\":\"Approved Premises\"},\"proposedAccommodationId\":null}}",
           )
       } else {
         it
@@ -421,27 +422,26 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
-  fun `should update existing, create new and return expected case`() {
-    val case = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
+  fun `should return a CaseDto`() {
+    setCaseListV2Enabled(true)
+    val case = buildCase(crn = crns[5], nomsNumber = nomsNumbers[5])
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
-    seedCaseEntities()
+    seedAllCaseEntitiesForV2(listOf(case))
 
-    assertThat(caseRepository.findAll().size).isEqualTo(10)
-    val result = restTestClient.get().uri { it.path("/search/${crns[0]}").build() }
+    assertThat(caseRepository.findAll().size).isEqualTo(1)
+    val result = restTestClient.get().uri { it.path("/search/${crns[5]}").build() }
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-    result.expectBody().jsonPath("$.data.length()").isEqualTo(14)
-
-    assertThat(caseRepository.findAll().size).isEqualTo(11)
-
     result.expectBody(String::class.java)
       .value {
         assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponseSearch())
       }
 
+    assertThat(caseRepository.findAll().size).isEqualTo(1)
+
     sasWiremock.verify(
       1,
-      getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/${crns[0]}")),
+      getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/${crns[5]}")),
     )
   }
 
@@ -508,10 +508,32 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `returns ServerError when delius returns ServerError - search`() {
+    val crn = crns[0]
+    SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    restTestClient.get().uri("/search/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
+  }
+
+  @Test
   fun `returns NotFound error when delius returns NotFound error`() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
     restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isNotFound
+  }
+
+  @Test
+  fun `returns NotFound error when delius returns NotFound error - search`() {
+    val crn = crns[0]
+    SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    restTestClient.get().uri("/search/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
@@ -631,6 +653,7 @@ class CaseControllerIT : IntegrationTestBase() {
         firstName = case.name.forename,
         lastName = case.name.surname,
         dateOfBirth = case.dateOfBirth,
+        accommodationSummariesDto = buildAccommodationSummariesDto(),
       ) { withCrn(case.crn) }
     }
 
