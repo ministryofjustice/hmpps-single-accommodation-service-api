@@ -57,11 +57,11 @@ class BulkLoadCasesService(
       ),
       upstreamFailures = results.flatMap { it.upstreamFailures },
     ).also {
-log.info(
-  "Bulk load finished in {}ms: {}. Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
-  millisSince(startedAt),
-  it.data,
-)
+      log.info(
+        "Bulk load finished in {}ms: {}. Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
+        millisSince(startedAt),
+        it.data,
+      )
     }
   }
 
