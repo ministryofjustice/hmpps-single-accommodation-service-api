@@ -105,7 +105,10 @@ hmpps:
               "approved-premises.booking.cancelled",
               "approved-premises.booking.changed",
               "approved-premises.booking.not-arrived",
-              "approved-premises.booking.made"
+              "approved-premises.booking.made",
+              "accommodation.cas3.booking.confirmed",
+              "accommodation.cas3.booking.cancelled",
+              "accommodation.cas3.booking.cancelled.updated"
             ]
           }
       test-domain-events-queue:
