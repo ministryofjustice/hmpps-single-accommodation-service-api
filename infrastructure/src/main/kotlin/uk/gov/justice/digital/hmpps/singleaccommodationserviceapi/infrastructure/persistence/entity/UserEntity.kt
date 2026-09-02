@@ -13,7 +13,7 @@ import java.util.UUID
 data class UserEntity(
   @Id
   val id: UUID,
-  val username: String,
+  var username: String,
   @Enumerated(EnumType.STRING)
   val authSource: AuthSource,
   var forename: String,

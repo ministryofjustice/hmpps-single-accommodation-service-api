@@ -76,7 +76,11 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(IncomingHmppsDomainEventType::class)
+  @EnumSource(
+    IncomingHmppsDomainEventType::class,
+    mode = EnumSource.Mode.EXCLUDE,
+    names = ["PROBATION_USER_USERNAME_CHANGED"],
+  )
   fun `should refresh case based on event type`(eventType: IncomingHmppsDomainEventType) {
     val crn = UUID.randomUUID().toString()
     val prisonNumber = UUID.randomUUID().toString()
@@ -165,6 +169,8 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       -> true
 
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED -> false
+
+      IncomingHmppsDomainEventType.PROBATION_USER_USERNAME_CHANGED -> throw IllegalArgumentException("Do not test this event")
     }
 
     testInboxEventHelper.publish(domainEvent)
@@ -202,7 +208,11 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
   // TODO: Remove this exclusion when CaseAllocationHandler is refactored
   @ParameterizedTest(name = "{0}")
-  @EnumSource(IncomingHmppsDomainEventType::class, mode = EnumSource.Mode.EXCLUDE, names = ["PERSON_COMMUNITY_MANAGER_ALLOCATED"])
+  @EnumSource(
+    IncomingHmppsDomainEventType::class,
+    mode = EnumSource.Mode.EXCLUDE,
+    names = ["PERSON_COMMUNITY_MANAGER_ALLOCATED", "PROBATION_USER_USERNAME_CHANGED"],
+  )
   fun `should ignore messages when the case is unknown`(eventType: IncomingHmppsDomainEventType) {
     val crn = UUID.randomUUID().toString()
     val prisonNumber = UUID.randomUUID().toString()
