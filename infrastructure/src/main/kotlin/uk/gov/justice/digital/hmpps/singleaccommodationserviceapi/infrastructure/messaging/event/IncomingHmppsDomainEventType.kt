@@ -16,6 +16,9 @@ enum class IncomingHmppsDomainEventType(
   APPROVED_PREMISES_BOOKING_CHANGED("approved-premises.booking.changed"),
   APPROVED_PREMISES_BOOKING_NOT_ARRIVED("approved-premises.booking.not-arrived"),
   APPROVED_PREMISES_BOOKING_MADE("approved-premises.booking.made"),
+  ACCOMMODATION_CAS3_BOOKING_CONFIRMED("accommodation.cas3.booking.confirmed"),
+  ACCOMMODATION_CAS3_BOOKING_CANCELLED("accommodation.cas3.booking.cancelled"),
+  ACCOMMODATION_CAS3_BOOKING_CANCELLED_UPDATED("accommodation.cas3.booking.cancelled.updated"),
   ;
 
   companion object {

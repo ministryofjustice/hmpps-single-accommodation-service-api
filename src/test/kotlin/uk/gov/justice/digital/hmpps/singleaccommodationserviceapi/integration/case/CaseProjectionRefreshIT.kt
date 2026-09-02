@@ -158,6 +158,9 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_NOT_ARRIVED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_MADE,
+      IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CONFIRMED,
+      IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CANCELLED,
+      IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CANCELLED_UPDATED,
 
       -> true
 
