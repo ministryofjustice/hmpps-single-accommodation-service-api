@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getRequiredAdditionalInformation
 
 @Component
 class ProbationUserEventHandler(
@@ -25,13 +25,13 @@ class ProbationUserEventHandler(
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String {
     val event = inboxEventHelper.toDomainEvent(inboxEvent)
-    return event.getAdditionalInformation("fromUsername")
+    return event.getRequiredAdditionalInformation("fromUsername")
   }
 
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     val event = inboxEventHelper.toDomainEvent(inboxEvent)
-    val fromUsername = event.getAdditionalInformation("fromUsername").uppercase()
+    val fromUsername = event.getRequiredAdditionalInformation("fromUsername").uppercase()
 
     return when (
       val existingUser =
@@ -43,7 +43,7 @@ class ProbationUserEventHandler(
       }
 
       else -> {
-        val toUsername = event.getAdditionalInformation("toUsername").uppercase()
+        val toUsername = event.getRequiredAdditionalInformation("toUsername").uppercase()
         existingUser.username = toUsername
         log.info("Updating delius username [$fromUsername] to [$toUsername]")
         InboxEventHandler.Result.PROCESSED
