@@ -72,10 +72,10 @@ object CaseTransformer {
   ): CaseDto = when (this) {
     is FullPersonDto -> {
       CaseDto(
-        forename = caseEntity?.firstName,
-        middleNames = null,
-        surname = caseEntity?.lastName,
-        dateOfBirth = caseEntity?.dateOfBirth,
+        forename = caseEntity?.firstName ?: forename,
+        middleNames = if (caseEntity?.firstName == null && caseEntity?.lastName == null) middleNames else null,
+        surname = caseEntity?.lastName ?: surname,
+        dateOfBirth = caseEntity?.dateOfBirth ?: dateOfBirth,
         crn = crn,
         prisonNumber = nomsNumber,
         riskLevel = riskLevel,
