@@ -16,7 +16,10 @@ class DeeplinkResolver(
     val url = when (result.linkType) {
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.uiUrl
-      LinkType.CAS2_START_APPLICATION -> cas2UrlTemplates()?.cas2ApplicationStart
+
+      // TODO: this endpoint doesn't exist in CAS yet.
+      LinkType.CAS2_START_APPLICATION -> null
+
       LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.uiUrl
       LinkType.CAS3_START_REFERRAL -> cas3UrlTemplates()?.cas3ReferralStart
       LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.uiUrl
