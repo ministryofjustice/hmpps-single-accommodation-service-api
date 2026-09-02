@@ -33,7 +33,7 @@ class AccommodationCas3EventHandler(
       else -> {
         caseRefreshRequestService?.requestLiveRefresh(case.id)
         log.info(
-          "APPROVED_PREMISES event processed successfully [inboxEventId={}, crn={}]",
+          "ACCOMMODATION_CAS3 event processed successfully [inboxEventId={}, crn={}]",
           inboxEvent.id,
           crn,
         )
