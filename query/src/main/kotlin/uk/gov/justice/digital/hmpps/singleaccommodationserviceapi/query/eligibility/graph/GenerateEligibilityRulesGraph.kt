@@ -5,17 +5,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 fun main(args: Array<String>) {
   val result = bootAndGenerate()
-
-  println("Result: ${result.size}")
-  result.forEach { node ->
-    println(">>> " + node.treeName)
-    node.nodes.forEach { node2 ->
-      println("Node ${node2.id} ${node2.title} ${node2.kind} ${node2.rules.size} rules")
-    }
-  }
+  println(result.text)
 }
 
-fun bootAndGenerate(): List<RulesGraph> {
+fun bootAndGenerate(): GenerationResult {
   val context = AnnotationConfigApplicationContext()
   context.register(EligibilityRulesGraphConfiguration::class.java)
   context.refresh()

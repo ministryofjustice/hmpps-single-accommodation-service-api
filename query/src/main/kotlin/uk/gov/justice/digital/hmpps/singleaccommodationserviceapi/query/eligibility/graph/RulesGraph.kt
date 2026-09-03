@@ -24,3 +24,7 @@ data class RulesGraph(
   val treeName: String,
   val nodes: List<GraphNode>,
 )
+
+data class GenerationResult(
+  val text: String,
+)
