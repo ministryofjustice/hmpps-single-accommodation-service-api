@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphNodeKind
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
@@ -99,6 +100,27 @@ class RulesGraphTest {
           "FAIL",
         ),
       )
+    }
+  }
+
+  @Nested
+  inner class RendererTests {
+    @Test
+    fun `render includes mermaid nodes, edges and rule catalogue`() {
+      val root = builder
+        .ruleSet("ExampleEligibility", StubRuleSet(listOf(StubRule("FAIL if example"))))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible())
+        .build()
+      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+
+      assertThat(markdown).contains("## EXAMPLE")
+      assertThat(markdown).contains("flowchart TD")
+      assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
+      assertThat(markdown).contains("ExampleEligibility -->|FAIL| notEligible")
+      assertThat(markdown).contains("`StubRule`: FAIL if example")
+      assertThat(markdown).contains("| StubRule | FAIL if example | ExampleEligibility | EXAMPLE |")
     }
   }
 
