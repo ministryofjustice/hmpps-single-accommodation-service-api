@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messagi
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.test.context.event.annotation.BeforeTestMethod
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.HmppsDomainEvent
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
@@ -19,10 +19,21 @@ import java.util.UUID
 
 @Profile("test")
 @Service
-class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
+class TestSqsDomainEventListener(private val jsonMapper: JsonMapper) {
 
   private val log = LoggerFactory.getLogger(this::class.java)
   private val messages = Collections.synchronizedList(mutableListOf<HmppsDomainEvent>())
+
+  fun assertQueueIsEmpty() {
+    log.info("Asserting queue is empty: {}", messages.size)
+    await
+      .logging()
+      .atMost(ofSeconds(5))
+      .pollInterval(ofMillis(100))
+      .untilAsserted {
+        assertThat(messages).isEmpty()
+      }
+  }
 
   fun assertMessageReceived(
     typeName: String,
@@ -70,8 +81,8 @@ class TestSqsDomainEventListener(private val objectMapper: ObjectMapper) {
     pollTimeoutSeconds = "1",
   )
   fun processMessage(rawMessage: String?) {
-    val (message) = objectMapper.readValue(rawMessage, Message::class.java)
-    val event = objectMapper.readValue(message, HmppsDomainEvent::class.java)
+    val (message) = jsonMapper.readValue(rawMessage, Message::class.java)
+    val event = jsonMapper.readValue(message, HmppsDomainEvent::class.java)
 
     log.info("Received Domain Event: $event")
 

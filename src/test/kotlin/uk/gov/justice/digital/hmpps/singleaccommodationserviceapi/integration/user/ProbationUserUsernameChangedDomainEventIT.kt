@@ -3,13 +3,11 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
@@ -17,16 +15,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.Database
 @TestPropertySource(properties = ["scheduling.enabled=true"])
 class ProbationUserUsernameChangedDomainEventIT : IntegrationTestBase() {
 
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
-
   private val eventType = IncomingHmppsDomainEventType.PROBATION_USER_USERNAME_CHANGED
   private val fromUsername = "from.user"
   private val toUsername = "to.user"
 
   @BeforeEach
   fun setup() {
-    databaseUtils.truncate(*DatabaseUtils.SasTables.entries.toTypedArray())
+    testSqsDomainEventListener.assertQueueIsEmpty()
+    databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER, DatabaseUtils.SasTables.INBOX_EVENT)
     createSasSystemUser()
   }
 
@@ -62,6 +58,30 @@ class ProbationUserUsernameChangedDomainEventIT : IntegrationTestBase() {
     val nomisUser = userRepository.findByUsernameAndAuthSource(Username(fromUsername), AuthSource.NOMIS)
     assertThat(nomisUser).isNotNull
     assertThat(nomisUser!!.username).isEqualTo(fromUsername.uppercase())
+  }
+
+  @Test
+  fun `should fail incoming probation username changed domain event when target DELIUS username already exists`() {
+    val existingTargetUsername = "already.exists"
+
+    userRepository.save(buildUserEntity(username = fromUsername.uppercase(), authSource = AuthSource.DELIUS))
+    userRepository.save(buildUserEntity(username = existingTargetUsername.uppercase(), authSource = AuthSource.DELIUS))
+
+    testInboxEventHelper.publish(
+      messageType = eventType,
+      crn = null,
+      detailUrl = null,
+      additionalInformation = mapOf(
+        "fromUsername" to fromUsername,
+        "toUsername" to existingTargetUsername,
+      ),
+    )
+
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.FAILED, 1)
+
+    val originalUser = userRepository.findByUsernameAndAuthSource(Username(fromUsername), AuthSource.DELIUS)
+    assertThat(originalUser).isNotNull
+    assertThat(originalUser!!.username).isEqualTo(fromUsername.uppercase())
   }
 
   private fun publishProbationUsernameChangedEvent() {

@@ -44,8 +44,8 @@ class ProbationUserEventHandler(
 
       else -> {
         val toUsername = event.getRequiredAdditionalInformation("toUsername").uppercase()
+        log.info("Updating delius username [{}] to [{}]", fromUsername, toUsername)
         existingUser.username = toUsername
-        log.info("Updating delius username [$fromUsername] to [$toUsername]")
         InboxEventHandler.Result.PROCESSED
       }
     }
