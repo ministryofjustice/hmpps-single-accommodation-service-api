@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.BulkLoadCasesService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
-class BulkLoadCasesServiceTest {
+class AdminBulkLoadCasesServiceTest {
 
   @MockK
   private lateinit var teamCaseOrchestrationService: TeamCaseOrchestrationService
@@ -43,7 +43,7 @@ class BulkLoadCasesServiceTest {
   private lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   @InjectMockKs
-  private lateinit var bulkLoadCasesService: BulkLoadCasesService
+  private lateinit var adminBulkLoadCasesService: AdminBulkLoadCasesService
 
   private val teamCode = "TEAM1"
 
@@ -54,7 +54,7 @@ class BulkLoadCasesServiceTest {
     every { caseRepository.findUnpersistedCrns(any()) } returns listOf("CRN2")
     every { caseRepository.findByCrns(listOf("CRN1", "CRN2")) } returns caseIds.map { buildCaseEntity(id = it) }
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
+    val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
     verify(exactly = 1) {
       caseApplicationService.createCases(
@@ -76,7 +76,7 @@ class BulkLoadCasesServiceTest {
   fun `does nothing when the team has no cases`() {
     stubTeamCases()
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
+    val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
     verify(exactly = 0) { caseApplicationService.createCases(any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
@@ -89,7 +89,7 @@ class BulkLoadCasesServiceTest {
     stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), CaseIdentifiers(crn = "CRN2", prisonerNumber = null))
     every { caseRepository.findUnpersistedCrns(any()) } returns listOf("CRN2")
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = true).data
+    val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = true).data
 
     verify(exactly = 0) { caseApplicationService.createCases(any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
@@ -113,7 +113,7 @@ class BulkLoadCasesServiceTest {
       ),
     )
 
-    val response = bulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false)
+    val response = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false)
 
     verify(exactly = 0) { caseApplicationService.createCases(any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
@@ -132,7 +132,7 @@ class BulkLoadCasesServiceTest {
     every { caseRepository.findByCrns(listOf("CRN1")) } throws RuntimeException("error inserting case for this team")
     every { caseRepository.findByCrns(listOf("CRN2")) } returns listOf(buildCaseEntity())
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf("BROKENTEAM", "OKTEAM"), dryRun = false).data
+    val result = adminBulkLoadCasesService.bulkLoadCases(listOf("BROKENTEAM", "OKTEAM"), dryRun = false).data
 
     assertThat(result.teamsProcessed).isEqualTo(1)
     assertThat(result.errors).containsExactly(BulkLoadCasesErrorDto(teamCode = "BROKENTEAM", message = "error inserting case for this team"))
@@ -148,7 +148,7 @@ class BulkLoadCasesServiceTest {
       firstArg<List<String>>().map { buildCaseEntity() }
     }
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf("TEAM1", "TEAM2"), dryRun = false).data
+    val result = adminBulkLoadCasesService.bulkLoadCases(listOf("TEAM1", "TEAM2"), dryRun = false).data
 
     assertThat(result.teamsProcessed).isEqualTo(2)
     assertThat(result.crnsFound).isEqualTo(3)
@@ -160,7 +160,7 @@ class BulkLoadCasesServiceTest {
     stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null))
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
 
-    val result = bulkLoadCasesService.bulkLoadCases(listOf(" team1 ", "TEAM1"), dryRun = true).data
+    val result = adminBulkLoadCasesService.bulkLoadCases(listOf(" team1 ", "TEAM1"), dryRun = true).data
 
     verify(exactly = 1) { teamCaseOrchestrationService.getCasesByTeamCode(teamCode) }
     assertThat(result.teamsProcessed).isEqualTo(1)
@@ -170,7 +170,7 @@ class BulkLoadCasesServiceTest {
   @Test
   fun `fails when no usable team codes are supplied`() {
     assertThrows<TeamCodesRequiredException> {
-      bulkLoadCasesService.bulkLoadCases(listOf("", "  "), dryRun = false)
+      adminBulkLoadCasesService.bulkLoadCases(listOf("", "  "), dryRun = false)
     }
 
     verify(exactly = 0) { teamCaseOrchestrationService.getCasesByTeamCode(any()) }
@@ -179,7 +179,7 @@ class BulkLoadCasesServiceTest {
 
   @Test
   fun `fails before doing anything when the case refresh mechanism is not enabled`() {
-    val service = BulkLoadCasesService(
+    val service = AdminBulkLoadCasesService(
       teamCaseOrchestrationService = teamCaseOrchestrationService,
       caseApplicationService = caseApplicationService,
       caseRepository = caseRepository,

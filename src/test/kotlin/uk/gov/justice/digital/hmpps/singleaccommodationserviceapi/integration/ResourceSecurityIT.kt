@@ -182,6 +182,7 @@ private val referenceDataControllerMap: Map<String, Set<String>> =
 private val adminJobControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
+    "POST /admin/bulk-refresh-cases-by-crn" to setOf("SAS_ADMIN_RW"),
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =
