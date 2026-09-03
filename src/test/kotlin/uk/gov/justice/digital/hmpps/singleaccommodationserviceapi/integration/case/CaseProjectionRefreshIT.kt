@@ -170,7 +170,7 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED -> false
 
-      IncomingHmppsDomainEventType.PROBATION_USER_USERNAME_CHANGED -> throw IllegalArgumentException("Do not test this event")
+      IncomingHmppsDomainEventType.PROBATION_USER_USERNAME_CHANGED -> throw IllegalArgumentException("This event type is not part of this test.")
     }
 
     testInboxEventHelper.publish(domainEvent)
