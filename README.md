@@ -9,18 +9,26 @@ This is the backend for the Single Accommodation Service (SAS) FE
 docker compose up -d
 ```
 
-2. Start application locally in `IntelliJ IDEA`:
+2. Decode the hmpps-single-accommodation-service-api secrets from the DEV namespace from `k8s` by running the following command:
+``` bash
+kubectl get secrets hmpps-single-accommodation-service-api --namespace hmpps-community-accommodation-dev -o json | jq ".data | map_values(@base64d)"
+```
+
+See `Infrastructure` section below for more information on running `kubectl`.
+
+3. Start application locally in `IntelliJ IDEA`:
     - Create a `Run Configuration` by running  `SingleAccommodationServiceApi`
         - This will attempt start the `SAS API` Spring boot application and fail due to missing configuration
     - Edit this new `SingleAccommodationServiceApi` run configuration
         - Set the `Active profiles` field's value to `local`
         - Set the `Environment variables` field's value to:
            ```
-           SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-ID=<secret-value>;SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-SECRET=<secret_value>
+           SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-ID=<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID>;SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-SECRET=<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET>
            ```
-    - Swap out the `<secret-value>` values above for the actual secrets held in `k8s secrets` - see `Infrastructure` section below for how to run `k8s` commands
+    - Swap out the `<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_ID>` and `<SYSTEM_CLIENT_SINGLE_ACCOMMODATION_SERVICE_SECRET>` values above for the values returned from the `kubectl` command in step 2.
     - `Run` the `SingleAccommodationServiceApi` run configuration again
         - the result should be a running application (you should see in the application logs that it is deployed on port `8080`)
+        - swagger documentation will also be available at `http://localhost:8080/swagger-ui/index.html`
 
 ## Run tests locally
 
