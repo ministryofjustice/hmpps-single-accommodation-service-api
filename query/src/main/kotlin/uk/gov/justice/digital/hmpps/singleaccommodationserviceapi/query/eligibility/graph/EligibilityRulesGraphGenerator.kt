@@ -6,10 +6,14 @@ object EligibilityRulesGraphGenerator {
 
   fun generate(
     providers: Collection<EligibilityTreeProvider>,
-  ): List<RulesGraph> {
+  ): GenerationResult {
     val graphs = providers
       .map { RulesGraphWalker.walk(it) }
       .sortedBy { it.treeName }
-    return graphs
+
+    // Possibly Validate graphs for rendering??
+
+    val text = RulesGraphTextRenderer.render(graphs)
+    return GenerationResult(text)
   }
 }
