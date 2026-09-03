@@ -41,8 +41,13 @@ class AdminBulkRefreshCasesService(
       ),
     ).also {
       log.info(
-        "Bulk refresh by crn finished: {}. Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
-        it.data,
+        "Bulk refresh by crn finished: dryRun={}, crnsRequested={}, casesFound={}, refreshesRequested={}, crnsNotFound={}. " +
+          "Refreshes (if any) are processed asynchronously by CaseRefreshWorker",
+        it.data.dryRun,
+        it.data.crnsRequested,
+        it.data.casesFound,
+        it.data.refreshesRequested,
+        it.data.crnsNotFound.size,
       )
     }
   }
