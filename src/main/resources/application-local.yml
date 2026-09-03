@@ -40,7 +40,8 @@ hmpps.sqs:
             "approved-premises.booking.made",
             "accommodation.cas3.booking.confirmed",
             "accommodation.cas3.booking.cancelled",
-            "accommodation.cas3.booking.cancelled.updated"
+            "accommodation.cas3.booking.cancelled.updated",
+            "probation-user.username.changed"
           ]
         }
 spring:
