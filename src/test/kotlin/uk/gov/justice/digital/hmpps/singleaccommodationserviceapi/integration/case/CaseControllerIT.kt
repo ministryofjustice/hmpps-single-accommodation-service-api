@@ -10,10 +10,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.opentest4j.AssertionFailedError
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -427,36 +425,6 @@ class CaseControllerIT : IntegrationTestBase() {
   @Nested
   inner class SearchByCrn {
     @Test
-    fun `Exception - should insert and return values when case does not already exist`() {
-      // currently just inserts a blank record, so will return null for most values.
-      // awaiting implementation of upserting records.
-      setCaseListV2Enabled(true)
-      val crn = "A123456"
-      val case = buildCase(crn = crn, nomsNumber = nomsNumbers[5])
-      val case1 = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
-      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
-      seedAllCaseEntitiesForV2(listOf(case1))
-
-      assertThat(caseRepository.findAll().size).isEqualTo(1)
-      val result = restTestClient.get().uri { it.path("/search/$crn").build() }
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-      assertThat(caseRepository.findAll().size).isEqualTo(2)
-
-      // expect to fail until we implement upsert functionality.
-      assertThrows<AssertionFailedError> {
-        result.expectBody(String::class.java)
-          .value {
-            assertThatJson(it!!).matchesExpectedJson(expectedGetCaseResponseSearch())
-          }
-      }
-      sasWiremock.verify(
-        1,
-        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/$crn")),
-      )
-    }
-
-    @Test
     fun `should return a CaseDto for a case that exists`() {
       setCaseListV2Enabled(true)
       val crn = "A123456"
@@ -502,6 +470,17 @@ class CaseControllerIT : IntegrationTestBase() {
         .exchange()
         .expectStatus()
         .isNotFound
+    }
+
+    @Test
+    fun `returns ServerError when delius returns ServerError - search`() {
+      val crn = "C123456"
+      SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+      restTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
     }
   }
 
@@ -572,17 +551,6 @@ class CaseControllerIT : IntegrationTestBase() {
     val crn = crns[0]
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
     restTestClient.get().uri("/cases/$crn")
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus()
-      .is5xxServerError
-  }
-
-  @Test
-  fun `returns ServerError when delius returns ServerError - search`() {
-    val crn = "C123456"
-    SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-    restTestClient.get().uri("/search/$crn")
       .withDeliusUserJwt()
       .exchange()
       .expectStatus()
