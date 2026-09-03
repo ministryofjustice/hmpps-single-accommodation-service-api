@@ -67,4 +67,4 @@ sentry:
   traces-sample-rate: 0.01
 
 case-list:
-  v2-enabled: true
+  v2-enabled: false
