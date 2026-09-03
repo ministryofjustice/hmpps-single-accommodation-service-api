@@ -45,6 +45,7 @@ class Cas1EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible()
     val placementBooked = builder.outcome(
+      "placementBooked",
       serviceResult(),
     )
 
