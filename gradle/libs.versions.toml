@@ -14,7 +14,7 @@ detekt = "2.0.0-alpha.6"
 awaitility = "4.3.0"
 javers = "7.11.7"
 postgres = "42.7.13"
-sentry = "8.51.0"
+sentry = "8.55.0"
 sar-test-support = "2.8.0"
 
 [plugins]
