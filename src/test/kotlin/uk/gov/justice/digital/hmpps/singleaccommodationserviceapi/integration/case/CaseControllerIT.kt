@@ -462,7 +462,22 @@ class CaseControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `returns NotFound error when delius returns NotFound error - search`() {
+    fun `returns NotFound error when caseService returns null`() {
+      setCaseListV2Enabled(true)
+      val crn = "A123456"
+      every { caseQueryService.getCases(any()) } returns emptyList() andThenAnswer { callOriginal() }
+      val case = buildCase(crn = crn, nomsNumber = nomsNumbers[5])
+      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
+
+      restTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus()
+        .isNotFound
+    }
+
+    @Test
+    fun `returns NotFound error when delius returns NotFound error`() {
       val crn = "B123456"
       SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
       restTestClient.get().uri("/search/$crn")
@@ -473,7 +488,7 @@ class CaseControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `returns ServerError when delius returns ServerError - search`() {
+    fun `returns ServerError when delius returns ServerError`() {
       val crn = "C123456"
       SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
       restTestClient.get().uri("/search/$crn")
