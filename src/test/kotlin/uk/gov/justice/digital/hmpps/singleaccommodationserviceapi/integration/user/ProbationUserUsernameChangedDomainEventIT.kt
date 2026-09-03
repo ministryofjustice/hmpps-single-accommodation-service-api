@@ -21,7 +21,7 @@ class ProbationUserUsernameChangedDomainEventIT : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    testSqsDomainEventListener.assertQueueIsEmpty()
+    testSqsDomainEventListener.assertNoMessages()
     databaseUtils.truncate(DatabaseUtils.SasTables.SAS_USER, DatabaseUtils.SasTables.INBOX_EVENT)
     createSasSystemUser()
   }

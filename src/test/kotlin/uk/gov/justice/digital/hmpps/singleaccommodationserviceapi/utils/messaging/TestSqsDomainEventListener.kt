@@ -24,8 +24,7 @@ class TestSqsDomainEventListener(private val jsonMapper: JsonMapper) {
   private val log = LoggerFactory.getLogger(this::class.java)
   private val messages = Collections.synchronizedList(mutableListOf<HmppsDomainEvent>())
 
-  fun assertQueueIsEmpty() {
-    log.info("Asserting queue is empty: {}", messages.size)
+  fun assertNoMessages() {
     await
       .logging()
       .atMost(ofSeconds(5))
