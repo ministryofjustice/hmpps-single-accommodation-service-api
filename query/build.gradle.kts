@@ -21,5 +21,6 @@ tasks.register<JavaExec>("generateEligibilityRulesGraph") {
   mainClass.set(
     "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GenerateEligibilityRulesGraphKt",
   )
+  args(rootProject.projectDir.resolve("docs/eligibility-rules-graph.md").absolutePath)
   dependsOn(tasks.named("classes"))
 }
