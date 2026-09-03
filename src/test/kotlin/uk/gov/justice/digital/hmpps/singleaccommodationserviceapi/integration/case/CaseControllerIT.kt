@@ -7,14 +7,12 @@ import io.mockk.spyk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.mockito.kotlin.not
 import org.opentest4j.AssertionFailedError
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -433,13 +431,14 @@ class CaseControllerIT : IntegrationTestBase() {
       // currently just inserts a blank record, so will return null for most values.
       // awaiting implementation of upserting records.
       setCaseListV2Enabled(true)
-      val case = buildCase(crn = crns[5], nomsNumber = nomsNumbers[5])
+      val crn = "A123456"
+      val case = buildCase(crn = crn, nomsNumber = nomsNumbers[5])
       val case1 = buildCase(crn = crns[0], nomsNumber = nomsNumbers[0])
       SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
       seedAllCaseEntitiesForV2(listOf(case1))
 
       assertThat(caseRepository.findAll().size).isEqualTo(1)
-      val result = restTestClient.get().uri { it.path("/search/${crns[5]}").build() }
+      val result = restTestClient.get().uri { it.path("/search/$crn").build() }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
       assertThat(caseRepository.findAll().size).isEqualTo(2)
@@ -453,24 +452,20 @@ class CaseControllerIT : IntegrationTestBase() {
       }
       sasWiremock.verify(
         1,
-        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/${crns[5]}")),
+        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/$crn")),
       )
-    }
-
-    @Disabled
-    @Test
-    fun `TODO should update and return values for a case that already exists`() {
     }
 
     @Test
     fun `should return a CaseDto for a case that exists`() {
       setCaseListV2Enabled(true)
-      val case = buildCase(crn = crns[5], nomsNumber = nomsNumbers[5])
+      val crn = "A123456"
+      val case = buildCase(crn = crn, nomsNumber = nomsNumbers[5])
       SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
-      seedAllCaseEntitiesForV2(listOf(case))
+      seedAllCaseEntitiesForV2(listOf(case), "A1")
 
       assertThat(caseRepository.findAll().size).isEqualTo(1)
-      val result = restTestClient.get().uri { it.path("/search/${crns[5]}").build() }
+      val result = restTestClient.get().uri { it.path("/search/$crn").build() }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
       result.expectBody(String::class.java)
@@ -482,24 +477,25 @@ class CaseControllerIT : IntegrationTestBase() {
 
       sasWiremock.verify(
         1,
-        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/${crns[5]}")),
+        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/$crn")),
       )
     }
 
-    @Test
-    fun `returns NotFound error when delius returns NotFound error`() {
-      val crn = crns[0]
-      SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
-      restTestClient.get().uri("/cases/$crn")
+    @ParameterizedTest
+    @ValueSource(strings = ["123456", "a123456", "AB12345", "A12345", "A1234567", "A12B456"])
+    fun `returns BadRequest when crn format is invalid`(crn: String) {
+      restTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
         .exchange()
-        .expectStatus()
-        .isNotFound
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("$.userMessage").isEqualTo("Validation failure: searchCaseByCrn.crn: CRN must be in format A123456")
+        .jsonPath("$.developerMessage").isEqualTo("searchCaseByCrn.crn: CRN must be in format A123456")
     }
 
     @Test
     fun `returns NotFound error when delius returns NotFound error - search`() {
-      val crn = crns[0]
+      val crn = "B123456"
       SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
       restTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()
@@ -507,6 +503,17 @@ class CaseControllerIT : IntegrationTestBase() {
         .expectStatus()
         .isNotFound
     }
+  }
+
+  @Test
+  fun `returns NotFound error when delius returns NotFound error`() {
+    val crn = crns[0]
+    SasAndDeliusStubs.stubGetCaseNotFoundFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
+    restTestClient.get().uri("/cases/$crn")
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus()
+      .isNotFound
   }
 
   private fun caseListFilters() = listOf(
@@ -573,7 +580,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @Test
   fun `returns ServerError when delius returns ServerError - search`() {
-    val crn = crns[0]
+    val crn = "C123456"
     SasAndDeliusStubs.stubGetCaseFailure(USERNAME_OF_LOGGED_IN_DELIUS_USER, crn)
     restTestClient.get().uri("/search/$crn")
       .withDeliusUserJwt()
@@ -688,10 +695,10 @@ class CaseControllerIT : IntegrationTestBase() {
   // Under caseListV2Enabled, forename/surname/dateOfBirth are rendered from the CaseEntity in
   // the DB rather than the Delius/SAS stub, so pre-seed every crn with matching data to avoid
   // depending on the async CaseRefreshWorker to backfill newly created cases.
-  private fun seedAllCaseEntitiesForV2(cases: List<Case>) {
+  private fun seedAllCaseEntitiesForV2(cases: List<Case>, tierScore: String? = null) {
     val entities = cases.map { case ->
       buildCaseEntity(
-        tierScore = tierScoresByCrn[case.crn],
+        tierScore = tierScore ?: tierScoresByCrn[case.crn],
         firstName = case.name.forename,
         lastName = case.name.surname,
         dateOfBirth = case.dateOfBirth,

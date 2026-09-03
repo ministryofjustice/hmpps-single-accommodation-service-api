@@ -36,7 +36,7 @@ fun expectedGetCaseResponseSearch(): String = """
     "middleNames": null,
     "surname": "Last",
     "dateOfBirth": "2000-12-03",
-    "crn": "FAKECRN6",
+    "crn": "A123456",
     "prisonNumber": "PRI6",
     "photoUrl": null,
     "tierScore": "A1",
