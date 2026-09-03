@@ -82,6 +82,51 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
   )
   fun insertBulkRequests(caseIds: Array<UUID>, priority: CaseRefreshPriority, requestedAt: Instant)
 
+  @Modifying
+  @Query(
+    nativeQuery = true,
+    value = """
+      INSERT INTO sas_case_refresh_request (
+        case_id,
+        generation,
+        status,
+        priority,
+        requested_at,
+        attempt_count,
+        next_attempt_at
+      )
+      SELECT case_id, 1, 'PENDING', :#{#priority.name()}, :requestedAt, 0, :requestedAt
+      FROM unnest(cast(:caseIds as uuid[])) AS case_id
+      ON CONFLICT (case_id) DO UPDATE
+      SET generation = sas_case_refresh_request.generation + 1,
+          status = CASE
+              WHEN sas_case_refresh_request.status = 'FAILED' THEN 'PENDING'
+              ELSE sas_case_refresh_request.status
+          END,
+          priority = CASE
+              WHEN sas_case_refresh_request.priority = 'LIVE' THEN sas_case_refresh_request.priority
+              ELSE EXCLUDED.priority
+          END,
+          requested_at = LEAST(sas_case_refresh_request.requested_at, EXCLUDED.requested_at),
+          attempt_count = 0,
+          next_attempt_at = EXCLUDED.next_attempt_at,
+          failed_at = NULL,
+          processing_generation = CASE
+              WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.processing_generation
+              ELSE NULL
+          END,
+          claimed_at = CASE
+              WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.claimed_at
+              ELSE NULL
+          END,
+          claim_id = CASE
+              WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.claim_id
+              ELSE NULL
+          END
+    """,
+  )
+  fun upsertBulkRequests(caseIds: Array<UUID>, priority: CaseRefreshPriority, requestedAt: Instant)
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
     """

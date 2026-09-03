@@ -39,13 +39,15 @@ class CaseRefreshRequestService(
   }
 
   @Transactional
-  fun requestBulkRefresh(caseIds: List<UUID>) {
+  fun requestBulkRefresh(caseIds: List<UUID>, resetAttempts: Boolean = false) {
     if (caseIds.isEmpty()) return
-    caseRefreshRequestRepository.insertBulkRequests(
-      caseIds = caseIds.toTypedArray(),
-      priority = CaseRefreshPriority.BULK,
-      requestedAt = Instant.now(clock),
-    )
+    val distinctCaseIds = caseIds.distinct().toTypedArray()
+    val requestedAt = Instant.now(clock)
+    if (resetAttempts) {
+      caseRefreshRequestRepository.upsertBulkRequests(distinctCaseIds, CaseRefreshPriority.BULK, requestedAt)
+    } else {
+      caseRefreshRequestRepository.insertBulkRequests(distinctCaseIds, CaseRefreshPriority.BULK, requestedAt)
+    }
   }
 
   @Transactional
