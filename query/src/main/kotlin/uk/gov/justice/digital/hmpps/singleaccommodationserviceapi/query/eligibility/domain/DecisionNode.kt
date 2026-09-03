@@ -11,7 +11,7 @@ sealed interface DecisionNode {
 }
 
 /** Terminal node that returns a ServiceResult based on the current context.**/
-class OutcomeNode(private val outcome: (EvaluationContext) -> ServiceResult) : DecisionNode {
+class OutcomeNode(val name: String = "unnamed", private val outcome: (EvaluationContext) -> ServiceResult) : DecisionNode {
   override fun eval(context: EvaluationContext): ServiceResult = outcome(context)
 }
 
