@@ -13,7 +13,7 @@ object EligibilityRulesGraphGenerator {
 
     // Possibly Validate graphs for rendering??
 
-    val text = RulesGraphTextRenderer.render(graphs)
+    val text = RulesGraphMarkdownRenderer.render(graphs)
     return GenerationResult(text)
   }
 }
