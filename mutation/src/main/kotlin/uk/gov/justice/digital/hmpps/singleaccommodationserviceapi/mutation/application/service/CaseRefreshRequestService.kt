@@ -31,21 +31,29 @@ class CaseRefreshRequestService(
   @Transactional
   fun requestLiveRefresh(caseId: UUID) {
     log.info("Requesting refresh for case [id=$caseId]")
-    caseRefreshRequestRepository.upsertRequest(
-      caseId = caseId,
+    caseRefreshRequestRepository.upsertRequests(
+      caseIds = arrayOf(caseId),
       priority = CaseRefreshPriority.LIVE,
       requestedAt = Instant.now(clock),
+      resetExistingAttempts = false,
     )
   }
 
   @Transactional
-  fun requestBulkRefresh(caseIds: List<UUID>) {
+  fun requestBulkRefresh(caseIds: List<UUID>, resetExistingAttempts: Boolean = false) {
     if (caseIds.isEmpty()) return
-    caseRefreshRequestRepository.insertBulkRequests(
-      caseIds = caseIds.toTypedArray(),
-      priority = CaseRefreshPriority.BULK,
-      requestedAt = Instant.now(clock),
-    )
+    val distinctCaseIds = caseIds.distinct().toTypedArray()
+    val requestedAt = Instant.now(clock)
+    if (resetExistingAttempts) {
+      caseRefreshRequestRepository.upsertRequests(
+        caseIds = distinctCaseIds,
+        priority = CaseRefreshPriority.BULK,
+        requestedAt = requestedAt,
+        resetExistingAttempts = true,
+      )
+    } else {
+      caseRefreshRequestRepository.insertBulkRequests(distinctCaseIds, CaseRefreshPriority.BULK, requestedAt)
+    }
   }
 
   @Transactional

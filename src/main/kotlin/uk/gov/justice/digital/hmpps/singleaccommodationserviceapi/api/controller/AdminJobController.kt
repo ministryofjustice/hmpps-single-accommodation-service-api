@@ -8,16 +8,26 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.BulkLoadCasesService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesByCrnCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkRefreshCasesService
 
 @RestController
 class AdminJobController(
-  private val bulkLoadCasesService: BulkLoadCasesService,
+  private val adminBulkLoadCasesService: AdminBulkLoadCasesService,
+  private val adminBulkRefreshCasesService: AdminBulkRefreshCasesService,
 ) {
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
   @PostMapping("/admin/bulk-load-cases")
   fun bulkLoadCases(@RequestBody request: BulkLoadCasesCommand): ResponseEntity<ApiResponseDto<BulkLoadCasesResultDto>> = ResponseEntity.ok(
-    bulkLoadCasesService.bulkLoadCases(teamCodes = request.teamCodes, dryRun = request.dryRun),
+    adminBulkLoadCasesService.bulkLoadCases(teamCodes = request.teamCodes, dryRun = request.dryRun),
+  )
+
+  @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
+  @PostMapping("/admin/bulk-refresh-cases-by-crn")
+  fun bulkRefreshCasesByCrn(@RequestBody request: BulkRefreshCasesByCrnCommand): ResponseEntity<ApiResponseDto<BulkRefreshCasesResultDto>> = ResponseEntity.ok(
+    adminBulkRefreshCasesService.bulkRefreshCasesByCrn(crns = request.crns, dryRun = request.dryRun),
   )
 }
