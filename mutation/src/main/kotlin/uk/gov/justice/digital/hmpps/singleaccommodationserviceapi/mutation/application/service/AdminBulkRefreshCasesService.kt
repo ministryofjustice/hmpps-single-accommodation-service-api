@@ -28,7 +28,7 @@ class AdminBulkRefreshCasesService(
     val caseIds = casesByCrn.values.map { it.id }.distinct()
 
     if (!dryRun) {
-      refreshRequestService.requestBulkRefresh(caseIds, resetAttempts = true)
+      refreshRequestService.requestBulkRefresh(caseIds, resetExistingAttempts = true)
     }
 
     return ApiResponseDto(

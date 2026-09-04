@@ -39,7 +39,7 @@ class AdminBulkRefreshCasesServiceTest {
 
     val result = adminBulkRefreshCasesService.bulkRefreshCasesByCrn(listOf("CRN1", "CRN2"), dryRun = false).data
 
-    verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(listOf(caseId, otherCaseId), resetAttempts = true) }
+    verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(listOf(caseId, otherCaseId), resetExistingAttempts = true) }
     assertThat(result.crnsRequested).isEqualTo(2)
     assertThat(result.casesFound).isEqualTo(2)
     assertThat(result.refreshesRequested).isEqualTo(2)
@@ -52,7 +52,7 @@ class AdminBulkRefreshCasesServiceTest {
 
     val result = adminBulkRefreshCasesService.bulkRefreshCasesByCrn(listOf("CRN1", "CRN2"), dryRun = false).data
 
-    verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(listOf(caseId), resetAttempts = true) }
+    verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(listOf(caseId), resetExistingAttempts = true) }
     assertThat(result.casesFound).isEqualTo(1)
     assertThat(result.refreshesRequested).isEqualTo(1)
     assertThat(result.crnsNotFound).containsExactly("CRN2")
