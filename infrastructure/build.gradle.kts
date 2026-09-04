@@ -23,4 +23,5 @@ dependencies {
   testImplementation(testFixtures(project(":common")))
   testFixturesImplementation(libs.hmpps.starter)
   testFixturesImplementation(libs.jackson.module.kotlin)
+  testFixturesImplementation(project(":common"))
 }

@@ -112,8 +112,8 @@ class CaseQueryService(
   fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
+    hasMandatoryCaseData(orchestrationResult)
     val case = orchestrationResult.data.case?.let { toPersonDto(it) }
-
     return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 

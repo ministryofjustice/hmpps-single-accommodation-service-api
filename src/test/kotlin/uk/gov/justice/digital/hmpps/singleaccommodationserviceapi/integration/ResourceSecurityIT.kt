@@ -164,6 +164,7 @@ private val caseControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /case-list" to defaultRoles,
     "GET /cases/{crn}" to defaultRoles,
+    "GET /search/{crn}" to defaultRoles,
   )
 
 private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
