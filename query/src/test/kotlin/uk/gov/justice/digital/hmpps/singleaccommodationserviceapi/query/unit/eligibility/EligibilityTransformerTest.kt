@@ -27,6 +27,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PremisesSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1RequestForPlacementSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1StaffDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingCancellationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingDto
@@ -43,6 +45,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
@@ -55,6 +58,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -79,6 +83,7 @@ class EligibilityTransformerTest {
     val today = LocalDate.now()
     val now = OffsetDateTime.now()
     val id = UUID.randomUUID()
+    val cas2Application = buildCas2Application()
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(
         status = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
@@ -107,7 +112,7 @@ class EligibilityTransformerTest {
           staffCode = "5678",
         ),
         submittedAt = today.plusDays(4),
-        withdrawalReason = "relatedApplicationWithdrawn",
+        withdrawalReason = "RelatedApplicationWithdrawn",
         withdrawalDate = today.plusDays(5),
         expectedArrivalDate = today.plusDays(6),
         durationDays = 12,
@@ -138,7 +143,7 @@ class EligibilityTransformerTest {
               staffCode = "9999",
             ),
             submittedAt = today.plusDays(11),
-            withdrawalReason = "withdrawnByPP",
+            withdrawalReason = "WithdrawnByPP",
             withdrawalDate = today.plusDays(12),
             expectedArrivalDate = today.plusDays(13),
             durationDays = 14,
@@ -189,6 +194,12 @@ class EligibilityTransformerTest {
         postcode = "SW1A 1AX",
       ),
       uiUrl = "aUrl",
+    )
+    val cas2ApplicationDto = buildCas2ApplicationDto(
+      application = buildCas2ApplicationSummaryDto(
+        id = cas2Application.application.id,
+      ),
+      uiUrl = cas2Application.uiUrl,
     )
     val cas1ApplicationDto = buildCas1ApplicationDto(
       application = buildCas1ApplicationSummaryDto(
@@ -306,6 +317,7 @@ class EligibilityTransformerTest {
     val dutyToReferDto = buildDutyToReferDto()
     val data = buildDomainData(
       cas1Application = cas1Application,
+      cas2Application = cas2Application,
       cas3Application = cas3Application,
       dutyToRefer = dutyToReferDto,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -316,10 +328,16 @@ class EligibilityTransformerTest {
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
     val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION)
     val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME)
     val cas1 = buildServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
       action = cas1Action,
+      link = EligibilityKeys.VIEW_APPLICATION,
+    )
+    val cas2 = buildServiceResult(
+      serviceStatus = ServiceStatus.INFO_REQUESTED,
+      action = cas2Action,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas3 = buildServiceResult(
@@ -338,6 +356,10 @@ class EligibilityTransformerTest {
     val cas1ServiceResult = buildCas1ServiceResult(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
+    )
+    val cas2ServiceResult = buildCas2ServiceResult(
+      serviceResult = cas2,
+      cas2Application = cas2ApplicationDto,
     )
     val cas3ServiceResult = buildCas3ServiceResult(
       serviceResult = cas3,
@@ -360,6 +382,7 @@ class EligibilityTransformerTest {
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
       cas1 = cas1ServiceResult,
+      cas2 = cas2ServiceResult,
       cas3 = cas3ServiceResult,
       dtr = dtrServiceResult,
       crs = crsServiceResult,
@@ -370,6 +393,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = crn,
       cas1 = cas1,
+      cas2 = cas2,
       cas3 = cas3,
       dtr = dtr,
       crs = crs,
@@ -383,6 +407,7 @@ class EligibilityTransformerTest {
   @Test
   fun `sorts case actions by soonest start date first, with undated actions last`() {
     val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1))
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, startDate = LocalDate.of(2025, 4, 1))
     val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8))
     val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3))
     val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null)
@@ -391,6 +416,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(action = cas1Action),
+      cas2 = buildServiceResult(action = cas2Action),
       cas3 = buildServiceResult(action = cas3Action),
       dtr = buildServiceResult(action = dtrAction),
       crs = buildServiceResult(action = crsAction),
@@ -415,6 +441,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = dtr,
       crs = buildServiceResult(),
@@ -436,6 +463,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = dtr,
       crs = buildServiceResult(),
@@ -461,6 +489,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = buildServiceResult(),
       crs = crs,
@@ -481,6 +510,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = buildServiceResult(),
       crs = crs,
@@ -526,6 +556,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      cas2 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
       cas3 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
       dtr = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
       crs = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),

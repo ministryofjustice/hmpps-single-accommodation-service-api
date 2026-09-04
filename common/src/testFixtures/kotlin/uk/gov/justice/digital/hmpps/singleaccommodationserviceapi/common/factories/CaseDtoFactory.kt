@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
@@ -20,6 +21,7 @@ fun buildCaseDto(
   assignedTo: AssignedToDto? = buildAssignedToDto(),
   userAccess: UserAccess = UserAccess.FULL,
   limitedAccess: Boolean = false,
+  accommodationSummaries: AccommodationSummariesDto? = null,
 ) = CaseDto(
   forename = forename,
   middleNames = middleNames,
@@ -34,6 +36,7 @@ fun buildCaseDto(
   assignedTo = assignedTo,
   userAccess = userAccess,
   limitedAccess = limitedAccess,
+  accommodationSummaries = accommodationSummaries,
 )
 
 fun buildAssignedToDto(

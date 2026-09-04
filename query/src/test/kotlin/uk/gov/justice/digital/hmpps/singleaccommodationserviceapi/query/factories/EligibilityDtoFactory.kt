@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
@@ -20,6 +22,7 @@ import java.util.UUID
 fun buildEligibilityDto(
   crn: String,
   cas1: Cas1ServiceResult = buildCas1ServiceResult(),
+  cas2: Cas2ServiceResult = buildCas2ServiceResult(),
   cas3: Cas3ServiceResult = buildCas3ServiceResult(),
   caseActions: List<CaseAction> = emptyList(),
   dtr: DtrServiceResult = buildDtrServiceResult(),
@@ -28,6 +31,7 @@ fun buildEligibilityDto(
 ) = EligibilityDto(
   crn,
   cas1,
+  cas2,
   cas3,
   dtr,
   crs,
@@ -57,6 +61,14 @@ fun buildCas1ServiceResult(
 ) = Cas1ServiceResult(
   serviceResult = serviceResult,
   cas1Application = cas1Application,
+)
+
+fun buildCas2ServiceResult(
+  serviceResult: ServiceResult = buildServiceResult(),
+  cas2Application: Cas2ApplicationDto? = null,
+) = Cas2ServiceResult(
+  serviceResult = serviceResult,
+  cas2Application = cas2Application,
 )
 
 fun buildCas3ServiceResult(

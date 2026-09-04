@@ -87,10 +87,31 @@ hmpps:
         arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
     queues:
       sas-domain-events-queue:
-        queueName: sas_domain_events_queue
-        dlqName: sas_domain_events_dlq
+        queueName: ${random.uuid}
+        dlqName: ${random.uuid}
         subscribeTopicId: hmpps-domain-event-topic
-        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted"]}'
+        subscribeFilter: >
+          {
+            "eventType": [
+              "tier.calculation.changed",
+              "person.community.manager.allocated",
+              "core-person-record.probation.address.created",
+              "core-person-record.probation.address.updated",
+              "core-person-record.probation.address.deleted",
+              "core-person-record.probation.record.updated",
+              "prisoner-offender-search.prisoner.released",
+              "prisoner-offender-search.prisoner.received",
+              "prisoner-offender-search.prisoner.updated",
+              "approved-premises.booking.cancelled",
+              "approved-premises.booking.changed",
+              "approved-premises.booking.not-arrived",
+              "approved-premises.booking.made",
+              "accommodation.cas3.booking.confirmed",
+              "accommodation.cas3.booking.cancelled",
+              "accommodation.cas3.booking.cancelled.updated",
+              "probation-user.username.changed"
+            ]
+          }
       test-domain-events-queue:
         dlqName: ${random.uuid}
         queueName: ${random.uuid}
@@ -113,6 +134,9 @@ test-data-setup:
 case-list:
   page-size: 1
   onboarded-teams: 12345
+
+bulk-load:
+  page-size: 1
 logging:
   level:
     root: WARN

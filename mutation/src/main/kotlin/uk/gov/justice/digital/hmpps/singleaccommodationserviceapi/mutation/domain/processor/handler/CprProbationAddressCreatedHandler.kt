@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getRequiredAdditionalInformation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.isProposedAccommodationStatus
 import java.util.UUID
 
@@ -31,12 +31,11 @@ class CprProbationAddressCreatedHandler(
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String {
     val cprProbationAddressCreatedEvent = inboxEventHelper.toDomainEvent((inboxEvent))
-    val cprAddressId = cprProbationAddressCreatedEvent.getAdditionalInformation("cprAddressId")
+    val cprAddressId = cprProbationAddressCreatedEvent.getRequiredAdditionalInformation("cprAddressId")
     return cprAddressId
   }
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing {} event [inboxEventId={}]", eventType, inboxEvent.id)
     val crn = inboxEventHelper.findCrn(inboxEvent)
     val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
     // this triggers a refresh regardless of whether processing the message fails later.

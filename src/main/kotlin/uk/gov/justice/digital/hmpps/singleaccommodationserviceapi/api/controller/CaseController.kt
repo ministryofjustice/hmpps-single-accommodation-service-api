@@ -2,8 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controlle
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import jakarta.validation.constraints.Pattern
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
@@ -15,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 
+@Validated
 @RestController
 class CaseController(
   private val caseQueryService: CaseQueryService,
@@ -52,4 +55,19 @@ class CaseController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}")
   fun getCase(@PathVariable crn: String): ResponseEntity<ApiResponseDto<CaseDto>> = ResponseEntity.ok(caseQueryService.getCase(crn))
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/search/{crn}")
+  fun searchCaseByCrn(
+    @Pattern(regexp = "^[A-Z][0-9]{6}$", message = "CRN must be in format A123456")
+    @PathVariable crn: String,
+  ): ResponseEntity<ApiResponseDto<CaseDto?>> {
+    val caseResponse = caseQueryService.getCaseFromDelius(crn)
+
+    val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
+    // TODO: Change this to upsertCases after MVP
+    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber))
+    val caseDto = caseQueryService.getCases(listOfNotNull(caseResponse.data)).first()
+    return ResponseEntity.ok(ApiResponseDto(data = caseDto, upstreamFailures = caseResponse.upstreamFailures))
+  }
 }

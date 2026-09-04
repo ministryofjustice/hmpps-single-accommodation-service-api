@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
@@ -42,6 +44,8 @@ class EligibilityOrchestrationService(
       put(GET_CORE_PERSON_RECORD_BY_CRN) { corePersonRecordCachingService.getCorePersonRecordByCrn(crn) }
       put(GET_TIER) { tierCachingService.getTier(crn) }
       put(GET_CAS_1_APPLICATION) { approvedPremisesCachingService.getSuitableCas1Application(crn) }
+      // TODO: SAS-999 re-enable this call when the endpoint exists.
+      // put(GET_CAS_2_APPLICATION) { approvedPremisesCachingService.getSuitableCas2Application(crn) }
       put(GET_CAS_3_APPLICATION) { approvedPremisesCachingService.getSuitableCas3Application(crn) }
       put(GET_CRS) { commissionedRehabilitativeServicesCachingService.getCrs(crn) }
       put(GET_CAS_1_CURRENT_PREMISES) { approvedPremisesCachingService.getCas1CurrentPremises(crn) }
@@ -55,6 +59,7 @@ class EligibilityOrchestrationService(
     val cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
     val tier = results.getResult<Tier>(GET_TIER)
     val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
+    val cas2Application = results.getResult<Cas2Application>(GET_CAS_2_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
@@ -67,6 +72,7 @@ class EligibilityOrchestrationService(
         cpr = cpr,
         tier = tier,
         cas1Application = cas1Application,
+        cas2Application = cas2Application,
         cas3Application = cas3Application,
         commissionedRehabilitativeServices = crs,
         prisoner = prisoner,

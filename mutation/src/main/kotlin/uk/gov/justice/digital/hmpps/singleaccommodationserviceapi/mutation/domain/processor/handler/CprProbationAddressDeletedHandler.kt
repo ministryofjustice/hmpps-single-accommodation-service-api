@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getRequiredAdditionalInformation
 import java.util.UUID
 
 @Component
@@ -26,11 +26,9 @@ class CprProbationAddressDeletedHandler(
 
   override fun supportedEventTypes() = setOf(eventType)
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.toDomainEvent((inboxEvent)).getAdditionalInformation("cprAddressId")
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.toDomainEvent((inboxEvent)).getRequiredAdditionalInformation("cprAddressId")
 
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing {} event [inboxEventId={}]", eventType, inboxEvent.id)
-
     val crn = inboxEventHelper.findCrn(inboxEvent)
     caseRepository.findByCrn(crn)?.let {
       // this triggers a refresh regardless of whether we successfully process this message.

@@ -61,13 +61,14 @@ interface CaseRepository : JpaRepository<CaseEntity, UUID> {
 
   @Query(
     """
-SELECT identifier
-FROM unnest((:crns)::text[]) AS identifier
-WHERE identifier NOT IN (
-  SELECT identifier 
-  FROM sas_case_identifier 
-  WHERE identifier_type = 'CRN'
-);
+SELECT i.identifier
+FROM unnest((:crns)::text[]) AS i(identifier)
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM sas_case_identifier sci
+  WHERE sci.identifier = i.identifier
+    AND sci.identifier_type = 'CRN'
+)
   """,
     nativeQuery = true,
   )

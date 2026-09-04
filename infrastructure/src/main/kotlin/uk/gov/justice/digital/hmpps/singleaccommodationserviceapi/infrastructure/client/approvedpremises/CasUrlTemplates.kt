@@ -4,6 +4,10 @@ data class Cas1UrlTemplates(
   val cas1ApplicationStart: String,
 )
 
+data class Cas2UrlTemplates(
+  val cas2ApplicationStart: String,
+)
+
 data class Cas3UrlTemplates(
   val cas3ReferralStart: String,
 )

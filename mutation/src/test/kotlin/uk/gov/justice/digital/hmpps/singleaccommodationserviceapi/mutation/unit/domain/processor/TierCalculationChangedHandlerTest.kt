@@ -55,22 +55,19 @@ class TierCalculationChangedHandlerTest {
 
   @Test
   fun `should not refresh case and ignore message when case is not known`() {
-    val caseId = UUID.randomUUID()
-
     every { caseRepository.findByCrn(crn) } returns null
     every { inboxEventHelper.findCrn(any()) } returns crn
 
     assertThat(tierCalculationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
   @Test
-  fun `should not refresh case and should process message when inbox event handler is null`() {
-    val caseId = UUID.randomUUID()
+  fun `should not refresh case and should process message when case refresh request service is null`() {
     tierCalculationChangedHandler =
       TierCalculationChangedHandler(caseRepository, null, inboxEventHelper)
 
     assertThat(tierCalculationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 }

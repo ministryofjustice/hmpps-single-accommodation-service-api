@@ -38,7 +38,6 @@ class CaseRefreshRequestService(
     )
   }
 
-  // entry point for a bulk refresh (case list pre-load) & not triggered yet
   @Transactional
   fun requestBulkRefresh(caseIds: List<UUID>) {
     if (caseIds.isEmpty()) return
@@ -62,7 +61,7 @@ class CaseRefreshRequestService(
     ).map { request ->
       val claimId = UUID.randomUUID()
       lifecycleService.claim(request, claimId, claimedAt)
-      Claim(request.caseId, request.generation, claimId)
+      Claim(request.caseId, request.generation, claimId, request.priority)
     }
   }
 
@@ -104,6 +103,7 @@ class CaseRefreshRequestService(
     val caseId: UUID,
     val generation: Long,
     val claimId: UUID,
+    val priority: CaseRefreshPriority,
   )
 
   enum class FailureDisposition {

@@ -16,8 +16,15 @@ class InboxEventHelper(private val jsonMapper: JsonMapper) {
     log.debug("Found [crn={}] in [inboxEventId={}] ", crn, inboxEvent.id)
     return crn
   }
+
+  fun findPrisonNumber(inboxEvent: InboxEventHandler.InboxEvent): String {
+    val prisonNumber =
+      requireNotNull(toDomainEvent(inboxEvent).personReference.findPrisonNumber()) { "Prison Number not found in [inboxEventId=${inboxEvent.id}]" }
+    log.debug("Found [prisonNumber={}] in [inboxEventId={}] ", prisonNumber, inboxEvent.id)
+    return prisonNumber
+  }
 }
 
-fun SnsDomainEvent.getAdditionalInformation(field: String): String = requireNotNull(additionalInformation?.get(field)?.toString()) {
+fun SnsDomainEvent.getRequiredAdditionalInformation(field: String): String = requireNotNull(additionalInformation?.get(field)?.toString()) {
   "Additional information missing for [field=$field]"
 }

@@ -24,7 +24,10 @@ import java.nio.charset.StandardCharsets
 class RetryConfigTest {
 
   private val retryListener = RetryConfig().retryListener()
-  private val retryContext = mockk<RetryContext> { every { retryCount } returns 1 }
+  private val retryContext = mockk<RetryContext> {
+    every { retryCount } returns 1
+    every { getAttribute(RetryContext.NAME) } returns CALL_NAME
+  }
   private val callback = mockk<RetryCallback<Any, Throwable?>>()
 
   @ParameterizedTest(name = "logs retry warning for {0}")
@@ -36,7 +39,7 @@ class RetryConfigTest {
       assertThat(appender.list).hasSize(1)
       assertThat(appender.list.single().level).isEqualTo(Level.WARN)
       assertThat(appender.list.single().formattedMessage)
-        .contains("Retryable error occurred. Retry attempt 1")
+        .contains("Retryable error occurred for $CALL_NAME. Retry attempt 1")
         .contains(throwable.javaClass.simpleName)
     }
   }
@@ -74,6 +77,8 @@ class RetryConfigTest {
   }
 
   companion object {
+    private const val CALL_NAME = "SasAndDeliusClient.getCasesByTeamCode"
+
     @JvmField
     val retryableExceptions = listOf(
       ResourceAccessException("socket timeout"),

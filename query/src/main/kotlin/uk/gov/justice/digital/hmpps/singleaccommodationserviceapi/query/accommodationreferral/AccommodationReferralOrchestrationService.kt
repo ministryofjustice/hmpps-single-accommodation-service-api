@@ -18,8 +18,8 @@ class AccommodationReferralOrchestrationService(
 ) {
   fun fetchAllReferralsAggregated(crn: String): OrchestrationResultDto<AccommodationReferralOrchestrationDto> {
     val calls = mapOf(
-      GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1Referral(crn) },
-      GET_CAS3_REFERRAL to { approvedPremisesCachingService.getCas3Referral(crn) },
+      GET_CAS1_REFERRAL to { approvedPremisesCachingService.getCas1ReferralHistory(crn) },
+      GET_CAS3_REFERRAL to { approvedPremisesCachingService.getCas3ReferralHistory(crn) },
     )
 
     val results = aggregatorService.orchestrateAsyncCalls(
