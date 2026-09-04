@@ -61,6 +61,9 @@ shedlock:
   inbox-event-dispatcher:
     lock-at-most-for: 10s
     lock-at-least-for: 1ms
+  inbox-retention-cleaner:
+    lock-at-most-for: 10s
+    lock-at-least-for: 1ms
 
 event:
   details-url:
