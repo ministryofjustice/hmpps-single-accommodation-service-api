@@ -61,7 +61,7 @@ class ApprovedPremisesCachingService(
   fun getSuitableCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) }
 
   @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, sync = true)
-  fun getSuitableCas2Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas2ApplicationInternal(crn) }
+  fun getSuitableCas2Application(crn: String) = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, sync = true)
   fun getSuitableCas3Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) }
