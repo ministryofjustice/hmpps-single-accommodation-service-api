@@ -67,8 +67,7 @@ class CaseController(
     val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     // TODO: Change this to upsertCases after MVP
     caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber))
-    val caseDto =
-      caseQueryService.getCases(listOfNotNull(caseResponse.data)).firstOrNull() ?: return ResponseEntity.notFound().build()
+    val caseDto = caseQueryService.getCases(listOfNotNull(caseResponse.data)).first()
     return ResponseEntity.ok(ApiResponseDto(data = caseDto, upstreamFailures = caseResponse.upstreamFailures))
   }
 }
