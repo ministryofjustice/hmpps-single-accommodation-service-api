@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,7 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pr
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ProposedAccommodationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SingleAccommodationServiceApiExceptionHandler.Companion.handleUpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.ProposedAccommodationApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
@@ -29,12 +30,13 @@ import java.util.UUID
 @RestController
 class ProposedAccommodationController(
   private val caseQueryService: CaseQueryService,
-  private val caseApplicationService: CaseApplicationService,
+  private val caseCreationService: CaseCreationService,
   private val accommodationQueryService: AccommodationQueryService,
   private val proposedAccommodationApplicationService: ProposedAccommodationApplicationService,
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
   private val accommodationSyncService: AccommodationSyncService,
+  @param:Value($$"${case-list.v2-enabled:false}") val caseListV2Enabled: Boolean,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -43,7 +45,7 @@ class ProposedAccommodationController(
     val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
       val result = caseQueryService.getCaseFromDelius(crn)
       handleUpstreamFailure(result.upstreamFailures)
-      caseApplicationService.upsertCase(crn, result.data!!.nomsNumber, upsertData = false)
+      caseCreationService.upsertCase(crn, result.data!!.nomsNumber, upsertData = caseListV2Enabled)
     }
     if (!persistedCase.hasSyncedCprProposedAccommodation) {
       val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)

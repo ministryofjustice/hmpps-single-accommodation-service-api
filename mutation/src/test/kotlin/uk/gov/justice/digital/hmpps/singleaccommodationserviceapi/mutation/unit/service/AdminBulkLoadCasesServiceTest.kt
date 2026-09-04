@@ -58,10 +58,13 @@ class AdminBulkLoadCasesServiceTest {
 
     verify(exactly = 1) {
       caseApplicationService.createCases(
-        listOf(
-          CrnToPrisonNumber(crn = "CRN1", prisonNumber = "PN1"),
-          CrnToPrisonNumber(crn = "CRN2", prisonNumber = null),
+        eq(
+          listOf(
+            CrnToPrisonNumber(crn = "CRN1", prisonNumber = "PN1"),
+            CrnToPrisonNumber(crn = "CRN2", prisonNumber = null),
+          ),
         ),
+        eq(true),
       )
     }
     verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
@@ -78,7 +81,7 @@ class AdminBulkLoadCasesServiceTest {
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
-    verify(exactly = 0) { caseApplicationService.createCases(any()) }
+    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     assertThat(result.teamsProcessed).isEqualTo(1)
     assertThat(result.crnsFound).isZero()
@@ -91,7 +94,7 @@ class AdminBulkLoadCasesServiceTest {
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = true).data
 
-    verify(exactly = 0) { caseApplicationService.createCases(any()) }
+    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     verify(exactly = 0) { caseRepository.findByCrns(any()) }
     assertThat(result.dryRun).isTrue()
@@ -115,7 +118,7 @@ class AdminBulkLoadCasesServiceTest {
 
     val response = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false)
 
-    verify(exactly = 0) { caseApplicationService.createCases(any()) }
+    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     assertThat(response.data.teamsProcessed).isZero()
     assertThat(response.data.errors).isEmpty()
@@ -174,7 +177,7 @@ class AdminBulkLoadCasesServiceTest {
     }
 
     verify(exactly = 0) { teamCaseOrchestrationService.getCasesByTeamCode(any()) }
-    verify(exactly = 0) { caseApplicationService.createCases(any()) }
+    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
   }
 
   @Test
@@ -192,7 +195,7 @@ class AdminBulkLoadCasesServiceTest {
 
     assertThat(exception.message).contains("not enabled")
     verify(exactly = 0) { teamCaseOrchestrationService.getCasesByTeamCode(any()) }
-    verify(exactly = 0) { caseApplicationService.createCases(any()) }
+    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
   }
 
   private fun stubTeamCases(vararg cases: CaseIdentifiers, teamCode: String = this.teamCode) {

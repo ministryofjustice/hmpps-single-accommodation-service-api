@@ -6,13 +6,13 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 
 @Component
 class CaseAllocationHandler(
-  private val caseApplicationService: CaseApplicationService,
+  private val caseCreationService: CaseCreationService,
   private val inboxEventHelper: InboxEventHelper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
   @field:Value($$"${case-list.onboarded-teams}") private val onboardedTeamsCodes: List<String>,
@@ -34,7 +34,7 @@ class CaseAllocationHandler(
     val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
     val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
     if (shouldProcess) {
-      caseApplicationService.upsertCase(case.crn, case.nomsId)
+      caseCreationService.upsertCase(case.crn, case.nomsId)
     }
     log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
 
