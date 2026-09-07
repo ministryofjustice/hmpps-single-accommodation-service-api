@@ -28,7 +28,7 @@ object PersonTransformer {
       riskLevel = case.getRiskLevel(),
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
-      limitedAccess = case.limitedAccess,
+      limitedAccess = case.limitedAccess ?: false,
     )
   }
 
