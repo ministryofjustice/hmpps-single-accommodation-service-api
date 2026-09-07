@@ -18,12 +18,12 @@ object RulesGraphWalker {
     // Node Edges
     val edges = mutableListOf<GraphEdge>()
     // record the nodes we are currently visiting
-    val visiting = mutableSetOf<DecisionNode>()
+    val visitingStack = mutableSetOf<DecisionNode>()
 
     fun visit(node: DecisionNode) {
-      if (node in visiting || node in nodes) return
+      if (node in visitingStack || node in nodes) return
 
-      visiting += node
+      visitingStack += node
       when (node) {
         is OutcomeNode -> {
           nodes[node] = GraphNode(
@@ -39,7 +39,8 @@ object RulesGraphWalker {
             kind = GraphNodeKind.RULE_SET,
             rules = node.ruleSet.getRules().map { rule ->
               RuleInfo(
-                className = rule::class.simpleName ?: "Rule",
+                className = rule::class.simpleName
+                  ?: error("Rules should not be defined as anonymous classes"),
                 description = rule.description,
               )
             },
@@ -49,17 +50,11 @@ object RulesGraphWalker {
           nodes[node] = graphNode
           visit(node.onPass)
           visit(node.onFail)
-          val onPassId = nodes[node.onPass]?.id
-          val onFailId = nodes[node.onFail]?.id
-          if (onPassId != null) {
-            edges += GraphEdge(graphNode.id, onPassId, "PASS")
-          }
-          if (onFailId != null) {
-            edges += GraphEdge(graphNode.id, onFailId, "FAIL")
-          }
+          edges += GraphEdge(graphNode.id, nodes.getValue(node.onPass).id, "PASS")
+          edges += GraphEdge(graphNode.id, nodes.getValue(node.onFail).id, "FAIL")
         }
       }
-      visiting -= node
+      visitingStack -= node
     }
 
     visit(root)
@@ -74,13 +69,11 @@ object RulesGraphWalker {
 
 private fun uniqueId(base: String, node: DecisionNode, used: MutableMap<String, DecisionNode>): String {
   val existing = used[base]
-  if (existing == null || existing === node) {
-    used[base] = node
-    return base
+  require(existing == null || existing === node) {
+    "Duplicate graph node id '$base'. Give RuleSet and outcomes unique names."
   }
-  val suffixed = "${base}_${System.identityHashCode(node)}"
-  used[suffixed] = node
-  return suffixed
+  used[base] = node
+  return base
 }
 
 internal fun slug(raw: String): String {

@@ -1,4 +1,5 @@
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -119,6 +120,43 @@ class RulesGraphTest {
       assertThat(markdown).contains("ExampleEligibility -->|FAIL| notEligible")
       assertThat(markdown).contains("`StubRule`: FAIL if example")
       assertThat(markdown).contains("| StubRule | FAIL if example | ExampleEligibility | EXAMPLE |")
+    }
+
+    @Test
+    fun `anonymous rules fail the walk`() {
+      val anonymous = object : Rule {
+        override val description = "anon"
+        override fun evaluate(data: DomainData) = RuleResult(description, RuleStatus.PASS)
+      }
+      val root = builder
+        .ruleSet("Named", StubRuleSet(listOf(anonymous)))
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible())
+        .build()
+
+      assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }
+        .isInstanceOf(IllegalStateException::class.java)
+        .hasMessageContaining("anonymous")
+    }
+
+    @Test
+    fun `duplicate node names fail the walk`() {
+      val confirmed = builder.confirmed()
+      val notEligible = builder.notEligible()
+      val first = builder
+        .ruleSet("Same", StubRuleSet(listOf(StubRule("first"))))
+        .onPass(confirmed)
+        .onFail(notEligible)
+        .build()
+      val root = builder
+        .ruleSet("Same", StubRuleSet(listOf(StubRule("second"))))
+        .onPass(first)
+        .onFail(notEligible)
+        .build()
+
+      assertThatThrownBy { RulesGraphWalker.walk("BROKEN", root) }
+        .isInstanceOf(IllegalArgumentException::class.java)
+        .hasMessageContaining("Duplicate graph node id")
     }
   }
 
