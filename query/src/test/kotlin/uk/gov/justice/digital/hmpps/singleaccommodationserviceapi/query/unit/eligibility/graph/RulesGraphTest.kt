@@ -39,7 +39,6 @@ class RulesGraphTest {
       val graph = RulesGraphWalker.walk("EXAMPLE", root)
 
       assertThat(graph.treeName).isEqualTo("EXAMPLE")
-      assertThat(graph.cycles).isEmpty()
       assertThat(graph.nodes.map { it.title }).containsExactlyInAnyOrder(
         "ExampleEligibility",
         "confirmed",
@@ -73,7 +72,6 @@ class RulesGraphTest {
       assertThat(graph.nodes.filter { it.title == "confirmed" }).hasSize(1)
       val confirmedId = graph.nodes.single { it.title == "confirmed" }.id
       assertThat(graph.edges.filter { it.to == confirmedId && it.label == "PASS" }).hasSize(2)
-      assertThat(graph.cycles).isEmpty()
     }
 
     @Test

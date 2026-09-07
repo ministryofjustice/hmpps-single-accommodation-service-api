@@ -23,7 +23,6 @@ fun bootAndGenerate(): GenerationResult {
   context.refresh()
   try {
     val providers = context.getBeansOfType(EligibilityTreeProvider::class.java).values
-    // val ruleSets = context.getBeansOfType(RuleSet::class.java).values
     return EligibilityRulesGraphGenerator.generate(providers)
   } finally {
     context.close()

@@ -31,7 +31,6 @@ data class RulesGraph(
   val treeName: String,
   val nodes: List<GraphNode>,
   val edges: List<GraphEdge>,
-  val cycles: List<String> = emptyList(),
 )
 
 data class GenerationResult(

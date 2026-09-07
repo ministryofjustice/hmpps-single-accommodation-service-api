@@ -10,9 +10,6 @@ object EligibilityRulesGraphGenerator {
     val graphs = providers
       .map { RulesGraphWalker.walk(it) }
       .sortedBy { it.treeName }
-
-    // Possibly Validate graphs for rendering??
-
     val text = RulesGraphMarkdownRenderer.render(graphs)
     return GenerationResult(text)
   }

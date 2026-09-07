@@ -17,17 +17,11 @@ object RulesGraphWalker {
     val usedIds = mutableMapOf<String, DecisionNode>()
     // Node Edges
     val edges = mutableListOf<GraphEdge>()
-    // handles infinite cycles
-    val cycles = mutableListOf<String>()
     // record the nodes we are currently visiting
     val visiting = mutableSetOf<DecisionNode>()
 
     fun visit(node: DecisionNode) {
-      if (node in visiting) {
-        cycles += "cycle involving ${nodeLabel(node)}"
-        return
-      }
-      if (node in nodes) return
+      if (node in visiting || node in nodes) return
 
       visiting += node
       when (node) {
@@ -69,7 +63,7 @@ object RulesGraphWalker {
     }
 
     visit(root)
-    return RulesGraph(treeName, nodes.values.toList(), edges, cycles)
+    return RulesGraph(treeName, nodes.values.toList(), edges)
   }
 
   fun treeName(provider: EligibilityTreeProvider): String = provider::class.simpleName
