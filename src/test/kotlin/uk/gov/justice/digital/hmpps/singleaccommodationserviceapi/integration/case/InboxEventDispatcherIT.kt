@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,6 +56,12 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     dispatcherConfig.maxConcurrentEvents = 4
     dispatcherConfig.maxEventsPerBatch = 10
     createSasSystemUser()
+  }
+
+  @AfterEach
+  suspend fun teardown() {
+    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
+      ?.let { request -> hmppsQueueService.purgeQueue(request) }
   }
 
   @Test
