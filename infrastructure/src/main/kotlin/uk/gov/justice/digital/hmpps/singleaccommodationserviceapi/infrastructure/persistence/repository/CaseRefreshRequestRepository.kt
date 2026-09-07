@@ -14,13 +14,18 @@ import java.util.UUID
 
 interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity, UUID> {
 
-  // Atomic upsert used by live triggers.
+  // Atomic upsert used by live triggers and manual refresh.
   // Invariants:
   // - Always bump generation when a trigger arrives.
-  // - Promote to LIVE priority.
+  // - Only ever raise priority so a bulk request cannot demote live work.
   // - Reopen FAILED work to PENDING.
   // - Preserve active claim metadata only while PROCESSING.
-  // - Preserve the most restrictive timing window by keeping earliest requested_at and latest next_attempt_at.
+  // - Keep the earliest requested_at so queue ordering is unchanged
+  // resetExistingAttempts distinguishes the two callers:
+  // - false (live triggers): keep the retry budget and any backoff already in place, so an upstream
+  //   we are backing off from is not hammered if a new event arrives
+  // - true (manual refresh): clear the retry budget and pull the backoff forward to now, which is the
+  //   only way to revive a permanently FAILED request
   @Modifying
   @Query(
     nativeQuery = true,
@@ -34,16 +39,27 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
         attempt_count,
         next_attempt_at
       )
-      VALUES (:caseId, 1, 'PENDING', :#{#priority.name()}, :requestedAt, 0, :requestedAt)
+      SELECT case_id, 1, 'PENDING', :#{#priority.name()}, :requestedAt, 0, :requestedAt
+      FROM unnest(cast(:caseIds as uuid[])) AS case_id
       ON CONFLICT (case_id) DO UPDATE
       SET generation = sas_case_refresh_request.generation + 1,
           status = CASE
               WHEN sas_case_refresh_request.status = 'FAILED' THEN 'PENDING'
               ELSE sas_case_refresh_request.status
           END,
-          priority = :#{#priority.name()},
+          priority = CASE
+              WHEN sas_case_refresh_request.priority = 'LIVE' THEN 'LIVE'
+              ELSE EXCLUDED.priority
+          END,
           requested_at = LEAST(sas_case_refresh_request.requested_at, EXCLUDED.requested_at),
-          next_attempt_at = GREATEST(COALESCE(sas_case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at), EXCLUDED.next_attempt_at),
+          attempt_count = CASE
+              WHEN cast(:resetExistingAttempts as boolean) THEN 0
+              ELSE sas_case_refresh_request.attempt_count
+          END,
+          next_attempt_at = CASE
+              WHEN cast(:resetExistingAttempts as boolean) THEN EXCLUDED.next_attempt_at
+              ELSE GREATEST(COALESCE(sas_case_refresh_request.next_attempt_at, EXCLUDED.next_attempt_at), EXCLUDED.next_attempt_at)
+          END,
           failed_at = NULL,
           processing_generation = CASE
               WHEN sas_case_refresh_request.status = 'PROCESSING' THEN sas_case_refresh_request.processing_generation
@@ -59,7 +75,12 @@ interface CaseRefreshRequestRepository : JpaRepository<CaseRefreshRequestEntity,
           END
     """,
   )
-  fun upsertRequest(caseId: UUID, priority: CaseRefreshPriority, requestedAt: Instant)
+  fun upsertRequests(
+    caseIds: Array<UUID>,
+    priority: CaseRefreshPriority,
+    requestedAt: Instant,
+    resetExistingAttempts: Boolean,
+  )
 
   // bulk refresh for a case that does not have a live request already
   @Modifying
