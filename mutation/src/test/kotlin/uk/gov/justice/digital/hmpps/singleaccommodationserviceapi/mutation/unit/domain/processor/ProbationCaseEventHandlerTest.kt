@@ -94,4 +94,3 @@ class ProbationCaseEventHandlerTest {
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 }
-
