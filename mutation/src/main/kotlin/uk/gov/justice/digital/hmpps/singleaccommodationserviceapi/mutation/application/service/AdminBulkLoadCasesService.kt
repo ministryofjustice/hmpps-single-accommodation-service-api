@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import java.time.Duration
 
 @Service
-class BulkLoadCasesService(
+class AdminBulkLoadCasesService(
   private val teamCaseOrchestrationService: TeamCaseOrchestrationService,
   private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
