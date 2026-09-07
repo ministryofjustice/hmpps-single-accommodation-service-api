@@ -354,18 +354,18 @@ object EligibilityTransformer {
   private fun toWithdrawalReason(
     withdrawalReason: String?,
   ) = when (withdrawalReason) {
-    "duplicatePlacementRequest" -> WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
-    "alternativeProvisionIdentified" -> WithdrawPlacementRequestReason.ALTERNATIVE_PROVISION_IDENTIFIED
-    "changeInCircumstances" -> WithdrawPlacementRequestReason.CHANGE_IN_CIRCUMSTANCES
-    "changeInReleaseDecision" -> WithdrawPlacementRequestReason.CHANGE_IN_RELEASE_DECISION
-    "noCapacityDueToLostBed" -> WithdrawPlacementRequestReason.NO_CAPACITY_DUE_TO_LOST_BED
-    "noCapacityDueToPlacementPrioritisation" -> WithdrawPlacementRequestReason.NO_CAPACITY_DUE_TO_PLACEMENT_PRIORITISATION
-    "noCapacity" -> WithdrawPlacementRequestReason.NO_CAPACITY
-    "errorInPlacementRequest" -> WithdrawPlacementRequestReason.ERROR_IN_PLACEMENT_REQUEST
-    "withdrawnByPP" -> WithdrawPlacementRequestReason.WITHDRAWN_BY_PP
-    "relatedApplicationWithdrawn" -> WithdrawPlacementRequestReason.RELATED_APPLICATION_WITHDRAWN
-    "relatedPlacementRequestWithdrawn" -> WithdrawPlacementRequestReason.RELATED_PLACEMENT_REQUEST_WITHDRAWN
-    "relatedPlacementApplicationWithdrawn" -> WithdrawPlacementRequestReason.RELATED_PLACEMENT_APPLICATION_WITHDRAWN
+    "DuplicatePlacementRequest" -> WithdrawPlacementRequestReason.DUPLICATE_PLACEMENT_REQUEST
+    "AlternativeProvisionIdentified" -> WithdrawPlacementRequestReason.ALTERNATIVE_PROVISION_IDENTIFIED
+    "ChangeInCircumstances" -> WithdrawPlacementRequestReason.CHANGE_IN_CIRCUMSTANCES
+    "ChangeInReleaseDecision" -> WithdrawPlacementRequestReason.CHANGE_IN_RELEASE_DECISION
+    "NoCapacityDueToLostBed" -> WithdrawPlacementRequestReason.NO_CAPACITY_DUE_TO_LOST_BED
+    "NoCapacityDueToPlacementPrioritisation" -> WithdrawPlacementRequestReason.NO_CAPACITY_DUE_TO_PLACEMENT_PRIORITISATION
+    "NoCapacity" -> WithdrawPlacementRequestReason.NO_CAPACITY
+    "ErrorInPlacementRequest" -> WithdrawPlacementRequestReason.ERROR_IN_PLACEMENT_REQUEST
+    "WithdrawnByPP" -> WithdrawPlacementRequestReason.WITHDRAWN_BY_PP
+    "RelatedApplicationWithdrawn" -> WithdrawPlacementRequestReason.RELATED_APPLICATION_WITHDRAWN
+    "RelatedPlacementRequestWithdrawn" -> WithdrawPlacementRequestReason.RELATED_PLACEMENT_REQUEST_WITHDRAWN
+    "RelatedPlacementApplicationWithdrawn" -> WithdrawPlacementRequestReason.RELATED_PLACEMENT_APPLICATION_WITHDRAWN
     null -> null
     else -> {
       log.error("Unexpected withdrawal reason: $withdrawalReason")

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.getOrNullWhenNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface ApprovedPremisesClient {
@@ -27,7 +28,7 @@ interface ApprovedPremisesClient {
   fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
 
   @GetExchange(value = "/cas3/external/referrals/{crn}")
-  fun getCas3Referral(@PathVariable crn: String): List<Cas3ReferralHistory>
+  fun getCas3ReferralHistory(@PathVariable crn: String): List<Cas3ReferralHistory>
 
   @GetExchange(value = "/cas1/external/url-templates")
   fun getCas1UrlTemplatesInternal(): Cas1UrlTemplates
@@ -44,26 +45,26 @@ interface ApprovedPremisesClient {
 class ApprovedPremisesCachingService(
   private val approvedPremisesClient: ApprovedPremisesClient,
 ) {
-  @Cacheable(ApiCallKeys.GET_CAS1_REFERRAL, key = "#crn")
-  fun getCas1Referral(crn: String) = approvedPremisesClient.getCas1Referral(crn)
+  @Cacheable(ApiCallKeys.GET_CAS1_REFERRAL)
+  fun getCas1ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas1Referral(crn) }
 
-  @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL, key = "#crn")
-  fun getCas3Referral(crn: String) = approvedPremisesClient.getCas3Referral(crn)
+  @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL)
+  fun getCas3ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3ReferralHistory(crn) }
 
-  @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_PREMISES, key = "#crn", sync = true)
-  fun getCas1CurrentPremises(crn: String) = approvedPremisesClient.getCas1CurrentPremises(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_PREMISES, sync = true)
+  fun getCas1CurrentPremises(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas1CurrentPremises(crn) }
 
-  @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_PREMISES, key = "#crn", sync = true)
-  fun getCas3CurrentPremises(crn: String) = approvedPremisesClient.getCas3CurrentPremises(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_PREMISES, sync = true)
+  fun getCas3CurrentPremises(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3CurrentPremises(crn) }
 
-  @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, key = "#crn", sync = true)
-  fun getSuitableCas1Application(crn: String) = approvedPremisesClient.getSuitableCas1ApplicationInternal(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, sync = true)
+  fun getSuitableCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) }
 
-  @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, key = "#crn", sync = true)
+  @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, sync = true)
   fun getSuitableCas2Application(crn: String) = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)
 
-  @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, key = "#crn", sync = true)
-  fun getSuitableCas3Application(crn: String) = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
+  @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, sync = true)
+  fun getSuitableCas3Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) }
 
   @Cacheable(ApiCallKeys.GET_CAS_1_URL_TEMPLATES, sync = true)
   fun getCas1UrlTemplates() = approvedPremisesClient.getCas1UrlTemplatesInternal()

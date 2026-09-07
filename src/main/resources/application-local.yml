@@ -37,7 +37,11 @@ hmpps.sqs:
             "approved-premises.booking.cancelled",
             "approved-premises.booking.changed",
             "approved-premises.booking.not-arrived",
-            "approved-premises.booking.made"
+            "approved-premises.booking.made",
+            "accommodation.cas3.booking.confirmed",
+            "accommodation.cas3.booking.cancelled",
+            "accommodation.cas3.booking.cancelled.updated",
+            "probation-user.username.changed"
           ]
         }
 spring:
@@ -63,4 +67,4 @@ sentry:
   traces-sample-rate: 0.01
 
 case-list:
-  v2-enabled: true
+  v2-enabled: false
