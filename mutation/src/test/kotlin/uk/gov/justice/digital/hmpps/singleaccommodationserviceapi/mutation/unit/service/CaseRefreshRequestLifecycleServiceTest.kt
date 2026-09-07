@@ -231,6 +231,7 @@ class CaseRefreshRequestLifecycleServiceTest {
     caseId = request.caseId,
     generation = request.generation,
     claimId = claimId,
+    priority = request.priority,
   )
 
   private fun refreshRequest() = CaseRefreshRequestEntity(

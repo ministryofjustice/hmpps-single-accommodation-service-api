@@ -33,7 +33,7 @@ class AggregatorService(
   private val log = LoggerFactory.getLogger(AggregatorService::class.java)
 
   fun orchestrateAsyncCalls(
-    standardCallsNoIteration: Map<String, () -> Any> = emptyMap(),
+    standardCallsNoIteration: Map<String, () -> Any?> = emptyMap(),
     callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
     if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
@@ -43,7 +43,7 @@ class AggregatorService(
 
     log.debug("Starting async calls: {}", LocalDateTime.now())
 
-    val standardCallsSuspend: Map<String, suspend () -> Any> =
+    val standardCallsSuspend: Map<String, suspend () -> Any?> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
 
     val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
@@ -81,7 +81,7 @@ class AggregatorService(
   private fun <T, R> ((T) -> R).asSuspend(): suspend (T) -> R = { t: T -> this(t) }
 
   private suspend fun orchestrateAsyncCalls(
-    functionCalls: Map<String, suspend () -> Any>,
+    functionCalls: Map<String, suspend () -> Any?>,
     semaphore: Semaphore,
   ): Map<String, Any> = coroutineScope {
     functionCalls.mapValues { (key, call) ->

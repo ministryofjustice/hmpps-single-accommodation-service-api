@@ -32,7 +32,8 @@ class RetryConfig {
       if (retryableExceptions.none { it.isAssignableFrom(throwable.javaClass) }) return
 
       log.warn(
-        "Retryable error occurred. Retry attempt {} due to {}: {}",
+        "Retryable error occurred for {}. Retry attempt {} due to {}: {}",
+        context.getAttribute(RetryContext.NAME) ?: "unknown call",
         context.retryCount,
         throwable.javaClass.simpleName,
         throwable.message,
