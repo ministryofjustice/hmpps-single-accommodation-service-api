@@ -14,6 +14,7 @@ data class SnsDomainEvent(
 
 data class PersonReference(val identifiers: List<PersonIdentifier> = listOf()) {
   fun findCrn() = get("CRN")
+  fun findPrisonNumber() = get("NOMS")
   operator fun get(key: String) = identifiers.find { it.type == key }?.value
 }
 

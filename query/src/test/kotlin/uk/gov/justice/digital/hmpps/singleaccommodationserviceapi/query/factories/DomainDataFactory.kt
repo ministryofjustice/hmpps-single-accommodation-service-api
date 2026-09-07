@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -17,6 +18,7 @@ fun buildDomainData(
   currentAccommodationTypeEntity: AccommodationTypeEntity? = null,
   nextAccommodations: List<AccommodationSummaryDto> = emptyList(),
   cas1Application: Cas1Application? = null,
+  cas2Application: Cas2Application? = null,
   cas3Application: Cas3Application? = null,
   dutyToRefer: DutyToReferDto? = null,
   commissionedRehabilitativeServices: CommissionedRehabilitativeServices? = null,
@@ -28,6 +30,7 @@ fun buildDomainData(
   currentAccommodationTypeEntity = currentAccommodationTypeEntity,
   nextAccommodations = nextAccommodations,
   cas1Application = cas1Application,
+  cas2Application = cas2Application,
   cas3Application = cas3Application,
   dutyToRefer = dutyToRefer,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,

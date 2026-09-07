@@ -10,14 +10,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.getResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CASES_BY_TEAM
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.TeamCaseList
 
 @Service
 class TeamCaseOrchestrationService(
   private val aggregatorService: AggregatorService,
-  private val sasAndDeliusCachingService: SasAndDeliusCachingService,
-  @param:Value($$"${case-list.page-size:100}") private val pageSize: Long,
+  private val sasAndDeliusClient: SasAndDeliusClient,
+  @param:Value($$"${bulk-load.page-size:10000}") private val pageSize: Long,
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -28,7 +28,7 @@ class TeamCaseOrchestrationService(
 
     val initialCall = mapOf(
       getCallKey(teamCode, initialPage) to {
-        sasAndDeliusCachingService.getCasesByTeamCode(teamCode = teamCode, page = initialPage, size = pageSize)
+        sasAndDeliusClient.getCasesByTeamCode(teamCode = teamCode, page = initialPage, size = pageSize)
       },
     )
 
@@ -63,7 +63,7 @@ class TeamCaseOrchestrationService(
     val resultSet = aggregatorService.orchestrateAsyncCalls(
       standardCallsNoIteration = remainingPages.associate { nextPage ->
         getCallKey(teamCode, nextPage) to {
-          sasAndDeliusCachingService.getCasesByTeamCode(teamCode = teamCode, page = nextPage, size = pageSize)
+          sasAndDeliusClient.getCasesByTeamCode(teamCode = teamCode, page = nextPage, size = pageSize)
         }
       },
     ).standardCallsNoIterationResults!!

@@ -1,0 +1,10 @@
+testCaseId,description,referenceDate,currentAccommodationEndDate,cas2ApplicationStatus,expectedCas2Status,expectedCas2Action,expectedCas2Link,expectedCas2Url,expectedFailureReasons
+1,,01/01/2025,01/01/2026,,NOT_STARTED,START_CAS2_APPLICATION,Start application,/applications/start,
+2,,01/01/2025,02/01/2026,,UPCOMING,START_CAS2_APPLICATION,,,
+3,,01/01/2025,,,NOT_STARTED,START_CAS2_APPLICATION,Start application,/applications/start,
+4,,01/01/2025,01/01/2026,STARTED,STARTED,CONTINUE_CAS2_APPLICATION,Continue application,/applications/{applicationId},
+5,,01/01/2025,02/01/2026,STARTED,UPCOMING,START_CAS2_APPLICATION,,,
+6,,01/01/2025,,STARTED,STARTED,CONTINUE_CAS2_APPLICATION,Continue application,/applications/{applicationId},
+7,,01/01/2025,01/01/2026,COMPLETED,COMPLETED,,View application,/applications/{applicationId},
+8,,01/01/2025,02/01/2026,COMPLETED,UPCOMING,START_CAS2_APPLICATION,,,
+9,,01/01/2025,,COMPLETED,COMPLETED,,View application,/applications/{applicationId},

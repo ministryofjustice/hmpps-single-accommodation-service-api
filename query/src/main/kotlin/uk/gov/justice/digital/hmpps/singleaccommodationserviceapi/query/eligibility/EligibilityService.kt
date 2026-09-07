@@ -4,12 +4,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -19,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.Cas1EligibilityTreeProvider
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.DtrEligibilityTreeProvider
@@ -34,28 +33,13 @@ class EligibilityService(
   private val eligibilityOrchestrationService: EligibilityOrchestrationService,
   private val deeplinkResolver: DeeplinkResolver,
   private val cas1Tree: Cas1EligibilityTreeProvider,
+  private val cas2Tree: Cas2EligibilityTreeProvider,
   private val cas3Tree: Cas3EligibilityTreeProvider,
   private val dtrTree: DtrEligibilityTreeProvider,
   private val crsTree: CrsEligibilityTreeProvider,
   private val paTree: PaEligibilityTreeProvider,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
-
-  fun getEligibility(
-    crn: String,
-    gender: String,
-    caseEntity: CaseEntity?,
-    dutyToRefer: DutyToReferDto?,
-  ): EligibilityDto {
-    log.debug("Calculating eligibility for CRN: {} from the sas_case table", crn)
-    val data = DomainData(
-      crn = crn,
-      sexCode = SexCode.findByGender(gender),
-      caseEntity,
-      dutyToRefer,
-    )
-    return getEligibility(data)
-  }
 
   fun getEligibility(crn: String): ApiResponseDto<EligibilityDto> {
     log.debug("Calculating eligibility for CRN: {} using external APIs", crn)
@@ -90,6 +74,7 @@ class EligibilityService(
     )
 
     val cas1 = evaluate("CAS1", data, cas1Tree)
+    val cas2 = evaluate("CAS2", data, cas2Tree)
     val cas3 = evaluate("CAS3", data, cas3Tree)
     val crs = evaluate("CRS", data, crsTree)
     val dtr = evaluate("DTR", data, dtrTree)
@@ -98,6 +83,7 @@ class EligibilityService(
     return EligibilityTransformer.toEligibilityDto(
       crn = data.crn,
       cas1 = cas1,
+      cas2 = cas2,
       cas3 = cas3,
       dtr = dtr,
       crs = crs,
@@ -154,6 +140,7 @@ class EligibilityService(
       cpr = eligibilityOrchestrationDto.cpr,
       tier = eligibilityOrchestrationDto.tier,
       cas1Application = eligibilityOrchestrationDto.cas1Application,
+      cas2Application = eligibilityOrchestrationDto.cas2Application,
       cas3Application = eligibilityOrchestrationDto.cas3Application,
       currentAccommodation = currentAccommodation,
       nextAccommodations = nextAccommodations,

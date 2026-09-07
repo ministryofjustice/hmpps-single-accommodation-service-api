@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -37,6 +39,14 @@ fun buildCas1Application(
   requestForPlacement = requestForPlacement,
   placement = placement,
   placementHistory = placementHistory,
+)
+
+fun buildCas2Application(
+  application: Cas2ApplicationSummary = buildCas2ApplicationSummary(),
+  uiUrl: String = "https://cas2-ui/applications/${application.id}",
+) = Cas2Application(
+  uiUrl = uiUrl,
+  application = application,
 )
 
 fun buildCas1PlacementPair(
@@ -123,6 +133,14 @@ fun buildCas1ApplicationSummary(
   createdBy = createdBy,
   submittedAt = submittedAt,
   expiresAt = expiresAt,
+)
+
+fun buildCas2ApplicationSummary(
+  id: UUID = UUID.randomUUID(),
+  status: String = "STARTED",
+) = Cas2ApplicationSummary(
+  id = id,
+  status = status,
 )
 
 fun buildCas1Staff(

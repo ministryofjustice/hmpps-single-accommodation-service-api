@@ -29,10 +29,11 @@ class AggregatorService(
   private val upstreamFailureReporters: List<UpstreamFailureReporter> = emptyList(),
 ) {
   private val maxConcurrency: Int = 100
+  private val semaphore = Semaphore(maxConcurrency)
   private val log = LoggerFactory.getLogger(AggregatorService::class.java)
 
   fun orchestrateAsyncCalls(
-    standardCallsNoIteration: Map<String, () -> Any> = emptyMap(),
+    standardCallsNoIteration: Map<String, () -> Any?> = emptyMap(),
     callsPerIdentifier: CallsPerIdentifier? = null,
   ): AggregatorResult = runBlocking {
     if (standardCallsNoIteration.isEmpty() && callsPerIdentifier == null) {
@@ -42,13 +43,11 @@ class AggregatorService(
 
     log.debug("Starting async calls: {}", LocalDateTime.now())
 
-    val standardCallsSuspend: Map<String, suspend () -> Any> =
+    val standardCallsSuspend: Map<String, suspend () -> Any?> =
       standardCallsNoIteration.mapValues { (_, f) -> suspend { f() } }
 
     val perIdentifierCallsSuspend: Map<String, suspend (String) -> Any>? =
       callsPerIdentifier?.calls?.mapValues { (_, f) -> f.asSuspend() }
-
-    val semaphore = Semaphore(maxConcurrency)
 
     val standardDeferred = async(Dispatchers.IO) {
       if (standardCallsSuspend.isNotEmpty()) {
@@ -82,7 +81,7 @@ class AggregatorService(
   private fun <T, R> ((T) -> R).asSuspend(): suspend (T) -> R = { t: T -> this(t) }
 
   private suspend fun orchestrateAsyncCalls(
-    functionCalls: Map<String, suspend () -> Any>,
+    functionCalls: Map<String, suspend () -> Any?>,
     semaphore: Semaphore,
   ): Map<String, Any> = coroutineScope {
     functionCalls.mapValues { (key, call) ->

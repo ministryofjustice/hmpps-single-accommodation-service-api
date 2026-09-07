@@ -11,6 +11,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import java.time.LocalDate
 import java.util.UUID
@@ -29,11 +30,11 @@ class CaseEntity(
 
   @Column(columnDefinition = "jsonb")
   @JdbcTypeCode(SqlTypes.JSON)
-  var currentAccommodation: String? = null,
+  var currentAccommodation: AccommodationSummaryDto? = null,
 
   @Column(columnDefinition = "jsonb")
   @JdbcTypeCode(SqlTypes.JSON)
-  var nextAccommodation: String? = null,
+  var nextAccommodation: AccommodationSummaryDto? = null,
 
   @Enumerated(EnumType.STRING)
   var accommodationStatus: CaseAccommodationStatus? = null,

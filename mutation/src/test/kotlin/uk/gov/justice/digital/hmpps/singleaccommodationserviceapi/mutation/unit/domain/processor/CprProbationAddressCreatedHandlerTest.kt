@@ -84,10 +84,9 @@ class CprProbationAddressCreatedHandlerTest {
 
   @Test
   fun `should not refresh case and should ignore created message when case is not known`() {
-    val caseId = UUID.randomUUID()
     every { caseRepository.findByCrn(crn) } returns null
     assertThat(handler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(caseId) }
+    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
   @Test

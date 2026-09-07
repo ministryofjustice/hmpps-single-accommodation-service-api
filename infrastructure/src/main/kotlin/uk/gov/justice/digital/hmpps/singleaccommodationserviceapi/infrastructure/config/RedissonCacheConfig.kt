@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_1_URL_TEMPLATES
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_APPLICATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_2_URL_TEMPLATES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_APPLICATION
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_CURRENT_PREMISES
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CAS_3_URL_TEMPLATES
@@ -108,9 +110,11 @@ class RedissonCacheConfig {
       GET_CAS3_REFERRAL to CacheConfig(60_000, 30_000),
       GET_CAS_1_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_1_CURRENT_PREMISES to CacheConfig(60_000, 30_000),
+      GET_CAS_2_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_3_CURRENT_PREMISES to CacheConfig(60_000, 30_000),
       GET_CAS_3_APPLICATION to CacheConfig(60_000, 30_000),
       GET_CAS_1_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
+      GET_CAS_2_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
       GET_CAS_3_URL_TEMPLATES to CacheConfig(86_400_000, 43_200_000),
       FULL_CASE_LIST to CacheConfig(600_000, 600_000),
       GET_CRS to CacheConfig(60_000, 30_000),

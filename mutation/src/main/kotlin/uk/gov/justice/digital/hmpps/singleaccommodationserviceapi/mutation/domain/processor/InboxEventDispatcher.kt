@@ -138,6 +138,7 @@ class InboxEventDispatcher(
 
     try {
       userContextService.setUserContextAsSasSystemUser()
+      log.info("Processing {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
       when (handler.handle(inboxEvent.toInboxEvent())) {
         InboxEventHandler.Result.PROCESSED -> {
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)

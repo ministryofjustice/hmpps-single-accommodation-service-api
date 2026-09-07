@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DutyToReferDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -19,6 +20,7 @@ data class DomainData(
   val currentAccommodationTypeEntity: AccommodationTypeEntity?,
   val nextAccommodations: List<AccommodationSummaryDto>,
   val cas1Application: Cas1Application?,
+  val cas2Application: Cas2Application?,
   val cas3Application: Cas3Application?,
   val dutyToRefer: DutyToReferDto?,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
@@ -30,6 +32,7 @@ data class DomainData(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodations: List<AccommodationSummaryDto>,
     cas1Application: Cas1Application?,
+    cas2Application: Cas2Application?,
     cas3Application: Cas3Application?,
     dutyToRefer: DutyToReferDto?,
     commissionedRehabilitativeServices: CommissionedRehabilitativeServices?,
@@ -42,6 +45,7 @@ data class DomainData(
     currentAccommodationTypeEntity = accommodationTypes.find { it.code == currentAccommodation?.type?.code },
     nextAccommodations = nextAccommodations,
     cas1Application = cas1Application,
+    cas2Application = cas2Application,
     cas3Application = cas3Application,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -60,6 +64,7 @@ data class DomainData(
     currentAccommodationTypeEntity = null,
     nextAccommodations = emptyList(),
     cas1Application = null,
+    cas2Application = null,
     cas3Application = null,
     dutyToRefer = dutyToRefer,
     commissionedRehabilitativeServices = null,

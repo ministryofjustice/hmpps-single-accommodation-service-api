@@ -5,21 +5,19 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 import java.time.LocalDate
 import java.util.UUID
 
 class CaseMapperTest {
-  private val caseMapper = CaseMapper(jsonMapper)
+  private val caseMapper = CaseMapper()
 
   @Test
   fun `toAggregate maps all fields correctly`() {
@@ -80,8 +78,8 @@ class CaseMapperTest {
     val currentAccommodation = buildAccommodationSummaryDto(crn = "X12345")
     val nextAccommodation = buildAccommodationSummaryDto(crn = "X12345")
     val caseEntity = buildCaseEntity().apply {
-      this.currentAccommodation = jsonMapper.writeValueAsString(currentAccommodation)
-      this.nextAccommodation = jsonMapper.writeValueAsString(nextAccommodation)
+      this.currentAccommodation = currentAccommodation
+      this.nextAccommodation = nextAccommodation
       this.accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
     }
 
@@ -161,14 +159,8 @@ class CaseMapperTest {
       { assertThat(mergedEntity.firstName).isEqualTo("Updated") },
       { assertThat(mergedEntity.lastName).isEqualTo("Person") },
       { assertThat(mergedEntity.dateOfBirth).isEqualTo(dateOfBirth) },
-      {
-        assertThat(jsonMapper.readValue(mergedEntity.currentAccommodation, AccommodationSummaryDto::class.java))
-          .isEqualTo(currentAccommodation)
-      },
-      {
-        assertThat(jsonMapper.readValue(mergedEntity.nextAccommodation, AccommodationSummaryDto::class.java))
-          .isEqualTo(nextAccommodation)
-      },
+      { assertThat(mergedEntity.currentAccommodation).isEqualTo(currentAccommodation) },
+      { assertThat(mergedEntity.nextAccommodation).isEqualTo(nextAccommodation) },
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE) },
       { assertThat(mergedEntity.roshLevelCode).isEqualTo("RMRH") },
     )
@@ -271,14 +263,8 @@ class CaseMapperTest {
       { assertThat(mergedEntity.firstName).isEqualTo("First") },
       { assertThat(mergedEntity.lastName).isEqualTo("Last") },
       { assertThat(mergedEntity.dateOfBirth).isEqualTo(dateOfBirth) },
-      {
-        assertThat(jsonMapper.readValue(mergedEntity.currentAccommodation, AccommodationSummaryDto::class.java))
-          .isEqualTo(currentAccommodation)
-      },
-      {
-        assertThat(jsonMapper.readValue(mergedEntity.nextAccommodation, AccommodationSummaryDto::class.java))
-          .isEqualTo(nextAccommodation)
-      },
+      { assertThat(mergedEntity.currentAccommodation).isEqualTo(currentAccommodation) },
+      { assertThat(mergedEntity.nextAccommodation).isEqualTo(nextAccommodation) },
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE) },
       { assertThat(mergedEntity.roshLevelCode).isEqualTo("RVHR") },
     )

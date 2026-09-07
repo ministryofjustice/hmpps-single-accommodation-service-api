@@ -1,5 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
-
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
@@ -15,6 +15,7 @@ fun buildCaseEntity(
   lastName: String? = "Last",
   dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
   roshLevelCode: String? = null,
+  accommodationSummariesDto: AccommodationSummariesDto? = null,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
   id = id,
@@ -24,6 +25,9 @@ fun buildCaseEntity(
   lastName = lastName,
   dateOfBirth = dateOfBirth,
   roshLevelCode = roshLevelCode,
+  currentAccommodation = accommodationSummariesDto?.currentAccommodation,
+  nextAccommodation = accommodationSummariesDto?.nextAccommodation,
+  accommodationStatus = accommodationSummariesDto?.caseAccommodationStatus,
 ).also { case ->
 
   if (customise != null) {
