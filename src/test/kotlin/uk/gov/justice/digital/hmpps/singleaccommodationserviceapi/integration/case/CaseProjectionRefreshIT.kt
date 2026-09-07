@@ -165,6 +165,10 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CONFIRMED,
       IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CANCELLED,
       IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CANCELLED_UPDATED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_ADDED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DELETED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DEREGISTERED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_UPDATED,
 
       -> true
 
