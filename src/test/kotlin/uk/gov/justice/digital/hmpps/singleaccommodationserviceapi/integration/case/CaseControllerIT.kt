@@ -625,6 +625,10 @@ class CaseControllerIT : IntegrationTestBase() {
           crns.size - 2 -> true
           else -> false
         },
+        limitedAccess = when (i) {
+          crns.size - 1, crns.size - 2 -> true
+          else -> false
+        },
       )
     }
 
