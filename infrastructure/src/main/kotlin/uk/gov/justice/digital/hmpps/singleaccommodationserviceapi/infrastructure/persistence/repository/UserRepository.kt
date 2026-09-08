@@ -14,6 +14,9 @@ import java.util.UUID
 interface UserRepository : JpaRepository<UserEntity, UUID> {
   fun findByUsernameAndAuthSource(username: Username, authSource: AuthSource): UserEntity?
 
+  @Query("select u from UserEntity u where u.nomisStaffId = :nomisStaffId and u.authSource = 'NOMIS'")
+  fun findByNomisStaffId(nomisStaffId: String): UserEntity?
+
   @Modifying
   @Transactional
   @Query(
