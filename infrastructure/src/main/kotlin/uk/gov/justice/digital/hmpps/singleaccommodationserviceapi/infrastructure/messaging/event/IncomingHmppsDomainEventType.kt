@@ -24,6 +24,7 @@ enum class IncomingHmppsDomainEventType(
   PROBATION_CASE_REGISTRATION_DELETED("probation-case.registration.deleted"),
   PROBATION_CASE_REGISTRATION_DEREGISTERED("probation-case.registration.deregistered"),
   PROBATION_CASE_REGISTRATION_UPDATED("probation-case.registration.updated"),
+  OFFENDER_MANAGEMENT_ALLOCATION_CHANGED("offender-management.allocation.changed"),
   ;
 
   companion object {
