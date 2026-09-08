@@ -13,3 +13,14 @@ dependencies {
   testImplementation(testFixtures(project(":common")))
   testImplementation(libs.apache.commons.csv)
 }
+
+tasks.register<JavaExec>("generateEligibilityRulesGraph") {
+  group = "documentation"
+  description = "Generate eligibility rules graph from code"
+  classpath = sourceSets.main.get().runtimeClasspath
+  mainClass.set(
+    "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GenerateEligibilityRulesGraphKt",
+  )
+  args(rootProject.projectDir.resolve("docs/eligibility-rules-graph.md").absolutePath)
+  dependsOn(tasks.named("classes"))
+}
