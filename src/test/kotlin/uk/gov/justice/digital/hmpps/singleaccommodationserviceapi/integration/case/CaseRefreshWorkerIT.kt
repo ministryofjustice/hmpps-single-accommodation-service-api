@@ -70,8 +70,10 @@ class CaseRefreshWorkerIT : IntegrationTestBase() {
   }
 
   @AfterEach
-  fun teardown() {
+  suspend fun teardown() {
     clock.reset()
+    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
+      ?.let { request -> hmppsQueueService.purgeQueue(request) }
   }
 
   @Test

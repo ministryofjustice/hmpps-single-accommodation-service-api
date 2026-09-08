@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -73,6 +74,12 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     databaseUtils.truncate(*DatabaseUtils.SasTables.entries.toTypedArray())
     createSasSystemUser()
+  }
+
+  @AfterEach
+  suspend fun teardown() {
+    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
+      ?.let { request -> hmppsQueueService.purgeQueue(request) }
   }
 
   @ParameterizedTest(name = "{0}")
@@ -165,6 +172,10 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CONFIRMED,
       IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CANCELLED,
       IncomingHmppsDomainEventType.ACCOMMODATION_CAS3_BOOKING_CANCELLED_UPDATED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_ADDED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DELETED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DEREGISTERED,
+      IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_UPDATED,
 
       -> true
 

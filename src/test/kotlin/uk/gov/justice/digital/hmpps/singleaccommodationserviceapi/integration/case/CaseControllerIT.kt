@@ -113,6 +113,12 @@ class CaseControllerIT : IntegrationTestBase() {
   }
 
   @AfterEach
+  suspend fun teardown() {
+    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
+      ?.let { request -> hmppsQueueService.purgeQueue(request) }
+  }
+
+  @AfterEach
   fun resetCaseListV2Flag() {
     every { caseQueryService.caseListV2Enabled } returns false
   }

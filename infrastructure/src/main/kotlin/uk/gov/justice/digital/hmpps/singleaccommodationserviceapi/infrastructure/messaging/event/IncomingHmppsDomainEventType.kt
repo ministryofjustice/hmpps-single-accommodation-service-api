@@ -20,6 +20,10 @@ enum class IncomingHmppsDomainEventType(
   ACCOMMODATION_CAS3_BOOKING_CANCELLED("accommodation.cas3.booking.cancelled"),
   ACCOMMODATION_CAS3_BOOKING_CANCELLED_UPDATED("accommodation.cas3.booking.cancelled.updated"),
   PROBATION_USER_USERNAME_CHANGED("probation-user.username.changed"),
+  PROBATION_CASE_REGISTRATION_ADDED("probation-case.registration.added"),
+  PROBATION_CASE_REGISTRATION_DELETED("probation-case.registration.deleted"),
+  PROBATION_CASE_REGISTRATION_DEREGISTERED("probation-case.registration.deregistered"),
+  PROBATION_CASE_REGISTRATION_UPDATED("probation-case.registration.updated"),
   ;
 
   companion object {
