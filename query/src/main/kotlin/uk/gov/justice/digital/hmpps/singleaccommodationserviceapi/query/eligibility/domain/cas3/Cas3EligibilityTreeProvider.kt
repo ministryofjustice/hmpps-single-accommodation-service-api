@@ -44,6 +44,7 @@ class Cas3EligibilityTreeProvider(
     val notEligible = builder.notEligible()
     val cannotStartYet = builder.currentOutcome()
     val bookingConfirmed = builder.outcome(
+      "bookingConfirmed",
       serviceResult(),
     )
 

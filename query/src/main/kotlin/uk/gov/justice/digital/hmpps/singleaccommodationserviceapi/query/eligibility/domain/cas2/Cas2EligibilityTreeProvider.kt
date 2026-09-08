@@ -43,6 +43,7 @@ class Cas2EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible()
     val placementBooked = builder.outcome(
+      "placementBooked",
       serviceResult(),
     )
 
