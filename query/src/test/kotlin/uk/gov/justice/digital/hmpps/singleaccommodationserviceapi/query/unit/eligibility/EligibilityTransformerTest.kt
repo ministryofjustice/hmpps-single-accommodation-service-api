@@ -29,7 +29,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1RequestForPlacementSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingCancellationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingDto
@@ -197,9 +196,7 @@ class EligibilityTransformerTest {
       uiUrl = "aUrl",
     )
     val cas2ApplicationDto = buildCas2ApplicationDto(
-      application = buildCas2ApplicationSummaryDto(
-        id = cas2Application.application.id,
-      ),
+      id = cas2Application.id,
       uiUrl = cas2Application.uiUrl,
     )
     val cas1ApplicationDto = buildCas1ApplicationDto(
@@ -329,7 +326,7 @@ class EligibilityTransformerTest {
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
     val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1)
-    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, service = AccommodationService.CAS2)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2)
     val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR)
     val cas1 = buildServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
@@ -408,7 +405,7 @@ class EligibilityTransformerTest {
   @Test
   fun `sorts case actions by soonest start date first, with undated actions last`() {
     val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1), service = AccommodationService.CAS1)
-    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, startDate = LocalDate.of(2025, 4, 1), service = AccommodationService.CAS2)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.of(2025, 4, 1), service = AccommodationService.CAS2)
     val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8), service = AccommodationService.CRS)
     val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3), service = AccommodationService.CAS3)
     val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null, service = AccommodationService.DTR)
