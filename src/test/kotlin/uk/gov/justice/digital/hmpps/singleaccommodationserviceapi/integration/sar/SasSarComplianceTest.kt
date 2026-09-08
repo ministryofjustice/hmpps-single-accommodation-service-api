@@ -142,6 +142,17 @@ class SasSarComplianceTest : SasSarTestBase() {
   }
 
   @Test
+  fun `SAS SAR API should return consolidated data for all domains, no date range`() {
+    setupTestData()
+    asserter.assertApiDataMatchesFixture(
+      crn = TEST_CRN,
+      fromDate = null,
+      toDate = null,
+      laaId = testLaaId,
+    )
+  }
+
+  @Test
   fun `SAS SAR report should render correctly with all domains`() {
     setupTestData()
     sarIntegrationTestHelper.stubFindUserLastNameWith("Johnson")

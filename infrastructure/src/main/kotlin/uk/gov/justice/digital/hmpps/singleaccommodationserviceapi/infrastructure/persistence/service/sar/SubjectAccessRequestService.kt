@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.sar
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
@@ -43,7 +42,6 @@ class SubjectAccessRequestService(
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
     private val enumModule: SimpleModule = SimpleModule()
       .addSerializer(TitleEnum::class.java, TitleEnumSerialiser())
     private val mapper: JsonMapper = JsonMapper.builder()
@@ -60,8 +58,8 @@ class SubjectAccessRequestService(
     val sarResult = getSarResult(
       crn,
       prn,
-      fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MIN,
-      toDate?.plusDays(1)?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MAX,
+      fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant(),
+      toDate?.plusDays(1)?.atStartOfDay(ZoneId.systemDefault())?.toInstant(),
     ) ?: return null
 
     return HmppsSubjectAccessRequestContent(content = sarResult)
@@ -70,8 +68,8 @@ class SubjectAccessRequestService(
   fun getSarResult(
     crn: String?,
     prisonNumber: String?,
-    startDate: Instant,
-    endDate: Instant,
+    startDate: Instant?,
+    endDate: Instant?,
   ): Map<String, Any>? {
     if (crn == null && prisonNumber == null) return null
 
