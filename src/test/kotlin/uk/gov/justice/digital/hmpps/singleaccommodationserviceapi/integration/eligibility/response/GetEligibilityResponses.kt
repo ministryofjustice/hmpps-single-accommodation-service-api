@@ -131,7 +131,7 @@ fun expectedGetEligibilityResponse(
       "serviceResult": {
         "serviceStatus": "NOT_STARTED",
         "action": {
-          "type": "START_CAS2_APPLICATION",
+          "type": "START_CAS2_REFERRAL",
           "startDate": null
         },
         "link": "Start application",
@@ -414,7 +414,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "serviceResult": {
         "serviceStatus": "NOT_STARTED",
         "action": {
-          "type": "START_CAS2_APPLICATION",
+          "type": "START_CAS2_REFERRAL",
           "startDate": null
         },
         "link": "Start application",
@@ -576,7 +576,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "serviceResult": {
         "serviceStatus": "NOT_STARTED",
         "action": {
-          "type": "START_CAS2_APPLICATION",
+          "type": "START_CAS2_REFERRAL",
           "startDate": null
         },
         "link": "Start application",
@@ -704,7 +704,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
         "serviceResult": {
           "serviceStatus": "NOT_STARTED",
           "action": {
-            "type": "START_CAS2_APPLICATION",
+            "type": "START_CAS2_REFERRAL",
             "startDate": null
           },
           "link": "Start application",

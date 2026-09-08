@@ -6,8 +6,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2SuitabilityRuleSet(
-  applicationPresent: Cas2ApplicationPresentRule,
+  applicationSubmitted: Cas2ApplicationSubmittedRule,
+  suitableStatus: Cas2SuitableStatusRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(applicationPresent)
+  private val rules: List<Rule> = listOf(applicationSubmitted, suitableStatus)
   override fun getRules(): List<Rule> = rules
 }

@@ -15,8 +15,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
@@ -49,7 +49,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
@@ -212,7 +212,8 @@ object EligibilityTransformer {
   ) = cas2Application?.let { application ->
     Cas2ApplicationDto(
       uiUrl = application.uiUrl,
-      application = toCas2ApplicationSummaryDto(application.application),
+      id = application.id,
+      submittedApplication = toCas2SubmittedApplicationSummaryDto(application.submittedApplication),
     )
   }
 
@@ -272,12 +273,14 @@ object EligibilityTransformer {
     expiresAt = application.expiresAt,
   )
 
-  private fun toCas2ApplicationSummaryDto(
-    application: Cas2ApplicationSummary,
-  ) = Cas2ApplicationSummaryDto(
-    id = application.id,
-    status = application.status,
-  )
+  private fun toCas2SubmittedApplicationSummaryDto(
+    submittedApplication: Cas2SubmittedApplicationSummary?,
+  ) = submittedApplication?.let {
+    Cas2SubmittedApplicationSummaryDto(
+      submittedAt = it.submittedAt,
+      latestAssessmentStatus = it.latestAssessmentStatus,
+    )
+  }
 
   private fun toRequestForPlacementDto(
     requestForPlacement: Cas1RequestForPlacementSummary?,

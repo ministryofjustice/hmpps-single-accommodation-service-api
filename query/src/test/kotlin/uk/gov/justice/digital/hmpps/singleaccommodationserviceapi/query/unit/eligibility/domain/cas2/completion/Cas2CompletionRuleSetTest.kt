@@ -7,14 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas2CompletionRuleSet::class,
-    Cas2ApplicationCompletionRule::class,
+    Cas2ApplicationAwaitingArrivalRule::class,
     ClockConfig::class,
   ],
 )
@@ -24,7 +24,7 @@ class Cas2CompletionRuleSetTest {
   lateinit var cas2CompletionRuleSet: Cas2CompletionRuleSet
 
   private val expectedCas2CompletionRuleNames = listOf(
-    Cas2ApplicationCompletionRule::class.simpleName,
+    Cas2ApplicationAwaitingArrivalRule::class.simpleName,
   )
 
   @Test

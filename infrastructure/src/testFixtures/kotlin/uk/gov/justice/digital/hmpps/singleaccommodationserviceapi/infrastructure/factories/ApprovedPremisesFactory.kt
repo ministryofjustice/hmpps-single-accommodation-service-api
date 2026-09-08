@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -42,11 +42,13 @@ fun buildCas1Application(
 )
 
 fun buildCas2Application(
-  application: Cas2ApplicationSummary = buildCas2ApplicationSummary(),
-  uiUrl: String = "https://cas2-ui/applications/${application.id}",
+  submittedApplication: Cas2SubmittedApplicationSummary? = null,
+  id: UUID = UUID.randomUUID(),
+  uiUrl: String = "https://cas2-ui/applications/$id",
 ) = Cas2Application(
   uiUrl = uiUrl,
-  application = application,
+  id = id,
+  submittedApplication = submittedApplication,
 )
 
 fun buildCas1PlacementPair(
@@ -135,12 +137,12 @@ fun buildCas1ApplicationSummary(
   expiresAt = expiresAt,
 )
 
-fun buildCas2ApplicationSummary(
-  id: UUID = UUID.randomUUID(),
-  status: String = "STARTED",
-) = Cas2ApplicationSummary(
-  id = id,
-  status = status,
+fun buildCas2SubmittedApplicationSummary(
+  latestAssessmentStatus: String? = null,
+  submittedAt: OffsetDateTime = OffsetDateTime.now(),
+) = Cas2SubmittedApplicationSummary(
+  submittedAt = submittedAt,
+  latestAssessmentStatus = latestAssessmentStatus,
 )
 
 fun buildCas1Staff(
