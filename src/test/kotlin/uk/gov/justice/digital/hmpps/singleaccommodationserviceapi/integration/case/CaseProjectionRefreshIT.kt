@@ -8,18 +8,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
@@ -31,13 +21,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WiremockStubber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Instant
@@ -91,9 +78,6 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
   fun `should refresh case based on event type`(eventType: IncomingHmppsDomainEventType) {
     val crn = UUID.randomUUID().toString()
     val prisonNumber = UUID.randomUUID().toString()
-    val deliusCase = buildCase(crn = crn, nomsNumber = prisonNumber)
-    val expectedTierValue = UUID.randomUUID().toString()
-    val newName = UUID.randomUUID().toString()
 
     caseRepository.save(
       buildCaseEntity(tierScore = null) {
@@ -108,30 +92,16 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       description = eventType.name,
       detailUrl = "test",
       occurredAt = OffsetDateTime.now(),
-      personReference = PersonReference(listOf(PersonIdentifier(type = "CRN", value = crn))),
+      personReference = PersonReference(
+        listOf(
+          PersonIdentifier(type = "CRN", value = crn),
+          PersonIdentifier(type = "NOMS", value = prisonNumber),
+        ),
+      ),
       additionalInformation = null,
     )
 
-    // set up all stubs for downstream services
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn = crn,
-      response = buildCorePersonRecord(firstName = newName, lastName = newName),
-    )
-    PrisonerSearchStubs.getPrisonerOKResponse(
-      prisonNumber = prisonNumber,
-      response = buildPrisoner(prisonNumber = prisonNumber),
-    )
-    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
-      response = CaseSummaries(listOf(buildCaseSummary(crn = crn, nomsId = prisonNumber))),
-    )
-
-    ProbationIntegrationDeliusStubs.getCaseByCrn(crn = crn, response = deliusCase)
-
-    TierStubs.getTierOKResponse(crn = crn, response = buildTier(tierScore = expectedTierValue))
-    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn = crn, response = buildCas1PremisesSummary())
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = buildCas1Application())
-    ApprovedPremisesStubs.getCas3CurrentPremisesOKResponse(crn = crn, response = buildCas3PremisesSummary())
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = buildCas3Application())
+    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
 
     // identify which event types should trigger a case refresh, add any event specific stubs / data setup.
     val shouldRefresh = when (eventType) {
@@ -148,7 +118,10 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
 
         val detailUrl = "${sasWiremock.baseUrl()}/person/probation/$crn/address/$cprAddressId"
         domainEvent =
-          domainEvent.copy(detailUrl = detailUrl, additionalInformation = mapOf("cprAddressId" to cprAddressId))
+          domainEvent.copy(
+            detailUrl = detailUrl,
+            additionalInformation = mapOf("cprAddressId" to cprAddressId),
+          )
         true
       }
 
@@ -176,10 +149,11 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DELETED,
       IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_DEREGISTERED,
       IncomingHmppsDomainEventType.PROBATION_CASE_REGISTRATION_UPDATED,
-
+      IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED,
       -> true
 
-      IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED -> false
+      IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED,
+      -> false
 
       IncomingHmppsDomainEventType.PROBATION_USER_USERNAME_CHANGED -> throw IllegalArgumentException("This event type is not part of this test.")
     }
@@ -190,9 +164,9 @@ class CaseProjectionRefreshIT : IntegrationTestBase() {
       waitFor {
         // these fields should now be updated on the entity after successful refresh.
         val updated = caseRepository.findByCrn(crn)
-        assertThat(updated!!.tierScore).isEqualTo(expectedTierValue)
-        assertThat(updated.firstName).isEqualTo(newName)
-        assertThat(updated.lastName).isEqualTo(newName)
+        assertThat(updated!!.tierScore).isEqualTo(responses.tier!!.tierScore)
+        assertThat(updated.firstName).isEqualTo(responses.cpr!!.firstName)
+        assertThat(updated.lastName).isEqualTo(responses.cpr!!.lastName)
       }
     } else {
       waitFor {
