@@ -35,4 +35,11 @@ class InboxEventService(
     inboxEvent.processedAt = Instant.now()
     inboxEventRepository.save(inboxEvent)
   }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  fun deleteRetainedBatch(statuses: List<ProcessedStatus>, cutoff: Instant, batchSize: Int): Int = inboxEventRepository.deleteRetainedEvents(
+    statuses = statuses.map { it.name },
+    cutoff = cutoff,
+    batchSize = batchSize,
+  )
 }
