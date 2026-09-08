@@ -141,14 +141,17 @@ class InboxEventDispatcher(
       log.info("Processing {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
       when (handler.handle(inboxEvent.toInboxEvent())) {
         InboxEventHandler.Result.PROCESSED -> {
+          log.info("Processed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
           progressTracker.eventProcessed()
         }
         InboxEventHandler.Result.IGNORED -> {
+          log.info("Ignored {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.IGNORED)
           progressTracker.eventIgnored()
         }
         InboxEventHandler.Result.FAILED -> {
+          log.error("Failed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
           progressTracker.eventFailed()
