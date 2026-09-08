@@ -9,5 +9,5 @@ data class Cas2Application(
 
 data class Cas2ApplicationSummary(
   val id: UUID,
-  val status: String,
+  val status: String?,
 )
