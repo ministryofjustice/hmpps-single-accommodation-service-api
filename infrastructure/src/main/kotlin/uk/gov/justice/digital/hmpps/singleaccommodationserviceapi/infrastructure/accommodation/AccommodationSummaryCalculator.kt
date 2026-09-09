@@ -157,8 +157,8 @@ class AccommodationSummaryCalculator(
   ): CaseAccommodationStatus? = when {
     isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-    isSettledType(currentAccommodation) && (isSettledType(nextAccommodation) || nextAccommodation == null) -> CaseAccommodationStatus.SETTLED
-    isTransientType(nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
+    isSettled(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.SETTLED
+    isTransient(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
     else -> CaseAccommodationStatus.UNKNOWN
   }
 
@@ -179,6 +179,11 @@ class AccommodationSummaryCalculator(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ) = isSettledType(currentAccommodation) && (nextAccommodation == null || isSettledType(nextAccommodation))
+
+  private fun isTransient(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = isTransientType(currentAccommodation) && (nextAccommodation == null || isTransientType(nextAccommodation))
 
   private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
   private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
