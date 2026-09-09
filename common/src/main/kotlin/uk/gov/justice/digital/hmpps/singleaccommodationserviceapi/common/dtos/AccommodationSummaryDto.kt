@@ -60,4 +60,5 @@ enum class CaseAccommodationStatus(val sortOrder: Int) {
   NO_FIXED_ABODE(2),
   TRANSIENT(3),
   SETTLED(4),
+  UNKNOWN(5),
 }

@@ -157,9 +157,9 @@ class AccommodationSummaryCalculator(
   ): CaseAccommodationStatus? = when {
     isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+    isSettledType(currentAccommodation) && (isSettledType(nextAccommodation) || nextAccommodation == null) -> CaseAccommodationStatus.SETTLED
     isTransientType(nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
-    isSettledType(nextAccommodation) -> CaseAccommodationStatus.SETTLED
-    else -> null
+    else -> CaseAccommodationStatus.UNKNOWN
   }
 
   private fun postcodesMatch(postcode1: String?, postcode2: String?) = postcode1?.filterNot(Char::isWhitespace).equals(postcode2?.filterNot(Char::isWhitespace), ignoreCase = true)
@@ -174,6 +174,11 @@ class AccommodationSummaryCalculator(
     nextAccommodation: AccommodationSummaryDto?,
   ) = (!isSettledType(currentAccommodation) && nextAccommodation == null) ||
     ((isSettledType(currentAccommodation) && isHomelessType(nextAccommodation)) || isTransientType(nextAccommodation))
+
+  private fun isSettled(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = isSettledType(currentAccommodation) && (nextAccommodation == null || isSettledType(nextAccommodation))
 
   private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
   private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
