@@ -146,7 +146,7 @@ class InboxEventDispatcher(
           progressTracker.eventProcessed()
         }
         InboxEventHandler.Result.IGNORED -> {
-          log.info("Ignored {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
+          log.debug("Ignored {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.IGNORED)
           progressTracker.eventIgnored()
         }
