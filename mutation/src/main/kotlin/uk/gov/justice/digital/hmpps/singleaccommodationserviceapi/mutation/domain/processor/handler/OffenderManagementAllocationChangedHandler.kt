@@ -26,6 +26,17 @@ class OffenderManagementAllocationChangedHandler(
 
   override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.findPrisonNumber(inboxEvent)
 
+  /**
+   * This handler processes offender-management.allocation.changed events, which are sent when a prisoner is allocated
+   * to a NOMIS user. This service tracks offenders of interest via the sas_case table, which are created either when a
+   * user views their caselist, or by being manually preloaded. This event will be processed:
+   *  a) update - if the prisonNumber from the event is in the database, we will refresh the case.
+   * -OR-
+   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, we create a
+   *     populated entry into the SAS_CASE table.
+   * -OR-
+   *  c) ignore - if neither are known, we ignore the event.
+   */
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
     val prisonNumber = getPartitionKey(inboxEvent)
@@ -43,8 +54,10 @@ class OffenderManagementAllocationChangedHandler(
       val cpr = corePersonRecordClient.getByPrisonNumber(prisonNumber)
       val identifiers = cpr.identifiers
 
-      // This will require a single CRN to create the case, which may mean identifying which CRN is current and creating
-      // the case using that. Any exceptions will be caught in the dispatcher, and the message failed and reported accordingly.
+      /**
+       * This requires a single CRN to create the case, which may mean identifying which CRN is current and creating
+       * the case using that. Any exceptions will be caught in the dispatcher, and the message failed and reported accordingly.
+       */
       require(identifiers?.crns?.size == 1) { "This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber]." }
 
       val crn = identifiers.crns.single()
