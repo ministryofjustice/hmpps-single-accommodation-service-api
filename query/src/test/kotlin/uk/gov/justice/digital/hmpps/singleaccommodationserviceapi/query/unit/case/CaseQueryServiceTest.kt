@@ -420,24 +420,29 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(3)
 
       if (v2Enabled) {
-        assertThat(result[0]).isEqualTo(
+        assertThat(result[2]).isEqualTo(
           personDto1.toCaseDtoV2(
             caseEntity = caseEntity1,
             currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
             nextAccommodation = null,
           ),
         )
-        assertThat(result[1]).isEqualTo(
+        assertThat(result[0]).isEqualTo(
           personDto2.toCaseDtoV2(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
         )
+
+        assertThat(result[1])
+          .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
+          .containsExactly(limitedCrn, true, UserAccess.LIMITED)
       } else {
         assertThat(result[0]).isEqualTo(caseDto1)
         assertThat(result[1]).isEqualTo(caseDto2)
+
+        assertThat(result[2])
+          .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
+          .containsExactly(limitedCrn, true, UserAccess.LIMITED)
       }
 
-      assertThat(result[2])
-        .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
-        .containsExactly(limitedCrn, true, UserAccess.LIMITED)
     }
   }
 
