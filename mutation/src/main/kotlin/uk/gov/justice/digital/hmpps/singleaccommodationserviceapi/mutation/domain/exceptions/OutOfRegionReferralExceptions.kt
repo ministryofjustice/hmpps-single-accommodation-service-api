@@ -1,0 +1,17 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions
+
+const val OOR_INVALID_STATUS_ERROR_KEY = "oorInvalidStatus"
+const val OOR_INVALID_STATUS_TRANSITION_ERROR_KEY = "oorInvalidStatusTransition"
+const val OOR_OUTCOME_REASON_REQUIRED_KEY = "oorOutcomeReasonRequired"
+const val OOR_OUTCOME_REASON_NOT_APPLICABLE_KEY = "oorOutcomeReasonNotApplicable"
+const val OOR_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "oorOutcomeNoteNotApplicable"
+
+class OutOfRegionReferralInvalidStatusException : DomainException(OOR_INVALID_STATUS_ERROR_KEY)
+
+class OutOfRegionReferralInvalidStatusTransitionException : DomainException(OOR_INVALID_STATUS_TRANSITION_ERROR_KEY)
+
+class OutOfRegionReferralOutcomeReasonRequiredException : DomainException(OOR_OUTCOME_REASON_REQUIRED_KEY)
+
+class OutOfRegionReferralOutcomeReasonNotApplicableException : DomainException(OOR_OUTCOME_REASON_NOT_APPLICABLE_KEY)
+
+class OutOfRegionReferralOutcomeNoteNotApplicableException : DomainException(OOR_OUTCOME_NOTE_NOT_APPLICABLE_KEY)
