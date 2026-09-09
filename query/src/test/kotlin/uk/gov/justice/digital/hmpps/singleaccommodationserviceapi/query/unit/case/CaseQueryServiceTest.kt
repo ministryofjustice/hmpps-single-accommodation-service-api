@@ -442,7 +442,6 @@ class CaseQueryServiceTest {
           .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
           .containsExactly(limitedCrn, true, UserAccess.LIMITED)
       }
-
     }
   }
 
