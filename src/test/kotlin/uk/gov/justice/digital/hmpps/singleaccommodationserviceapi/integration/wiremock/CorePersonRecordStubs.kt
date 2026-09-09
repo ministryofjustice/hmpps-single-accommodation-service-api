@@ -32,6 +32,13 @@ object CorePersonRecordStubs {
     )
   }
 
+  fun getCorePersonRecordByPrisonNumberOKResponse(prisonNumber: String, response: CorePersonRecord) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/person/prison/$prisonNumber"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
   fun getCorePersonRecordNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/person/probation/$crn"))
