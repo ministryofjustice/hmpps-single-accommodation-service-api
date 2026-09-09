@@ -433,8 +433,9 @@ class CaseControllerIT : IntegrationTestBase() {
     @Test
     fun `should return a CaseDto for a case that exists`() {
       setCaseListV2Enabled(true)
-      val crn = "A123456"
-      val case = buildCase(crn = crn, nomsNumber = nomsNumbers[5])
+      val crn = "a123456"
+      val normalisedCrn = crn.uppercase()
+      val case = buildCase(crn = normalisedCrn, nomsNumber = nomsNumbers[5])
       SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
       seedAllCaseEntitiesForV2(listOf(case), "A1")
 
@@ -451,12 +452,12 @@ class CaseControllerIT : IntegrationTestBase() {
 
       sasWiremock.verify(
         1,
-        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/$crn")),
+        getRequestedFor(WireMock.urlPathMatching("/case/$USERNAME_OF_LOGGED_IN_DELIUS_USER/$normalisedCrn")),
       )
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["123456", "a123456", "AB12345", "A12345", "A1234567", "A12B456"])
+    @ValueSource(strings = ["123456", "AB12345", "A12345", "A1234567", "A12B456"])
     fun `returns BadRequest when crn format is invalid`(crn: String) {
       restTestClient.get().uri("/search/$crn")
         .withDeliusUserJwt()

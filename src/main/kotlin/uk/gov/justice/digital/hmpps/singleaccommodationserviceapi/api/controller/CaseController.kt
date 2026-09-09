@@ -59,10 +59,11 @@ class CaseController(
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/search/{crn}")
   fun searchCaseByCrn(
-    @Pattern(regexp = "^[A-Z][0-9]{6}$", message = "CRN must be in format A123456")
+    @Pattern(regexp = "(?i)^[A-Z][0-9]{6}$", message = "CRN must be in format A123456")
     @PathVariable crn: String,
   ): ResponseEntity<ApiResponseDto<CaseDto?>> {
-    val caseResponse = caseQueryService.getCaseFromDelius(crn)
+    val normalisedCrn = crn.uppercase()
+    val caseResponse = caseQueryService.getCaseFromDelius(normalisedCrn)
 
     val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     // TODO: Change this to upsertCases after MVP
