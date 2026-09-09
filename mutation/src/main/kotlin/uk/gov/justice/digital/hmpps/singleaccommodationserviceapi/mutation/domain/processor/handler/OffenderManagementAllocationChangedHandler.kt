@@ -36,16 +36,16 @@ class OffenderManagementAllocationChangedHandler(
     }
 
     val event = inboxEventHelper.toDomainEvent(inboxEvent)
-    val staffCode = event.getRequiredAdditionalInformation("staffCode")
+    val staffCode = event.getRequiredAdditionalInformation("staffCode").toLong()
 
     val user = userRepository.findByNomisStaffId(staffCode)
     if (user != null) {
       val cpr = corePersonRecordClient.getByPrisonNumber(prisonNumber)
-      val identifiers = requireNotNull(cpr.identifiers)
+      val identifiers = cpr.identifiers
 
       // This will require a single CRN to create the case, which may mean identifying which CRN is current and creating
       // the case using that. Any exceptions will be caught in the dispatcher, and the message failed and reported accordingly.
-      require(identifiers.crns.size == 1) { "More than one CRN in identifiers for prisonNumber: [$prisonNumber]." }
+      require(identifiers?.crns?.size == 1) { "This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber]." }
 
       val crn = identifiers.crns.single()
       caseApplicationService.upsertCase(crn, prisonNumber)

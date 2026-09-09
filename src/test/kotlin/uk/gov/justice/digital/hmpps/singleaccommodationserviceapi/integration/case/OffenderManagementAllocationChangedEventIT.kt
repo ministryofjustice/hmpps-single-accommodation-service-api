@@ -134,7 +134,7 @@ class OffenderManagementAllocationChangedEventIT : IntegrationTestBase() {
       assertThat(testSentryService.exceptions.single().message)
         .contains("Unexpected error dispatching to handler")
       assertThat(testSentryService.exceptions.single().cause?.message)
-        .contains("More than one CRN in identifiers for prisonNumber")
+        .contains("This requires a single CRN in cpr identifiers for prisonNumber")
     }
     assertThat(caseRepository.findByPrisonNumber(prisonNumber)).isNull()
   }
@@ -156,7 +156,7 @@ class OffenderManagementAllocationChangedEventIT : IntegrationTestBase() {
         eventType = eventType,
         version = 1,
         description = "test offender management allocation changed",
-        detailUrl = "https://example/detail/$prisonNumber",
+        detailUrl = null,
         occurredAt = OffsetDateTime.now(),
         personReference = PersonReference(
           identifiers = listOf(PersonIdentifier(type = "NOMS", value = prisonNumber)),

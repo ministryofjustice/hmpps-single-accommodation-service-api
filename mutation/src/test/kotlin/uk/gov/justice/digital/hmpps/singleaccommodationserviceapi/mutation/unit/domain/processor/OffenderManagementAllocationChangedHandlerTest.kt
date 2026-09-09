@@ -8,6 +8,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -54,7 +55,7 @@ class OffenderManagementAllocationChangedHandlerTest {
   private lateinit var offenderManagementAllocationChangedHandler: OffenderManagementAllocationChangedHandler
 
   private val prisonNumber = "A1234BC"
-  private val staffCode = "99999123"
+  private val staffCode = 99999123L
   private val crn = "X123456"
 
   private val inboxEvent = InboxEventHandler.InboxEvent(
@@ -63,17 +64,21 @@ class OffenderManagementAllocationChangedHandlerTest {
     payload = "payload",
   )
 
+  private val eventTypeName = IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED.typeName
+
+  @BeforeEach
+  fun setUp() {
+    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
+  }
+
   @Test
   fun `supports OFFENDER_MANAGEMENT_ALLOCATION_CHANGED event type`() {
-    val expectedEventTypes = setOf(IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED.typeName)
-
+    val expectedEventTypes = setOf(eventTypeName)
     assertThat(offenderManagementAllocationChangedHandler.supportedEventTypes()).containsExactlyElementsOf(expectedEventTypes)
   }
 
   @Test
   fun `OFFENDER_MANAGEMENT_ALLOCATION_CHANGED partition key is prison number`() {
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
-
     assertThat(offenderManagementAllocationChangedHandler.getPartitionKey(inboxEvent)).isEqualTo(prisonNumber)
   }
 
@@ -82,7 +87,6 @@ class OffenderManagementAllocationChangedHandlerTest {
     val caseId = UUID.randomUUID()
     val caseEntity = mockk<CaseEntity>()
 
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns caseEntity
     every { caseEntity.id } returns caseId
 
@@ -102,7 +106,6 @@ class OffenderManagementAllocationChangedHandlerTest {
       corePersonRecordClient = corePersonRecordClient,
     )
 
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns mockk()
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
@@ -111,7 +114,6 @@ class OffenderManagementAllocationChangedHandlerTest {
 
   @Test
   fun `should ignore OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and user does not exist`() {
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
     every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
     every { userRepository.findByNomisStaffId(staffCode) } returns null
@@ -123,7 +125,6 @@ class OffenderManagementAllocationChangedHandlerTest {
 
   @Test
   fun `should create case and process OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and allocated user exists`() {
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
     every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
     every { userRepository.findByNomisStaffId(staffCode) } returns mockk<UserEntity>()
@@ -138,7 +139,6 @@ class OffenderManagementAllocationChangedHandlerTest {
 
   @Test
   fun `should throw when cpr identifiers are missing`() {
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
     every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
     every { userRepository.findByNomisStaffId(staffCode) } returns mockk<UserEntity>()
@@ -146,14 +146,13 @@ class OffenderManagementAllocationChangedHandlerTest {
 
     assertThatThrownBy { offenderManagementAllocationChangedHandler.handle(inboxEvent) }
       .isInstanceOf(IllegalArgumentException::class.java)
-      .hasMessage("Required value was null.")
+      .hasMessage("This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber].")
 
     verify(exactly = 0) { caseApplicationService.upsertCase(any(), any()) }
   }
 
   @Test
   fun `should throw when cpr response has more than one CRN`() {
-    every { inboxEventHelper.findPrisonNumber(any()) } returns prisonNumber
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
     every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent()
     every { userRepository.findByNomisStaffId(staffCode) } returns mockk<UserEntity>()
@@ -163,13 +162,13 @@ class OffenderManagementAllocationChangedHandlerTest {
 
     assertThatThrownBy { offenderManagementAllocationChangedHandler.handle(inboxEvent) }
       .isInstanceOf(IllegalArgumentException::class.java)
-      .hasMessage("More than one CRN in identifiers for prisonNumber: [$prisonNumber].")
+      .hasMessage("This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber].")
 
     verify(exactly = 0) { caseApplicationService.upsertCase(any(), any()) }
   }
 
   private fun offenderAllocationChangedEvent() = SnsDomainEvent(
-    eventType = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName,
+    eventType = eventTypeName,
     version = 1,
     occurredAt = OffsetDateTime.now(),
     personReference = PersonReference(
