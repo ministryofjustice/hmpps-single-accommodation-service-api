@@ -55,9 +55,9 @@ data class AccommodationAddressDetails(
   val uprn: String? = null,
 )
 
-enum class CaseAccommodationStatus {
-  RISK_OF_NO_FIXED_ABODE,
-  NO_FIXED_ABODE,
-  TRANSIENT,
-  SETTLED,
+enum class CaseAccommodationStatus(val sortOrder: Int) {
+  RISK_OF_NO_FIXED_ABODE(1),
+  NO_FIXED_ABODE(2),
+  TRANSIENT(3),
+  SETTLED(4),
 }

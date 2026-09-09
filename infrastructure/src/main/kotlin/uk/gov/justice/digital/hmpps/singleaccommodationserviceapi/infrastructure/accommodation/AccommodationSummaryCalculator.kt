@@ -156,9 +156,9 @@ class AccommodationSummaryCalculator(
     nextAccommodation: AccommodationSummaryDto?,
   ): CaseAccommodationStatus? = when {
     isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
-
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-
+    isTransientType(nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
+    isSettledType(nextAccommodation) -> CaseAccommodationStatus.SETTLED
     else -> null
   }
 
