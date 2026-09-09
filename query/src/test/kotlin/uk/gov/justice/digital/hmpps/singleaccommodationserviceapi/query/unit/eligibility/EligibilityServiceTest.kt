@@ -109,6 +109,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3BookingSuitabilityRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.upcoming.Cas3UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsEligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionContextUpdater
@@ -194,6 +196,8 @@ class EligibilityServiceTest {
 
   // CAS3
   var cas3ReferralStartUrl = "CAS3_REFERRAL_START_URL"
+  val cas3UpcomingContextUpdater = Cas3UpcomingContextUpdater()
+  var cas3UpcomingRuleSet = Cas3UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
   var cas3SuitabilityContextUpdater = Cas3SuitabilityContextUpdater()
   var cas3CompletionContextUpdater = Cas3CompletionContextUpdater()
   var cas3SuitabilityRuleSet = Cas3SuitabilityRuleSet(
@@ -284,6 +288,8 @@ class EligibilityServiceTest {
     eligibility = cas3EligibilityRuleSet,
     prerequisite = cas3PrerequisiteRuleSet,
     cas3PrerequisiteContextUpdater = cas3PrerequisiteContextUpdater,
+    upcoming = cas3UpcomingRuleSet,
+    upcomingContextUpdater = cas3UpcomingContextUpdater,
   )
 
   private val dtrTree = DtrEligibilityTreeProvider(
