@@ -26,7 +26,6 @@ class GraphContextFailureTest {
     )
 
     val message = formatGraphContextFailure(providerFailure)
-    println(message)
 
     assertThat(message).contains(SentryService::class.java.name)
     assertThat(message).contains("cas2SuitabilityContextUpdater")
