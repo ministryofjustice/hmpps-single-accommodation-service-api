@@ -439,3 +439,68 @@ fun expectedAccommodationStatusResponse(
    }
 }
 """.trimMargin()
+fun expectedTransientResponse(
+  crn: String,
+  settledType: CaseAccommodationStatus?,
+  currentCode: String,
+  currentDescription: String,
+) = """
+  {
+   "data":{
+      "caseAccommodationStatus":${settledType?.let { "\"$it\"" }},
+      "caseAccommodationStatusDate": null,
+      "currentAccommodation":{
+         "crn":"$crn",
+         "startDate":"2026-01-11",
+         "endDate":null,
+         "address":{
+            "postcode":"SW1A 1AA",
+            "subBuildingName":null,
+            "buildingName":null,
+            "buildingNumber":"1",
+            "thoroughfareName":"Some Street",
+            "dependentLocality":null,
+            "postTown":"London",
+            "county":null,
+            "country":null,
+            "uprn":null
+         },
+         "status":{
+            "code":"M",
+            "description":"Main"
+         },
+         "type":{
+            "code":"$currentCode",
+            "description":"$currentDescription"
+         },
+         "proposedAccommodationId":null
+      },
+      "nextAccommodation":{
+         "crn":"$crn",
+         "startDate":null,
+         "endDate":null,
+         "address":{
+            "postcode":"SW1A 1AA",
+            "subBuildingName":null,
+            "buildingName":null,
+            "buildingNumber":"1",
+            "thoroughfareName":"Some Street",
+            "dependentLocality":null,
+            "postTown":"London",
+            "county":null,
+            "country":null,
+            "uprn":null
+         },
+         "status":{
+            "code":"PR",
+            "description":"Proposed"
+         },
+         "type":{
+            "code":"A07B",
+            "description":"Living in the home of a friend, family member or partner: settled"
+         },
+         "proposedAccommodationId":null
+      }
+   }
+}
+""".trimMargin()

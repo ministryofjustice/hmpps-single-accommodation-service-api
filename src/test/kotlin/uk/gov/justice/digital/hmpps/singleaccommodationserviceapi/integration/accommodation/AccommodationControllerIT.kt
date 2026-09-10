@@ -50,6 +50,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedNoFixedAbodeResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedRiskOfNoFixedAbodeResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedTransientResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -168,7 +169,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `returns null caseAccommodationStatus when current accommodation is settled and has no next accommodation`() {
+    fun `returns SETTLED caseAccommodationStatus when current accommodation is settled and has no next accommodation`() {
       val corePersonRecord = buildCorePersonRecord(
         identifiers = buildIdentifiers(crns = listOf(crn)),
         addresses = listOf(currentAddress),
@@ -179,11 +180,11 @@ class AccommodationControllerIT : IntegrationTestBase() {
         .withDeliusUserJwt()
         .exchangeSuccessfully()
         .expectBody()
-        .jsonPath("$.data.caseAccommodationStatus").isEmpty
+        .jsonPath("$.data.caseAccommodationStatus").isEqualTo("SETTLED")
     }
 
     @Test
-    fun `should return current and next accommodation and return caseAccommodationStatus as NULL when next accommodation is SETTLED type`() {
+    fun `should return current and next accommodation and return caseAccommodationStatus as SETTLED when next accommodation is SETTLED type`() {
       val accommodationType =
         accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED).first()
       val nextAddress = nextAddress(accommodationType)
@@ -201,7 +202,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
           assertThatJson(it!!).matchesExpectedJson(
             expectedAccommodationStatusResponse(
               crn,
-              settledType = null,
+              settledType = CaseAccommodationStatus.SETTLED,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
             ),
@@ -210,7 +211,47 @@ class AccommodationControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return current and next accommodation and return RISK_OF_NO_FIXED_ABODE when next accommodation is TRANSIENT type`() {
+    fun `should return current and next accommodation and return caseAccommodationStatus as TRANSIENT when current accommodation is TRANSIENT type`() {
+      val accommodationTypeSettled =
+        accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.SETTLED).first()
+      val accommodationTypeTransient =
+        accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT).first()
+      val nextAddress = nextAddress(accommodationTypeSettled)
+      val currentAddress = currentAddress.copy(
+        usages = listOf(
+          CanonicalAddressUsage(
+            usageCode = CanonicalAddressUsageCode(
+              code = accommodationTypeTransient.code,
+              description = accommodationTypeTransient.name,
+            ),
+            isActive = true,
+          ),
+        ),
+      )
+      val corePersonRecord = buildCorePersonRecord(
+        identifiers = buildIdentifiers(crns = listOf(crn)),
+        addresses = listOf(nextAddress, currentAddress),
+      )
+      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+
+      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedTransientResponse(
+              crn,
+              settledType = CaseAccommodationStatus.TRANSIENT,
+              currentCode = accommodationTypeTransient.code,
+              currentDescription = accommodationTypeTransient.name,
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return current and next accommodation and return RISK_OF_NO_FIXED_ABODE when next accommodation is TRANSIENT type with end date`() {
       val accommodationType =
         accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT).first()
       val nextAddress = nextAddress(accommodationType)
@@ -219,6 +260,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
         addresses = listOf(nextAddress, currentAddress),
       )
       CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+      println(nextAddress.endDate)
 
       restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
         .withDeliusUserJwt()

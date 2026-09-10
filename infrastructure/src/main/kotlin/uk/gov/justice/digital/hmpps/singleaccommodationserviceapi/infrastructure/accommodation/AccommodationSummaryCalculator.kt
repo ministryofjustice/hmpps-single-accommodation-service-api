@@ -159,6 +159,9 @@ class AccommodationSummaryCalculator(
 
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
 
+    isTransientType(currentAccommodation) -> CaseAccommodationStatus.TRANSIENT
+    isSettledType(currentAccommodation) -> CaseAccommodationStatus.SETTLED
+
     else -> null
   }
 
