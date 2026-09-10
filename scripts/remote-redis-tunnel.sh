@@ -5,16 +5,15 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/pod-name-utils.sh"
 
 PF_PID=
-CREATED_PORT_FORWARD_POD=0
 
 cleanup() {
   if [ -n "${PF_PID}" ] && kill -0 "${PF_PID}" 2>/dev/null; then
     kill "${PF_PID}" 2>/dev/null
   fi
 
-  if [ "${CREATED_PORT_FORWARD_POD}" -eq 1 ] && [ -n "${PORT_FORWARD_CONTAINER_NAME}" ] && [ -n "${NAMESPACE}" ]; then
+  if [ -n "${PORT_FORWARD_CONTAINER_NAME}" ] && [ -n "${NAMESPACE}" ]; then
     echo "Cleaning up..."
-    kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME" >/dev/null 2>&1
+    kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME" --ignore-not-found >/dev/null 2>&1
   fi
 }
 
@@ -109,7 +108,6 @@ if [ $? -ne 0 ]; then
     --env="LOCAL_PORT=6379"
 
   kubectl wait --for=condition=ready pod/"$PORT_FORWARD_CONTAINER_NAME" -n "$NAMESPACE"
-  CREATED_PORT_FORWARD_POD=1
 fi
 
 echo "Starting port forward..."
@@ -125,6 +123,8 @@ if [ "$START_CLI" -eq 1 ]; then
   if [ -n "${PF_PID}" ] && kill -0 "${PF_PID}" 2>/dev/null; then
     echo "Stopping background port-forward process $PF_PID"
     kill "${PF_PID}" 2>/dev/null
+    wait "${PF_PID}" 2>/dev/null || true
+    PF_PID=
   fi
 else
   kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379"
