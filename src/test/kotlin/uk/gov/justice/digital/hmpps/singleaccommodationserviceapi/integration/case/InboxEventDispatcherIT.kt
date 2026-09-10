@@ -1,26 +1,23 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.InboxAsserter
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -32,9 +29,7 @@ import java.util.UUID
  * - maxEventsPerBatch limits batch size
  */
 
-class InboxEventDispatcherIT : IntegrationTestBase() {
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
+class InboxEventDispatcherIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var inboxEventDispatcher: InboxEventDispatcher
@@ -45,9 +40,6 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
   @Autowired
   lateinit var mockEventHandler: MockInboxEventHandler
 
-  @Autowired
-  lateinit var inboxAsserter: InboxAsserter
-
   private val crn = UUID.randomUUID().toString()
 
   @BeforeEach
@@ -57,12 +49,6 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
     dispatcherConfig.maxConcurrentEvents = 4
     dispatcherConfig.maxEventsPerBatch = 10
     createSasSystemUser()
-  }
-
-  @AfterEach
-  suspend fun teardown() {
-    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
-      ?.let { request -> hmppsQueueService.purgeQueue(request) }
   }
 
   @Test

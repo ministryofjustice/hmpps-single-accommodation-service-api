@@ -1,19 +1,15 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.TierEventHandlerConfig
@@ -23,16 +19,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class TierCalculationChangedIT : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
-
-  @Autowired
-  lateinit var caseRepository: CaseRepository
-
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
+class TierCalculationChangedIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var tierEventHandlerConfig: TierEventHandlerConfig
@@ -49,12 +36,6 @@ class TierCalculationChangedIT : IntegrationTestBase() {
     HmppsAuthStubs.stubGrantToken()
     databaseUtils.truncate(*DatabaseUtils.SasTables.entries.toTypedArray())
     createSasSystemUser()
-  }
-
-  @AfterEach
-  suspend fun teardown() {
-    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
-      ?.let { request -> hmppsQueueService.purgeQueue(request) }
   }
 
   @Test

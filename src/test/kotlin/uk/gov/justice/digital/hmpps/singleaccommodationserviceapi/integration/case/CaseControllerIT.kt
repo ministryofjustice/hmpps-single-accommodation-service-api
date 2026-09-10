@@ -87,9 +87,6 @@ class CaseControllerIT : IntegrationTestBase() {
   private lateinit var pageSize: String
 
   @Autowired
-  private lateinit var caseRepository: CaseRepository
-
-  @Autowired
   private lateinit var caseQueryService: CaseQueryService
 
   private val crns = (1..20).map { "FAKECRN$it" }
@@ -110,12 +107,6 @@ class CaseControllerIT : IntegrationTestBase() {
     val tier = buildTier()
     TierStubs.getTierOKResponse(crns[0], tier)
     TierStubs.getTierOKResponse(crns[1], tier)
-  }
-
-  @AfterEach
-  suspend fun teardown() {
-    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
-      ?.let { request -> hmppsQueueService.purgeQueue(request) }
   }
 
   @AfterEach
