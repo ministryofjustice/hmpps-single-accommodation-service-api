@@ -14,6 +14,7 @@ class DatabaseUtils(
     SAS_CASE("sas_case"),
     SAS_USER("sas_user"),
     DUTY_TO_REFER("duty_to_refer"),
+    OTHER_ACCOMMODATION_REFERRAL("other_accommodation_referral"),
     INBOX_EVENT("inbox_event"),
     OUTBOX_EVENT("outbox_event"),
     PROPOSED_ACCOMMODATION("proposed_accommodation"),
