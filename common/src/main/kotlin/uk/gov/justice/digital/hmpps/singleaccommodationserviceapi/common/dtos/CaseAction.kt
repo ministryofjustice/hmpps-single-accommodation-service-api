@@ -5,6 +5,7 @@ import java.time.LocalDate
 data class CaseAction(
   val type: CaseActionType,
   val startDate: LocalDate? = null,
+  val service: AccommodationService,
 )
 
 enum class CaseActionType {

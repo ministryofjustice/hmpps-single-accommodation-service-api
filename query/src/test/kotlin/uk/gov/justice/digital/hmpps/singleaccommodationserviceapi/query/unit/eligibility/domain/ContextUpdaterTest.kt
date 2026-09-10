@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
@@ -18,7 +19,7 @@ class ContextUpdaterTest {
     data = buildDomainData(),
     currentResult = buildServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION),
+      action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, service = AccommodationService.CAS1),
     ),
   )
 

@@ -132,7 +132,8 @@ fun expectedGetEligibilityResponse(
         "serviceStatus": "NOT_STARTED",
         "action": {
           "type": "START_CAS2_APPLICATION",
-          "startDate": null
+          "startDate": null,
+          "service": "CAS2"
         },
         "link": "Start application",
         "url": null,
@@ -189,7 +190,7 @@ fun expectedGetEligibilityResponse(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -241,7 +242,7 @@ fun expectedGetEligibilityResponse(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }
@@ -415,7 +416,8 @@ fun expectedGetEligibilityResponseTierNotFound(
         "serviceStatus": "NOT_STARTED",
         "action": {
           "type": "START_CAS2_APPLICATION",
-          "startDate": null
+          "startDate": null,
+          "service": "CAS2"
         },
         "link": "Start application",
         "url": null,
@@ -456,7 +458,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -511,7 +513,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }
@@ -577,7 +579,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "serviceStatus": "NOT_STARTED",
         "action": {
           "type": "START_CAS2_APPLICATION",
-          "startDate": null
+          "startDate": null,
+          "service": "CAS2"
         },
         "link": "Start application",
         "url": null,
@@ -618,7 +621,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"SUBMITTED",
-            "action":{"type":"ADD_DTR_OUTCOME","startDate":null},
+            "action":{"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
             "link":"Add outcome",
             "url":null,
             "linkType":null,
@@ -672,7 +675,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }
@@ -705,7 +708,8 @@ fun expectedGetEligibilityResponseCannotStartYet(
           "serviceStatus": "NOT_STARTED",
           "action": {
             "type": "START_CAS2_APPLICATION",
-            "startDate": null
+            "startDate": null,
+            "service": "CAS2"
           },
           "link": "Start application",
           "url": null,
@@ -748,7 +752,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       "dtr":{
          "serviceResult":{
             "serviceStatus":"NOT_STARTED",
-            "action":{"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
+            "action":{"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null, "service": "DTR"},
             "link":"Add referral details",
             "url":null,
             "linkType":null,
@@ -776,7 +780,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       "pa":{
          "serviceResult":{
             "serviceStatus":"NOT_STARTED",
-            "action":{"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null},
+            "action":{"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null, "service": "PA"},
             "link":null,
             "url":null,
             "linkType":null,
@@ -785,8 +789,8 @@ fun expectedGetEligibilityResponseCannotStartYet(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null},
-         {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null}
+         {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null, "service": "DTR"},
+         {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null, "service": "PA"}
       ]
    }
 }
