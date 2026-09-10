@@ -242,7 +242,10 @@ else
       "SET default_transaction_read_only = TRUE ;"
 
     echo "Stopping background port forward process $PORT_FORWARD_PID"
-    cleanup
+    if [ -n "${PORT_FORWARD_PID}" ] && kill -0 "${PORT_FORWARD_PID}" 2>/dev/null; then
+      kill "${PORT_FORWARD_PID}" 2>/dev/null
+      wait "${PORT_FORWARD_PID}" 2>/dev/null || true
+    fi
     PORT_FORWARD_PID=
 fi
 

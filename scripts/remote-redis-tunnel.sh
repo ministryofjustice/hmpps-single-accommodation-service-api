@@ -127,7 +127,9 @@ if [ "$START_CLI" -eq 1 ]; then
     PF_PID=
   fi
 else
-  kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379"
+  kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379" &
+  PF_PID=$!
+  sleep 2
 
   echo
   echo "Connect with:"
