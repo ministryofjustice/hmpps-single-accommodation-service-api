@@ -17,7 +17,7 @@ class CaseCreationService(
   private val caseRepository: CaseRepository,
   private val caseMapper: CaseMapper,
   private val entityManager: EntityManager,
-  @param:Value($$"${case-list.v2-enabled:false}") val caseListV2Enabled: Boolean,
+  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)

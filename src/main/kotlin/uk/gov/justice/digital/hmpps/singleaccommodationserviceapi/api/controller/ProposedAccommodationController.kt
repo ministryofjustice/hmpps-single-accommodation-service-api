@@ -36,7 +36,7 @@ class ProposedAccommodationController(
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
   private val accommodationSyncService: AccommodationSyncService,
-  @param:Value($$"${case-list.v2-enabled:false}") val caseListV2Enabled: Boolean,
+  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
