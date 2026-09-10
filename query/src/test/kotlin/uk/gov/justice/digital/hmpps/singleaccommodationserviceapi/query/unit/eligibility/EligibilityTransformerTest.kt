@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
@@ -327,9 +328,9 @@ class EligibilityTransformerTest {
       serviceStatus = ServiceStatus.SUBMITTED,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
-    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION)
-    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION)
-    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME)
+    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, service = AccommodationService.CAS2)
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR)
     val cas1 = buildServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
       action = cas1Action,
@@ -406,12 +407,12 @@ class EligibilityTransformerTest {
 
   @Test
   fun `sorts case actions by soonest start date first, with undated actions last`() {
-    val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1))
-    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, startDate = LocalDate.of(2025, 4, 1))
-    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8))
-    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3))
-    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null)
-    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null)
+    val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1), service = AccommodationService.CAS1)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, startDate = LocalDate.of(2025, 4, 1), service = AccommodationService.CAS2)
+    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8), service = AccommodationService.CRS)
+    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3), service = AccommodationService.CAS3)
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null, service = AccommodationService.DTR)
+    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = AccommodationService.PA)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
@@ -434,7 +435,7 @@ class EligibilityTransformerTest {
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
       serviceStatus = serviceStatus,
-      action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS),
+      action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS, service = AccommodationService.DTR),
       link = EligibilityKeys.ADD_REFERRAL_DETAILS,
     )
 
@@ -482,7 +483,7 @@ class EligibilityTransformerTest {
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResult(
       serviceStatus = serviceStatus,
-      action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL),
+      action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS),
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
 
@@ -551,7 +552,7 @@ class EligibilityTransformerTest {
 
   @Test
   fun `does not include null actions when building case actions`() {
-    val actionablePaAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS)
+    val actionablePaAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, service = AccommodationService.PA)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
