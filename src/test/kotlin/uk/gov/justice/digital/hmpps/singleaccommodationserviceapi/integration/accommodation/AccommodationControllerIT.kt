@@ -260,7 +260,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
         addresses = listOf(nextAddress, currentAddress),
       )
       CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-      println(nextAddress.endDate)
 
       restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
         .withDeliusUserJwt()
