@@ -34,7 +34,7 @@ class Cas2UpcomingContextUpdaterTest {
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
           action = CaseAction(
-            type = CaseActionType.START_CAS2_APPLICATION,
+            type = CaseActionType.START_CAS2_REFERRAL,
             startDate = endDate.minusYears(1),
           ),
         ),

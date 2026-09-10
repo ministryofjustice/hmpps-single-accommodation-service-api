@@ -3,22 +3,20 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import java.util.UUID
 
-class Cas2ApplicationCompletionRuleTest {
-  private val description = "FAIL if application is not complete"
+class Cas2ApplicationAwaitingArrivalRuleTest {
+  private val description = "FAIL if application is awaiting arrival"
 
   @Test
   fun `application is complete so rule passes`() {
     val cas2Application = buildCas2Application(
-      application = buildCas2ApplicationSummary(
-        id = UUID.randomUUID(),
-        status = "COMPLETED",
+      submittedApplication = buildCas2SubmittedApplicationSummary(
+        latestAssessmentStatus = "awaitingArrival",
       ),
     )
 
@@ -26,7 +24,7 @@ class Cas2ApplicationCompletionRuleTest {
       cas2Application = cas2Application,
     )
 
-    val result = Cas2ApplicationCompletionRule().evaluate(data)
+    val result = Cas2ApplicationAwaitingArrivalRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -39,9 +37,8 @@ class Cas2ApplicationCompletionRuleTest {
   @Test
   fun `application not completed so rule fails`() {
     val cas2Application = buildCas2Application(
-      application = buildCas2ApplicationSummary(
-        status = "STARTED",
-        id = UUID.randomUUID(),
+      submittedApplication = buildCas2SubmittedApplicationSummary(
+        latestAssessmentStatus = "STARTED",
       ),
     )
 
@@ -49,7 +46,7 @@ class Cas2ApplicationCompletionRuleTest {
       cas2Application = cas2Application,
     )
 
-    val result = Cas2ApplicationCompletionRule().evaluate(data)
+    val result = Cas2ApplicationAwaitingArrivalRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(

@@ -14,7 +14,7 @@ class Cas2UpcomingContextUpdater : ContextUpdater() {
   override fun toServiceResult(context: EvaluationContext) = ServiceResult(
     serviceStatus = ServiceStatus.UPCOMING,
     action = CaseAction(
-      type = CaseActionType.START_CAS2_APPLICATION,
+      type = CaseActionType.START_CAS2_REFERRAL,
       startDate = context.data.currentAccommodation!!.endDate!!.minusYears(1),
     ),
   )

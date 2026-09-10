@@ -1,21 +1,24 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
+import java.time.OffsetDateTime
 import java.util.UUID
 
 fun buildCas2ApplicationDto(
-  application: Cas2ApplicationSummaryDto = buildCas2ApplicationSummaryDto(),
-  uiUrl: String = "https://cas2-ui/applications/${application.id}",
+  submittedApplication: Cas2SubmittedApplicationSummaryDto? = null,
+  id: UUID = UUID.randomUUID(),
+  uiUrl: String = "https://cas2-ui/applications/$id",
 ) = Cas2ApplicationDto(
   uiUrl = uiUrl,
-  application = application,
+  id = id,
+  submittedApplication = submittedApplication,
 )
 
 fun buildCas2ApplicationSummaryDto(
-  id: UUID = UUID.randomUUID(),
-  status: String = "STARTED",
-) = Cas2ApplicationSummaryDto(
-  id = id,
-  status = status,
+  latestAssessmentStatus: String? = null,
+  submittedAt: OffsetDateTime = OffsetDateTime.now(),
+) = Cas2SubmittedApplicationSummaryDto(
+  submittedAt = submittedAt,
+  latestAssessmentStatus = latestAssessmentStatus,
 )
