@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
     val result = bootAndGenerate()
     writeGenerationResult(result, target)
   } catch (ex: GraphContextStartupException) {
-    System.err.println("Failed to start Spring context:\n ${ex.message}")
+    System.err.println(ex.message)
     exitProcess(1)
   }
 }

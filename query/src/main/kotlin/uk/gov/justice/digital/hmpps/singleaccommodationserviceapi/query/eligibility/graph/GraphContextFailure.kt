@@ -14,7 +14,7 @@ fun formatGraphContextFailure(error: Throwable): String {
 
   val root = generateSequence(error) { it.cause }.last()
   return buildString {
-    appendLine("Could not start the eligibility rules graph generator.")
+    appendLine(RED.wrap("Could not start the eligibility rules graph generator."))
     appendLine()
     appendLine("${root::class.java.simpleName}: ${root.message}")
     appendLine()
@@ -28,18 +28,30 @@ private fun formatMissingBean(error: Throwable, missing: NoSuchBeanDefinitionExc
     ?: error.findCause<BeanCreationException>()?.beanName
 
   return buildString {
-    appendLine("Could not start the eligibility rules graph generator.")
+    appendLine(RED.wrap("Could not start the eligibility rules graph generator."))
     appendLine()
-    appendLine("A scanned eligibility component needs a Spring bean that this standalone task does not provide:")
+    appendLine(YELLOW.wrap("A scanned eligibility component needs a Spring bean that this standalone task does not provide:"))
     appendLine()
-    appendLine("  missing bean : $missingType")
+    appendLine(YELLOW.wrap("  missing bean : $missingType"))
     if (requiredBy != null) {
-      appendLine("  required by  : $requiredBy")
+      appendLine(YELLOW.wrap("  required by  : $requiredBy"))
     }
     appendLine()
-    append(FIX_HINT)
+    append(YELLOW.wrap(FIX_HINT))
   }
 }
+
+private object RED {
+  private const val CODE = "\u001B[31m"
+  fun wrap(value: String) = "$CODE$value$RESET"
+}
+
+private object YELLOW {
+  private const val CODE = "\u001B[33m"
+  fun wrap(value: String) = "$CODE$value$RESET"
+}
+
+private const val RESET = "\u001B[0m"
 
 private val FIX_HINT = """
   This task only loads EligibilityRulesGraphConfiguration, not the full application.
