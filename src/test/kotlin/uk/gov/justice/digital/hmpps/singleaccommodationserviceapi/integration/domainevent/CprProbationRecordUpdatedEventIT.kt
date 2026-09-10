@@ -3,35 +3,22 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.d
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class CprProbationRecordUpdatedEventIT : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
-
-  @Autowired
-  lateinit var caseRepository: CaseRepository
-
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
+class CprProbationRecordUpdatedEventIT : DomainEventIntegrationTestBase() {
 
   lateinit var crn: String
   private val eventType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED.typeName
-  private fun eventDetailUrl() = "localhost"
+  private val eventDetailUrl = "localhost"
 
   @BeforeEach
   fun setup() {
@@ -48,11 +35,11 @@ class CprProbationRecordUpdatedEventIT : IntegrationTestBase() {
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
       crn = crn,
-      detailUrl = eventDetailUrl(),
+      detailUrl = eventDetailUrl,
     )
 
     testInboxEventHelper.assertMessageProcessed()
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.PROCESSED)
+    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl, ProcessedStatus.PROCESSED)
 
     waitFor { assertThat(caseRefreshRequestRepository.findAll()).hasSize(1) }
   }
@@ -65,7 +52,7 @@ class CprProbationRecordUpdatedEventIT : IntegrationTestBase() {
       testInboxEventHelper.publish(
         messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
         crn = crn,
-        detailUrl = eventDetailUrl(),
+        detailUrl = eventDetailUrl,
       )
     }
 
@@ -83,10 +70,10 @@ class CprProbationRecordUpdatedEventIT : IntegrationTestBase() {
     testInboxEventHelper.publish(
       messageType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
       crn = crn,
-      detailUrl = eventDetailUrl(),
+      detailUrl = eventDetailUrl,
     )
 
-    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl(), ProcessedStatus.IGNORED)
+    testInboxEventHelper.assertInboxEvent(crn, eventType, eventDetailUrl, ProcessedStatus.IGNORED)
     assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
   }
 }
