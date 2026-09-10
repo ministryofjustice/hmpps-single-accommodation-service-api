@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
+import org.springframework.beans.BeansException
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import java.nio.file.Files
@@ -13,18 +14,25 @@ fun main(args: Array<String>) {
   }
   val target = Path.of(args[0])
 
-  val result = bootAndGenerate()
-  writeGenerationResult(result, target)
+  try {
+    val result = bootAndGenerate()
+    writeGenerationResult(result, target)
+  } catch (ex: GraphContextStartupException) {
+    System.err.println("Failed to start Spring context:\n ${ex.message}")
+    exitProcess(1)
+  }
 }
 
 fun bootAndGenerate(): GenerationResult {
   val context = AnnotationConfigApplicationContext()
   context.environment.setActiveProfiles(ELIGIBILITY_GRAPH_PROFILE)
   context.register(EligibilityRulesGraphConfiguration::class.java)
-  context.refresh()
   try {
+    context.refresh()
     val providers = context.getBeansOfType(EligibilityTreeProvider::class.java).values
     return EligibilityRulesGraphGenerator.generate(providers)
+  } catch (ex: BeansException) {
+    throw GraphContextStartupException(formatGraphContextFailure(ex), ex)
   } finally {
     context.close()
   }
