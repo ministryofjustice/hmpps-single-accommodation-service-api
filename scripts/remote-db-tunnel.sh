@@ -5,10 +5,16 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/pod-name-utils.sh"
 
 PORT_FORWARD_PID=
+CREATED_PORT_FORWARD_POD=0
 
 cleanup() {
   if [ -n "${PORT_FORWARD_PID}" ] && kill -0 "${PORT_FORWARD_PID}" 2>/dev/null; then
     kill "${PORT_FORWARD_PID}" 2>/dev/null
+  fi
+
+  if [ "${CREATED_PORT_FORWARD_POD}" -eq 1 ] && [ -n "${PORT_FORWARD_CONTAINER_NAME}" ] && [ -n "${NAMESPACE}" ]; then
+    echo "Deleting pod $PORT_FORWARD_CONTAINER_NAME. This may take a few seconds."
+    kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME" >/dev/null 2>&1
   fi
 }
 
@@ -122,9 +128,7 @@ then
 fi
 
 # Normalize to a DNS-1123-compatible Kubernetes pod name.
-PORT_FORWARD_CONTAINER_NAME=$(normalize_pod_name "$PORT_FORWARD_CONTAINER_NAME")
-
-if [ -z "${PORT_FORWARD_CONTAINER_NAME}" ]
+if ! PORT_FORWARD_CONTAINER_NAME=$(normalize_pod_name "$PORT_FORWARD_CONTAINER_NAME")
 then
   exit 1
 fi
@@ -164,6 +168,7 @@ then
         --env="LOCAL_PORT=$PORT" \
         --env="REMOTE_PORT=$PORT"
     kubectl wait --for=condition=ready pod/$PORT_FORWARD_CONTAINER_NAME -n "$NAMESPACE"
+    CREATED_PORT_FORWARD_POD=1
     echo "Port-forward pod $PORT_FORWARD_CONTAINER_NAME created!"
 else
     echo "Port-forward pod already exists"
@@ -243,5 +248,3 @@ else
     PORT_FORWARD_PID=
 fi
 
-echo "Deleting pod $PORT_FORWARD_CONTAINER_NAME. This may take a few seconds."
-kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME"

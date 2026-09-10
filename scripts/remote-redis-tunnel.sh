@@ -5,10 +5,16 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/pod-name-utils.sh"
 
 PF_PID=
+CREATED_PORT_FORWARD_POD=0
 
 cleanup() {
   if [ -n "${PF_PID}" ] && kill -0 "${PF_PID}" 2>/dev/null; then
     kill "${PF_PID}" 2>/dev/null
+  fi
+
+  if [ "${CREATED_PORT_FORWARD_POD}" -eq 1 ] && [ -n "${PORT_FORWARD_CONTAINER_NAME}" ] && [ -n "${NAMESPACE}" ]; then
+    echo "Cleaning up..."
+    kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME" >/dev/null 2>&1
   fi
 }
 
@@ -29,15 +35,13 @@ print_usage() {
 
 LOCAL_PORT=6379
 REDIS_SECRET_NAME=
-PORT_FORWARD_CONTAINER_NAME=$(normalize_pod_name "sas-redis-port-forward-${USER:-unknown}")
-IMAGE="ministryofjustice/port-forward"
-DISPLAY_CREDS=0
-START_CLI=0
-
-if [ -z "${PORT_FORWARD_CONTAINER_NAME}" ]
+if ! PORT_FORWARD_CONTAINER_NAME=$(normalize_pod_name "sas-redis-port-forward-${USER:-unknown}")
 then
   exit 1
 fi
+IMAGE="ministryofjustice/port-forward"
+DISPLAY_CREDS=0
+START_CLI=0
 
 while getopts "dcs:" flag; do
   case "$flag" in
@@ -105,6 +109,7 @@ if [ $? -ne 0 ]; then
     --env="LOCAL_PORT=6379"
 
   kubectl wait --for=condition=ready pod/"$PORT_FORWARD_CONTAINER_NAME" -n "$NAMESPACE"
+  CREATED_PORT_FORWARD_POD=1
 fi
 
 echo "Starting port forward..."
@@ -116,6 +121,11 @@ if [ "$START_CLI" -eq 1 ]; then
 
   echo "Launching redis-cli..."
   redis-cli -h 127.0.0.1 -p "$LOCAL_PORT" --tls -a "$REDIS_AUTH_TOKEN"
+
+  if [ -n "${PF_PID}" ] && kill -0 "${PF_PID}" 2>/dev/null; then
+    echo "Stopping background port-forward process $PF_PID"
+    kill "${PF_PID}" 2>/dev/null
+  fi
 else
   kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379"
 
@@ -125,7 +135,6 @@ else
   echo
 fi
 
-wait $PF_PID
-
-echo "Cleaning up..."
-kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME"
+if [ -n "${PF_PID}" ]; then
+  wait "$PF_PID"
+fi

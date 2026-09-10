@@ -9,7 +9,7 @@ normalize_pod_name() {
   normalized=${normalized%-}
 
   if [ -z "${normalized}" ]; then
-    echo "Unable to derive a valid port-forward pod name from input: '$raw_name'"
+    echo "Unable to derive a valid port-forward pod name from input: '$raw_name'" >&2
     return 1
   fi
 
