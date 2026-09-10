@@ -45,7 +45,8 @@ hmpps.sqs:
             "probation-case.registration.added",
             "probation-case.registration.deleted",
             "probation-case.registration.deregistered",
-            "probation-case.registration.updated"
+            "probation-case.registration.updated",
+            "offender-management.allocation.changed"
           ]
         }
 spring:
