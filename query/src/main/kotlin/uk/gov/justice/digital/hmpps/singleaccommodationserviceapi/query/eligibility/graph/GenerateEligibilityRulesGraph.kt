@@ -19,6 +19,7 @@ fun main(args: Array<String>) {
 
 fun bootAndGenerate(): GenerationResult {
   val context = AnnotationConfigApplicationContext()
+  context.environment.setActiveProfiles(ELIGIBILITY_GRAPH_PROFILE)
   context.register(EligibilityRulesGraphConfiguration::class.java)
   context.refresh()
   try {

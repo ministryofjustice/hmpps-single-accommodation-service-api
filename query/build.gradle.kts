@@ -22,5 +22,6 @@ tasks.register<JavaExec>("generateEligibilityRulesGraph") {
     "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GenerateEligibilityRulesGraphKt",
   )
   args(rootProject.projectDir.resolve("docs/eligibility-rules-graph.md").absolutePath)
+  systemProperty("spring.profiles.active", "eligibility-graph")
   dependsOn(tasks.named("classes"))
 }
