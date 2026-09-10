@@ -1,6 +1,18 @@
 #!/bin/bash
 
-trap "pkill -f 'port-forward'" EXIT
+# so the script runs from directory
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "$SCRIPT_DIR/pod-name-utils.sh"
+
+PORT_FORWARD_PID=
+
+cleanup() {
+  if [ -n "${PORT_FORWARD_PID}" ] && kill -0 "${PORT_FORWARD_PID}" 2>/dev/null; then
+    kill "${PORT_FORWARD_PID}" 2>/dev/null
+  fi
+}
+
+trap cleanup EXIT
 
 NAMESPACE=
 PORT=
@@ -9,7 +21,6 @@ PORT_FORWARD_CONTAINER_NAME=
 IMAGE=
 DISPLAY_CREDS=0
 CLI=0
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 while getopts "dcp:s:n:i:" flag; do
     case "$flag" in
@@ -61,7 +72,7 @@ if [ -z "$ENV" ] || { [ "$ENV" != "dev" ] && [ "$ENV" != "test" ] && [ "$ENV" !=
   echo ""
   echo "Description:"
   echo ""
-  echo "    To connect to a remove database port forwarding must be used, as per guidance available from "
+  echo "    To connect to a remote database, port forwarding must be used, as per guidance available from "
   echo "    https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html"
   echo ""
   echo "    This script will"
@@ -70,12 +81,13 @@ if [ -z "$ENV" ] || { [ "$ENV" != "dev" ] && [ "$ENV" != "test" ] && [ "$ENV" !=
   echo "    2) Setup local port forwarding"
   echo "    3) Optionally output connection details, including credentials"
   echo "    4) Optionally setup a CLI SQL Client (jaqy) automatically connecting to the POD"
-  echo "    5) Destroy the port forwarding pod on completion"
+  echo "    5) Delete the port forwarding pod on completion"
   echo "    "
   echo "    It's recommended that an environment variable named 'CAS_PORT_FORWARD_CONTAINER_NAME' is"
-  echo "    setup to provide the default port froward port name. This should be unique for each user"
-  echo "    (e.g. port-forward-pod-{initials}) because each pod can only be used for one port forward"
-  echo "    session at a time"
+  echo "    set to provide the default port-forward pod name. This should be unique for each user"
+  echo "    (e.g. port-forward-pod-{initials}) because each pod can only be used for one port-forward"
+  echo "    session at a time. If you do not provide one, a pod name will be derived from your local username."
+  echo "    Default generated pod names are prefixed with 'sas-'."
   echo ""
   echo "    The options are as follows. All options must precede the environment argument"
   echo ""
@@ -89,7 +101,7 @@ if [ -z "$ENV" ] || { [ "$ENV" != "dev" ] && [ "$ENV" != "test" ] && [ "$ENV" !=
   echo ""
   echo "    -p    Port used for local and remote forwarding. Defaults to 5432"
   echo ""
-  echo "    -s    Name of secret used to retrieve RDS connection details. Defaults to rds-postgresql-instance-output"
+  echo "    -s    Name of secret used to retrieve RDS connection details. Defaults to single-accommodation-service-rds-instance-output"
   echo ""
   exit 1
 fi
@@ -103,10 +115,18 @@ if [ -z "${PORT_FORWARD_CONTAINER_NAME}" ]
 then
   if [ -z "${CAS_PORT_FORWARD_CONTAINER_NAME}" ]
   then
-    PORT_FORWARD_CONTAINER_NAME='sas-port-forward-pod'
+    PORT_FORWARD_CONTAINER_NAME="sas-port-forward-pod-${USER:-user}"
   else
     PORT_FORWARD_CONTAINER_NAME="sas-${CAS_PORT_FORWARD_CONTAINER_NAME}"
   fi
+fi
+
+# Normalize to a DNS-1123-compatible Kubernetes pod name.
+PORT_FORWARD_CONTAINER_NAME=$(normalize_pod_name "$PORT_FORWARD_CONTAINER_NAME")
+
+if [ -z "${PORT_FORWARD_CONTAINER_NAME}" ]
+then
+  exit 1
 fi
 
 echo "---------------------------------------------------------------"
@@ -165,15 +185,15 @@ fi
 
 if [ $CLI -eq 0 ]
 then
-    echo "Forwarding port. Use ctl-c to close port forwarding"
+    echo "Forwarding port. Use Ctrl-C to close port forwarding"
     kubectl -n "$NAMESPACE" port-forward $PORT_FORWARD_CONTAINER_NAME $PORT:$PORT
 else
-    # This is ran in the background so we can start the cli
+    # This runs in the background so we can start the CLI
     # we use trap at the top of this script to kill it on exit
     kubectl -n "$NAMESPACE" port-forward $PORT_FORWARD_CONTAINER_NAME $PORT:$PORT &
 
-    port_forward_pid=$!
-    echo "Port forward pid is $port_forward_pid"
+    PORT_FORWARD_PID=$!
+    echo "Port forward pid is $PORT_FORWARD_PID"
 
     echo "Port forwarding setup. Now starting CLI"
 
@@ -193,7 +213,7 @@ else
     postgres_driver_path="$bin_dir/postgresql-42.7.3.jar"
 
     if [ ! -f "$jaqy_path" ]; then
-        echo "Downloading jacqy to $jaqy_path"
+        echo "Downloading jaqy to $jaqy_path"
        curl -L $JAQY_URL --output "$jaqy_path"
     fi
 
@@ -218,8 +238,9 @@ else
       .open -u "$database_username" -p "$database_password" postgresql://localhost:$PORT/"$database_name" \; \
       "SET default_transaction_read_only = TRUE ;"
 
-    echo "Killing backgrounded port forward process $port_forward_pid"
-    (kill -9 $port_forward_pid) 2>/dev/null
+    echo "Stopping background port forward process $PORT_FORWARD_PID"
+    cleanup
+    PORT_FORWARD_PID=
 fi
 
 echo "Deleting pod $PORT_FORWARD_CONTAINER_NAME. This may take a few seconds."
