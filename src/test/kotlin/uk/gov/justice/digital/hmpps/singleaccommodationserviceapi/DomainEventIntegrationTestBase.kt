@@ -43,6 +43,10 @@ abstract class DomainEventIntegrationTestBase : IntegrationTestBase() {
   suspend fun reset() {
     hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
       ?.let { request -> hmppsQueueService.purgeQueue(request) }
+    hmppsQueueService.findQueueToPurge("test-domain-events-queue")
+      ?.let { request -> hmppsQueueService.purgeQueue(request) }
+
+    testSqsDomainEventListener.clearMessages()
 
     databaseUtils.truncate(
       DatabaseUtils.SasTables.INBOX_EVENT,
