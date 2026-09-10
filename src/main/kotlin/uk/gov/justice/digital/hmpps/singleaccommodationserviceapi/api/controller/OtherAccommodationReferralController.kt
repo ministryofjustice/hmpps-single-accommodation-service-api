@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.OtherAccommodationReferralApplicationService
+import java.util.UUID
 
 @RestController
 class OtherAccommodationReferralController(
@@ -26,5 +28,17 @@ class OtherAccommodationReferralController(
   ): ResponseEntity<OtherAccommodationReferralDto> {
     val created = otherAccommodationReferralApplicationService.createOtherAccommodationReferral(crn, command)
     return ResponseEntity(created, HttpStatus.CREATED)
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @PostMapping("/cases/{crn}/other-accommodation-referral/{id}/notes")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun createNote(
+    @PathVariable crn: String,
+    @PathVariable id: UUID,
+    @RequestBody request: NoteCommand,
+  ): ResponseEntity<Void> {
+    otherAccommodationReferralApplicationService.createOtherAccommodationReferralNote(crn, id, request)
+    return ResponseEntity(HttpStatus.CREATED)
   }
 }

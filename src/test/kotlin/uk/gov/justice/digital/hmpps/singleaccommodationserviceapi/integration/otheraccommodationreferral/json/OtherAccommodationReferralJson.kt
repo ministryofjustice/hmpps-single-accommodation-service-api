@@ -76,3 +76,9 @@ fun expectedOtherAccommodationReferralResponseBody(
   }
 }
 """.trimIndent()
+
+fun otherAccommodationReferralNoteRequestBody(note: String): String = """
+  {
+    "note" : "$note"
+  }
+""".trimIndent()
