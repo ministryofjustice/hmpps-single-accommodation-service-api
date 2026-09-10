@@ -50,7 +50,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedGetNextAccommodationsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedNoFixedAbodeResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedRiskOfNoFixedAbodeResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.accommodation.json.expectedTransientResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -203,6 +202,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
             expectedAccommodationStatusResponse(
               crn,
               settledType = CaseAccommodationStatus.SETTLED,
+              currentCode = currentAddress.usages.first().usageCode.code!!,
+              currentDescription = currentAddress.usages.first().usageCode.description!!,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
             ),
@@ -240,18 +241,20 @@ class AccommodationControllerIT : IntegrationTestBase() {
         .expectBody<String>()
         .value {
           assertThatJson(it!!).matchesExpectedJson(
-            expectedTransientResponse(
+            expectedAccommodationStatusResponse(
               crn,
               settledType = CaseAccommodationStatus.TRANSIENT,
               currentCode = accommodationTypeTransient.code,
               currentDescription = accommodationTypeTransient.name,
+              nextCode = accommodationTypeSettled.code,
+              nextDescription = accommodationTypeSettled.name,
             ),
           )
         }
     }
 
     @Test
-    fun `should return current and next accommodation and return RISK_OF_NO_FIXED_ABODE when next accommodation is TRANSIENT type with end date`() {
+    fun `should return current and next accommodation and return RISK_OF_NO_FIXED_ABODE when next accommodation is TRANSIENT type`() {
       val accommodationType =
         accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT).first()
       val nextAddress = nextAddress(accommodationType)
@@ -270,6 +273,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
             expectedAccommodationStatusResponse(
               crn,
               settledType = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              currentCode = currentAddress.usages.first().usageCode.code!!,
+              currentDescription = currentAddress.usages.first().usageCode.description!!,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
             ),
