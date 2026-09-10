@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -36,6 +37,7 @@ class DtrUpcomingContextUpdaterTest {
           action = CaseAction(
             type = CaseActionType.SUBMIT_DTR_REFERRAL,
             startDate = endDate.minusWeeks(8),
+            service = AccommodationService.DTR,
           ),
         ),
       )

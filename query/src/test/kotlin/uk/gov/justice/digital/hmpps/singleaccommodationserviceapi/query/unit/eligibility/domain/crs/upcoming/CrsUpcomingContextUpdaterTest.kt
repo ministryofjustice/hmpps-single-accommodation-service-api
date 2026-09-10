@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -38,6 +39,7 @@ class CrsUpcomingContextUpdaterTest {
           action = CaseAction(
             type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
             startDate = endDate.minusWeeks(12),
+            service = AccommodationService.CRS,
           ),
         ),
       )
@@ -66,6 +68,7 @@ class CrsUpcomingContextUpdaterTest {
           action = CaseAction(
             type = CaseActionType.SUBMIT_CRS_REFERRAL,
             startDate = endDate.minusWeeks(12),
+            service = AccommodationService.CRS,
           ),
         ),
       )

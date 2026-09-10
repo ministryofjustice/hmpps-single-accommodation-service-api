@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
@@ -15,7 +16,7 @@ class Cas2SuitabilityContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext) = ServiceResult(
     serviceStatus = ServiceStatus.NOT_STARTED,
-    action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION),
+    action = CaseAction(type = CaseActionType.START_CAS2_APPLICATION, service = AccommodationService.CAS2),
     link = EligibilityKeys.START_APPLICATION,
     linkType = LinkType.CAS2_START_APPLICATION,
   )

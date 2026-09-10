@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.upcoming
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -17,6 +18,7 @@ class CrsUpcomingContextUpdater : ContextUpdater() {
     action = CaseAction(
       type = if (context.data.sex == SexCode.M) CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL else CaseActionType.SUBMIT_CRS_REFERRAL,
       startDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(12),
+      service = AccommodationService.CRS,
     ),
   )
 }
