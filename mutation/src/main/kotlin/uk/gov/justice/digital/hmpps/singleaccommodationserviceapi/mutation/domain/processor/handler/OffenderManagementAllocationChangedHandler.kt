@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 
 @Component
 class OffenderManagementAllocationChangedHandler(
-  private val caseApplicationService: CaseApplicationService,
+  private val caseCreationService: CaseCreationService,
   private val inboxEventHelper: InboxEventHelper,
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
@@ -61,7 +61,7 @@ class OffenderManagementAllocationChangedHandler(
       require(identifiers?.crns?.size == 1) { "This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber]." }
 
       val crn = identifiers.crns.single()
-      caseApplicationService.upsertCase(crn, prisonNumber)
+      caseCreationService.upsertCase(crn, prisonNumber)
       return InboxEventHandler.Result.PROCESSED
     }
     return InboxEventHandler.Result.IGNORED
