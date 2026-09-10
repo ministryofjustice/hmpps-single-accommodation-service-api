@@ -41,18 +41,18 @@ private fun formatMissingBean(error: Throwable, missing: NoSuchBeanDefinitionExc
   }
 }
 
+private const val RESET = "\u001B[0m"
+private val USE_ANSI = System.console() != null && System.getenv("NO_COLOR") == null
+
 private object RED {
   private const val CODE = "\u001B[31m"
-  fun wrap(value: String) = "$CODE$value$RESET"
+  fun wrap(value: String) = if (USE_ANSI) "$CODE$value$RESET" else value
 }
 
 private object YELLOW {
   private const val CODE = "\u001B[33m"
-  fun wrap(value: String) = "$CODE$value$RESET"
+  fun wrap(value: String) = if (USE_ANSI) "$CODE$value$RESET" else value
 }
-
-private const val RESET = "\u001B[0m"
-
 private val FIX_HINT = """
   This task only loads EligibilityRulesGraphConfiguration, not the full application.
 
