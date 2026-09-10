@@ -1,0 +1,30 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
+
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.OtherAccommodationReferralApplicationService
+
+@RestController
+class OtherAccommodationReferralController(
+  private val otherAccommodationReferralApplicationService: OtherAccommodationReferralApplicationService,
+) {
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @PostMapping("/cases/{crn}/other-accommodation-referral")
+  @ResponseStatus(HttpStatus.CREATED)
+  fun create(
+    @PathVariable crn: String,
+    @RequestBody command: OtherAccommodationReferralCommand,
+  ): ResponseEntity<OtherAccommodationReferralDto> {
+    val created = otherAccommodationReferralApplicationService.createOtherAccommodationReferral(crn, command)
+    return ResponseEntity(created, HttpStatus.CREATED)
+  }
+}
