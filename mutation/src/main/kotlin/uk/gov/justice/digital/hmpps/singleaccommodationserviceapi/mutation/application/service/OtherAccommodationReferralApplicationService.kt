@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
@@ -11,7 +12,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OtherAccommodationReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.OtherAccommodationReferralMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.OtherAccommodationReferralMapper.merge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate
+import java.util.UUID
 
 @Service
 class OtherAccommodationReferralApplicationService(
@@ -49,5 +52,14 @@ class OtherAccommodationReferralApplicationService(
       createdAt = persistedRecord.createdAt!!,
       localAuthorityAreaName = localAuthorityArea.name,
     )
+  }
+
+  @Transactional
+  fun createOtherAccommodationReferralNote(crn: String, id: UUID, noteCommand: NoteCommand) {
+    val entity = otherAccommodationReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+    val aggregate = OtherAccommodationReferralMapper.toAggregate(entity)
+    aggregate.addNote(note = noteCommand.note)
+    val merged = merge(aggregate.snapshot(), entity)
+    otherAccommodationReferralRepository.save(merged)
   }
 }

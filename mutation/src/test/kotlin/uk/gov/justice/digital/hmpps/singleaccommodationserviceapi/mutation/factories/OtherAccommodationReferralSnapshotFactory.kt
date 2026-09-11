@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate.OtherAccommodationReferralNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate.OtherAccommodationReferralSnapshot
 import java.time.LocalDate
 import java.util.UUID
@@ -16,6 +17,7 @@ fun buildOtherAccommodationReferralSnapshot(
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
   submissionNote: String? = "A submission note",
+  notes: List<OtherAccommodationReferralNote> = emptyList(),
 ) = OtherAccommodationReferralSnapshot(
   id = id,
   caseId = caseId,
@@ -27,4 +29,7 @@ fun buildOtherAccommodationReferralSnapshot(
   organisationName = organisationName,
   website = website,
   submissionNote = submissionNote,
+  notes = notes,
 )
+
+fun buildOtherAccommodationReferralNote(id: UUID = UUID.randomUUID(), note: String = "Test note") = OtherAccommodationReferralNote(id, note)

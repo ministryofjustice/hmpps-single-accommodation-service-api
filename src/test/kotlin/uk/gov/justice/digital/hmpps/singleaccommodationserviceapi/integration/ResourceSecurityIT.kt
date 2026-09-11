@@ -189,6 +189,7 @@ private val adminJobControllerMap: Map<String, Set<String>> =
 private val otherAccommodationReferralControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /cases/{crn}/other-accommodation-referral" to defaultRoles,
+    "POST /cases/{crn}/other-accommodation-referral/{id}/notes" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =
