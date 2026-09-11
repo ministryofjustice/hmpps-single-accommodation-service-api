@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi
 
+import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
@@ -12,6 +14,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messagin
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
+import java.time.Duration.ofMillis
+import java.time.Duration.ofSeconds
 
 abstract class DomainEventIntegrationTestBase : IntegrationTestBase() {
 
@@ -41,10 +46,8 @@ abstract class DomainEventIntegrationTestBase : IntegrationTestBase() {
 
   @BeforeEach
   suspend fun reset() {
-    hmppsQueueService.findQueueToPurge("sas-domain-events-queue")
-      ?.let { request -> hmppsQueueService.purgeQueue(request) }
-    hmppsQueueService.findQueueToPurge("test-domain-events-queue")
-      ?.let { request -> hmppsQueueService.purgeQueue(request) }
+    purgeAndAwaitEmpty("sas-domain-events-queue")
+    purgeAndAwaitEmpty("test-domain-events-queue")
 
     testSqsDomainEventListener.clearMessages()
 
@@ -56,5 +59,16 @@ abstract class DomainEventIntegrationTestBase : IntegrationTestBase() {
       DatabaseUtils.SasTables.SAS_USER,
       DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION,
     )
+  }
+
+  private suspend fun purgeAndAwaitEmpty(queueName: String) {
+    val request = hmppsQueueService.findQueueToPurge(queueName) ?: return
+    hmppsQueueService.purgeQueue(request)
+    await
+      .atMost(ofSeconds(10))
+      .pollInterval(ofMillis(100))
+      .untilAsserted {
+        assertThat(request.sqsClient.countAllMessagesOnQueue(request.queueUrl).get()).isZero()
+      }
   }
 }
