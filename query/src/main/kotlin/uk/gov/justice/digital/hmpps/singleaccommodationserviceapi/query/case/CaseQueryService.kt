@@ -81,6 +81,7 @@ class CaseQueryService(
         }
       }
     }
+      .sortedWith(compareBy(nullsLast()) { it.accommodationSummaries?.caseAccommodationStatus })
   }
 
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
