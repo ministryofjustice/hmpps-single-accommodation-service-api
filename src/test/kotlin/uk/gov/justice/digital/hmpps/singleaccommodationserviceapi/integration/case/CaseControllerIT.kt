@@ -274,6 +274,86 @@ class CaseControllerIT : IntegrationTestBase() {
     )
   }
 
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `should sort case list by accommodation status when caseListV2Enabled is true`(v2Enabled: Boolean) {
+    setCaseListV2Enabled(v2Enabled)
+
+    val staff = buildOfficer(username = deliusUser.username)
+    val settledCase = buildCase(
+      crn = "X12345",
+      nomsNumber = "PRI1",
+      staff = staff,
+      name = buildName("Alpha", "Able"),
+    )
+    val transientCase = buildCase(
+      crn = "X12346",
+      nomsNumber = "PRI2",
+      staff = staff,
+      name = buildName("Bravo", "Baker"),
+    )
+    val riskCase = buildCase(
+      crn = "X12347",
+      nomsNumber = "PRI3",
+      staff = staff,
+      name = buildName("Charlie", "Clark"),
+    )
+    val noFixedAbodeCase = buildCase(
+      crn = "X12348",
+      nomsNumber = "PRI4",
+      staff = staff,
+      name = buildName("Delta", "Dover"),
+    )
+    val cases = listOf(settledCase, transientCase, riskCase, noFixedAbodeCase)
+
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      cases = cases,
+      pageSize = pageSize.toInt(),
+    )
+
+    caseRepository.saveAllAndFlush(
+      listOf(
+        buildCaseEntity {
+          withCrn(settledCase.crn)
+          accommodationStatus = CaseAccommodationStatus.SETTLED
+        },
+        buildCaseEntity {
+          withCrn(transientCase.crn)
+          accommodationStatus = CaseAccommodationStatus.TRANSIENT
+        },
+        buildCaseEntity {
+          withCrn(riskCase.crn)
+          accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+        },
+        buildCaseEntity {
+          withCrn(noFixedAbodeCase.crn)
+          accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+        },
+      ),
+    )
+
+    val response = getCaseListResponse().data
+
+    if (v2Enabled) {
+      assertThat(response.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+        .containsExactly(
+          riskCase.crn to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+          noFixedAbodeCase.crn to CaseAccommodationStatus.NO_FIXED_ABODE,
+          transientCase.crn to CaseAccommodationStatus.TRANSIENT,
+          settledCase.crn to CaseAccommodationStatus.SETTLED,
+        )
+    } else {
+      assertThat(response.map(CaseDto::crn))
+        .containsExactly(
+          settledCase.crn,
+          transientCase.crn,
+          riskCase.crn,
+          noFixedAbodeCase.crn,
+        )
+    }
+  }
+
   @Test
   fun `should source forename, surname, dateOfBirth, tierScore and accommodationSummaries from CaseEntity when caseListV2Enabled is true`() {
     setCaseListV2Enabled(true)
@@ -533,6 +613,13 @@ class CaseControllerIT : IntegrationTestBase() {
     .withDeliusUserJwt()
     .exchangeSuccessfully()
     .expectBody(String::class.java)
+
+  private fun getCaseListResponse() = restTestClient.get().uri { it.path("/case-list").build() }
+    .withDeliusUserJwt()
+    .exchangeSuccessfully()
+    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
+    .returnResult()
+    .responseBody!!
 
   @Test
   fun `should get case`() {

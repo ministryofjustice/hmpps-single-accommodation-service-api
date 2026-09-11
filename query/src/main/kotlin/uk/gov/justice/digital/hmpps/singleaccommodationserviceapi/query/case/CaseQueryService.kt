@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
@@ -62,7 +63,7 @@ class CaseQueryService(
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
 
-    return personDtos.map { personDto ->
+    val cases = personDtos.map { personDto ->
 
       when (personDto) {
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
@@ -79,6 +80,15 @@ class CaseQueryService(
             personDto.toCaseDto(caseEntity = caseEntity)
           }
         }
+      }
+    }
+    return cases.sortedBy { case ->
+      when (case.accommodationSummaries?.caseAccommodationStatus) {
+        CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE -> 0
+        CaseAccommodationStatus.NO_FIXED_ABODE -> 1
+        CaseAccommodationStatus.TRANSIENT -> 2
+        CaseAccommodationStatus.SETTLED -> 3
+        null -> 4
       }
     }
   }
