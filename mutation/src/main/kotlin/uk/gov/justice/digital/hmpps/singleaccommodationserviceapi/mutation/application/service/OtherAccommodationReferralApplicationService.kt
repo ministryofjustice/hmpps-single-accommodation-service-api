@@ -55,6 +55,37 @@ class OtherAccommodationReferralApplicationService(
   }
 
   @Transactional
+  fun updateOtherAccommodationReferral(crn: String, id: UUID, command: OtherAccommodationReferralCommand): OtherAccommodationReferralDto {
+    val referral = otherAccommodationReferralRepository.findByIdAndCrn(id, crn)
+      .orThrowNotFound("id" to id, "crn" to crn)
+    val createdByUser = userService.findUserByUserId(referral.createdByUserId!!)
+      .orThrowNotFound("id" to referral.createdByUserId!!)
+    val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(command.localAuthorityAreaId)
+      .orThrowNotFound("id" to command.localAuthorityAreaId)
+
+    val aggregate = OtherAccommodationReferralMapper.toAggregate(referral).also {
+      it.updateOtherAccommodationReferral(
+        localAuthorityAreaId = command.localAuthorityAreaId,
+        submissionDate = command.submissionDate,
+        referenceNumber = command.referenceNumber,
+        status = command.status,
+        organisationName = command.organisationName,
+        website = command.website,
+        submissionNote = command.submissionNote,
+      )
+    }
+    val updatedRecord = otherAccommodationReferralRepository.save(merge(aggregate.snapshot(), referral))
+
+    return OtherAccommodationReferralMapper.toDto(
+      snapshot = aggregate.snapshot(),
+      createdBy = createdByUser.displayName(),
+      createdByUsername = createdByUser.username,
+      createdAt = updatedRecord.createdAt!!,
+      localAuthorityAreaName = localAuthorityArea.name,
+    )
+  }
+
+  @Transactional
   fun createOtherAccommodationReferralNote(crn: String, id: UUID, noteCommand: NoteCommand) {
     val entity = otherAccommodationReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val aggregate = OtherAccommodationReferralMapper.toAggregate(entity)
