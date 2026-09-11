@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
@@ -47,14 +49,16 @@ abstract class DomainEventIntegrationTestBase : IntegrationTestBase() {
       ?.let { request -> hmppsQueueService.purgeQueue(request) }
 
     testSqsDomainEventListener.clearMessages()
-
-    databaseUtils.truncate(
-      DatabaseUtils.SasTables.INBOX_EVENT,
-      DatabaseUtils.SasTables.OUTBOX_EVENT,
-      DatabaseUtils.SasTables.SAS_CASE,
-      DatabaseUtils.SasTables.SAS_CASE_REFRESH_REQUEST,
-      DatabaseUtils.SasTables.SAS_USER,
-      DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION,
-    )
+    testInboxEventHelper.awaitNoMessagesInFlight()
+    withContext(Dispatchers.IO) {
+      databaseUtils.truncate(
+        DatabaseUtils.SasTables.INBOX_EVENT,
+        DatabaseUtils.SasTables.OUTBOX_EVENT,
+        DatabaseUtils.SasTables.SAS_CASE,
+        DatabaseUtils.SasTables.SAS_CASE_REFRESH_REQUEST,
+        DatabaseUtils.SasTables.SAS_USER,
+        DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION,
+      )
+    }
   }
 }
