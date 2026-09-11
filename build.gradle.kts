@@ -30,6 +30,7 @@ dependencies {
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
+  testImplementation(libs.coroutines.core)
   testImplementation(libs.spring.resttestclient)
 
   testImplementation(libs.wiremock)
