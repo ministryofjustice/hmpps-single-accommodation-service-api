@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import io.mockk.every
 import io.mockk.spyk
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -29,7 +30,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseTeam
@@ -37,6 +43,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOfficer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
@@ -52,9 +59,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.PrisonerSearchStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
@@ -81,6 +93,25 @@ class CaseControllerIT : IntegrationTestBase() {
         caseListV2Enabled = false,
       ),
     )
+
+    @Bean
+    @Primary
+    fun caseCreationService(
+      caseOrchestrationService: CaseMutationOrchestrationService,
+      caseSnapshotAssembler: CaseSnapshotAssembler,
+      caseRepository: CaseRepository,
+      caseMapper: CaseMapper,
+      entityManager: EntityManager,
+    ): CaseCreationService = spyk(
+      CaseCreationService(
+        caseOrchestrationService = caseOrchestrationService,
+        caseSnapshotAssembler = caseSnapshotAssembler,
+        caseRepository = caseRepository,
+        caseMapper = caseMapper,
+        entityManager = entityManager,
+        caseListV2Enabled = false,
+      ),
+    )
   }
 
   @Value("\${case-list.page-size:1}")
@@ -88,6 +119,9 @@ class CaseControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseQueryService: CaseQueryService
+
+  @Autowired
+  private lateinit var caseCreationService: CaseCreationService
 
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
@@ -112,10 +146,12 @@ class CaseControllerIT : IntegrationTestBase() {
   @AfterEach
   fun resetCaseListV2Flag() {
     every { caseQueryService.caseListV2Enabled } returns false
+    every { caseCreationService.caseListV2Enabled } returns false
   }
 
   private fun setCaseListV2Enabled(v2Enabled: Boolean) {
     every { caseQueryService.caseListV2Enabled } returns v2Enabled
+    every { caseCreationService.caseListV2Enabled } returns v2Enabled
   }
 
   @ParameterizedTest
@@ -351,6 +387,93 @@ class CaseControllerIT : IntegrationTestBase() {
           riskCase.crn,
           noFixedAbodeCase.crn,
         )
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = [false, true])
+  fun `should hydrate a newly created case with real upstream data only when caseListV2Enabled is true`(v2Enabled: Boolean) {
+    setCaseListV2Enabled(v2Enabled)
+
+    val crn = "X12345"
+    val nomsNumber = "12345"
+    val staff = buildOfficer(username = deliusUser.username)
+    val deliusName = buildName("NewForename", "NewSurname")
+    val dateOfBirth = LocalDate.of(1980, 3, 20)
+    val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
+
+    SasAndDeliusStubs.stubCaseList(
+      deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+      cases = listOf(case),
+      pageSize = pageSize.toInt(),
+    )
+
+    stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A2"))
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = nomsNumber,
+      response = buildPrisoner(
+        prisonNumber = nomsNumber,
+        inOutStatus = InOutStatus.IN,
+        prisonName = "HMP Test Prison",
+        releaseDate = LocalDate.of(2027, 1, 1),
+      ),
+    )
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+      crn = crn,
+      response = buildCas1Application(
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.UPCOMING,
+          premises = buildCas1PremisesSummary(
+            postcode = "AP1 1AP",
+            addressLine1 = "AP House",
+            addressLine2 = "AP Area",
+            town = "AP Town",
+            startDate = LocalDate.of(2026, 6, 1),
+            endDate = null,
+          ),
+        ),
+      ),
+    )
+
+    assertThat(caseRepository.findByCrn(crn)).isNull()
+
+    restTestClient.get().uri { it.path("/case-list").build() }
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data.length()").isEqualTo(1)
+
+    val createdCase = caseRepository.findByCrn(crn)!!
+    if (!v2Enabled) {
+      assertThat(createdCase.tierScore).isNull()
+      assertThat(createdCase.firstName).isNull()
+      assertThat(createdCase.lastName).isNull()
+      assertThat(createdCase.currentAccommodation).isNull()
+      assertThat(createdCase.nextAccommodation).isNull()
+      assertThat(createdCase.accommodationStatus).isNull()
+    } else {
+      assertThat(createdCase.tierScore).isEqualTo("A2")
+      assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
+      assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
+
+      val currentAccommodation = createdCase.currentAccommodation!!
+      assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
+      assertThat(currentAccommodation.status?.code).isEqualTo("C")
+      assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
+      assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
+
+      val nextAccommodation = createdCase.nextAccommodation!!
+      assertThat(nextAccommodation.type?.code).isEqualTo("A02")
+      assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
+      assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
+      assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
+      assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
+      assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
+      assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
+      assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
+
+      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
     }
   }
 

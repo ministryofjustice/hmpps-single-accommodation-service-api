@@ -24,7 +24,7 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  @param:Value($$"${case-list.v2-enabled:false}") val caseListV2Enabled: Boolean,
+  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
