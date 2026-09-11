@@ -53,6 +53,30 @@ class OtherAccommodationReferralAggregate private constructor(
       submissionNote = submissionNote,
       notes = notes.toMutableList(),
     )
+
+    fun hydrateExisting(
+      id: UUID,
+      caseId: UUID,
+      crn: String,
+      localAuthorityAreaId: UUID,
+      referenceNumber: String?,
+      submissionDate: LocalDate,
+      status: OtherAccommodationReferralStatus,
+      organisationName: String?,
+      website: String?,
+      submissionNote: String?,
+    ) = OtherAccommodationReferralAggregate(
+      id = id,
+      caseId = caseId,
+      crn = crn,
+      localAuthorityAreaId = localAuthorityAreaId,
+      referenceNumber = referenceNumber,
+      submissionDate = submissionDate,
+      status = status,
+      organisationName = organisationName,
+      website = website,
+      submissionNote = submissionNote,
+    )
   }
 
   fun addNote(note: String) {

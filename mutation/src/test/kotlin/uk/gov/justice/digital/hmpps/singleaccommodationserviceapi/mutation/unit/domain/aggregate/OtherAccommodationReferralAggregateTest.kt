@@ -48,6 +48,51 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(snapshot.submissionNote).isEqualTo("A submission note")
   }
 
+  @Test
+  fun `hydrateExisting and update produces a snapshot with the updated fields`() {
+    val id = UUID.randomUUID()
+    val caseId = UUID.randomUUID()
+    val crn = "X123456"
+    val newLocalAuthorityAreaId = UUID.randomUUID()
+    val newSubmissionDate = LocalDate.of(2026, 3, 1)
+
+    val aggregate = OtherAccommodationReferralAggregate.hydrateExisting(
+      id = id,
+      caseId = caseId,
+      crn = crn,
+      localAuthorityAreaId = UUID.randomUUID(),
+      referenceNumber = "REF-001",
+      submissionDate = LocalDate.of(2026, 2, 20),
+      status = OtherAccommodationReferralStatus.SUBMITTED,
+      organisationName = "Organisation name",
+      website = "https://www.charity.org",
+      submissionNote = "A submission note",
+    )
+
+    aggregate.updateOtherAccommodationReferral(
+      localAuthorityAreaId = newLocalAuthorityAreaId,
+      submissionDate = newSubmissionDate,
+      referenceNumber = "REF-002",
+      status = OtherAccommodationReferralStatus.SUBMITTED,
+      organisationName = "New organisation name",
+      website = "https://www.new-charity.org",
+      submissionNote = "An updated submission note",
+    )
+
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.id).isEqualTo(id)
+    assertThat(snapshot.caseId).isEqualTo(caseId)
+    assertThat(snapshot.crn).isEqualTo(crn)
+    assertThat(snapshot.localAuthorityAreaId).isEqualTo(newLocalAuthorityAreaId)
+    assertThat(snapshot.referenceNumber).isEqualTo("REF-002")
+    assertThat(snapshot.submissionDate).isEqualTo(newSubmissionDate)
+    assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+    assertThat(snapshot.organisationName).isEqualTo("New organisation name")
+    assertThat(snapshot.website).isEqualTo("https://www.new-charity.org")
+    assertThat(snapshot.submissionNote).isEqualTo("An updated submission note")
+  }
+
   @ParameterizedTest
   @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
   fun `blank submission note is normalised to null`(note: String) {
