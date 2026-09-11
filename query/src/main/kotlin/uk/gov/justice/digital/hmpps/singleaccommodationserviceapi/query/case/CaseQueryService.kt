@@ -63,7 +63,7 @@ class CaseQueryService(
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
 
-    val cases = personDtos.map { personDto ->
+    return personDtos.map { personDto ->
 
       when (personDto) {
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
@@ -82,15 +82,7 @@ class CaseQueryService(
         }
       }
     }
-    return cases.sortedBy { case ->
-      when (case.accommodationSummaries?.caseAccommodationStatus) {
-        CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE -> 0
-        CaseAccommodationStatus.NO_FIXED_ABODE -> 1
-        CaseAccommodationStatus.TRANSIENT -> 2
-        CaseAccommodationStatus.SETTLED -> 3
-        null -> 4
-      }
-    }
+      .sortedWith(compareBy(nullsLast()) { it.accommodationSummaries?.caseAccommodationStatus })
   }
 
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
