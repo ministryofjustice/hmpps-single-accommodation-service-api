@@ -167,10 +167,9 @@ class AccommodationSummaryCalculator(
   private fun isAddressWithUsageCode(address: CanonicalAddress, usageCode: AddressUsageCode): Boolean = address.usages.find { it.usageCode.code == usageCode.name && it.isActive } != null
 
   private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (
-    currentAccommodation == null ||
-      isHomelessType(currentAccommodation)
-    ) &&
+    isHomelessOrNull(currentAccommodation) &&
     isHomelessOrNull(nextAccommodation)
+  )
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,
