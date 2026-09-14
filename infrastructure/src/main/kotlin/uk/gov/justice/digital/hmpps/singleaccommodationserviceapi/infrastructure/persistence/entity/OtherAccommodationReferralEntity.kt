@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.LocalDate
@@ -26,6 +28,18 @@ open class OtherAccommodationReferralEntity(
   var organisationName: String?,
   var website: String?,
   var submissionNote: String?,
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+  var createdByUser: UserEntity? = null,
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "last_updated_by_user_id", insertable = false, updatable = false)
+  var lastUpdatedByUser: UserEntity? = null,
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "local_authority_area_id", insertable = false, updatable = false)
+  var localAuthorityArea: LocalAuthorityAreaEntity? = null,
 
   @OneToMany(
     mappedBy = "otherAccommodationReferral",

@@ -13,8 +13,19 @@ object OtherAccommodationReferralTransformer {
   fun toOtherAccommodationReferralDto(
     entity: OtherAccommodationReferralEntity,
     crn: String,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
+  ) = OtherAccommodationReferralDto(
+    caseId = entity.caseId,
+    crn = crn,
+    status = toStatus(entity.status),
+    submission = toSubmission(entity, entity.createdByUser, localAuthorityAreaName),
+  )
+
+  fun toOtherAccommodationReferralDto(
+    entity: OtherAccommodationReferralEntity,
+    crn: String,
     createdByUser: UserEntity?,
-    localAuthorityAreaName: String?,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
   ) = OtherAccommodationReferralDto(
     caseId = entity.caseId,
     crn = crn,
@@ -27,7 +38,7 @@ object OtherAccommodationReferralTransformer {
     crn: String,
     createdByName: String,
     createdByUsername: String?,
-    localAuthorityAreaName: String?,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
   ) = OtherAccommodationReferralDto(
     caseId = entity.caseId,
     crn = crn,
@@ -37,8 +48,13 @@ object OtherAccommodationReferralTransformer {
 
   fun toSubmission(
     entity: OtherAccommodationReferralEntity,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
+  ) = toSubmission(entity, entity.createdByUser, localAuthorityAreaName)
+
+  fun toSubmission(
+    entity: OtherAccommodationReferralEntity,
     createdByUser: UserEntity?,
-    localAuthorityAreaName: String?,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
   ) = OtherAccommodationReferralSubmissionDto(
     id = entity.id,
     localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
@@ -56,7 +72,7 @@ object OtherAccommodationReferralTransformer {
     entity: OtherAccommodationReferralEntity,
     createdByName: String,
     createdByUsername: String?,
-    localAuthorityAreaName: String?,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
   ) = OtherAccommodationReferralSubmissionDto(
     id = entity.id,
     localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
@@ -70,7 +86,10 @@ object OtherAccommodationReferralTransformer {
     submissionNote = entity.submissionNote,
   )
 
-  fun toLocalAuthority(entity: OtherAccommodationReferralEntity, localAuthorityAreaName: String?) = LocalAuthorityDto(
+  fun toLocalAuthority(
+    entity: OtherAccommodationReferralEntity,
+    localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
+  ) = LocalAuthorityDto(
     localAuthorityAreaId = entity.localAuthorityAreaId,
     localAuthorityAreaName = localAuthorityAreaName,
   )

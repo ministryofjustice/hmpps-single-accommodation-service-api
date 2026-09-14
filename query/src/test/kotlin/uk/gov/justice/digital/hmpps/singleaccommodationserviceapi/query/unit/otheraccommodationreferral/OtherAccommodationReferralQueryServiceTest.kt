@@ -9,15 +9,12 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildLocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OtherAccommodationReferralRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.OtherAccommodationReferralQueryService
 import java.time.LocalDate
 import java.util.UUID
@@ -27,12 +24,6 @@ class OtherAccommodationReferralQueryServiceTest {
 
   @MockK
   lateinit var otherAccommodationReferralRepository: OtherAccommodationReferralRepository
-
-  @MockK
-  lateinit var userRepository: UserRepository
-
-  @MockK
-  lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
 
   @InjectMockKs
   lateinit var service: OtherAccommodationReferralQueryService
@@ -48,18 +39,6 @@ class OtherAccommodationReferralQueryServiceTest {
 
     @Test
     fun `should return other accommodation referral when found by crn and id`() {
-      val entity = buildOtherAccommodationReferralEntity(
-        id = id,
-        caseId = caseId,
-        crn = crn,
-        localAuthorityAreaId = localAuthorityAreaId,
-        createdByUserId = createdByUserId,
-        submissionDate = LocalDate.of(2026, 2, 20),
-        referenceNumber = "REF-001",
-        organisationName = "Organisation name",
-        website = "https://www.charity.org",
-        submissionNote = "A submission note",
-      )
       val userEntity = buildUserEntity(
         id = createdByUserId,
         forename = "Joe",
@@ -70,10 +49,21 @@ class OtherAccommodationReferralQueryServiceTest {
         id = localAuthorityAreaId,
         name = "Test Local Authority",
       )
+      val entity = buildOtherAccommodationReferralEntity(
+        id = id,
+        caseId = caseId,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityAreaId,
+        localAuthorityArea = localAuthorityAreaEntity,
+        createdByUser = userEntity,
+        submissionDate = LocalDate.of(2026, 2, 20),
+        referenceNumber = "REF-001",
+        organisationName = "Organisation name",
+        website = "https://www.charity.org",
+        submissionNote = "A submission note",
+      )
 
       every { otherAccommodationReferralRepository.findByIdAndCrn(id, crn) } returns entity
-      every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
-      every { localAuthorityAreaRepository.findByIdOrNull(localAuthorityAreaId) } returns localAuthorityAreaEntity
 
       val result = service.getOtherAccommodationReferral(crn, id)
 

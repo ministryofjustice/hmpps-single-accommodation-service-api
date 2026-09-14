@@ -11,8 +11,10 @@ interface OtherAccommodationReferralRepository : JpaRepository<OtherAccommodatio
   @Query(
     """
     select oar from OtherAccommodationReferralEntity oar
+    left join fetch oar.createdByUser
+    left join fetch oar.localAuthorityArea
     join CaseIdentifierEntity ci on ci.caseEntity.id = oar.caseId
-    where  oar.id = :id and ci.identifier = :crn and ci.identifierType = 'CRN'
+    where oar.id = :id and ci.identifier = :crn and ci.identifierType = 'CRN'
   """,
   )
   fun findByIdAndCrn(id: UUID, crn: String): OtherAccommodationReferralEntity?
