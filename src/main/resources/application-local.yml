@@ -72,4 +72,6 @@ sentry:
   traces-sample-rate: 0.01
 
 case-list:
+  onboarded-prison-codes:
+    - SAS
   v2-enabled: false
