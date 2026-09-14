@@ -401,3 +401,403 @@ fun expectedGetCaseListResponse(): String = """
    ]
 }
 """.trimIndent()
+
+@TestData
+fun expectedGetCaseListResponseSorted(): String = """
+{
+   "data":[
+      {
+         "forename":null,
+         "middleNames":null,
+         "surname":null,
+         "dateOfBirth":null,
+         "crn":"FAKECRN19",
+         "prisonNumber":null,
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":null,
+         "pncReference":null,
+         "assignedTo":null,
+         "userAccess":"LIMITED",
+         "limitedAccess":true,
+         "accommodationSummaries":null
+      },
+      {
+         "forename":null,
+         "middleNames":null,
+         "surname":null,
+         "dateOfBirth":null,
+         "crn":"FAKECRN20",
+         "prisonNumber":null,
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":null,
+         "pncReference":null,
+         "assignedTo":null,
+         "userAccess":"LIMITED",
+         "limitedAccess":true,
+         "accommodationSummaries":null
+      },
+      {
+         "forename":"Zack",
+         "middleNames":null,
+         "surname":"Aardvark",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN2",
+         "prisonNumber":"PRI2",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"MEDIUM",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN1",
+         "prisonNumber":"PRI1",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN3",
+         "prisonNumber":"PRI3",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN4",
+         "prisonNumber":"PRI4",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN5",
+         "prisonNumber":"PRI5",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN6",
+         "prisonNumber":"PRI6",
+         "photoUrl":null,
+         "tierScore":"A1",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN7",
+         "prisonNumber":"PRI7",
+         "photoUrl":null,
+         "tierScore":"A1S",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN8",
+         "prisonNumber":"PRI8",
+         "photoUrl":null,
+         "tierScore":"C1",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN9",
+         "prisonNumber":"PRI9",
+         "photoUrl":null,
+         "tierScore":"B3",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN10",
+         "prisonNumber":"PRI10",
+         "photoUrl":null,
+         "tierScore":"B3",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN11",
+         "prisonNumber":"PRI11",
+         "photoUrl":null,
+         "tierScore":"B3",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN12",
+         "prisonNumber":"PRI12",
+         "photoUrl":null,
+         "tierScore":"B3",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN13",
+         "prisonNumber":"PRI13",
+         "photoUrl":null,
+         "tierScore":"B3",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN14",
+         "prisonNumber":"PRI14",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN15",
+         "prisonNumber":"PRI15",
+         "photoUrl":null,
+         "tierScore":"D3",
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN16",
+         "prisonNumber":"PRI16",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN17",
+         "prisonNumber":"PRI17",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      },
+      {
+         "forename":"First",
+         "middleNames":null,
+         "surname":"Last",
+         "dateOfBirth":"2000-12-03",
+         "crn":"FAKECRN18",
+         "prisonNumber":"PRI18",
+         "photoUrl":null,
+         "tierScore":null,
+         "riskLevel":"VERY_HIGH",
+         "pncReference":"Some PNC Reference",
+         "assignedTo":{
+            "forename":"First",
+            "surname":"Last",
+            "username":"DELIUS_USER"
+         },
+         "userAccess":"FULL",
+         "limitedAccess":false,
+         "accommodationSummaries":{"caseAccommodationStatus":"SETTLED","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"X12345","startDate":null,"endDate":null,"address":{"postcode":"SW1A 1AA","subBuildingName":"The Sub-Building","buildingName":"The Building","buildingNumber":"123","thoroughfareName":"The Road","dependentLocality":"The Area","postTown":"London","county":"London","country":"England","uprn":"1234567890"},"status":{"code":"M","description":"Main"},"type":{"code":"A02","description":"Approved Premises"},"proposedAccommodationId":null}}
+      }
+   ]
+}
+""".trimIndent()
