@@ -462,7 +462,7 @@ class CaseControllerIT : IntegrationTestBase() {
       assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
       assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
 
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
+      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
     }
   }
 
