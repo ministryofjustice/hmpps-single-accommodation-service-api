@@ -102,7 +102,7 @@ object EligibilityTransformer {
     pa = PaServiceResult(
       serviceResult = pa,
     ),
-    caseActions = listOf(dtr, crs, cas1, cas3, pa)
+    caseActions = listOf(dtr, crs, cas1, cas2, cas3, pa)
       .mapNotNull { it.action }
       .sortedWith(compareBy(nullsLast()) { it.startDate }),
   )

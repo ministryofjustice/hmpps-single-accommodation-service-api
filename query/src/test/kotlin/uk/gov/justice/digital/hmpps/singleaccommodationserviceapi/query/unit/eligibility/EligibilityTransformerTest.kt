@@ -378,7 +378,7 @@ class EligibilityTransformerTest {
     val paServiceResult = buildPaServiceResult(
       serviceResult = pa,
     )
-    val caseActions = listOf(dtrAction, cas1Action)
+    val caseActions = listOf(dtrAction, cas1Action, cas2Action)
 
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
@@ -425,7 +425,7 @@ class EligibilityTransformerTest {
       data = buildDomainData(),
     )
 
-    assertThat(actualEligibility.caseActions).containsExactly(cas1Action, crsAction, cas3Action, dtrAction, paAction)
+    assertThat(actualEligibility.caseActions).containsExactly(cas2Action, cas1Action, crsAction, cas3Action, dtrAction, paAction)
   }
 
   @ParameterizedTest(name = "{0}")
