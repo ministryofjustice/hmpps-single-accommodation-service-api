@@ -168,8 +168,8 @@ class AccommodationSummaryCalculator(
 
   private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (
     isHomelessOrNull(currentAccommodation) &&
-    isHomelessOrNull(nextAccommodation)
-  )
+      isHomelessOrNull(nextAccommodation)
+    )
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,
