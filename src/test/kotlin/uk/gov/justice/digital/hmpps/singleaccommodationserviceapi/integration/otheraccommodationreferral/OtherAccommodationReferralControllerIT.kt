@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
+import org.javers.core.Javers
+import org.javers.repository.jql.QueryBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -21,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NA
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.createOtherAccommodationReferralRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedGetOtherAccommodationReferralTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedOtherAccommodationReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.otherAccommodationReferralNoteRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -37,6 +41,9 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
+
+  @Autowired
+  private lateinit var javers: Javers
 
   private lateinit var crn: String
   private lateinit var case: CaseEntity
@@ -434,5 +441,165 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         localAuthorityAreaId = localAuthorityAreaId,
       ),
     )
+  }
+
+  @Nested
+  inner class GetOtherAccommodationReferralTimeline {
+    @Test
+    fun `should return other accommodation referral timeline when an other accommodation referral is created`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val createdOtherAccommodationReferral = restTestClient.post().uri("/cases/{crn}/other-accommodation-referral", crn)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val createdOtherAccommodationReferralId = ObjectMapper().readTree(createdOtherAccommodationReferral).get("submission").get("id").asText()
+      val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdOtherAccommodationReferralId))
+      assertThat(commitTimesAsc).hasSize(1)
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, createdOtherAccommodationReferralId)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetOtherAccommodationReferralTimelineResponse(
+              otherAccommodationReferralId = UUID.fromString(createdOtherAccommodationReferralId),
+              caseId = case.id,
+              crn = crn,
+              localAuthorityAreaId = localAuthorityArea.id,
+              localAuthorityAreaName = localAuthorityArea.name,
+              createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return other accommodation referral timeline with notes and updates`() {
+      val initialLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+      val updatedLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
+
+      val createdOtherAccommodationReferral = restTestClient.post().uri("/cases/{crn}/other-accommodation-referral", crn)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = initialLocalAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val createdOtherAccommodationReferralId = ObjectMapper().readTree(createdOtherAccommodationReferral).get("submission").get("id").asText()
+
+      restTestClient.post().uri("/cases/{crn}/other-accommodation-referral/{id}/notes", crn, createdOtherAccommodationReferralId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(otherAccommodationReferralNoteRequestBody(note = "Test note"))
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      restTestClient.put().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, createdOtherAccommodationReferralId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = updatedLocalAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-002",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdOtherAccommodationReferralId))
+      assertThat(commitTimesAsc).hasSize(2)
+      val createNoteCommitTime = otherAccommodationReferralRepository.findByIdAndCrnWithNotes(UUID.fromString(createdOtherAccommodationReferralId), crn)!!
+        .notes.first().createdAt
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, createdOtherAccommodationReferralId)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetOtherAccommodationReferralTimelineResponse(
+              otherAccommodationReferralId = UUID.fromString(createdOtherAccommodationReferralId),
+              caseId = case.id,
+              crn = crn,
+              initialLocalAuthorityAreaId = initialLocalAuthorityArea.id,
+              initialLocalAuthorityAreaName = initialLocalAuthorityArea.name,
+              updatedLocalAuthorityAreaId = updatedLocalAuthorityArea.id,
+              updatedLocalAuthorityAreaName = updatedLocalAuthorityArea.name,
+              createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+              createNoteCommitTime = createNoteCommitTime!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+              updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return 404 for timeline when other accommodation referral not found`() {
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, UUID.randomUUID())
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return 404 for timeline when crn does not match`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+      val entity = otherAccommodationReferralRepository.save(
+        buildOtherAccommodationReferralEntity(
+          crn = crn,
+          caseId = case.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+        ),
+      )
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", "OTHERCRN", entity.id)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return 403 for timeline when user does not have the required role`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+      val entity = otherAccommodationReferralRepository.save(
+        buildOtherAccommodationReferralEntity(
+          crn = crn,
+          caseId = case.id,
+          localAuthorityAreaId = localAuthorityArea.id,
+        ),
+      )
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, entity.id)
+        .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    private fun getCommitTimesAsc(otherAccommodationReferralId: UUID): List<Instant> {
+      val changes = javers.findChanges(
+        QueryBuilder.byInstanceId(otherAccommodationReferralId, OtherAccommodationReferralEntity::class.java).build(),
+      )
+      return changes.groupBy { it.commitMetadata.get().id }.entries
+        .map { (_, commitChanges) -> commitChanges.first().commitMetadata.get().commitDateInstant }
+        .sorted()
+    }
   }
 }
