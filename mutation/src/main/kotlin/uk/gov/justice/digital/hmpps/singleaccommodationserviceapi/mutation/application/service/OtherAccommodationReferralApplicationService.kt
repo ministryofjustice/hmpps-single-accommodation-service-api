@@ -42,7 +42,7 @@ class OtherAccommodationReferralApplicationService(
     )
 
     val persistedRecord = otherAccommodationReferralRepository.save(
-      OtherAccommodationReferralMapper.toEntity(aggregate.snapshot()),
+      OtherAccommodationReferralMapper.toEntity(aggregate.snapshot(), localAuthorityArea),
     )
 
     return OtherAccommodationReferralMapper.toDto(
@@ -74,7 +74,7 @@ class OtherAccommodationReferralApplicationService(
         submissionNote = command.submissionNote,
       )
     }
-    val updatedRecord = otherAccommodationReferralRepository.save(merge(aggregate.snapshot(), referral))
+    val updatedRecord = otherAccommodationReferralRepository.save(merge(aggregate.snapshot(), referral, localAuthorityArea))
 
     return OtherAccommodationReferralMapper.toDto(
       snapshot = aggregate.snapshot(),

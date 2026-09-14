@@ -20,7 +20,6 @@ open class OtherAccommodationReferralEntity(
   val id: UUID,
   val crn: String,
   val caseId: UUID,
-  var localAuthorityAreaId: UUID,
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)
@@ -38,7 +37,7 @@ open class OtherAccommodationReferralEntity(
   var lastUpdatedByUser: UserEntity? = null,
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "local_authority_area_id", insertable = false, updatable = false)
+  @JoinColumn(name = "local_authority_area_id")
   var localAuthorityArea: LocalAuthorityAreaEntity? = null,
 
   @OneToMany(

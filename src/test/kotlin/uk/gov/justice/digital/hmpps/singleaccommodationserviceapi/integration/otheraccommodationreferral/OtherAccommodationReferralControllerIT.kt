@@ -186,7 +186,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
       localAuthorityAreaId: UUID,
     ) {
       assertThat(persistedRecord.crn).isEqualTo(crn)
-      assertThat(persistedRecord.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(persistedRecord.localAuthorityArea?.id).isEqualTo(localAuthorityAreaId)
       assertThat(persistedRecord.referenceNumber).isEqualTo("REF-001")
       assertThat(persistedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 2, 20))
       assertThat(persistedRecord.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
@@ -376,7 +376,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       val updatedRecord = otherAccommodationReferralRepository.findByCaseId(case.id)!!
-      assertThat(updatedRecord.localAuthorityAreaId).isEqualTo(newLocalAuthorityArea.id)
+      assertThat(updatedRecord.localAuthorityArea?.id).isEqualTo(newLocalAuthorityArea.id)
       assertThat(updatedRecord.referenceNumber).isEqualTo("REF-002")
       assertThat(updatedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 1, 20))
       assertThat(updatedRecord.organisationName).isEqualTo("New organisation name")

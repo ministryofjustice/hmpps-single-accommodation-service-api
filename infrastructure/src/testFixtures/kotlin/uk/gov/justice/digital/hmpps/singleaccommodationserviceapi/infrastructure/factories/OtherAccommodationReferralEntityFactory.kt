@@ -15,7 +15,7 @@ fun buildOtherAccommodationReferralEntity(
   id: UUID = UUID.randomUUID(),
   crn: String = "X123456",
   caseId: UUID = UUID.randomUUID(),
-  localAuthorityAreaId: UUID = UUID.randomUUID(),
+  localAuthorityAreaId: UUID? = null,
   localAuthorityArea: LocalAuthorityAreaEntity? = null,
   referenceNumber: String? = "OA-REF-001",
   submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
@@ -29,25 +29,29 @@ fun buildOtherAccommodationReferralEntity(
   createdAt: Instant = Instant.now(),
   lastUpdatedByUserId: UUID? = null,
   lastUpdatedAt: Instant = Instant.now(),
-) = OtherAccommodationReferralEntity(
-  id = id,
-  crn = crn,
-  caseId = caseId,
-  localAuthorityAreaId = localAuthorityArea?.id ?: localAuthorityAreaId,
-  referenceNumber = referenceNumber,
-  submissionDate = submissionDate,
-  status = status,
-  organisationName = organisationName,
-  website = website,
-  submissionNote = submissionNote,
-  createdByUser = createdByUser,
-  lastUpdatedByUser = lastUpdatedByUser,
-  localAuthorityArea = localAuthorityArea,
-).apply {
-  this.createdByUserId = createdByUserId ?: createdByUser?.id
-  this.createdAt = createdAt
-  this.lastUpdatedByUserId = lastUpdatedByUserId ?: lastUpdatedByUser?.id
-  this.lastUpdatedAt = lastUpdatedAt
+): OtherAccommodationReferralEntity {
+  val resolvedLocalAuthorityArea = localAuthorityArea
+    ?: (localAuthorityAreaId?.let { buildLocalAuthorityAreaEntity(id = it) } ?: buildLocalAuthorityAreaEntity())
+
+  return OtherAccommodationReferralEntity(
+    id = id,
+    crn = crn,
+    caseId = caseId,
+    referenceNumber = referenceNumber,
+    submissionDate = submissionDate,
+    status = status,
+    organisationName = organisationName,
+    website = website,
+    submissionNote = submissionNote,
+    createdByUser = createdByUser,
+    lastUpdatedByUser = lastUpdatedByUser,
+    localAuthorityArea = resolvedLocalAuthorityArea,
+  ).apply {
+    this.createdByUserId = createdByUserId ?: createdByUser?.id
+    this.createdAt = createdAt
+    this.lastUpdatedByUserId = lastUpdatedByUserId ?: lastUpdatedByUser?.id
+    this.lastUpdatedAt = lastUpdatedAt
+  }
 }
 
 @TestData

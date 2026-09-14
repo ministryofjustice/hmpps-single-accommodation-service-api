@@ -258,7 +258,7 @@ class OtherAccommodationReferralTransformerTest {
 
       val result = OtherAccommodationReferralTransformer.toLocalAuthority(entity, null)
 
-      assertThat(result.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
+      assertThat(result.localAuthorityAreaId).isEqualTo(entity.localAuthorityArea?.id)
       assertThat(result.localAuthorityAreaName).isNull()
     }
   }

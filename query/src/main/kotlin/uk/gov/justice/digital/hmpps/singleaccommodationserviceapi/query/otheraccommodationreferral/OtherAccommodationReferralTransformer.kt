@@ -90,7 +90,7 @@ object OtherAccommodationReferralTransformer {
     entity: OtherAccommodationReferralEntity,
     localAuthorityAreaName: String? = entity.localAuthorityArea?.name,
   ) = LocalAuthorityDto(
-    localAuthorityAreaId = entity.localAuthorityAreaId,
+    localAuthorityAreaId = entity.localAuthorityArea?.id ?: error("Local authority area is required"),
     localAuthorityAreaName = localAuthorityAreaName,
   )
 
