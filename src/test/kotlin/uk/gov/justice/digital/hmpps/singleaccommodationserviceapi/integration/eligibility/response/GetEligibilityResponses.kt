@@ -242,7 +242,8 @@ fun expectedGetEligibilityResponse(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type": "START_CAS2_APPLICATION", "startDate": null, "service": "CAS2"}
       ]
    }
 }
@@ -513,7 +514,8 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type": "START_CAS2_APPLICATION", "startDate": null, "service": "CAS2"}
       ]
    }
 }
@@ -675,7 +677,8 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
+         {"type": "START_CAS2_APPLICATION", "startDate": null, "service": "CAS2"}
       ]
    }
 }
@@ -790,6 +793,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       },
       "caseActions":[
          {"type":"ADD_DTR_REFERRAL_DETAILS","startDate":null, "service": "DTR"},
+         {"type": "START_CAS2_APPLICATION", "startDate": null, "service": "CAS2"},
          {"type":"ADD_AND_CONFIRM_PROPOSED_ADDRESS","startDate":null, "service": "PA"}
       ]
    }
