@@ -836,12 +836,19 @@ class AccommodationSummaryCalculatorTest {
     inner class Settled {
       @Test
       fun `returns SETTLED when current accommodation is settled with no end date`() {
+        val homelessAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A08"))
         val settledAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A01A"))
 
         assertThat(
           calculator.calculateCaseAccommodationStatus(
             currentAccommodation = settledAccommodation,
             nextAccommodation = null,
+          ),
+        ).isEqualTo(CaseAccommodationStatus.SETTLED)
+        assertThat(
+          calculator.calculateCaseAccommodationStatus(
+            currentAccommodation = settledAccommodation,
+            nextAccommodation = homelessAccommodation,
           ),
         ).isEqualTo(CaseAccommodationStatus.SETTLED)
       }
