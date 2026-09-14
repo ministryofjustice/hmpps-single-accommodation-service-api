@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import org.javers.core.metamodel.annotation.DiffIgnore
 import java.time.LocalDate
 import java.util.UUID
 
@@ -40,6 +41,7 @@ open class OtherAccommodationReferralEntity(
   @JoinColumn(name = "local_authority_area_id")
   var localAuthorityArea: LocalAuthorityAreaEntity? = null,
 
+  @DiffIgnore
   @OneToMany(
     mappedBy = "otherAccommodationReferral",
     fetch = FetchType.LAZY,
