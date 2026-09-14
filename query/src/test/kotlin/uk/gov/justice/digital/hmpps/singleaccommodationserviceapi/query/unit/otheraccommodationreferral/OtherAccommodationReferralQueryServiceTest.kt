@@ -365,7 +365,6 @@ class OtherAccommodationReferralQueryServiceTest {
 
     @Test
     fun `should return other accommodation referral when found by crn and id`() {
-
       val id = UUID.randomUUID()
       val caseId = UUID.randomUUID()
       val crn = "X123456"
