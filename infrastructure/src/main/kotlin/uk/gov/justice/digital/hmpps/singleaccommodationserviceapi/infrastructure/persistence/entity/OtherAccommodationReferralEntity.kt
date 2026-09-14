@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import org.javers.core.metamodel.annotation.DiffIgnore
 import java.time.LocalDate
 import java.util.UUID
 
@@ -27,6 +28,7 @@ open class OtherAccommodationReferralEntity(
   var website: String?,
   var submissionNote: String?,
 
+  @DiffIgnore
   @OneToMany(
     mappedBy = "otherAccommodationReferral",
     fetch = FetchType.LAZY,
