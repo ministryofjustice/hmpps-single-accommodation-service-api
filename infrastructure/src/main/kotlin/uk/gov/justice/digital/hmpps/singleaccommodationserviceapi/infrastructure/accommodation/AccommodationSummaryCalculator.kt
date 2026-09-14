@@ -155,13 +155,10 @@ class AccommodationSummaryCalculator(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ): CaseAccommodationStatus? = when {
-    isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
-
+    isNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-
-    isTransientType(currentAccommodation) -> CaseAccommodationStatus.TRANSIENT
-    isSettledType(currentAccommodation) -> CaseAccommodationStatus.SETTLED
-
+    isSettled(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.SETTLED
+    isTransient(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
     else -> null
   }
 
@@ -169,14 +166,26 @@ class AccommodationSummaryCalculator(
 
   private fun isAddressWithUsageCode(address: CanonicalAddress, usageCode: AddressUsageCode): Boolean = address.usages.find { it.usageCode.code == usageCode.name && it.isActive } != null
 
-  private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?) = currentAccommodation == null ||
-    isHomelessType(currentAccommodation)
+  private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (
+    currentAccommodation == null ||
+      isHomelessType(currentAccommodation)
+    ) &&
+    isHomelessOrNull(nextAccommodation)
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
-  ) = (!isSettledType(currentAccommodation) && nextAccommodation == null) ||
-    ((isSettledType(currentAccommodation) && isHomelessType(nextAccommodation)) || isTransientType(nextAccommodation))
+  ) = (isSettledType(currentAccommodation) && currentAccommodation?.endDate != null && isHomelessOrNull(nextAccommodation)) ||
+    (isTemporaryTransient(currentAccommodation) && isHomelessOrNull(nextAccommodation))
+
+  private fun isSettled(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = (isSettledType(currentAccommodation) && currentAccommodation?.endDate == null) || isSettledType(nextAccommodation)
+
+  private fun isTemporaryTransient(dto: AccommodationSummaryDto?) = isTransientType(dto) && dto?.endDate != null
+  private fun isTransient(currentDto: AccommodationSummaryDto?, nextDto: AccommodationSummaryDto?) = isTransientType(currentDto) || isTransientType(nextDto)
+  private fun isHomelessOrNull(dto: AccommodationSummaryDto?) = dto == null || isHomelessType(dto)
 
   private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
   private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
