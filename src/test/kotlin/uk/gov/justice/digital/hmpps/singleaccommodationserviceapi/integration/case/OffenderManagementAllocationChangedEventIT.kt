@@ -151,7 +151,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
   }
 
   @Test
-  fun `message should be ignored when case is not know, prison is not onboarded, and staff code is missing`() {
+  fun `message should be ignored when case is not known, prison is not onboarded, and staff code is missing`() {
     val prisonNumber = "A${UUID.randomUUID().toString().take(6).uppercase()}"
 
     publishOffenderManagementAllocationChangedEvent(
