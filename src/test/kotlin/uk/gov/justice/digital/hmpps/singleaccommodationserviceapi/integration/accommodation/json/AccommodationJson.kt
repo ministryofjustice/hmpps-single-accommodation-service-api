@@ -414,7 +414,8 @@ fun expectedAccommodationStatusResponse(
       },
       "nextAccommodation":${
   nextCode?.let {
-    """
+    nextDescription?.let {
+      """
         {
            "crn":"$crn",
            "startDate":null,
@@ -442,6 +443,7 @@ fun expectedAccommodationStatusResponse(
            }
         }
   """
+    }
   }
 }
    }
