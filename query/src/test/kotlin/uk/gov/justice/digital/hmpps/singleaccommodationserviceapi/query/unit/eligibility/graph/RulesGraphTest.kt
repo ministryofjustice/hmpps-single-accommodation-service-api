@@ -3,6 +3,8 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
@@ -117,10 +119,53 @@ class RulesGraphTest {
 
       assertThat(markdown).contains("## EXAMPLE")
       assertThat(markdown).contains("flowchart TD")
+      assertThat(markdown).contains("ExampleEligibility[\"ExampleEligibility (1)\"]")
       assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
       assertThat(markdown).contains("ExampleEligibility -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).contains("`StubRule`: FAIL if example")
+      assertThat(markdown).doesNotContain("- FAIL:")
       assertThat(markdown).contains("| StubRule | FAIL if example | ExampleEligibility | EXAMPLE |")
+    }
+
+    @Test
+    fun `render lists named FAIL updater below the diagram and in the catalogue`() {
+      val root = builder
+        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))), StubContextUpdater())
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .build()
+      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+
+      assertThat(markdown).contains("Upcoming -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).contains("- FAIL: `StubContextUpdater` - Set Upcoming")
+      assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
+      assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
+      assertThat(markdown).contains("| UPCOMING | Upcoming | - | - | - |")
+      assertThat(markdown).contains("| NOT_STARTED | Not started | START_CAS2_REFERRAL (CAS2) | start-application | CAS2_START_APPLICATION |")
+    }
+
+    @Test
+    fun `render describes constant FAIL updater without a mermaid node`() {
+      val root = builder
+        .ruleSet(
+          "PaCompletion",
+          StubRuleSet(listOf(StubRule("complete"))),
+          ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED),
+        )
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .build()
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("PA", root)))
+
+      assertThat(markdown).contains("PaCompletion -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).contains("- FAIL: Set Not started")
+      assertThat(markdown).contains("Used by: PaCompletion (PA)")
+      assertThat(markdown).contains("| NOT_STARTED | Not started | - | - | - |")
     }
 
     @Test
