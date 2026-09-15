@@ -14,15 +14,24 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class DtrCompletionContextUpdater : ContextUpdater() {
 
-  override fun toServiceResult(context: EvaluationContext) = when (context.data.dutyToRefer?.status) {
-    DtrStatus.NOT_ACCEPTED -> ServiceResult(
-      serviceStatus = ServiceStatus.NOT_ACCEPTED,
-    )
+  override val description = set("status from DTR")
 
-    else -> ServiceResult(
+  val notAccepted = "notAccepted"
+  val submitted = "submitted"
+
+  override val outcomes = mapOf(
+    notAccepted to ServiceResult(
+      serviceStatus = ServiceStatus.NOT_ACCEPTED,
+    ),
+    submitted to ServiceResult(
       serviceStatus = ServiceStatus.SUBMITTED,
       action = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR),
       link = EligibilityKeys.ADD_OUTCOME,
-    )
+    ),
+  )
+
+  override fun toServiceResult(context: EvaluationContext) = when (context.data.dutyToRefer?.status) {
+    DtrStatus.NOT_ACCEPTED -> outcome(notAccepted)
+    else -> outcome(submitted)
   }
 }

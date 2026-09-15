@@ -1,16 +1,24 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler
 
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getRequiredAdditionalInformation
+
+@ConfigurationProperties(prefix = "case-list")
+class OffenderManagementAllocationChangedProperties(
+  var onboardedPrisonCodes: List<String> = emptyList(),
+)
 
 @Component
 class OffenderManagementAllocationChangedHandler(
@@ -20,6 +28,7 @@ class OffenderManagementAllocationChangedHandler(
   private val caseRepository: CaseRepository,
   private val caseRefreshRequestService: CaseRefreshRequestService?,
   private val corePersonRecordClient: CorePersonRecordClient,
+  private val offenderManagementAllocationChangedProperties: OffenderManagementAllocationChangedProperties,
 ) : InboxEventHandler {
 
   override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED.typeName)
@@ -32,8 +41,8 @@ class OffenderManagementAllocationChangedHandler(
    * user views their caselist, or by being manually preloaded. This event will be processed:
    *  a) update - if the prisonNumber from the event is in the database, we will refresh the case.
    * -OR-
-   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, we create a
-   *     populated entry into the SAS_CASE table.
+   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, or if the team has
+   *  been onboarded. we create a populated entry into the SAS_CASE table.
    * -OR-
    *  c) ignore - if neither are known, we ignore the event.
    */
@@ -47,10 +56,7 @@ class OffenderManagementAllocationChangedHandler(
     }
 
     val event = inboxEventHelper.toDomainEvent(inboxEvent)
-    val staffCode = event.getRequiredAdditionalInformation("staffCode").toLong()
-
-    val user = userRepository.findByNomisStaffId(staffCode)
-    if (user != null) {
+    if (prisonIsOnboarded(event) || staffMemberIsKnown(event)) {
       val cpr = corePersonRecordClient.getByPrisonNumber(prisonNumber)
       val identifiers = cpr.identifiers
 
@@ -63,7 +69,19 @@ class OffenderManagementAllocationChangedHandler(
       val crn = identifiers.crns.single()
       caseCreationService.upsertCase(crn, prisonNumber)
       return InboxEventHandler.Result.PROCESSED
+    } else {
+      return InboxEventHandler.Result.IGNORED
     }
-    return InboxEventHandler.Result.IGNORED
+  }
+
+  private fun prisonIsOnboarded(event: SnsDomainEvent): Boolean = offenderManagementAllocationChangedProperties.onboardedPrisonCodes.contains(
+    event.getRequiredAdditionalInformation(
+      "prisonId",
+    ),
+  )
+
+  private fun staffMemberIsKnown(event: SnsDomainEvent): Boolean {
+    val staffCode = event.getAdditionalInformation("staffCode")
+    return staffCode != null && userRepository.findByNomisStaffId(staffCode.toLong()) != null
   }
 }

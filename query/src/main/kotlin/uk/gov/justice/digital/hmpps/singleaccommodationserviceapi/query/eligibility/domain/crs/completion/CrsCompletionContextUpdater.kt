@@ -19,13 +19,35 @@ class CrsCompletionContextUpdater(
 
   val url = crsUiBaseUrl
 
-  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
-    serviceStatus = ServiceStatus.NOT_STARTED,
-    action = CaseAction(
-      type = if (context.data.sex == SexCode.M) CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL else CaseActionType.SUBMIT_CRS_REFERRAL,
-      service = AccommodationService.CRS,
+  override val description = set("Not started and submit CRS referral")
+
+  val notStartedMale = "notStartedMale"
+  val notStartedNonMale = "notStartedNonMale"
+
+  override val outcomes = mapOf(
+    notStartedMale to ServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = CaseAction(
+        type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
+        service = AccommodationService.CRS,
+      ),
+      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+      url = url,
     ),
-    link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-    url = url,
+    notStartedNonMale to ServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = CaseAction(
+        type = CaseActionType.SUBMIT_CRS_REFERRAL,
+        service = AccommodationService.CRS,
+      ),
+      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
+      url = url,
+    ),
   )
+
+  override fun toServiceResult(context: EvaluationContext) = if (context.data.sex == SexCode.M) {
+    outcome(notStartedMale)
+  } else {
+    outcome(notStartedNonMale)
+  }
 }
