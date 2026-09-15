@@ -43,17 +43,16 @@ class AccommodationSummaryCalculator(
   private val homelessAccommodationTypeCodes: Set<String> by lazy {
     accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().map { it.code }.toSet()
   }
-  private fun typeExists(code: String?): Boolean =
-    if (code == null) {
+  private fun typeExists(code: String?): Boolean = if (code == null) {
+    false
+  } else {
+    try {
+      accommodationTypeRepository.findByCode(code) != null
+    } catch (e: Exception) {
+      log.warn("Unable to look up accommodation type for code {}", code, e)
       false
-    } else {
-      try {
-        accommodationTypeRepository.findByCode(code) != null
-      } catch (e: Exception) {
-        log.warn("Unable to look up accommodation type for code {}", code, e)
-        false
-      }
     }
+  }
 
   fun calculateAccommodationSummaries(
     crn: String,
@@ -187,13 +186,13 @@ class AccommodationSummaryCalculator(
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
-  ) = (isSettledType(currentAccommodation)  && isHomelessOrNull(nextAccommodation)) ||
+  ) = (isSettledType(currentAccommodation) && isHomelessOrNull(nextAccommodation)) ||
     (isTransientType(currentAccommodation) && isHomelessOrNull(nextAccommodation))
 
   private fun isSettled(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
-  ) = (isSettledType(currentAccommodation) && currentAccommodation?.endDate == null && nextAccommodation==null) || isSettledType(nextAccommodation)
+  ) = (isSettledType(currentAccommodation) && currentAccommodation?.endDate == null && nextAccommodation == null) || isSettledType(nextAccommodation)
 
   private fun isTemporaryTransient(dto: AccommodationSummaryDto?) = isTransientType(dto) && dto?.endDate != null
   private fun isTransient(currentDto: AccommodationSummaryDto?, nextDto: AccommodationSummaryDto?) = isTransientType(currentDto) || isTransientType(nextDto)
