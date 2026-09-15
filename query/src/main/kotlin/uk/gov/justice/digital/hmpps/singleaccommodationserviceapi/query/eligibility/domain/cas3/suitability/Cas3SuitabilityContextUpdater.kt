@@ -17,6 +17,37 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3SuitabilityContextUpdater : ContextUpdater() {
 
+  override val description = set("status from referral")
+
+  val startNewReferral = "startNewReferral"
+  val rejected = "rejected"
+  val notSubmitted = "notSubmitted"
+  val startReferral = "startReferral"
+
+  override val outcomes = mapOf(
+    startNewReferral to ServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
+      link = EligibilityKeys.START_NEW_REFERRAL,
+      linkType = LinkType.CAS3_START_REFERRAL,
+    ),
+    rejected to ServiceResult(
+      serviceStatus = ServiceStatus.REJECTED,
+      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
+      link = EligibilityKeys.START_NEW_REFERRAL,
+      linkType = LinkType.CAS3_START_REFERRAL,
+    ),
+    notSubmitted to ServiceResult(
+      serviceStatus = ServiceStatus.NOT_SUBMITTED,
+    ),
+    startReferral to ServiceResult(
+      serviceStatus = ServiceStatus.NOT_STARTED,
+      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
+      link = EligibilityKeys.START_REFERRAL,
+      linkType = LinkType.CAS3_START_REFERRAL,
+    ),
+  )
+
   override fun toServiceResult(context: EvaluationContext): ServiceResult {
     val applicationStatus = context.data.cas3Application?.applicationStatus
     val assessmentStatus = context.data.cas3Application?.assessmentStatus
@@ -25,49 +56,15 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
       Cas3BookingStatus.ARRIVED,
       Cas3BookingStatus.CLOSED,
       Cas3BookingStatus.DEPARTED,
-      -> ServiceResult(
-        serviceStatus = ServiceStatus.NOT_STARTED,
-        action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
-        link = EligibilityKeys.START_NEW_REFERRAL,
-        linkType = LinkType.CAS3_START_REFERRAL,
-      )
+      -> outcome(startNewReferral)
 
       else -> when (assessmentStatus) {
-        Cas3AssessmentStatus.CLOSED -> ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
-          link = EligibilityKeys.START_NEW_REFERRAL,
-          linkType = LinkType.CAS3_START_REFERRAL,
-        )
-
-        Cas3AssessmentStatus.REJECTED -> ServiceResult(
-          serviceStatus = ServiceStatus.REJECTED,
-          action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
-          link = EligibilityKeys.START_NEW_REFERRAL,
-          linkType = LinkType.CAS3_START_REFERRAL,
-        )
-
+        Cas3AssessmentStatus.CLOSED -> outcome(startNewReferral)
+        Cas3AssessmentStatus.REJECTED -> outcome(rejected)
         else -> when (applicationStatus) {
-          Cas3ApplicationStatus.IN_PROGRESS -> ServiceResult(
-            serviceStatus = ServiceStatus.NOT_SUBMITTED,
-            action = CaseAction(type = CaseActionType.CONTINUE_CAS3_REFERRAL, service = AccommodationService.CAS3),
-            link = EligibilityKeys.CONTINUE_REFERRAL,
-            linkType = LinkType.CAS3_VIEW_REFERRAL,
-          )
-
-          Cas3ApplicationStatus.REJECTED -> ServiceResult(
-            serviceStatus = ServiceStatus.REJECTED,
-            action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
-            link = EligibilityKeys.START_NEW_REFERRAL,
-            linkType = LinkType.CAS3_START_REFERRAL,
-          )
-
-          else -> ServiceResult(
-            serviceStatus = ServiceStatus.NOT_STARTED,
-            action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
-            link = EligibilityKeys.START_REFERRAL,
-            linkType = LinkType.CAS3_START_REFERRAL,
-          )
+          Cas3ApplicationStatus.IN_PROGRESS -> outcome(notSubmitted)
+          Cas3ApplicationStatus.REJECTED -> outcome(rejected)
+          else -> outcome(startReferral)
         }
       }
     }
