@@ -20,7 +20,7 @@ class CustomCaseListApplicationService(
     val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = crns.distinct()
 
-    caseApplicationService.createCases(distinctCrns.map { CrnToPrisonNumber(it, null) })
+    caseApplicationService.createCases(distinctCrns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
 
     val caseIds = caseRepository.findByCrns(distinctCrns).map { it.id }.distinct()
 

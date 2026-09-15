@@ -59,6 +59,7 @@ class CustomCaseListApplicationServiceTest {
           CrnToPrisonNumber(crn = "CRN1", prisonNumber = null),
           CrnToPrisonNumber(crn = "CRN2", prisonNumber = null),
         ),
+        createAsBlankRecord = true,
       )
     }
   }
