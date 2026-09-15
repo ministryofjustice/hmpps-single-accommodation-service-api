@@ -41,8 +41,8 @@ class OffenderManagementAllocationChangedHandler(
    * user views their caselist, or by being manually preloaded. This event will be processed:
    *  a) update - if the prisonNumber from the event is in the database, we will refresh the case.
    * -OR-
-   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, we create a
-   *     populated entry into the SAS_CASE table.
+   *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, or if the team has
+   *  been onboarded. we create a populated entry into the SAS_CASE table.
    * -OR-
    *  c) ignore - if neither are known, we ignore the event.
    */
