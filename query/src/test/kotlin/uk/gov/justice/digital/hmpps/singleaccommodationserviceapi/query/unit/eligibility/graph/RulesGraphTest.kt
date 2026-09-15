@@ -2,12 +2,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -15,11 +18,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.ContextUpdaterInfo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphNodeKind
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphMarkdownRenderer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.RulesGraphWalker
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 
 class RulesGraphTest {
 
@@ -52,6 +55,57 @@ class RulesGraphTest {
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
       assertThat(ruleSetNode.rules).extracting<String> { it.className }.containsExactly("StubRule")
       assertThat(ruleSetNode.rules).extracting<String> { it.description }.containsExactly("FAIL if example")
+      assertThat(ruleSetNode.contextUpdater).isNull()
+    }
+
+    @Test
+    fun `walk records named context updater and skips identity`() {
+      val confirmed = builder.confirmed()
+      val eligibility = builder
+        .ruleSet("Eligibility", StubRuleSet(listOf(StubRule("eligible"))))
+        .onPass(confirmed)
+        .onFail(builder.notEligible())
+        .build()
+      val upcoming = builder
+        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("upcoming"))), StubContextUpdater())
+        .onPass(confirmed)
+        .onFail(eligibility)
+        .build()
+
+      val graph = RulesGraphWalker.walk("SHARED", upcoming)
+
+      val upcomingNode = graph.nodes.single { it.title == "Upcoming" }
+      assertThat(upcomingNode.contextUpdater).isEqualTo(
+        ContextUpdaterInfo(
+          name = "StubContextUpdater",
+          description = "Set Upcoming",
+          outcomes = StubContextUpdater().outcomes,
+        ),
+      )
+      assertThat(graph.nodes.single { it.title == "Eligibility" }.contextUpdater).isNull()
+    }
+
+    @Test
+    fun `walk records constant updater description from service status`() {
+      val root = builder
+        .ruleSet(
+          "PaCompletion",
+          StubRuleSet(listOf(StubRule("complete"))),
+          ServiceResult(serviceStatus = ServiceStatus.NOT_STARTED),
+        )
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible())
+        .build()
+
+      val graph = RulesGraphWalker.walk("PA", root)
+
+      assertThat(graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }.contextUpdater).isEqualTo(
+        ContextUpdaterInfo(
+          name = "constant",
+          description = "Set Not started",
+          outcomes = mapOf("constant" to ServiceResult(serviceStatus = ServiceStatus.NOT_STARTED)),
+        ),
+      )
     }
 
     @Test
@@ -116,10 +170,53 @@ class RulesGraphTest {
 
       assertThat(markdown).contains("## EXAMPLE")
       assertThat(markdown).contains("flowchart TD")
+      assertThat(markdown).contains("ExampleEligibility[\"ExampleEligibility (1)\"]")
       assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
       assertThat(markdown).contains("ExampleEligibility -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).contains("`StubRule`: FAIL if example")
+      assertThat(markdown).doesNotContain("- FAIL:")
       assertThat(markdown).contains("| StubRule | FAIL if example | ExampleEligibility | EXAMPLE |")
+    }
+
+    @Test
+    fun `render lists named FAIL updater below the diagram and in the catalogue`() {
+      val root = builder
+        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))), StubContextUpdater())
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible())
+        .build()
+      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+
+      assertThat(markdown).contains("Upcoming -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).contains("- FAIL: `StubContextUpdater` - Set Upcoming")
+      assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
+      assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
+      assertThat(markdown).contains("| UPCOMING | Upcoming | - | - | - |")
+      assertThat(markdown).contains("| NOT_STARTED | Not started | START_CAS2_REFERRAL (CAS2) | start-application | CAS2_START_APPLICATION |")
+    }
+
+    @Test
+    fun `render describes constant FAIL updater without a mermaid node`() {
+      val root = builder
+        .ruleSet(
+          "PaCompletion",
+          StubRuleSet(listOf(StubRule("complete"))),
+          ServiceResult(serviceStatus = ServiceStatus.NOT_STARTED),
+        )
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible())
+        .build()
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("PA", root)))
+
+      assertThat(markdown).contains("PaCompletion -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).contains("- FAIL: Set Not started")
+      assertThat(markdown).contains("Used by: PaCompletion (PA)")
+      assertThat(markdown).contains("| NOT_STARTED | Not started | - | - | - |")
     }
 
     @Test
@@ -169,15 +266,18 @@ class RulesGraphTest {
   }
 
   private class StubContextUpdater : ContextUpdater() {
-    override fun toServiceResult(context: EvaluationContext) = context.currentResult.copy(
-      serviceStatus = ServiceStatus.UPCOMING,
-    )
-  }
+    override val description = "Set Upcoming"
 
-  private class StubEligibilityTreeProvider(
-    private val root: DecisionNode,
-  ) : EligibilityTreeProvider {
-    override fun tree() = root
-    override fun initialContext(data: DomainData) = EvaluationContext(data, buildServiceResult())
+    override val outcomes = mapOf(
+      "upcoming" to ServiceResult(serviceStatus = ServiceStatus.UPCOMING),
+      "notStarted" to ServiceResult(
+        serviceStatus = ServiceStatus.NOT_STARTED,
+        action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2),
+        link = "start-application",
+        linkType = LinkType.CAS2_START_APPLICATION,
+      ),
+    )
+
+    override fun toServiceResult(context: EvaluationContext) = outcome("upcoming")
   }
 }

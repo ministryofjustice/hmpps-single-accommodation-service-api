@@ -44,7 +44,7 @@ object RulesGraphWalker {
                 description = rule.description,
               )
             },
-            contextUpdater = contextUpdaterName(node.contextUpdater),
+            contextUpdater = contextUpdaterInfo(node.contextUpdater),
             ruleSet = node.ruleSet,
           )
           nodes[node] = graphNode
@@ -81,13 +81,11 @@ internal fun slug(raw: String): String {
   return if (cleaned.firstOrNull()?.isLetter() == true) cleaned else "n_$cleaned"
 }
 
-private fun nodeLabel(node: DecisionNode): String = when (node) {
-  is OutcomeNode -> node.name
-  is RuleSetNode -> node.ruleSetName
-}
-
-internal fun contextUpdaterName(updater: ContextUpdater): String {
+internal fun contextUpdaterInfo(updater: ContextUpdater): ContextUpdaterInfo? {
   val simple = updater::class.simpleName
-  if (!simple.isNullOrBlank()) return simple
-  return if (updater.propagatesFailureReasons) "identity" else "constant"
+  if (simple.isNullOrBlank()) {
+    if (updater.propagatesFailureReasons) return null
+    return ContextUpdaterInfo(name = "constant", description = updater.description, outcomes = updater.outcomes)
+  }
+  return ContextUpdaterInfo(name = simple, description = updater.description, outcomes = updater.outcomes)
 }
