@@ -209,7 +209,7 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
     assertThat(case.firstName).isEqualTo(expectedCpr?.firstName)
     assertThat(case.lastName).isEqualTo(expectedCpr?.lastName)
     assertThat(case.dateOfBirth).isEqualTo(expectedCpr?.dateOfBirth)
-    assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+    assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
     assertThat(case.roshLevelCode).isEqualTo("RMRH")
 
     val currentAccommodation = case.currentAccommodation!!
