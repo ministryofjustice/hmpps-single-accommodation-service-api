@@ -74,11 +74,11 @@ class OffenderManagementAllocationChangedHandler(
     }
   }
 
-  private fun prisonIsOnboarded(event: SnsDomainEvent): Boolean {
-    event.getRequiredAdditionalInformation("prisonId").let {
-      return offenderManagementAllocationChangedProperties.onboardedPrisonCodes.contains(it)
-    }
-  }
+  private fun prisonIsOnboarded(event: SnsDomainEvent): Boolean = offenderManagementAllocationChangedProperties.onboardedPrisonCodes.contains(
+    event.getRequiredAdditionalInformation(
+      "prisonId",
+    ),
+  )
 
   private fun staffMemberIsKnown(event: SnsDomainEvent): Boolean {
     val staffCode = event.getAdditionalInformation("staffCode")
