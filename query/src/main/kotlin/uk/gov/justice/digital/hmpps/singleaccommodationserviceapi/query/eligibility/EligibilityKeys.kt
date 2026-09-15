@@ -14,6 +14,7 @@ object EligibilityKeys {
   const val START_REFERRAL = "Start referral" // LINK TEXT
   const val START_NEW_REFERRAL = "Start new referral" // LINK TEXT
   const val VIEW_REFERRAL = "View referral" // LINK TEXT
+  const val CONTINUE_REFERRAL = "Continue referral" // LINK TEXT
 
   // DTR
   const val ADD_REFERRAL_DETAILS = "Add referral details" // LINK TEXT
