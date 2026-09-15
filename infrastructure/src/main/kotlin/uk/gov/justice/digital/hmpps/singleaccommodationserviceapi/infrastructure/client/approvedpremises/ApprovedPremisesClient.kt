@@ -52,19 +52,19 @@ class ApprovedPremisesCachingService(
   fun getCas3ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3ReferralHistory(crn) }
 
   @Cacheable(ApiCallKeys.GET_CAS_1_CURRENT_PREMISES, sync = true)
-  fun getCas1CurrentPremises(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas1CurrentPremises(crn) }
+  fun getCas1CurrentPremises(crn: String) = approvedPremisesClient.getCas1CurrentPremises(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_3_CURRENT_PREMISES, sync = true)
-  fun getCas3CurrentPremises(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3CurrentPremises(crn) }
+  fun getCas3CurrentPremises(crn: String) = approvedPremisesClient.getCas3CurrentPremises(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_APPLICATION, sync = true)
-  fun getSuitableCas1Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas1ApplicationInternal(crn) }
+  fun getSuitableCas1Application(crn: String) = approvedPremisesClient.getSuitableCas1ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_2_APPLICATION, sync = true)
   fun getSuitableCas2Application(crn: String) = approvedPremisesClient.getSuitableCas2ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_3_APPLICATION, sync = true)
-  fun getSuitableCas3Application(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getSuitableCas3ApplicationInternal(crn) }
+  fun getSuitableCas3Application(crn: String) = approvedPremisesClient.getSuitableCas3ApplicationInternal(crn)
 
   @Cacheable(ApiCallKeys.GET_CAS_1_URL_TEMPLATES, sync = true)
   fun getCas1UrlTemplates() = approvedPremisesClient.getCas1UrlTemplatesInternal()
