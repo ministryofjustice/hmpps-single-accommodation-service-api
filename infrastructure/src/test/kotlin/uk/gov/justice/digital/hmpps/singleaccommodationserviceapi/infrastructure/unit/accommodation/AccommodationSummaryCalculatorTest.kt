@@ -957,5 +957,16 @@ class AccommodationSummaryCalculatorTest {
       val result = calculator.calculateCaseAccommodationStatus(currentAccommodation = currentAccommodation, nextAccommodation = null)
       assertThat(result).isNull()
     }
+
+    @Test
+    fun `treats accommodation type lookup errors as unknown types`() {
+      every { accommodationTypeRepository.findByCode("UNKNOWN_CODE") } throws RuntimeException("lookup failed")
+
+      val currentAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "UNKNOWN_CODE"))
+
+      val result = calculator.calculateCaseAccommodationStatus(currentAccommodation = currentAccommodation, nextAccommodation = null)
+
+      assertThat(result).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
+    }
   }
 }
