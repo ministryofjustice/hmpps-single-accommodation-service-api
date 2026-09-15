@@ -63,6 +63,7 @@ class AccommodationSummaryCalculatorCsvTest {
       listOf(buildAccommodationTypeEntity(code = "A01A", settledType = AccommodationSettledType.SETTLED))
     every { accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue() } returns
       listOf(buildAccommodationTypeEntity(code = "A08", isHomeless = true))
+    every { accommodationTypeRepository.findByCode(any()) } returns null
   }
 
   @Nested
