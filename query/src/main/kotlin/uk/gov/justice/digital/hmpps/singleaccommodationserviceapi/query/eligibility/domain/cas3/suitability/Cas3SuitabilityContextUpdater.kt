@@ -39,6 +39,9 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
     ),
     notSubmitted to ServiceResult(
       serviceStatus = ServiceStatus.NOT_SUBMITTED,
+      action = CaseAction(type = CaseActionType.CONTINUE_CAS3_REFERRAL, service = AccommodationService.CAS3),
+      link = EligibilityKeys.CONTINUE_REFERRAL,
+      linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
     startReferral to ServiceResult(
       serviceStatus = ServiceStatus.NOT_STARTED,
