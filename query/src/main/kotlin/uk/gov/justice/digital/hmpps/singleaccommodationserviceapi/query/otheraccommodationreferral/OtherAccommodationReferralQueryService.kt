@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
@@ -18,12 +20,22 @@ import java.util.UUID
 private const val LOCAL_AUTHORITY_AREA_NAME = "localAuthorityAreaName"
 
 @Service
+@Transactional(readOnly = true)
 class OtherAccommodationReferralQueryService(
   private val otherAccommodationReferralRepository: OtherAccommodationReferralRepository,
   private val userRepository: UserRepository,
   private val localAuthorityAreaRepository: LocalAuthorityAreaRepository,
   private val auditService: AuditService,
 ) {
+  fun getOtherAccommodationReferral(crn: String, id: UUID): OtherAccommodationReferralDto {
+    val entity = otherAccommodationReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+
+    return OtherAccommodationReferralTransformer.toOtherAccommodationReferralDto(
+      entity = entity,
+      crn = crn,
+    )
+  }
+
   fun getOtherAccommodationReferralTimeline(id: UUID, crn: String): ApiResponseDto<List<AuditRecordDto>> {
     val otherAccommodationReferralEntity = otherAccommodationReferralRepository.findByIdAndCrnWithNotes(id, crn)
       .orThrowNotFound("id" to id, "crn" to crn)

@@ -49,7 +49,7 @@ fun expectedOtherAccommodationReferralResponseBody(
   referenceNumber: String? = "REF-001",
   status: String = "SUBMITTED",
   createdBy: String,
-  createdByUsername: String,
+  createdByUsername: String? = null,
   createdAt: String,
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
@@ -68,7 +68,7 @@ fun expectedOtherAccommodationReferralResponseBody(
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "createdBy": "$createdBy",
-    "createdByUsername": "$createdByUsername",
+    "createdByUsername": ${if (createdByUsername != null) "\"$createdByUsername\"" else "null"},
     "createdAt": "$createdAt",
     "organisationName": ${if (organisationName != null) "\"$organisationName\"" else "null"},
     "website": ${if (website != null) "\"$website\"" else "null"},
@@ -82,3 +82,36 @@ fun otherAccommodationReferralNoteRequestBody(note: String): String = """
     "note" : "$note"
   }
 """.trimIndent()
+
+@Suppress("LongParameterList")
+fun expectedGetOtherAccommodationReferralResponseBody(
+  id: UUID,
+  caseId: UUID,
+  crn: String,
+  localAuthorityAreaId: UUID,
+  localAuthorityAreaName: String? = null,
+  submissionDate: String = "2026-02-20",
+  referenceNumber: String? = "REF-001",
+  status: String = "SUBMITTED",
+  createdBy: String,
+  createdByUsername: String? = null,
+  createdAt: String,
+  organisationName: String? = "Organisation name",
+  website: String? = "https://www.charity.org",
+  submissionNote: String? = "A submission note",
+): String = """{"data": ${expectedOtherAccommodationReferralResponseBody(
+  id = id,
+  caseId = caseId,
+  crn = crn,
+  localAuthorityAreaId = localAuthorityAreaId,
+  localAuthorityAreaName = localAuthorityAreaName,
+  submissionDate = submissionDate,
+  referenceNumber = referenceNumber,
+  status = status,
+  createdBy = createdBy,
+  createdByUsername = createdByUsername,
+  createdAt = createdAt,
+  organisationName = organisationName,
+  website = website,
+  submissionNote = submissionNote,
+)}}"""

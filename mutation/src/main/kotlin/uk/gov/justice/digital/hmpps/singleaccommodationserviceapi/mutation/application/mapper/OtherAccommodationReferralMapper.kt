@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Lo
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralSubmissionDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.LocalAuthorityAreaEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate
@@ -13,21 +14,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 object OtherAccommodationReferralMapper {
 
-  fun toEntity(snapshot: OtherAccommodationReferralSnapshot) = OtherAccommodationReferralEntity(
+  fun toEntity(snapshot: OtherAccommodationReferralSnapshot, localAuthorityArea: LocalAuthorityAreaEntity? = null) = OtherAccommodationReferralEntity(
     id = snapshot.id,
     crn = snapshot.crn,
     caseId = snapshot.caseId,
-    localAuthorityAreaId = snapshot.localAuthorityAreaId,
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
     status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name),
     organisationName = snapshot.organisationName,
     website = snapshot.website,
     submissionNote = snapshot.submissionNote,
+    localAuthorityArea = localAuthorityArea,
   )
 
-  fun merge(snapshot: OtherAccommodationReferralSnapshot, entity: OtherAccommodationReferralEntity): OtherAccommodationReferralEntity {
-    entity.localAuthorityAreaId = snapshot.localAuthorityAreaId
+  fun merge(
+    snapshot: OtherAccommodationReferralSnapshot,
+    entity: OtherAccommodationReferralEntity,
+    localAuthorityArea: LocalAuthorityAreaEntity? = null,
+  ): OtherAccommodationReferralEntity {
+    if (localAuthorityArea != null) {
+      entity.localAuthorityArea = localAuthorityArea
+    }
     entity.referenceNumber = snapshot.referenceNumber
     entity.submissionDate = snapshot.submissionDate
     entity.status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name)
@@ -51,7 +58,7 @@ object OtherAccommodationReferralMapper {
     id = entity.id,
     caseId = entity.caseId,
     crn = entity.crn,
-    localAuthorityAreaId = entity.localAuthorityAreaId,
+    localAuthorityAreaId = entity.localAuthorityArea?.id ?: error("Local authority area is required"),
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
     status = OtherAccommodationReferralStatus.valueOf(entity.status.name),

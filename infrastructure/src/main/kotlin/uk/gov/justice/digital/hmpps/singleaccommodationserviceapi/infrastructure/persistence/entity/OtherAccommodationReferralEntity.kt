@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.javers.core.metamodel.annotation.DiffIgnore
@@ -19,7 +21,6 @@ open class OtherAccommodationReferralEntity(
   val id: UUID,
   val crn: String,
   val caseId: UUID,
-  var localAuthorityAreaId: UUID,
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)
@@ -27,6 +28,18 @@ open class OtherAccommodationReferralEntity(
   var organisationName: String?,
   var website: String?,
   var submissionNote: String?,
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+  var createdByUser: UserEntity? = null,
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "last_updated_by_user_id", insertable = false, updatable = false)
+  var lastUpdatedByUser: UserEntity? = null,
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "local_authority_area_id")
+  var localAuthorityArea: LocalAuthorityAreaEntity? = null,
 
   @DiffIgnore
   @OneToMany(

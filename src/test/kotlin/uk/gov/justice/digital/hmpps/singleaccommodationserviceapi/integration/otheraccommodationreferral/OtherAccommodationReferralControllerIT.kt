@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NA
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.createOtherAccommodationReferralRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedGetOtherAccommodationReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedGetOtherAccommodationReferralTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedOtherAccommodationReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.otherAccommodationReferralNoteRequestBody
@@ -192,7 +193,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
       localAuthorityAreaId: UUID,
     ) {
       assertThat(persistedRecord.crn).isEqualTo(crn)
-      assertThat(persistedRecord.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
+      assertThat(persistedRecord.localAuthorityArea?.id).isEqualTo(localAuthorityAreaId)
       assertThat(persistedRecord.referenceNumber).isEqualTo("REF-001")
       assertThat(persistedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 2, 20))
       assertThat(persistedRecord.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
@@ -203,6 +204,143 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         beforeTest.minusSeconds(1),
         Instant.now().plusSeconds(1),
       )
+    }
+  }
+
+  @Nested
+  inner class GetOtherAccommodationReferral {
+    @Test
+    fun `should get other accommodation referral by crn and id`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val entity = otherAccommodationReferralRepository.save(
+        buildOtherAccommodationReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = "REF-001",
+          submissionDate = LocalDate.of(2026, 2, 20),
+          organisationName = "Organisation name",
+          website = "https://www.charity.org",
+          submissionNote = "A submission note",
+          status = OtherAccommodationReferralStatus.SUBMITTED,
+        ),
+      )
+
+      val result = restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, entity.id)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedGetOtherAccommodationReferralResponseBody(
+          id = entity.id,
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityArea.id,
+          localAuthorityAreaName = localAuthorityArea.name,
+          submissionDate = "2026-02-20",
+          referenceNumber = "REF-001",
+          status = "SUBMITTED",
+          createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+          createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+          createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          organisationName = "Organisation name",
+          website = "https://www.charity.org",
+          submissionNote = "A submission note",
+        ),
+      )
+    }
+
+    @Test
+    fun `should get other accommodation referral with only mandatory fields`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val entity = otherAccommodationReferralRepository.save(
+        buildOtherAccommodationReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityArea.id,
+          referenceNumber = null,
+          submissionDate = LocalDate.of(2026, 2, 20),
+          organisationName = null,
+          website = null,
+          submissionNote = null,
+          status = OtherAccommodationReferralStatus.SUBMITTED,
+        ),
+      )
+
+      val result = restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, entity.id)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedGetOtherAccommodationReferralResponseBody(
+          id = entity.id,
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityArea.id,
+          localAuthorityAreaName = localAuthorityArea.name,
+          submissionDate = "2026-02-20",
+          referenceNumber = null,
+          status = "SUBMITTED",
+          createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+          createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+          createdAt = entity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          organisationName = null,
+          website = null,
+          submissionNote = null,
+        ),
+      )
+    }
+
+    @Test
+    fun `should return 404 on get when other accommodation referral not found by id`() {
+      val nonExistentId = UUID.randomUUID()
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, nonExistentId)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return 404 on get when crn does not match`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val entity = otherAccommodationReferralRepository.save(
+        buildOtherAccommodationReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityArea.id,
+        ),
+      )
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}", "OTHERCRN", entity.id)
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return 403 on get when user does not have required role`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val entity = otherAccommodationReferralRepository.save(
+        buildOtherAccommodationReferralEntity(
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityArea.id,
+        ),
+      )
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, entity.id)
+        .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
+        .exchange()
+        .expectStatus().isForbidden
     }
   }
 
@@ -245,7 +383,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       val updatedRecord = otherAccommodationReferralRepository.findByCaseId(case.id)!!
-      assertThat(updatedRecord.localAuthorityAreaId).isEqualTo(newLocalAuthorityArea.id)
+      assertThat(updatedRecord.localAuthorityArea?.id).isEqualTo(newLocalAuthorityArea.id)
       assertThat(updatedRecord.referenceNumber).isEqualTo("REF-002")
       assertThat(updatedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 1, 20))
       assertThat(updatedRecord.organisationName).isEqualTo("New organisation name")
