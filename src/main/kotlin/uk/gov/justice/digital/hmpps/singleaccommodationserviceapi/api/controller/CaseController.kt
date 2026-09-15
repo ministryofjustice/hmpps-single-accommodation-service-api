@@ -39,6 +39,8 @@ class CaseController(
     @RequestParam(required = false) searchTerm: String?,
     @Parameter(description = "Team code to retrieve cases for all users in a team rather than the current user.")
     @RequestParam(required = false) teamCode: String?,
+    @Parameter(description = "People type to filter based on tabs")
+    @RequestParam(required = false) peopleType: String?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
     val personDtos = caseQueryService.getCaseList(normalizedTeamCode)
@@ -47,7 +49,7 @@ class CaseController(
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
     val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = !caseQueryService.caseListV2Enabled)
-    val caseDtos = caseQueryService.getCases(filteredCaseList)
+    val caseDtos = caseQueryService.getCases(filteredCaseList,peopleType)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
 

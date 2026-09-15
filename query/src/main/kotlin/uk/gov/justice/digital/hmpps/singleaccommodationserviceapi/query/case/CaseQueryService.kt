@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
@@ -59,10 +60,11 @@ class CaseQueryService(
 
   fun getCases(
     personDtos: List<PersonDto>,
+    peopleType: String? = null,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
 
-    return personDtos.map { personDto ->
+    val caseDtos = personDtos.map { personDto ->
 
       when (personDto) {
         is LimitedPersonDto -> personDto.toLimitedCaseDto()
@@ -82,6 +84,11 @@ class CaseQueryService(
       }
     }
       .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
+return when (peopleType) {
+      "housed" -> caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+      "nfarisk" -> caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+      else -> caseDtos
+    }
   }
 
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
