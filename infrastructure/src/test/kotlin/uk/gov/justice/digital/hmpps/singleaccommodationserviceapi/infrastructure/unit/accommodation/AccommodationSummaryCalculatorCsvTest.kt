@@ -135,7 +135,7 @@ class AccommodationSummaryCalculatorCsvTest {
   }
 
   companion object {
-    private const val csvResourcePath = "/accommodation/CaseAccommodationStatusScenarios.csv"
+    private val csvResourcePath = "/accommodation/CaseAccommodationStatusScenarios.csv"
 
     data class CaseAccommodationScenario(
       val id: Int,
