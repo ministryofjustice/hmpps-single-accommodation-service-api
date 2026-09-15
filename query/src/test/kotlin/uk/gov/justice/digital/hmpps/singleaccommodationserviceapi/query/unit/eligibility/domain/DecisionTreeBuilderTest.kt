@@ -30,6 +30,18 @@ class DecisionTreeBuilderTest {
   }
 
   @Test
+  fun `named outcomes expose graph labels`() {
+    val builder = DecisionTreeBuilder(engine)
+    val expectedResult = buildServiceResult(serviceStatus = ServiceStatus.PLACEMENT_BOOKED)
+
+    assertThat(builder.confirmed().name).isEqualTo("confirmed")
+    assertThat(builder.notEligible().name).isEqualTo("notEligible")
+    assertThat(builder.notRequired().name).isEqualTo("notRequired")
+    assertThat(builder.currentOutcome().name).isEqualTo("currentOutcome")
+    assertThat(builder.outcome("placementBooked", expectedResult).name).isEqualTo("placementBooked")
+  }
+
+  @Test
   fun `outcome creates OutcomeNode with fixed ServiceResult`() {
     val expectedResult =
       buildServiceResult(
@@ -37,7 +49,7 @@ class DecisionTreeBuilderTest {
       )
     val builder = DecisionTreeBuilder(engine)
 
-    val result = builder.outcome(expectedResult)
+    val result = builder.outcome("placementBooked", expectedResult)
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
     // Verify it returns the fixed result

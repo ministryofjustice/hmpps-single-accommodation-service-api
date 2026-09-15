@@ -80,10 +80,10 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     select distinct pa from ProposedAccommodationEntity pa
     left join fetch pa.notes 
     where pa.caseId = :caseId
-    and pa.createdAt >= :startDate
-    and pa.createdAt <= :endDate
+    and (CAST(:startDate as Instant) IS NULL or pa.createdAt >= :startDate)
+    and (CAST(:endDate as Instant) IS NULL or pa.createdAt <= :endDate)
     order by pa.createdAt desc 
     """,
   )
-  fun findAllForSar(caseId: UUID, startDate: Instant, endDate: Instant): List<ProposedAccommodationEntity>
+  fun findAllForSar(caseId: UUID, startDate: Instant?, endDate: Instant?): List<ProposedAccommodationEntity>
 }

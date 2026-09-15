@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging
 
 import org.assertj.core.api.Assertions.assertThat
 import org.springframework.data.domain.PageRequest

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
@@ -34,8 +35,9 @@ class Cas2UpcomingContextUpdaterTest {
         currentResult = buildServiceResult(
           serviceStatus = ServiceStatus.UPCOMING,
           action = CaseAction(
-            type = CaseActionType.START_CAS2_APPLICATION,
+            type = CaseActionType.START_CAS2_REFERRAL,
             startDate = endDate.minusYears(1),
+            service = AccommodationService.CAS2,
           ),
         ),
       )

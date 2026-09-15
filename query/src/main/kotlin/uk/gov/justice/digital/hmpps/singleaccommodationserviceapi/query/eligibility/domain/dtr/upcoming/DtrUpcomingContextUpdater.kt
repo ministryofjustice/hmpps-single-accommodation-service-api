@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.upcoming
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
@@ -16,6 +17,7 @@ class DtrUpcomingContextUpdater : ContextUpdater() {
     action = CaseAction(
       type = CaseActionType.SUBMIT_DTR_REFERRAL,
       startDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(8),
+      service = AccommodationService.DTR,
     ),
   )
 }

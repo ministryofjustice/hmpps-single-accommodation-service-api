@@ -43,6 +43,7 @@ class Cas2EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible()
     val placementBooked = builder.outcome(
+      "placementBooked",
       serviceResult(),
     )
 
@@ -72,7 +73,7 @@ class Cas2EligibilityTreeProvider(
   }
 
   private fun serviceResult(): ServiceResult = ServiceResult(
-    serviceStatus = ServiceStatus.COMPLETED,
+    serviceStatus = ServiceStatus.AWAITING_ARRIVAL,
     link = EligibilityKeys.VIEW_APPLICATION,
     linkType = LinkType.CAS2_VIEW_APPLICATION,
   )

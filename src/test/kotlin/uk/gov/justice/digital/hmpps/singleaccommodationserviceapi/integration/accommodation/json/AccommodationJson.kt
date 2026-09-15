@@ -377,6 +377,8 @@ fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
 fun expectedAccommodationStatusResponse(
   crn: String,
   settledType: CaseAccommodationStatus?,
+  currentCode: String,
+  currentDescription: String,
   nextCode: String,
   nextDescription: String,
 ) = """
@@ -406,8 +408,8 @@ fun expectedAccommodationStatusResponse(
             "description":"Main"
          },
          "type":{
-            "code":"A07B",
-            "description":"Friends/Family (settled)"
+            "code":"$currentCode",
+            "description":"$currentDescription"
          }
       },
       "nextAccommodation":{

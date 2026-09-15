@@ -820,7 +820,7 @@ class AccommodationSummaryCalculatorTest {
     }
 
     @Test
-    fun `returns null when current is settled and there is no next accommodation`() {
+    fun `returns SETTLED when current is settled and there is no next accommodation`() {
       val proposedAddress = buildAddress(statusCode = AddressStatusCode.PR.name, usageCode = "A01A", endDate = null)
       val equivalentProposedAccommodationEntity = buildProposedAccommodationEntity()
 
@@ -836,6 +836,23 @@ class AccommodationSummaryCalculatorTest {
 
       val result = calculator.calculateCaseAccommodationStatus(currentAccommodation = settledCurrent, nextAccommodation = null)
 
+      assertThat(result).isEqualTo(CaseAccommodationStatus.SETTLED)
+    }
+
+    @Test
+    fun `returns TRANSIENT when current is transient and is not RISK_OF_NO_FIXED_ABODE`() {
+      val currentAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
+      val nextAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A01A"))
+
+      val result = calculator.calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation)
+
+      assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
+    }
+
+    @Test
+    fun `returns null when current does not match known status`() {
+      val currentAccommodation = buildAccommodationSummaryDto()
+      val result = calculator.calculateCaseAccommodationStatus(currentAccommodation, currentAccommodation)
       assertThat(result).isNull()
     }
   }

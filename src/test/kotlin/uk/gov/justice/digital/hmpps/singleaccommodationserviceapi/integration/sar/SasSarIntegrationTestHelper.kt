@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.util.Optional
 
 @Component
-open class SasSarIntegrationTestHelper(
+class SasSarIntegrationTestHelper(
   val jwtAuthHelper: JwtAuthorisationHelper,
   val objectMapper: ObjectMapper = JsonMapper.builder().configure(SORT_PROPERTIES_ALPHABETICALLY, true).build(),
 ) {

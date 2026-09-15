@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys.GET_CORE_PERSON_RECORD_BY_CRN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -21,30 +22,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
-  @Autowired
-  lateinit var caseRepository: CaseRepository
+class IncomingCprProbationAddressDeletedEventIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
 
   @Autowired
   private lateinit var accommodationStatusRepository: AccommodationStatusRepository
-
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
 
   @MockitoSpyBean
   lateinit var caseRefreshRequestService: CaseRefreshRequestService
@@ -62,12 +54,6 @@ class IncomingCprProbationAddressDeletedEventIT : IntegrationTestBase() {
     createTestDataSetupUserAndDeliusUser()
     createDeliusSyncUser()
     createSasSystemUser()
-    databaseUtils.truncate(
-      DatabaseUtils.SasTables.SAS_CASE,
-      DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION,
-      DatabaseUtils.SasTables.OUTBOX_EVENT,
-      DatabaseUtils.SasTables.INBOX_EVENT,
-    )
 
     crn = UUID.randomUUID().toString()
     caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })

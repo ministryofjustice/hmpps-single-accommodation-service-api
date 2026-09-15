@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
@@ -26,7 +27,7 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
       Cas3BookingStatus.DEPARTED,
       -> ServiceResult(
         serviceStatus = ServiceStatus.NOT_STARTED,
-        action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL),
+        action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
         link = EligibilityKeys.START_NEW_REFERRAL,
         linkType = LinkType.CAS3_START_REFERRAL,
       )
@@ -34,14 +35,14 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
       else -> when (assessmentStatus) {
         Cas3AssessmentStatus.CLOSED -> ServiceResult(
           serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL),
+          action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
           link = EligibilityKeys.START_NEW_REFERRAL,
           linkType = LinkType.CAS3_START_REFERRAL,
         )
 
         Cas3AssessmentStatus.REJECTED -> ServiceResult(
           serviceStatus = ServiceStatus.REJECTED,
-          action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL),
+          action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
           link = EligibilityKeys.START_NEW_REFERRAL,
           linkType = LinkType.CAS3_START_REFERRAL,
         )
@@ -53,14 +54,14 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
 
           Cas3ApplicationStatus.REJECTED -> ServiceResult(
             serviceStatus = ServiceStatus.REJECTED,
-            action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL),
+            action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
             link = EligibilityKeys.START_NEW_REFERRAL,
             linkType = LinkType.CAS3_START_REFERRAL,
           )
 
           else -> ServiceResult(
             serviceStatus = ServiceStatus.NOT_STARTED,
-            action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL),
+            action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
             link = EligibilityKeys.START_REFERRAL,
             linkType = LinkType.CAS3_START_REFERRAL,
           )

@@ -1,10 +1,43 @@
 #!/bin/bash
 
-trap "pkill -f 'port-forward'" EXIT
+# so the script works when ran from any directory
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "$SCRIPT_DIR/pod-name-utils.sh"
 
-LOCAL_PORT=6380
+PF_PID=
+
+cleanup() {
+  if [ -n "${PF_PID}" ] && kill -0 "${PF_PID}" 2>/dev/null; then
+    kill "${PF_PID}" 2>/dev/null
+  fi
+
+  if [ -n "${PORT_FORWARD_CONTAINER_NAME}" ] && [ -n "${NAMESPACE}" ]; then
+    echo "Cleaning up..."
+    kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME" --ignore-not-found >/dev/null 2>&1
+  fi
+}
+
+trap cleanup EXIT
+
+print_usage() {
+  echo "Name:"
+  echo "  remote_redis_tunnel - create a local tunnel to remote Redis"
+  echo ""
+  echo "Synopsis:"
+  echo "  ./remote-redis-tunnel.sh [-d] [-c] [-s secret-name] [dev|test|preprod|prod]"
+  echo ""
+  echo "Options:"
+  echo "  -c    Start redis-cli after port forwarding is ready"
+  echo "  -d    Display Redis auth token for local CLI/IDE connection"
+  echo "  -s    Redis secret name (default: sas-elasticache-redis)"
+}
+
+LOCAL_PORT=6379
 REDIS_SECRET_NAME=
-PORT_FORWARD_CONTAINER_NAME="redis-port-forward-${USER//.}"
+if ! PORT_FORWARD_CONTAINER_NAME=$(normalize_pod_name "sas-redis-port-forward-${USER:-unknown}")
+then
+  exit 1
+fi
 IMAGE="ministryofjustice/port-forward"
 DISPLAY_CREDS=0
 START_CLI=0
@@ -31,7 +64,7 @@ shift $((OPTIND - 1))
 ENV=$1
 
 if [ -z "$ENV" ] || [[ ! "$ENV" =~ ^(dev|test|preprod|prod)$ ]]; then
-  echo "You must specify the environment: ./remote-redis-tunnel.sh [-d] [-c] [dev|test|preprod|prod]"
+  print_usage
   exit 1
 fi
 
@@ -86,9 +119,17 @@ if [ "$START_CLI" -eq 1 ]; then
 
   echo "Launching redis-cli..."
   redis-cli -h 127.0.0.1 -p "$LOCAL_PORT" --tls -a "$REDIS_AUTH_TOKEN"
+
+  if [ -n "${PF_PID}" ] && kill -0 "${PF_PID}" 2>/dev/null; then
+    echo "Stopping background port-forward process $PF_PID"
+    kill "${PF_PID}" 2>/dev/null
+    wait "${PF_PID}" 2>/dev/null || true
+    PF_PID=
+  fi
 else
-  kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379"
+  kubectl -n "$NAMESPACE" port-forward pod/"$PORT_FORWARD_CONTAINER_NAME" "$LOCAL_PORT:6379" &
   PF_PID=$!
+  sleep 2
 
   echo
   echo "Connect with:"
@@ -96,7 +137,6 @@ else
   echo
 fi
 
-wait $PF_PID
-
-echo "Cleaning up..."
-kubectl -n "$NAMESPACE" delete pod "$PORT_FORWARD_CONTAINER_NAME"
+if [ -n "${PF_PID}" ]; then
+  wait "$PF_PID"
+fi

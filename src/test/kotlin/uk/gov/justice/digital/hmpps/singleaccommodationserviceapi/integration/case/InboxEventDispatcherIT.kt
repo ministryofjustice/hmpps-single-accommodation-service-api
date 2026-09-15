@@ -7,14 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPendingInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.DispatcherConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
@@ -30,9 +29,7 @@ import java.util.UUID
  * - maxEventsPerBatch limits batch size
  */
 
-class InboxEventDispatcherIT : IntegrationTestBase() {
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
+class InboxEventDispatcherIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var inboxEventDispatcher: InboxEventDispatcher
@@ -42,9 +39,6 @@ class InboxEventDispatcherIT : IntegrationTestBase() {
 
   @Autowired
   lateinit var mockEventHandler: MockInboxEventHandler
-
-  @Autowired
-  lateinit var inboxAsserter: InboxAsserter
 
   private val crn = UUID.randomUUID().toString()
 

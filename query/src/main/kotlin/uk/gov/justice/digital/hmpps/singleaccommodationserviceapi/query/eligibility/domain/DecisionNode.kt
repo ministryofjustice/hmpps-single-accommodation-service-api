@@ -11,7 +11,7 @@ sealed interface DecisionNode {
 }
 
 /** Terminal node that returns a ServiceResult based on the current context.**/
-class OutcomeNode(private val outcome: (EvaluationContext) -> ServiceResult) : DecisionNode {
+class OutcomeNode(val name: String = "unnamed", private val outcome: (EvaluationContext) -> ServiceResult) : DecisionNode {
   override fun eval(context: EvaluationContext): ServiceResult = outcome(context)
 }
 
@@ -19,12 +19,12 @@ class OutcomeNode(private val outcome: (EvaluationContext) -> ServiceResult) : D
  * Node that executes a RuleSet and branches based on the result.
  */
 class RuleSetNode(
-  private val ruleSetName: String,
-  private val ruleSet: RuleSet,
+  val ruleSetName: String,
+  val ruleSet: RuleSet,
   private val engine: RulesEngine,
-  private val onPass: DecisionNode,
-  private val onFail: DecisionNode,
-  private val contextUpdater: ContextUpdater,
+  val onPass: DecisionNode,
+  val onFail: DecisionNode,
+  val contextUpdater: ContextUpdater,
 ) : DecisionNode {
 
   companion object {

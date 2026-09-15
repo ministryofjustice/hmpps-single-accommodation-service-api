@@ -17,14 +17,17 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SentryCaptureTestConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJaversAuthProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestJpaAuditorConfig
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestSentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.GrantType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPersonName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildStaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer
@@ -32,12 +35,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.RulesConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.CacheHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.OutboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestInboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.messaging.TestSqsDomainEventListener
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
 import uk.gov.justice.hmpps.kotlin.auth.AuthSource
-import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 import java.time.Duration.ofMillis
@@ -71,7 +70,17 @@ private const val NOW_DATE_STRING = "2026-05-20T15:22:17Z"
 @AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(value = [RulesConfig::class, TestJpaAuditorConfig::class, TestJaversAuthProvider::class, TestClockConfig::class, TestCacheConfig::class, SarIntegrationTestHelperConfig::class])
+@Import(
+  value = [
+    RulesConfig::class,
+    TestJpaAuditorConfig::class,
+    TestJaversAuthProvider::class,
+    TestClockConfig::class,
+    TestCacheConfig::class,
+    SarIntegrationTestHelperConfig::class,
+    SentryCaptureTestConfig::class,
+  ],
+)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ContextConfiguration(initializers = [WireMockInitializer::class])
 @Tag("integration")
@@ -94,31 +103,25 @@ abstract class IntegrationTestBase {
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
 
   @Autowired
+  lateinit var caseRepository: CaseRepository
+
+  @Autowired
   protected lateinit var userRepository: UserRepository
 
   @Autowired
   protected lateinit var databaseUtils: DatabaseUtils
 
   @Autowired
-  protected lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
   protected lateinit var cacheManager: ConcurrentMapCacheManager
-
-  @Autowired
-  protected lateinit var testSqsDomainEventListener: TestSqsDomainEventListener
-
-  @Autowired
-  protected lateinit var testInboxEventHelper: TestInboxEventHelper
-
-  @Autowired
-  protected lateinit var outboxEventHelper: OutboxEventHelper
 
   @Autowired
   protected lateinit var cacheHelper: CacheHelper
 
   @Autowired
   protected lateinit var jsonMapper: JsonMapper
+
+  @Autowired
+  protected lateinit var testSentryService: TestSentryService
 
   @BeforeAll
   fun beforeAll() {
@@ -135,6 +138,7 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun resetStubs() {
+    testSentryService.reset()
     sasWiremock.resetAll()
     databaseUtils.truncate()
   }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
@@ -41,7 +42,7 @@ class Cas3SuitabilityContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.START_CAS3_REFERRAL))
+      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3))
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.REJECTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.START_NEW_REFERRAL)
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_START_REFERRAL)

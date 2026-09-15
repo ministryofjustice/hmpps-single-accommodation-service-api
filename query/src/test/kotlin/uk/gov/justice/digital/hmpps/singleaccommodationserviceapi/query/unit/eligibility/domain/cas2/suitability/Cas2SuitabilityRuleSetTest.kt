@@ -7,14 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitableStatusRule
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas2SuitabilityRuleSet::class,
-    Cas2ApplicationPresentRule::class,
+    Cas2ApplicationSubmittedRule::class,
+    Cas2SuitableStatusRule::class,
     ClockConfig::class,
   ],
 )
@@ -24,7 +26,8 @@ class Cas2SuitabilityRuleSetTest {
   lateinit var cas2SuitabilityRuleSet: Cas2SuitabilityRuleSet
 
   private val expectedCas2SuitabilityRuleNames = listOf(
-    Cas2ApplicationPresentRule::class.simpleName,
+    Cas2ApplicationSubmittedRule::class.simpleName,
+    Cas2SuitableStatusRule::class.simpleName,
   )
 
   @Test
@@ -32,7 +35,7 @@ class Cas2SuitabilityRuleSetTest {
     val ruleSetRules = cas2SuitabilityRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(1)
+      .hasSize(2)
       .containsExactlyInAnyOrderElementsOf(expectedCas2SuitabilityRuleNames)
   }
 }

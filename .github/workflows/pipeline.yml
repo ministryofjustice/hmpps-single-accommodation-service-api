@@ -70,6 +70,7 @@ jobs:
       postgres-username: sas_user
       postgres-password: sas_psw
       postgres-db: sas_db
+      postgres-port: '5434:5432'
     secrets: inherit
   build:
     permissions:

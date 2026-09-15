@@ -12,7 +12,7 @@ import java.util.UUID
 
 @AutoConfigureWebTestClient
 @Import(value = [SarIntegrationTestHelperConfig::class])
-open class SasSarTestBase : SubjectAccessRequestServiceTestBase() {
+class SasSarTestBase : SubjectAccessRequestServiceTestBase() {
 
   @BeforeEach
   fun clearData() {

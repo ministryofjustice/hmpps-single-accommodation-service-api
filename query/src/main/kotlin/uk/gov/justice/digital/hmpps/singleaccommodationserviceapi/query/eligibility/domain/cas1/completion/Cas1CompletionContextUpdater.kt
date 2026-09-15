@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
@@ -43,21 +44,21 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
 
     Cas1PlacementStatus.NOT_ARRIVED -> ServiceResult(
       serviceStatus = ServiceStatus.NOT_ARRIVED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
 
     Cas1PlacementStatus.CANCELLED -> ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_CANCELLED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
 
     else -> ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
@@ -66,21 +67,21 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
   private fun toServiceResultBeforePlacement(requestForPlacementStatus: Cas1RequestForPlacementStatus) = when (requestForPlacementStatus) {
     Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN -> ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
 
     Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED -> ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
 
     Cas1RequestForPlacementStatus.REQUEST_REJECTED -> ServiceResult(
       serviceStatus = ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )
@@ -95,7 +96,7 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
   private fun toServiceResultPriorToPlacementRequest(applicationStatus: Cas1ApplicationStatus?) = when (applicationStatus) {
     Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> ServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
-      action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION),
+      action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1),
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     )

@@ -15,7 +15,9 @@ Set a unique pod name once in your shell profile, for example:
 export CAS_PORT_FORWARD_CONTAINER_NAME=port-forward-pod-yourinitials
 ```
 
-The script prefixes this with `data-domain-`, so the final pod name will be unique to your tunnel session.
+The script prefixes this with `sas-`. The final pod name will be unique to your tunnel session.
+
+If you do not set `CAS_PORT_FORWARD_CONTAINER_NAME`, the script derives a name from your local username. Generated names are prefixed with `sas-`.
 
 
 ## Run Script
@@ -36,11 +38,20 @@ Use the environment you need:
 
 The `-d` option prints the database connection details, including credentials. Keep the terminal open while you are connected. Press `Ctrl+C` when finished; the script will stop port-forwarding and delete the temporary pod.
 
+All options must be provided before the environment argument.
+
 If you need a custom local port:
 
 ```shell
 ./scripts/remote-db-tunnel.sh -d -p 5433 dev
 ```
+
+Other useful options:
+
+- `-c` start the SQL CLI once the tunnel is ready.
+- `-n <name>` set an explicit pod name (the script normalizes to a Kubernetes-safe name).
+- `-i <image>` override the port-forward image.
+- `-s <secret>` override the RDS secret name.
 
 ## Connect To The Database
 

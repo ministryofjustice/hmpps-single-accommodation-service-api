@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
@@ -86,19 +87,19 @@ class Cas1CompletionContextUpdaterTest {
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_REJECTED,
         ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
         ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
         ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       ),
       Arguments.of(

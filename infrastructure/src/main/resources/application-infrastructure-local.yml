@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/sas_db
+    url: jdbc:postgresql://localhost:5434/sas_db
     username: sas_user
     password: sas_psw
 
@@ -26,3 +26,4 @@ service:
 
 redis:
   host: localhost
+  port: 6381

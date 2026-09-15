@@ -16,7 +16,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration.ofMillis
 import java.time.Duration.ofSeconds
 import java.time.OffsetDateTime
@@ -42,6 +44,23 @@ class TestInboxEventHelper(
   private val domainTopic by lazy {
     hmppsQueueService.findByTopicId("hmpps-domain-event-topic")
       ?: throw MissingTopicException("hmpps-domain-event-topic topic not found")
+  }
+
+  private val sasDomainEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("sas-domain-events-queue")
+      ?: throw MissingQueueException("sas-domain-events-queue queue not found")
+  }
+
+  fun awaitNoMessagesInFlight() {
+    await
+      .atMost(ofSeconds(5))
+      .pollInterval(ofMillis(100))
+      .untilAsserted {
+        val messageCount = sasDomainEventsQueue.sqsClient
+          .countAllMessagesOnQueue(sasDomainEventsQueue.queueUrl)
+          .get()
+        assertThat(messageCount).isZero()
+      }
   }
   fun assertAllInboxMessagesProcessed(count: Int) {
     assertExpectedInboxEvents(ProcessedStatus.PROCESSED, count)

@@ -45,10 +45,10 @@ class DecisionTreeBuilder(
   ) = ruleSet(name, ruleSet, ContextUpdater.identity())
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
-  fun outcome(result: ServiceResult) = OutcomeNode { _ -> result }
+  fun outcome(name: String, result: ServiceResult) = OutcomeNode(name) { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
-  fun confirmed() = OutcomeNode { ctx ->
+  fun confirmed() = OutcomeNode("confirmed") { ctx ->
     val result = ctx.currentResult
     if (result.serviceStatus == ServiceStatus.NOT_ELIGIBLE) {
       result
@@ -58,9 +58,9 @@ class DecisionTreeBuilder(
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible() = OutcomeNode { ctx -> toNotEligibleServiceStatus(ctx.currentResult.failureReasons) }
-  fun notRequired() = OutcomeNode { ctx -> toNotRequiredServiceStatus(ctx.currentResult.failureReasons) }
+  fun notEligible() = OutcomeNode("notEligible") { ctx -> toNotEligibleServiceStatus(ctx.currentResult.failureReasons) }
+  fun notRequired() = OutcomeNode("notRequired") { ctx -> toNotRequiredServiceStatus(ctx.currentResult.failureReasons) }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult with failure reasons. */
-  fun currentOutcome() = OutcomeNode { ctx -> ctx.currentResult }
+  fun currentOutcome() = OutcomeNode("currentOutcome") { ctx -> ctx.currentResult }
 }

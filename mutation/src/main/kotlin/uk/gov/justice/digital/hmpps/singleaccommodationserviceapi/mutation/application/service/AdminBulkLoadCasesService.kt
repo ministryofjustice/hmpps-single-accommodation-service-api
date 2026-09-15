@@ -105,7 +105,7 @@ class AdminBulkLoadCasesService(
     }
 
     val writeStartedAt = System.nanoTime()
-    caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) })
+    caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) }, createAsBlankRecord = true)
 
     val caseIds = caseRepository.findByCrns(teamCases.map { it.crn }).map { it.id }
     caseRefreshRequestService?.requestBulkRefresh(caseIds)
