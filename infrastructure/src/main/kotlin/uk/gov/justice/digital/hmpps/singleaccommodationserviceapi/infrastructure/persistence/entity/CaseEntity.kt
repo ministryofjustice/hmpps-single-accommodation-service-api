@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity
 
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -8,9 +9,11 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -19,8 +22,24 @@ class CaseEntity(
 
   @Id
   val id: UUID,
-
+  var hasSyncedCprProposedAccommodation: Boolean,
   var tierScore: String? = null,
+  var firstName: String? = null,
+  var lastName: String? = null,
+  var dateOfBirth: LocalDate? = null,
+
+  @Column(columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  var currentAccommodation: AccommodationSummaryDto? = null,
+
+  @Column(columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  var nextAccommodation: AccommodationSummaryDto? = null,
+
+  @Enumerated(EnumType.STRING)
+  var accommodationStatus: CaseAccommodationStatus? = null,
+
+  var roshLevelCode: String? = null,
 
   @OneToMany(
     mappedBy = "caseEntity",
@@ -29,13 +48,6 @@ class CaseEntity(
     orphanRemoval = true,
   )
   var caseIdentifiers: MutableSet<CaseIdentifierEntity> = mutableSetOf(),
-  var cas1ApplicationId: UUID? = null,
-  @Enumerated(EnumType.STRING)
-  var cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
-  @Enumerated(EnumType.STRING)
-  var cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
-  @Enumerated(EnumType.STRING)
-  var cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
 
 ) {
   fun latestCrn() = this.caseIdentifiers.filter { it.identifierType == IdentifierType.CRN }.maxBy { it.createdAt }

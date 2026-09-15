@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 // TODO - these drive the link text on the micro tracker cards currently - we should migrate to using linkType enum on EligibilityDto
 object EligibilityKeys {
-  // CAS1
+  // CAS1/CAS2
   const val CREATE_NEW_PLACEMENT_REQUEST = "Create new placement request" // LINK TEXT
   const val CREATE_PLACEMENT_REQUEST = "Create placement request" // LINK TEXT
   const val START_NEW_APPLICATION = "Start new application" // LINK TEXT

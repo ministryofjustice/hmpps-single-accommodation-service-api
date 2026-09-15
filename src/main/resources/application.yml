@@ -86,6 +86,20 @@ hmpps:
 case-list:
   page-size: 200
   onboarded-teams: []
+  v2-enabled: false
+
+bulk-load:
+  page-size: 10000
+
+case-refresh:
+  enabled: true
+  worker:
+    fixed-delay: 500ms
+    max-requests-per-run: 10
+    max-attempts: 3
+    initial-backoff: 1m
+    max-backoff: 30m
+    abandoned-claim-timeout: 10m
 
 scheduling:
   enabled: true
@@ -99,3 +113,9 @@ shedlock:
   inbox-event-dispatcher:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
+  case-refresh-worker:
+    lock-at-most-for: PT2M
+    lock-at-least-for: PT1S
+
+tier:
+  v3-enabled: false

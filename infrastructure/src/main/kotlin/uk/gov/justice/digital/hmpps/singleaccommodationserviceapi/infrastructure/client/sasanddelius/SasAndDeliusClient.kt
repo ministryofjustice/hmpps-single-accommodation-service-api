@@ -15,6 +15,12 @@ interface SasAndDeliusClient {
 
   @GetExchange(value = "/case/{username}/{crn}")
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
+
+  @GetExchange(value = "/team/{teamCode}/case-list")
+  fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
+
+  @GetExchange(value = "/case/{crn}")
+  fun getCase(@PathVariable crn: String): Case
 }
 
 @RestClientRetry

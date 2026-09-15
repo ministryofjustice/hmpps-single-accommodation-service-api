@@ -3,12 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
@@ -26,8 +28,7 @@ class Cas1SuitabilityContextUpdaterTest {
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         cas1Application = buildCas1Application(
-          id = applicationId,
-          applicationStatus = Cas1ApplicationStatus.STARTED,
+          application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.STARTED, id = applicationId),
         ),
       )
       val context = EvaluationContext(
@@ -37,7 +38,7 @@ class Cas1SuitabilityContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.CONTINUE_APPROVED_PREMISE_APPLICATION))
+      assertThat(result.currentResult.action).isEqualTo(CaseAction(type = CaseActionType.CONTINUE_APPROVED_PREMISE_APPLICATION, service = AccommodationService.CAS1))
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.NOT_SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.CONTINUE_APPLICATION)
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS1_VIEW_APPLICATION)

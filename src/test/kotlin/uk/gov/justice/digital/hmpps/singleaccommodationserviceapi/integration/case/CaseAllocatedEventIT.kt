@@ -5,33 +5,37 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import tools.jackson.databind.json.JsonMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildRoshLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
@@ -42,27 +46,15 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class CaseAllocatedEventIT : IntegrationTestBase() {
+class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
-
-  @Autowired
-  lateinit var caseRepository: CaseRepository
-
-  @Autowired
-  lateinit var inboxEventRepository: InboxEventRepository
-
-  @Autowired
-  lateinit var outboxEventRepository: OutboxEventRepository
-
-  @Autowired
-  lateinit var jsonMapper: JsonMapper
 
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
 
-  private val eventType = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName
-  private val eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription
+  private val eventType = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName
+  private val eventDescription = "test event"
   private fun eventDetailUrl() = "${applicationContext.environment.getProperty("service.tier.base-url")}/v2/crn/$crn/tier"
 
   @BeforeEach
@@ -90,21 +82,18 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
     TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
 
-    val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      placementStatus = Cas1PlacementStatus.ARRIVED,
-      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
-
     // when
     publishCaseAllocatedEvent()
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventHelper.assertMessageProcessed()
-    assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNotNull()
+    testInboxEventHelper.assertMessageProcessed()
+
+    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
+    assertThat(case).isNotNull()
+    assertThat(case?.firstName).isNull()
+    assertThat(case?.lastName).isNull()
+    assertThat(case?.dateOfBirth).isNull()
   }
 
   @Test
@@ -129,19 +118,14 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    inboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByIdentifier(crn, IdentifierType.CRN)).isNull()
   }
 
   @Test
-  fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier and cas API calls fail`() {
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
-    )
-    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
+  fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier API call fails`() {
     TierStubs.getTierServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationServerErrorResponse(crn = crn)
+    val (cpr, cas1CurrentPremises) = stubCaseRefresherUpstreams()
 
     // when
     publishCaseAllocatedEvent()
@@ -149,67 +133,103 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     assertSuccessful(
-      expectedCas1Application = null,
+      expectedCas1Premises = cas1CurrentPremises,
       expectedTier = null,
+      expectedCpr = cpr,
     )
   }
 
   private fun shouldProcessCaseAllocationEventSuccessfully() {
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn,
-      buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn))),
-    )
-    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
-
-    val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      placementStatus = Cas1PlacementStatus.ARRIVED,
-      requestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
+    val tier = "A3"
+    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = tier))
+    val (cpr, cas1CurrentPremises) = stubCaseRefresherUpstreams()
 
     // when
     publishCaseAllocatedEvent()
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
+    assertSuccessful(
+      expectedCas1Premises = cas1CurrentPremises,
+      expectedTier = tier,
+      expectedCpr = cpr,
+    )
+  }
 
-    assertSuccessful(cas1Application)
+  private fun stubCaseRefresherUpstreams(): Pair<CorePersonRecord, Cas1PremisesSummary> {
+    val cas1CurrentPremises = buildCas1PremisesSummary(postcode = "SW1A 1AA")
+    val cpr = buildCorePersonRecord(
+      identifiers = buildIdentifiers(crns = listOf(crn)),
+      addresses = listOf(
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = cas1CurrentPremises.postcode,
+          status = CanonicalAddressStatus(code = AddressStatusCode.M.name, description = AddressStatusCode.M.description),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(code = AddressUsageCode.A02.name, description = AddressUsageCode.A02.description),
+              isActive = true,
+            ),
+          ),
+        ),
+        buildCanonicalAddress(
+          cprAddressId = UUID.randomUUID(),
+          noFixedAbode = false,
+          postcode = "SW1A 1AD",
+          endDate = null,
+          status = CanonicalAddressStatus(code = AddressStatusCode.PR.name, description = AddressStatusCode.PR.description),
+          usages = listOf(
+            CanonicalAddressUsage(
+              usageCode = CanonicalAddressUsageCode(code = AddressUsageCode.A07A.name, description = AddressUsageCode.A07A.description),
+              isActive = true,
+            ),
+          ),
+        ),
+      ),
+    )
+    CorePersonRecordStubs.getCorePersonRecordOKResponse(crn, cpr)
+    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+      response = CaseSummaries(listOf(buildCaseSummary(crn = crn, nomsId = "YY09876Y"))),
+    )
+    ApprovedPremisesStubs.getCas1CurrentPremisesOKResponse(crn, cas1CurrentPremises)
+    SasAndDeliusStubs.stubGetCase(crn = crn, response = buildCase(crn = crn, roshLevel = buildRoshLevel(code = "RMRH")))
+    return cpr to cas1CurrentPremises
   }
 
   private fun assertSuccessful(
-    expectedCas1Application: Cas1Application?,
-    expectedTier: String? = "A3",
+    expectedCas1Premises: Cas1PremisesSummary,
+    expectedTier: String?,
+    expectedCpr: CorePersonRecord?,
   ) {
-    inboxEventHelper.assertMessageProcessed()
+    testInboxEventHelper.assertMessageProcessed()
 
     val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    if (expectedCas1Application != null) {
-      assertThat(case.tierScore).isEqualTo(expectedTier)
-    } else {
-      assertThat(case.tierScore).isNull()
-    }
-    if (expectedCas1Application != null) {
-      assertThat(case.cas1ApplicationId).isEqualTo(expectedCas1Application.id)
-      assertThat(case.cas1ApplicationApplicationStatus).isEqualTo(expectedCas1Application.applicationStatus)
-      assertThat(case.cas1ApplicationRequestForPlacementStatus).isEqualTo(expectedCas1Application.requestForPlacementStatus)
-      assertThat(case.cas1ApplicationPlacementStatus).isEqualTo(expectedCas1Application.placementStatus)
-    } else {
-      assertThat(case.cas1ApplicationId).isNull()
-      assertThat(case.cas1ApplicationApplicationStatus).isNull()
-      assertThat(case.cas1ApplicationRequestForPlacementStatus).isNull()
-      assertThat(case.cas1ApplicationPlacementStatus).isNull()
-    }
+    assertThat(case.tierScore).isEqualTo(expectedTier)
+    assertThat(case.firstName).isEqualTo(expectedCpr?.firstName)
+    assertThat(case.lastName).isEqualTo(expectedCpr?.lastName)
+    assertThat(case.dateOfBirth).isEqualTo(expectedCpr?.dateOfBirth)
+    assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+    assertThat(case.roshLevelCode).isEqualTo("RMRH")
+
+    val currentAccommodation = case.currentAccommodation!!
+    assertThat(currentAccommodation.address.postcode).isEqualTo("SW1A 1AA")
+    assertThat(currentAccommodation.type?.code).isEqualTo(AddressUsageCode.A02.name)
+    assertThat(currentAccommodation.startDate).isEqualTo(expectedCas1Premises.startDate)
+    assertThat(currentAccommodation.endDate).isEqualTo(expectedCas1Premises.endDate)
+
+    val nextAccommodation = case.nextAccommodation!!
+    assertThat(nextAccommodation.address.postcode).isEqualTo("SW1A 1AD")
+    assertThat(nextAccommodation.startDate).isNull()
+    assertThat(nextAccommodation.endDate).isNull()
   }
 
   private fun assertPublishedSNSEvent(
     detailUrl: String,
   ) {
     testSqsDomainEventListener.assertMessageReceived(
-      typeName = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName,
-      eventDescription = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeDescription,
+      typeName = IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName,
+      eventDescription = eventDescription,
       detailUrl = detailUrl,
     )
   }
@@ -234,6 +254,6 @@ class CaseAllocatedEventIT : IntegrationTestBase() {
       }
     """.trimIndent()
 
-    inboxEventHelper.publish(snsEvent, eventType)
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

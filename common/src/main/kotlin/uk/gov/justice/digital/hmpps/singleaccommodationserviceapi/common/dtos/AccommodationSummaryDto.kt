@@ -5,6 +5,7 @@ import java.util.UUID
 
 data class AccommodationSummariesDto(
   val caseAccommodationStatus: CaseAccommodationStatus? = null,
+  val caseAccommodationStatusDate: LocalDate? = null,
   val currentAccommodation: AccommodationSummaryDto? = null,
   val nextAccommodation: AccommodationSummaryDto? = null,
 )
@@ -16,6 +17,7 @@ data class AccommodationSummaryDto(
   val address: AccommodationAddressDetails,
   val status: AccommodationStatusDto? = null,
   val type: AccommodationTypeDto? = null,
+  val proposedAccommodationId: UUID? = null,
 )
 
 data class AccommodationDetailDto(
@@ -56,4 +58,6 @@ data class AccommodationAddressDetails(
 enum class CaseAccommodationStatus {
   RISK_OF_NO_FIXED_ABODE,
   NO_FIXED_ABODE,
+  TRANSIENT,
+  SETTLED,
 }

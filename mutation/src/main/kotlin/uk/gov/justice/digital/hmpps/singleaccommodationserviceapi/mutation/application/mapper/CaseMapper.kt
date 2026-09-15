@@ -1,31 +1,46 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
 
-object CaseMapper {
+@Component
+class CaseMapper {
+
+  private fun buildIdentifiers(crn: String, prisonNumber: String?) = buildMap {
+    put(crn, IdentifierType.CRN)
+    prisonNumber?.let { put(it, IdentifierType.PRISON_NUMBER) }
+  }
 
   fun toAggregate(entity: CaseEntity): CaseAggregate = CaseAggregate.hydrate(
     id = entity.id,
     tierScore = entity.tierScore,
-    cas1ApplicationId = entity.cas1ApplicationId,
-    cas1ApplicationApplicationStatus = entity.cas1ApplicationApplicationStatus,
-    cas1ApplicationRequestForPlacementStatus = entity.cas1ApplicationRequestForPlacementStatus,
-    cas1ApplicationPlacementStatus = entity.cas1ApplicationPlacementStatus,
+    hasSyncedCprProposedAccommodation = entity.hasSyncedCprProposedAccommodation,
+    firstName = entity.firstName,
+    lastName = entity.lastName,
+    dateOfBirth = entity.dateOfBirth,
+    currentAccommodation = entity.currentAccommodation,
+    nextAccommodation = entity.nextAccommodation,
+    accommodationStatus = entity.accommodationStatus,
+    roshLevelCode = entity.roshLevelCode,
   )
 
-  fun create(snapshot: CaseAggregate.CaseSnapshot, identifiers: Map<String, IdentifierType>): CaseEntity {
+  fun create(snapshot: CaseAggregate.CaseSnapshot, crn: String, prisonNumber: String?): CaseEntity {
     val entity = CaseEntity(
       id = snapshot.id,
       tierScore = snapshot.tierScore,
-      cas1ApplicationId = snapshot.cas1ApplicationId,
-      cas1ApplicationApplicationStatus = snapshot.cas1ApplicationApplicationStatus,
-      cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus,
-      cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus,
+      hasSyncedCprProposedAccommodation = snapshot.hasSyncedCprProposedAccommodation,
+      firstName = snapshot.firstName,
+      lastName = snapshot.lastName,
+      dateOfBirth = snapshot.dateOfBirth,
+      currentAccommodation = snapshot.currentAccommodation,
+      nextAccommodation = snapshot.nextAccommodation,
+      accommodationStatus = snapshot.accommodationStatus,
+      roshLevelCode = snapshot.roshLevelCode,
     )
-    entity.addMissingIdentifiers(identifiers)
+    entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
     return entity
   }
 
@@ -35,17 +50,21 @@ object CaseMapper {
     identifiers: Map<String, IdentifierType>? = null,
   ): CaseEntity {
     entity.tierScore = snapshot.tierScore
-    entity.cas1ApplicationId = snapshot.cas1ApplicationId
-    entity.cas1ApplicationApplicationStatus = snapshot.cas1ApplicationApplicationStatus
-    entity.cas1ApplicationRequestForPlacementStatus = snapshot.cas1ApplicationRequestForPlacementStatus
-    entity.cas1ApplicationPlacementStatus = snapshot.cas1ApplicationPlacementStatus
+    entity.hasSyncedCprProposedAccommodation = snapshot.hasSyncedCprProposedAccommodation
+    entity.firstName = snapshot.firstName
+    entity.lastName = snapshot.lastName
+    entity.dateOfBirth = snapshot.dateOfBirth
+    entity.currentAccommodation = snapshot.currentAccommodation
+    entity.nextAccommodation = snapshot.nextAccommodation
+    entity.accommodationStatus = snapshot.accommodationStatus
+    entity.roshLevelCode = snapshot.roshLevelCode
 
-    identifiers?.let { entity.addMissingIdentifiers(it) }
+    identifiers?.let { entity.addIdentifiers(it) }
 
     return entity
   }
 
-  fun CaseEntity.addMissingIdentifiers(identifiers: Map<String, IdentifierType>) {
+  fun CaseEntity.addIdentifiers(identifiers: Map<String, IdentifierType>) {
     val existingIdentifiers = this.caseIdentifiers.associate { it.identifier to it.identifierType }
 
     identifiers.forEach { (identifier, type) ->

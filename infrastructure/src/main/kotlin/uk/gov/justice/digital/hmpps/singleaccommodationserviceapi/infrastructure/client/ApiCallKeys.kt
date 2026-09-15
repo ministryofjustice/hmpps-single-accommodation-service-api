@@ -8,6 +8,8 @@ object ApiCallKeys {
   // probation-integration SAS and Delius service
   const val GET_CASE_LIST = "getCaseListByUsername"
   const val FULL_CASE_LIST = "fullCaseListByUsername"
+  const val GET_CASES_BY_TEAM = "getCasesByTeamCode"
+  const val GET_CASE_WITHOUT_LAO = "getCaseByCrnWithoutLAO"
 
   // core-person-record service
   const val GET_CORE_PERSON_RECORD_BY_CRN = "getCorePersonRecordByCrn"
@@ -20,8 +22,10 @@ object ApiCallKeys {
   const val GET_CAS_1_CURRENT_PREMISES = "getCas1CurrentPremises"
   const val GET_CAS_3_CURRENT_PREMISES = "getCas3CurrentPremises"
   const val GET_CAS_1_APPLICATION = "getCas1Application"
+  const val GET_CAS_2_APPLICATION = "getCas2Application"
   const val GET_CAS_3_APPLICATION = "getCas3Application"
   const val GET_CAS_1_URL_TEMPLATES = "getCas1UrlTemplates"
+  const val GET_CAS_2_URL_TEMPLATES = "getCas2UrlTemplates"
   const val GET_CAS_3_URL_TEMPLATES = "getCas3UrlTemplates"
 
   // prisoner-search service
@@ -40,7 +44,9 @@ object ApiCallKeys {
     GET_CAS_1_CURRENT_PREMISES,
     GET_CAS_3_CURRENT_PREMISES,
     GET_CAS_1_APPLICATION,
+    GET_CAS_2_APPLICATION,
     GET_CAS_3_APPLICATION,
     GET_PRISONER,
+    GET_CASE_WITHOUT_LAO,
   )
 }

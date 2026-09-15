@@ -43,7 +43,7 @@ spring:
   cache:
     type: none
   datasource:
-    url: jdbc:postgresql://localhost:5432/sas_db
+    url: jdbc:postgresql://localhost:5434/sas_db
     username: sas_user
     password: sas_psw
     hikari:
@@ -67,6 +67,18 @@ event:
     proposed-accommodation-updated: http://api-host/proposed-accommodations/#id
     duty-to-refer-updated: http://api-host/duty-to-refers/#id
 
+case-refresh:
+  enabled: true
+  worker:
+    fixed-delay: 50ms
+    max-requests-per-run: 10
+    max-attempts: 2
+    initial-backoff: 1m
+    max-backoff: 5m
+    abandoned-claim-timeout: 10m
+redis:
+  port: 6381
+
 hmpps:
   sqs:
     enabled: true
@@ -77,10 +89,36 @@ hmpps:
         arn: arn:aws:sns:eu-west-2:000000000000:hmpps-domain-event-topic
     queues:
       sas-domain-events-queue:
-        queueName: sas_domain_events_queue
-        dlqName: sas_domain_events_dlq
+        queueName: ${random.uuid}
+        dlqName: ${random.uuid}
         subscribeTopicId: hmpps-domain-event-topic
-        subscribeFilter: '{"eventType":["tier.calculation.changed", "person.community.manager.allocated", "core-person-record.probation.address.created", "core-person-record.probation.address.updated", "core-person-record.probation.address.deleted"]}'
+        subscribeFilter: >
+          {
+            "eventType": [
+              "tier.calculation.changed",
+              "person.community.manager.allocated",
+              "core-person-record.probation.address.created",
+              "core-person-record.probation.address.updated",
+              "core-person-record.probation.address.deleted",
+              "core-person-record.probation.record.updated",
+              "prisoner-offender-search.prisoner.released",
+              "prisoner-offender-search.prisoner.received",
+              "prisoner-offender-search.prisoner.updated",
+              "approved-premises.booking.cancelled",
+              "approved-premises.booking.changed",
+              "approved-premises.booking.not-arrived",
+              "approved-premises.booking.made",
+              "accommodation.cas3.booking.confirmed",
+              "accommodation.cas3.booking.cancelled",
+              "accommodation.cas3.booking.cancelled.updated",
+              "probation-user.username.changed",
+              "probation-case.registration.added",
+              "probation-case.registration.deleted",
+              "probation-case.registration.deregistered",
+              "probation-case.registration.updated",
+              "offender-management.allocation.changed"
+            ]
+          }
       test-domain-events-queue:
         dlqName: ${random.uuid}
         queueName: ${random.uuid}
@@ -91,7 +129,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0042"
+      expected-flyway-schema-version: "0051"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:
@@ -103,6 +141,9 @@ test-data-setup:
 case-list:
   page-size: 1
   onboarded-teams: 12345
+
+bulk-load:
+  page-size: 1
 logging:
   level:
     root: WARN

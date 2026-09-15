@@ -22,8 +22,10 @@ You can automatically generate the actual output of the tests by setting the `SA
 To generate new fixtures, run the following command:
 
 ```bash
-SAR_GENERATE_ACTUAL=true ./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SasSarComplianceTest"
+SAR_GENERATE_ACTUAL=true ./gradlew :integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SasSarComplianceTest"
 ```
+
+Use `:integrationTest` rather than `integrationTest` because this project registers an `integrationTest` task in the root project and each subproject. The leading `:` targets only the root task, where the SAR tests live.
 
 ### 2. Locate the generated files
 
@@ -60,7 +62,7 @@ The `SarIntegrationTest` class contains tests for verifying the SAR template end
 The `FlywaySchemaTest` (once implemented) verifies that the Flyway migrations are up to date and match the version expected by the SAR library.
 
 ```bash
-./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest"
+./gradlew :integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest"
 ```
 
 ### JPA Entities Test (Entity Schema)
@@ -72,7 +74,7 @@ If you add or modify JPA entities, you may need to update the `sas-entities-sche
 #### 1. Generate the new entity schema
 
 ```bash
-SAR_GENERATE_ACTUAL=true ./gradlew integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest"
+SAR_GENERATE_ACTUAL=true ./gradlew :integrationTest --tests "uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.sar.SarIntegrationTest"
 ```
 
 #### 2. Update the fixture

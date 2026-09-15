@@ -99,6 +99,7 @@ class UserService(
 
   fun findUserByUserId(id: UUID) = userRepository.findByIdOrNull(id)
 
+  @Deprecated("use getSystemUser() below instead - both users now have the same firstName and lastName for audit presentation purposes")
   fun getNationalDeliusSystemUser() = userRepository.findByUsernameAndAuthSource(
     username = Username("DELIUS_SYNC_USER"),
     authSource = AuthSourceEntity.DELIUS,

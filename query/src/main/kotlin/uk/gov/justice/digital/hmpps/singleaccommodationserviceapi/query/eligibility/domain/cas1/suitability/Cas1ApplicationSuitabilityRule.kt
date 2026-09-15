@@ -20,7 +20,7 @@ class Cas1ApplicationSuitabilityRule : Rule {
       Cas1ApplicationStatus.WITHDRAWN,
     )
 
-    val isFail = unsuitableStatuses.contains(data.cas1Application?.applicationStatus) && data.cas1Application?.requestForPlacementStatus == null && data.cas1Application?.placementStatus == null
+    val isFail = unsuitableStatuses.contains(data.cas1Application?.application?.status) && data.cas1Application?.requestForPlacement?.status == null && data.cas1Application?.placement?.status == null
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

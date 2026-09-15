@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 object PersonTransformer {
   fun toPersonDto(
     case: Case,
-  ): PersonDto = if (case.userExcluded || case.userRestricted) {
+  ): PersonDto = if (case.limitedAccess == true) {
     LimitedPersonDto(
       crn = case.crn,
       nomsNumber = case.nomsNumber,
@@ -28,7 +28,7 @@ object PersonTransformer {
       riskLevel = case.getRiskLevel(),
       teamCode = case.team.code,
       assignedTo = case.getAssignedTo(),
-      limitedAccess = case.limitedAccess,
+      limitedAccess = case.limitedAccess ?: false,
     )
   }
 

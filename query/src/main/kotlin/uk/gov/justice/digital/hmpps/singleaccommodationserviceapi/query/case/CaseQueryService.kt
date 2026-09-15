@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -13,10 +14,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 
 @Service
@@ -24,8 +24,7 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  private val eligibilityService: EligibilityService,
-  private val dutyToReferQueryService: DutyToReferQueryService,
+  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
@@ -70,20 +69,22 @@ class CaseQueryService(
 
         is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
-          val dutyToRefer = caseEntity?.let { dutyToReferQueryService.getDutyToRefer(it, personDto.crn) }
-          val eligibility = eligibilityService.getEligibility(
-            crn = personDto.crn,
-            gender = personDto.gender,
-            caseEntity = caseEntity,
-            dutyToRefer = dutyToRefer,
-          )
-          personDto.toCaseDto(caseEntity = caseEntitiesByCrn[personDto.crn], eligibility = eligibility)
+          if (caseListV2Enabled) {
+            personDto.toCaseDtoV2(
+              caseEntity = caseEntity,
+              currentAccommodation = caseEntity?.currentAccommodation,
+              nextAccommodation = caseEntity?.nextAccommodation,
+            )
+          } else {
+            personDto.toCaseDto(caseEntity = caseEntity)
+          }
         }
       }
     }
+      .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
   }
 
-  fun isPersistedCase(crn: String) = caseRepository.findByCrn(crn) != null
+  fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
     val user = userService.authorizeAndRetrieveUser()
@@ -112,8 +113,8 @@ class CaseQueryService(
   fun getCaseFromDelius(crn: String): ApiResponseDto<PersonDto?> {
     val user = userService.authorizeAndRetrieveUser()
     val orchestrationResult = caseOrchestrationService.getCaseFromDelius(user.username, crn)
+    hasMandatoryCaseData(orchestrationResult)
     val case = orchestrationResult.data.case?.let { toPersonDto(it) }
-
     return toApiResponseDto(data = case, upstreamFailures = orchestrationResult.upstreamFailures)
   }
 

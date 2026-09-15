@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.proposedaccommodation.ProposedAccommodationTimelineService
 import java.time.Instant
 import java.util.UUID
@@ -43,6 +43,9 @@ class ProposedAccommodationTimelineServiceTest {
   lateinit var accommodationTypeRepository: AccommodationTypeRepository
 
   @MockK
+  lateinit var userService: UserService
+
+  @MockK
   lateinit var userRepository: UserRepository
 
   @InjectMockKs
@@ -57,6 +60,13 @@ class ProposedAccommodationTimelineServiceTest {
     surname = "user",
     email = "DELIUS_SYNC_USER",
   )
+  private val sasSystemUser = buildUserEntity(
+    username = "SAS_SYSTEM_USER",
+    authSource = AuthSource.NONE,
+    forename = "nDelius",
+    surname = "user",
+    email = "SAS_SYSTEM_USER",
+  )
 
   @Nested
   inner class GetProposedAccommodationTimeline {
@@ -70,11 +80,11 @@ class ProposedAccommodationTimelineServiceTest {
         name = "Living in the home of a friend, family member or partner: settled",
       )
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -131,11 +141,11 @@ class ProposedAccommodationTimelineServiceTest {
       val expectedProposedAccommodationCreatedAuditRecord = buildAuditRecordDto()
 
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -189,11 +199,11 @@ class ProposedAccommodationTimelineServiceTest {
     fun `should throw NotFoundException when not found`() {
       val id = UUID.randomUUID()
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every { proposedAccommodationRepository.findByIdAndCrnWithNotes(id, crn) } returns null
 
       assertThatThrownBy { service.getProposedAccommodationTimeline(id, crn) }
@@ -223,11 +233,11 @@ class ProposedAccommodationTimelineServiceTest {
       )
 
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -276,11 +286,11 @@ class ProposedAccommodationTimelineServiceTest {
       )
 
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -325,11 +335,11 @@ class ProposedAccommodationTimelineServiceTest {
       )
 
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -364,17 +374,21 @@ class ProposedAccommodationTimelineServiceTest {
         author = deliusSyncUser.displayName(),
         commitDate = Instant.now(),
       )
+      val sasSystemUserAuditRecord = buildAuditRecordDto(
+        author = sasSystemUser.displayName(),
+        commitDate = Instant.now(),
+      )
       val otherUserAuditRecord = buildAuditRecordDto(
         author = "Joe Bloggs",
         commitDate = Instant.now().minusSeconds(60),
       )
 
       every {
-        userRepository.findByUsernameAndAuthSource(
-          username = Username("DELIUS_SYNC_USER"),
-          authSource = AuthSource.DELIUS,
-        )
+        userService.getNationalDeliusSystemUser()
       } returns deliusSyncUser
+      every {
+        userService.getSystemUser()
+      } returns sasSystemUser
       every {
         proposedAccommodationRepository.findByIdAndCrnWithNotes(
           eq(proposedAccommodationEntity.id),
@@ -383,18 +397,23 @@ class ProposedAccommodationTimelineServiceTest {
       } returns proposedAccommodationEntity
       every {
         auditService.fullAuditHistory(id, ProposedAccommodationEntity::class.java)
-      } returns listOf(deliusSyncAuditRecord, otherUserAuditRecord)
+      } returns listOf(deliusSyncAuditRecord, sasSystemUserAuditRecord, otherUserAuditRecord)
       every { accommodationTypeRepository.findAll() } returns listOf(accommodationType)
 
       val result = service.getProposedAccommodationTimeline(id, crn)
 
-      assertThat(result).hasSize(2)
+      assertThat(result).hasSize(3)
       assertThat(result[0]).isEqualTo(
         deliusSyncAuditRecord.copy(
           commitDate = null,
         ),
       )
-      assertThat(result[1]).isEqualTo(otherUserAuditRecord)
+      assertThat(result[1]).isEqualTo(
+        sasSystemUserAuditRecord.copy(
+          commitDate = null,
+        ),
+      )
+      assertThat(result[2]).isEqualTo(otherUserAuditRecord)
     }
   }
 }

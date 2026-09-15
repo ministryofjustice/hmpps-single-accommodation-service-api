@@ -10,9 +10,11 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.client.expectBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.DomainEventIntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
@@ -25,31 +27,32 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationStatusEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationTypeEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AuthSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationStatusRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OutboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsEmptyListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsEmptyResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedGetProposedAccommodationsResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAccommodationTimeResponseForDeliusAndLegacyDeliusAudits
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAccommodationTimeResponseForDeliusAndSasAudits
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.expectedProposedAccommodationTimeResponseForDeliusOriginAudits
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json.proposedAddressesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.PROPOSED_ACCOMMODATION
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -58,7 +61,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.VerificationStatus as EntityVerificationStatus
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
+class ProposedAccommodationDeliusSyncIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   private lateinit var accommodationTypeRepository: AccommodationTypeRepository
@@ -68,12 +71,6 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var proposedAccommodationRepository: ProposedAccommodationRepository
-
-  @Autowired
-  private lateinit var outboxEventRepository: OutboxEventRepository
-
-  @Autowired
-  private lateinit var caseRepository: CaseRepository
 
   @Autowired
   private lateinit var javers: Javers
@@ -87,24 +84,16 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   fun setup() {
     beforeTest = Instant.now()
     crn = UUID.randomUUID().toString()
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
 
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
     createDeliusSyncUser()
-    databaseUtils.truncate(PROPOSED_ACCOMMODATION, OUTBOX_EVENT)
+    createSasSystemUser()
   }
 
   @Test
   fun `should get empty list when get proposed-accommodations by crn when there are two 'Confirmed' SAS Proposed Accommodations only with no postcodes - no sync required`() {
-    val cprAccommodations = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
-      addresses = emptyList(),
-    )
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn = crn,
-      response = cprAccommodations,
-    )
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = true) { withCrn(crn) })
     val olderEntityAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07A.name)!!
     val accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name)!!
 
@@ -153,14 +142,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
 
   @Test
   fun `should get empty list when get proposed-accommodations by crn when there are two 'Confirmed' SAS Proposed Accommodations only with end dates in the past or today - no sync required`() {
-    val cprAccommodations = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
-      addresses = emptyList(),
-    )
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn = crn,
-      response = cprAccommodations,
-    )
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = true) { withCrn(crn) })
     val olderEntityAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07A.name)!!
     val accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(code = AddressStatusCode.PR.name)!!
 
@@ -211,14 +193,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
 
   @Test
   fun `should get proposed-accommodations by crn when there are two 'Unconfirmed' SAS Proposed Accommodations only - no sync required`() {
-    val cprAccommodations = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn), prisonNumbers = listOf("PRI1")),
-      addresses = emptyList(),
-    )
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
-      crn = crn,
-      response = cprAccommodations,
-    )
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = true) { withCrn(crn) })
     val olderEntityAccommodationTypeEntity = accommodationTypeRepository.findByCodeAndActiveIsTrue(code = AddressUsageCode.A07A.name)!!
     val olderEntity = createAndSaveProposedAccommodation(
       caseEntity = caseEntity,
@@ -281,7 +256,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should NOT insert Delius origin 'Main' accommodation record as should only insert Delius origin 'Proposed' accommodation records`() {
     val crn = "ABCDEFG"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
 
     mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
@@ -306,7 +281,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should insert Delius origin 'Proposed' accommodation record with all data when does not exist in SAS database`() {
     val crn = "ABCDEFG"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,
       deliusProposedAccommodationBuildingNumber = "Delius buildingName",
@@ -321,7 +296,9 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     val crn = "ABCDEFG"
     val prisonNumber = "PRI1"
     val case = buildCase(crn, nomsNumber = prisonNumber)
+
     SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn, response = case)
+    TierStubs.getTierOKResponse(crn, response = buildTier(crn))
 
     shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,
@@ -338,6 +315,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       ?.firstOrNull { it.identifierType == IdentifierType.PRISON_NUMBER }
 
     assertThat(newCaseInserted).isNotNull
+    assertThat(newCaseInserted!!.tierScore).isNull()
     assertThat(newCaseCrnIdentifier).isNotNull
     assertThat(newCasePrisonNumberIdentifier).isNotNull
     assertThat(newCaseCrnIdentifier!!.identifier).isEqualTo(crn)
@@ -369,7 +347,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should NOT insert Delius origin 'Proposed' accommodation record when the accommodation type is a non-Probation type`() {
     val crn = "ABCDEFG"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
       deliusOriginAddressStatusCode = AddressStatusCode.PR1,
@@ -391,7 +369,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should insert Delius origin 'Proposed' accommodation record when record does not have an accommodation type`() {
     val crn = "ABCDEFG"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,
       deliusProposedAccommodationBuildingNumber = "11",
@@ -451,6 +429,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     deliusRecordAddressStatusCode: AddressStatusCode,
     deliusRecordAccommodationTypeCode: AddressUsageCode? = AddressUsageCode.A07A,
   ): Triple<String, ProposedAccommodationEntity, AccommodationTypeEntity?> {
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = true) { withCrn(crn) })
     val startDate = LocalDate.now().minusDays(10)
     val commonCprAddressId = UUID.randomUUID()
     val sasOriginProposedAccommodationEntity = buildProposedAccommodationEntity(
@@ -479,6 +458,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     )
     proposedAccommodationRepository.save(sasOriginProposedAccommodationEntity)
 
+    // publish CPR accommodation update event and mock event-callback response which gives updated data across all fields
     val updatedStartDate = startDate.minusDays(10)
     val updatedEndDate = updatedStartDate.plusDays(22)
     val equivalentRecordInDeliusWithUpdatesOnAllFields = buildCanonicalAddress(
@@ -513,16 +493,21 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         )
       } ?: emptyList(),
     )
-    val cprAccommodationsWithDeliusUpdates = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn)),
-      addresses = listOf(
-        equivalentRecordInDeliusWithUpdatesOnAllFields,
-      ),
-    )
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+    CorePersonRecordStubs.getProbationAddressOKResponse(
       crn = crn,
-      response = cprAccommodationsWithDeliusUpdates,
+      cprAddressId = commonCprAddressId,
+      response = equivalentRecordInDeliusWithUpdatesOnAllFields,
     )
+    publishCprProbationAddressUpdatedEvent(
+      crn = crn,
+      cprAddressId = commonCprAddressId,
+    )
+    waitForEntity {
+      proposedAccommodationRepository.findByIdAndBuildingNumber(
+        id = sasOriginProposedAccommodationEntity.id,
+        buildingNumber = "Updated buildingNumber",
+      )
+    }
 
     val response: String = restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
       .withDeliusUserJwt()
@@ -573,7 +558,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should sync SAS record when there are some further updates in Delius even after SAS updates the record`() {
     val crn = "ABCDEFG"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     val (deliusSyncedRecord, deliusOriginProposedAccommodation) = shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherUpdate(crn)
     val originalDeliusSyncBuildingNumber = "15"
     assertThat(deliusSyncedRecord.buildingNumber).isEqualTo(originalDeliusSyncBuildingNumber)
@@ -611,20 +596,13 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     assertThat(updatedRecord!!.buildingNumber).isEqualTo(sasUpdatedBuildingNumber)
     assertThat(updatedRecord.subBuildingName).isEqualTo(deliusSyncedRecord.subBuildingName)
 
-    // mock new call to CPR which gives us a change made in nDelius for same record (different building number in address)
+    // publish CPR accommodation update event and mock event-callback response which gives us another building number change for the address
     val latestDeliusUpdatedBuildingNumber = "200"
-    val deliusOriginProposedAccommodationCopyWithDifferentBuildingNumber = deliusOriginProposedAccommodation.copy(
-      buildingNumber = latestDeliusUpdatedBuildingNumber,
-    )
-    val cprAccommodations = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn)),
-      addresses = listOf(
-        deliusOriginProposedAccommodationCopyWithDifferentBuildingNumber,
-      ),
-    )
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+    publishAccommodationUpdateOnBuildingNumberChangeAndWaitUntilEntityUpdated(
       crn = crn,
-      response = cprAccommodations,
+      currentCanonicalAddress = deliusOriginProposedAccommodation,
+      newBuildingNumber = latestDeliusUpdatedBuildingNumber,
+      entityToUpdate = deliusSyncedRecord,
     )
 
     // get proposed-accommodations and ensure we get the latest Delius update
@@ -671,7 +649,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     deliusOriginProposedAccommodationTypeCode: AddressUsageCode?,
     deliusOriginProposedAccommodationStartDate: LocalDate,
     deliusOriginProposedAccommodationEndDate: LocalDate,
-  ): Pair<CanonicalAddress, CanonicalAddress> {
+  ): Triple<CanonicalAddress, CanonicalAddress, ProposedAccommodationEntity> {
     val (currentPrisonAccommodation, deliusOriginProposedAccommodation) = mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
       crn,
       deliusOriginAddressStatusCode = AddressStatusCode.PR1,
@@ -716,7 +694,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
         crn = crn,
       ),
     )
-    return currentPrisonAccommodation to deliusOriginProposedAccommodation
+    return Triple(currentPrisonAccommodation, deliusOriginProposedAccommodation, deliusSyncedRecord)
   }
 
   private fun mockCurrentPrisonAccommodationAndDeliusOriginAccommodation(
@@ -809,7 +787,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     val updatedBuildingNumberInDelius = "15"
 
     // steps to insert "Delius origin" record into the SAS database
-    val (currentPrisonAccommodation, deliusOriginProposedAccommodation) = shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
+    val (_, deliusOriginProposedAccommodation, _) = shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
       crn,
       deliusProposedAccommodationBuildingNumber = originalBuildingNumberInDelius,
       deliusOriginProposedAccommodationTypeCode,
@@ -824,20 +802,12 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
     assertThat(deliusSyncedRecord).isNotNull
     assertThat(deliusSyncedRecord!!.buildingNumber).isEqualTo(originalBuildingNumberInDelius)
 
-    // mock new call to CPR which gives us a change made in nDelius for same "Delius origin" record (different building number in address)
-    val deliusOriginProposedAccommodationCopyWithDifferentBuildingNumber = deliusOriginProposedAccommodation.copy(
-      buildingNumber = updatedBuildingNumberInDelius,
-    )
-    val cprAccommodations = buildCorePersonRecord(
-      identifiers = buildIdentifiers(crns = listOf(crn)),
-      addresses = listOf(
-        deliusOriginProposedAccommodationCopyWithDifferentBuildingNumber,
-        currentPrisonAccommodation,
-      ),
-    )
-    CorePersonRecordStubs.getCorePersonRecordOKResponse(
+    // publish CPR accommodation update event and mock event-callback response which gives us a change made in nDelius for same "Delius origin" record (different building number in address)
+    publishAccommodationUpdateOnBuildingNumberChangeAndWaitUntilEntityUpdated(
       crn = crn,
-      response = cprAccommodations,
+      currentCanonicalAddress = deliusOriginProposedAccommodation,
+      newBuildingNumber = updatedBuildingNumberInDelius,
+      entityToUpdate = deliusSyncedRecord,
     )
 
     // get proposed-accommodations and ensure the latest Delius updated is synchronised to our original db record and the correct response is returned with the change
@@ -882,7 +852,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should return expected proposed accommodation timeline for Delius Origin records and show further Delius update`() {
     val crn = "X12345"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
     val (deliusSyncedRecord, _) = shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherUpdate(crn)
     restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, deliusSyncedRecord.id)
       .withDeliusUserJwt()
@@ -901,7 +871,7 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
   @Test
   fun `should return expected proposed accommodation timeline for Delius Origin record with further Delius update and the final SAS update also`() {
     val crn = "ABCDEFG"
-    caseEntity = caseRepository.save(buildCaseEntity { withCrn(crn) })
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
 
     // given Delius create and update
     val (deliusSyncedRecord) = shouldInsertUnknownDeliusOriginRecordAndThenSyncFurtherUpdate(crn)
@@ -947,6 +917,44 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
             proposedAccommodationId = deliusSyncedRecord.id,
             caseId = caseEntity.id,
             sasCommitDateTime = commitTimesAsc[2].truncatedTo(ChronoUnit.SECONDS).toString(),
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should return expected proposed accommodation timeline including legacy National Delius User change`() {
+    val crn = "ABCDEFG"
+    caseEntity = caseRepository.save(buildCaseEntity(hasSyncedCprProposedAccommodation = false) { withCrn(crn) })
+
+    // steps to insert "Delius origin" record into the SAS database
+    val (_, _, resultingProposedAccommodationEntity) = shouldInsertDeliusOriginRecordWhenDoesNotExistInSasDb(
+      crn,
+      deliusProposedAccommodationBuildingNumber = "15",
+      deliusOriginProposedAccommodationTypeCode = AddressUsageCode.A07A,
+      deliusOriginProposedAccommodationStartDate = LocalDate.now().minusDays(10),
+      deliusOriginProposedAccommodationEndDate = LocalDate.now().plusDays(10),
+    )
+
+    resultingProposedAccommodationEntity.buildingNumber = "20"
+    val legacyNationalDeliusUser = userRepository.findByUsernameAndAuthSource(
+      username = Username("DELIUS_SYNC_USER"),
+      authSource = AuthSource.DELIUS,
+    )!!
+    AuditOverrideContext.withAuditorId(legacyNationalDeliusUser.id) {
+      proposedAccommodationRepository.save(resultingProposedAccommodationEntity)
+    }
+
+    restTestClient.get().uri("/cases/{crn}/proposed-accommodations/{id}/timeline", crn, resultingProposedAccommodationEntity.id)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody<String>()
+      .value {
+        // then correct timeline response
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedProposedAccommodationTimeResponseForDeliusAndLegacyDeliusAudits(
+            proposedAccommodationId = resultingProposedAccommodationEntity.id,
+            caseId = caseEntity.id,
           ),
         )
       }
@@ -998,5 +1006,60 @@ class ProposedAccommodationDeliusSyncIT : IntegrationTestBase() {
       .map { (_, commitChanges) ->
         commitChanges.first().commitMetadata.get().commitDateInstant
       }.sorted()
+  }
+
+  private fun publishAccommodationUpdateOnBuildingNumberChangeAndWaitUntilEntityUpdated(
+    crn: String,
+    currentCanonicalAddress: CanonicalAddress,
+    newBuildingNumber: String,
+    entityToUpdate: ProposedAccommodationEntity,
+  ) {
+    val deliusOriginProposedAccommodationCopyWithDifferentBuildingNumber = currentCanonicalAddress.copy(
+      buildingNumber = newBuildingNumber,
+    )
+    CorePersonRecordStubs.getProbationAddressOKResponse(
+      crn = crn,
+      cprAddressId = UUID.fromString(currentCanonicalAddress.cprAddressId),
+      response = deliusOriginProposedAccommodationCopyWithDifferentBuildingNumber,
+    )
+    publishCprProbationAddressUpdatedEvent(
+      crn = crn,
+      cprAddressId = UUID.fromString(currentCanonicalAddress.cprAddressId),
+    )
+    waitForEntity {
+      proposedAccommodationRepository.findByIdAndBuildingNumber(
+        id = entityToUpdate.id,
+        buildingNumber = newBuildingNumber,
+      )
+    }
+  }
+
+  private fun eventDetailUrl(crn: String, cprAddressId: UUID) = "${sasWiremock.baseUrl()}/person/probation/$crn/address/$cprAddressId"
+
+  private fun publishCprProbationAddressUpdatedEvent(crn: String, cprAddressId: UUID) {
+    val eventType = "core-person-record.probation.address.updated"
+    val snsEvent = """ 
+      {
+       "eventType":"$eventType",
+       "version":1,
+       "occurredAt":"2026-07-24T13:58:28.076572456+01:00",
+       "description":"A probation address has been updated for a person",
+       "detailUrl":"${eventDetailUrl(crn, cprAddressId)}",
+       "personReference":{
+          "identifiers":[
+             {
+                "type":"CRN",
+                "value":"$crn"
+             }
+          ]
+       },
+       "additionalInformation":{
+          "cprAddressId":"$cprAddressId",
+          "deliusAddressId":null
+       }
+      }
+    """.trimIndent()
+
+    testInboxEventHelper.publish(snsEvent, eventType)
   }
 }

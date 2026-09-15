@@ -7,7 +7,11 @@ abstract class ContextUpdater {
   open val propagatesFailureReasons: Boolean = false
 
   fun update(context: EvaluationContext, failureReasons: List<FailureReason> = emptyList()): EvaluationContext {
-    val updatedServiceResult = toServiceResult(context)
+    // expose the failing RuleSet failure reasons on the context so updaters can branch on which rules failed
+    val contextWithFailureReasons = context.copy(
+      currentResult = context.currentResult.copy(failureReasons = failureReasons),
+    )
+    val updatedServiceResult = toServiceResult(contextWithFailureReasons)
     val reasonsToApply = if (propagatesFailureReasons) failureReasons else emptyList()
 
     return context.copy(

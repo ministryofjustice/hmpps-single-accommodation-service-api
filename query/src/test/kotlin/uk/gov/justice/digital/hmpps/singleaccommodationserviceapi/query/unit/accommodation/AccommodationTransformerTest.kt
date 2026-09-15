@@ -3,10 +3,13 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
@@ -20,7 +23,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodation.AccommodationTransformer
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -242,8 +244,9 @@ class AccommodationTransformerTest {
     assertThat(result.address.uprn).isEqualTo("100012345678")
   }
 
-  @Test
-  fun `toAccommodationSummary() should map all fields when it is a prison`() {
+  @ParameterizedTest
+  @ValueSource(booleans = [true, false])
+  fun `toAccommodationSummary() should map all fields when it is a prison`(includePrisonNameInAddress: Boolean) {
     val crn = "X92123"
 
     val prisoner = buildPrisoner(
@@ -262,7 +265,7 @@ class AccommodationTransformerTest {
       address = buildAccommodationAddressDetails(
         subBuildingName = null,
         postcode = null,
-        buildingName = prisoner.prisonName,
+        buildingName = if (includePrisonNameInAddress) prisoner.prisonName else null,
         buildingNumber = null,
         thoroughfareName = null,
         dependentLocality = null,
@@ -284,6 +287,7 @@ class AccommodationTransformerTest {
     val result = AccommodationTransformer.toAccommodationSummary(
       crn = crn,
       prisoner = prisoner,
+      includePrisonNameInAddress = includePrisonNameInAddress,
     )
 
     assertThat(result).isEqualTo(expectedResult)
@@ -419,8 +423,8 @@ class AccommodationTransformerTest {
       ),
       uprn = "test uprn",
     )
-
-    val result = AccommodationTransformer.toAccommodationSummary("X92123", address, maskDates)
+    val uuid = UUID.randomUUID()
+    val result = AccommodationTransformer.toAccommodationSummary("X92123", address, maskDates, uuid)
 
     if (maskDates) {
       assertThat(result.startDate).isNull()
@@ -429,7 +433,7 @@ class AccommodationTransformerTest {
       assertThat(result.startDate).isEqualTo(LocalDate.parse(address.startDate!!))
       assertThat(result.endDate).isEqualTo(LocalDate.parse(address.endDate!!))
     }
-
+    assertThat(result.proposedAccommodationId).isEqualTo(uuid)
     assertThat(result.crn).isEqualTo("X92123")
     assertThat(result.status).isNotNull()
     assertThat(result.status!!.code).isEqualTo(AddressStatusCode.PR.name)

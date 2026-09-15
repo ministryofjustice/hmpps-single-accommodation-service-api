@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.DtrStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.LocalAuthorityAreaRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
@@ -28,9 +27,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import java.time.LocalDate
 
 class AccommodationReferralControllerIT : IntegrationTestBase() {
-
-  @Autowired
-  private lateinit var caseRepository: CaseRepository
 
   @Autowired
   private lateinit var localAuthorityAreaRepository: LocalAuthorityAreaRepository
@@ -100,5 +96,29 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
           ),
         )
       }
+  }
+
+  @Test
+  fun `fetchAllReferralsAggregated includes withdrawalReason for CAS1`() {
+    val crn = "X12345"
+    val referredByUser = buildDeliusUserDto()
+
+    val cas1Response: List<Cas1ReferralHistory> = listOf(
+      buildReferralHistory(
+        date = LocalDate.parse("2025-03-01"),
+        applicationStatus = ApprovedPremisesApplicationStatus.WITHDRAWN,
+        withdrawalReason = "DuplicatePlacementRequest",
+        referredBy = referredByUser,
+      ),
+    )
+
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
+
+    restTestClient.get().uri("/cases/{crn}/applications", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody()
+      .jsonPath("$.data[0].withdrawalReason").isEqualTo("DuplicatePlacementRequest")
   }
 }

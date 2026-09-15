@@ -1,21 +1,21 @@
 [versions]
-hmpps-spring-boot = "3.0.0"
-hmpps-sqs = "7.4.0"
+hmpps-spring-boot = "3.0.1"
+hmpps-sqs = "7.4.1"
 springdoc = "3.1.0"
 wiremock = "3.13.2"
-redisson = "4.6.1"
+redisson = "4.7.0"
 mockk = "1.14.11"
-shedlock = "7.7.0"
+shedlock = "7.8.0"
 swagger-parser = "2.1.46"
-hmpps-gradle-spring-boot = "11.0.2"
+hmpps-gradle-spring-boot = "11.0.7"
 kotlin = "2.4.10"
 apache-commons-csv = "1.14.1"
-detekt = "2.0.0-alpha.5"
+detekt = "2.0.0-alpha.6"
 awaitility = "4.3.0"
 javers = "7.11.7"
 postgres = "42.7.13"
 sentry = "8.51.0"
-sar-test-support = "2.7.0"
+sar-test-support = "2.8.1"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -30,6 +30,7 @@ hmpps-sqs = { module = "uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-start
 
 spring-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-json = { module = "org.springframework.boot:spring-boot-starter-json" }
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 spring-restclient = { module = "org.springframework.boot:spring-boot-restclient" }
 spring-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }

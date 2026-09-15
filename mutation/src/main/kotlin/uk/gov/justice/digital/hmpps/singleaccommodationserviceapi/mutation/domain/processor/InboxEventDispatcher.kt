@@ -25,6 +25,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * manage their own transactions. Add new event types by implementing [InboxEventHandler] and
  * registering as a Spring bean.
  *
+ * An event type may only be claimed by one handler. If two handlers claim the same type the
+ * application will fail to start.
+ *
  * Partitions events by [InboxEventHandler.getPartitionKey] so that events for the same key are
  * never processed concurrently. This avoids race conditions when updating the same resource. Events
  * with different keys run in parallel using coroutines. Events are fetched ordered by
@@ -34,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * it will be recorded as FAILED and a sentry alert raised
  */
 
-@Component
 @ConfigurationProperties(prefix = "hmpps.sqs.dispatcher")
 class DispatcherConfig(
   var maxEventsPerBatch: Int = 10,
@@ -47,7 +49,7 @@ class DispatcherConfig(
 )
 @Component
 class InboxEventDispatcher(
-  handlers: List<InboxEventHandler>,
+  private val handlers: List<InboxEventHandler>,
   private val dispatcherConfig: DispatcherConfig,
   private val inboxEventService: InboxEventService,
   private val sentryService: SentryService,
@@ -55,8 +57,17 @@ class InboxEventDispatcher(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val eventTypeToHandlers: Map<String, InboxEventHandler> =
-    handlers.associateBy { it.supportedEventType() }
+  private val eventTypeToHandlers: Map<String, InboxEventHandler> = buildMap {
+    for (handler in handlers) {
+      for (eventType in handler.supportedEventTypes()) {
+        val previousHandler = put(eventType, handler) // put returns the original value
+        require(previousHandler == null) {
+          "Multiple handlers registered for event type '$eventType': " +
+            "${previousHandler?.javaClass?.simpleName} and ${handler.javaClass.simpleName}"
+        }
+      }
+    }
+  }
 
   @Scheduled(fixedRateString = $$"${scheduling.fixed-delay}")
   @SchedulerLock(
@@ -127,16 +138,20 @@ class InboxEventDispatcher(
 
     try {
       userContextService.setUserContextAsSasSystemUser()
+      log.info("Processing {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
       when (handler.handle(inboxEvent.toInboxEvent())) {
         InboxEventHandler.Result.PROCESSED -> {
+          log.info("Processed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.PROCESSED)
           progressTracker.eventProcessed()
         }
         InboxEventHandler.Result.IGNORED -> {
+          log.debug("Ignored {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.IGNORED)
           progressTracker.eventIgnored()
         }
         InboxEventHandler.Result.FAILED -> {
+          log.error("Failed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
           sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
           inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
           progressTracker.eventFailed()

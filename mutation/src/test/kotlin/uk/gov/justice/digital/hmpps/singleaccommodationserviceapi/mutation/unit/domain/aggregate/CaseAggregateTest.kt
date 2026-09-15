@@ -2,41 +2,39 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import java.time.LocalDate
 import java.util.UUID
 
 class CaseAggregateTest {
   private val id = UUID.randomUUID()
-  private val cas1ApplicationId = UUID.randomUUID()
 
   @Test
   fun `hydrate loads aggregate correctly`() {
     val tierScore = "A1"
-    val cas1ApplicationId = UUID.randomUUID()
-    val cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED
-    val cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED
-    val cas1ApplicationPlacementStatus = Cas1PlacementStatus.UPCOMING
+    val dateOfBirth = LocalDate.of(1990, 1, 1)
 
     val hydrated = CaseAggregate.hydrate(
       id = id,
       tierScore = tierScore,
-      cas1ApplicationId = cas1ApplicationId,
-      cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
-      cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
-      cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+      hasSyncedCprProposedAccommodation = true,
+      firstName = "First",
+      lastName = "Last",
+      dateOfBirth = dateOfBirth,
+      roshLevelCode = "RMRH",
     )
 
     assertThat(hydrated.snapshot()).satisfies(
       {
         assertThat(it.id).isEqualTo(id)
         assertThat(it.tierScore).isEqualTo(tierScore)
-        assertThat(it.cas1ApplicationId).isEqualTo(cas1ApplicationId)
-        assertThat(it.cas1ApplicationApplicationStatus).isEqualTo(cas1ApplicationApplicationStatus)
-        assertThat(it.cas1ApplicationRequestForPlacementStatus).isEqualTo(cas1ApplicationRequestForPlacementStatus)
-        assertThat(it.cas1ApplicationPlacementStatus).isEqualTo(cas1ApplicationPlacementStatus)
+        assertThat(it.hasSyncedCprProposedAccommodation).isTrue()
+        assertThat(it.firstName).isEqualTo("First")
+        assertThat(it.lastName).isEqualTo("Last")
+        assertThat(it.dateOfBirth).isEqualTo(dateOfBirth)
+        assertThat(it.roshLevelCode).isEqualTo("RMRH")
       },
     )
   }
@@ -46,10 +44,22 @@ class CaseAggregateTest {
     val newAggregate = CaseAggregate.hydrateNew()
     assertThat(newAggregate.snapshot().id).isNotNull()
     assertThat(newAggregate.snapshot().tierScore).isNull()
-    assertThat(newAggregate.snapshot().cas1ApplicationId).isNull()
-    assertThat(newAggregate.snapshot().cas1ApplicationApplicationStatus).isNull()
-    assertThat(newAggregate.snapshot().cas1ApplicationRequestForPlacementStatus).isNull()
-    assertThat(newAggregate.snapshot().cas1ApplicationPlacementStatus).isNull()
+    assertThat(newAggregate.snapshot().hasSyncedCprProposedAccommodation).isFalse()
+    assertThat(newAggregate.snapshot().firstName).isNull()
+    assertThat(newAggregate.snapshot().lastName).isNull()
+    assertThat(newAggregate.snapshot().dateOfBirth).isNull()
+    assertThat(newAggregate.snapshot().roshLevelCode).isNull()
+  }
+
+  @Test
+  fun `markCaseAsSyncedWithCprProposedAccommodation() should set hasSyncedCprProposedAccommodation to true`() {
+    val aggregate = CaseAggregate.hydrateNew()
+
+    assertThat(aggregate.snapshot().hasSyncedCprProposedAccommodation).isFalse()
+
+    aggregate.markCaseAsSyncedWithCprProposedAccommodation()
+
+    assertThat(aggregate.snapshot().hasSyncedCprProposedAccommodation).isTrue()
   }
 
   @Test
@@ -70,23 +80,29 @@ class CaseAggregateTest {
 
     val beforeUpdate = aggregate.snapshot()
     assertThat(beforeUpdate.tierScore).isNull()
-    assertThat(beforeUpdate.cas1ApplicationId).isNull()
-    assertThat(beforeUpdate.cas1ApplicationApplicationStatus).isNull()
-    assertThat(beforeUpdate.cas1ApplicationRequestForPlacementStatus).isNull()
-    assertThat(beforeUpdate.cas1ApplicationPlacementStatus).isNull()
+
+    val dateOfBirth = LocalDate.of(1985, 6, 15)
+    val currentAccommodation = buildAccommodationSummaryDto(crn = "X12345")
+    val nextAccommodation = buildAccommodationSummaryDto(crn = "X12345")
 
     aggregate.upsertCase(
       tierScore = "A1",
-      cas1ApplicationId = cas1ApplicationId,
-      cas1ApplicationApplicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-      cas1ApplicationRequestForPlacementStatus = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
-      cas1ApplicationPlacementStatus = Cas1PlacementStatus.ARRIVED,
+      firstName = "First",
+      lastName = "Last",
+      dateOfBirth = dateOfBirth,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+      accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+      roshLevelCode = "RVHR",
     )
     val afterUpdate = aggregate.snapshot()
     assertThat(afterUpdate.tierScore).isEqualTo("A1")
-    assertThat(afterUpdate.cas1ApplicationId).isEqualTo(cas1ApplicationId)
-    assertThat(afterUpdate.cas1ApplicationApplicationStatus).isEqualTo(Cas1ApplicationStatus.PLACEMENT_ALLOCATED)
-    assertThat(afterUpdate.cas1ApplicationRequestForPlacementStatus).isEqualTo(Cas1RequestForPlacementStatus.PLACEMENT_BOOKED)
-    assertThat(afterUpdate.cas1ApplicationPlacementStatus).isEqualTo(Cas1PlacementStatus.ARRIVED)
+    assertThat(afterUpdate.firstName).isEqualTo("First")
+    assertThat(afterUpdate.lastName).isEqualTo("Last")
+    assertThat(afterUpdate.dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(afterUpdate.currentAccommodation).isEqualTo(currentAccommodation)
+    assertThat(afterUpdate.nextAccommodation).isEqualTo(nextAccommodation)
+    assertThat(afterUpdate.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
+    assertThat(afterUpdate.roshLevelCode).isEqualTo("RVHR")
   }
 }

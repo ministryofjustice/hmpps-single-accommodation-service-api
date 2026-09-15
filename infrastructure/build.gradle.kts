@@ -20,4 +20,8 @@ dependencies {
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation(testFixtures(project(":common")))
+  testFixturesImplementation(libs.hmpps.starter)
+  testFixturesImplementation(libs.jackson.module.kotlin)
+  testFixturesImplementation(project(":common"))
 }

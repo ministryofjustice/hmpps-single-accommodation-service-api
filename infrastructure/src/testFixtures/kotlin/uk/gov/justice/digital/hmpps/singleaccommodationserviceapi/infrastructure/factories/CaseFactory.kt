@@ -1,29 +1,33 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
-
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseIdentifierEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 fun buildCaseEntity(
   id: UUID = UUID.randomUUID(),
   tierScore: String? = "A1",
-  cas1ApplicationId: UUID? = null,
-  cas1ApplicationApplicationStatus: Cas1ApplicationStatus? = null,
-  cas1ApplicationRequestForPlacementStatus: Cas1RequestForPlacementStatus? = null,
-  cas1ApplicationPlacementStatus: Cas1PlacementStatus? = null,
+  hasSyncedCprProposedAccommodation: Boolean = false,
+  firstName: String? = "First",
+  lastName: String? = "Last",
+  dateOfBirth: LocalDate? = LocalDate.of(2000, 12, 3),
+  roshLevelCode: String? = null,
+  accommodationSummariesDto: AccommodationSummariesDto? = null,
   customise: (CaseEntity.() -> Unit)? = null,
 ) = CaseEntity(
   id = id,
   tierScore = tierScore,
-  cas1ApplicationId = cas1ApplicationId,
-  cas1ApplicationApplicationStatus = cas1ApplicationApplicationStatus,
-  cas1ApplicationRequestForPlacementStatus = cas1ApplicationRequestForPlacementStatus,
-  cas1ApplicationPlacementStatus = cas1ApplicationPlacementStatus,
+  hasSyncedCprProposedAccommodation = hasSyncedCprProposedAccommodation,
+  firstName = firstName,
+  lastName = lastName,
+  dateOfBirth = dateOfBirth,
+  roshLevelCode = roshLevelCode,
+  currentAccommodation = accommodationSummariesDto?.currentAccommodation,
+  nextAccommodation = accommodationSummariesDto?.nextAccommodation,
+  accommodationStatus = accommodationSummariesDto?.caseAccommodationStatus,
 ).also { case ->
 
   if (customise != null) {

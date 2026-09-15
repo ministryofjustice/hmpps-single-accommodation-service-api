@@ -18,6 +18,7 @@ data class AccommodationReferralDto(
   val placementAddress: String?,
   val placementStatus: String?,
   val uiUrl: String?,
+  val withdrawalReason: String?,
 )
 
 enum class AccommodationReferralStatus {
@@ -36,6 +37,9 @@ enum class AccommodationReferralStatus {
 
 enum class AccommodationService {
   CAS1,
+  CAS2,
   CAS3,
   DTR,
+  CRS,
+  PA,
 }

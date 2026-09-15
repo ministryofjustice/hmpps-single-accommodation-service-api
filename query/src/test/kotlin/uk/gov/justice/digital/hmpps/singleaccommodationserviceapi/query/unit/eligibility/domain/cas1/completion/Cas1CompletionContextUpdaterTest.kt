@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
@@ -13,6 +14,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
@@ -31,8 +34,7 @@ class Cas1CompletionContextUpdaterTest {
       val applicationId = UUID.randomUUID()
       val data = buildDomainData(
         cas1Application = buildCas1Application(
-          id = applicationId,
-          applicationStatus = Cas1ApplicationStatus.AWAITING_ASSESSMENT,
+          application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.AWAITING_ASSESSMENT, id = applicationId),
         ),
       )
       val context = EvaluationContext(
@@ -60,9 +62,9 @@ class Cas1CompletionContextUpdaterTest {
   ) {
     val data = buildDomainData(
       cas1Application = buildCas1Application(
-        applicationStatus = Cas1ApplicationStatus.PLACEMENT_ALLOCATED,
-        requestForPlacementStatus = requestForPlacementStatus,
-        placementStatus = null,
+        application = buildCas1ApplicationSummary(status = Cas1ApplicationStatus.PLACEMENT_ALLOCATED),
+        requestForPlacement = buildCas1RequestForPlacementSummary(status = requestForPlacementStatus),
+        placement = null,
       ),
     )
     val context = EvaluationContext(
@@ -85,19 +87,19 @@ class Cas1CompletionContextUpdaterTest {
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_REJECTED,
         ServiceStatus.PLACEMENT_REQUEST_REJECTED,
-        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
         ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
-        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
         ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
-        CaseAction(type = CaseActionType.CREATE_PLACEMENT),
+        CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       ),
       Arguments.of(

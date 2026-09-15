@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.WITHDRAWN
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.DeliusUserDto
 import java.time.LocalDate
@@ -20,6 +21,7 @@ fun buildReferralHistory(
   placementAddress: String? = null,
   placementStatus: Cas1ReferralHistory.Cas1SpaceBookingStatus? = null,
   uiUrl: String = "https://example.com/referral",
+  withdrawalReason: String? = if (applicationStatus == WITHDRAWN) "DuplicatePlacementRequest" else null,
 ) = Cas1ReferralHistory(
   id = id,
   applicationId = applicationId,
@@ -34,6 +36,7 @@ fun buildReferralHistory(
   placementAddress = placementAddress,
   placementStatus = placementStatus,
   uiUrl = uiUrl,
+  withdrawalReason = withdrawalReason,
 )
 
 fun buildReferralHistory(

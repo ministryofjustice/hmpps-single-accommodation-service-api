@@ -5,6 +5,7 @@ import java.util.UUID
 data class EligibilityDto(
   val crn: String,
   val cas1: Cas1ServiceResult,
+  val cas2: Cas2ServiceResult,
   val cas3: Cas3ServiceResult,
   val dtr: DtrServiceResult,
   val crs: CrsServiceResult,
@@ -19,6 +20,7 @@ data class ServiceResult(
   val url: String? = null,
   val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
+  val blockingStatusReason: BlockingReason? = null,
 )
 
 data class PaServiceResult(
@@ -36,6 +38,11 @@ data class Cas1ServiceResult(
   val cas1Application: Cas1ApplicationDto?,
 )
 
+data class Cas2ServiceResult(
+  val serviceResult: ServiceResult,
+  val cas2Application: Cas2ApplicationDto?,
+)
+
 data class Cas3ServiceResult(
   val serviceResult: ServiceResult,
   val cas3Application: Cas3ApplicationDto?,
@@ -47,9 +54,12 @@ data class CrsServiceResult(
 )
 
 enum class ServiceStatus {
+  UNKNOWN,
+  OFFER_DECLINED_OR_WITHDRAWN,
   NOT_REQUIRED,
   NOT_ELIGIBLE, // NO APPLICATION
   UPCOMING, // NO APPLICATION
+  STARTED,
   NOT_STARTED,
   NOT_SUBMITTED,
   INFO_REQUESTED,
@@ -73,11 +83,20 @@ enum class ServiceStatus {
   ACCEPTED,
   NOT_ACCEPTED,
   CANNOT_START_YET,
+  MORE_INFORMATION_NEEDED,
+  AWAITING_DECISION,
+  ON_WAITING_LIST,
+  PLACE_OFFERED,
+  OFFER_ACCEPTED,
+  CANCELLED,
+  AWAITING_ARRIVAL,
 }
 
 enum class LinkType {
   CAS1_START_APPLICATION,
   CAS1_VIEW_APPLICATION,
+  CAS2_START_APPLICATION,
+  CAS2_VIEW_APPLICATION,
   CAS3_START_REFERRAL,
   CAS3_VIEW_REFERRAL,
 }
@@ -88,11 +107,21 @@ enum class FailureReason {
   NON_MALE_NOT_HIGH_RISK_TIER,
   SEX_DATA_NOT_AVAILABLE,
   INVALID_CURRENT_ACCOMMODATION_TYPE,
-  CRS_EXPIRED,
   CRS_NOT_SUBMITTED,
+  CRS_NOT_SUBMITTED_MALE,
+  CRS_NOT_SUBMITTED_NON_MALE,
   HAS_NEXT_ACCOMMODATION,
   DTR_REFERRAL_EXPIRED,
   SUITABLE_CAS1_APPLICATION,
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
+}
+
+enum class BlockingReason {
+  // CAS3 PREREQUISITES
+  SUBMIT_DTR_BEFORE_CAS3,
+  SUBMIT_CRS_BEFORE_CAS3,
+  SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
+  SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
+  SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
 }

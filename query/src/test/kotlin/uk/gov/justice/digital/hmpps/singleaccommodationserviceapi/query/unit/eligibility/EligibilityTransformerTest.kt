@@ -4,18 +4,53 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PremisesSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1AssessmentSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PlacementPairDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PlacementSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1PremisesSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1RequestForPlacementSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1StaffDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingCancellationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3PremisesSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCommissionedRehabilitativeServicesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1AssessmentSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementPair
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
@@ -23,6 +58,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -31,32 +67,255 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
 import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus as InfraCas1ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus as InfraCas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus as InfraCas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus as InfraCas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus as InfraCas3AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus as InfraCas3BookingStatus
 
 class EligibilityTransformerTest {
 
   @Test
   fun `should transform to eligibility`() {
+    val today = LocalDate.now()
+    val now = OffsetDateTime.now()
+    val id = UUID.randomUUID()
+    val cas2Application = buildCas2Application()
     val cas1Application = buildCas1Application(
-      applicationStatus = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+      application = buildCas1ApplicationSummary(
+        status = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+        id = id,
+        createdAt = now.plusDays(1),
+        createdBy = Cas1Staff(
+          name = "Bob",
+          username = "bob1234",
+          staffCode = "1234",
+        ),
+        submittedAt = now.plusDays(2),
+        expiresAt = today.plusDays(3),
+      ),
+      uiUrl = "https://cas1.example.com/applications/1234",
+      assessment = buildCas1AssessmentSummary(
+        decision = "accepted",
+        rejectionRationale = "rejection rationale",
+      ),
+      requestForPlacement = buildCas1RequestForPlacementSummary(
+        status = InfraCas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+        decision = "accepted",
+        rejectionReason = "rejection reason",
+        submittedBy = buildCas1Staff(
+          name = "Anne",
+          username = "anne5678",
+          staffCode = "5678",
+        ),
+        submittedAt = today.plusDays(4),
+        withdrawalReason = "RelatedApplicationWithdrawn",
+        withdrawalDate = today.plusDays(5),
+        expectedArrivalDate = today.plusDays(6),
+        durationDays = 12,
+      ),
+      placement = buildCas1PlacementSummary(
+        status = InfraCas1PlacementStatus.DEPARTED,
+        actualArrivalDate = today.plusDays(7),
+        actualDepartureDate = today.plusDays(8),
+        cancellationReason = "cancellation reason",
+        premises = buildCas1PremisesSummary(
+          startDate = today.plusDays(9),
+          endDate = today.plusDays(10),
+          addressLine1 = "123 Main St",
+          addressLine2 = "Apt 1",
+          town = "London",
+          postcode = "SW1A 1AA",
+        ),
+      ),
+      placementHistory = listOf(
+        buildCas1PlacementPair(
+          requestForPlacement = buildCas1RequestForPlacementSummary(
+            status = InfraCas1RequestForPlacementStatus.REQUEST_REJECTED,
+            decision = "rejected",
+            rejectionReason = "rejection reason 2",
+            submittedBy = Cas1Staff(
+              name = "Carl",
+              username = "carl9999",
+              staffCode = "9999",
+            ),
+            submittedAt = today.plusDays(11),
+            withdrawalReason = "WithdrawnByPP",
+            withdrawalDate = today.plusDays(12),
+            expectedArrivalDate = today.plusDays(13),
+            durationDays = 14,
+          ),
+          placement = buildCas1PlacementSummary(
+            status = InfraCas1PlacementStatus.UPCOMING,
+            actualArrivalDate = today.plusDays(14),
+            actualDepartureDate = today.plusDays(15),
+            cancellationReason = "cancellation reason 2",
+            premises = buildCas1PremisesSummary(
+              startDate = today.plusDays(16),
+              endDate = today.plusDays(17),
+              addressLine1 = "123 Main St 2",
+              addressLine2 = "Apt 2",
+              town = "London 2",
+              postcode = "SW1A 1AB",
+            ),
+          ),
+          dateApplied = today.plusDays(18),
+        ),
+      ),
     )
     val cas3Application = buildCas3Application(
       applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
+      id = UUID.randomUUID(),
+      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
+      applicationSubmittedBy = buildCas3Staff(),
+      applicationRejectedReason = "Problem with application",
+      assessmentStatus = InfraCas3AssessmentStatus.READY_TO_PLACE,
+      bookingStatus = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
+      bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+      previousBookings = listOf(
+        buildCas3ExternalPreviousBooking(
+          bookingStatus = InfraCas3BookingStatus.DEPARTED,
+          cancellation = buildCas3ExternalPreviousBookingCancellation(
+            cancellationDate = LocalDate.parse("2023-01-03"),
+            cancellationReason = "Booking cancelled",
+          ),
+        ),
+      ),
+      premises = buildCas3PremisesSummary(
+        name = "123 Main St",
+        startDate = LocalDate.parse("2023-01-04"),
+        endDate = LocalDate.parse("2023-01-05"),
+        addressLine1 = "124 Main St",
+        addressLine2 = "Apt 1",
+        town = "Lincoln",
+        postcode = "SW1A 1AX",
+      ),
+      uiUrl = "aUrl",
+    )
+    val cas2ApplicationDto = buildCas2ApplicationDto(
+      id = cas2Application.id,
+      uiUrl = cas2Application.uiUrl,
     )
     val cas1ApplicationDto = buildCas1ApplicationDto(
-      id = cas1Application.id,
-      applicationStatus = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+      application = buildCas1ApplicationSummaryDto(
+        status = Cas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
+        id = id,
+        createdAt = now.plusDays(1),
+        createdBy = Cas1StaffDto(
+          name = "Bob",
+          username = "bob1234",
+          staffCode = "1234",
+        ),
+        submittedAt = now.plusDays(2),
+        expiresAt = today.plusDays(3),
+      ),
+      uiUrl = "https://cas1.example.com/applications/1234",
+      assessment = buildCas1AssessmentSummaryDto(
+        decision = AssessmentDecision.ACCEPTED,
+        rejectionRationale = "rejection rationale",
+      ),
+      requestForPlacement = buildCas1RequestForPlacementSummaryDto(
+        status = Cas1RequestForPlacementStatus.PLACEMENT_BOOKED,
+        decision = PlacementApplicationDecision.ACCEPTED,
+        rejectionReason = "rejection reason",
+        submittedBy = buildCas1StaffDto(
+          name = "Anne",
+          username = "anne5678",
+          staffCode = "5678",
+        ),
+        submittedAt = today.plusDays(4),
+        withdrawalReason = WithdrawPlacementRequestReason.RELATED_APPLICATION_WITHDRAWN,
+        withdrawalDate = today.plusDays(5),
+        expectedArrivalDate = today.plusDays(6),
+        durationDays = 12,
+      ),
+      placement = buildCas1PlacementSummaryDto(
+        status = Cas1PlacementStatus.DEPARTED,
+        actualArrivalDate = today.plusDays(7),
+        actualDepartureDate = today.plusDays(8),
+        cancellationReason = "cancellation reason",
+        premises = Cas1PremisesSummaryDto(
+          startDate = today.plusDays(9),
+          endDate = today.plusDays(10),
+          addressLine1 = "123 Main St",
+          addressLine2 = "Apt 1",
+          town = "London",
+          postcode = "SW1A 1AA",
+        ),
+      ),
+      placementHistory = listOf(
+        buildCas1PlacementPairDto(
+          requestForPlacement = buildCas1RequestForPlacementSummaryDto(
+            status = Cas1RequestForPlacementStatus.REQUEST_REJECTED,
+            decision = PlacementApplicationDecision.REJECTED,
+            rejectionReason = "rejection reason 2",
+            submittedBy = Cas1StaffDto(
+              name = "Carl",
+              username = "carl9999",
+              staffCode = "9999",
+            ),
+            submittedAt = today.plusDays(11),
+            withdrawalReason = WithdrawPlacementRequestReason.WITHDRAWN_BY_PP,
+            withdrawalDate = today.plusDays(12),
+            expectedArrivalDate = today.plusDays(13),
+            durationDays = 14,
+          ),
+          placement = buildCas1PlacementSummaryDto(
+            status = Cas1PlacementStatus.UPCOMING,
+            actualArrivalDate = today.plusDays(14),
+            actualDepartureDate = today.plusDays(15),
+            cancellationReason = "cancellation reason 2",
+            premises = buildCas1PremisesSummaryDto(
+              startDate = today.plusDays(16),
+              endDate = today.plusDays(17),
+              addressLine1 = "123 Main St 2",
+              addressLine2 = "Apt 2",
+              town = "London 2",
+              postcode = "SW1A 1AB",
+            ),
+          ),
+          dateApplied = today.plusDays(18),
+        ),
+      ),
     )
     val cas3ApplicationDto = buildCas3ApplicationDto(
-      id = cas3Application.id,
       applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+      id = cas3Application.id,
+      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
+      applicationSubmittedBy = buildCas3StaffDto(),
+      applicationRejectedReason = "Problem with application",
+      assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+      bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,
+      bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+      previousBookings = listOf(
+        buildCas3ExternalPreviousBookingDto(
+          bookingStatus = Cas3BookingStatus.DEPARTED,
+          cancellation = buildCas3ExternalPreviousBookingCancellationDto(
+            cancellationDate = LocalDate.parse("2023-01-03"),
+            cancellationReason = "Booking cancelled",
+          ),
+        ),
+      ),
+      premises = buildCas3PremisesSummaryDto(
+        name = "123 Main St",
+        startDate = LocalDate.parse("2023-01-04"),
+        endDate = LocalDate.parse("2023-01-05"),
+        addressLine1 = "124 Main St",
+        addressLine2 = "Apt 1",
+        town = "Lincoln",
+        postcode = "SW1A 1AX",
+      ),
+      uiUrl = "aUrl",
     )
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val commissionedRehabilitativeServicesDto = buildCommissionedRehabilitativeServicesDto()
     val dutyToReferDto = buildDutyToReferDto()
     val data = buildDomainData(
       cas1Application = cas1Application,
+      cas2Application = cas2Application,
       cas3Application = cas3Application,
       dutyToRefer = dutyToReferDto,
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
@@ -66,11 +325,17 @@ class EligibilityTransformerTest {
       serviceStatus = ServiceStatus.SUBMITTED,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
-    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION)
-    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME)
+    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2)
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR)
     val cas1 = buildServiceResult(
       serviceStatus = ServiceStatus.INFO_REQUESTED,
       action = cas1Action,
+      link = EligibilityKeys.VIEW_APPLICATION,
+    )
+    val cas2 = buildServiceResult(
+      serviceStatus = ServiceStatus.INFO_REQUESTED,
+      action = cas2Action,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas3 = buildServiceResult(
@@ -90,6 +355,10 @@ class EligibilityTransformerTest {
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
     )
+    val cas2ServiceResult = buildCas2ServiceResult(
+      serviceResult = cas2,
+      cas2Application = cas2ApplicationDto,
+    )
     val cas3ServiceResult = buildCas3ServiceResult(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
@@ -106,11 +375,12 @@ class EligibilityTransformerTest {
     val paServiceResult = buildPaServiceResult(
       serviceResult = pa,
     )
-    val caseActions = listOf(dtrAction, cas1Action)
+    val caseActions = listOf(dtrAction, cas1Action, cas2Action)
 
     val expectedEligibility = buildEligibilityDto(
       crn = crn,
       cas1 = cas1ServiceResult,
+      cas2 = cas2ServiceResult,
       cas3 = cas3ServiceResult,
       dtr = dtrServiceResult,
       crs = crsServiceResult,
@@ -121,6 +391,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = crn,
       cas1 = cas1,
+      cas2 = cas2,
       cas3 = cas3,
       dtr = dtr,
       crs = crs,
@@ -133,15 +404,17 @@ class EligibilityTransformerTest {
 
   @Test
   fun `sorts case actions by soonest start date first, with undated actions last`() {
-    val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1))
-    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8))
-    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3))
-    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null)
-    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null)
+    val cas1Action = CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.of(2025, 12, 1), service = AccommodationService.CAS1)
+    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.of(2025, 4, 1), service = AccommodationService.CAS2)
+    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, startDate = LocalDate.of(2026, 9, 8), service = AccommodationService.CRS)
+    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = LocalDate.of(2026, 11, 3), service = AccommodationService.CAS3)
+    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, startDate = null, service = AccommodationService.DTR)
+    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = AccommodationService.PA)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(action = cas1Action),
+      cas2 = buildServiceResult(action = cas2Action),
       cas3 = buildServiceResult(action = cas3Action),
       dtr = buildServiceResult(action = dtrAction),
       crs = buildServiceResult(action = crsAction),
@@ -149,7 +422,7 @@ class EligibilityTransformerTest {
       data = buildDomainData(),
     )
 
-    assertThat(actualEligibility.caseActions).containsExactly(cas1Action, crsAction, cas3Action, dtrAction, paAction)
+    assertThat(actualEligibility.caseActions).containsExactly(cas2Action, cas1Action, crsAction, cas3Action, dtrAction, paAction)
   }
 
   @ParameterizedTest(name = "{0}")
@@ -159,13 +432,14 @@ class EligibilityTransformerTest {
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
     val dtr = buildServiceResult(
       serviceStatus = serviceStatus,
-      action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS),
+      action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS, service = AccommodationService.DTR),
       link = EligibilityKeys.ADD_REFERRAL_DETAILS,
     )
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = dtr,
       crs = buildServiceResult(),
@@ -187,6 +461,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = dtr,
       crs = buildServiceResult(),
@@ -205,13 +480,14 @@ class EligibilityTransformerTest {
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResult(
       serviceStatus = serviceStatus,
-      action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL),
+      action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS),
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = buildServiceResult(),
       crs = crs,
@@ -232,6 +508,7 @@ class EligibilityTransformerTest {
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
       cas1 = buildServiceResult(),
+      cas2 = buildServiceResult(),
       cas3 = buildServiceResult(),
       dtr = buildServiceResult(),
       crs = crs,
@@ -268,5 +545,23 @@ class EligibilityTransformerTest {
     val actualEligibility = toNotRequiredServiceStatus()
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
+  }
+
+  @Test
+  fun `does not include null actions when building case actions`() {
+    val actionablePaAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, service = AccommodationService.PA)
+
+    val actualEligibility = toEligibilityDto(
+      crn = "FAKECRN1",
+      cas1 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      cas2 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      cas3 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      dtr = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      crs = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
+      pa = buildServiceResult(serviceStatus = ServiceStatus.NOT_STARTED, action = actionablePaAction),
+      data = buildDomainData(),
+    )
+
+    assertThat(actualEligibility.caseActions).containsExactly(actionablePaAction)
   }
 }

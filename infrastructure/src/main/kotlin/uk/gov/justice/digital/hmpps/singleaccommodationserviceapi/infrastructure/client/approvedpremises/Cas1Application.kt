@@ -2,15 +2,56 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.UUID
 
 data class Cas1Application(
+  val uiUrl: String,
+  val application: Cas1ApplicationSummary,
+  val assessment: Cas1AssessmentSummary?,
+  val requestForPlacement: Cas1RequestForPlacementSummary?,
+  val placement: Cas1PlacementSummary?,
+  val placementHistory: List<Cas1PlacementPair>,
+)
+
+data class Cas1PlacementPair(
+  val requestForPlacement: Cas1RequestForPlacementSummary?,
+  val placement: Cas1PlacementSummary?,
+  val dateApplied: LocalDate,
+)
+
+data class Cas1ApplicationSummary(
   val id: UUID,
-  val applicationStatus: Cas1ApplicationStatus,
-  val requestForPlacementStatus: Cas1RequestForPlacementStatus?,
-  val placementStatus: Cas1PlacementStatus?,
+  val status: Cas1ApplicationStatus,
+  val createdAt: OffsetDateTime,
+  val createdBy: Cas1Staff,
+  val submittedAt: OffsetDateTime?,
+  val expiresAt: LocalDate?,
+)
+
+data class Cas1AssessmentSummary(
+  val decision: String?,
+  val rejectionRationale: String?,
+)
+
+data class Cas1RequestForPlacementSummary(
+  val status: Cas1RequestForPlacementStatus?,
+  val decision: String?,
+  val rejectionReason: String?,
+  val submittedBy: Cas1Staff?,
+  val submittedAt: LocalDate?,
+  val withdrawalReason: String?,
+  val withdrawalDate: LocalDate?,
+  val expectedArrivalDate: LocalDate?,
+  val durationDays: Int?,
+)
+
+data class Cas1PlacementSummary(
+  val status: Cas1PlacementStatus?,
+  val actualArrivalDate: LocalDate?,
+  val actualDepartureDate: LocalDate?,
+  val cancellationReason: String?,
   val premises: Cas1PremisesSummary?,
-  val uiUrl: String?,
 )
 
 data class Cas1PremisesSummary(
@@ -20,6 +61,12 @@ data class Cas1PremisesSummary(
   val addressLine2: String?,
   val town: String?,
   val postcode: String,
+)
+
+data class Cas1Staff(
+  val name: String,
+  val username: String,
+  val staffCode: String,
 )
 
 enum class Cas1RequestForPlacementStatus(val casValue: String) {

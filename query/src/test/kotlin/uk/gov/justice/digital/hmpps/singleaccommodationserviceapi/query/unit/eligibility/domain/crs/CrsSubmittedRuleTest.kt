@@ -13,11 +13,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class CrsSubmittedRuleTest {
-  private val description = "FAIL if CRS not submitted"
+  private val description = "FAIL if no live CRS referral"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = CrsReferralStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["WITHDRAWN"])
-  fun `crs is submitted so rule passes`(crsStatus: CrsReferralStatus) {
+  @EnumSource(value = CrsReferralStatus::class, names = ["LIVE"])
+  fun `crs is live so rule passes`(crsStatus: CrsReferralStatus) {
     val data = buildDomainData(
       commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = crsStatus),
     )
@@ -33,8 +33,8 @@ class CrsSubmittedRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = CrsReferralStatus::class, names = ["WITHDRAWN"])
-  fun `crs is not submitted so rule fails`(crsStatus: CrsReferralStatus) {
+  @EnumSource(value = CrsReferralStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["LIVE"])
+  fun `crs is not live so rule fails`(crsStatus: CrsReferralStatus) {
     val data = buildDomainData(
       commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = crsStatus),
     )

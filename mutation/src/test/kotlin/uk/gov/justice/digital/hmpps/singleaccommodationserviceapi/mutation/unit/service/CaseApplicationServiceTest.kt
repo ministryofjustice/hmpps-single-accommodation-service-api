@@ -9,14 +9,17 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.runs
 import io.mockk.verify
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.dao.DataIntegrityViolationException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import java.util.UUID
 
@@ -37,24 +40,39 @@ class CaseApplicationServiceTest {
     @MockK
     lateinit var caseCreationService: CaseCreationService
 
-    @Test
-    fun `createCases() retries multiple times on DataIntegrityViolation exception`() {
+    @RelaxedMockK
+    lateinit var caseSnapshotAssembler: CaseSnapshotAssembler
+
+    @MockK
+    lateinit var caseMapper: CaseMapper
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `createCases() retries multiple times on DataIntegrityViolation exception`(createAsBlankRecord: Boolean) {
       val crnToPrisonNumbers = List(100) {
         CrnToPrisonNumber(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
       }
 
+      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } throws
+        DataIntegrityViolationException("duplicate-1") andThenThrows
+        DataIntegrityViolationException("duplicate-2") andThenJust runs
       every { caseCreationService.saveUnpersistedCases(any()) } throws
         DataIntegrityViolationException("duplicate-1") andThenThrows
         DataIntegrityViolationException("duplicate-2") andThenJust runs
 
-      caseApplicationService.createCases(crnToPrisonNumbers)
+      caseApplicationService.createCases(crnToPrisonNumbers, createAsBlankRecord = createAsBlankRecord)
 
       // First and second call throws error, so retry, then 100 crns / 25 batch size = 4 calls == 6 calls in total
-      verify(exactly = 6) { caseCreationService.saveUnpersistedCases(any()) }
+      if (createAsBlankRecord) {
+        verify(exactly = 6) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+      } else {
+        verify(exactly = 6) { caseCreationService.saveUnpersistedCases(any()) }
+      }
     }
 
-    @Test
-    fun `createCases() throws after 3 retries`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `createCases() throws after 3 retries`(createAsBlankRecord: Boolean) {
       val crnToPrisonNumbers = List(100) {
         CrnToPrisonNumber(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
       }
@@ -62,16 +80,24 @@ class CaseApplicationServiceTest {
       val result = crnToPrisonNumbers.map { it.crn }
 
       every { caseRepository.findUnpersistedCrns(any()) } answers { result }
+      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } throws
+        DataIntegrityViolationException("duplicate-1") andThenThrows
+        DataIntegrityViolationException("duplicate-2") andThenThrows
+        DataIntegrityViolationException("duplicate-3")
       every { caseCreationService.saveUnpersistedCases(any()) } throws
         DataIntegrityViolationException("duplicate-1") andThenThrows
         DataIntegrityViolationException("duplicate-2") andThenThrows
         DataIntegrityViolationException("duplicate-3")
 
       assertThrows<DataIntegrityViolationException> {
-        caseApplicationService.createCases(crnToPrisonNumbers)
+        caseApplicationService.createCases(crnToPrisonNumbers, createAsBlankRecord = createAsBlankRecord)
       }
 
-      verify(exactly = 3) { caseCreationService.saveUnpersistedCases(any()) }
+      if (createAsBlankRecord) {
+        verify(exactly = 3) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+      } else {
+        verify(exactly = 3) { caseCreationService.saveUnpersistedCases(any()) }
+      }
     }
   }
 }

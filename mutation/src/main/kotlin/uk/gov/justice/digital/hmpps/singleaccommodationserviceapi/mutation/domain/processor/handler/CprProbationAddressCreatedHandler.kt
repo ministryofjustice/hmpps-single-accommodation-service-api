@@ -2,16 +2,15 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AccommodationSyncService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getRequiredAdditionalInformation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.utils.isProposedAccommodationStatus
 import java.util.UUID
 
@@ -21,46 +20,44 @@ class CprProbationAddressCreatedHandler(
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val caseRepository: CaseRepository,
   private val corePersonRecordClient: CorePersonRecordClient,
-  private val jsonMapper: JsonMapper,
+  private val inboxEventHelper: InboxEventHelper,
+  private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val eventType = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_CREATED.typeName
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.CPR_PROBATION_ADDRESS_CREATED.typeName
+  override fun supportedEventTypes() = setOf(eventType)
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
-    val cprProbationAddressCreatedEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    val cprAddressId = cprProbationAddressCreatedEvent.additionalInformation?.let { it["cprAddressId"] }
-    return cprAddressId?.toString()
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String {
+    val cprProbationAddressCreatedEvent = inboxEventHelper.toDomainEvent((inboxEvent))
+    val cprAddressId = cprProbationAddressCreatedEvent.getRequiredAdditionalInformation("cprAddressId")
+    return cprAddressId
   }
 
-  private fun getCrn(inboxEvent: InboxEventHandler.InboxEvent): String? {
-    val event = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    return event.personReference.findCrn()
-  }
-
-  private fun isProposedAccommodationAddress(probationAddress: CanonicalAddress) = probationAddress.status.code.isProposedAccommodationStatus()
-
-  @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing CPR_PROBATION_ADDRESS_CREATED event [inboxEventId={}]", inboxEvent.id)
-    val cprAddressIdString = checkNotNull(getPartitionKey(inboxEvent)) {
-      "cprAddressId not found in event payload [inboxEventId=${inboxEvent.id}]"
-    }
-    val cprAddressId = UUID.fromString(cprAddressIdString)
-    val crn = checkNotNull(getCrn(inboxEvent)) {
-      "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
-    }
-    log.info("Found CRN in CPR_PROBATION_ADDRESS_CREATED event [crn={}]", crn)
+    val crn = inboxEventHelper.findCrn(inboxEvent)
     val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
+    // this triggers a refresh regardless of whether processing the message fails later.
+    caseRefreshRequestService?.requestLiveRefresh(caseEntity.id)
+
+    val cprAddressIdString = getPartitionKey(inboxEvent)
+    val cprAddressId = UUID.fromString(cprAddressIdString)
+
     val probationAddress = corePersonRecordClient.getProbationAddress(uri = inboxEvent.uri())
-    if (!isProposedAccommodationAddress(probationAddress)) {
+    if (!probationAddress.status.code.isProposedAccommodationStatus()) {
       return InboxEventHandler.Result.IGNORED
     }
-    log.info("Found case in SAS db that relates to created proposed accommodation address for CPR_PROBATION_ADDRESS_CREATED event [cprAddressId={}]", cprAddressId)
-    val existingAccommodationEntity = proposedAccommodationRepository.findByCprAddressId(cprAddressId)
+
+    log.info("Processing proposedAccommodation [cprAddressId={}] for case [caseId={}]", cprAddressId, caseEntity.id)
+
+    val existingAccommodationEntity = proposedAccommodationRepository.findWithNotesByCprAddressId(cprAddressId)
     val result = if (existingAccommodationEntity != null) {
-      log.info("Found existing accommodation record matching CPR_PROBATION_ADDRESS_CREATED event, updating for idempotency [cprAddressId={}]", cprAddressId)
+      log.info(
+        "Accommodation with [cprAddressId={}] already exists on {} event, updating for idempotency.",
+        cprAddressId,
+        eventType,
+      )
       accommodationSyncService.updateAccommodationRecordWithCprAddressUpdate(
         crn = crn,
         sasAccommodationRecord = existingAccommodationEntity,
@@ -73,6 +70,10 @@ class CprProbationAddressCreatedHandler(
         cprAddressRecord = probationAddress,
       )
     }
-    return if (result) InboxEventHandler.Result.PROCESSED else InboxEventHandler.Result.FAILED
+    return if (result) {
+      InboxEventHandler.Result.PROCESSED
+    } else {
+      InboxEventHandler.Result.FAILED
+    }
   }
 }

@@ -39,10 +39,10 @@ interface DutyToReferRepository : JpaRepository<DutyToReferEntity, UUID> {
     """
     select dtr from DutyToReferEntity dtr
     where dtr.caseId = :caseId
-    and dtr.createdAt >= :startDate
-    and dtr.createdAt <= :endDate
+    and (CAST(:startDate as Instant) is null or dtr.createdAt >= :startDate)
+    and (CAST(:endDate as Instant) is null or dtr.createdAt <= :endDate)
     order by dtr.createdAt desc
   """,
   )
-  fun findAllForSar(caseId: UUID, startDate: Instant, endDate: Instant): List<DutyToReferEntity>
+  fun findAllForSar(caseId: UUID, startDate: Instant?, endDate: Instant?): List<DutyToReferEntity>
 }

@@ -30,6 +30,7 @@ dependencies {
 
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.hmpps.sqs)
+  testImplementation(libs.coroutines.core)
   testImplementation(libs.spring.resttestclient)
 
   testImplementation(libs.wiremock)
@@ -42,6 +43,7 @@ dependencies {
   testImplementation(libs.awaitility)
   testImplementation(libs.webtestclient)
   testImplementation(testFixtures(project(":infrastructure")))
+  testImplementation(testFixtures(project(":common")))
   testImplementation(libs.sartestsupport)
 }
 

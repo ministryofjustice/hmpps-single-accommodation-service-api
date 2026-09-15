@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository
 
 import org.javers.spring.annotation.JaversSpringDataAuditable
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProposedAccommodationEntity
@@ -65,19 +66,24 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
 
   fun findByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
 
+  @EntityGraph(attributePaths = ["notes"])
+  fun findWithNotesByCprAddressId(cprAddressId: UUID): ProposedAccommodationEntity?
+
   fun findByIdAndDeleted(id: UUID, deleted: Boolean): ProposedAccommodationEntity?
 
   fun findByIdAndAccommodationStatusId(id: UUID, accommodationStatusId: UUID): ProposedAccommodationEntity?
+
+  fun findByIdAndBuildingNumber(id: UUID, buildingNumber: String): ProposedAccommodationEntity?
 
   @Query(
     """
     select distinct pa from ProposedAccommodationEntity pa
     left join fetch pa.notes 
     where pa.caseId = :caseId
-    and pa.createdAt >= :startDate
-    and pa.createdAt <= :endDate
+    and (CAST(:startDate as Instant) IS NULL or pa.createdAt >= :startDate)
+    and (CAST(:endDate as Instant) IS NULL or pa.createdAt <= :endDate)
     order by pa.createdAt desc 
     """,
   )
-  fun findAllForSar(caseId: UUID, startDate: Instant, endDate: Instant): List<ProposedAccommodationEntity>
+  fun findAllForSar(caseId: UUID, startDate: Instant?, endDate: Instant?): List<ProposedAccommodationEntity>
 }

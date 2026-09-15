@@ -6,8 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsExpiredRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion.CrsCompletionRuleSet
 
@@ -16,8 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
   classes = [
     CrsCompletionRuleSet::class,
     CrsSubmittedRule::class,
-    ClockConfig::class,
-    CrsExpiredRule::class,
   ],
 )
 class CrsCompletionRuleSetTest {
@@ -27,7 +23,6 @@ class CrsCompletionRuleSetTest {
 
   private val expectedCrsCompletionRuleNames = listOf(
     CrsSubmittedRule::class.simpleName,
-    CrsExpiredRule::class.simpleName,
   )
 
   @Test
@@ -35,7 +30,7 @@ class CrsCompletionRuleSetTest {
     val ruleSetRules = crsCompletionRuleSet.getRules().map { it.javaClass.simpleName }
 
     assertThat(ruleSetRules)
-      .hasSize(2)
+      .hasSize(1)
       .containsExactlyInAnyOrderElementsOf(expectedCrsCompletionRuleNames)
   }
 }

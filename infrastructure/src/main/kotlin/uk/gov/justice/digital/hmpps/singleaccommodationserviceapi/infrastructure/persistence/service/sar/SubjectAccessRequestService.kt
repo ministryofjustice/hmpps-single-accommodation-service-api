@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service.sar
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
@@ -43,7 +42,6 @@ class SubjectAccessRequestService(
 ) : HmppsPrisonProbationSubjectAccessRequestService {
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
     private val enumModule: SimpleModule = SimpleModule()
       .addSerializer(TitleEnum::class.java, TitleEnumSerialiser())
     private val mapper: JsonMapper = JsonMapper.builder()
@@ -60,8 +58,8 @@ class SubjectAccessRequestService(
     val sarResult = getSarResult(
       crn,
       prn,
-      fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MIN,
-      toDate?.plusDays(1)?.atStartOfDay(ZoneId.systemDefault())?.toInstant() ?: Instant.MAX,
+      fromDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant(),
+      toDate?.plusDays(1)?.atStartOfDay(ZoneId.systemDefault())?.toInstant(),
     ) ?: return null
 
     return HmppsSubjectAccessRequestContent(content = sarResult)
@@ -70,8 +68,8 @@ class SubjectAccessRequestService(
   fun getSarResult(
     crn: String?,
     prisonNumber: String?,
-    startDate: Instant,
-    endDate: Instant,
+    startDate: Instant?,
+    endDate: Instant?,
   ): Map<String, Any>? {
     if (crn == null && prisonNumber == null) return null
 
@@ -93,8 +91,8 @@ class SubjectAccessRequestService(
     val laas = localAuthorityAreaRepository.findAll().associateBy { it.id }
 
     val nestedDutyToRefers = dutyToRefers.map { dtr ->
-      val dtrCreatedByUser = users[dtr.createdByUserId]
-      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]
+      val dtrCreatedByUser = users[dtr.createdByUserId]?.username ?: "Unknown"
+      val dtrLastUpdatedByUser = users[dtr.lastUpdatedByUserId]?.username ?: "Unknown"
       val laa = laas[dtr.localAuthorityAreaId]
 
       val dtrDto = DutyToReferDto(
@@ -109,7 +107,7 @@ class SubjectAccessRequestService(
           ),
           referenceNumber = dtr.referenceNumber,
           submissionDate = dtr.submissionDate,
-          createdBy = dtrCreatedByUser?.displayName() ?: "Unknown",
+          createdBy = dtrCreatedByUser,
           createdAt = dtr.createdAt!!,
           withdrawalReason = dtr.withdrawalReason?.let { WithdrawalReason.valueOf(it.name) },
           withdrawalReasonOther = dtr.withdrawalReasonOther,
@@ -119,15 +117,15 @@ class SubjectAccessRequestService(
         ),
       )
       val dtrMap = mapper.convertValue(dtrDto, Map::class.java).toMutableMap()
-      dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser?.displayName() ?: "Unknown"
+      dtrMap["lastUpdatedBy"] = dtrLastUpdatedByUser
       dtrMap["lastUpdatedAt"] = dtr.lastUpdatedAt
       dtrMap
     }
 
     val nestedAccommodations = accommodations.map { pa ->
       val type = accTypes[pa.accommodationTypeId]
-      val createdByUser = users[pa.createdByUserId]
-      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]
+      val createdByUser = users[pa.createdByUserId]?.username ?: "Unknown"
+      val lastUpdatedByUser = users[pa.lastUpdatedByUserId]?.username ?: "Unknown"
 
       val paDto = ProposedAccommodationDto(
         id = pa.id,
@@ -150,12 +148,12 @@ class SubjectAccessRequestService(
           country = pa.country,
           uprn = pa.uprn,
         ),
-        createdBy = createdByUser?.displayName() ?: "Unknown",
+        createdBy = createdByUser,
         createdAt = pa.createdAt!!,
       )
 
       val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
-      paMap["lastUpdatedBy"] = lastUpdatedByUser?.displayName() ?: "Unknown"
+      paMap["lastUpdatedBy"] = lastUpdatedByUser
       paMap["lastUpdatedAt"] = pa.lastUpdatedAt
       paMap["settledType"] = when (type?.settledType) {
         AccommodationSettledType.SETTLED -> "Settled"
@@ -166,9 +164,9 @@ class SubjectAccessRequestService(
         mapOf(
           "note" to note.note,
           "createdAt" to note.createdAt,
-          "createdBy" to (users[note.createdByUserId]?.displayName() ?: "Unknown"),
+          "createdBy" to (users[note.createdByUserId]?.username ?: "Unknown"),
           "lastUpdatedAt" to note.lastUpdatedAt,
-          "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.displayName() ?: "Unknown"),
+          "lastUpdatedBy" to (users[note.lastUpdatedByUserId]?.username ?: "Unknown"),
         )
       }
       paMap

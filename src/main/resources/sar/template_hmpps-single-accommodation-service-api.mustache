@@ -27,8 +27,8 @@
         <tr>
             <td>{{ optionalValue (formatDate createdAt) }}</td>
             <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
-            <td>{{ optionalValue createdBy }}</td>
-            <td>{{ optionalValue lastUpdatedBy }}</td>
+            <td>{{ getUserLastName createdBy }}</td>
+            <td>{{ getUserLastName lastUpdatedBy }}</td>
         </tr>
     </table>
 
@@ -94,8 +94,8 @@
             <tr>
                 <td>{{ optionalValue (formatDate createdAt) }}</td>
                 <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
-                <td>{{ optionalValue createdBy }}</td>
-                <td>{{ optionalValue lastUpdatedBy }}</td>
+                <td>{{ getUserLastName createdBy }}</td>
+                <td>{{ getUserLastName lastUpdatedBy }}</td>
             </tr>
         </table>
     {{/accommodation_notes}}
@@ -142,8 +142,8 @@
         <tr>
             <td>{{ optionalValue (formatDate submission.createdAt) }}</td>
             <td>{{ optionalValue (formatDate lastUpdatedAt) }}</td>
-            <td>{{ optionalValue submission.createdBy }}</td>
-            <td>{{ optionalValue lastUpdatedBy }}</td>
+            <td>{{ getUserLastName submission.createdBy }}</td>
+            <td>{{ getUserLastName lastUpdatedBy }}</td>
         </tr>
     </table>
 {{/DutyToRefer}}

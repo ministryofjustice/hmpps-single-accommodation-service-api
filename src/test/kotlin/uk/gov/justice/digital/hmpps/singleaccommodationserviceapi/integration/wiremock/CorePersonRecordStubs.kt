@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 import java.util.UUID
 
 object CorePersonRecordStubs {
@@ -28,6 +28,13 @@ object CorePersonRecordStubs {
   fun getCorePersonRecordOKResponse(crn: String, response: CorePersonRecord) {
     sasWiremock.stubFor(
       get(WireMock.urlPathEqualTo("/person/probation/$crn"))
+        .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun getCorePersonRecordByPrisonNumberOKResponse(prisonNumber: String, response: CorePersonRecord) {
+    sasWiremock.stubFor(
+      get(WireMock.urlPathEqualTo("/person/prison/$prisonNumber"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }

@@ -6,6 +6,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1ApplicationCompletionRule
@@ -18,8 +20,12 @@ class Cas1ApplicationCompletionRuleTest {
   @Test
   fun `placement is upcoming so rule passes`() {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      placementStatus = Cas1PlacementStatus.UPCOMING,
+      application = buildCas1ApplicationSummary(
+        id = UUID.randomUUID(),
+      ),
+      placement = buildCas1PlacementSummary(
+        status = Cas1PlacementStatus.UPCOMING,
+      ),
     )
 
     val data = buildDomainData(
@@ -39,8 +45,11 @@ class Cas1ApplicationCompletionRuleTest {
   @Test
   fun `placement is null so rule fails`() {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      placementStatus = null,
+      application = buildCas1ApplicationSummary(
+
+        id = UUID.randomUUID(),
+      ),
+      placement = null,
     )
 
     val data = buildDomainData(
@@ -61,8 +70,11 @@ class Cas1ApplicationCompletionRuleTest {
   @EnumSource(value = Cas1PlacementStatus::class, names = ["DEPARTED", "CANCELLED", "NOT_ARRIVED", "ARRIVED"])
   fun `application not upcoming so rule fails - status = `(status: Cas1PlacementStatus) {
     val cas1Application = buildCas1Application(
-      id = UUID.randomUUID(),
-      placementStatus = status,
+      application = buildCas1ApplicationSummary(
+
+        id = UUID.randomUUID(),
+      ),
+      placement = buildCas1PlacementSummary(status = status),
     )
 
     val data = buildDomainData(

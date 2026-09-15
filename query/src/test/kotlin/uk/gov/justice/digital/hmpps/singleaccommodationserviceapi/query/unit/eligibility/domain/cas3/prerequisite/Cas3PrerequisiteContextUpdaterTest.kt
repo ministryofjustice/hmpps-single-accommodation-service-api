@@ -1,0 +1,116 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.eligibility.domain.cas3.prerequisite
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.prerequisite.Cas3PrerequisiteContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import java.time.LocalDate
+import java.util.UUID
+
+class Cas3PrerequisiteContextUpdaterTest {
+  private val updater = Cas3PrerequisiteContextUpdater()
+
+  @Nested
+  inner class UpdateTests {
+    @Test
+    fun `update builds service result using toServiceResult`() {
+      val currentAccommodationEndDate = LocalDate.parse("2026-12-31")
+      val applicationId = UUID.randomUUID()
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = currentAccommodationEndDate),
+        cas3Application = buildCas3Application(
+          id = applicationId,
+          applicationStatus = Cas3ApplicationStatus.REJECTED,
+        ),
+      )
+      val context = EvaluationContext(
+        data = data,
+        currentResult = buildServiceResult(),
+      )
+
+      val result = updater.update(context)
+
+      assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.CANNOT_START_YET)
+    }
+
+    @Nested
+    inner class SetsBlockingReason {
+      private fun context(sex: SexCode): EvaluationContext {
+        val data = buildDomainData(
+          cas3Application = buildCas3Application(),
+        ).copy(sex = sex)
+
+        return EvaluationContext(
+          data = data,
+          currentResult = buildServiceResult(),
+        )
+      }
+
+      @Nested
+      inner class WhenOnlyDtrFails {
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class)
+        fun `returns SUBMIT_DTR_BEFORE_CAS3`(sex: SexCode) {
+          val result = updater.update(context(sex), listOf(FailureReason.DTR_REFERRAL_EXPIRED))
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+        }
+      }
+
+      @Nested
+      inner class WhenDtrFailsAndCrsNotSubmitted {
+        @Test
+        fun `returns SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
+          val result = updater.update(
+            context(SexCode.M),
+            listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_MALE),
+          )
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+        fun `returns SUBMIT_DTR_AND_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
+          val result = updater.update(
+            context(sex),
+            listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_NON_MALE),
+          )
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
+        }
+      }
+
+      @Nested
+      inner class WhenOnlyCrsNotSubmitted {
+        @Test
+        fun `returns SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
+          val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED_MALE))
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SexCode::class, names = ["M"], mode = EnumSource.Mode.EXCLUDE)
+        fun `returns SUBMIT_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
+          val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED_NON_MALE))
+
+          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
+        }
+      }
+    }
+  }
+}

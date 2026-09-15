@@ -13,8 +13,8 @@ class Cas1ApplicationRelevantExpiredRule : Rule {
   override val description = "FAIL if expired application is not upcoming or arrived"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.cas1Application?.applicationStatus == Cas1ApplicationStatus.EXPIRED &&
-      (data.cas1Application.placementStatus != Cas1PlacementStatus.UPCOMING && data.cas1Application.placementStatus != Cas1PlacementStatus.ARRIVED)
+    val isFail = data.cas1Application?.application?.status == Cas1ApplicationStatus.EXPIRED &&
+      (data.cas1Application.placement?.status != Cas1PlacementStatus.UPCOMING && data.cas1Application.placement?.status != Cas1PlacementStatus.ARRIVED)
 
     val ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS
 

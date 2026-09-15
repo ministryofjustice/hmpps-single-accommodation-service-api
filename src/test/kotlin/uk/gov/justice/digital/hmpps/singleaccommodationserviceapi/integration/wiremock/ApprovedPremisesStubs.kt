@@ -5,12 +5,16 @@ import com.github.tomakehurst.wiremock.client.WireMock.notFound
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.JsonHelper.jsonMapper
 
 object ApprovedPremisesStubs {
   const val CAS1_APPLICATION_START_URL = "https://cas1-ui/applications/start"
@@ -30,14 +34,14 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas1CurrentPremisesOKResponse(crn: String, response: Any) {
+  fun getCas1CurrentPremisesOKResponse(crn: String, response: Cas1PremisesSummary) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/premises/current"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
     )
   }
 
-  fun getCas3CurrentPremisesOKResponse(crn: String, response: Any) {
+  fun getCas3CurrentPremisesOKResponse(crn: String, response: Cas3PremisesSummary) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
@@ -58,7 +62,7 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas1SuitableApplicationOKResponse(crn: String, response: Any) {
+  fun getCas1SuitableApplicationOKResponse(crn: String, response: Cas1Application) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
@@ -86,7 +90,7 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas3SuitableApplicationOKResponse(crn: String, response: Any) {
+  fun getCas3SuitableApplicationOKResponse(crn: String, response: Cas3Application) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),

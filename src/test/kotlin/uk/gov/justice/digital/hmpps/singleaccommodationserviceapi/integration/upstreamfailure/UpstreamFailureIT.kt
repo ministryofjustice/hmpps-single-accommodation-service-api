@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.u
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -15,15 +16,22 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
+import java.util.UUID
 
 class UpstreamFailureIT : IntegrationTestBase() {
 
-  private val crn = "FAKECRN1"
+  private val crn = UUID.randomUUID().toString()
+  private val prisonNumber = UUID.randomUUID().toString()
 
   @BeforeEach
   fun setup() {
-    val corePersonRecord = buildCorePersonRecord(identifiers = buildIdentifiers(crns = listOf(crn)))
-    val case = buildCase(crn = crn)
+    val case = buildCase(crn = crn, nomsNumber = prisonNumber)
+    val corePersonRecord = buildCorePersonRecord(
+      identifiers = buildIdentifiers(
+        crns = listOf(crn),
+        prisonNumbers = listOf(prisonNumber),
+      ),
+    )
     val tier = buildTier()
 
     createTestDataSetupUserAndDeliusUser()
@@ -66,9 +74,9 @@ class UpstreamFailureIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnTierServerError())
+        assertThatJson(it!!).matchesExpectedJson(expectedSingleCrnTierServerError(crn, prisonNumber))
       }
   }
 
@@ -79,9 +87,9 @@ class UpstreamFailureIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/$crn")
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
-        assertThatJson(normalizeResponse(it!!)).matchesExpectedJson(expectedSingleCrnTierTimeout())
+        assertThatJson(normalizeResponse(it!!)).matchesExpectedJson(expectedSingleCrnTierTimeout(crn, prisonNumber))
       }
   }
 

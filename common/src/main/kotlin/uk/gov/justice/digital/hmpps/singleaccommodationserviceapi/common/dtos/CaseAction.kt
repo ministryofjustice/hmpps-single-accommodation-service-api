@@ -5,6 +5,7 @@ import java.time.LocalDate
 data class CaseAction(
   val type: CaseActionType,
   val startDate: LocalDate? = null,
+  val service: AccommodationService,
 )
 
 enum class CaseActionType {
@@ -13,6 +14,12 @@ enum class CaseActionType {
   PROVIDE_INFORMATION,
   START_APPROVED_PREMISE_APPLICATION,
   CONTINUE_APPROVED_PREMISE_APPLICATION,
+
+  // CAS2
+  START_CAS2_REFERRAL,
+  CONTINUE_A_CAS2_REFERRAL,
+  PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL,
+  REPLY_TO_CAS2_PLACE_OFFER,
 
   // CAS3
   START_CAS3_REFERRAL,

@@ -4,29 +4,25 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 
 @Component
 class CaseAllocationHandler(
-  private val caseApplicationService: CaseApplicationService,
-  private val jsonMapper: JsonMapper,
+  private val caseCreationService: CaseCreationService,
+  private val inboxEventHelper: InboxEventHelper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
   @field:Value($$"${case-list.onboarded-teams}") private val onboardedTeamsCodes: List<String>,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun supportedEventType() = IncomingHmppsDomainEventType.CASE_ALLOCATED.typeName
+  override fun supportedEventTypes() = setOf(IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED.typeName)
 
-  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String? {
-    val caseAllocationEvent = jsonMapper.readValue(inboxEvent.payload, SnsDomainEvent::class.java)
-    return caseAllocationEvent.personReference.findCrn()
-  }
+  override fun getPartitionKey(inboxEvent: InboxEventHandler.InboxEvent): String = inboxEventHelper.findCrn(inboxEvent)
 
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
@@ -38,7 +34,7 @@ class CaseAllocationHandler(
     val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
     val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
     if (shouldProcess) {
-      caseApplicationService.upsertCase(case.crn, case.nomsId)
+      caseCreationService.upsertCase(case.crn, case.nomsId)
     }
     log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
 
