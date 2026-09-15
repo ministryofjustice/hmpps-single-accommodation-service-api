@@ -209,5 +209,5 @@ class AccommodationSummaryCalculator(
   private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
   private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
   private fun isHomelessType(dto: AccommodationSummaryDto?) = dto?.type?.code in homelessAccommodationTypeCodes
-  private fun typeExists(dto: AccommodationSummaryDto?) = (isSettledType(dto) || isTransientType(dto) )
+  private fun typeExists(dto: AccommodationSummaryDto?) = (isSettledType(dto) || isTransientType(dto))
 }
