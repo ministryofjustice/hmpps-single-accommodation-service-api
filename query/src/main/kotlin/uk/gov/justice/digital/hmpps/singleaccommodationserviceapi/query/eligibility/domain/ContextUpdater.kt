@@ -32,7 +32,7 @@ abstract class ContextUpdater {
   companion object {
     /** Returns a ContextUpdater that replaces the current ServiceResult with [result], ignoring the context. */
     fun constant(result: ServiceResult): ContextUpdater = object : ContextUpdater() {
-      override val description = set(result.serviceStatus.name)
+      override val description = set(result.serviceStatus.title)
       override val outcomes = mapOf("constant" to result)
       override fun toServiceResult(context: EvaluationContext): ServiceResult = outcome("constant")
     }
