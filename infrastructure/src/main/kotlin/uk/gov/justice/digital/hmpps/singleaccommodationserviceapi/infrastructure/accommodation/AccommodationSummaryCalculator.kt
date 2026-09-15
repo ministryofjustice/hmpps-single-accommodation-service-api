@@ -43,16 +43,24 @@ class AccommodationSummaryCalculator(
   private val homelessAccommodationTypeCodes: Set<String> by lazy {
     accommodationTypeRepository.findAllByIsHomelessIsTrueAndActiveIsTrue().map { it.code }.toSet()
   }
-  private fun typeExists(code: String?): Boolean = if (code == null) {
-    false
-  } else {
-    try {
-      accommodationTypeRepository.findByCode(code) != null
-    } catch (e: Exception) {
-      log.warn("Unable to look up accommodation type for code {}", code, e)
-      false
-    }
-  }
+//  private fun typeExists(code: String?): Boolean = if (code == null) {
+//    println("DIDTNT fals?")
+//
+//    false
+//  } else {
+//    println("EXISTS")
+//
+//    try {
+//      transientAccommodationTypeCodes
+//      println("LOOKING UP $code")
+//      println(accommodationTypeRepository.findByCode(code))
+//      accommodationTypeRepository.findByCode(code) != null
+//    } catch (e: Exception) {
+//      println("DIDTNT EXIST")
+//      log.warn("Unable to look up accommodation type for code {}", code, e)
+//      false
+//    }
+//  }
 
   fun calculateAccommodationSummaries(
     crn: String,
@@ -196,9 +204,10 @@ class AccommodationSummaryCalculator(
 
   private fun isTemporaryTransient(dto: AccommodationSummaryDto?) = isTransientType(dto) && dto?.endDate != null
   private fun isTransient(currentDto: AccommodationSummaryDto?, nextDto: AccommodationSummaryDto?) = isTransientType(currentDto) || isTransientType(nextDto)
-  private fun isHomelessOrNull(dto: AccommodationSummaryDto?) = dto == null || isHomelessType(dto) || !typeExists(dto.type?.code)
+  private fun isHomelessOrNull(dto: AccommodationSummaryDto?) = dto == null || isHomelessType(dto)
 
   private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
   private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
   private fun isHomelessType(dto: AccommodationSummaryDto?) = dto?.type?.code in homelessAccommodationTypeCodes
+  private fun typeExists(dto: AccommodationSummaryDto?) = (isSettledType(dto) || isTransientType(dto) )
 }
