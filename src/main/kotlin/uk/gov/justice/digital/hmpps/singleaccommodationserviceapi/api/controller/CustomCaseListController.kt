@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
@@ -21,6 +22,7 @@ private const val CRN_FORMAT_MESSAGE = "CRN must be in format A123456"
 @Validated
 @RestController
 class CustomCaseListController(
+  private val userService: UserService,
   private val caseApplicationService: CaseApplicationService,
   private val customCaseListApplicationService: CustomCaseListApplicationService,
 ) {
@@ -41,9 +43,10 @@ class CustomCaseListController(
       throw ValidationException("$CRN_FORMAT_MESSAGE: ${invalidCrns.joinToString()}")
     }
 
+    val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = normalisedCrns.distinct()
     caseApplicationService.createCases(distinctCrns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
-    customCaseListApplicationService.createCustomCaseList(distinctCrns)
+    customCaseListApplicationService.createCustomCaseList(user.id, distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
   }
 }
