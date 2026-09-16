@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
@@ -20,29 +20,29 @@ class Cas3PrerequisiteContextUpdater : ContextUpdater() {
   val dtr = "dtr"
 
   override val outcomes = mapOf(
-    dtrAndCrsAccommodation to ServiceResult(
-      serviceStatus = ServiceStatus.CANNOT_START_YET,
+    dtrAndCrsAccommodation to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
     ),
-    dtrAndCrs to ServiceResult(
-      serviceStatus = ServiceStatus.CANNOT_START_YET,
+    dtrAndCrs to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
     ),
-    crsAccommodation to ServiceResult(
-      serviceStatus = ServiceStatus.CANNOT_START_YET,
+    crsAccommodation to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
     ),
-    crs to ServiceResult(
-      serviceStatus = ServiceStatus.CANNOT_START_YET,
+    crs to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_CRS_BEFORE_CAS3,
     ),
-    dtr to ServiceResult(
-      serviceStatus = ServiceStatus.CANNOT_START_YET,
+    dtr to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_DTR_BEFORE_CAS3,
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext): ServiceResult {
+  override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
     val currentFailureReasons = context.currentResult.failureReasons
     val crsOutstandingMale = FailureReason.CRS_NOT_SUBMITTED_MALE in currentFailureReasons
     val crsOutstandingNonMale = FailureReason.CRS_NOT_SUBMITTED_NON_MALE in currentFailureReasons

@@ -5,8 +5,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
@@ -28,40 +28,40 @@ class Cas2CompletionContextUpdater(
   val unknown = "unknown"
 
   override val outcomes = mapOf(
-    submitted to ServiceResult(
-      serviceStatus = ServiceStatus.SUBMITTED,
+    submitted to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_SUBMITTED,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    moreInfoRequested to ServiceResult(
-      serviceStatus = ServiceStatus.MORE_INFORMATION_NEEDED,
+    moreInfoRequested to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
       action = CaseAction(type = CaseActionType.PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL, service = AccommodationService.CAS2),
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    awaitingDecision to ServiceResult(
-      serviceStatus = ServiceStatus.AWAITING_DECISION,
+    awaitingDecision to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_AWAITING_DECISION,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    onWaitingList to ServiceResult(
-      serviceStatus = ServiceStatus.ON_WAITING_LIST,
+    onWaitingList to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_ON_WAITING_LIST,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    placeOffered to ServiceResult(
-      serviceStatus = ServiceStatus.PLACE_OFFERED,
+    placeOffered to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_PLACE_OFFERED,
       action = CaseAction(type = CaseActionType.REPLY_TO_CAS2_PLACE_OFFER, service = AccommodationService.CAS2),
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    offerAccepted to ServiceResult(
-      serviceStatus = ServiceStatus.OFFER_ACCEPTED,
+    offerAccepted to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_OFFER_ACCEPTED,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    unknown to ServiceResult(
-      serviceStatus = ServiceStatus.UNKNOWN,
+    unknown to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_UNKNOWN,
     ),
   )
 
