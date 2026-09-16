@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 
 enum class GraphNodeKind {
@@ -11,12 +11,14 @@ enum class GraphNodeKind {
 data class RuleInfo(
   val className: String,
   val description: String,
+  val sourcePath: String? = null,
 )
 
 data class ContextUpdaterInfo(
   val name: String,
   val description: String,
-  val outcomes: Map<String, ServiceResultNew> = emptyMap(),
+  val outcomes: Map<String, ServiceResultSpec> = emptyMap(),
+  val sourcePath: String? = null,
 )
 
 data class GraphNode(
