@@ -30,6 +30,8 @@ data class OtherAccommodationReferralSubmissionDto(
   val organisationName: String?,
   val website: String?,
   val submissionNote: String?,
+  val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  val outcomeNote: String? = null,
 )
 
 data class OtherAccommodationReferralCommand(
@@ -40,8 +42,20 @@ data class OtherAccommodationReferralCommand(
   val organisationName: String?,
   val website: String?,
   val submissionNote: String?,
+  val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  val outcomeNote: String? = null,
 )
 
 enum class OtherAccommodationReferralStatus(override val title: String) : TitleEnum {
   SUBMITTED("Submitted"),
+  ACCEPTED("Accepted"),
+  REJECTED("Rejected"),
+}
+
+enum class OtherAccommodationReferralOutcomeReason {
+  ACCEPTED_BY_ORGANISATION,
+  ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+  PERSON_NOT_SUITABLE,
+  NO_CAPACITY,
+  ANOTHER_REASON,
 }

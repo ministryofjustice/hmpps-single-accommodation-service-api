@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NA
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_TEST_DATA_SETUP_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.createOtherAccommodationReferralRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedGetOtherAccommodationReferralOutcomeTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedGetOtherAccommodationReferralTimelineResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.expectedOtherAccommodationReferralResponseBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json.otherAccommodationReferralNoteRequestBody
@@ -33,6 +35,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
 
@@ -75,7 +79,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
             localAuthorityAreaId = localAuthorityArea.id,
             submissionDate = "2026-02-20",
             referenceNumber = "REF-001",
-            status = "SUBMITTED",
+            status = EntityOtherAccommodationReferralStatus.SUBMITTED.name,
             organisationName = "Organisation name",
             website = "https://www.charity.org",
             submissionNote = "A submission note",
@@ -98,7 +102,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
           localAuthorityAreaName = localAuthorityArea.name,
           submissionDate = "2026-02-20",
           referenceNumber = "REF-001",
-          status = "SUBMITTED",
+          status = OtherAccommodationReferralStatus.SUBMITTED.name,
           createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
           createdByUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
           createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
@@ -213,18 +217,12 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
       val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
       val newLocalAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().last()
 
-      val existingEntity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
-          crn = crn,
-          caseId = case.id,
-          localAuthorityAreaId = localAuthorityAreaId,
-          referenceNumber = "REF-001",
-          submissionDate = LocalDate.of(2026, 1, 15),
-          status = OtherAccommodationReferralStatus.SUBMITTED,
-          organisationName = "Organisation name",
-          website = "https://www.charity.org",
-          submissionNote = "A submission note",
-        ),
+      val existingEntity = createOtherAccommodationReferralEntity(
+        localAuthorityAreaId = localAuthorityAreaId,
+        referenceNumber = "REF-001",
+        organisationName = "Organisation name",
+        website = "https://www.charity.org",
+        submissionNote = "A submission note",
       )
 
       val result = restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
@@ -287,13 +285,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should return 404 when updating other accommodation referral with CRN that does not match`() {
       val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-      val existingEntity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
-          crn = crn,
-          caseId = case.id,
-          localAuthorityAreaId = localAuthorityAreaId,
-        ),
-      )
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
 
       restTestClient.put().uri("/cases/OTHERCRN/other-accommodation-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -306,13 +298,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should return 404 when local authority does not exist for update`() {
       val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-      val existingEntity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
-          crn = crn,
-          caseId = case.id,
-          localAuthorityAreaId = localAuthorityAreaId,
-        ),
-      )
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
 
       restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -325,13 +311,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should return 403 when user does not have the required role for update`() {
       val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
-      val existingEntity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
-          crn = crn,
-          caseId = case.id,
-          localAuthorityAreaId = localAuthorityAreaId,
-        ),
-      )
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
 
       restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -340,6 +320,136 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         .exchange()
         .expectStatus().isForbidden
     }
+
+    @Test
+    fun `should accept other accommodation referral with an outcome reason and note`() {
+      val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
+
+      val result = restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityAreaId,
+            status = EntityOtherAccommodationReferralStatus.ACCEPTED.name,
+            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+            outcomeNote = "An outcome note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedOtherAccommodationReferralResponseBody(
+          id = existingEntity.id,
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityAreaId,
+          localAuthorityAreaName = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first { it.id == localAuthorityAreaId }.name,
+          status = OtherAccommodationReferralStatus.ACCEPTED.name,
+          createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+          createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+          createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+          outcomeNote = "An outcome note",
+        ),
+      )
+    }
+
+    @Test
+    fun `should reject other accommodation referral with an outcome reason and note`() {
+      val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
+
+      val result = restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityAreaId,
+            status = EntityOtherAccommodationReferralStatus.REJECTED.name,
+            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+            outcomeNote = "An outcome note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedOtherAccommodationReferralResponseBody(
+          id = existingEntity.id,
+          caseId = case.id,
+          crn = crn,
+          localAuthorityAreaId = localAuthorityAreaId,
+          localAuthorityAreaName = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first { it.id == localAuthorityAreaId }.name,
+          status = OtherAccommodationReferralStatus.REJECTED.name,
+          createdBy = NAME_OF_TEST_DATA_SETUP_USER,
+          createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
+          createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          outcomeReason = OtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+          outcomeNote = "An outcome note",
+        ),
+      )
+    }
+
+    @Test
+    fun `should return 400 when accepting other accommodation referral without an outcome reason`() {
+      val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
+
+      restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityAreaId,
+            status = EntityOtherAccommodationReferralStatus.ACCEPTED.name,
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `should return 400 when accepting other accommodation referral with a REJECTED-only outcome reason`() {
+      val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
+
+      restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityAreaId,
+            status = EntityOtherAccommodationReferralStatus.ACCEPTED.name,
+            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `should return 400 when providing an outcome reason for a SUBMITTED status`() {
+      val localAuthorityAreaId = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
+
+      restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityAreaId,
+            status = EntityOtherAccommodationReferralStatus.SUBMITTED.name,
+            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION.name,
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
+    }
   }
 
   @Nested
@@ -347,7 +457,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should create a note for other accommodation referral`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val existingEntity = createOtherAccommodationReferral(localAuthorityArea.id)
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
       val note1Value = "Test note 1"
       val note2Value = "Test note 2"
 
@@ -385,7 +495,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should not create a note when crn not found`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val existingEntity = createOtherAccommodationReferral(localAuthorityArea.id)
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
 
       restTestClient.post().uri("/cases/${UUID.randomUUID()}/other-accommodation-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -398,7 +508,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should fail with Bad Request for empty note`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val existingEntity = createOtherAccommodationReferral(localAuthorityArea.id)
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
 
       restTestClient.post().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -411,7 +521,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should fail with Bad Request for note exceeding 4000 characters`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val existingEntity = createOtherAccommodationReferral(localAuthorityArea.id)
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
 
       restTestClient.post().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -424,7 +534,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should return 403 for createNote when user does not have the required role`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val existingEntity = createOtherAccommodationReferral(localAuthorityArea.id)
+      val existingEntity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
 
       restTestClient.post().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -433,14 +543,6 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         .exchange()
         .expectStatus().isForbidden
     }
-
-    private fun createOtherAccommodationReferral(localAuthorityAreaId: UUID) = otherAccommodationReferralRepository.save(
-      buildOtherAccommodationReferralEntity(
-        crn = crn,
-        caseId = case.id,
-        localAuthorityAreaId = localAuthorityAreaId,
-      ),
-    )
   }
 
   @Nested
@@ -456,6 +558,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
             localAuthorityAreaId = localAuthorityArea.id,
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
+            submissionNote = "A submission note",
           ),
         )
         .withDeliusUserJwt()
@@ -497,6 +600,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
             localAuthorityAreaId = initialLocalAuthorityArea.id,
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
+            submissionNote = "A submission note",
           ),
         )
         .withDeliusUserJwt()
@@ -519,6 +623,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
             localAuthorityAreaId = updatedLocalAuthorityArea.id,
             submissionDate = "2026-01-15",
             referenceNumber = "REF-002",
+            submissionNote = "A submission note",
           ),
         )
         .withDeliusUserJwt()
@@ -552,6 +657,126 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
+    fun `should return other accommodation referral timeline when it is accepted with an outcome reason and note`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val createdOtherAccommodationReferral = restTestClient.post().uri("/cases/{crn}/other-accommodation-referral", crn)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val createdOtherAccommodationReferralId = ObjectMapper().readTree(createdOtherAccommodationReferral).get("submission").get("id").asText()
+
+      restTestClient.put().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, createdOtherAccommodationReferralId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+            status = EntityOtherAccommodationReferralStatus.ACCEPTED.name,
+            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+            outcomeNote = "An outcome note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdOtherAccommodationReferralId))
+      assertThat(commitTimesAsc).hasSize(2)
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, createdOtherAccommodationReferralId)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
+              otherAccommodationReferralId = UUID.fromString(createdOtherAccommodationReferralId),
+              caseId = case.id,
+              crn = crn,
+              localAuthorityAreaId = localAuthorityArea.id,
+              localAuthorityAreaName = localAuthorityArea.name,
+              createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+              updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
+              newStatus = OtherAccommodationReferralStatus.ACCEPTED.name,
+              outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+              outcomeNote = "An outcome note",
+            ),
+          )
+        }
+    }
+
+    @Test
+    fun `should return other accommodation referral timeline when it is rejected with an outcome reason and note`() {
+      val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
+
+      val createdOtherAccommodationReferral = restTestClient.post().uri("/cases/{crn}/other-accommodation-referral", crn)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val createdOtherAccommodationReferralId = ObjectMapper().readTree(createdOtherAccommodationReferral).get("submission").get("id").asText()
+
+      restTestClient.put().uri("/cases/{crn}/other-accommodation-referral/{id}", crn, createdOtherAccommodationReferralId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createOtherAccommodationReferralRequestBody(
+            localAuthorityAreaId = localAuthorityArea.id,
+            submissionDate = "2026-01-15",
+            referenceNumber = "REF-001",
+            status = EntityOtherAccommodationReferralStatus.REJECTED.name,
+            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+            outcomeNote = "Another outcome note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdOtherAccommodationReferralId))
+      assertThat(commitTimesAsc).hasSize(2)
+
+      restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, createdOtherAccommodationReferralId)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .value {
+          assertThatJson(it!!).matchesExpectedJson(
+            expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
+              otherAccommodationReferralId = UUID.fromString(createdOtherAccommodationReferralId),
+              caseId = case.id,
+              crn = crn,
+              localAuthorityAreaId = localAuthorityArea.id,
+              localAuthorityAreaName = localAuthorityArea.name,
+              createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
+              updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
+              newStatus = OtherAccommodationReferralStatus.REJECTED.name,
+              outcomeReason = OtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+              outcomeNote = "Another outcome note",
+            ),
+          )
+        }
+    }
+
+    @Test
     fun `should return 404 for timeline when other accommodation referral not found`() {
       restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, UUID.randomUUID())
         .withDeliusUserJwt()
@@ -562,13 +787,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should return 404 for timeline when crn does not match`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val entity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
-          crn = crn,
-          caseId = case.id,
-          localAuthorityAreaId = localAuthorityArea.id,
-        ),
-      )
+      val entity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
 
       restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", "OTHERCRN", entity.id)
         .withDeliusUserJwt()
@@ -579,13 +798,7 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     @Test
     fun `should return 403 for timeline when user does not have the required role`() {
       val localAuthorityArea = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first()
-      val entity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
-          crn = crn,
-          caseId = case.id,
-          localAuthorityAreaId = localAuthorityArea.id,
-        ),
-      )
+      val entity = createOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityArea.id)
 
       restTestClient.get().uri("/cases/{crn}/other-accommodation-referral/{id}/timeline", crn, entity.id)
         .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
@@ -602,4 +815,26 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         .sorted()
     }
   }
+
+  private fun createOtherAccommodationReferralEntity(
+    localAuthorityAreaId: UUID = localAuthorityAreaRepository.findAllByActiveIsTrueOrderByName().first().id,
+    referenceNumber: String? = "OA-REF-001",
+    submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
+    status: OtherAccommodationReferralStatus = OtherAccommodationReferralStatus.SUBMITTED,
+    organisationName: String? = null,
+    website: String? = null,
+    submissionNote: String? = null,
+  ): OtherAccommodationReferralEntity = otherAccommodationReferralRepository.save(
+    buildOtherAccommodationReferralEntity(
+      crn = crn,
+      caseId = case.id,
+      localAuthorityAreaId = localAuthorityAreaId,
+      referenceNumber = referenceNumber,
+      submissionDate = submissionDate,
+      status = status,
+      organisationName = organisationName,
+      website = website,
+      submissionNote = submissionNote,
+    ),
+  )
 }
