@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service
 
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -29,14 +28,7 @@ class InboxEventService(
 
   @Transactional
   fun updateAllFailedToPending(): Int {
-    val eventsToUpdate =
-      inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.FAILED, pageable = Pageable.unpaged())
-
-    eventsToUpdate.forEach {
-      it.processedStatus = ProcessedStatus.PENDING
-      it.processedAt = null
-    }
-    return eventsToUpdate.size
+    return inboxEventRepository.setAllFailedToPending()
   }
 
   @Transactional
