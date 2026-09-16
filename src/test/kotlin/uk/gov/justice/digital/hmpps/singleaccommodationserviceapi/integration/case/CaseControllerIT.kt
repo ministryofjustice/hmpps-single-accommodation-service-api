@@ -54,6 +54,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponseSorted
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponseSearch
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
@@ -284,19 +285,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findAll().size).isEqualTo(20)
 
-    // v2 always sets middleNames to null, since CaseEntity has no middleNames column.
-    // v2 also always returns an accommodationSummaries object (rather than null) once a CaseEntity exists
-    val expectedJson = expectedGetCaseListResponse().let {
-      if (v2Enabled) {
-        it.replace("\"middleNames\":\"Middle\"", "\"middleNames\":null")
-          .replace(
-            "\"limitedAccess\":false,\n         \"accommodationSummaries\":null",
-            "\"limitedAccess\":false,\n         \"accommodationSummaries\":{\"caseAccommodationStatus\":\"SETTLED\",\"caseAccommodationStatusDate\":null,\"currentAccommodation\":{\"crn\":\"X12345\",\"startDate\":null,\"endDate\":null,\"address\":{\"postcode\":\"SW1A 1AA\",\"subBuildingName\":\"The Sub-Building\",\"buildingName\":\"The Building\",\"buildingNumber\":\"123\",\"thoroughfareName\":\"The Road\",\"dependentLocality\":\"The Area\",\"postTown\":\"London\",\"county\":\"London\",\"country\":\"England\",\"uprn\":\"1234567890\"},\"status\":{\"code\":\"M\",\"description\":\"Main\"},\"type\":{\"code\":\"A02\",\"description\":\"Approved Premises\"},\"proposedAccommodationId\":null},\"nextAccommodation\":{\"crn\":\"X12345\",\"startDate\":null,\"endDate\":null,\"address\":{\"postcode\":\"SW1A 1AA\",\"subBuildingName\":\"The Sub-Building\",\"buildingName\":\"The Building\",\"buildingNumber\":\"123\",\"thoroughfareName\":\"The Road\",\"dependentLocality\":\"The Area\",\"postTown\":\"London\",\"county\":\"London\",\"country\":\"England\",\"uprn\":\"1234567890\"},\"status\":{\"code\":\"M\",\"description\":\"Main\"},\"type\":{\"code\":\"A02\",\"description\":\"Approved Premises\"},\"proposedAccommodationId\":null}}",
-          )
-      } else {
-        it
-      }
-    }
+    val expectedJson = if (v2Enabled) expectedGetCaseListResponseSorted() else expectedGetCaseListResponse()
 
     result.expectBody(String::class.java)
       .value {

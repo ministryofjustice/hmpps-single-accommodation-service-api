@@ -12,12 +12,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class DtrUpcomingContextUpdater : ContextUpdater() {
 
-  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
-    serviceStatus = ServiceStatus.UPCOMING,
-    action = CaseAction(
-      type = CaseActionType.SUBMIT_DTR_REFERRAL,
-      startDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(8),
-      service = AccommodationService.DTR,
+  override val description = set("Upcoming and submit DTR referral")
+
+  val upcoming = "upcoming"
+
+  override val outcomes = mapOf(
+    upcoming to ServiceResult(
+      serviceStatus = ServiceStatus.UPCOMING,
+      action = CaseAction(
+        type = CaseActionType.SUBMIT_DTR_REFERRAL,
+        service = AccommodationService.DTR,
+      ),
     ),
+  )
+
+  override fun toServiceResult(context: EvaluationContext) = outcome(upcoming).withActionStartDate(
+    context.data.currentAccommodation!!.endDate!!.minusWeeks(8),
   )
 }
