@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCustomCaseListEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
@@ -63,6 +64,45 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
     val savedMappings = userCustomCaseListRepository.findAll()
     assertThat(savedMappings).hasSize(1)
     assertThat(savedMappings.single().sasCaseId).isEqualTo(newCase.id)
+  }
+
+  @Test
+  fun `replaces an existing custom case list that overlaps the new one`() {
+    val keptCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    val droppedCase = caseRepository.save(buildCaseEntity { withCrn("B654321") })
+    caseRepository.save(buildCaseEntity { withCrn("C111111") })
+    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = keptCase.id))
+    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = droppedCase.id))
+
+    postCustomCaseList(listOf("A123456", "C111111")).expectStatus().isCreated
+
+    val addedCase = caseRepository.findByCrn("C111111")!!
+    val savedMappings = userCustomCaseListRepository.findAll()
+    assertThat(savedMappings.map { it.sasCaseId }).containsExactlyInAnyOrder(keptCase.id, addedCase.id)
+    assertThat(savedMappings.map { it.sasUserId }).containsOnly(deliusUser.id)
+  }
+
+  @Test
+  fun `resubmitting the identical custom case list succeeds and leaves one mapping per case`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    caseRepository.save(buildCaseEntity { withCrn("B654321") })
+
+    postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+    postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    assertThat(userCustomCaseListRepository.findAll()).hasSize(2)
+  }
+
+  @Test
+  fun `replacing one users list does not affect another users list`() {
+    val user2 = userRepository.save(buildUserEntity(username = "user2"))
+    val sharedCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = user2.id, sasCaseId = sharedCase.id))
+
+    postCustomCaseList(listOf("A123456")).expectStatus().isCreated
+
+    val otherUsersMappings = userCustomCaseListRepository.findAll().filter { it.sasUserId == user2.id }
+    assertThat(otherUsersMappings.map { it.sasCaseId }).containsExactly(sharedCase.id)
   }
 
   @Test

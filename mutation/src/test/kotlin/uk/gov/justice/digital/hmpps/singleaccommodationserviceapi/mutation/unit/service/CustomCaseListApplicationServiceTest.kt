@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserCustomCaseListEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
@@ -28,6 +28,9 @@ class CustomCaseListApplicationServiceTest {
 
   @MockK
   private lateinit var userService: UserService
+
+  @RelaxedMockK
+  private lateinit var userRepository: UserRepository
 
   @RelaxedMockK
   private lateinit var caseApplicationService: CaseApplicationService
@@ -65,20 +68,21 @@ class CustomCaseListApplicationServiceTest {
   }
 
   @Test
-  fun `deletes the users existing custom case list mappings before saving new ones`() {
+  fun `creates cases, locks the user row then replaces the mappings`() {
     val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
     every { userService.authorizeAndRetrieveUser() } returns user
     every { caseRepository.findByCrns(any()) } returns caseIds.map { buildCaseEntity(id = it) }
 
     customCaseListApplicationService.createCustomCaseList(listOf("CRN1", "CRN2"))
 
-    val savedEntities = slot<List<UserCustomCaseListEntity>>()
+    val insertedCaseIds = slot<Array<UUID>>()
     verifyOrder {
+      caseApplicationService.createCases(any(), createAsBlankRecord = true)
+      userRepository.findByIdForUpdate(user.id)
       userCustomCaseListRepository.deleteBySasUserId(user.id)
-      userCustomCaseListRepository.saveAll(capture(savedEntities))
+      userCustomCaseListRepository.insertAll(user.id, capture(insertedCaseIds))
     }
-    assertThat(savedEntities.captured.map { it.sasCaseId }).containsExactlyInAnyOrderElementsOf(caseIds)
-    assertThat(savedEntities.captured.map { it.sasUserId }).containsOnly(user.id)
+    assertThat(insertedCaseIds.captured).containsExactlyInAnyOrderElementsOf(caseIds)
   }
 
   @Test
@@ -97,6 +101,7 @@ class CustomCaseListApplicationServiceTest {
     val caseIds = listOf(UUID.randomUUID())
     val service = CustomCaseListApplicationService(
       userService = userService,
+      userRepository = userRepository,
       caseApplicationService = caseApplicationService,
       caseRepository = caseRepository,
       userCustomCaseListRepository = userCustomCaseListRepository,
@@ -108,7 +113,7 @@ class CustomCaseListApplicationServiceTest {
     service.createCustomCaseList(listOf("CRN1"))
 
     verify(exactly = 1) { userCustomCaseListRepository.deleteBySasUserId(user.id) }
-    verify(exactly = 1) { userCustomCaseListRepository.saveAll(any<List<UserCustomCaseListEntity>>()) }
+    verify(exactly = 1) { userCustomCaseListRepository.insertAll(user.id, any()) }
     verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
   }
 }
