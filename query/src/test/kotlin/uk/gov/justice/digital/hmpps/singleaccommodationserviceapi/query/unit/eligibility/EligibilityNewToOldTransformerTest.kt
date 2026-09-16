@@ -389,7 +389,7 @@ class EligibilityNewToOldTransformerTest {
       ),
       crs = CrsServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.CANCELLED,
+          serviceStatus = ServiceStatus.SUBMITTED,
           action = crsAction,
           link = crs.link,
           url = crs.url,
