@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate.OtherAccommodationReferralNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate.OtherAccommodationReferralSnapshot
@@ -17,6 +18,8 @@ fun buildOtherAccommodationReferralSnapshot(
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
   submissionNote: String? = "A submission note",
+  outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  outcomeNote: String? = null,
   notes: List<OtherAccommodationReferralNote> = emptyList(),
 ) = OtherAccommodationReferralSnapshot(
   id = id,
@@ -29,6 +32,8 @@ fun buildOtherAccommodationReferralSnapshot(
   organisationName = organisationName,
   website = website,
   submissionNote = submissionNote,
+  outcomeReason = outcomeReason,
+  outcomeNote = outcomeNote,
   notes = notes,
 )
 

@@ -72,6 +72,8 @@ class OtherAccommodationReferralApplicationService(
         organisationName = command.organisationName,
         website = command.website,
         submissionNote = command.submissionNote,
+        outcomeReason = command.outcomeReason,
+        outcomeNote = command.outcomeNote,
       )
     }
     val updatedRecord = otherAccommodationReferralRepository.save(merge(aggregate.snapshot(), referral))

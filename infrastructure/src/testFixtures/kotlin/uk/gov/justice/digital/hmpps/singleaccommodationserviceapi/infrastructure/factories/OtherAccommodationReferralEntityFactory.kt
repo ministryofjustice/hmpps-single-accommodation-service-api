@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
@@ -20,6 +21,8 @@ fun buildOtherAccommodationReferralEntity(
   organisationName: String? = null,
   website: String? = null,
   submissionNote: String? = null,
+  outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  outcomeNote: String? = null,
   createdByUserId: UUID? = null,
   createdAt: Instant = Instant.now(),
   lastUpdatedByUserId: UUID? = null,
@@ -35,6 +38,8 @@ fun buildOtherAccommodationReferralEntity(
   organisationName = organisationName,
   website = website,
   submissionNote = submissionNote,
+  outcomeReason = outcomeReason,
+  outcomeNote = outcomeNote,
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt
