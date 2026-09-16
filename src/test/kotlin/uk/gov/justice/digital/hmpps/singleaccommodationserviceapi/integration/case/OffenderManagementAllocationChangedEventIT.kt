@@ -27,6 +27,11 @@ import java.util.UUID
 class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBase() {
 
   private val eventType = IncomingHmppsDomainEventType.OFFENDER_MANAGEMENT_ALLOCATION_CHANGED.typeName
+  private val onboardedPrisonId = "SAS"
+  private val nonOnboardedPrisonId = "WWI"
+  val crn = "C${UUID.randomUUID()}"
+  val prisonNumber = "P${UUID.randomUUID()}"
+  val staffCode = 99999123L
 
   @BeforeEach
   fun setup() {
@@ -36,9 +41,6 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
 
   @Test
   fun `case should be refreshed and successfully processed when case is known`() {
-    val crn = UUID.randomUUID().toString()
-    val prisonNumber = UUID.randomUUID().toString()
-
     val responses = WiremockStubber().setupCaseOrchestrationStubs(crn = crn, prisonNumber = prisonNumber)
     caseRepository.save(
       buildCaseEntity(firstName = "Before", lastName = "Refresh", tierScore = null, roshLevelCode = null) {
@@ -47,7 +49,11 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
       },
     )
 
-    publishOffenderManagementAllocationChangedEvent(prisonNumber = prisonNumber, staffCode = "99999123")
+    publishOffenderManagementAllocationChangedEvent(
+      prisonNumber = prisonNumber,
+      staffCode = staffCode,
+      prisonId = onboardedPrisonId,
+    )
 
     testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.PROCESSED, 1)
     waitFor {
@@ -63,20 +69,39 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
 
   @Test
   fun `case should be upserted and successfully processed when case is not known but user is`() {
-    val crn = "X${UUID.randomUUID().toString().take(7)}"
-    val prisonNumber = "A${UUID.randomUUID().toString().take(6).uppercase()}"
-    val staffCode = "99999123"
-
     userRepository.save(
       buildUserEntity(
         username = "KNOWN_NOMIS_USER",
         authSource = AuthSource.NOMIS,
-        nomisStaffId = staffCode.toLong(),
+        nomisStaffId = staffCode,
       ),
     )
 
     val responses = WiremockStubber().setupCaseOrchestrationStubs(crn = crn, prisonNumber = prisonNumber)
-    publishOffenderManagementAllocationChangedEvent(prisonNumber = prisonNumber, staffCode = staffCode)
+    publishOffenderManagementAllocationChangedEvent(
+      prisonNumber = prisonNumber,
+      prisonId = nonOnboardedPrisonId,
+      staffCode = staffCode,
+    )
+
+    testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.PROCESSED, 1)
+    waitFor {
+      val createdCase = caseRepository.findByPrisonNumber(prisonNumber)
+      assertThat(createdCase).isNotNull()
+      assertThat(caseRepository.findByCrn(crn)).isNotNull()
+      assertThat(createdCase!!.firstName).isEqualTo(responses.cpr!!.firstName)
+    }
+    assertThat(testSentryService.exceptions).isEmpty()
+  }
+
+  @Test
+  fun `case should be upserted when prison is onboarded and staff code is missing`() {
+    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn = crn, prisonNumber = prisonNumber)
+    publishOffenderManagementAllocationChangedEvent(
+      prisonNumber = prisonNumber,
+      prisonId = onboardedPrisonId,
+      staffCode = null,
+    )
 
     testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.PROCESSED, 1)
     waitFor {
@@ -90,25 +115,29 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
 
   @Test
   fun `message should be failed when the cpr response contains 2 crns and message sent to sentry`() {
-    val prisonNumber = "A${UUID.randomUUID().toString().take(6).uppercase()}"
-    val staffCode = "12345678"
-
     userRepository.save(
       buildUserEntity(
         username = "KNOWN_NOMIS_USER",
         authSource = AuthSource.NOMIS,
-        nomisStaffId = staffCode.toLong(),
+        nomisStaffId = staffCode,
       ),
     )
 
     CorePersonRecordStubs.getCorePersonRecordByPrisonNumberOKResponse(
       prisonNumber = prisonNumber,
       response = buildCorePersonRecord(
-        identifiers = buildIdentifiers(crns = listOf("X111111", "X222222"), prisonNumbers = listOf(prisonNumber)),
+        identifiers = buildIdentifiers(
+          crns = listOf("X111111", "X222222"),
+          prisonNumbers = listOf(prisonNumber),
+        ),
       ),
     )
 
-    publishOffenderManagementAllocationChangedEvent(prisonNumber = prisonNumber, staffCode = staffCode)
+    publishOffenderManagementAllocationChangedEvent(
+      prisonNumber = prisonNumber,
+      prisonId = nonOnboardedPrisonId,
+      staffCode = staffCode,
+    )
 
     testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.FAILED, 1)
     waitFor {
@@ -122,17 +151,25 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
   }
 
   @Test
-  fun `message should be ignored when case and user are not known`() {
+  fun `message should be ignored when case is not known, prison is not onboarded, and staff code is missing`() {
     val prisonNumber = "A${UUID.randomUUID().toString().take(6).uppercase()}"
 
-    publishOffenderManagementAllocationChangedEvent(prisonNumber = prisonNumber, staffCode = "11112222")
+    publishOffenderManagementAllocationChangedEvent(
+      prisonNumber = prisonNumber,
+      prisonId = nonOnboardedPrisonId,
+      staffCode = null,
+    )
 
     testInboxEventHelper.assertExpectedInboxEvents(ProcessedStatus.IGNORED, 1)
     assertThat(caseRepository.findByPrisonNumber(prisonNumber)).isNull()
     assertThat(testSentryService.exceptions).isEmpty()
   }
 
-  private fun publishOffenderManagementAllocationChangedEvent(prisonNumber: String, staffCode: String) {
+  private fun publishOffenderManagementAllocationChangedEvent(
+    prisonNumber: String,
+    prisonId: String,
+    staffCode: Long?,
+  ) {
     testInboxEventHelper.publish(
       SnsDomainEvent(
         eventType = eventType,
@@ -143,7 +180,10 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
         personReference = PersonReference(
           identifiers = listOf(PersonIdentifier(type = "NOMS", value = prisonNumber)),
         ),
-        additionalInformation = mapOf("staffCode" to staffCode),
+        additionalInformation = buildMap<String, Any> {
+          put("prisonId", prisonId)
+          staffCode?.let { put("staffCode", it) }
+        },
       ),
     )
   }

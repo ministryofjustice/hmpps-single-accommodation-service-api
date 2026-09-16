@@ -11,23 +11,50 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class Cas3PrerequisiteContextUpdater : ContextUpdater() {
 
+  override val description = set("Cannot start yet from outstanding DTR/CRS")
+
+  val dtrAndCrsAccommodation = "dtrAndCrsAccommodation"
+  val dtrAndCrs = "dtrAndCrs"
+  val crsAccommodation = "crsAccommodation"
+  val crs = "crs"
+  val dtr = "dtr"
+
+  override val outcomes = mapOf(
+    dtrAndCrsAccommodation to ServiceResult(
+      serviceStatus = ServiceStatus.CANNOT_START_YET,
+      blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
+    ),
+    dtrAndCrs to ServiceResult(
+      serviceStatus = ServiceStatus.CANNOT_START_YET,
+      blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
+    ),
+    crsAccommodation to ServiceResult(
+      serviceStatus = ServiceStatus.CANNOT_START_YET,
+      blockingStatusReason = BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
+    ),
+    crs to ServiceResult(
+      serviceStatus = ServiceStatus.CANNOT_START_YET,
+      blockingStatusReason = BlockingReason.SUBMIT_CRS_BEFORE_CAS3,
+    ),
+    dtr to ServiceResult(
+      serviceStatus = ServiceStatus.CANNOT_START_YET,
+      blockingStatusReason = BlockingReason.SUBMIT_DTR_BEFORE_CAS3,
+    ),
+  )
+
   override fun toServiceResult(context: EvaluationContext): ServiceResult {
     val currentFailureReasons = context.currentResult.failureReasons
     val crsOutstandingMale = FailureReason.CRS_NOT_SUBMITTED_MALE in currentFailureReasons
     val crsOutstandingNonMale = FailureReason.CRS_NOT_SUBMITTED_NON_MALE in currentFailureReasons
     val dtrOutstanding = FailureReason.DTR_REFERRAL_EXPIRED in currentFailureReasons
 
-    val blockingStatusReason = when {
-      dtrOutstanding && crsOutstandingMale -> BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3
-      dtrOutstanding && crsOutstandingNonMale -> BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3
-      crsOutstandingMale -> BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3
-      crsOutstandingNonMale -> BlockingReason.SUBMIT_CRS_BEFORE_CAS3
-      else -> BlockingReason.SUBMIT_DTR_BEFORE_CAS3
+    val key = when {
+      dtrOutstanding && crsOutstandingMale -> dtrAndCrsAccommodation
+      dtrOutstanding && crsOutstandingNonMale -> dtrAndCrs
+      crsOutstandingMale -> crsAccommodation
+      crsOutstandingNonMale -> crs
+      else -> dtr
     }
-    return ServiceResult(
-      serviceStatus = ServiceStatus.CANNOT_START_YET,
-      blockingStatusReason = blockingStatusReason,
-      failureReasons = context.currentResult.failureReasons,
-    )
+    return outcome(key).copy(failureReasons = context.currentResult.failureReasons)
   }
 }

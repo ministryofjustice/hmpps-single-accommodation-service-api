@@ -11,13 +11,21 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2UpcomingContextUpdater : ContextUpdater() {
+  override val description = set("Upcoming and start CAS2 application")
 
-  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
-    serviceStatus = ServiceStatus.UPCOMING,
-    action = CaseAction(
-      type = CaseActionType.START_CAS2_REFERRAL,
-      startDate = context.data.currentAccommodation!!.endDate!!.minusYears(1),
-      service = AccommodationService.CAS2,
+  val upcoming = "upcoming"
+
+  override val outcomes = mapOf(
+    upcoming to ServiceResult(
+      serviceStatus = ServiceStatus.UPCOMING,
+      action = CaseAction(
+        type = CaseActionType.START_CAS2_REFERRAL,
+        service = AccommodationService.CAS2,
+      ),
     ),
+  )
+
+  override fun toServiceResult(context: EvaluationContext) = outcome(upcoming).withActionStartDate(
+    context.data.currentAccommodation!!.endDate!!.minusYears(1),
   )
 }
