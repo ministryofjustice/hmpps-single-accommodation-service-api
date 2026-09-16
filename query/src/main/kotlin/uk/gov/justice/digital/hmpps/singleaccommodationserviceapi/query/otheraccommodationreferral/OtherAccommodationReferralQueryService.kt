@@ -35,7 +35,7 @@ class OtherAccommodationReferralQueryService(
     return OtherAccommodationReferralTransformer.toOtherAccommodationReferralDto(
       entity = entity,
       crn = crn,
-      createdByUser = createdByUser,
+      createdByUser = createdByUser!!,
       localAuthorityAreaName = localAuthorityArea?.name,
     )
   }

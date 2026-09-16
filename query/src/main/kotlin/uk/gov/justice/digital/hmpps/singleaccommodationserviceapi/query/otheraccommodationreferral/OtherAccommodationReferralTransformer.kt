@@ -13,18 +13,6 @@ object OtherAccommodationReferralTransformer {
   fun toOtherAccommodationReferralDto(
     entity: OtherAccommodationReferralEntity,
     crn: String,
-    createdByUser: UserEntity?,
-    localAuthorityAreaName: String?,
-  ) = OtherAccommodationReferralDto(
-    caseId = entity.caseId,
-    crn = crn,
-    status = toStatus(entity.status),
-    submission = toSubmission(entity, createdByUser, localAuthorityAreaName),
-  )
-
-  fun toOtherAccommodationReferralDto(
-    entity: OtherAccommodationReferralEntity,
-    crn: String,
     createdByName: String,
     createdByUsername: String?,
     localAuthorityAreaName: String?,
@@ -35,21 +23,16 @@ object OtherAccommodationReferralTransformer {
     submission = toSubmission(entity, createdByName, createdByUsername, localAuthorityAreaName),
   )
 
-  fun toSubmission(
+  fun toOtherAccommodationReferralDto(
     entity: OtherAccommodationReferralEntity,
-    createdByUser: UserEntity?,
+    crn: String,
+    createdByUser: UserEntity,
     localAuthorityAreaName: String?,
-  ) = OtherAccommodationReferralSubmissionDto(
-    id = entity.id,
-    localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
-    referenceNumber = entity.referenceNumber,
-    submissionDate = entity.submissionDate,
-    createdBy = createdByUser?.displayName() ?: "",
-    createdByUsername = createdByUser?.username,
-    createdAt = entity.createdAt!!,
-    organisationName = entity.organisationName,
-    website = entity.website,
-    submissionNote = entity.submissionNote,
+  ) = OtherAccommodationReferralDto(
+    caseId = entity.caseId,
+    crn = crn,
+    status = toStatus(entity.status),
+    submission = toSubmission(entity, createdByUser, localAuthorityAreaName),
   )
 
   fun toSubmission(
@@ -64,6 +47,23 @@ object OtherAccommodationReferralTransformer {
     submissionDate = entity.submissionDate,
     createdBy = createdByName,
     createdByUsername = createdByUsername,
+    createdAt = entity.createdAt!!,
+    organisationName = entity.organisationName,
+    website = entity.website,
+    submissionNote = entity.submissionNote,
+  )
+
+  fun toSubmission(
+    entity: OtherAccommodationReferralEntity,
+    createdByUser: UserEntity,
+    localAuthorityAreaName: String?,
+  ) = OtherAccommodationReferralSubmissionDto(
+    id = entity.id,
+    localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
+    referenceNumber = entity.referenceNumber,
+    submissionDate = entity.submissionDate,
+    createdBy = createdByUser.displayName(),
+    createdByUsername = createdByUser.username,
     createdAt = entity.createdAt!!,
     organisationName = entity.organisationName,
     website = entity.website,

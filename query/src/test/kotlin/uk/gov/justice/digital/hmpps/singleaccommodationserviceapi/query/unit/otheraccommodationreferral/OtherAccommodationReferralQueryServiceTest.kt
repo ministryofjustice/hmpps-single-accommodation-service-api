@@ -114,7 +114,6 @@ class OtherAccommodationReferralQueryServiceTest {
         .hasMessage("OtherAccommodationReferralEntity not found for [id=$id, crn=$crn]")
     }
   }
-  private val crn = UUID.randomUUID().toString()
 
   @Nested
   inner class GetOtherAccommodationReferralTimeline {
