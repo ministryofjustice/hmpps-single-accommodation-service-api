@@ -23,6 +23,7 @@ enum class CaseActionType {
 
   // CAS3
   START_CAS3_REFERRAL,
+  CONTINUE_CAS3_REFERRAL,
   REPLY_TO_CAS3_BEDSPACE_OFFER,
 
   // DTR

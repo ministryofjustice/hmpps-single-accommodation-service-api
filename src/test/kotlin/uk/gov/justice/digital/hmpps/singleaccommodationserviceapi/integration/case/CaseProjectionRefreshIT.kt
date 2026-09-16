@@ -158,13 +158,13 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
         assertThat(updated.lastName).isEqualTo(responses.cpr!!.lastName)
       }
     } else {
+      testInboxEventHelper.assertInboxEvent(
+        crn,
+        eventType = eventType.typeName,
+        eventDetailUrl = domainEvent.detailUrl,
+        processedStatus = ProcessedStatus.PROCESSED,
+      )
       waitFor {
-        testInboxEventHelper.assertInboxEvent(
-          crn,
-          eventType = eventType.typeName,
-          eventDetailUrl = domainEvent.detailUrl,
-          processedStatus = ProcessedStatus.PROCESSED,
-        )
         assertThat(caseRefreshRequestRepository.findAll()).hasSize(0)
       }
     }
@@ -204,23 +204,26 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
           PersonIdentifier(type = "NOMS", value = prisonNumber),
         ),
       ),
-      additionalInformation = mapOf("cprAddressId" to UUID.randomUUID().toString(), "staffCode" to "123456"),
+      additionalInformation = mapOf(
+        "cprAddressId" to UUID.randomUUID().toString(),
+        "staffCode" to "123456",
+        "prisonId" to "OTHER",
+      ),
     )
 
     testInboxEventHelper.publish(domainEvent)
 
-    waitFor {
-      testInboxEventHelper.assertInboxEvent(
-        crn,
-        eventType = eventType.typeName,
-        eventDetailUrl = domainEvent.detailUrl,
-        processedStatus = ProcessedStatus.IGNORED,
-      )
-      val matchingEvents =
-        inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
-      assertThat(matchingEvents).hasSize(1)
-      assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
-    }
+    testInboxEventHelper.assertInboxEvent(
+      crn,
+      eventType = eventType.typeName,
+      eventDetailUrl = domainEvent.detailUrl,
+      processedStatus = ProcessedStatus.IGNORED,
+    )
+
+    val matchingEvents =
+      inboxEventRepository.findAll().filter { it.payload.contains(crn) || it.payload.contains(prisonNumber) }
+    assertThat(matchingEvents).hasSize(1)
+    assertThat(matchingEvents.none { it.processedStatus == ProcessedStatus.PENDING }).isTrue()
   }
 
   @Test
