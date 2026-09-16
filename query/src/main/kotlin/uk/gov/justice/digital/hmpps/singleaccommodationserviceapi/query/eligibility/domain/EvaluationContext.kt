@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 
 /**
  * Evaluation context that carries state through decision tree traversal.
@@ -8,5 +8,5 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Se
  */
 data class EvaluationContext(
   val data: DomainData,
-  val currentResult: ServiceResult,
+  val currentResult: ServiceResultNew,
 )

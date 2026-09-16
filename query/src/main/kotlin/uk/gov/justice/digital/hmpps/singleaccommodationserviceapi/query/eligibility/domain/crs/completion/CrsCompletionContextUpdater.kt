@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
@@ -25,8 +25,8 @@ class CrsCompletionContextUpdater(
   val notStartedNonMale = "notStartedNonMale"
 
   override val outcomes = mapOf(
-    notStartedMale to ServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
+    notStartedMale to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CRS_NOT_STARTED,
       action = CaseAction(
         type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
         service = AccommodationService.CRS,
@@ -34,8 +34,8 @@ class CrsCompletionContextUpdater(
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
       url = url,
     ),
-    notStartedNonMale to ServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
+    notStartedNonMale to ServiceResultNew(
+      serviceStatus = ServiceStatusNew.CRS_NOT_STARTED,
       action = CaseAction(
         type = CaseActionType.SUBMIT_CRS_REFERRAL,
         service = AccommodationService.CRS,

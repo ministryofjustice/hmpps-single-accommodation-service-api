@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 
 class Cas1UpcomingContextUpdaterTest {
@@ -27,13 +27,13 @@ class Cas1UpcomingContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val expectedContext = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(
-          serviceStatus = ServiceStatus.UPCOMING,
+        currentResult = buildServiceResultNew(
+          serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
           action = CaseAction(
             type = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
             startDate = endDate.minusYears(1),

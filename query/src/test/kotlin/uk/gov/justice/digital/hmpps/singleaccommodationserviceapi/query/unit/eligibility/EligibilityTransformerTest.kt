@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
@@ -57,15 +57,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas1ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas2ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCas3ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCrsServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDtrServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildPaServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -321,63 +321,63 @@ class EligibilityTransformerTest {
       commissionedRehabilitativeServices = commissionedRehabilitativeServices,
     )
     val crn = "FAKECRN1"
-    val crs = buildServiceResult(
-      serviceStatus = ServiceStatus.SUBMITTED,
+    val crs = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
     val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1)
     val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2)
     val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR)
-    val cas1 = buildServiceResult(
-      serviceStatus = ServiceStatus.INFO_REQUESTED,
+    val cas1 = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
       action = cas1Action,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
-    val cas2 = buildServiceResult(
-      serviceStatus = ServiceStatus.INFO_REQUESTED,
+    val cas2 = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
       action = cas2Action,
       link = EligibilityKeys.VIEW_APPLICATION,
     )
-    val cas3 = buildServiceResult(
-      serviceStatus = ServiceStatus.NOT_SUBMITTED,
+    val cas3 = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
       link = EligibilityKeys.VIEW_REFERRAL,
     )
-    val dtr = buildServiceResult(
-      serviceStatus = ServiceStatus.SUBMITTED,
+    val dtr = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
       action = dtrAction,
       link = EligibilityKeys.ADD_OUTCOME,
     )
-    val pa = buildServiceResult(
-      serviceStatus = ServiceStatus.COMPLETED,
+    val pa = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.PA_COMPLETED,
     )
 
-    val cas1ServiceResult = buildCas1ServiceResult(
+    val cas1ServiceResult = buildCas1ServiceResultNew(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
     )
-    val cas2ServiceResult = buildCas2ServiceResult(
+    val cas2ServiceResult = buildCas2ServiceResultNew(
       serviceResult = cas2,
       cas2Application = cas2ApplicationDto,
     )
-    val cas3ServiceResult = buildCas3ServiceResult(
+    val cas3ServiceResult = buildCas3ServiceResultNew(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
     )
-    val dtrServiceResult = buildDtrServiceResult(
+    val dtrServiceResult = buildDtrServiceResultNew(
       serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
     )
-    val crsServiceResult = buildCrsServiceResult(
+    val crsServiceResult = buildCrsServiceResultNew(
       serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
     )
-    val paServiceResult = buildPaServiceResult(
+    val paServiceResult = buildPaServiceResultNew(
       serviceResult = pa,
     )
     val caseActions = listOf(dtrAction, cas1Action, cas2Action)
 
-    val expectedEligibility = buildEligibilityDto(
+    val expectedEligibility = buildEligibilityDtoNew(
       crn = crn,
       cas1 = cas1ServiceResult,
       cas2 = cas2ServiceResult,
@@ -413,12 +413,12 @@ class EligibilityTransformerTest {
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResult(action = cas1Action),
-      cas2 = buildServiceResult(action = cas2Action),
-      cas3 = buildServiceResult(action = cas3Action),
-      dtr = buildServiceResult(action = dtrAction),
-      crs = buildServiceResult(action = crsAction),
-      pa = buildServiceResult(action = paAction),
+      cas1 = buildServiceResultNew(action = cas1Action),
+      cas2 = buildServiceResultNew(action = cas2Action),
+      cas3 = buildServiceResultNew(action = cas3Action),
+      dtr = buildServiceResultNew(action = dtrAction),
+      crs = buildServiceResultNew(action = crsAction),
+      pa = buildServiceResultNew(action = paAction),
       data = buildDomainData(),
     )
 
@@ -426,11 +426,11 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
-  fun `does not surface the DTR submission unless the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatus) {
+  @EnumSource(value = ServiceStatusNew::class, names = ["DTR_SUBMITTED", "DTR_ACCEPTED", "DTR_NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
+  fun `does not surface the DTR submission unless the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatusNew) {
     val dutyToReferDto = buildDutyToReferDto(status = DtrStatus.WITHDRAWN)
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
-    val dtr = buildServiceResult(
+    val dtr = buildServiceResultNew(
       serviceStatus = serviceStatus,
       action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS, service = AccommodationService.DTR),
       link = EligibilityKeys.ADD_REFERRAL_DETAILS,
@@ -438,12 +438,12 @@ class EligibilityTransformerTest {
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResult(),
-      cas2 = buildServiceResult(),
-      cas3 = buildServiceResult(),
+      cas1 = buildServiceResultNew(),
+      cas2 = buildServiceResultNew(),
+      cas3 = buildServiceResultNew(),
       dtr = dtr,
-      crs = buildServiceResult(),
-      pa = buildServiceResult(),
+      crs = buildServiceResultNew(),
+      pa = buildServiceResultNew(),
       data = data,
     )
 
@@ -452,20 +452,20 @@ class EligibilityTransformerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"])
-  fun `surfaces the DTR submission when the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatus) {
+  @EnumSource(value = ServiceStatusNew::class, names = ["DTR_SUBMITTED", "DTR_ACCEPTED", "DTR_NOT_ACCEPTED"])
+  fun `surfaces the DTR submission when the DTR result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatusNew) {
     val dutyToReferDto = buildDutyToReferDto()
     val data = buildDomainData(dutyToRefer = dutyToReferDto)
-    val dtr = buildServiceResult(serviceStatus = serviceStatus)
+    val dtr = buildServiceResultNew(serviceStatus = serviceStatus)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResult(),
-      cas2 = buildServiceResult(),
-      cas3 = buildServiceResult(),
+      cas1 = buildServiceResultNew(),
+      cas2 = buildServiceResultNew(),
+      cas3 = buildServiceResultNew(),
       dtr = dtr,
-      crs = buildServiceResult(),
-      pa = buildServiceResult(),
+      crs = buildServiceResultNew(),
+      pa = buildServiceResultNew(),
       data = data,
     )
 
@@ -473,25 +473,24 @@ class EligibilityTransformerTest {
     assertThat(actualEligibility.dtr.caseId).isEqualTo(dutyToReferDto.caseId)
   }
 
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(value = ServiceStatus::class, names = ["SUBMITTED", "ACCEPTED", "NOT_ACCEPTED"], mode = EnumSource.Mode.EXCLUDE)
-  fun `does not surface the CRS referral data unless the CRS result is SUBMITTED, ACCEPTED or NOT ACCEPTED`(serviceStatus: ServiceStatus) {
+  @Test
+  fun `does not surface the CRS referral data unless the CRS result is SUBMITTED`() {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
-    val crs = buildServiceResult(
-      serviceStatus = serviceStatus,
+    val crs = buildServiceResultNew(
+      serviceStatus = ServiceStatusNew.CRS_UPCOMING,
       action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS),
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResult(),
-      cas2 = buildServiceResult(),
-      cas3 = buildServiceResult(),
-      dtr = buildServiceResult(),
+      cas1 = buildServiceResultNew(),
+      cas2 = buildServiceResultNew(),
+      cas3 = buildServiceResultNew(),
+      dtr = buildServiceResultNew(),
       crs = crs,
-      pa = buildServiceResult(),
+      pa = buildServiceResultNew(),
       data = data,
     )
 
@@ -503,16 +502,16 @@ class EligibilityTransformerTest {
     val commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices()
     val commissionedRehabilitativeServicesDto = buildCommissionedRehabilitativeServicesDto()
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
-    val crs = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED)
+    val crs = buildServiceResultNew(serviceStatus = ServiceStatusNew.CRS_SUBMITTED)
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResult(),
-      cas2 = buildServiceResult(),
-      cas3 = buildServiceResult(),
-      dtr = buildServiceResult(),
+      cas1 = buildServiceResultNew(),
+      cas2 = buildServiceResultNew(),
+      cas3 = buildServiceResultNew(),
+      dtr = buildServiceResultNew(),
       crs = crs,
-      pa = buildServiceResult(),
+      pa = buildServiceResultNew(),
       data = data,
     )
 
@@ -522,7 +521,7 @@ class EligibilityTransformerTest {
   @Test
   fun `should transform to failed eligibility`() {
     val crn = "FAKECRN1"
-    val expectedEligibility = buildEligibilityDto(crn)
+    val expectedEligibility = buildEligibilityDtoNew(crn)
 
     val actualEligibility = toFailedEligibilityDto(crn)
 
@@ -531,18 +530,18 @@ class EligibilityTransformerTest {
 
   @Test
   fun `should transform to not eligible service status`() {
-    val expectedServiceStatus = buildServiceResult()
+    val expectedServiceStatus = buildServiceResultNew()
 
-    val actualEligibility = toNotEligibleServiceStatus()
+    val actualEligibility = toNotEligibleServiceStatus(AccommodationService.CAS1)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
 
   @Test
   fun `should transform to not required service status`() {
-    val expectedServiceStatus = buildServiceResult(ServiceStatus.NOT_REQUIRED)
+    val expectedServiceStatus = buildServiceResultNew(ServiceStatusNew.DTR_NOT_REQUIRED)
 
-    val actualEligibility = toNotRequiredServiceStatus()
+    val actualEligibility = toNotRequiredServiceStatus(AccommodationService.DTR)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
@@ -553,12 +552,12 @@ class EligibilityTransformerTest {
 
     val actualEligibility = toEligibilityDto(
       crn = "FAKECRN1",
-      cas1 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
-      cas2 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
-      cas3 = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
-      dtr = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
-      crs = buildServiceResult(serviceStatus = ServiceStatus.SUBMITTED, action = null),
-      pa = buildServiceResult(serviceStatus = ServiceStatus.NOT_STARTED, action = actionablePaAction),
+      cas1 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_SUBMITTED, action = null),
+      cas2 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_SUBMITTED, action = null),
+      cas3 = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_SUBMITTED, action = null),
+      dtr = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_SUBMITTED, action = null),
+      crs = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_SUBMITTED, action = null),
+      pa = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED, action = actionablePaAction),
       data = buildDomainData(),
     )
 

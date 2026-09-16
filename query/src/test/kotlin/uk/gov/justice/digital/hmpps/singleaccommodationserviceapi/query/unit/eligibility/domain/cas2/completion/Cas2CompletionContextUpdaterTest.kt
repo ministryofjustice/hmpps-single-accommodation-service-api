@@ -5,14 +5,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.util.UUID
 
 class Cas2CompletionContextUpdaterTest {
@@ -32,12 +32,12 @@ class Cas2CompletionContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_SUBMITTED)
       assertThat(result.currentResult.action).isNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS2_VIEW_APPLICATION)

@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.util.UUID
 import java.util.stream.Stream
 
@@ -39,12 +39,12 @@ class Cas1CompletionContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_SUBMITTED)
       assertThat(result.currentResult.action).isNull()
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS1_VIEW_APPLICATION)
@@ -56,7 +56,7 @@ class Cas1CompletionContextUpdaterTest {
   @MethodSource("placementAllocatedWithoutLivePlacement")
   fun `PLACEMENT_ALLOCATED with no live placement maps on the next placement request`(
     requestForPlacementStatus: Cas1RequestForPlacementStatus,
-    expectedServiceStatus: ServiceStatus,
+    expectedServiceStatus: ServiceStatusNew,
     expectedAction: CaseAction?,
     expectedLink: String,
   ) {
@@ -69,7 +69,7 @@ class Cas1CompletionContextUpdaterTest {
     )
     val context = EvaluationContext(
       data = data,
-      currentResult = buildServiceResult(),
+      currentResult = buildServiceResultNew(),
     )
 
     val result = updater.update(context)
@@ -86,31 +86,31 @@ class Cas1CompletionContextUpdaterTest {
     fun placementAllocatedWithoutLivePlacement(): Stream<Arguments> = Stream.of(
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_REJECTED,
-        ServiceStatus.PLACEMENT_REQUEST_REJECTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED,
         CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
-        ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN,
         CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
-        ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
         CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
         EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.AWAITING_MATCH,
-        ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
         null,
         EligibilityKeys.VIEW_APPLICATION,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
-        ServiceStatus.PLACEMENT_REQUEST_SUBMITTED,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
         null,
         EligibilityKeys.VIEW_APPLICATION,
       ),

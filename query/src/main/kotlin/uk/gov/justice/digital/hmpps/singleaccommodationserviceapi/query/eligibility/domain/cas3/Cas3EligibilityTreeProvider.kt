@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -41,7 +42,7 @@ class Cas3EligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible()
+    val notEligible = builder.notEligible(AccommodationService.CAS3)
     val cannotStartYet = builder.currentOutcome()
     val bookingConfirmed = builder.outcome(
       "bookingConfirmed",
@@ -73,8 +74,8 @@ class Cas3EligibilityTreeProvider(
       .build()
   }
 
-  private fun serviceResult(): ServiceResult = ServiceResult(
-    serviceStatus = ServiceStatus.BOOKING_CONFIRMED,
+  private fun serviceResult(): ServiceResultNew = ServiceResultNew(
+    serviceStatus = ServiceStatusNew.CAS3_BOOKING_CONFIRMED,
     link = EligibilityKeys.VIEW_REFERRAL,
     linkType = LinkType.CAS3_VIEW_REFERRAL,
   )
