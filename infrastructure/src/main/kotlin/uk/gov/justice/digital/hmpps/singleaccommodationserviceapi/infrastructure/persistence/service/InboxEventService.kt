@@ -1,14 +1,17 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.service
 
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.InboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import java.time.Instant
+import java.util.UUID
 
 @Service
 class InboxEventService(
@@ -22,6 +25,29 @@ class InboxEventService(
     )
 
     return inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
+  }
+
+  @Transactional
+  fun updateAllFailedToPending(): Int {
+    val eventsToUpdate =
+      inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.FAILED, pageable = Pageable.unpaged())
+
+    eventsToUpdate.forEach {
+      it.processedStatus = ProcessedStatus.PENDING
+      it.processedAt = null
+    }
+    return eventsToUpdate.size
+  }
+
+  @Transactional
+  fun updateFailedInboxEventStatus(ids: Set<UUID>, status: ProcessedStatus): Int {
+    ids.forEach { id ->
+      val inboxEvent = inboxEventRepository.findByIdAndProcessedStatusIs(id, ProcessedStatus.FAILED)
+        .orThrowNotFound("id" to id)
+      inboxEvent.processedStatus = status
+      inboxEvent.processedAt = null
+    }
+    return ids.size
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)

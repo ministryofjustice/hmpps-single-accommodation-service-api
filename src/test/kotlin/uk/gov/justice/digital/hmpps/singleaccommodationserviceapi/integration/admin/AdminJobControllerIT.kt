@@ -5,28 +5,33 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.ParameterizedTypeReference
+import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkLoadCasesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkRefreshCasesByCrnRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 
 class AdminJobControllerIT : IntegrationTestBase() {
 
@@ -35,6 +40,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
+  @Autowired
+  private lateinit var inboxEventRepository: InboxEventRepository
 
   @Autowired
   private lateinit var clock: MutableTestClock
@@ -152,9 +160,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
       .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode), dryRun = false))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchangeSuccessfully()
-      .expectBody(object : ParameterizedTypeReference<ApiResponseDto<BulkLoadCasesResultDto>>() {})
-      .returnResult()
-      .responseBody!!
+      .expectApiResponse<BulkLoadCasesResultDto>()
 
     assertThat(response.data.teamsProcessed).isZero()
     assertThat(response.data.crnsFound).isZero()
@@ -208,11 +214,58 @@ class AdminJobControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should replay all failed inbox events`() {
+    val failedFirst = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val failedSecond = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val ignoredEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.IGNORED))
+
+    val expectedUpdatedCount = inboxEventRepository
+      .findAllByProcessedStatus(ProcessedStatus.FAILED, Pageable.unpaged())
+      .size
+
+    val response = replayFailedInboxEvents(replayAll = true)
+
+    assertThat(response.replayAll).isTrue()
+    assertThat(response.replayedCount).isEqualTo(expectedUpdatedCount)
+
+    val updatedEvents = inboxEventRepository.findAllById(
+      listOf(failedFirst.id, failedSecond.id, ignoredEvent.id),
+    ).associateBy { it.id }
+    assertThat(updatedEvents.getValue(failedFirst.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(failedFirst.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(failedSecond.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(failedSecond.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(ignoredEvent.id).processedStatus).isEqualTo(ProcessedStatus.IGNORED)
+  }
+
+  @Test
+  fun `should replay only the supplied failed inbox events`() {
+    val failedToReplay = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val failedToLeave = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val processedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.PROCESSED))
+
+    val response = replayFailedInboxEvents(inboxEventIds = listOf(failedToReplay.id))
+
+    assertThat(response.replayAll).isFalse()
+    assertThat(response.replayedCount).isEqualTo(1)
+
+    val updatedEvents = inboxEventRepository.findAllById(
+      listOf(failedToReplay.id, failedToLeave.id, processedEvent.id),
+    ).associateBy { it.id }
+    assertThat(updatedEvents.getValue(failedToReplay.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(failedToReplay.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(failedToLeave.id).processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    assertThat(updatedEvents.getValue(processedEvent.id).processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
+  }
+
+  @Test
   fun `should stage a bulk refresh for the cases holding the crns`() {
     val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
     val otherCase = caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
 
-    val result = bulkRefreshCasesByCrn(bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn), dryRun = false))
+    val result = bulkRefreshCasesByCrn(
+      bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn), dryRun = false),
+    )
 
     assertThat(result.dryRun).isFalse()
     assertThat(result.crnsRequested).isEqualTo(2)
@@ -234,7 +287,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun `should refresh the cases it holds and report the crns it does not`() {
     val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
 
-    val result = bulkRefreshCasesByCrn(bulkRefreshCasesByCrnRequestBody(crns = listOf(" $refreshCrn ", otherRefreshCrn), dryRun = false))
+    val result = bulkRefreshCasesByCrn(
+      bulkRefreshCasesByCrnRequestBody(crns = listOf(" $refreshCrn ", otherRefreshCrn), dryRun = false),
+    )
 
     assertThat(result.casesFound).isEqualTo(1)
     assertThat(result.refreshesRequested).isEqualTo(1)
@@ -328,18 +383,35 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .body(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
-    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<BulkRefreshCasesResultDto>>() {})
-    .returnResult()
-    .responseBody!!
+    .expectApiResponse<BulkRefreshCasesResultDto>()
     .data
+
+  private fun replayFailedInboxEvents(
+    replayAll: Boolean = false,
+    inboxEventIds: List<UUID> = emptyList(),
+  ) = restTestClient.post().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(replayFailedInboxEventsRequestBody(inboxEventIds))
+    .withClientCredentialsJwt(roles = adminRoles)
+    .exchangeSuccessfully()
+    .expectApiResponse<ReplayFailedInboxEventsResponse>()
+    .data
+
+  private fun replayFailedInboxEventsRequestBody(inboxEventIds: List<UUID> = emptyList()): String {
+    val inboxEventIdsJson = inboxEventIds.joinToString(", ") { "\"$it\"" }
+
+    return """
+    [
+      $inboxEventIdsJson
+    ]
+    """.trimIndent()
+  }
 
   private fun bulkLoadCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-load-cases")
     .contentType(MediaType.APPLICATION_JSON)
     .body(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
-    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<BulkLoadCasesResultDto>>() {})
-    .returnResult()
-    .responseBody!!
+    .expectApiResponse<BulkLoadCasesResultDto>()
     .data
 }
