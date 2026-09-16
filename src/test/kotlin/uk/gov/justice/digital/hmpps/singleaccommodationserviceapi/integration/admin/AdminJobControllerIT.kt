@@ -262,10 +262,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun `should return 400 when replayAll is false and no inbox event ids are supplied`() {
     val failedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
 
-    restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=false")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(replayFailedInboxEventsRequestBody())
-      .withClientCredentialsJwt(roles = adminRoles)
+    buildReplayRequest(false, emptyList())
       .exchange()
       .expectStatus().isBadRequest
       .expectBody()
@@ -279,11 +276,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   @Test
   fun `should return 400 when replayAll is true and inbox event ids are supplied`() {
     val failedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
-
-    restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=true")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(replayFailedInboxEventsRequestBody(listOf(failedEvent.id)))
-      .withClientCredentialsJwt(roles = adminRoles)
+    buildReplayRequest(true, listOf(failedEvent.id))
       .exchange()
       .expectStatus().isBadRequest
       .expectBody()
@@ -421,26 +414,21 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .expectApiResponse<BulkRefreshCasesResultDto>()
     .data
 
-  private fun replayFailedInboxEvents(
+  private fun buildReplayRequest(
     replayAll: Boolean = false,
     inboxEventIds: List<UUID> = emptyList(),
   ) = restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
     .contentType(MediaType.APPLICATION_JSON)
-    .body(replayFailedInboxEventsRequestBody(inboxEventIds))
+    .body(jsonMapper.writeValueAsString(inboxEventIds))
     .withClientCredentialsJwt(roles = adminRoles)
+
+  private fun replayFailedInboxEvents(
+    replayAll: Boolean = false,
+    inboxEventIds: List<UUID> = emptyList(),
+  ) = buildReplayRequest(replayAll, inboxEventIds)
     .exchangeSuccessfully()
     .expectApiResponse<ReplayFailedInboxEventsResponse>()
     .data
-
-  private fun replayFailedInboxEventsRequestBody(inboxEventIds: List<UUID> = emptyList()): String {
-    val inboxEventIdsJson = inboxEventIds.joinToString(", ") { "\"$it\"" }
-
-    return """
-    [
-      $inboxEventIdsJson
-    ]
-    """.trimIndent()
-  }
 
   private fun bulkLoadCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-load-cases")
     .contentType(MediaType.APPLICATION_JSON)
