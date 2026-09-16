@@ -13,12 +13,33 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 @Component
 class CrsUpcomingContextUpdater : ContextUpdater() {
 
-  override fun toServiceResult(context: EvaluationContext) = ServiceResult(
-    serviceStatus = ServiceStatus.UPCOMING,
-    action = CaseAction(
-      type = if (context.data.sex == SexCode.M) CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL else CaseActionType.SUBMIT_CRS_REFERRAL,
-      startDate = context.data.currentAccommodation!!.endDate!!.minusWeeks(12),
-      service = AccommodationService.CRS,
+  override val description = set("Upcoming and submit CRS referral")
+
+  val upcomingMale = "upcomingMale"
+  val upcomingNonMale = "upcomingNonMale"
+
+  override val outcomes = mapOf(
+    upcomingMale to ServiceResult(
+      serviceStatus = ServiceStatus.UPCOMING,
+      action = CaseAction(
+        type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
+        service = AccommodationService.CRS,
+      ),
+    ),
+    upcomingNonMale to ServiceResult(
+      serviceStatus = ServiceStatus.UPCOMING,
+      action = CaseAction(
+        type = CaseActionType.SUBMIT_CRS_REFERRAL,
+        service = AccommodationService.CRS,
+      ),
     ),
   )
+
+  override fun toServiceResult(context: EvaluationContext): ServiceResult {
+    val key = if (context.data.sex == SexCode.M) upcomingMale else upcomingNonMale
+
+    return outcome(key).withActionStartDate(
+      context.data.currentAccommodation!!.endDate!!.minusWeeks(12),
+    )
+  }
 }
