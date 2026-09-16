@@ -27,9 +27,7 @@ class InboxEventService(
   }
 
   @Transactional
-  fun updateAllFailedToPending(): Int {
-    return inboxEventRepository.setAllFailedToPending()
-  }
+  fun updateAllFailedToPending(): Int = inboxEventRepository.setAllFailedToPending()
 
   @Transactional
   fun updateFailedInboxEventStatus(ids: Set<UUID>, status: ProcessedStatus): Int {

@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
+import jakarta.validation.ValidationException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -38,14 +40,25 @@ class AdminJobController(
   )
 
   @PreAuthorize("hasRole('ROLE_SAS_ADMIN_RW')")
-  @PostMapping("/admin/replay-failed-inbox-events")
+  @PutMapping("/admin/replay-failed-inbox-events")
   fun replayFailedInboxEvents(
-    @RequestParam replayAll: Boolean = false,
-    @RequestBody inboxEventIds: Set<UUID> = emptySet(),
+    @RequestParam(defaultValue = "false") replayAll: Boolean,
+    @RequestBody(required = false) inboxEventIds: Set<UUID> = emptySet(),
   ): ResponseEntity<ApiResponseDto<ReplayFailedInboxEventsResponse>> {
     val replayedCount = when (replayAll) {
-      true -> inboxEventService.updateAllFailedToPending()
-      false -> inboxEventService.updateFailedInboxEventStatus(inboxEventIds, ProcessedStatus.PENDING)
+      true -> {
+        if (inboxEventIds.isNotEmpty()) {
+          throw ValidationException("To replay all messages, inboxEventIds must be empty")
+        }
+        inboxEventService.updateAllFailedToPending()
+      }
+
+      false -> {
+        if (inboxEventIds.isEmpty()) {
+          throw ValidationException("To replay selected messages, inboxEventIds must be provided")
+        }
+        inboxEventService.updateFailedInboxEventStatus(inboxEventIds, ProcessedStatus.PENDING)
+      }
     }
     return ResponseEntity.ok(
       ApiResponseDto(ReplayFailedInboxEventsResponse(replayAll = replayAll, replayedCount = replayedCount)),

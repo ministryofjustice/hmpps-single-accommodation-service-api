@@ -259,6 +259,41 @@ class AdminJobControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should return 400 when replayAll is false and no inbox event ids are supplied`() {
+    val failedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+
+    restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=false")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(replayFailedInboxEventsRequestBody())
+      .withClientCredentialsJwt(roles = adminRoles)
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage")
+      .isEqualTo("Validation failure: To replay selected messages, inboxEventIds must be provided")
+      .jsonPath("$.developerMessage").isEqualTo("To replay selected messages, inboxEventIds must be provided")
+
+    assertThat(inboxEventRepository.findById(failedEvent.id).get().processedStatus).isEqualTo(ProcessedStatus.FAILED)
+  }
+
+  @Test
+  fun `should return 400 when replayAll is true and inbox event ids are supplied`() {
+    val failedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+
+    restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=true")
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(replayFailedInboxEventsRequestBody(listOf(failedEvent.id)))
+      .withClientCredentialsJwt(roles = adminRoles)
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: To replay all messages, inboxEventIds must be empty")
+      .jsonPath("$.developerMessage").isEqualTo("To replay all messages, inboxEventIds must be empty")
+
+    assertThat(inboxEventRepository.findById(failedEvent.id).get().processedStatus).isEqualTo(ProcessedStatus.FAILED)
+  }
+
+  @Test
   fun `should stage a bulk refresh for the cases holding the crns`() {
     val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
     val otherCase = caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
@@ -389,7 +424,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   private fun replayFailedInboxEvents(
     replayAll: Boolean = false,
     inboxEventIds: List<UUID> = emptyList(),
-  ) = restTestClient.post().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
+  ) = restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
     .contentType(MediaType.APPLICATION_JSON)
     .body(replayFailedInboxEventsRequestBody(inboxEventIds))
     .withClientCredentialsJwt(roles = adminRoles)
