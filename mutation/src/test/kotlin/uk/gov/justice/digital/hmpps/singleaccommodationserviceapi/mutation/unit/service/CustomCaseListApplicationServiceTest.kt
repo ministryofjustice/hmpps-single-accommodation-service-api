@@ -17,9 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
 import java.util.UUID
 
@@ -31,9 +29,6 @@ class CustomCaseListApplicationServiceTest {
 
   @RelaxedMockK
   private lateinit var userRepository: UserRepository
-
-  @RelaxedMockK
-  private lateinit var caseApplicationService: CaseApplicationService
 
   @MockK
   private lateinit var caseRepository: CaseRepository
@@ -50,25 +45,17 @@ class CustomCaseListApplicationServiceTest {
   private val user = buildUserEntity()
 
   @Test
-  fun `de-duplicates crns before creating cases`() {
+  fun `de-duplicates crns before resolving case ids`() {
     every { userService.authorizeAndRetrieveUser() } returns user
     every { caseRepository.findByCrns(listOf("CRN1", "CRN2")) } returns emptyList()
 
     customCaseListApplicationService.createCustomCaseList(listOf("CRN1", "CRN2", "CRN1"))
 
-    verify(exactly = 1) {
-      caseApplicationService.createCases(
-        listOf(
-          CrnToPrisonNumber(crn = "CRN1", prisonNumber = null),
-          CrnToPrisonNumber(crn = "CRN2", prisonNumber = null),
-        ),
-        createAsBlankRecord = true,
-      )
-    }
+    verify(exactly = 1) { caseRepository.findByCrns(listOf("CRN1", "CRN2")) }
   }
 
   @Test
-  fun `creates cases, locks the user row then replaces the mappings`() {
+  fun `locks the user row, then replaces the mappings`() {
     val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
     every { userService.authorizeAndRetrieveUser() } returns user
     every { caseRepository.findByCrns(any()) } returns caseIds.map { buildCaseEntity(id = it) }
@@ -77,7 +64,6 @@ class CustomCaseListApplicationServiceTest {
 
     val insertedCaseIds = slot<Array<UUID>>()
     verifyOrder {
-      caseApplicationService.createCases(any(), createAsBlankRecord = true)
       userRepository.findByIdForUpdate(user.id)
       userCustomCaseListRepository.deleteBySasUserId(user.id)
       userCustomCaseListRepository.insertAll(user.id, capture(insertedCaseIds))
@@ -102,7 +88,6 @@ class CustomCaseListApplicationServiceTest {
     val service = CustomCaseListApplicationService(
       userService = userService,
       userRepository = userRepository,
-      caseApplicationService = caseApplicationService,
       caseRepository = caseRepository,
       userCustomCaseListRepository = userCustomCaseListRepository,
       caseRefreshRequestService = null,

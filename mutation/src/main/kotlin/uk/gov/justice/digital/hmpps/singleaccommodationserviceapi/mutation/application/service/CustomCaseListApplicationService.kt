@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 class CustomCaseListApplicationService(
   private val userService: UserService,
   private val userRepository: UserRepository,
-  private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
   private val userCustomCaseListRepository: UserCustomCaseListRepository,
   private val caseRefreshRequestService: CaseRefreshRequestService?,
@@ -20,8 +19,6 @@ class CustomCaseListApplicationService(
   fun createCustomCaseList(crns: List<String>) {
     val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = crns.distinct()
-
-    caseApplicationService.createCases(distinctCrns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
 
     val caseIds = caseRepository.findByCrns(distinctCrns).map { it.id }.distinct()
 

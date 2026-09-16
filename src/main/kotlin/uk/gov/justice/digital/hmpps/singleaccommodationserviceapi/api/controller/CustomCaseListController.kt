@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
@@ -19,6 +21,7 @@ private const val CRN_FORMAT_MESSAGE = "CRN must be in format A123456"
 @Validated
 @RestController
 class CustomCaseListController(
+  private val caseApplicationService: CaseApplicationService,
   private val customCaseListApplicationService: CustomCaseListApplicationService,
 ) {
 
@@ -38,7 +41,9 @@ class CustomCaseListController(
       throw ValidationException("$CRN_FORMAT_MESSAGE: ${invalidCrns.joinToString()}")
     }
 
-    customCaseListApplicationService.createCustomCaseList(normalisedCrns)
+    val distinctCrns = normalisedCrns.distinct()
+    caseApplicationService.createCases(distinctCrns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
+    customCaseListApplicationService.createCustomCaseList(distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
   }
 }
