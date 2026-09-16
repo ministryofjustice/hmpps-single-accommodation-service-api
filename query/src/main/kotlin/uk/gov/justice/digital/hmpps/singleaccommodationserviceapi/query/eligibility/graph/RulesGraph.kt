@@ -11,12 +11,14 @@ enum class GraphNodeKind {
 data class RuleInfo(
   val className: String,
   val description: String,
+  val sourcePath: String? = null,
 )
 
 data class ContextUpdaterInfo(
   val name: String,
   val description: String,
   val outcomes: Map<String, ServiceResult> = emptyMap(),
+  val sourcePath: String? = null,
 )
 
 data class GraphNode(
