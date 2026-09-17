@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.accommodationreferral.AccommodationReferralTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildAccommodationReferralOrchestrationDto
+import java.time.LocalDate
 
 class AccommodationReferralTransformerTest {
   @Test
@@ -31,9 +33,10 @@ class AccommodationReferralTransformerTest {
       listOf(buildDutyToReferDto(submission = buildDtrSubmission(createdByUsername = "TEST_USER"))),
     )
 
-    assertThat(result).hasSize(3)
+    assertThat(result).hasSize(4)
     assertThat(result.map { it.type }).containsExactlyInAnyOrder(
       AccommodationService.CAS1,
+      AccommodationService.CAS2,
       AccommodationService.CAS3,
       AccommodationService.DTR,
     )
@@ -70,6 +73,21 @@ class AccommodationReferralTransformerTest {
           assertThat(it.placementAddress).isEqualTo("Some address")
           assertThat(it.placementStatus).isEqualTo("departed")
           assertThat(it.uiUrl).isEqualTo("https://example.com/referral")
+        }
+
+        AccommodationService.CAS2 -> {
+          assertThat(it.status).isEqualTo(AccommodationReferralStatus.CANCELLED)
+          assertThat(it.referralRejectionReason).isEqualTo("Some reason")
+          assertThat(it.referralRejectionReasonDetail).isNull()
+          assertThat(it.withdrawalReason).isNull()
+          assertThat(it.localAuthorityArea).isEqualTo("Some area")
+          assertThat(it.pdu).isEqualTo("Some pdu")
+          assertThat(it.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs", username = null))
+          assertThat(it.placementAddress).isEqualTo("Some address")
+          assertThat(it.placementStatus).isNull()
+          assertThat(it.uiUrl).isEqualTo("https://example.com/referral")
+          assertThat(it.applicationLastUpdatedDate).isEqualTo(LocalDate.now())
+          assertThat(it.date).isEqualTo(LocalDate.now())
         }
 
         else -> {}
@@ -228,6 +246,24 @@ class AccommodationReferralTransformerTest {
     assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expected)
   }
 
+  @ParameterizedTest
+  @CsvSource(
+    "moreInfoRequested, MORE_INFORMATION_REQUESTED",
+    "placeOffered, PLACE_OFFERED",
+    "awaitingArrival, AWAITING_ARRIVAL",
+    "cancelled, CANCELLED",
+    "withdrawn, WITHDRAWN",
+    "awaitingDecision, AWAITING_DECISION",
+    "onWaitingList, ON_WAITING_LIST",
+    "offerAccepted, ACCEPTED",
+    "offerDeclined, OFFER_DECLINED_OR_WITHDRAWN",
+    "unknown, PENDING",
+    ", PENDING",
+  )
+  fun `should transform CAS2 application status`(status: String?, expected: AccommodationReferralStatus) {
+    assertThat(AccommodationReferralTransformer.toCasReferralStatus(status)).isEqualTo(expected)
+  }
+
   @Test
   fun `should transform CAS1 withdrawal reason`() {
     val referral = buildReferralHistory(
@@ -235,7 +271,7 @@ class AccommodationReferralTransformerTest {
       withdrawalReason = "DuplicatePlacementRequest",
       referredBy = buildDeliusUserDto(),
     )
-    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas3Referrals = emptyList())
+    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = listOf(referral), cas2Referrals = emptyList(), cas3Referrals = emptyList())
 
     val result = AccommodationReferralTransformer.transformReferrals(
       orchestrationDto,

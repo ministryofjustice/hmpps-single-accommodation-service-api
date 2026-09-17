@@ -24,6 +24,7 @@ object AccommodationReferralTransformer {
       status = toCasReferralStatus(it.placementStatus, it.requestForPlacementStatus, it.applicationStatus),
       requestForPlacementStatus = it.requestForPlacementStatus?.value,
       date = it.date,
+      applicationLastUpdatedDate = null,
       referralRejectionReason = it.referralRejectionReason,
       referralRejectionReasonDetail = it.referralRejectionReasonDetail,
       localAuthorityArea = it.localAuthorityArea,
@@ -43,6 +44,7 @@ object AccommodationReferralTransformer {
         assessmentStatus = it.assessmentStatus?.value,
         requestForPlacementStatus = null,
         date = it.date,
+        applicationLastUpdatedDate = null,
         referralRejectionReason = it.referralRejectionReason,
         referralRejectionReasonDetail = it.referralRejectionReasonDetail,
         localAuthorityArea = it.localAuthorityArea,
@@ -53,6 +55,27 @@ object AccommodationReferralTransformer {
         uiUrl = it.uiUrl,
         withdrawalReason = null,
       )
+    } + dto.cas2Referrals.map {
+      toAccommodationReferralDto(
+        id = it.id,
+        type = AccommodationService.CAS2,
+        status = toCasReferralStatus(it.applicationStatus),
+        requestForPlacementStatus = null,
+        date = it.applicationSubmittedDate,
+        applicationLastUpdatedDate = it.applicationLastUpdatedDate,
+        referralRejectionReason = it.referralRejectionReason,
+        referralRejectionReasonDetail = null,
+        localAuthorityArea = it.localAuthorityArea,
+        pdu = it.pdu,
+        referredBy = DeliusUserDto(
+          name = it.referredBy,
+          username = null,
+        ),
+        placementAddress = it.placementAddress,
+        placementStatus = null,
+        uiUrl = it.uiUrl,
+        withdrawalReason = null,
+      )
     } + dtrs.map {
       toAccommodationReferralDto(
         id = it.submission!!.id,
@@ -60,6 +83,7 @@ object AccommodationReferralTransformer {
         status = toCasReferralStatus(it.status),
         requestForPlacementStatus = null,
         date = it.submission!!.submissionDate,
+        applicationLastUpdatedDate = null,
         referralRejectionReason = it.submission!!.withdrawalReason?.name,
         referralRejectionReasonDetail = it.submission!!.withdrawalReasonOther,
         localAuthorityArea = it.submission!!.localAuthority.localAuthorityAreaName,
@@ -91,6 +115,7 @@ object AccommodationReferralTransformer {
     placementStatus: String?,
     uiUrl: String?,
     withdrawalReason: String?,
+    applicationLastUpdatedDate: LocalDate?,
   ) = AccommodationReferralDto(
     id = id,
     type = type,
@@ -98,6 +123,7 @@ object AccommodationReferralTransformer {
     assessmentStatus = assessmentStatus,
     requestForPlacementStatus = requestForPlacementStatus,
     date = date,
+    applicationLastUpdatedDate = applicationLastUpdatedDate,
     referralRejectionReason = referralRejectionReason,
     referralRejectionReasonDetail = referralRejectionReasonDetail,
     localAuthorityArea = localAuthorityArea,
@@ -187,5 +213,19 @@ object AccommodationReferralTransformer {
     DtrStatus.ACCEPTED -> AccommodationReferralStatus.ACCEPTED
     DtrStatus.NOT_ACCEPTED -> AccommodationReferralStatus.REJECTED
     DtrStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+  }
+
+  // TODO: This is a temporary mapping until the CAS API is updated to return the status enums.
+  fun toCasReferralStatus(cas2StatusName: String?): AccommodationReferralStatus = when (cas2StatusName) {
+    "moreInfoRequested" -> AccommodationReferralStatus.MORE_INFORMATION_REQUESTED
+    "placeOffered" -> AccommodationReferralStatus.PLACE_OFFERED
+    "awaitingArrival" -> AccommodationReferralStatus.AWAITING_ARRIVAL
+    "cancelled" -> AccommodationReferralStatus.CANCELLED
+    "withdrawn" -> AccommodationReferralStatus.WITHDRAWN
+    "awaitingDecision" -> AccommodationReferralStatus.AWAITING_DECISION
+    "onWaitingList" -> AccommodationReferralStatus.ON_WAITING_LIST
+    "offerAccepted" -> AccommodationReferralStatus.ACCEPTED
+    "offerDeclined" -> AccommodationReferralStatus.OFFER_DECLINED_OR_WITHDRAWN
+    else -> AccommodationReferralStatus.PENDING
   }
 }
