@@ -132,7 +132,7 @@ class InboxEventDispatcher(
 
   private fun failEvent(inboxEvent: InboxEventEntity, progressTracker: ProgressTracker) {
     log.error("Failed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
-    sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
+    sentryService.captureErrorMessage("Unexpected error dispatching event [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
     inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
     progressTracker.eventFailed()
   }
@@ -163,7 +163,7 @@ class InboxEventDispatcher(
       }
     } catch (e: Throwable) {
       sentryService.captureException(
-        InboxEventDispatcherFailureException("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]", e),
+        InboxEventDispatcherFailureException("Unexpected error dispatching event [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]", e),
       )
       log.error("Error dispatching to handler [inboxEventId=${inboxEvent.id}]", e)
       inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)

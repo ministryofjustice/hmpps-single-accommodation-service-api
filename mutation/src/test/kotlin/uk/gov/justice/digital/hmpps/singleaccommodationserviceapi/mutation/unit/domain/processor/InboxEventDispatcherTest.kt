@@ -228,7 +228,7 @@ class InboxEventDispatcherTest {
 
     verify { userContextService.setUserContextAsSasSystemUser() }
     verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
-    verify { sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]") }
+    verify { sentryService.captureErrorMessage("Unexpected error dispatching event [inboxEventId=${event.id}, eventType=${event.eventType}]") }
     verify { userContextService.clearContext() }
   }
 
@@ -265,7 +265,7 @@ class InboxEventDispatcherTest {
     verify { sentryService.captureException(capture(raisedExceptionSlot)) }
     verify { userContextService.clearContext() }
 
-    assertThat(raisedExceptionSlot.captured.message).isEqualTo("Unexpected error dispatching to handler [inboxEventId=${event.id}, eventType=${event.eventType}]")
+    assertThat(raisedExceptionSlot.captured.message).isEqualTo("Unexpected error dispatching event [inboxEventId=${event.id}, eventType=${event.eventType}]")
     assertThat(raisedExceptionSlot.captured.cause).isEqualTo(exception)
   }
 
