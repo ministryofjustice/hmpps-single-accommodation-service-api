@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
@@ -18,6 +19,16 @@ fun buildAccommodationReferralOrchestrationDto(
       placementStatus = Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED,
     ),
   ),
+  cas2Referrals: List<Cas2ReferralHistory> = listOf(
+    buildReferralHistory(
+      "cancelled",
+      referralRejectionReason = "Some reason",
+      localAuthorityArea = "Some area",
+      pdu = "Some pdu",
+      referredBy = buildDeliusUserDto(),
+      placementAddress = "Some address",
+    ),
+  ),
   cas3Referrals: List<Cas3ReferralHistory> = listOf(
     buildReferralHistory(
       Cas3ReferralHistory.ApplicationStatus.SUBMITTED,
@@ -31,5 +42,6 @@ fun buildAccommodationReferralOrchestrationDto(
   ),
 ) = AccommodationReferralOrchestrationDto(
   cas1Referrals = cas1Referrals,
+  cas2Referrals = cas2Referrals,
   cas3Referrals = cas3Referrals,
 )

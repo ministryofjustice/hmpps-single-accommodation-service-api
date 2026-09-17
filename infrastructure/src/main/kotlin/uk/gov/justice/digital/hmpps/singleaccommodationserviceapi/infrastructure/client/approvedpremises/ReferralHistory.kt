@@ -140,6 +140,20 @@ data class Cas3ReferralHistory(
   }
 }
 
+data class Cas2ReferralHistory(
+  val id: UUID,
+  val applicationId: UUID,
+  val applicationStatus: String?,
+  val applicationSubmittedDate: LocalDate,
+  val applicationLastUpdatedDate: LocalDate?,
+  val referralRejectionReason: String?,
+  val localAuthorityArea: String?,
+  val pdu: String?,
+  val referredBy: String,
+  val placementAddress: String?,
+  val uiUrl: String,
+) : CasReferralHistory
+
 data class DeliusUserDto(
   val name: String,
   val username: String? = null, // TODO make this non-nullable when refactoring

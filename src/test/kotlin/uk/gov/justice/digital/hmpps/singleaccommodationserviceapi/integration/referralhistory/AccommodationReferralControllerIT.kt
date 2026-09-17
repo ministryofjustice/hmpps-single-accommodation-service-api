@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus.NOT_ARRIVED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus.AWAITING_MATCH
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
@@ -68,6 +69,15 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
       ),
     )
 
+    val cas2Response: List<Cas2ReferralHistory> = listOf(
+      buildReferralHistory(
+        applicationSubmittedDate = LocalDate.parse("2025-02-15"),
+        applicationLastUpdatedDate = LocalDate.parse("2025-02-20"),
+        applicationStatus = "cancelled",
+        referredBy = referredByUser,
+      ),
+    )
+
     val cas3Response: List<Cas3ReferralHistory> = listOf(
       buildReferralHistory(
         date = LocalDate.parse("2025-02-01"),
@@ -79,6 +89,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     )
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, cas2Response)
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, cas3Response)
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
@@ -89,6 +100,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetReferralHistory(
             id1 = cas1Response.first().id,
+            id2 = cas2Response.first().id,
             id4 = cas3Response.first().id,
             dtrId = dutyToRefer.id,
             dtrStatus = "WITHDRAWN",
@@ -113,6 +125,7 @@ class AccommodationReferralControllerIT : IntegrationTestBase() {
     )
 
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS1, crn, cas1Response)
+    ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS2, crn, emptyList())
     ApprovedPremisesStubs.getReferralOKResponse(CasService.CAS3, crn, emptyList())
 
     restTestClient.get().uri("/cases/{crn}/applications", crn)
