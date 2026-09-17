@@ -90,7 +90,7 @@ class InboxEventDispatcher(
     val (partitions, eventsWithoutHandlers) = partitionByKey(inboxEvents)
     eventsWithoutHandlers.forEach {
       log.error("No handler registered for event type [inboxEventId={}, eventType={}]", it.id, it.eventType)
-      progressTracker.eventSkipped()
+      failEvent(it, progressTracker)
     }
     log.debug("Partitioned into {} groups", partitions.size)
 
@@ -130,6 +130,13 @@ class InboxEventDispatcher(
     return PartitioningResult(partitions, withoutHandler)
   }
 
+  private fun failEvent(inboxEvent: InboxEventEntity, progressTracker: ProgressTracker) {
+    log.error("Failed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
+    sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
+    inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
+    progressTracker.eventFailed()
+  }
+
   private fun dispatchEvent(
     inboxEvent: InboxEventEntity,
     progressTracker: ProgressTracker,
@@ -151,10 +158,7 @@ class InboxEventDispatcher(
           progressTracker.eventIgnored()
         }
         InboxEventHandler.Result.FAILED -> {
-          log.error("Failed {} event [inboxEventId={}]", inboxEvent.eventType, inboxEvent.id)
-          sentryService.captureErrorMessage("Unexpected error dispatching to handler [inboxEventId=${inboxEvent.id}, eventType=${inboxEvent.eventType}]")
-          inboxEventService.updateInboxEventStatusAndSave(inboxEvent, ProcessedStatus.FAILED)
-          progressTracker.eventFailed()
+          failEvent(inboxEvent, progressTracker)
         }
       }
     } catch (e: Throwable) {

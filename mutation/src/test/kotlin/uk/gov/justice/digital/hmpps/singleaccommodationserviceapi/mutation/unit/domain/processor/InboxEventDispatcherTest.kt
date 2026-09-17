@@ -67,7 +67,7 @@ class InboxEventDispatcherTest {
   }
 
   @Test
-  fun `single event, no handler, skip`() {
+  fun `single event, no handler, fail`() {
     val event = buildPendingInboxEventEntity(eventType = "test.event")
 
     every { inboxEventService.findPendingOldestFirst(10) } returns listOf(event)
@@ -79,12 +79,12 @@ class InboxEventDispatcherTest {
 
     assertThat(stats.processedCount).isEqualTo(0)
     assertThat(stats.ignoredCount).isEqualTo(0)
-    assertThat(stats.skippedCount).isEqualTo(1)
-    assertThat(stats.failedCount).isEqualTo(0)
+    assertThat(stats.skippedCount).isEqualTo(0)
+    assertThat(stats.failedCount).isEqualTo(1)
 
     verify(exactly = 0) { userContextService.setUserContextAsSasSystemUser() }
     verify(exactly = 0) { userContextService.clearContext() }
-    verifyNoEventUpdatesMade()
+    verify { inboxEventService.updateInboxEventStatusAndSave(event, ProcessedStatus.FAILED) }
   }
 
   @Test
