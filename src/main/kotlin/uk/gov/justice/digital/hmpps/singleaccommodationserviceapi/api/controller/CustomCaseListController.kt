@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
 import jakarta.validation.ValidationException
-import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Size
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,8 +31,7 @@ class CustomCaseListController(
   @ResponseStatus(HttpStatus.CREATED)
   fun createCustomCaseList(
     @RequestBody
-    @NotEmpty(message = "At least one CRN must be provided")
-    @Size(max = 500, message = "A maximum of 500 CRNs can be provided")
+    @Size(min = 1, max = 500, message = "Between 1 and 500 CRNs must be provided")
     crns: List<String>,
   ): ResponseEntity<Void> {
     val normalisedCrns = crns.map { it.trim().uppercase() }

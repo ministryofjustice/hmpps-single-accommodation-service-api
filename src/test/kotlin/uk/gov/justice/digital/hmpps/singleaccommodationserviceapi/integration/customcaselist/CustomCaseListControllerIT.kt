@@ -136,14 +136,14 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   fun `returns BadRequest for an empty crn list`() {
     postCustomCaseList(emptyList()).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: At least one CRN must be provided")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Between 1 and 500 CRNs must be provided")
   }
 
   @Test
   fun `returns BadRequest when more than 500 crns are provided`() {
     postCustomCaseList(List(501) { "A123456" }).expectStatus().isBadRequest
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: A maximum of 500 CRNs can be provided")
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: createCustomCaseList.crns: Between 1 and 500 CRNs must be provided")
 
     assertThat(userCustomCaseListRepository.findAll()).isEmpty()
   }

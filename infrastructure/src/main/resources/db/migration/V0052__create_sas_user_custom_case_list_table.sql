@@ -6,4 +6,4 @@ CREATE TABLE sas_user_custom_case_list
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX idx_sas_user_custom_case_list_user_case ON sas_user_custom_case_list (sas_user_id, sas_case_id);
+CREATE UNIQUE INDEX idx_sas_user_custom_case_list_sas_user_id_sas_case_id ON sas_user_custom_case_list (sas_user_id, sas_case_id);
