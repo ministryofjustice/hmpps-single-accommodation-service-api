@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
@@ -498,75 +497,6 @@ class EligibilityServiceTest {
     }
   }
 
-  // helper for building expected action for upcoming service status scenarios
-  private fun expectedCas1Action(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.CAS1_UPCOMING) startDate else null,
-      service = AccommodationService.CAS1,
-    )
-  }
-
-  private fun expectedCas3Action(
-    type: CaseActionType?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = null,
-      service = AccommodationService.CAS3,
-    )
-  }
-
-  private fun expectedPaAction(
-    type: CaseActionType?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = null,
-      service = AccommodationService.PA,
-    )
-  }
-
-  private fun expectedCas2Action(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.CAS2_UPCOMING) startDate else null,
-      service = AccommodationService.CAS2,
-    )
-  }
-
-  private fun expectedCrsAction(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.CRS_UPCOMING) startDate else null,
-      service = AccommodationService.CRS,
-    )
-  }
-
-  private fun expectedDtrAction(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.DTR_UPCOMING) startDate else null,
-      service = AccommodationService.DTR,
-    )
-  }
-
   @Nested
   inner class Cas1EligibilityScenarios {
 
@@ -643,7 +573,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
           .isEqualTo(s.expectedCas1Status)
 
-        assertThat(result.action).isEqualTo(expectedCas1Action(s.expectedCas1Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1)))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas1Action)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusYears(1)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS1)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
 
         val expectedUrl = when (s.expectedCas1Url) {
@@ -730,7 +668,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
           .isEqualTo(s.expectedCas2Status)
 
-        assertThat(result.action).isEqualTo(expectedCas2Action(s.expectedCas2Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1)))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas2Action)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusYears(1)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS2)
         assertThat(result.link).isEqualTo(s.expectedCas2Link)
 
         val expectedUrl = when (s.expectedCas2Url) {
@@ -825,7 +771,16 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedDtrStatus}")
           .isEqualTo(s.expectedDtrStatus)
-        assertThat(result.action).isEqualTo(expectedDtrAction(s.expectedDtrAction, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(8)))
+
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedDtrAction)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(8)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.DTR)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
         assertThat(result.url).isNull()
         assertThat(result.failureReasons)
@@ -958,7 +913,9 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
-        assertThat(result.action).isEqualTo(expectedCas3Action(s.expectedCas3Action))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas3Action)
+        assertThat(result.actionStartDate).isNull()
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS3)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
 
         val expectedUrl = when (s.expectedCas3Url) {
@@ -1051,7 +1008,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCrsStatus}")
           .isEqualTo(s.expectedCrsStatus)
 
-        assertThat(result.action).isEqualTo(expectedCrsAction(s.expectedCrsAction, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(12)))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCrsAction)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(12)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CRS)
         assertThat(result.link).isEqualTo(s.expectedCrsLink)
         if (s.expectedCrsLink == null) {
           assertThat(result.url).isNull()
@@ -1144,7 +1109,9 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
           .isEqualTo(s.expectedPaStatus)
 
-        assertThat(result.action).isEqualTo(expectedPaAction(s.expectedPaAction))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedPaAction)
+        assertThat(result.actionStartDate).isNull()
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.PA)
         assertThat(result.link).isNull()
         assertThat(result.url).isNull()
 

@@ -39,7 +39,6 @@ class Cas3CompletionContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.action).isNull()
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_VIEW_REFERRAL)

@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
@@ -35,12 +32,8 @@ class CrsUpcomingContextUpdaterTest {
       val expectedContext = EvaluationContext(
         data = data,
         currentResult = buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CRS_UPCOMING,
-          action = CaseAction(
-            type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
-            startDate = endDate.minusWeeks(12),
-            service = AccommodationService.CRS,
-          ),
+          serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
+          actionStartDate = endDate.minusWeeks(12),
         ),
       )
 
@@ -64,12 +57,8 @@ class CrsUpcomingContextUpdaterTest {
       val expectedContext = EvaluationContext(
         data = data,
         currentResult = buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CRS_UPCOMING,
-          action = CaseAction(
-            type = CaseActionType.SUBMIT_CRS_REFERRAL,
-            startDate = endDate.minusWeeks(12),
-            service = AccommodationService.CRS,
-          ),
+          serviceStatus = ServiceStatusNew.CRS_UPCOMING_REFERRAL,
+          actionStartDate = endDate.minusWeeks(12),
         ),
       )
 

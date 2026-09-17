@@ -1,11 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -27,34 +24,32 @@ class Cas2SuitabilityContextUpdater(
   val unknown = "unknown"
 
   override val outcomes = mapOf(
-    notStarted to ServiceResultNew(
+    notStarted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2),
       link = EligibilityKeys.START_APPLICATION,
       linkType = LinkType.CAS2_START_APPLICATION,
     ),
-    notSubmitted to ServiceResultNew(
+    notSubmitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_NOT_SUBMITTED,
-      action = CaseAction(type = CaseActionType.CONTINUE_A_CAS2_REFERRAL, service = AccommodationService.CAS2),
       link = EligibilityKeys.CONTINUE_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
-    offerDeclined to ServiceResultNew(
+    offerDeclined to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_OFFER_DECLINED_OR_WITHDRAWN,
       link = EligibilityKeys.START_NEW_APPLICATION,
       linkType = LinkType.CAS2_START_APPLICATION,
     ),
-    cancelled to ServiceResultNew(
+    cancelled to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_CANCELLED,
       link = EligibilityKeys.START_NEW_APPLICATION,
       linkType = LinkType.CAS2_START_APPLICATION,
     ),
-    withdrawn to ServiceResultNew(
+    withdrawn to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_WITHDRAWN,
       link = EligibilityKeys.START_NEW_APPLICATION,
       linkType = LinkType.CAS2_START_APPLICATION,
     ),
-    unknown to ServiceResultNew(
+    unknown to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_UNKNOWN,
     ),
   )
