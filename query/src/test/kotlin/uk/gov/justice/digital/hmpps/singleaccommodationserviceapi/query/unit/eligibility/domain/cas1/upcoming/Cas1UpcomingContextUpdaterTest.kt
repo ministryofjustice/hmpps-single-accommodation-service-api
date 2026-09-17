@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -34,11 +31,7 @@ class Cas1UpcomingContextUpdaterTest {
         data = data,
         currentResult = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
-          action = CaseAction(
-            type = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
-            startDate = endDate.minusYears(1),
-            service = AccommodationService.CAS1,
-          ),
+          actionStartDate = LocalDate.parse("2026-01-01"),
         ),
       )
 
