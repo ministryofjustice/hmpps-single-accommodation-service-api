@@ -29,7 +29,9 @@ class InboxEventService(
   fun findIdsByProcessedStatus(processedStatus: ProcessedStatus): Set<UUID> = inboxEventRepository.findAllIdsByProcessedStatus(processedStatus)
 
   @Transactional
-  fun updateFailedToPending(ids: Set<UUID>): Int = inboxEventRepository.setAllFailedToPending(ids)
+  fun updateFailedToPending(ids: Set<UUID>): Int = ids.chunked(1000) { chunk ->
+    inboxEventRepository.updateFailedToPending(chunk.toSet())
+  }.sum()
 
   @Transactional
   fun updateFailedInboxEventStatus(ids: Set<UUID>, toStatus: ProcessedStatus): Int {

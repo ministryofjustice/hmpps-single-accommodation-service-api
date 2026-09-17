@@ -23,7 +23,7 @@ interface InboxEventRepository : JpaRepository<InboxEventEntity, UUID> {
     and iee.id in :ids
     """,
   )
-  fun setAllFailedToPending(ids: Set<UUID>): Int
+  fun updateFailedToPending(ids: Set<UUID>): Int
 
   @Query(
     """
