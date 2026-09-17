@@ -26,15 +26,17 @@ class InboxEventService(
     return inboxEventRepository.findAllByProcessedStatus(ProcessedStatus.PENDING, pageable)
   }
 
-  @Transactional
-  fun updateAllFailedToPending(): Int = inboxEventRepository.setAllFailedToPending()
+  fun findIdsByProcessedStatus(processedStatus: ProcessedStatus): Set<UUID> = inboxEventRepository.findAllIdsByProcessedStatus(processedStatus)
 
   @Transactional
-  fun updateFailedInboxEventStatus(ids: Set<UUID>, status: ProcessedStatus): Int {
+  fun updateFailedToPending(ids: Set<UUID>): Int = inboxEventRepository.setAllFailedToPending(ids)
+
+  @Transactional
+  fun updateFailedInboxEventStatus(ids: Set<UUID>, toStatus: ProcessedStatus): Int {
     ids.forEach { id ->
       val inboxEvent = inboxEventRepository.findByIdAndProcessedStatusIs(id, ProcessedStatus.FAILED)
         .orThrowNotFound("id" to id)
-      inboxEvent.processedStatus = status
+      inboxEvent.processedStatus = toStatus
       inboxEvent.processedAt = null
     }
     return ids.size

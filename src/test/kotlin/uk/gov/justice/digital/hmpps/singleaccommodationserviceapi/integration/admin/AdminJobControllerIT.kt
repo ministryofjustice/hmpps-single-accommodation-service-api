@@ -16,6 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
@@ -29,8 +33,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Duration
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.UUID
 
 class AdminJobControllerIT : IntegrationTestBase() {
@@ -43,6 +50,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var inboxEventRepository: InboxEventRepository
+
+  @Autowired
+  private lateinit var inboxEventDispatcher: InboxEventDispatcher
 
   @Autowired
   private lateinit var clock: MutableTestClock
@@ -64,6 +74,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
     clock.freezeAt(now)
+    databaseUtils.truncate(DatabaseUtils.SasTables.INBOX_EVENT)
   }
 
   @AfterEach
@@ -215,8 +226,30 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should replay all failed inbox events`() {
-    val failedFirst = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
-    val failedSecond = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val event = SnsDomainEvent(
+      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName,
+      version = 1,
+      occurredAt = OffsetDateTime.now(),
+      personReference =
+      PersonReference(
+        identifiers = listOf(PersonIdentifier("CRN", UUID.randomUUID().toString())),
+      ),
+    )
+    val payload = jsonMapper.writeValueAsString(event)
+    val failedFirst = inboxEventRepository.save(
+      buildInboxEventEntity(
+        eventType = event.eventType,
+        payload = payload,
+        processedStatus = ProcessedStatus.FAILED,
+      ),
+    )
+    val failedSecond = inboxEventRepository.save(
+      buildInboxEventEntity(
+        eventType = event.eventType,
+        payload = payload,
+        processedStatus = ProcessedStatus.FAILED,
+      ),
+    )
     val ignoredEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.IGNORED))
 
     val expectedUpdatedCount = inboxEventRepository
@@ -227,6 +260,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
     assertThat(response.replayAll).isTrue()
     assertThat(response.replayedCount).isEqualTo(expectedUpdatedCount)
+    assertThat(response.replayedMessageIds).containsExactlyInAnyOrder(failedFirst.id, failedSecond.id)
 
     val updatedEvents = inboxEventRepository.findAllById(
       listOf(failedFirst.id, failedSecond.id, ignoredEvent.id),
@@ -236,25 +270,34 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(updatedEvents.getValue(failedSecond.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
     assertThat(updatedEvents.getValue(failedSecond.id).processedAt).isNull()
     assertThat(updatedEvents.getValue(ignoredEvent.id).processedStatus).isEqualTo(ProcessedStatus.IGNORED)
+
+    // check the pending messages get picked up and processed.
+    inboxEventDispatcher.process()
+    waitFor {
+      assertThat(inboxEventRepository.findAll()).noneMatch {
+        it.processedStatus == ProcessedStatus.PENDING
+      }
+    }
   }
 
   @Test
   fun `should replay only the supplied failed inbox events`() {
-    val failedToReplay = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
-    val failedToLeave = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val firstFailed = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val secondFailed = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
     val processedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.PROCESSED))
 
-    val response = replayFailedInboxEvents(inboxEventIds = listOf(failedToReplay.id))
+    val response = replayFailedInboxEvents(inboxEventIds = listOf(firstFailed.id))
 
     assertThat(response.replayAll).isFalse()
     assertThat(response.replayedCount).isEqualTo(1)
+    assertThat(response.replayedMessageIds).containsExactlyInAnyOrder(firstFailed.id)
 
     val updatedEvents = inboxEventRepository.findAllById(
-      listOf(failedToReplay.id, failedToLeave.id, processedEvent.id),
+      listOf(firstFailed.id, secondFailed.id, processedEvent.id),
     ).associateBy { it.id }
-    assertThat(updatedEvents.getValue(failedToReplay.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
-    assertThat(updatedEvents.getValue(failedToReplay.id).processedAt).isNull()
-    assertThat(updatedEvents.getValue(failedToLeave.id).processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    assertThat(updatedEvents.getValue(firstFailed.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(firstFailed.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(secondFailed.id).processedStatus).isEqualTo(ProcessedStatus.FAILED)
     assertThat(updatedEvents.getValue(processedEvent.id).processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
   }
 

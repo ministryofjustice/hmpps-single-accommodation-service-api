@@ -45,23 +45,31 @@ class AdminJobController(
     @RequestParam(defaultValue = "false") replayAll: Boolean,
     @RequestBody(required = false) inboxEventIds: Set<UUID> = emptySet(),
   ): ResponseEntity<ApiResponseDto<ReplayFailedInboxEventsResponse>> {
-    val replayedCount = when (replayAll) {
+    val (replayedMessageIds, replayedCount) = when (replayAll) {
       true -> {
         if (inboxEventIds.isNotEmpty()) {
           throw ValidationException("To replay all messages, inboxEventIds must be empty")
         }
-        inboxEventService.updateAllFailedToPending()
+
+        val ids = inboxEventService.findIdsByProcessedStatus(ProcessedStatus.FAILED)
+        ids to inboxEventService.updateFailedToPending(ids)
       }
 
       false -> {
         if (inboxEventIds.isEmpty()) {
           throw ValidationException("To replay selected messages, inboxEventIds must be provided")
         }
-        inboxEventService.updateFailedInboxEventStatus(inboxEventIds, ProcessedStatus.PENDING)
+        inboxEventIds to inboxEventService.updateFailedInboxEventStatus(inboxEventIds, ProcessedStatus.PENDING)
       }
     }
     return ResponseEntity.ok(
-      ApiResponseDto(ReplayFailedInboxEventsResponse(replayAll = replayAll, replayedCount = replayedCount)),
+      ApiResponseDto(
+        ReplayFailedInboxEventsResponse(
+          replayAll = replayAll,
+          replayedCount = replayedCount,
+          replayedMessageIds = replayedMessageIds,
+        ),
+      ),
     )
   }
 }

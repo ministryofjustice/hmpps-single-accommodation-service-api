@@ -20,7 +20,15 @@ interface InboxEventRepository : JpaRepository<InboxEventEntity, UUID> {
     set iee.processedStatus = :#{T(uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus).PENDING},
         iee.processedAt = null
     where iee.processedStatus = :#{T(uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus).FAILED}
+    and iee.id in :ids
     """,
   )
-  fun setAllFailedToPending(): Int
+  fun setAllFailedToPending(ids: Set<UUID>): Int
+
+  @Query(
+    """
+    select iee.id from InboxEventEntity iee where iee.processedStatus = :processedStatus 
+  """,
+  )
+  fun findAllIdsByProcessedStatus(processedStatus: ProcessedStatus): Set<UUID>
 }
