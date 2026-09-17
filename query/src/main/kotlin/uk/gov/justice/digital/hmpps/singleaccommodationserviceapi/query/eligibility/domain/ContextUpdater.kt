@@ -44,7 +44,7 @@ abstract class ContextUpdater {
         ),
       )
 
-      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = outcome("constant")
+      override fun toServiceResult(context: EvaluationContext): ServiceResultNew = result
     }
 
     /** Returns a ContextUpdater that leaves the current ServiceResult unchanged and propagates failure reasons. */
