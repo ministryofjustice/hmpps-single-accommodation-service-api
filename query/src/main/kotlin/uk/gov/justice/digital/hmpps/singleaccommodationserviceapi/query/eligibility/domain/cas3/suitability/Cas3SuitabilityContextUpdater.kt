@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -25,27 +23,23 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
   val startReferral = "startReferral"
 
   override val outcomes = mapOf(
-    startNewReferral to ServiceResultNew(
+    startNewReferral to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
       link = EligibilityKeys.START_NEW_REFERRAL,
       linkType = LinkType.CAS3_START_REFERRAL,
     ),
-    rejected to ServiceResultNew(
+    rejected to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_REJECTED,
-      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
       link = EligibilityKeys.START_NEW_REFERRAL,
       linkType = LinkType.CAS3_START_REFERRAL,
     ),
-    notSubmitted to ServiceResultNew(
+    notSubmitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
-      action = CaseAction(type = CaseActionType.CONTINUE_CAS3_REFERRAL, service = AccommodationService.CAS3),
       link = EligibilityKeys.CONTINUE_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
-    startReferral to ServiceResultNew(
+    startReferral to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
       link = EligibilityKeys.START_REFERRAL,
       linkType = LinkType.CAS3_START_REFERRAL,
     ),

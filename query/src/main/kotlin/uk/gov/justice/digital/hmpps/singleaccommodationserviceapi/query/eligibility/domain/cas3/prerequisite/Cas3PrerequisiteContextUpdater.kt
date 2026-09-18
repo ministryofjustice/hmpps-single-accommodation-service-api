@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -20,23 +21,23 @@ class Cas3PrerequisiteContextUpdater : ContextUpdater() {
   val dtr = "dtr"
 
   override val outcomes = mapOf(
-    dtrAndCrsAccommodation to ServiceResultNew(
+    dtrAndCrsAccommodation to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
     ),
-    dtrAndCrs to ServiceResultNew(
+    dtrAndCrs to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
     ),
-    crsAccommodation to ServiceResultNew(
+    crsAccommodation to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
     ),
-    crs to ServiceResultNew(
+    crs to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_CRS_BEFORE_CAS3,
     ),
-    dtr to ServiceResultNew(
+    dtr to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_CANNOT_START_YET,
       blockingStatusReason = BlockingReason.SUBMIT_DTR_BEFORE_CAS3,
     ),
