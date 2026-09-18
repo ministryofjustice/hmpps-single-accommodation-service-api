@@ -8,8 +8,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationAddressDetails
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -38,6 +42,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
 import java.time.LocalDate
 import java.util.UUID
+import java.util.stream.Stream
 
 @ExtendWith(MockKExtension::class)
 class AccommodationSummaryCalculatorTest {
@@ -52,6 +57,8 @@ class AccommodationSummaryCalculatorTest {
   lateinit var calculator: AccommodationSummaryCalculator
 
   private val crn = "X12345"
+
+  typealias CaseAccommodationScenario = CaseAccommodationStatusScenarioLoader.Scenario
 
   private fun buildAccommodationTypeEntity(
     code: String,
@@ -88,7 +95,6 @@ class AccommodationSummaryCalculatorTest {
       ),
     ),
   )
-
   @BeforeEach
   fun setup() {
     every { accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT) } returns
@@ -218,7 +224,7 @@ class AccommodationSummaryCalculatorTest {
 
       val expectedResult = buildAccommodationSummaryDto(
         crn = crn,
-        startDate = LocalDate.parse(mainAddress.startDate),
+        startDate = LocalDate.parse(requireNotNull(mainAddress.startDate)),
         endDate = null,
         address = buildAccommodationAddressDetails(
           subBuildingName = mainAddress.subBuildingName,
@@ -315,7 +321,7 @@ class AccommodationSummaryCalculatorTest {
 
       val expectedResult = buildAccommodationSummaryDto(
         crn = crn,
-        startDate = LocalDate.parse(mainAddress.startDate),
+        startDate = LocalDate.parse(requireNotNull(mainAddress.startDate)),
         endDate = null,
         address = buildAccommodationAddressDetails(
           subBuildingName = mainAddress.subBuildingName,
@@ -759,214 +765,46 @@ class AccommodationSummaryCalculatorTest {
   }
 
   @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
   inner class CalculateCaseAccommodationStatus {
-    @Nested
-    inner class NoFixedAbode {
-      @Test
-      fun `when both current and next are null or homeless`() {
-        val homelessAccommodation = calculator.calculateNextAccommodations(
-          crn = crn,
-          addresses = listOf(buildAddress(statusCode = AddressStatusCode.PR.name, usageCode = "A08", endDate = null)),
-          cas1Application = null,
-          cas3Application = null,
-          currentAccommodation = null,
-        ).single()
-
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(currentAccommodation = null, nextAccommodation = null),
-        ).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(currentAccommodation = null, nextAccommodation = homelessAccommodation),
-        ).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(currentAccommodation = homelessAccommodation, nextAccommodation = null),
-        ).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(currentAccommodation = homelessAccommodation, nextAccommodation = homelessAccommodation),
-        ).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
-      }
+    private val allCaseAccommodationStatusScenarios: List<CaseAccommodationScenario> by lazy {
+      CaseAccommodationStatusScenarioLoader.loadScenarios()
     }
 
-    @Nested
-    inner class RiskOfNoFixedAbode {
-      @Test
-      fun `returns RISK_OF_NO_FIXED_ABODE for settled with end into homeless or null`() {
-        val settledCurrentWithEnd = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A01A"), endDate = LocalDate.now())
-        val homelessNext = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A08"))
+    fun caseAccommodationStatusScenarios(): Stream<Arguments> = allCaseAccommodationStatusScenarios
+      .map { Arguments.of(it) }
+      .stream()
 
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = settledCurrentWithEnd,
-            nextAccommodation = homelessNext,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+    private fun buildAccommodation(typeCode: String?, endDate: String?): AccommodationSummaryDto? {
+      val code = typeCode.nullIfBlank()?.toAccommodationTypeCode() ?: return null
 
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = settledCurrentWithEnd,
-            nextAccommodation = null,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
-      }
-
-      @Test
-      fun `returns RISK_OF_NO_FIXED_ABODE for transient with end into homeless or null`() {
-        val transientCurrentWithEndDate = buildAccommodationSummaryDto(
-          type = buildAccommodationTypeDto(code = "A03"),
-          endDate = LocalDate.now(),
-        )
-        val homelessNext = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A08"))
-
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = transientCurrentWithEndDate,
-            nextAccommodation = homelessNext,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = transientCurrentWithEndDate,
-            nextAccommodation = null,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
-      }
+      return buildAccommodationSummaryDto(
+        type = buildAccommodationTypeDto(code = code),
+        endDate = endDate.nullIfBlank()?.let(LocalDate::parse),
+      )
     }
 
-    @Nested
-    inner class Settled {
-      @Test
-      fun `returns SETTLED when current accommodation is settled with no end date`() {
-        val homelessAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A08"))
-        val settledAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A01A"))
+    private fun String?.nullIfBlank(): String? = this?.takeIf { it.isNotBlank() }
 
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = settledAccommodation,
-            nextAccommodation = null,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.SETTLED)
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = settledAccommodation,
-            nextAccommodation = homelessAccommodation,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.SETTLED)
-      }
-
-      @Test
-      fun `returns SETTLED when next accommodation is settled type`() {
-        val transientAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
-        val settledAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A01A"))
-
-        assertThat(
-          calculator.calculateCaseAccommodationStatus(
-            currentAccommodation = transientAccommodation,
-            nextAccommodation = settledAccommodation,
-          ),
-        ).isEqualTo(CaseAccommodationStatus.SETTLED)
-      }
+    private fun String.toAccommodationTypeCode(): String = when (this) {
+      "HOMELESS" -> "A08"
+      "SETTLED" -> "A01A"
+      "TRANSIENT" -> "A03"
+      "UNKNOWN" -> "UNKNOWN_CODE"
+      else -> error("Unknown accommodation type name in CSV: $this")
     }
 
-    @Nested
-    inner class Transient {
-      @Test
-      fun `returns TRANSIENT for null into transient`() {
-        val transientAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("caseAccommodationStatusScenarios")
+    fun `returns the expected case accommodation status`(scenario: CaseAccommodationScenario) {
+      val result = calculator.calculateCaseAccommodationStatus(
+        currentAccommodation = buildAccommodation(scenario.currentType, scenario.currentEndDate),
+        nextAccommodation = buildAccommodation(scenario.nextType, scenario.nextEndDate),
+      )
 
-        val result = calculator.calculateCaseAccommodationStatus(
-          currentAccommodation = null,
-          nextAccommodation = transientAccommodation,
-        )
-
-        assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      }
-
-      @Test
-      fun `returns TRANSIENT for homeless into transient`() {
-        val homelessAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A08"))
-        val transientAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
-
-        val result = calculator.calculateCaseAccommodationStatus(
-          currentAccommodation = homelessAccommodation,
-          nextAccommodation = transientAccommodation,
-        )
-
-        assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      }
-
-      @Test
-      fun `returns TRANSIENT for transient into transient`() {
-        val transientAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
-
-        val result = calculator.calculateCaseAccommodationStatus(
-          currentAccommodation = transientAccommodation,
-          nextAccommodation = transientAccommodation,
-        )
-
-        assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      }
-
-      @Test
-      fun `returns TRANSIENT for transient with end into transient`() {
-        val transientAccommodationWithEndDate = buildAccommodationSummaryDto(
-          type = buildAccommodationTypeDto(code = "A03"),
-          endDate = LocalDate.now(),
-        )
-        val transientAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
-
-        val result = calculator.calculateCaseAccommodationStatus(
-          currentAccommodation = transientAccommodationWithEndDate,
-          nextAccommodation = transientAccommodation,
-        )
-
-        assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      }
-
-      @Test
-      fun `returns TRANSIENT for transient into null`() {
-        val transientAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A03"))
-
-        val result = calculator.calculateCaseAccommodationStatus(
-          currentAccommodation = transientAccommodation,
-          nextAccommodation = null,
-        )
-
-        assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      }
-
-      @Test
-      fun `returns TRANSIENT for settled with end into transient with end`() {
-        val settledAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "A01A"), endDate = LocalDate.now())
-        val transientAccommodationWithEndDate = buildAccommodationSummaryDto(
-          type = buildAccommodationTypeDto(code = "A03"),
-          endDate = LocalDate.now(),
-        )
-
-        val result = calculator.calculateCaseAccommodationStatus(
-          currentAccommodation = settledAccommodation,
-          nextAccommodation = transientAccommodationWithEndDate,
-        )
-
-        assertThat(result).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-      }
-    }
-
-    @Test
-    fun `returns null when no known status matches`() {
-      val currentAccommodation = buildAccommodationSummaryDto()
-      val result = calculator.calculateCaseAccommodationStatus(currentAccommodation = currentAccommodation, nextAccommodation = null)
-      assertThat(result).isNull()
-    }
-
-    @Test
-    fun `treats accommodation type lookup errors as unknown types`() {
-      every { accommodationTypeRepository.findByCode("UNKNOWN_CODE") } throws RuntimeException("lookup failed")
-
-      val currentAccommodation = buildAccommodationSummaryDto(type = buildAccommodationTypeDto(code = "UNKNOWN_CODE"))
-
-      val result = calculator.calculateCaseAccommodationStatus(currentAccommodation = currentAccommodation, nextAccommodation = null)
-
-      assertThat(result).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
+      assertThat(result)
+        .describedAs("Scenario %s (%s)", scenario.id, scenario.testName)
+        .isEqualTo(scenario.expectedStatus)
     }
   }
 }
