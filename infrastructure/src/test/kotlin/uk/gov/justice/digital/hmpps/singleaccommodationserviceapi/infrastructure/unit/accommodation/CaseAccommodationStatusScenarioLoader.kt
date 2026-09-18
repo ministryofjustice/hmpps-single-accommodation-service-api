@@ -76,4 +76,3 @@ object CaseAccommodationStatusScenarioLoader {
 
   private fun String.toCaseAccommodationStatusOrNull(): CaseAccommodationStatus? = takeUnless { it == "NULL" }?.let(CaseAccommodationStatus::valueOf)
 }
-

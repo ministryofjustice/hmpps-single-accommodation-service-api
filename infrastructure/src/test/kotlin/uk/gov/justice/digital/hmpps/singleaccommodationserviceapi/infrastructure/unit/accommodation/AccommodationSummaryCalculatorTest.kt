@@ -95,6 +95,7 @@ class AccommodationSummaryCalculatorTest {
       ),
     ),
   )
+
   @BeforeEach
   fun setup() {
     every { accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(AccommodationSettledType.TRANSIENT) } returns
