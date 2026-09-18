@@ -1,34 +1,34 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CommissionedRehabilitativeServicesDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrSubmissionDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import java.util.UUID
 
-fun buildEligibilityDto(
+fun buildEligibilityDtoNew(
   crn: String,
-  cas1: Cas1ServiceResult = buildCas1ServiceResult(),
-  cas2: Cas2ServiceResult = buildCas2ServiceResult(),
-  cas3: Cas3ServiceResult = buildCas3ServiceResult(),
+  cas1: Cas1ServiceResultNew = buildCas1ServiceResultNew(),
+  cas2: Cas2ServiceResultNew = buildCas2ServiceResultNew(),
+  cas3: Cas3ServiceResultNew = buildCas3ServiceResultNew(),
   caseActions: List<CaseAction> = emptyList(),
-  dtr: DtrServiceResult = buildDtrServiceResult(),
-  crs: CrsServiceResult = buildCrsServiceResult(),
-  pa: PaServiceResult = buildPaServiceResult(),
-) = EligibilityDto(
+  dtr: DtrServiceResultNew = buildDtrServiceResultNew(),
+  crs: CrsServiceResultNew = buildCrsServiceResultNew(),
+  pa: PaServiceResultNew = buildPaServiceResultNew(),
+) = EligibilityDtoNew(
   crn,
   cas1,
   cas2,
@@ -39,14 +39,14 @@ fun buildEligibilityDto(
   caseActions,
 )
 
-fun buildServiceResult(
-  serviceStatus: ServiceStatus = ServiceStatus.NOT_ELIGIBLE,
+fun buildServiceResultNew(
+  serviceStatus: ServiceStatusNew = ServiceStatusNew.CAS1_NOT_ELIGIBLE,
   action: CaseAction? = null,
   link: String? = null,
   url: String? = null,
   linkType: LinkType? = null,
   failureReasons: List<FailureReason> = emptyList(),
-) = ServiceResult(
+) = ServiceResultNew(
   serviceStatus = serviceStatus,
   action = action,
   link = link,
@@ -55,50 +55,50 @@ fun buildServiceResult(
   failureReasons = failureReasons,
 )
 
-fun buildCas1ServiceResult(
-  serviceResult: ServiceResult = buildServiceResult(),
+fun buildCas1ServiceResultNew(
+  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CAS1_NOT_ELIGIBLE),
   cas1Application: Cas1ApplicationDto? = null,
-) = Cas1ServiceResult(
+) = Cas1ServiceResultNew(
   serviceResult = serviceResult,
   cas1Application = cas1Application,
 )
 
-fun buildCas2ServiceResult(
-  serviceResult: ServiceResult = buildServiceResult(),
+fun buildCas2ServiceResultNew(
+  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CAS2_NOT_ELIGIBLE),
   cas2Application: Cas2ApplicationDto? = null,
-) = Cas2ServiceResult(
+) = Cas2ServiceResultNew(
   serviceResult = serviceResult,
   cas2Application = cas2Application,
 )
 
-fun buildCas3ServiceResult(
-  serviceResult: ServiceResult = buildServiceResult(),
+fun buildCas3ServiceResultNew(
+  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CAS3_NOT_ELIGIBLE),
   cas3Application: Cas3ApplicationDto? = null,
-) = Cas3ServiceResult(
+) = Cas3ServiceResultNew(
   serviceResult = serviceResult,
   cas3Application = cas3Application,
 )
 
-fun buildDtrServiceResult(
-  serviceResult: ServiceResult = buildServiceResult(),
+fun buildDtrServiceResultNew(
+  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.DTR_NOT_ELIGIBLE),
   caseId: UUID? = null,
   submission: DtrSubmissionDto? = null,
-) = DtrServiceResult(
+) = DtrServiceResultNew(
   serviceResult = serviceResult,
   caseId = caseId,
   submission = submission,
 )
 
-fun buildCrsServiceResult(
-  serviceResult: ServiceResult = buildServiceResult(),
+fun buildCrsServiceResultNew(
+  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.CRS_NOT_ELIGIBLE),
   commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto? = null,
-) = CrsServiceResult(
+) = CrsServiceResultNew(
   serviceResult = serviceResult,
   commissionedRehabilitativeServices = commissionedRehabilitativeServices,
 )
 
-fun buildPaServiceResult(
-  serviceResult: ServiceResult = buildServiceResult(),
-) = PaServiceResult(
+fun buildPaServiceResultNew(
+  serviceResult: ServiceResultNew = buildServiceResultNew(ServiceStatusNew.PA_NOT_ELIGIBLE),
+) = PaServiceResultNew(
   serviceResult = serviceResult,
 )

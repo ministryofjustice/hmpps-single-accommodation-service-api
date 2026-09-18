@@ -20,9 +20,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
@@ -57,6 +55,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponseSorted
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponseSearch
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -462,7 +461,7 @@ class CaseControllerIT : IntegrationTestBase() {
       assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
       assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
 
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
     }
   }
 
@@ -592,9 +591,7 @@ class CaseControllerIT : IntegrationTestBase() {
       }
         .withDeliusUserJwt()
         .exchangeSuccessfully()
-        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
-        .returnResult()
-        .responseBody!!
+        .expectApiResponse<List<CaseDto>>()
         .data
       try {
         assertAll(
@@ -729,9 +726,7 @@ class CaseControllerIT : IntegrationTestBase() {
   private fun getCaseListResponse() = restTestClient.get().uri { it.path("/case-list").build() }
     .withDeliusUserJwt()
     .exchangeSuccessfully()
-    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<CaseDto>>>() {})
-    .returnResult()
-    .responseBody!!
+    .expectApiResponse<List<CaseDto>>()
 
   @Test
   fun `should get case`() {

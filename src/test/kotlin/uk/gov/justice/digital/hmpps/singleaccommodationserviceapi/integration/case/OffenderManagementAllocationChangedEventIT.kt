@@ -143,7 +143,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
     waitFor {
       assertThat(testSentryService.exceptions).hasSize(1)
       assertThat(testSentryService.exceptions.single().message)
-        .contains("Unexpected error dispatching to handler")
+        .contains("Unexpected error dispatching event")
       assertThat(testSentryService.exceptions.single().cause?.message)
         .contains("This requires a single CRN in cpr identifiers for prisonNumber")
     }

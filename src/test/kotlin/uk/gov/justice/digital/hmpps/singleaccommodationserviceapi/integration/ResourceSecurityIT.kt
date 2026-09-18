@@ -167,6 +167,11 @@ private val caseControllerMap: Map<String, Set<String>> =
     "GET /search/{crn}" to defaultRoles,
   )
 
+private val customCaseListControllerMap: Map<String, Set<String>> =
+  mapOf(
+    "POST /case-list/custom" to defaultRoles,
+  )
+
 private val accommodationDataDomainControllerMap: Map<String, Set<String>> =
   mapOf(
     "GET /accommodation-data-domain/health" to setOf(
@@ -184,6 +189,7 @@ private val adminJobControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
     "POST /admin/bulk-refresh-cases-by-crn" to setOf("SAS_ADMIN_RW"),
+    "PUT /admin/replay-failed-inbox-events" to setOf("SAS_ADMIN_RW"),
   )
 
 private val otherAccommodationReferralControllerMap: Map<String, Set<String>> =
@@ -205,6 +211,7 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "AccommodationReferralController" to accommodationReferralControllerMap,
     "AccommodationHistoryController" to accommodationHistoryControllerMap,
     "CaseController" to caseControllerMap,
+    "CustomCaseListController" to customCaseListControllerMap,
     "AccommodationDataDomainController" to accommodationDataDomainControllerMap,
     "ReferenceDataController" to referenceDataControllerMap,
     "AdminJobController" to adminJobControllerMap,

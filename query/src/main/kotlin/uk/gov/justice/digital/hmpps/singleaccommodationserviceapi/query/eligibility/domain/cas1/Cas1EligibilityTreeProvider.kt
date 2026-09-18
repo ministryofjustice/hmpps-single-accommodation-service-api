@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -43,7 +44,7 @@ class Cas1EligibilityTreeProvider(
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notEligible = builder.notEligible()
+    val notEligible = builder.notEligible(AccommodationService.CAS1)
     val placementBooked = builder.outcome(
       "placementBooked",
       serviceResult(),
@@ -80,8 +81,8 @@ class Cas1EligibilityTreeProvider(
       .build()
   }
 
-  private fun serviceResult(): ServiceResult = ServiceResult(
-    serviceStatus = ServiceStatus.PLACEMENT_BOOKED,
+  private fun serviceResult(): ServiceResultNew = ServiceResultNew(
+    serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED,
     link = EligibilityKeys.VIEW_APPLICATION,
     linkType = LinkType.CAS1_VIEW_APPLICATION,
   )

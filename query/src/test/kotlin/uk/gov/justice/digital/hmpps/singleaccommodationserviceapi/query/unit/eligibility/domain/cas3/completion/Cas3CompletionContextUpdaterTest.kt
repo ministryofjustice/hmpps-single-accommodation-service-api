@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildServiceResultNew
 import java.time.LocalDate
 import java.util.UUID
 
@@ -34,13 +34,13 @@ class Cas3CompletionContextUpdaterTest {
       )
       val context = EvaluationContext(
         data = data,
-        currentResult = buildServiceResult(),
+        currentResult = buildServiceResultNew(),
       )
 
       val result = updater.update(context)
 
       assertThat(result.currentResult.action).isNull()
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatus.SUBMITTED)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_SUBMITTED)
       assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_REFERRAL)
       assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS3_VIEW_REFERRAL)
       assertThat(result.currentResult.url).isNull()
