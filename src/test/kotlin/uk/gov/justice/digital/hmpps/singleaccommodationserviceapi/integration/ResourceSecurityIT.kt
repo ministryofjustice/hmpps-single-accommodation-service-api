@@ -184,6 +184,7 @@ private val adminJobControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /admin/bulk-load-cases" to setOf("SAS_ADMIN_RW"),
     "POST /admin/bulk-refresh-cases-by-crn" to setOf("SAS_ADMIN_RW"),
+    "PUT /admin/replay-failed-inbox-events" to setOf("SAS_ADMIN_RW"),
   )
 
 private val otherAccommodationReferralControllerMap: Map<String, Set<String>> =
