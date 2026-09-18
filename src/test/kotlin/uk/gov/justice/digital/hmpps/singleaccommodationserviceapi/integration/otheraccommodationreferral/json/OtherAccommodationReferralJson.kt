@@ -82,3 +82,36 @@ fun otherAccommodationReferralNoteRequestBody(note: String): String = """
     "note" : "$note"
   }
 """.trimIndent()
+
+@Suppress("LongParameterList")
+fun expectedGetOtherAccommodationReferralResponseBody(
+  id: UUID,
+  caseId: UUID,
+  crn: String,
+  localAuthorityAreaId: UUID,
+  localAuthorityAreaName: String? = null,
+  submissionDate: String = "2026-02-20",
+  referenceNumber: String? = "REF-001",
+  status: String = "SUBMITTED",
+  createdBy: String,
+  createdByUsername: String,
+  createdAt: String,
+  organisationName: String? = "Organisation name",
+  website: String? = "https://www.charity.org",
+  submissionNote: String? = null,
+): String = """{"data": ${expectedOtherAccommodationReferralResponseBody(
+  id = id,
+  caseId = caseId,
+  crn = crn,
+  localAuthorityAreaId = localAuthorityAreaId,
+  localAuthorityAreaName = localAuthorityAreaName,
+  submissionDate = submissionDate,
+  referenceNumber = referenceNumber,
+  status = status,
+  createdBy = createdBy,
+  createdByUsername = createdByUsername,
+  createdAt = createdAt,
+  organisationName = organisationName,
+  website = website,
+  submissionNote = submissionNote,
+)}}"""

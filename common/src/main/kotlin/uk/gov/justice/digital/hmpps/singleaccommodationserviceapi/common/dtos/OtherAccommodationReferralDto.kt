@@ -20,7 +20,7 @@ data class OtherAccommodationReferralSubmissionDto(
   val submissionDate: LocalDate,
   val createdBy: String,
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  val createdByUsername: String? = null,
+  val createdByUsername: String,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
