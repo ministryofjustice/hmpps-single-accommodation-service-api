@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import java.time.LocalDate
 import java.util.UUID
 
@@ -158,3 +159,4 @@ data class DeliusUserDto(
   val name: String,
   val username: String? = null, // TODO make this non-nullable when refactoring
 )
+fun DeliusUserDto?.toStaffDetailsDto() = this?.let { StaffDetailsDto(it.name, it.username) }
