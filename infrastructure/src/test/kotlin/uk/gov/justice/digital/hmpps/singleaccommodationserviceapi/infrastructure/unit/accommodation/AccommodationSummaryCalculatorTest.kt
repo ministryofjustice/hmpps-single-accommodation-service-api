@@ -43,6 +43,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.LocalDate
 import java.util.UUID
 import java.util.stream.Stream
+typealias CaseAccommodationScenario = CaseAccommodationStatusScenarioLoader.Scenario
+
 @ExtendWith(MockKExtension::class)
 class AccommodationSummaryCalculatorTest {
 
@@ -56,8 +58,6 @@ class AccommodationSummaryCalculatorTest {
   lateinit var calculator: AccommodationSummaryCalculator
 
   private val crn = "X12345"
-
-  typealias CaseAccommodationScenario = CaseAccommodationStatusScenarioLoader.Scenario
 
   private fun buildAccommodationTypeEntity(
     code: String,
