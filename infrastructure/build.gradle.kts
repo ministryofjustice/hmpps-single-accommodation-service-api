@@ -19,6 +19,7 @@ dependencies {
   testRuntimeOnly(libs.junit.platform.launcher)
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.mockk)
+  testImplementation(libs.pact.consumer.junit5)
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))
   testFixturesImplementation(libs.hmpps.starter)

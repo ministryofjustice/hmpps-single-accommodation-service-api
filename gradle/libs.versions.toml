@@ -16,6 +16,7 @@ javers = "7.11.8"
 postgres = "42.7.13"
 sentry = "8.56.0"
 sar-test-support = "2.8.1"
+pact = "4.6.5"
 
 [plugins]
 hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.ref = "hmpps-gradle-spring-boot" }
@@ -56,6 +57,7 @@ shedlock-jdbc = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-templ
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 wiremock = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
+pact-consumer-junit5 = { module = "au.com.dius.pact.consumer:junit5", version.ref = "pact" }
 awaitility = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
