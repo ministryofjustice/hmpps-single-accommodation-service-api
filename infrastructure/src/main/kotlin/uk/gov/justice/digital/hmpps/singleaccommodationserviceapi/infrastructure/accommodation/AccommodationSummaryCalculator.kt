@@ -146,7 +146,7 @@ class AccommodationSummaryCalculator(
     .filter { it.endDate == null }
     .map { address ->
       val proposedAccommodationId = address.cprAddressId
-        .let { proposedAccommodationRepository.findByCprAddressId(UUID.fromString(it)) }
+        ?.let { proposedAccommodationRepository.findByCprAddressId(UUID.fromString(it)) }
         ?.id
       toAccommodationSummary(crn, address = address, maskDates = true, proposedAccommodationId = proposedAccommodationId)
     }
