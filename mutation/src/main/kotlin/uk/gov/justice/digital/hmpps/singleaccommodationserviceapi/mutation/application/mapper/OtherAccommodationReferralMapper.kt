@@ -69,7 +69,7 @@ object OtherAccommodationReferralMapper {
   fun toDto(
     snapshot: OtherAccommodationReferralSnapshot,
     createdBy: String,
-    createdByUsername: String?,
+    createdByUsername: String,
     createdAt: Instant,
     localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralDto(

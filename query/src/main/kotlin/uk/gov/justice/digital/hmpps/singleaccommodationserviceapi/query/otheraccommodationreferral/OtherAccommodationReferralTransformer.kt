@@ -14,7 +14,7 @@ object OtherAccommodationReferralTransformer {
     entity: OtherAccommodationReferralEntity,
     crn: String,
     createdByName: String,
-    createdByUsername: String?,
+    createdByUsername: String,
     localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralDto(
     caseId = entity.caseId,
@@ -38,7 +38,7 @@ object OtherAccommodationReferralTransformer {
   fun toSubmission(
     entity: OtherAccommodationReferralEntity,
     createdByName: String,
-    createdByUsername: String?,
+    createdByUsername: String,
     localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralSubmissionDto(
     id = entity.id,

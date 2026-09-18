@@ -22,7 +22,7 @@ class OtherAccommodationReferralTransformerTest {
     private val createdByUsername = "JBLOGGS"
 
     @Test
-    fun `should map all fields correctly with strings`() {
+    fun `should map all fields correctly`() {
       val caseId = UUID.randomUUID()
       val crn = UUID.randomUUID().toString()
       val entity = buildOtherAccommodationReferralEntity(
@@ -126,7 +126,7 @@ class OtherAccommodationReferralTransformerTest {
       val result = OtherAccommodationReferralTransformer.toSubmission(
         entity,
         createdByName,
-        null,
+        createdByUsername,
         null,
       )
 

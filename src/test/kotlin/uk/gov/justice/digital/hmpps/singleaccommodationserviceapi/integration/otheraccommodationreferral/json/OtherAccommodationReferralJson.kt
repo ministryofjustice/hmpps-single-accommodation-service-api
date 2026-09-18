@@ -98,7 +98,7 @@ fun expectedGetOtherAccommodationReferralResponseBody(
   createdAt: String,
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
-  submissionNote: String? = "A submission note",
+  submissionNote: String? = null,
 ): String = """{"data": ${expectedOtherAccommodationReferralResponseBody(
   id = id,
   caseId = caseId,
