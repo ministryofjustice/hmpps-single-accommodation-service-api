@@ -43,7 +43,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.LocalDate
 import java.util.UUID
 import java.util.stream.Stream
-
 @ExtendWith(MockKExtension::class)
 class AccommodationSummaryCalculatorTest {
 

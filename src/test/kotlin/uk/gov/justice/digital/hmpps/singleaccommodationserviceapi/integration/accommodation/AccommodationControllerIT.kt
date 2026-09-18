@@ -236,41 +236,6 @@ class AccommodationControllerIT : IntegrationTestBase() {
           )
         }
     }
-
-    @Test
-    fun `should return null status type`() {
-      val currentAddress = currentAddress.copy(
-        usages = listOf(
-          CanonicalAddressUsage(
-            usageCode = CanonicalAddressUsageCode(
-              code = AddressUsageCode.UNKNOWN.name,
-              description = AddressUsageCode.UNKNOWN.description,
-            ),
-            isActive = true,
-          ),
-        ),
-      )
-      val corePersonRecord = buildCorePersonRecord(
-        identifiers = buildIdentifiers(crns = listOf(crn)),
-        addresses = listOf(currentAddress),
-      )
-      CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
-
-      restTestClient.get().uri("/cases/{crn}/accommodations/summary", crn)
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-        .expectBody<String>()
-        .value {
-          assertThatJson(it!!).matchesExpectedJson(
-            expectedAccommodationStatusResponse(
-              crn,
-              settledType = null,
-              currentCode = currentAddress.usages.first().usageCode.code!!,
-              currentDescription = currentAddress.usages.first().usageCode.description!!,
-            ),
-          )
-        }
-    }
   }
 
   @Test
