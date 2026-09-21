@@ -8,7 +8,7 @@ data class Cas3ApplicationDto(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
   val applicationSubmittedDate: LocalDate?,
-  val applicationSubmittedBy: Cas3StaffDto,
+  val applicationSubmittedBy: Cas3StaffDto?,
   val applicationRejectedReason: String?,
   val assessmentStatus: Cas3AssessmentStatus?,
   val bookingStatus: Cas3BookingStatus?,
