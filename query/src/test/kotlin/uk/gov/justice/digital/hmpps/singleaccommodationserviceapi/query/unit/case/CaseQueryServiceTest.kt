@@ -567,29 +567,33 @@ class CaseQueryServiceTest {
 
       val result = caseQueryService.getCases(personDtos = personDtos, peopleType = peopleType)
 
-      if (peopleType == "housed") {
-        assertThat(result).hasSize(1)
-        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-          .containsExactly(
-            crnOne to CaseAccommodationStatus.SETTLED,
-          )
-      } else if (peopleType == "nfarisk") {
-        assertThat(result).hasSize(3)
-        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-          .containsExactly(
-            crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
-            crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
-            crnTwo to CaseAccommodationStatus.TRANSIENT,
-          )
-      } else {
-        assertThat(result).hasSize(4)
-        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-          .containsExactly(
-            crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
-            crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
-            crnTwo to CaseAccommodationStatus.TRANSIENT,
-            crnOne to CaseAccommodationStatus.SETTLED,
-          )
+      when (peopleType) {
+        "housed" -> {
+          assertThat(result).hasSize(1)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnOne to CaseAccommodationStatus.SETTLED,
+            )
+        }
+        "nfarisk" -> {
+          assertThat(result).hasSize(3)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+              crnTwo to CaseAccommodationStatus.TRANSIENT,
+            )
+        }
+        else -> {
+          assertThat(result).hasSize(4)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+              crnTwo to CaseAccommodationStatus.TRANSIENT,
+              crnOne to CaseAccommodationStatus.SETTLED,
+            )
+        }
       }
     }
   }
