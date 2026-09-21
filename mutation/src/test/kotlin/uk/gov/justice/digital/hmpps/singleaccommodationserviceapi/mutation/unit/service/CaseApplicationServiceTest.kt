@@ -6,7 +6,6 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
@@ -118,7 +117,7 @@ class CaseApplicationServiceTest {
     @MockK
     lateinit var caseRepository: CaseRepository
 
-    @MockK
+    @RelaxedMockK
     lateinit var caseCreationService: CaseCreationService
 
     @MockK
@@ -135,8 +134,6 @@ class CaseApplicationServiceTest {
 
     @Test
     fun `does not query for unpersisted crns or call delius when validateCrns is false`() {
-      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } just runs
-
       caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true)
 
       verify(exactly = 0) { caseRepository.findUnpersistedCrns(any()) }
@@ -147,7 +144,6 @@ class CaseApplicationServiceTest {
     @Test
     fun `does not call delius when every crn is already persisted`() {
       every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
-      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } just runs
 
       caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true, validateCrns = true)
 
@@ -160,7 +156,6 @@ class CaseApplicationServiceTest {
       every { caseRepository.findUnpersistedCrns(any()) } returns listOf("B222222", "C333333")
       every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns
         CaseSummaries(listOf(buildCaseSummary(crn = "B222222"), buildCaseSummary(crn = "C333333")))
-      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } just runs
 
       caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true, validateCrns = true)
 
