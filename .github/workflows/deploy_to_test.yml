@@ -18,12 +18,46 @@ jobs:
       docker_multiplatform: false
       tag_latest: false
 
+  can_i_deploy:
+    name: Can I deploy hmpps-single-accommodation-service-api to Test
+    # Uses the shared Pact Broker "can I deploy" workflow being added in
+    # https://github.com/ministryofjustice/hmpps-github-actions/pull/352 - update the
+    # @v2 ref once that PR has merged and been tagged.
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_can_i_deploy.yml@v2 # WORKFLOW_VERSION
+    with:
+      pacticipant: hmpps-single-accommodation-service-api
+      version: ${{ github.sha }}
+      to_environment: Test
+    secrets:
+      PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+      HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+      HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
+
   deploy_test:
     name: Deploy to the test environment
     needs:
       - docker_build
+      - can_i_deploy
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'test'
       app_version: '${{ needs.docker_build.outputs.app_version }}'
+
+  record_deployment:
+    name: Record Pact Broker deployment
+    needs:
+      - deploy_test
+    # Uses the shared Pact Broker "record deployment" workflow being added in
+    # https://github.com/ministryofjustice/hmpps-github-actions/pull/352 - update the
+    # @v2 ref once that PR has merged and been tagged.
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
+    with:
+      app_version: '${{ needs.docker_build.outputs.app_version }}'
+      environment: 'Test'
+      pacticipant: hmpps-single-accommodation-service-api
+      pacticipant_version: ${{ github.sha }}
+    secrets:
+      PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+      HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+      HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
