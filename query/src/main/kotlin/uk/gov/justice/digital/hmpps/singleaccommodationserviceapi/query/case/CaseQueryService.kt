@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.UpstreamFailureException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
@@ -60,7 +61,7 @@ class CaseQueryService(
 
   fun getCases(
     personDtos: List<PersonDto>,
-    peopleType: String? = null,
+    peopleType: PeopleType? = null,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
     val caseDtos = personDtos.map { personDto ->
@@ -83,12 +84,13 @@ class CaseQueryService(
       }
     }
       .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
-    if (!peopleType.isNullOrBlank() && caseListV2Enabled) {
-      if (peopleType == "nfarisk") {
-        return caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
-      }
-      if (peopleType == "housed") {
-        return caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+    if (caseListV2Enabled) {
+      return when (peopleType) {
+        PeopleType.NFA_RISK ->
+          caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+        PeopleType.HOUSED ->
+          caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+        else -> caseDtos
       }
     }
     return caseDtos

@@ -699,8 +699,8 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("teamCode", "", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "ABC123", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "OTHERTEAM", 0),
-    CaseListFilter("peopleType", "housed", if (v2Enabled) 18 else 20),
-    CaseListFilter("peopleType", "nfarisk", if (v2Enabled) 2 else 20),
+    CaseListFilter("peopleType", "HOUSED", if (v2Enabled) 18 else 20),
+    CaseListFilter("peopleType", "NFA_RISK", if (v2Enabled) 2 else 20),
   )
 
   private fun containsNoLimitedCases(): (List<CaseDto>) -> Unit = { response ->
