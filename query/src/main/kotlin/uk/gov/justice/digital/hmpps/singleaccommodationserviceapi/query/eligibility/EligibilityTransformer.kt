@@ -49,9 +49,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
@@ -224,7 +223,7 @@ object EligibilityTransformer {
   }
 
   private fun toCas3PremisesSummaryDto(
-    premises: Cas3PremisesSummary?,
+    premises: Cas3LatestBookingPremisesDto?,
   ) = premises?.let { premises ->
     Cas3PremisesSummaryDto(
       startDate = premises.startDate,
@@ -275,7 +274,7 @@ object EligibilityTransformer {
   }
 
   private fun toPreviousBookings(
-    previousBookings: List<Cas3ExternalPreviousBooking>?,
+    previousBookings: List<uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBookingDto>?,
   ) = previousBookings?.map { booking ->
     Cas3ExternalPreviousBookingDto(
       bookingStatus = toCas3BookingStatus(booking.bookingStatus),
