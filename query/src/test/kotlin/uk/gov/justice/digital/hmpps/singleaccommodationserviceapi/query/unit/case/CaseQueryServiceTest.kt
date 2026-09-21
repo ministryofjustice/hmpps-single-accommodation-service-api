@@ -515,6 +515,83 @@ class CaseQueryServiceTest {
         assertThat(result).containsExactly(caseDto1, caseDto2, caseDto3, caseDto4)
       }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["housed", "nfarisk", ""])
+    fun `should get cases as all cases from case table and filter them`(peopleType: String) {
+      caseQueryService = CaseQueryService(
+        caseOrchestrationService = caseOrchestrationService,
+        userService = userService,
+        caseRepository = caseRepository,
+        caseListV2Enabled = true,
+      )
+      val crnThree = "X12347"
+      val crnFour = "X12348"
+      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour)
+
+      val staff = buildOfficer(username = username)
+      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
+      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
+      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
+      val personDtos = listOf(
+        personDto1,
+        personDto2,
+        personDto3,
+        personDto4,
+      )
+      val caseEntitySettled = buildCaseEntity {
+        withCrn(crnOne)
+        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
+        accommodationStatus = CaseAccommodationStatus.SETTLED
+      }
+      val caseEntityTransient = buildCaseEntity {
+        withCrn(crnTwo)
+        accommodationStatus = CaseAccommodationStatus.TRANSIENT
+      }
+      val caseEntityRisk = buildCaseEntity {
+        withCrn(crnThree)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+      }
+      val caseEntityNo = buildCaseEntity {
+        withCrn(crnFour)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+      }
+      val caseEntities = mapOf(
+        crnOne to caseEntitySettled,
+        crnTwo to caseEntityTransient,
+        crnThree to caseEntityRisk,
+        crnFour to caseEntityNo,
+      )
+      every { caseRepository.mapByCrns(crnList) } returns caseEntities
+
+      val result = caseQueryService.getCases(personDtos = personDtos, peopleType = peopleType)
+
+      if (peopleType == "housed") {
+        assertThat(result).hasSize(1)
+        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+          .containsExactly(
+            crnOne to CaseAccommodationStatus.SETTLED,
+          )
+      } else if (peopleType == "nfarisk") {
+        assertThat(result).hasSize(3)
+        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+          .containsExactly(
+            crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+            crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+            crnTwo to CaseAccommodationStatus.TRANSIENT,
+          )
+      } else {
+        assertThat(result).hasSize(4)
+        assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+          .containsExactly(
+            crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+            crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+            crnTwo to CaseAccommodationStatus.TRANSIENT,
+            crnOne to CaseAccommodationStatus.SETTLED,
+          )
+      }
+    }
   }
 
   @Nested

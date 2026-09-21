@@ -63,7 +63,8 @@ class CaseQueryService(
     peopleType: String? = null,
   ): List<CaseDto> {
     val caseEntitiesByCrn = caseRepository.mapByCrns(personDtos.map { it.crn })
-
+    println(peopleType)
+    println(caseListV2Enabled)
     val caseDtos = personDtos.map { personDto ->
 
       when (personDto) {
@@ -84,11 +85,27 @@ class CaseQueryService(
       }
     }
       .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
-return when (peopleType) {
-      "housed" -> caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
-      "nfarisk" -> caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
-      else -> caseDtos
+    val houseFilter = caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+    val nfaFilter = caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+    println(caseDtos)
+    println(houseFilter)
+    println(nfaFilter)
+//    return when (peopleType) {
+//      "housed" -> caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+//      "nfarisk" -> caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+//      else -> caseDtos
+//    }
+    var bob = caseDtos
+    if (peopleType != null && caseListV2Enabled) {
+      if (peopleType == "housed") {
+        bob = caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+      } else if (peopleType == "nfarisk") {
+        bob = caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+      } else {
+        bob = caseDtos
+      }
     }
+    return bob
   }
 
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
