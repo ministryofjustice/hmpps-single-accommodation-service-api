@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.customcaselist
 
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,6 +19,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER_CUSTOM_CASE_LIST
 
@@ -39,6 +44,7 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   @Test
   fun `creates the custom case list and creates then refreshes any crns not already persisted`() {
     val existingCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
 
     postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
 
@@ -116,6 +122,8 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
   @Test
   fun `accepts a lowercase crn and stores it against the uppercased case`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456")
+
     postCustomCaseList(listOf("a123456")).expectStatus().isCreated
 
     assertThat(caseRepository.findByCrn("A123456")).isNotNull()
@@ -150,9 +158,38 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
   @Test
   fun `accepts exactly 500 crns`() {
-    postCustomCaseList((1..500).map { "A%06d".format(it) }).expectStatus().isCreated
+    val crns = (1..500).map { "A%06d".format(it) }
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns(*crns.toTypedArray())
+
+    postCustomCaseList(crns).expectStatus().isCreated
 
     assertThat(userCustomCaseListRepository.findAll()).hasSize(500)
+  }
+
+  @Test
+  fun `returns BadRequest and creates nothing when delius does not recognise a crn`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("A123456")
+
+    postCustomCaseList(listOf("A123456", "B654321", "C111111")).expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Domain exception: invalidCrns: B654321, C111111")
+
+    assertThat(caseRepository.findAll()).isEmpty()
+    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `leaves the existing custom case list untouched when a crn is invalid`() {
+    val existingCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = existingCase.id))
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns()
+
+    postCustomCaseList(listOf("B654321")).expectStatus().isBadRequest
+
+    val savedMappings = userCustomCaseListRepository.findAll()
+    assertThat(savedMappings.map { it.sasCaseId }).containsExactly(existingCase.id)
+    assertThat(caseRepository.findByCrn("B654321")).isNull()
   }
 
   private fun postCustomCaseList(crns: List<String>) = restTestClient.post().uri("/case-list/custom")
