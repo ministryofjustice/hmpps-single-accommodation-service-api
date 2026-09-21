@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3BookingSuitabilityRule
@@ -22,7 +23,9 @@ class Cas3BookingSuitabilityRuleTest {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        ),
         bookingStatus = bookingStatus,
       ),
     )
@@ -43,7 +46,9 @@ class Cas3BookingSuitabilityRuleTest {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        ),
         bookingStatus = bookingStatus,
       ),
     )
@@ -63,7 +68,9 @@ class Cas3BookingSuitabilityRuleTest {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+        ),
         bookingStatus = null,
       ),
     )

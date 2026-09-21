@@ -197,7 +197,7 @@ object EligibilityTransformer {
     Cas3ApplicationDto(
       id = application.id,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
-      assessmentStatus = toCas3AssessmentStatus(application.assessmentStatus),
+      assessmentStatus = toCas3AssessmentStatus(application.submittedApplication?.assessmentStatus),
       bookingStatus = toCas3BookingStatus(application.bookingStatus),
       applicationSubmittedDate = application.submittedApplication?.submittedDate,
       applicationSubmittedBy = application.submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },

@@ -12,7 +12,13 @@ class Cas3AssessmentSuitabilityRule : Rule {
   override val description = "FAIL if CAS3 assessment is rejected or closed"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val ruleStatus = if (data.cas3Application?.bookingStatus == null && FAILING_ASSESSMENT_STATUSES.contains(data.cas3Application?.assessmentStatus)) RuleStatus.FAIL else RuleStatus.PASS
+    val ruleStatus = if (
+      data.cas3Application?.bookingStatus == null && FAILING_ASSESSMENT_STATUSES.contains(data.cas3Application?.submittedApplication?.assessmentStatus)
+    ) {
+      RuleStatus.FAIL
+    } else {
+      RuleStatus.PASS
+    }
 
     return RuleResult(
       description = description,

@@ -303,7 +303,6 @@ class EligibilityTransformerTest {
         assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
         assessmentRejectionReason = "Problem with application",
       ),
-      assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
       bookingStatus = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(

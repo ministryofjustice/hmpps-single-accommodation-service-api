@@ -47,7 +47,7 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
     val applicationStatus = context.data.cas3Application?.applicationStatus
-    val assessmentStatus = context.data.cas3Application?.assessmentStatus
+    val assessmentStatus = context.data.cas3Application?.submittedApplication?.assessmentStatus
     val bookingStatus = context.data.cas3Application?.bookingStatus
     return when (bookingStatus) {
       Cas3BookingStatus.ARRIVED,

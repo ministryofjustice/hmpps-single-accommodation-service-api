@@ -29,8 +29,9 @@ class Cas3ApplicationNotSuitableRuleTest {
     val cas3Application = buildCas3Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      submittedApplication = buildCas3SubmittedApplicationDto(),
-      assessmentStatus = null,
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        assessmentStatus = null,
+      ),
       bookingStatus = null,
     )
 
@@ -61,7 +62,13 @@ class Cas3ApplicationNotSuitableRuleTest {
     val cas3Application = buildCas3Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      assessmentStatus = null,
+      submittedApplication = if (status == Cas3ApplicationStatus.REJECTED) {
+        buildCas3SubmittedApplicationDto(
+          assessmentStatus = null,
+        )
+      } else {
+        null
+      },
       bookingStatus = null,
     )
 

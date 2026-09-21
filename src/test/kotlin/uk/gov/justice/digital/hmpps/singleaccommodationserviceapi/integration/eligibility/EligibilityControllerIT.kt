@@ -112,7 +112,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
         assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
         submittedDate = LocalDate.of(2025, 1, 2),
       ),
-      assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
       uiUrl = cas3ReferralUiUrl,
     )
 
@@ -220,7 +219,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         ),
       ),
-      assessmentStatus = Cas3AssessmentStatus.REJECTED,
       bookingStatus = Cas3BookingStatus.CONFIRMED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(
