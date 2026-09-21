@@ -521,7 +521,7 @@ class CaseQueryServiceTest {
       value = ["housed", "nfarisk", "''", "<NULL>"],
       nullValues = ["<NULL>"],
     )
-    fun `should get cases as all cases from case table and filter them`(peopleType: String) {
+    fun `should get cases as all cases from case table and filter them`(peopleType: String?) {
       caseQueryService = CaseQueryService(
         caseOrchestrationService = caseOrchestrationService,
         userService = userService,
