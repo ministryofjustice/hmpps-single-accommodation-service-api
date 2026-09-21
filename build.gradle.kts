@@ -110,6 +110,26 @@ allprojects {
       excludeTags("integration")
     }
   }
+
+  if (this != rootProject) {
+    tasks.register<Test>("pactTest") {
+      group = "verification"
+      description = "Runs consumer-side Pact tests"
+      testClassesDirs = sourceSets.test.get().output.classesDirs
+      classpath = sourceSets.test.get().runtimeClasspath
+      useJUnitPlatform()
+      filter {
+        includeTestsMatching("*PactTest")
+        isFailOnNoMatchingTests = false
+      }
+    }
+  }
+}
+
+tasks.register("pactTest") {
+  group = "verification"
+  description = "Runs all consumer-side Pact tests"
+  dependsOn(subprojects.map { it.tasks.named("pactTest") })
 }
 
 tasks.named<Test>("unitTest") {
