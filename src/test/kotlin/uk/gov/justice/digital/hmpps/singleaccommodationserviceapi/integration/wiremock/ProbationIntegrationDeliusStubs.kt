@@ -5,9 +5,11 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import java.net.URLEncoder
@@ -19,6 +21,17 @@ object ProbationIntegrationDeliusStubs {
     sasWiremock.stubFor(
       post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
+    )
+  }
+
+  fun postCaseSummariesForCrns(vararg validCrns: String) = postCaseSummariesOKResponse(
+    CaseSummaries(validCrns.map { buildCaseSummary(crn = it) }),
+  )
+
+  fun postCaseSummariesServerError() {
+    sasWiremock.stubFor(
+      post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
+        .willReturn(serverError()),
     )
   }
 

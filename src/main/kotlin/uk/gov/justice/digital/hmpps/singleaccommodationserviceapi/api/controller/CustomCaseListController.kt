@@ -43,7 +43,11 @@ class CustomCaseListController(
 
     val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = normalisedCrns.distinct()
-    caseApplicationService.createCases(distinctCrns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
+    caseApplicationService.createCases(
+      distinctCrns.map { CrnToPrisonNumber(it, null) },
+      createAsBlankRecord = true,
+      validateCrns = true,
+    )
     customCaseListApplicationService.createCustomCaseList(user.id, distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
   }
