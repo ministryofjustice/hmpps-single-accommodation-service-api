@@ -170,7 +170,6 @@ fun buildCas3Application(
   bookingStatus: Cas3BookingStatus? = null,
   premises: Cas3LatestBookingPremisesDto? = null,
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
-  applicationRejectedReason: String? = null,
   bookingProvisionalOfferSentDate: LocalDate? = null,
   previousBookings: List<Cas3PreviousBookingDto>? = emptyList(),
 ) = Cas3Application(
@@ -181,7 +180,6 @@ fun buildCas3Application(
   assessmentStatus = assessmentStatus,
   premises = premises,
   uiUrl = uiUrl,
-  applicationRejectedReason = applicationRejectedReason,
   bookingProvisionalOfferSentDate = bookingProvisionalOfferSentDate,
   previousBookings = previousBookings,
 )

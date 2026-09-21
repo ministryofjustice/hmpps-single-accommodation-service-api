@@ -300,9 +300,10 @@ class EligibilityTransformerTest {
       submittedApplication = buildCas3SubmittedApplicationDto(
         submittedDate = LocalDate.parse("2023-01-01"),
         submittedBy = buildCas3Staff(),
+        assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
+        assessmentRejectionReason = "Problem with application",
       ),
-      applicationRejectedReason = "Problem with application",
-      assessmentStatus = InfraCas3AssessmentStatus.READY_TO_PLACE,
+      assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
       bookingStatus = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(
@@ -417,7 +418,7 @@ class EligibilityTransformerTest {
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
-      assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+      assessmentStatus = Cas3AssessmentStatus.REJECTED,
       bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(

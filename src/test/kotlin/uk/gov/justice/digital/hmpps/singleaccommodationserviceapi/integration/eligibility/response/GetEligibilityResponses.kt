@@ -163,7 +163,7 @@ fun expectedGetEligibilityResponse(
           "staffCode": "Test1234"
         },
         "applicationRejectedReason": "Oops",
-        "assessmentStatus": "READY_TO_PLACE",
+        "assessmentStatus": "REJECTED",
         "bookingStatus": "CONFIRMED",
         "bookingProvisionalOfferSentDate": "2023-01-02",
         "previousBookings": [

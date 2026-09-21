@@ -204,8 +204,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
       submittedApplication = Cas3SubmittedApplicationDto(
         submittedDate = LocalDate.parse("2023-01-01"),
         submittedBy = buildCas3Staff(),
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-        assessmentRejectionReason = null,
+        assessmentStatus = Cas3AssessmentStatus.REJECTED,
+        assessmentRejectionReason = "Oops",
         latestBooking = Cas3LatestBookingDto(
           status = Cas3BookingStatus.CONFIRMED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
@@ -220,8 +220,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         ),
       ),
-      applicationRejectedReason = "Oops",
-      assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+      assessmentStatus = Cas3AssessmentStatus.REJECTED,
       bookingStatus = Cas3BookingStatus.CONFIRMED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(

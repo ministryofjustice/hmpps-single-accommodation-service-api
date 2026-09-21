@@ -10,8 +10,6 @@ data class Cas3Application(
   val applicationStatus: Cas3ApplicationStatus,
   val submittedApplication: Cas3SubmittedApplicationDto?,
   @Deprecated("Use submittedApplication instead")
-  val applicationRejectedReason: String?,
-  @Deprecated("Use submittedApplication instead")
   val assessmentStatus: Cas3AssessmentStatus?,
   @Deprecated("Use submittedApplication instead")
   val bookingStatus: Cas3BookingStatus?,
