@@ -135,7 +135,7 @@ class OtherAccommodationReferralTransformerTest {
       assertThat(result.organisationName).isNull()
       assertThat(result.website).isNull()
       assertThat(result.submissionNote).isNull()
-      assertThat(result.createdByUsername).isNull()
+      assertThat(result.createdByUsername).isEqualTo(createdByUsername)
     }
   }
 
