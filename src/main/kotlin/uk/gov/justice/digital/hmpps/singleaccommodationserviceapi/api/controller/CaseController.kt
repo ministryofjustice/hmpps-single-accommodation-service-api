@@ -49,8 +49,8 @@ class CaseController(
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
     val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = !caseQueryService.caseListV2Enabled)
-    val peopleType = peopleType?.trim()?.takeIf { it.isNotEmpty() }
-    val caseDtos = caseQueryService.getCases(filteredCaseList, peopleType)
+    val normalizedPeopleType = peopleType?.trim()?.takeIf { it.isNotEmpty() }
+    val caseDtos = caseQueryService.getCases(filteredCaseList, normalizedPeopleType)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
 

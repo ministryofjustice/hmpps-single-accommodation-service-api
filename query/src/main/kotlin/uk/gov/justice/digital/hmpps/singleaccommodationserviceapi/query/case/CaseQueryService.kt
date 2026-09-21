@@ -84,10 +84,11 @@ class CaseQueryService(
     }
       .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
     if (!peopleType.isNullOrBlank() && caseListV2Enabled) {
+      if (peopleType == "nfarisk") {
+        return caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+      }
       if (peopleType == "housed") {
         return caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
-      } else if (peopleType == "nfarisk") {
-        return caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
       }
     }
     return caseDtos
