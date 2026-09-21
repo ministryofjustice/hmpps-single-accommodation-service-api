@@ -22,8 +22,10 @@ class CsvReader {
       .setReader(InputStreamReader(input))
       .get()
 
-    return result.records.map { record ->
-      record.toMap()
+    return result.use { parser ->
+      parser.records.map { record ->
+        record.toMap()
+      }
     }
   }
 }
