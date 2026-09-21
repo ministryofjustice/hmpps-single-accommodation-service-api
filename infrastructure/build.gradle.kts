@@ -10,7 +10,7 @@ plugins {
 // - branch recorded via GITHUB_BRANCH so provider verification can target a specific consumer branch
 pact {
   publish {
-    pactDirectory = "$buildDir/pacts"
+    pactDirectory = layout.buildDirectory.dir("pacts").get().asFile
     pactBrokerUrl = System.getenv("PACT_BROKER_URL") ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk"
     pactBrokerUsername = System.getenv("HMPPS_PACT_BROKER_USERNAME")
     pactBrokerPassword = System.getenv("HMPPS_PACT_BROKER_PASSWORD")
