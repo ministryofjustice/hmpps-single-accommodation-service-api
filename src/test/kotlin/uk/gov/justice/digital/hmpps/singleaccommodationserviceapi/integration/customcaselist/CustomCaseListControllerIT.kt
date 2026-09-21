@@ -180,6 +180,41 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `only sends crns that are not already persisted to delius for validation`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    ProbationIntegrationDeliusStubs.postCaseSummariesForCrns("B654321")
+
+    postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    sasWiremock.verify(
+      1,
+      postRequestedFor(urlPathEqualTo("/probation-cases/summaries")).withRequestBody(equalToJson("[\"B654321\"]")),
+    )
+  }
+
+  @Test
+  fun `does not call delius when every crn is already persisted`() {
+    caseRepository.save(buildCaseEntity { withCrn("A123456") })
+    caseRepository.save(buildCaseEntity { withCrn("B654321") })
+
+    postCustomCaseList(listOf("A123456", "B654321")).expectStatus().isCreated
+
+    sasWiremock.verify(0, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+  }
+
+  @Test
+  fun `retries then creates nothing when delius is unavailable`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesServerError()
+
+    postCustomCaseList(listOf("A123456", "B654321")).expectStatus().is5xxServerError
+
+    sasWiremock.verify(3, postRequestedFor(urlPathEqualTo("/probation-cases/summaries")))
+    assertThat(caseRepository.findAll()).isEmpty()
+    assertThat(userCustomCaseListRepository.findAll()).isEmpty()
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Test
   fun `leaves the existing custom case list untouched when a crn is invalid`() {
     val existingCase = caseRepository.save(buildCaseEntity { withCrn("A123456") })
     userCustomCaseListRepository.save(buildUserCustomCaseListEntity(sasUserId = deliusUser.id, sasCaseId = existingCase.id))

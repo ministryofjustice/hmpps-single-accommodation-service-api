@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.okJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
@@ -26,6 +27,13 @@ object ProbationIntegrationDeliusStubs {
   fun postCaseSummariesForCrns(vararg validCrns: String) = postCaseSummariesOKResponse(
     CaseSummaries(validCrns.map { buildCaseSummary(crn = it) }),
   )
+
+  fun postCaseSummariesServerError() {
+    sasWiremock.stubFor(
+      post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
+        .willReturn(serverError()),
+    )
+  }
 
   fun stubGetStaffByUsername(
     deliusUsername: String,

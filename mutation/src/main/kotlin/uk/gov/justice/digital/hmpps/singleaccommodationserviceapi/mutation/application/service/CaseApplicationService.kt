@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.InvalidCrnsException
 
@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 class CaseApplicationService(
   private val caseCreationService: CaseCreationService,
   private val caseRepository: CaseRepository,
-  private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
+  private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
   private val maxAttempts = 3
@@ -34,9 +34,7 @@ class CaseApplicationService(
     val unpersistedCrns = caseRepository.findUnpersistedCrns(crns.distinct().toTypedArray())
     if (unpersistedCrns.isEmpty()) return
 
-    val validCrns = unpersistedCrns
-      .chunked(500)
-      .flatMap { approvedPremisesAndDeliusClient.postCaseSummaries(it).cases }
+    val validCrns = approvedPremisesAndDeliusCachingService.postCaseSummaries(unpersistedCrns).cases
       .map { it.crn }
       .toSet()
 

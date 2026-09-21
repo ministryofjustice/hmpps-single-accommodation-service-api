@@ -17,7 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.dao.DataIntegrityViolationException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
+import org.springframework.http.HttpStatus
+import org.springframework.web.client.HttpServerErrorException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -54,7 +56,7 @@ class CaseApplicationServiceTest {
     lateinit var caseMapper: CaseMapper
 
     @MockK
-    lateinit var approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient
+    lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
@@ -120,7 +122,7 @@ class CaseApplicationServiceTest {
     lateinit var caseCreationService: CaseCreationService
 
     @MockK
-    lateinit var approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient
+    lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
     @InjectMockKs
     lateinit var caseApplicationService: CaseApplicationService
@@ -138,7 +140,7 @@ class CaseApplicationServiceTest {
       caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true)
 
       verify(exactly = 0) { caseRepository.findUnpersistedCrns(any()) }
-      verify(exactly = 0) { approvedPremisesAndDeliusClient.postCaseSummaries(any()) }
+      verify(exactly = 0) { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) }
       verify(exactly = 1) { caseCreationService.saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers) }
     }
 
@@ -149,21 +151,21 @@ class CaseApplicationServiceTest {
 
       caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true, validateCrns = true)
 
-      verify(exactly = 0) { approvedPremisesAndDeliusClient.postCaseSummaries(any()) }
+      verify(exactly = 0) { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) }
       verify(exactly = 1) { caseCreationService.saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers) }
     }
 
     @Test
     fun `only sends unpersisted crns to delius and creates cases when they are all valid`() {
       every { caseRepository.findUnpersistedCrns(any()) } returns listOf("B222222", "C333333")
-      every { approvedPremisesAndDeliusClient.postCaseSummaries(any()) } returns
+      every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns
         CaseSummaries(listOf(buildCaseSummary(crn = "B222222"), buildCaseSummary(crn = "C333333")))
       every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } just runs
 
       caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true, validateCrns = true)
 
       verify(exactly = 1) { caseRepository.findUnpersistedCrns(arrayOf("A111111", "B222222", "C333333")) }
-      verify(exactly = 1) { approvedPremisesAndDeliusClient.postCaseSummaries(listOf("B222222", "C333333")) }
+      verify(exactly = 1) { approvedPremisesAndDeliusCachingService.postCaseSummaries(listOf("B222222", "C333333")) }
       verify(exactly = 1) { caseCreationService.saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers) }
     }
 
@@ -171,7 +173,7 @@ class CaseApplicationServiceTest {
     @ValueSource(booleans = [true, false])
     fun `throws InvalidCrnsException and creates nothing when delius drops a crn`(createAsBlankRecord: Boolean) {
       every { caseRepository.findUnpersistedCrns(any()) } returns listOf("B222222", "C333333")
-      every { approvedPremisesAndDeliusClient.postCaseSummaries(any()) } returns
+      every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns
         CaseSummaries(listOf(buildCaseSummary(crn = "B222222")))
 
       val exception = assertThrows<InvalidCrnsException> {
@@ -184,30 +186,29 @@ class CaseApplicationServiceTest {
     }
 
     @Test
+    fun `does not create any blank case rows when delius is unavailable to validate crns`() {
+      every { caseRepository.findUnpersistedCrns(any()) } returns listOf("B222222", "C333333")
+      every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } throws
+        HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR)
+
+      assertThrows<HttpServerErrorException> {
+        caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true, validateCrns = true)
+      }
+
+      verify(exactly = 0) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+      verify(exactly = 0) { caseCreationService.saveUnpersistedCases(any()) }
+    }
+
+    @Test
     fun `lists every invalid crn in the exception`() {
       every { caseRepository.findUnpersistedCrns(any()) } returns listOf("A111111", "B222222", "C333333")
-      every { approvedPremisesAndDeliusClient.postCaseSummaries(any()) } returns CaseSummaries(emptyList())
+      every { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) } returns CaseSummaries(emptyList())
 
       val exception = assertThrows<InvalidCrnsException> {
         caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = true, validateCrns = true)
       }
 
       assertThat(exception.message).isEqualTo("invalidCrns: A111111, B222222, C333333")
-    }
-
-    @Test
-    fun `sends unpersisted crns to delius in batches of 500`() {
-      val manyCrns = List(1200) { CrnToPrisonNumber(crn = "A%06d".format(it), prisonNumber = null) }
-      every { caseRepository.findUnpersistedCrns(any()) } returns manyCrns.map { it.crn }
-      every { approvedPremisesAndDeliusClient.postCaseSummaries(any()) } answers {
-        CaseSummaries(firstArg<List<String>>().map { buildCaseSummary(crn = it) })
-      }
-      every { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) } just runs
-
-      caseApplicationService.createCases(manyCrns, createAsBlankRecord = true, validateCrns = true)
-
-      // 1200 crns / 500 batch size = 3 delius calls
-      verify(exactly = 3) { approvedPremisesAndDeliusClient.postCaseSummaries(any()) }
     }
   }
 }
