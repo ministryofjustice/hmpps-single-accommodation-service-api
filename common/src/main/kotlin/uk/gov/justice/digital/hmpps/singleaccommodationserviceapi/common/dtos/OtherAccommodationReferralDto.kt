@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -19,8 +18,7 @@ data class OtherAccommodationReferralSubmissionDto(
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val createdBy: String,
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  val createdByUsername: String? = null,
+  val createdByUsername: String,
   @field:JsonFormat(
     shape = JsonFormat.Shape.STRING,
     pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",

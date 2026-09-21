@@ -26,6 +26,13 @@ class OtherAccommodationReferralController(
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/cases/{crn}/other-accommodation-referral/{id}")
+  fun getByCrnAndId(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<OtherAccommodationReferralDto>> {
+    val referral = otherAccommodationReferralQueryService.getOtherAccommodationReferral(crn, id)
+    return ResponseEntity.ok(ApiResponseDto(data = referral))
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/other-accommodation-referral")
   @ResponseStatus(HttpStatus.CREATED)
   fun create(
