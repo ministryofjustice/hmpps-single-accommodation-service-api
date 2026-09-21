@@ -56,6 +56,16 @@ jobs:
       gradle-command: './gradlew unitTest'
       artifact-name: 'unit-test-results'
     secrets: inherit
+  pact_test:
+    permissions:
+      contents: read
+    name: Pact Consumer Tests
+    needs: kotlin_validate
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
+    with:
+      gradle-command: './gradlew pactTest'
+      artifact-name: 'pact-test-results'
+    secrets: inherit
   integration_test:
     permissions:
       contents: read
@@ -85,6 +95,7 @@ jobs:
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
       push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
       docker_multiplatform: false
+  ######################## IN HERE
   deploy_dev:
     permissions:
       contents: read
@@ -93,6 +104,7 @@ jobs:
     needs:
       - kotlin_validate
       - unit_test
+      - pact_test
       - integration_test
       - build
       - helm_lint
