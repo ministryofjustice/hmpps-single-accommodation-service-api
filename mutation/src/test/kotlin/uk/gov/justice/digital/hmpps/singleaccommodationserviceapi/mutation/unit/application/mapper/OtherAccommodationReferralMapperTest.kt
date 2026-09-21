@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralNoteEntity
@@ -10,13 +11,18 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.facto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildOtherAccommodationReferralSnapshot
 import java.time.Instant
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 class OtherAccommodationReferralMapperTest {
 
   @Test
   fun `toEntity maps all fields correctly`() {
-    val snapshot = buildOtherAccommodationReferralSnapshot()
+    val snapshot = buildOtherAccommodationReferralSnapshot(
+      status = OtherAccommodationReferralStatus.ACCEPTED,
+      outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+      outcomeNote = "An outcome note",
+    )
 
     val entity = OtherAccommodationReferralMapper.toEntity(snapshot)
 
@@ -30,11 +36,17 @@ class OtherAccommodationReferralMapperTest {
     assertThat(entity.organisationName).isEqualTo(snapshot.organisationName)
     assertThat(entity.website).isEqualTo(snapshot.website)
     assertThat(entity.submissionNote).isEqualTo(snapshot.submissionNote)
+    assertThat(entity.outcomeReason).isEqualTo(EntityOtherAccommodationReferralOutcomeReason.valueOf(snapshot.outcomeReason!!.name))
+    assertThat(entity.outcomeNote).isEqualTo(snapshot.outcomeNote)
   }
 
   @Test
   fun `toDto maps all fields correctly`() {
-    val snapshot = buildOtherAccommodationReferralSnapshot(status = OtherAccommodationReferralStatus.SUBMITTED)
+    val snapshot = buildOtherAccommodationReferralSnapshot(
+      status = OtherAccommodationReferralStatus.REJECTED,
+      outcomeReason = OtherAccommodationReferralOutcomeReason.NO_CAPACITY,
+      outcomeNote = "An outcome note",
+    )
     val createdBy = "Joe Bloggs"
     val createdByUsername = "joe.bloggs"
     val createdAt = Instant.now()
@@ -50,7 +62,7 @@ class OtherAccommodationReferralMapperTest {
 
     assertThat(dto.caseId).isEqualTo(snapshot.caseId)
     assertThat(dto.crn).isEqualTo(snapshot.crn)
-    assertThat(dto.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+    assertThat(dto.status).isEqualTo(OtherAccommodationReferralStatus.REJECTED)
     assertThat(dto.submission.id).isEqualTo(snapshot.id)
     assertThat(dto.submission.localAuthority.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
     assertThat(dto.submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
@@ -62,6 +74,8 @@ class OtherAccommodationReferralMapperTest {
     assertThat(dto.submission.organisationName).isEqualTo(snapshot.organisationName)
     assertThat(dto.submission.website).isEqualTo(snapshot.website)
     assertThat(dto.submission.submissionNote).isEqualTo(snapshot.submissionNote)
+    assertThat(dto.submission.outcomeReason).isEqualTo(snapshot.outcomeReason)
+    assertThat(dto.submission.outcomeNote).isEqualTo(snapshot.outcomeNote)
   }
 
   @Test
@@ -84,6 +98,9 @@ class OtherAccommodationReferralMapperTest {
     val newNote2 = buildOtherAccommodationReferralNote(id = UUID.randomUUID(), note = "3333")
     val preExistingNote = buildOtherAccommodationReferralNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
     val snapshot = buildOtherAccommodationReferralSnapshot(
+      status = OtherAccommodationReferralStatus.ACCEPTED,
+      outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+      outcomeNote = "An outcome note",
       notes = listOf(newNote1, newNote2, preExistingNote),
     )
 
@@ -95,6 +112,8 @@ class OtherAccommodationReferralMapperTest {
     assertThat(merged.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(merged.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(merged.status).isEqualTo(EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name))
+    assertThat(merged.outcomeReason).isEqualTo(EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+    assertThat(merged.outcomeNote).isEqualTo(snapshot.outcomeNote)
     assertThat(merged.notes).hasSize(3)
     assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
     assertThat(merged.notes[1].note).isEqualTo(newNote1.note)
@@ -106,7 +125,9 @@ class OtherAccommodationReferralMapperTest {
     val entity = buildOtherAccommodationReferralEntity(
       localAuthorityAreaId = UUID.randomUUID(),
       referenceNumber = "OA-REF-001",
-      status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+      status = EntityOtherAccommodationReferralStatus.REJECTED,
+      outcomeReason = EntityOtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE,
+      outcomeNote = "An outcome note",
     )
     val noteEntity = buildOtherAccommodationReferralNoteEntity(
       id = UUID.randomUUID(),
@@ -131,7 +152,9 @@ class OtherAccommodationReferralMapperTest {
     assertThat(snapshot.crn).isEqualTo(entity.crn)
     assertThat(snapshot.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
-    assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+    assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.REJECTED)
+    assertThat(snapshot.outcomeReason).isEqualTo(OtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE)
+    assertThat(snapshot.outcomeNote).isEqualTo(entity.outcomeNote)
     assertThat(snapshot.notes.first().id).isEqualTo(noteEntity.id)
     assertThat(snapshot.notes.first().note).isEqualTo(noteEntity.note)
     assertThat(snapshot.notes[1].id).isEqualTo(noteEntity2.id)

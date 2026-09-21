@@ -9,7 +9,9 @@ fun createOtherAccommodationReferralRequestBody(
   status: String = "SUBMITTED",
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
-  submissionNote: String? = "A submission note",
+  submissionNote: String? = null,
+  outcomeReason: String? = null,
+  outcomeNote: String? = null,
 ): String = """
 {
   "localAuthorityAreaId": "$localAuthorityAreaId",
@@ -34,6 +36,16 @@ fun createOtherAccommodationReferralRequestBody(
   "submissionNote": "$submissionNote""""
 } else {
   ""
+}}${if (outcomeReason != null) {
+  """,
+  "outcomeReason": "$outcomeReason""""
+} else {
+  ""
+}}${if (outcomeNote != null) {
+  """,
+  "outcomeNote": "$outcomeNote""""
+} else {
+  ""
 }}
 }
 """.trimIndent()
@@ -53,7 +65,9 @@ fun expectedOtherAccommodationReferralResponseBody(
   createdAt: String,
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
-  submissionNote: String? = "A submission note",
+  submissionNote: String? = null,
+  outcomeReason: String? = null,
+  outcomeNote: String? = null,
 ): String = """
 {
   "caseId": "$caseId",
@@ -72,7 +86,9 @@ fun expectedOtherAccommodationReferralResponseBody(
     "createdAt": "$createdAt",
     "organisationName": ${if (organisationName != null) "\"$organisationName\"" else "null"},
     "website": ${if (website != null) "\"$website\"" else "null"},
-    "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"}
+    "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"},
+    "outcomeReason": ${if (outcomeReason != null) "\"$outcomeReason\"" else "null"},
+    "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
   }
 }
 """.trimIndent()
