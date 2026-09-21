@@ -66,6 +66,36 @@ jobs:
       gradle-command: './gradlew pactTest'
       artifact-name: 'pact-test-results'
     secrets: inherit
+  pact_publish:
+    permissions:
+      contents: read
+    name: Publish Pact Contracts
+    needs: pact_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+      - name: Publish pacts
+        # Same env var names as used by hmpps-person-record's pact_provider_verification.yml /
+        # record_deployment.yml so consumer version/branch line up with its selectors.
+        run: ./gradlew pactPublish
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
+          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+          HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
+          HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
   integration_test:
     permissions:
       contents: read
@@ -105,6 +135,7 @@ jobs:
       - kotlin_validate
       - unit_test
       - pact_test
+      - pact_publish
       - integration_test
       - build
       - helm_lint

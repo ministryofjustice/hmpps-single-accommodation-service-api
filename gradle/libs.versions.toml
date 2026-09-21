@@ -23,6 +23,7 @@ hmpps-spring-boot = { id = "uk.gov.justice.hmpps.gradle-spring-boot", version.re
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
+pact = { id = "au.com.dius.pact", version.ref = "pact" }
 
 [libraries]
 hmpps-starter = { module = "uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter", version.ref = "hmpps-spring-boot" }
