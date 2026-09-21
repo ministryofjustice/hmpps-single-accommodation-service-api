@@ -129,7 +129,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0052"
+      expected-flyway-schema-version: "0053"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:
