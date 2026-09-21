@@ -29,7 +29,7 @@ class CaseController(
     summary = "Get list of cases for the current user or selected team",
     description = """Returns the case list for the authenticated user. By default, returns cases allocated to the 
       current user. Supplying the teamCode parameter returns cases allocated to all users in that team. 
-      Supplying the peopleType parameter returns cases filtered by the selected tab (nfarisk or housed).
+      Supplying the peopleType parameter returns cases filtered by the selected tab (support needed or housing secured).
       Results can be further filtered by risk level and a free-text search term.""",
   )
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
