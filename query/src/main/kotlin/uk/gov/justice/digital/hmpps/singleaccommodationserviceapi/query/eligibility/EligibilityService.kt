@@ -107,9 +107,8 @@ class EligibilityService(
     log.debug("Calculating {} eligibility for CRN: {}}", line, data.crn)
     return evaluate(provider, data).also {
       log.debug(
-        "$line Service Result for CRN ${data.crn}: serviceStatus={}, action={}, link={}",
+        "$line Service Result for CRN ${data.crn}: serviceStatus={}, link={}",
         it.serviceStatus,
-        it.action,
         it.link,
       )
     }

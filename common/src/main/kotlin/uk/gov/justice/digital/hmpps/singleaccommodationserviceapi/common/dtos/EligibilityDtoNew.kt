@@ -1,237 +1,347 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.requireXor
+import java.time.LocalDate
 import java.util.UUID
 
 data class EligibilityDtoNew(
   val crn: String,
-  val cas1: Cas1ServiceResultNew,
-  val cas2: Cas2ServiceResultNew,
-  val cas3: Cas3ServiceResultNew,
-  val dtr: DtrServiceResultNew,
-  val crs: CrsServiceResultNew,
-  val pa: PaServiceResultNew,
-  val caseActions: List<CaseAction>,
+  val cas1: Cas1ServiceResultWrapper,
+  val cas2: Cas2ServiceResultWrapper,
+  val cas3: Cas3ServiceResultWrapper,
+  val dtr: DtrServiceResultWrapper,
+  val crs: CrsServiceResultWrapper,
+  val pa: PaServiceResultWrapper,
 )
 
 data class ServiceResultNew(
   val serviceStatus: ServiceStatusNew,
-  val action: CaseAction? = null,
+  val actionStartDate: LocalDate? = null,
   val link: String? = null,
   val url: String? = null,
   val linkType: LinkType? = null,
   val failureReasons: List<FailureReason> = emptyList(),
   val blockingStatusReason: BlockingReason? = null,
-)
+) {
+  init {
+    requireXor(
+      serviceStatus.isUpcoming,
+      actionStartDate == null,
+    ) {
+      "Action start date is required for upcoming statuses and forbidden otherwise"
+    }
+  }
+}
 
-data class PaServiceResultNew(
-  val serviceResult: ServiceResultNew,
-)
+data class ServiceResultSpec(
+  val serviceStatus: ServiceStatusNew,
+  val link: String? = null,
+  val url: String? = null,
+  val linkType: LinkType? = null,
+  val blockingStatusReason: BlockingReason? = null,
+  val failureReasons: List<FailureReason> = emptyList(),
+) {
+  fun toResult(actionStartDate: LocalDate? = null) = ServiceResultNew(
+    serviceStatus = serviceStatus,
+    actionStartDate = actionStartDate,
+    link = link,
+    url = url,
+    linkType = linkType,
+    blockingStatusReason = blockingStatusReason,
+    failureReasons = failureReasons,
+  )
+}
 
-data class DtrServiceResultNew(
-  val serviceResult: ServiceResultNew,
+interface ServiceResultWrapper {
+  val serviceResult: ServiceResultNew
+  val actionPosition: Int
+}
+
+data class PaServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
+) : ServiceResultWrapper
+
+data class DtrServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
   val caseId: UUID?,
   val submission: DtrSubmissionDto?,
-)
+) : ServiceResultWrapper
 
-data class Cas1ServiceResultNew(
-  val serviceResult: ServiceResultNew,
+data class Cas1ServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
   val cas1Application: Cas1ApplicationDto?,
-)
+) : ServiceResultWrapper
 
-data class Cas2ServiceResultNew(
-  val serviceResult: ServiceResultNew,
+data class Cas2ServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
   val cas2Application: Cas2ApplicationDto?,
-)
+) : ServiceResultWrapper
 
-data class Cas3ServiceResultNew(
-  val serviceResult: ServiceResultNew,
+data class Cas3ServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
   val cas3Application: Cas3ApplicationDto?,
-)
+) : ServiceResultWrapper
 
-data class CrsServiceResultNew(
-  val serviceResult: ServiceResultNew,
+data class CrsServiceResultWrapper(
+  override val serviceResult: ServiceResultNew,
+  override val actionPosition: Int,
   val commissionedRehabilitativeServices: CommissionedRehabilitativeServicesDto?,
-)
+) : ServiceResultWrapper
 
 enum class ServiceStatusNew(
   val service: AccommodationService,
+  val proposedAction: CaseActionType?,
+  val isUpcoming: Boolean = false,
 ) {
 
   // CAS1 Service Statuses
   CAS1_PLACEMENT_BOOKED(
     service = AccommodationService.CAS1,
+    proposedAction = null,
   ),
   CAS1_UPCOMING(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
+    isUpcoming = true,
   ),
   CAS1_NOT_STARTED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
   ),
   CAS1_NOT_SUBMITTED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.CONTINUE_APPROVED_PREMISE_APPLICATION,
   ),
   CAS1_INFO_REQUESTED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.PROVIDE_INFORMATION,
   ),
   CAS1_SUBMITTED(
     service = AccommodationService.CAS1,
+    proposedAction = null,
   ),
   CAS1_NOT_ARRIVED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.CREATE_PLACEMENT,
   ),
   CAS1_PLACEMENT_CANCELLED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.CREATE_PLACEMENT,
   ),
   CAS1_PLACEMENT_REQUEST_NOT_STARTED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.CREATE_PLACEMENT,
   ),
   CAS1_PLACEMENT_REQUEST_WITHDRAWN(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.CREATE_PLACEMENT,
   ),
   CAS1_PLACEMENT_REQUEST_SUBMITTED(
     service = AccommodationService.CAS1,
+    proposedAction = null,
   ),
   CAS1_PLACEMENT_REQUEST_REJECTED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.CREATE_PLACEMENT,
   ),
   CAS1_APPLICATION_REJECTED(
     service = AccommodationService.CAS1,
+    proposedAction = CaseActionType.START_APPROVED_PREMISE_APPLICATION,
   ),
   CAS1_ARRIVED(
     service = AccommodationService.CAS1,
+    proposedAction = null,
   ),
   CAS1_NOT_ELIGIBLE(
     service = AccommodationService.CAS1,
+    proposedAction = null,
   ),
 
   // CAS2 Service Statuses
   CAS2_UNKNOWN(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_OFFER_DECLINED_OR_WITHDRAWN(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_SUBMITTED(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_NOT_STARTED(
     service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.START_CAS2_REFERRAL,
   ),
   CAS2_NOT_SUBMITTED(
     service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.CONTINUE_A_CAS2_REFERRAL,
   ),
   CAS2_UPCOMING(
     service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.START_CAS2_REFERRAL,
+    isUpcoming = true,
   ),
   CAS2_MORE_INFORMATION_NEEDED(
     service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.PROVIDE_MORE_INFORMATION_FOR_CAS2_REFERRAL,
   ),
   CAS2_AWAITING_DECISION(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_ON_WAITING_LIST(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_PLACE_OFFERED(
     service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.REPLY_TO_CAS2_PLACE_OFFER,
   ),
   CAS2_OFFER_ACCEPTED(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_CANCELLED(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_AWAITING_ARRIVAL(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_WITHDRAWN(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
   CAS2_NOT_ELIGIBLE(
     service = AccommodationService.CAS2,
+    proposedAction = null,
   ),
 
   // CAS3 Service Statuses
   CAS3_NOT_ARRIVED(
     service = AccommodationService.CAS3,
+    proposedAction = null,
   ),
   CAS3_SUBMITTED(
     service = AccommodationService.CAS3,
+    proposedAction = null,
   ),
   CAS3_NOT_STARTED(
     service = AccommodationService.CAS3,
+    proposedAction = CaseActionType.START_CAS3_REFERRAL,
   ),
   CAS3_NOT_SUBMITTED(
     service = AccommodationService.CAS3,
+    proposedAction = CaseActionType.CONTINUE_CAS3_REFERRAL,
   ),
   CAS3_REJECTED(
     service = AccommodationService.CAS3,
+    proposedAction = CaseActionType.START_CAS3_REFERRAL,
   ),
   CAS3_BEDSPACE_OFFERED(
     service = AccommodationService.CAS3,
+    proposedAction = CaseActionType.REPLY_TO_CAS3_BEDSPACE_OFFER,
   ),
   CAS3_BOOKING_CONFIRMED(
     service = AccommodationService.CAS3,
+    proposedAction = null,
   ),
   CAS3_BOOKING_CANCELLED(
     service = AccommodationService.CAS3,
+    proposedAction = null,
   ),
   CAS3_CANNOT_START_YET(
     service = AccommodationService.CAS3,
+    proposedAction = null,
   ),
   CAS3_NOT_ELIGIBLE(
     service = AccommodationService.CAS3,
+    proposedAction = null,
   ),
 
   // CRS Service Statuses
-  CRS_NOT_STARTED(
+  CRS_NOT_STARTED_REFERRAL(
     service = AccommodationService.CRS,
+    proposedAction = CaseActionType.SUBMIT_CRS_REFERRAL,
   ),
-  CRS_UPCOMING(
+  CRS_NOT_STARTED_ACCOMMODATION_REFERRAL(
     service = AccommodationService.CRS,
+    proposedAction = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
+  ),
+  CRS_UPCOMING_ACCOMMODATION_REFERRAL(
+    service = AccommodationService.CRS,
+    proposedAction = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL,
+    isUpcoming = true,
+  ),
+  CRS_UPCOMING_REFERRAL(
+    service = AccommodationService.CRS,
+    proposedAction = CaseActionType.SUBMIT_CRS_REFERRAL,
+    isUpcoming = true,
   ),
   CRS_SUBMITTED(
     service = AccommodationService.CRS,
+    proposedAction = null,
   ),
   CRS_NOT_REQUIRED(
     service = AccommodationService.CRS,
+    proposedAction = null,
   ),
   CRS_NOT_ELIGIBLE(
     service = AccommodationService.CRS,
+    proposedAction = null,
   ),
 
   // DTR Service Statuses
   DTR_SUBMITTED(
     service = AccommodationService.DTR,
+    proposedAction = CaseActionType.ADD_DTR_OUTCOME,
   ),
   DTR_UPCOMING(
     service = AccommodationService.DTR,
+    proposedAction = CaseActionType.SUBMIT_DTR_REFERRAL,
+    isUpcoming = true,
   ),
   DTR_NOT_STARTED(
     service = AccommodationService.DTR,
+    proposedAction = CaseActionType.ADD_DTR_REFERRAL_DETAILS,
   ),
   DTR_ACCEPTED(
     service = AccommodationService.DTR,
+    proposedAction = null,
   ),
   DTR_NOT_ACCEPTED(
     service = AccommodationService.DTR,
+    proposedAction = null,
   ),
   DTR_NOT_REQUIRED(
     service = AccommodationService.DTR,
+    proposedAction = null,
   ),
   DTR_NOT_ELIGIBLE(
     service = AccommodationService.DTR,
+    proposedAction = null,
   ),
 
   // PA Service Statuses
   PA_NOT_STARTED(
     service = AccommodationService.PA,
+    proposedAction = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS,
   ),
   PA_NOT_ELIGIBLE(
     service = AccommodationService.PA,
+    proposedAction = null,
   ),
   PA_COMPLETED(
     service = AccommodationService.PA,
+    proposedAction = null,
   ),
 }
 

@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.SexCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -31,8 +28,7 @@ class CrsCompletionContextUpdaterTest {
       val expectedContext = EvaluationContext(
         data = data,
         currentResult = buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CRS_NOT_STARTED,
-          action = CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, service = AccommodationService.CRS),
+          serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL,
           link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
           url = crsUiUrl,
         ),
@@ -54,8 +50,7 @@ class CrsCompletionContextUpdaterTest {
       val expectedContext = EvaluationContext(
         data = data,
         currentResult = buildServiceResultNew(
-          serviceStatus = ServiceStatusNew.CRS_NOT_STARTED,
-          action = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS),
+          serviceStatus = ServiceStatusNew.CRS_NOT_STARTED_REFERRAL,
           link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
           url = crsUiUrl,
         ),
