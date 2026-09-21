@@ -110,6 +110,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       submittedApplication = buildCas3SubmittedApplicationDto(
         assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
+        submittedDate = LocalDate.of(2025, 1, 2),
       ),
       assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
       uiUrl = cas3ReferralUiUrl,
@@ -219,8 +220,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         ),
       ),
-      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3Staff(),
       applicationRejectedReason = "Oops",
       assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
       bookingStatus = Cas3BookingStatus.CONFIRMED,
@@ -317,6 +316,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.REJECTED,
       uiUrl = cas3ReferralUiUrl,
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedDate = LocalDate.of(2025, 1, 2),
+      ),
     )
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 

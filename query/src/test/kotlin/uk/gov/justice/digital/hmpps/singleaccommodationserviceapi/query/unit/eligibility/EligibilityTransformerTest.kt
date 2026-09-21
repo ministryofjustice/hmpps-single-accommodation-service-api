@@ -51,6 +51,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.getServiceResultActionOrder
@@ -294,10 +295,12 @@ class EligibilityTransformerTest {
       ),
     )
     val cas3Application = buildCas3Application(
-      applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
+      applicationStatus = InfraCas3ApplicationStatus.SUBMITTED,
       id = UUID.randomUUID(),
-      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3Staff(),
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedDate = LocalDate.parse("2023-01-01"),
+        submittedBy = buildCas3Staff(),
+      ),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = InfraCas3AssessmentStatus.READY_TO_PLACE,
       bookingStatus = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
@@ -409,7 +412,7 @@ class EligibilityTransformerTest {
       ),
     )
     val cas3ApplicationDto = buildCas3ApplicationDto(
-      applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       id = cas3Application.id,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
       applicationSubmittedBy = buildCas3StaffDto(),

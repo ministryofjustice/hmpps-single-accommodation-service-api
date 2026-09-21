@@ -441,7 +441,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "cas3Application": {
         "id": "$cas3ApplicationId",
         "applicationStatus": "SUBMITTED",
-        "applicationSubmittedDate": null,
+        "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
           "name": "Test Tester",
           "username": "TestTester",
@@ -605,7 +605,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "cas3Application": {
         "id": "$cas3ApplicationId",
         "applicationStatus": "SUBMITTED",
-        "applicationSubmittedDate": null,
+        "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
           "name": "Test Tester",
           "username": "TestTester",
@@ -737,7 +737,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       "cas3Application": {
         "id": "$cas3ApplicationId",
         "applicationStatus": "REJECTED",
-        "applicationSubmittedDate": null,
+        "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
           "name": "Test Tester",
           "username": "TestTester",
