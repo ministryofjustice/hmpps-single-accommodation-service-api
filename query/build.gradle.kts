@@ -11,7 +11,6 @@ dependencies {
   testImplementation(libs.mockk)
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))
-  testImplementation(libs.apache.commons.csv)
 }
 
 tasks.register<JavaExec>("generateEligibilityRulesGraph") {

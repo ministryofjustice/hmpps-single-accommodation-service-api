@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.unit.accommodation
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.utils.CsvReader
 
 object CaseAccommodationStatusScenarioLoader {
   private const val CSV_RESOURCE_PATH = "/accommodation/CaseAccommodationStatusScenarios.csv"
@@ -29,47 +30,25 @@ object CaseAccommodationStatusScenarioLoader {
   }
 
   fun loadScenarios(): List<Scenario> {
-    val lines = CaseAccommodationStatusScenarioLoader::class.java
-      .getResourceAsStream(CSV_RESOURCE_PATH)
-      ?.bufferedReader()
-      ?.use { it.readLines() }
-      ?: error("CSV not found on classpath: $CSV_RESOURCE_PATH")
+    val rows = CsvReader().read(CSV_RESOURCE_PATH)
 
-    require(lines.isNotEmpty()) { "CSV is empty: $CSV_RESOURCE_PATH" }
+    require(rows.isNotEmpty()) { "CSV is empty: $CSV_RESOURCE_PATH" }
 
-    val headers = splitCsvLine(lines.first(), expectedColumns = null)
-
-    return lines
-      .drop(1)
-      .filter { it.isNotBlank() }
-      .mapIndexed { rowIndex, line ->
-        val values = splitCsvLine(line, expectedColumns = headers.size)
-        val row = headers.zip(values).toMap()
-
-        try {
-          Scenario(
-            id = row.getValue("id").toInt(),
-            testName = row.getValue("testName"),
-            currentType = row.getValue("currentType").nullIfBlank(),
-            currentEndDate = row.getValue("currentEndDate").nullIfBlank(),
-            nextType = row.getValue("nextType").nullIfBlank(),
-            nextEndDate = row.getValue("nextEndDate").nullIfBlank(),
-            expectedStatus = row.getValue("expectedStatus").toCaseAccommodationStatusOrNull(),
-          )
-        } catch (e: Exception) {
-          throw IllegalStateException("Failed to parse CSV row ${rowIndex + 2} from $CSV_RESOURCE_PATH: $row", e)
-        }
+    return rows.mapIndexed { rowIndex, row ->
+      try {
+        Scenario(
+          id = row.getValue("id").toInt(),
+          testName = row.getValue("testName"),
+          currentType = row.getValue("currentType").nullIfBlank(),
+          currentEndDate = row.getValue("currentEndDate").nullIfBlank(),
+          nextType = row.getValue("nextType").nullIfBlank(),
+          nextEndDate = row.getValue("nextEndDate").nullIfBlank(),
+          expectedStatus = row.getValue("expectedStatus").toCaseAccommodationStatusOrNull(),
+        )
+      } catch (e: Exception) {
+        throw IllegalStateException("Failed to parse CSV row ${rowIndex + 2} from $CSV_RESOURCE_PATH: $row", e)
       }
-  }
-
-  private fun splitCsvLine(line: String, expectedColumns: Int?): List<String> {
-    val columns = line.split(',', ignoreCase = false, limit = expectedColumns ?: 0)
-
-    if (expectedColumns != null && columns.size != expectedColumns) {
-      error("Expected $expectedColumns columns but found ${columns.size} in line: $line")
     }
-
-    return columns
   }
 
   private fun String?.nullIfBlank(): String? = this?.takeIf { it.isNotBlank() }
