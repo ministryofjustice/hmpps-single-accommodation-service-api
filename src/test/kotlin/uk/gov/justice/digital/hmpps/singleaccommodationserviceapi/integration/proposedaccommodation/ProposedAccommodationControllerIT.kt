@@ -256,6 +256,27 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     @Test
     fun `should get proposed-accommodations sorted by createdAt descending`() {
       createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
         id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
         caseEntity = caseEntity,
         accommodationSource = AccommodationSource.SAS,
@@ -318,7 +339,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         .returnResult()
         .responseBody!!
 
-      assertThat(response.data.size).isEqualTo(3)
+      assertThat(response.data.size).isEqualTo(4)
 
       val firstAccommodation = response.data[0]
       assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
@@ -376,6 +397,336 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
       assertThat(thirdAccommodation.address.subBuildingName).isEqualTo(null)
       assertThat(thirdAccommodation.address.uprn).isEqualTo(null)
       assertThat(thirdAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val fourthAccommodation = response.data[3]
+      assertThat(fourthAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(fourthAccommodation.crn).isEqualTo("X371199")
+      assertThat(fourthAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(fourthAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(fourthAccommodation.verificationStatus).isEqualTo(null)
+      assertThat(fourthAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(fourthAccommodation.address.postcode).isEqualTo("V2 9FR")
+      assertThat(fourthAccommodation.address.postTown).isEqualTo("Newcastle")
+      assertThat(fourthAccommodation.address.buildingNumber).isEqualTo("123")
+      assertThat(fourthAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(fourthAccommodation.address.thoroughfareName).isEqualTo("Busy Road")
+      assertThat(fourthAccommodation.address.country).isEqualTo("England")
+      assertThat(fourthAccommodation.address.county).isEqualTo("Tyne and Wear")
+      assertThat(fourthAccommodation.address.dependentLocality).isEqualTo("Newcastle upon Tyne")
+      assertThat(fourthAccommodation.address.subBuildingName).isEqualTo("The Flat")
+      assertThat(fourthAccommodation.address.uprn).isEqualTo("903073336956")
+      assertThat(fourthAccommodation.createdBy).isEqualTo("Test Data Setup User")
+    }
+
+    @Test
+    fun `should exclude FAILED proposed-accommodations sorted by createdAt descending with excludeVerificationFailed=true`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(3)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.crn).isEqualTo("X371199")
+      assertThat(firstAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(firstAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(firstAccommodation.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(firstAccommodation.address.postcode).isEqualTo("G5 6HI")
+      assertThat(firstAccommodation.address.postTown).isEqualTo("Glasgow")
+      assertThat(firstAccommodation.address.buildingNumber).isEqualTo("201")
+      assertThat(firstAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(firstAccommodation.address.thoroughfareName).isEqualTo("Manchester Road")
+      assertThat(firstAccommodation.address.country).isEqualTo("Scotland")
+      assertThat(firstAccommodation.address.county).isEqualTo("Lanarkshire")
+      assertThat(firstAccommodation.address.dependentLocality).isEqualTo("East Lothian")
+      assertThat(firstAccommodation.address.subBuildingName).isEqualTo("The Office")
+      assertThat(firstAccommodation.address.uprn).isEqualTo("100023336956")
+      assertThat(firstAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(secondAccommodation.crn).isEqualTo("X371199")
+      assertThat(secondAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(secondAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(secondAccommodation.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+      assertThat(secondAccommodation.address.postcode).isEqualTo("A1 2BC")
+      assertThat(secondAccommodation.address.postTown).isEqualTo("London")
+      assertThat(secondAccommodation.address.buildingNumber).isEqualTo("11")
+      assertThat(secondAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.thoroughfareName).isEqualTo("Piccadilly Circus")
+      assertThat(secondAccommodation.address.country).isEqualTo("England")
+      assertThat(secondAccommodation.address.county).isEqualTo(null)
+      assertThat(secondAccommodation.address.dependentLocality).isEqualTo(null)
+      assertThat(secondAccommodation.address.subBuildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.uprn).isEqualTo(null)
+      assertThat(secondAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(thirdAccommodation.crn).isEqualTo("X371199")
+      assertThat(thirdAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(thirdAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(thirdAccommodation.verificationStatus).isEqualTo(null)
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(thirdAccommodation.address.postcode).isEqualTo("V2 9FR")
+      assertThat(thirdAccommodation.address.postTown).isEqualTo("Newcastle")
+      assertThat(thirdAccommodation.address.buildingNumber).isEqualTo("123")
+      assertThat(thirdAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.thoroughfareName).isEqualTo("Busy Road")
+      assertThat(thirdAccommodation.address.country).isEqualTo("England")
+      assertThat(thirdAccommodation.address.county).isEqualTo("Tyne and Wear")
+      assertThat(thirdAccommodation.address.dependentLocality).isEqualTo("Newcastle upon Tyne")
+      assertThat(thirdAccommodation.address.subBuildingName).isEqualTo("The Flat")
+      assertThat(thirdAccommodation.address.uprn).isEqualTo("903073336956")
+      assertThat(thirdAccommodation.createdBy).isEqualTo("Test Data Setup User")
+    }
+
+    @Test
+    fun `should get all proposed-accommodations sorted by createdAt descending with excludeVerificationFailed=false`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(4)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.crn).isEqualTo("X371199")
+      assertThat(firstAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(firstAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(firstAccommodation.verificationStatus).isEqualTo(VerificationStatus.FAILED)
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(firstAccommodation.address.postcode).isEqualTo("G5 6HI")
+      assertThat(firstAccommodation.address.postTown).isEqualTo("Glasgow")
+      assertThat(firstAccommodation.address.buildingNumber).isEqualTo("201")
+      assertThat(firstAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(firstAccommodation.address.thoroughfareName).isEqualTo("Manchester Road")
+      assertThat(firstAccommodation.address.country).isEqualTo("Scotland")
+      assertThat(firstAccommodation.address.county).isEqualTo("Lanarkshire")
+      assertThat(firstAccommodation.address.dependentLocality).isEqualTo("East Lothian")
+      assertThat(firstAccommodation.address.subBuildingName).isEqualTo("The Office")
+      assertThat(firstAccommodation.address.uprn).isEqualTo("100023336956")
+      assertThat(firstAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d")
+      assertThat(secondAccommodation.crn).isEqualTo("X371199")
+      assertThat(secondAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(secondAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(secondAccommodation.verificationStatus).isEqualTo(VerificationStatus.NOT_CHECKED_YET)
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.TO_BE_DECIDED)
+      assertThat(secondAccommodation.address.postcode).isEqualTo("D3 4EF")
+      assertThat(secondAccommodation.address.postTown).isEqualTo("London")
+      assertThat(secondAccommodation.address.buildingNumber).isEqualTo("12")
+      assertThat(secondAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(secondAccommodation.address.thoroughfareName).isEqualTo("Trafalgar Square")
+      assertThat(secondAccommodation.address.country).isEqualTo("England")
+      assertThat(secondAccommodation.address.county).isEqualTo("Lancashire")
+      assertThat(secondAccommodation.address.dependentLocality).isEqualTo("East Renfrewshire")
+      assertThat(secondAccommodation.address.subBuildingName).isEqualTo("The Building")
+      assertThat(secondAccommodation.address.uprn).isEqualTo(null)
+      assertThat(secondAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(thirdAccommodation.crn).isEqualTo("X371199")
+      assertThat(thirdAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(thirdAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(thirdAccommodation.verificationStatus).isEqualTo(VerificationStatus.PASSED)
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+      assertThat(thirdAccommodation.address.postcode).isEqualTo("A1 2BC")
+      assertThat(thirdAccommodation.address.postTown).isEqualTo("London")
+      assertThat(thirdAccommodation.address.buildingNumber).isEqualTo("11")
+      assertThat(thirdAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.thoroughfareName).isEqualTo("Piccadilly Circus")
+      assertThat(thirdAccommodation.address.country).isEqualTo("England")
+      assertThat(thirdAccommodation.address.county).isEqualTo(null)
+      assertThat(thirdAccommodation.address.dependentLocality).isEqualTo(null)
+      assertThat(thirdAccommodation.address.subBuildingName).isEqualTo(null)
+      assertThat(thirdAccommodation.address.uprn).isEqualTo(null)
+      assertThat(thirdAccommodation.createdBy).isEqualTo("Test Data Setup User")
+
+      val fourthAccommodation = response.data[3]
+      assertThat(fourthAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(fourthAccommodation.crn).isEqualTo("X371199")
+      assertThat(fourthAccommodation.accommodationType?.code).isEqualTo("A07B")
+      assertThat(fourthAccommodation.accommodationType?.description).isEqualTo("Living in the home of a friend, family member or partner: settled")
+      assertThat(fourthAccommodation.verificationStatus).isEqualTo(null)
+      assertThat(fourthAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+      assertThat(fourthAccommodation.address.postcode).isEqualTo("V2 9FR")
+      assertThat(fourthAccommodation.address.postTown).isEqualTo("Newcastle")
+      assertThat(fourthAccommodation.address.buildingNumber).isEqualTo("123")
+      assertThat(fourthAccommodation.address.buildingName).isEqualTo(null)
+      assertThat(fourthAccommodation.address.thoroughfareName).isEqualTo("Busy Road")
+      assertThat(fourthAccommodation.address.country).isEqualTo("England")
+      assertThat(fourthAccommodation.address.county).isEqualTo("Tyne and Wear")
+      assertThat(fourthAccommodation.address.dependentLocality).isEqualTo("Newcastle upon Tyne")
+      assertThat(fourthAccommodation.address.subBuildingName).isEqualTo("The Flat")
+      assertThat(fourthAccommodation.address.uprn).isEqualTo("903073336956")
+      assertThat(fourthAccommodation.createdBy).isEqualTo("Test Data Setup User")
     }
 
     @Test
