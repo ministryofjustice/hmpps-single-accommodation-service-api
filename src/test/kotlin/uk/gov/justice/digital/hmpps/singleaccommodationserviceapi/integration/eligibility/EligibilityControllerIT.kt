@@ -218,13 +218,13 @@ class EligibilityControllerIT : IntegrationTestBase() {
             postcode = "Test Postcode",
           ),
         ),
-      ),
-      previousBookings = listOf(
-        buildCas3ExternalPreviousBooking(
-          bookingStatus = Cas3BookingStatus.CANCELLED,
-          cancellation = buildCas3ExternalPreviousBookingCancellation(
-            cancellationDate = LocalDate.parse("2023-01-03"),
-            cancellationReason = "Mistake",
+        previousBookings = listOf(
+          buildCas3ExternalPreviousBooking(
+            bookingStatus = Cas3BookingStatus.CANCELLED,
+            cancellation = buildCas3ExternalPreviousBookingCancellation(
+              cancellationDate = LocalDate.parse("2023-01-03"),
+              cancellationReason = "Mistake",
+            ),
           ),
         ),
       ),

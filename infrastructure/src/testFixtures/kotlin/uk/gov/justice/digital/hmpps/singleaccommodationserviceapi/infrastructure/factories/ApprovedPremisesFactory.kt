@@ -167,13 +167,11 @@ fun buildCas3Application(
     Cas3ApplicationStatus.REJECTED -> buildCas3SubmittedApplicationDto()
   },
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
-  previousBookings: List<Cas3PreviousBooking>? = emptyList(),
 ) = Cas3Application(
   id = id,
   applicationStatus = applicationStatus,
   submittedApplication = submittedApplication,
   uiUrl = uiUrl,
-  previousBookings = previousBookings,
 )
 
 fun buildCas3SubmittedApplicationDto(
@@ -182,12 +180,14 @@ fun buildCas3SubmittedApplicationDto(
   assessmentStatus: Cas3AssessmentStatus? = null,
   assessmentRejectionReason: String? = null,
   latestBooking: Cas3LatestBooking? = null,
+  previousBookings: List<Cas3PreviousBooking>? = emptyList(),
 ) = Cas3SubmittedApplication(
   submittedDate,
   submittedBy,
   assessmentStatus,
   assessmentRejectionReason,
   latestBooking,
+  previousBookings,
 )
 
 fun buildCas3LatestBooking(

@@ -9,7 +9,6 @@ data class Cas3Application(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
   val submittedApplication: Cas3SubmittedApplication?,
-  val previousBookings: List<Cas3PreviousBooking>?,
   val uiUrl: String,
 ) {
   init {
@@ -28,6 +27,7 @@ data class Cas3SubmittedApplication(
   val assessmentStatus: Cas3AssessmentStatus?,
   val assessmentRejectionReason: String?,
   val latestBooking: Cas3LatestBooking?,
+  val previousBookings: List<Cas3PreviousBooking>?,
 ) {
   init {
     requireXor(

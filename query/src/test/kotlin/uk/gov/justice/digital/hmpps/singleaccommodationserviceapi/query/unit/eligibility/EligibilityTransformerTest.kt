@@ -316,13 +316,13 @@ class EligibilityTransformerTest {
             postcode = "SW1A 1AX",
           ),
         ),
-      ),
-      previousBookings = listOf(
-        buildCas3ExternalPreviousBooking(
-          bookingStatus = InfraCas3BookingStatus.DEPARTED,
-          cancellation = buildCas3ExternalPreviousBookingCancellation(
-            cancellationDate = LocalDate.parse("2023-01-03"),
-            cancellationReason = "Booking cancelled",
+        previousBookings = listOf(
+          buildCas3ExternalPreviousBooking(
+            bookingStatus = InfraCas3BookingStatus.DEPARTED,
+            cancellation = buildCas3ExternalPreviousBookingCancellation(
+              cancellationDate = LocalDate.parse("2023-01-03"),
+              cancellationReason = "Booking cancelled",
+            ),
           ),
         ),
       ),
