@@ -49,8 +49,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
@@ -194,17 +195,21 @@ object EligibilityTransformer {
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,
   ) = cas3Application?.let { application ->
+
+    val submittedApplication = application.submittedApplication
+    val latestBooking = submittedApplication?.latestBooking
+
     Cas3ApplicationDto(
       id = application.id,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
-      assessmentStatus = toCas3AssessmentStatus(application.assessmentStatus),
-      bookingStatus = toCas3BookingStatus(application.bookingStatus),
-      applicationSubmittedDate = application.applicationSubmittedDate,
-      applicationSubmittedBy = toCas3StaffDto(application.applicationSubmittedBy),
-      applicationRejectedReason = application.applicationRejectedReason,
-      bookingProvisionalOfferSentDate = application.bookingProvisionalOfferSentDate,
+      assessmentStatus = toCas3AssessmentStatus(submittedApplication?.assessmentStatus),
+      bookingStatus = toCas3BookingStatus(latestBooking?.status),
+      applicationSubmittedDate = submittedApplication?.submittedDate,
+      applicationSubmittedBy = submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },
+      applicationRejectedReason = submittedApplication?.assessmentRejectionReason,
+      bookingProvisionalOfferSentDate = latestBooking?.provisionalOfferSentDate,
       previousBookings = toPreviousBookings(application.previousBookings),
-      premises = toCas3PremisesSummaryDto(application.premises),
+      premises = latestBooking?.let { toCas3PremisesSummaryDto(it.premises) },
       uiUrl = application.uiUrl,
     )
   }
@@ -223,7 +228,7 @@ object EligibilityTransformer {
   }
 
   private fun toCas3PremisesSummaryDto(
-    premises: Cas3LatestBookingPremisesDto?,
+    premises: Cas3BookingPremises?,
   ) = premises?.let { premises ->
     Cas3PremisesSummaryDto(
       startDate = premises.startDate,
@@ -274,7 +279,7 @@ object EligibilityTransformer {
   }
 
   private fun toPreviousBookings(
-    previousBookings: List<uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBookingDto>?,
+    previousBookings: List<Cas3PreviousBooking>?,
   ) = previousBookings?.map { booking ->
     Cas3ExternalPreviousBookingDto(
       bookingStatus = toCas3BookingStatus(booking.bookingStatus),

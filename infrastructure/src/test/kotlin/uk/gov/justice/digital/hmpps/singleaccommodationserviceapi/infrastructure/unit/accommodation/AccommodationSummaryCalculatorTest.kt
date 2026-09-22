@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.accommodation.AccommodationSummaryCalculator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
@@ -33,7 +34,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
@@ -487,8 +490,13 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `returns CAS3 next accommodation when application booking status is CONFIRMED`() {
       val cas3Application = buildCas3Application(
-        bookingStatus = Cas3BookingStatus.CONFIRMED,
-        premises = buildCas3PremisesSummary(),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3PremisesSummary(),
+          ),
+        ),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -526,8 +534,13 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `ignores CAS3 application when booking status is not CONFIRMED`() {
       val cas3Application = buildCas3Application(
-        bookingStatus = Cas3BookingStatus.ARRIVED,
-        premises = buildCas3PremisesSummary(),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3PremisesSummary(),
+          ),
+        ),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -635,8 +648,13 @@ class AccommodationSummaryCalculatorTest {
         ),
       )
       val cas3Application = buildCas3Application(
-        bookingStatus = Cas3BookingStatus.CONFIRMED,
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+          ),
+        ),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -674,8 +692,13 @@ class AccommodationSummaryCalculatorTest {
         ),
       )
       val cas3Application = buildCas3Application(
-        bookingStatus = Cas3BookingStatus.CONFIRMED,
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+          ),
+        ),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -710,8 +733,13 @@ class AccommodationSummaryCalculatorTest {
         ),
       )
       val cas3Application = buildCas3Application(
-        bookingStatus = Cas3BookingStatus.ARRIVED,
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+          ),
+        ),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -746,8 +774,13 @@ class AccommodationSummaryCalculatorTest {
         ),
       )
       val cas3Application = buildCas3Application(
-        bookingStatus = Cas3BookingStatus.ARRIVED,
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
+          ),
+        ),
       )
 
       val result = calculator.calculateNextAccommodations(

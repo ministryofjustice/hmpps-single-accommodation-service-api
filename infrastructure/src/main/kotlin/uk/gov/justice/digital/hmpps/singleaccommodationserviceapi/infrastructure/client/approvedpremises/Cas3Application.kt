@@ -8,23 +8,8 @@ import java.util.UUID
 data class Cas3Application(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
-  val submittedApplication: Cas3SubmittedApplicationDto?,
-  @Deprecated("Use submittedApplication instead")
-  val applicationSubmittedDate: LocalDate?,
-  @Deprecated("Use submittedApplication instead")
-  val applicationSubmittedBy: Cas3Staff,
-  @Deprecated("Use submittedApplication instead")
-  val applicationRejectedReason: String?,
-  @Deprecated("Use submittedApplication instead")
-  val assessmentStatus: Cas3AssessmentStatus?,
-  @Deprecated("Use submittedApplication instead")
-  val bookingStatus: Cas3BookingStatus?,
-  @Deprecated("Use submittedApplication instead")
-  val bookingProvisionalOfferSentDate: LocalDate?,
-  @Deprecated("Use submittedApplication instead")
-  val previousBookings: List<Cas3PreviousBookingDto>?,
-  @Deprecated("Use submittedApplication instead")
-  val premises: Cas3LatestBookingPremisesDto?,
+  val submittedApplication: Cas3SubmittedApplication?,
+  val previousBookings: List<Cas3PreviousBooking>?,
   val uiUrl: String,
 ) {
   init {
@@ -37,12 +22,12 @@ data class Cas3Application(
   }
 }
 
-data class Cas3SubmittedApplicationDto(
+data class Cas3SubmittedApplication(
   val submittedDate: LocalDate,
   val submittedBy: Cas3Staff,
   val assessmentStatus: Cas3AssessmentStatus?,
   val assessmentRejectionReason: String?,
-  val latestBooking: Cas3LatestBookingDto?,
+  val latestBooking: Cas3LatestBooking?,
 ) {
   init {
     requireXor(
@@ -54,13 +39,13 @@ data class Cas3SubmittedApplicationDto(
   }
 }
 
-data class Cas3LatestBookingDto(
+data class Cas3LatestBooking(
   val status: Cas3BookingStatus?,
   val provisionalOfferSentDate: LocalDate?,
-  val premises: Cas3LatestBookingPremisesDto,
+  val premises: Cas3BookingPremises,
 )
 
-data class Cas3PreviousBookingDto(
+data class Cas3PreviousBooking(
   val bookingStatus: Cas3BookingStatus?,
   val cancellation: Cas3ExternalPreviousBookingCancellation?,
 )
@@ -76,7 +61,7 @@ data class Cas3Staff(
   val staffCode: String,
 )
 
-data class Cas3LatestBookingPremisesDto(
+data class Cas3BookingPremises(
   val name: String?,
   val startDate: LocalDate?,
   val endDate: LocalDate?,

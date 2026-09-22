@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
@@ -110,8 +110,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       submittedApplication = buildCas3SubmittedApplicationDto(
         assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
+        submittedDate = LocalDate.of(2025, 1, 2),
       ),
-      assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
       uiUrl = cas3ReferralUiUrl,
     )
 
@@ -200,12 +200,12 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val cas3Application = Cas3Application(
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      submittedApplication = Cas3SubmittedApplicationDto(
+      submittedApplication = Cas3SubmittedApplication(
         submittedDate = LocalDate.parse("2023-01-01"),
         submittedBy = buildCas3Staff(),
-        assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-        assessmentRejectionReason = null,
-        latestBooking = Cas3LatestBookingDto(
+        assessmentStatus = Cas3AssessmentStatus.REJECTED,
+        assessmentRejectionReason = "Oops",
+        latestBooking = Cas3LatestBooking(
           status = Cas3BookingStatus.CONFIRMED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
           premises = buildCas3PremisesSummary(
@@ -219,12 +219,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         ),
       ),
-      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3Staff(),
-      applicationRejectedReason = "Oops",
-      assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-      bookingStatus = Cas3BookingStatus.CONFIRMED,
-      bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(
         buildCas3ExternalPreviousBooking(
           bookingStatus = Cas3BookingStatus.CANCELLED,
@@ -233,15 +227,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
             cancellationReason = "Mistake",
           ),
         ),
-      ),
-      premises = buildCas3PremisesSummary(
-        name = "Test Premises",
-        startDate = LocalDate.parse("2023-01-04"),
-        endDate = LocalDate.parse("2023-01-05"),
-        addressLine1 = "123 Test Street",
-        addressLine2 = "Test Road",
-        town = "Test Town",
-        postcode = "Test Postcode",
       ),
       uiUrl = cas3ReferralUiUrl,
     )
@@ -317,6 +302,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.REJECTED,
       uiUrl = cas3ReferralUiUrl,
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedDate = LocalDate.of(2025, 1, 2),
+      ),
     )
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
 

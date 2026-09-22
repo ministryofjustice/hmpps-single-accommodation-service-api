@@ -49,8 +49,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.getServiceResultActionOrder
@@ -294,14 +296,27 @@ class EligibilityTransformerTest {
       ),
     )
     val cas3Application = buildCas3Application(
-      applicationStatus = InfraCas3ApplicationStatus.IN_PROGRESS,
+      applicationStatus = InfraCas3ApplicationStatus.SUBMITTED,
       id = UUID.randomUUID(),
-      applicationSubmittedDate = LocalDate.parse("2023-01-01"),
-      applicationSubmittedBy = buildCas3Staff(),
-      applicationRejectedReason = "Problem with application",
-      assessmentStatus = InfraCas3AssessmentStatus.READY_TO_PLACE,
-      bookingStatus = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
-      bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedDate = LocalDate.parse("2023-01-01"),
+        submittedBy = buildCas3Staff(),
+        assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
+        assessmentRejectionReason = "Problem with application",
+        latestBooking = buildCas3LatestBooking(
+          status = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
+          provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+          premises = buildCas3PremisesSummary(
+            name = "123 Main St",
+            startDate = LocalDate.parse("2023-01-04"),
+            endDate = LocalDate.parse("2023-01-05"),
+            addressLine1 = "124 Main St",
+            addressLine2 = "Apt 1",
+            town = "Lincoln",
+            postcode = "SW1A 1AX",
+          ),
+        ),
+      ),
       previousBookings = listOf(
         buildCas3ExternalPreviousBooking(
           bookingStatus = InfraCas3BookingStatus.DEPARTED,
@@ -310,15 +325,6 @@ class EligibilityTransformerTest {
             cancellationReason = "Booking cancelled",
           ),
         ),
-      ),
-      premises = buildCas3PremisesSummary(
-        name = "123 Main St",
-        startDate = LocalDate.parse("2023-01-04"),
-        endDate = LocalDate.parse("2023-01-05"),
-        addressLine1 = "124 Main St",
-        addressLine2 = "Apt 1",
-        town = "Lincoln",
-        postcode = "SW1A 1AX",
       ),
       uiUrl = "aUrl",
     )
@@ -409,12 +415,12 @@ class EligibilityTransformerTest {
       ),
     )
     val cas3ApplicationDto = buildCas3ApplicationDto(
-      applicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
+      applicationStatus = Cas3ApplicationStatus.SUBMITTED,
       id = cas3Application.id,
       applicationSubmittedDate = LocalDate.parse("2023-01-01"),
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
-      assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+      assessmentStatus = Cas3AssessmentStatus.REJECTED,
       bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(

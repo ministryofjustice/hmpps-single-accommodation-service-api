@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
@@ -63,7 +63,7 @@ class EligibilityOrchestrationService(
     val crs = results.getResult<List<CommissionedRehabilitativeServices>>(GET_CRS)
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES)
-    val cas3CurrentPremises = results.getResult<Cas3LatestBookingPremisesDto>(GET_CAS_3_CURRENT_PREMISES)
+    val cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES)
 
     return OrchestrationResultDto(
       data = EligibilityOrchestrationDto(

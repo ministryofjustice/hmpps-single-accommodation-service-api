@@ -9,8 +9,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
@@ -47,7 +47,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
-    cas3CurrentPremises: Cas3LatestBookingPremisesDto?,
+    cas3CurrentPremises: Cas3BookingPremises?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
   ): AccommodationSummariesDto {
@@ -79,7 +79,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
-    cas3CurrentPremises: Cas3LatestBookingPremisesDto?,
+    cas3CurrentPremises: Cas3BookingPremises?,
   ): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
     toAccommodationSummary(crn, prisoner, includePrisonNameInAddress = true)
   } else {
@@ -124,7 +124,8 @@ class AccommodationSummaryCalculator(
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
 
-    val cas3NextAccommodation = cas3Application?.takeIf { it.bookingStatus == Cas3BookingStatus.CONFIRMED }
+    val cas3LatestBooking = cas3Application?.submittedApplication?.latestBooking
+    val cas3NextAccommodation = cas3LatestBooking?.takeIf { it.status == Cas3BookingStatus.CONFIRMED }
       ?.premises?.let {
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }

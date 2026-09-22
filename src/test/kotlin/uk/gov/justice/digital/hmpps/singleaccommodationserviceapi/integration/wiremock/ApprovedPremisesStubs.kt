@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.CasService
@@ -41,7 +41,7 @@ object ApprovedPremisesStubs {
     )
   }
 
-  fun getCas3CurrentPremisesOKResponse(crn: String, response: Cas3LatestBookingPremisesDto) {
+  fun getCas3CurrentPremisesOKResponse(crn: String, response: Cas3BookingPremises) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/premises/current"))
         .willReturn(okJson(jsonMapper.writeValueAsString(response))),
