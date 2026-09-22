@@ -780,10 +780,10 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = cas3Application,
     )
-    ApprovedPremisesStubs.getCas1SuitableApplicationNoContentResponse(
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
       crn = crn,
     )
-    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
       crn = crn,
     )
     restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
