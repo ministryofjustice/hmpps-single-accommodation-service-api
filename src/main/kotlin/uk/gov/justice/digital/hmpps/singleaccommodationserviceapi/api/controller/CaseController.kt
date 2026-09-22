@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
@@ -28,6 +29,7 @@ class CaseController(
     summary = "Get list of cases for the current user or selected team",
     description = """Returns the case list for the authenticated user. By default, returns cases allocated to the 
       current user. Supplying the teamCode parameter returns cases allocated to all users in that team. 
+      Supplying the peopleType parameter returns cases filtered by the selected tab (support needed or housing secured).
       Results can be further filtered by risk level and a free-text search term.""",
   )
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -39,6 +41,8 @@ class CaseController(
     @RequestParam(required = false) searchTerm: String?,
     @Parameter(description = "Team code to retrieve cases for all users in a team rather than the current user.")
     @RequestParam(required = false) teamCode: String?,
+    @Parameter(description = "People type to filter based on tabs")
+    @RequestParam(required = false) peopleType: PeopleType?,
   ): ResponseEntity<ApiResponseDto<List<CaseDto>>> {
     val normalizedTeamCode = teamCode?.trim()?.takeIf { it.isNotEmpty() }
     val personDtos = caseQueryService.getCaseList(normalizedTeamCode)
@@ -47,7 +51,7 @@ class CaseController(
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
     val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = !caseQueryService.caseListV2Enabled)
-    val caseDtos = caseQueryService.getCases(filteredCaseList)
+    val caseDtos = caseQueryService.getCases(filteredCaseList, peopleType)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
 

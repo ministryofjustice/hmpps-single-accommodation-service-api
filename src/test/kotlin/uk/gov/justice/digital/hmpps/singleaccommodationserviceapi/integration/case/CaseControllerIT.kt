@@ -578,13 +578,13 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `should filter cases based on provided search parameters`(v2Enabled: Boolean) {
     setCaseListV2Enabled(v2Enabled)
 
-    stubCaseList()
-    seedCaseEntities()
+    val caseList = stubCaseList()
+    seedAllCaseEntitiesForV2(caseList)
     stubAdditionalCorePersonRecords()
 
     val failures = mutableListOf<String>()
 
-    caseListFilters().forEach { filter ->
+    caseListFilters(v2Enabled).forEach { filter ->
       val response = restTestClient.get().uri {
         it.path("/case-list")
           .queryParam(filter.queryParameter, filter.value).build()
@@ -682,7 +682,7 @@ class CaseControllerIT : IntegrationTestBase() {
       .isNotFound
   }
 
-  private fun caseListFilters() = listOf(
+  private fun caseListFilters(v2Enabled: Boolean) = listOf(
     CaseListFilter("searchTerm", "AAAAA", 0),
     CaseListFilter("searchTerm", "FAKECRN1", 1, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "FIR", 17, listOf(containsNoLimitedCases())),
@@ -699,6 +699,8 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("teamCode", "", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "ABC123", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "OTHERTEAM", 0),
+    CaseListFilter("peopleType", "HOUSED", if (v2Enabled) 18 else 20),
+    CaseListFilter("peopleType", "NFA_RISK", if (v2Enabled) 2 else 20),
   )
 
   private fun containsNoLimitedCases(): (List<CaseDto>) -> Unit = { response ->

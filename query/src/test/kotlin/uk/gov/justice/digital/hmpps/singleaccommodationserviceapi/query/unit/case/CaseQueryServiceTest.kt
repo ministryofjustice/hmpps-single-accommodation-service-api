@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PeopleType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
@@ -34,6 +35,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
@@ -65,6 +67,8 @@ class CaseQueryServiceTest {
 
   private val crnOne = "X12345"
   private val crnTwo = "X12346"
+  private val crnThree = "X12347"
+  private val crnFour = "X12348"
   private val username = "user1"
 
   val assignedTo = AssignedToDto(
@@ -350,6 +354,43 @@ class CaseQueryServiceTest {
       limitedAccess = true,
     )
 
+    private fun setupFourCaseV2Scenario(): List<PersonDto> {
+      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour)
+
+      val staff = buildOfficer(username = username)
+      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
+      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
+      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
+
+      val caseEntitySettled = buildCaseEntity {
+        withCrn(crnOne)
+        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
+        accommodationStatus = CaseAccommodationStatus.SETTLED
+      }
+      val caseEntityTransient = buildCaseEntity {
+        withCrn(crnTwo)
+        accommodationStatus = CaseAccommodationStatus.TRANSIENT
+      }
+      val caseEntityRisk = buildCaseEntity {
+        withCrn(crnThree)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+      }
+      val caseEntityNo = buildCaseEntity {
+        withCrn(crnFour)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+      }
+
+      every { caseRepository.mapByCrns(crnList) } returns mapOf(
+        crnOne to caseEntitySettled,
+        crnTwo to caseEntityTransient,
+        crnThree to caseEntityRisk,
+        crnFour to caseEntityNo,
+      )
+
+      return listOf(personDto1, personDto2, personDto3, personDto4)
+    }
+
     @BeforeEach
     fun setUp() {
       every { userService.getUsername() } returns Username(username)
@@ -453,51 +494,12 @@ class CaseQueryServiceTest {
           caseListV2Enabled = true,
         )
       }
-      val crnThree = "X12347"
-      val crnFour = "X12348"
-      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour)
-
-      val staff = buildOfficer(username = username)
-      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
-      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
-      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
-      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
-      val personDtos = listOf(
-        personDto1,
-        personDto2,
-        personDto3,
-        personDto4,
-      )
-      val caseEntitySettled = buildCaseEntity {
-        withCrn(crnOne)
-        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
-        accommodationStatus = CaseAccommodationStatus.SETTLED
-      }
-      val caseEntityTransient = buildCaseEntity {
-        withCrn(crnTwo)
-        accommodationStatus = CaseAccommodationStatus.TRANSIENT
-      }
-      val caseEntityRisk = buildCaseEntity {
-        withCrn(crnThree)
-        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-      }
-      val caseEntityNo = buildCaseEntity {
-        withCrn(crnFour)
-        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
-      }
-      val caseEntities = mapOf(
-        crnOne to caseEntitySettled,
-        crnTwo to caseEntityTransient,
-        crnThree to caseEntityRisk,
-        crnFour to caseEntityNo,
-      )
+      val personDtos = setupFourCaseV2Scenario()
 
       val caseDto1 = buildCaseDto(crn = crnOne)
       val caseDto2 = buildCaseDto(crn = crnTwo)
       val caseDto3 = buildCaseDto(crn = crnThree)
       val caseDto4 = buildCaseDto(crn = crnFour)
-
-      every { caseRepository.mapByCrns(crnList) } returns caseEntities
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
@@ -513,6 +515,52 @@ class CaseQueryServiceTest {
           )
       } else {
         assertThat(result).containsExactly(caseDto1, caseDto2, caseDto3, caseDto4)
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = ["HOUSED", "NFA_RISK", "<NULL>"],
+      nullValues = ["<NULL>"],
+    )
+    fun `should get cases as all cases from case table and filter them`(peopleType: PeopleType?) {
+      caseQueryService = CaseQueryService(
+        caseOrchestrationService = caseOrchestrationService,
+        userService = userService,
+        caseRepository = caseRepository,
+        caseListV2Enabled = true,
+      )
+      val personDtos = setupFourCaseV2Scenario()
+
+      val result = caseQueryService.getCases(personDtos = personDtos, peopleType = peopleType)
+
+      when (peopleType) {
+        PeopleType.HOUSED -> {
+          assertThat(result).hasSize(1)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnOne to CaseAccommodationStatus.SETTLED,
+            )
+        }
+        PeopleType.NFA_RISK -> {
+          assertThat(result).hasSize(3)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+              crnTwo to CaseAccommodationStatus.TRANSIENT,
+            )
+        }
+        else -> {
+          assertThat(result).hasSize(4)
+          assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+            .containsExactly(
+              crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+              crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
+              crnTwo to CaseAccommodationStatus.TRANSIENT,
+              crnOne to CaseAccommodationStatus.SETTLED,
+            )
+        }
       }
     }
   }
