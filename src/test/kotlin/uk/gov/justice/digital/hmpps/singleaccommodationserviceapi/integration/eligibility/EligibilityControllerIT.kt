@@ -44,6 +44,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.asJsonValue
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityCasApplicationsNotFoundResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityNotEligibleSTierFail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.eligibility.response.expectedGetEligibilityResponseCannotStartYet
@@ -115,6 +116,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas1SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
       crn = crn,
       response = listOf(
@@ -467,5 +472,44 @@ class EligibilityControllerIT : IntegrationTestBase() {
     restTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
+  }
+
+  @Test
+  fun `should send back failed eligibility when CAS applications returns 404`() {
+    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2SuitableApplicationNotFoundResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn = crn)
+
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchangeSuccessfully()
+      .expectBody(String::class.java)
+      .value {
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetEligibilityCasApplicationsNotFoundResponse(
+            crn = crn,
+          ),
+        )
+      }
+  }
+
+  @Test
+  fun `should successfully get eligibility when CAS applications returns 204`() {
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas2SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
+
+    TierStubs.getTierOKResponse(crn = crn, buildTier("A1"))
+
+    restTestClient.get().uri("/cases/{crn}/eligibility", crn)
+      .withDeliusUserJwt()
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.upstreamFailures").isEmpty
   }
 }
