@@ -99,7 +99,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationConfirmedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
@@ -209,7 +209,7 @@ class EligibilityServiceTest {
     Cas3BookingSuitabilityRule(),
     Cas3AssessmentSuitabilityRule(),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationCompletionRule())
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationConfirmedRule())
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     CurrentAccommodationTypeRule(),
     NoNextAccommodationRule(),

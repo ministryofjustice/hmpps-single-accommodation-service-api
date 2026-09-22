@@ -136,7 +136,7 @@ flowchart TD
 
 
 **Cas3Completion** (RuleSet)
-- `Cas3ApplicationCompletionRule`: FAIL if CAS3 application is not complete
+- `Cas3ApplicationConfirmedRule`: FAIL if CAS3 application is not confirmed
 
 
 **bookingConfirmed** (Outcome)
@@ -283,7 +283,7 @@ flowchart TD
 | Cas2ApplicationAwaitingArrivalRule | FAIL if application is not awaiting arrival | Cas2Completion | CAS2 |
 | Cas2ApplicationSubmittedRule | FAIL if candidate does not have a submitted application | Cas2Suitability | CAS2 |
 | Cas2SuitableStatusRule | FAIL if candidate has an unsuitable status | Cas2Suitability | CAS2 |
-| Cas3ApplicationCompletionRule | FAIL if CAS3 application is not complete | Cas3Completion | CAS3 |
+| Cas3ApplicationConfirmedRule | FAIL if CAS3 application is not confirmed | Cas3Completion | CAS3 |
 | Cas3ApplicationNotSuitableRule | FAIL if candidate has suitable CAS3 application | PaEligibility | PA |
 | Cas3ApplicationPresentSuitabilityRule | FAIL if CAS3 application is not present | Cas3Suitability | CAS3 |
 | Cas3ApplicationSuitabilityRule | FAIL if CAS3 application is not suitable | Cas3Suitability | CAS3 |
