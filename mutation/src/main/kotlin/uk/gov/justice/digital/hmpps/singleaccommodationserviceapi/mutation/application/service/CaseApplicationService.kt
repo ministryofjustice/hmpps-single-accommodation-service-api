@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.InvalidCrnsException
-import java.time.LocalDate
 
 @Service
 class CaseApplicationService(
@@ -83,11 +82,3 @@ class CaseApplicationService(
 }
 
 data class CrnToPrisonNumber(val crn: String, val prisonNumber: String?)
-
-data class CaseToCreate(
-  val crn: String,
-  val prisonNumber: String?,
-  val firstName: String? = null,
-  val lastName: String? = null,
-  val dateOfBirth: LocalDate? = null,
-)

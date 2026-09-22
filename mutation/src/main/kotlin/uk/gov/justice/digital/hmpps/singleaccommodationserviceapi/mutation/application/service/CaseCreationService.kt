@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import java.time.LocalDate
 
 @Service
 class CaseCreationService(
@@ -90,3 +91,11 @@ class CaseCreationService(
     return caseRepository.save(entity)
   }
 }
+
+data class CaseToCreate(
+  val crn: String,
+  val prisonNumber: String?,
+  val firstName: String? = null,
+  val lastName: String? = null,
+  val dateOfBirth: LocalDate? = null,
+)
