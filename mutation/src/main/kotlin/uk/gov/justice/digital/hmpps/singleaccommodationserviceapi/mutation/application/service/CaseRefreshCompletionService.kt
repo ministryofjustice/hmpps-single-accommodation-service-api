@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
@@ -104,7 +104,7 @@ class CaseMutationOrchestrationService(
     loadTier: () -> Tier,
     loadPersonRecord: () -> CorePersonRecord,
     loadCas1CurrentPremises: () -> Cas1PremisesSummary,
-    loadCas3CurrentPremises: () -> Cas3LatestBookingPremisesDto,
+    loadCas3CurrentPremises: () -> Cas3BookingPremises,
     loadCas1Application: () -> Cas1Application,
     loadCas3Application: () -> Cas3Application,
     loadCase: () -> Case,
@@ -131,7 +131,7 @@ class CaseMutationOrchestrationService(
         cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN),
         tier = results.getResult<Tier>(GET_TIER),
         cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES),
-        cas3CurrentPremises = results.getResult<Cas3LatestBookingPremisesDto>(GET_CAS_3_CURRENT_PREMISES),
+        cas3CurrentPremises = results.getResult<Cas3BookingPremises>(GET_CAS_3_CURRENT_PREMISES),
         cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION),
         cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION),
         prisoner = results.getResult<Prisoner>(GET_PRISONER),
