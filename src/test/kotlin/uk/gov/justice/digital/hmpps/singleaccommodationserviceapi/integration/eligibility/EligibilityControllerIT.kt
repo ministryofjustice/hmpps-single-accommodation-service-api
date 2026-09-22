@@ -228,15 +228,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         ),
       ),
-      premises = buildCas3PremisesSummary(
-        name = "Test Premises",
-        startDate = LocalDate.parse("2023-01-04"),
-        endDate = LocalDate.parse("2023-01-05"),
-        addressLine1 = "123 Test Street",
-        addressLine2 = "Test Road",
-        town = "Test Town",
-        postcode = "Test Postcode",
-      ),
       uiUrl = cas3ReferralUiUrl,
     )
 

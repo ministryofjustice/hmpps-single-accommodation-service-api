@@ -10,8 +10,6 @@ data class Cas3Application(
   val applicationStatus: Cas3ApplicationStatus,
   val submittedApplication: Cas3SubmittedApplicationDto?,
   val previousBookings: List<Cas3PreviousBookingDto>?,
-  @Deprecated("Use submittedApplication instead")
-  val premises: Cas3LatestBookingPremisesDto?,
   val uiUrl: String,
 ) {
   init {

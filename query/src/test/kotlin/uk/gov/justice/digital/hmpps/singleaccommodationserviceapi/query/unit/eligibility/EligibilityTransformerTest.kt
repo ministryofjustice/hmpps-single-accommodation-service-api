@@ -306,6 +306,15 @@ class EligibilityTransformerTest {
         latestBooking = buildCas3LatestBooking(
           status = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+          premises = buildCas3PremisesSummary(
+            name = "123 Main St",
+            startDate = LocalDate.parse("2023-01-04"),
+            endDate = LocalDate.parse("2023-01-05"),
+            addressLine1 = "124 Main St",
+            addressLine2 = "Apt 1",
+            town = "Lincoln",
+            postcode = "SW1A 1AX",
+          ),
         ),
       ),
       previousBookings = listOf(
@@ -316,15 +325,6 @@ class EligibilityTransformerTest {
             cancellationReason = "Booking cancelled",
           ),
         ),
-      ),
-      premises = buildCas3PremisesSummary(
-        name = "123 Main St",
-        startDate = LocalDate.parse("2023-01-04"),
-        endDate = LocalDate.parse("2023-01-05"),
-        addressLine1 = "124 Main St",
-        addressLine2 = "Apt 1",
-        town = "Lincoln",
-        postcode = "SW1A 1AX",
       ),
       uiUrl = "aUrl",
     )

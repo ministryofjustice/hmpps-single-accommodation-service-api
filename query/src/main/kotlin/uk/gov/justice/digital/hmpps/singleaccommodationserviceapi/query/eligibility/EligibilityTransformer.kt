@@ -209,7 +209,7 @@ object EligibilityTransformer {
       applicationRejectedReason = submittedApplication?.assessmentRejectionReason,
       bookingProvisionalOfferSentDate = latestBooking?.provisionalOfferSentDate,
       previousBookings = toPreviousBookings(application.previousBookings),
-      premises = toCas3PremisesSummaryDto(application.premises),
+      premises = latestBooking?.let { toCas3PremisesSummaryDto(it.premises) },
       uiUrl = application.uiUrl,
     )
   }

@@ -718,10 +718,10 @@ class AccommodationControllerIT : IntegrationTestBase() {
       submittedApplication = buildCas3SubmittedApplicationDto(
         latestBooking = buildCas3LatestBooking(
           status = Cas3BookingStatus.CONFIRMED,
+          premises = buildCas3PremisesSummary(
+            postcode = "SW1A 1A4",
+          ),
         ),
-      ),
-      premises = buildCas3PremisesSummary(
-        postcode = "SW1A 1A4",
       ),
     )
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(

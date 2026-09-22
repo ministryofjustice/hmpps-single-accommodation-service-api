@@ -494,9 +494,9 @@ class AccommodationSummaryCalculatorTest {
         submittedApplication = buildCas3SubmittedApplicationDto(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3PremisesSummary(),
           ),
         ),
-        premises = buildCas3PremisesSummary(),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -538,9 +538,9 @@ class AccommodationSummaryCalculatorTest {
         submittedApplication = buildCas3SubmittedApplicationDto(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3PremisesSummary(),
           ),
         ),
-        premises = buildCas3PremisesSummary(),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -652,9 +652,9 @@ class AccommodationSummaryCalculatorTest {
         submittedApplication = buildCas3SubmittedApplicationDto(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
           ),
         ),
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -696,9 +696,9 @@ class AccommodationSummaryCalculatorTest {
         submittedApplication = buildCas3SubmittedApplicationDto(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
           ),
         ),
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -737,9 +737,9 @@ class AccommodationSummaryCalculatorTest {
         submittedApplication = buildCas3SubmittedApplicationDto(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
           ),
         ),
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
       )
 
       val result = calculator.calculateNextAccommodations(
@@ -778,9 +778,9 @@ class AccommodationSummaryCalculatorTest {
         submittedApplication = buildCas3SubmittedApplicationDto(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.ARRIVED,
+            premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
           ),
         ),
-        premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
       )
 
       val result = calculator.calculateNextAccommodations(
