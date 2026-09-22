@@ -25,7 +25,7 @@ object ProbationIntegrationDeliusStubs {
   }
 
   fun postCaseSummariesForCrns(vararg validCrns: String) = postCaseSummariesOKResponse(
-    CaseSummaries(validCrns.map { buildCaseSummary(crn = it) }),
+    CaseSummaries(validCrns.map { buildCaseSummary(crn = it, nomsId = null) }),
   )
 
   fun postCaseSummariesServerError() {

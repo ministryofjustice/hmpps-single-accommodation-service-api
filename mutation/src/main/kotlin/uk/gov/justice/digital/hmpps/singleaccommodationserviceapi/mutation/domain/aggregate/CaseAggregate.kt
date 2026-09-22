@@ -64,8 +64,15 @@ class CaseAggregate private constructor(
       roshLevelCode = roshLevelCode,
     )
 
-    fun hydrateNew() = CaseAggregate(
+    fun hydrateNew(
+      firstName: String? = null,
+      lastName: String? = null,
+      dateOfBirth: LocalDate? = null,
+    ) = CaseAggregate(
       id = UUID.randomUUID(),
+      firstName = firstName,
+      lastName = lastName,
+      dateOfBirth = dateOfBirth,
     )
   }
 

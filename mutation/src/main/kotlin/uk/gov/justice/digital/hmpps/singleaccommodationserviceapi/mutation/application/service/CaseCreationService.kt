@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import java.time.LocalDate
 
 @Service
 class CaseCreationService(
@@ -21,20 +22,24 @@ class CaseCreationService(
 ) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+  fun saveUnpersistedCasesAsBlankRows(casesToCreate: List<CaseToCreate>) {
     val unpersistedCrns = caseRepository
-      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+      .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
       .toSet()
 
     if (unpersistedCrns.isEmpty()) {
       return
     }
 
-    crnsToPrisonNumbers
+    casesToCreate
       .filter { it.crn in unpersistedCrns }
       .map {
         caseMapper.create(
-          snapshot = CaseAggregate.hydrateNew().snapshot(),
+          snapshot = CaseAggregate.hydrateNew(
+            firstName = it.firstName,
+            lastName = it.lastName,
+            dateOfBirth = it.dateOfBirth,
+          ).snapshot(),
           crn = it.crn,
           prisonNumber = it.prisonNumber,
         )
@@ -43,22 +48,22 @@ class CaseCreationService(
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+  fun saveUnpersistedCases(casesToCreate: List<CaseToCreate>) {
     if (caseListV2Enabled) {
       val unpersistedCrns = caseRepository
-        .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+        .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
         .toSet()
 
       if (unpersistedCrns.isEmpty()) {
         return
       }
-      crnsToPrisonNumbers
+      casesToCreate
         .filter { it.crn in unpersistedCrns }
         .forEach {
           upsertCase(it.crn, it.prisonNumber, upsertData = caseListV2Enabled)
         }
     } else {
-      saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers)
+      saveUnpersistedCasesAsBlankRows(casesToCreate)
     }
   }
 
@@ -86,3 +91,11 @@ class CaseCreationService(
     return caseRepository.save(entity)
   }
 }
+
+data class CaseToCreate(
+  val crn: String,
+  val prisonNumber: String?,
+  val firstName: String? = null,
+  val lastName: String? = null,
+  val dateOfBirth: LocalDate? = null,
+)

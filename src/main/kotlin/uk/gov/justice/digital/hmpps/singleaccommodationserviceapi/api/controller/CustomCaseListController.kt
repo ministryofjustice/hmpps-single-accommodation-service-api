@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CustomCaseListApplicationService
 
 private val CRN_REGEX = Regex("(?i)^[A-Z][0-9]{6}$")
@@ -43,11 +42,7 @@ class CustomCaseListController(
 
     val user = userService.authorizeAndRetrieveUser()
     val distinctCrns = normalisedCrns.distinct()
-    caseApplicationService.createCases(
-      distinctCrns.map { CrnToPrisonNumber(it, null) },
-      createAsBlankRecord = true,
-      validateCrns = true,
-    )
+    caseApplicationService.createValidatedCases(distinctCrns)
     customCaseListApplicationService.createCustomCaseList(user.id, distinctCrns)
     return ResponseEntity(HttpStatus.CREATED)
   }
