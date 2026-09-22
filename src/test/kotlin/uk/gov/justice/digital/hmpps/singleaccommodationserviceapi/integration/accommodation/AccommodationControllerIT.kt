@@ -339,6 +339,12 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = corePersonRecord,
     )
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+      crn = crn,
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
+    )
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -414,6 +420,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
         inOutStatus = InOutStatus.IN,
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
     )
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -491,6 +500,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
         inOutStatus = InOutStatus.OUT,
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
+    )
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(
+      crn = crn,
     )
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -576,6 +588,9 @@ class AccommodationControllerIT : IntegrationTestBase() {
         inOutStatus = InOutStatus.OUT,
         releaseDate = LocalDate.of(2025, 10, 17),
       ),
+    )
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(
+      crn = crn,
     )
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
@@ -765,6 +780,12 @@ class AccommodationControllerIT : IntegrationTestBase() {
       crn = crn,
       response = cas3Application,
     )
+    ApprovedPremisesStubs.getCas1SuitableApplicationNoContentResponse(
+      crn = crn,
+    )
+    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(
+      crn = crn,
+    )
     restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
@@ -810,6 +831,8 @@ class AccommodationControllerIT : IntegrationTestBase() {
       ),
     )
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
     ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = buildCas1Application())
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = buildCas3Application())
     createAndSaveProposedAccommodation(proposedAccommodationId = proposedAccommodationId)
@@ -831,8 +854,11 @@ class AccommodationControllerIT : IntegrationTestBase() {
   @Test
   fun `get next accommodations should return partial success when CPR Addresses call returns server error`() {
     CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
-    ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
+
+    ApprovedPremisesStubs.getCas1CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3CurrentPremisesNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas1SuitableApplicationNoContentResponse(crn = crn)
+    ApprovedPremisesStubs.getCas3SuitableApplicationNoContentResponse(crn = crn)
 
     restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
