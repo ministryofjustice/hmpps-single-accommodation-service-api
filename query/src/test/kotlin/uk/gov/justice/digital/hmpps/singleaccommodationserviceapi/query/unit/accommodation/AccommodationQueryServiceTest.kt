@@ -36,7 +36,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -81,7 +81,6 @@ class AccommodationQueryServiceTest {
   private val crn = "X12345"
   private val prisonNumber = "12345"
   private val caseId = UUID.randomUUID()
-  private val prisonAccommodationTypeCode = "HMP"
 
   @Nested
   inner class GetAccommodationHistory {
@@ -608,7 +607,7 @@ class AccommodationQueryServiceTest {
       )
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
           ),

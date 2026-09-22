@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -53,7 +53,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -647,6 +647,16 @@ class EligibilityServiceTest {
               buildCas2SubmittedApplicationSummary(
                 latestAssessmentStatus = s.cas2ApplicationStatus,
                 submittedAt = s.submittedAt.atStartOfDay().atOffset(ZoneOffset.UTC),
+                cancelledReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.CANCELLED) {
+                  "cancelled reason"
+                } else {
+                  null
+                },
+                offerDeclinedReason = if (s.cas2ApplicationStatus == Cas2AssessmentStatus.OFFER_DECLINED) {
+                  "offerDeclined reason"
+                } else {
+                  null
+                },
               )
             } else {
               null
@@ -850,7 +860,7 @@ class EligibilityServiceTest {
           buildCas3Application(
             applicationStatus = it,
             submittedApplication = if (it != Cas3ApplicationStatus.IN_PROGRESS) {
-              buildCas3SubmittedApplicationDto(
+              buildCas3SubmittedApplication(
                 assessmentStatus = s.cas3AssessmentStatus,
                 assessmentRejectionReason = if (s.cas3AssessmentStatus == Cas3AssessmentStatus.REJECTED) {
                   "the reason"
@@ -1099,7 +1109,7 @@ class EligibilityServiceTest {
         val cas3Application = if (s.isSubmittedCas3.toBoolean()) {
           buildCas3Application(
             applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-            submittedApplication = buildCas3SubmittedApplicationDto(
+            submittedApplication = buildCas3SubmittedApplication(
               assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
               latestBooking = buildCas3LatestBooking(
                 status = Cas3BookingStatus.CONFIRMED,
@@ -1269,7 +1279,7 @@ class EligibilityServiceTest {
         cas1Application = null,
         cas3Application = buildCas3Application(
           applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-          submittedApplication = buildCas3SubmittedApplicationDto(
+          submittedApplication = buildCas3SubmittedApplication(
             assessmentStatus = null,
             latestBooking = buildCas3LatestBooking(
               status = null,

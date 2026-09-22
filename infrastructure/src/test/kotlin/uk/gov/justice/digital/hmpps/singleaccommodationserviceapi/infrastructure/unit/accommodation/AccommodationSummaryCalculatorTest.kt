@@ -37,7 +37,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildPrisoner
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProposedAccommodationEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.time.LocalDate
 import java.util.UUID
 import java.util.stream.Stream
+
 typealias CaseAccommodationScenario = CaseAccommodationStatusScenarioLoader.Scenario
 
 @ExtendWith(MockKExtension::class)
@@ -492,7 +493,7 @@ class AccommodationSummaryCalculatorTest {
     fun `returns CAS3 next accommodation when application booking status is CONFIRMED`() {
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
             premises = buildCas3PremisesSummary(),
@@ -536,7 +537,7 @@ class AccommodationSummaryCalculatorTest {
     fun `ignores CAS3 application when booking status is not CONFIRMED`() {
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.ARRIVED,
             premises = buildCas3PremisesSummary(),
@@ -650,7 +651,7 @@ class AccommodationSummaryCalculatorTest {
       )
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
             premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
@@ -694,7 +695,7 @@ class AccommodationSummaryCalculatorTest {
       )
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.CONFIRMED,
             premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
@@ -735,7 +736,7 @@ class AccommodationSummaryCalculatorTest {
       )
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.ARRIVED,
             premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
@@ -776,7 +777,7 @@ class AccommodationSummaryCalculatorTest {
       )
       val cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        submittedApplication = buildCas3SubmittedApplicationDto(
+        submittedApplication = buildCas3SubmittedApplication(
           latestBooking = buildCas3LatestBooking(
             status = Cas3BookingStatus.ARRIVED,
             premises = buildCas3PremisesSummary(postcode = "SW1A 1A4"),
