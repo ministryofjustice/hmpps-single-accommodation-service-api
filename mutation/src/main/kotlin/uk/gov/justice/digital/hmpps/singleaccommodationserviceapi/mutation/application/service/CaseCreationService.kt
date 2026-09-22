@@ -21,20 +21,24 @@ class CaseCreationService(
 ) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+  fun saveUnpersistedCasesAsBlankRows(casesToCreate: List<CaseToCreate>) {
     val unpersistedCrns = caseRepository
-      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+      .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
       .toSet()
 
     if (unpersistedCrns.isEmpty()) {
       return
     }
 
-    crnsToPrisonNumbers
+    casesToCreate
       .filter { it.crn in unpersistedCrns }
       .map {
         caseMapper.create(
-          snapshot = CaseAggregate.hydrateNew().snapshot(),
+          snapshot = CaseAggregate.hydrateNew(
+            firstName = it.firstName,
+            lastName = it.lastName,
+            dateOfBirth = it.dateOfBirth,
+          ).snapshot(),
           crn = it.crn,
           prisonNumber = it.prisonNumber,
         )
@@ -43,22 +47,22 @@ class CaseCreationService(
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+  fun saveUnpersistedCases(casesToCreate: List<CaseToCreate>) {
     if (caseListV2Enabled) {
       val unpersistedCrns = caseRepository
-        .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+        .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
         .toSet()
 
       if (unpersistedCrns.isEmpty()) {
         return
       }
-      crnsToPrisonNumbers
+      casesToCreate
         .filter { it.crn in unpersistedCrns }
         .forEach {
           upsertCase(it.crn, it.prisonNumber, upsertData = caseListV2Enabled)
         }
     } else {
-      saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers)
+      saveUnpersistedCasesAsBlankRows(casesToCreate)
     }
   }
 

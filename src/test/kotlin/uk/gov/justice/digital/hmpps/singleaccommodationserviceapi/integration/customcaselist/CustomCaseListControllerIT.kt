@@ -10,10 +10,14 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummaryName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserCustomCaseListEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserCustomCaseListRepository
@@ -23,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_USER_CUSTOM_CASE_LIST
+import java.time.LocalDate
 
 class CustomCaseListControllerIT : IntegrationTestBase() {
 
@@ -57,6 +62,45 @@ class CustomCaseListControllerIT : IntegrationTestBase() {
 
     val refreshRequests = caseRefreshRequestRepository.findAll()
     assertThat(refreshRequests.map { it.caseId }).containsExactlyInAnyOrder(existingCase.id, newCase.id)
+  }
+
+  @Test
+  fun `enriches a newly created case with the details from the case summary`() {
+    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
+      response = CaseSummaries(
+        listOf(
+          buildCaseSummary(
+            crn = "B654321",
+            nomsId = "B1234BB",
+            name = buildCaseSummaryName(forename = "Joe", surname = "Bloggs"),
+            dateOfBirth = LocalDate.of(1990, 1, 2),
+          ),
+        ),
+      ),
+    )
+
+    postCustomCaseList(listOf("B654321")).expectStatus().isCreated
+
+    val newCase = caseRepository.findByCrn("B654321")
+    assertThat(newCase).isNotNull()
+    assertThat(newCase!!.firstName).isEqualTo("Joe")
+    assertThat(newCase.lastName).isEqualTo("Bloggs")
+    assertThat(newCase.dateOfBirth).isEqualTo(LocalDate.of(1990, 1, 2))
+    assertThat(caseRepository.findByIdentifier("B1234BB", IdentifierType.PRISON_NUMBER)?.id).isEqualTo(newCase.id)
+  }
+
+  @Test
+  fun `leaves an already persisted case untouched rather than enriching it`() {
+    val existingCase = caseRepository.save(
+      buildCaseEntity(firstName = "Joe", lastName = "Bloggs") { withCrn("A123456") },
+    )
+
+    postCustomCaseList(listOf("A123456")).expectStatus().isCreated
+
+    val unchanged = caseRepository.findByCrn("A123456")
+    assertThat(unchanged!!.id).isEqualTo(existingCase.id)
+    assertThat(unchanged.firstName).isEqualTo("Joe")
+    assertThat(unchanged.lastName).isEqualTo("Bloggs")
   }
 
   @Test
