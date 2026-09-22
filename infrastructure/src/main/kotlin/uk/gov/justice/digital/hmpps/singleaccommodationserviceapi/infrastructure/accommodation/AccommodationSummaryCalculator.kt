@@ -124,7 +124,7 @@ class AccommodationSummaryCalculator(
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
 
-    val cas3NextAccommodation = cas3Application?.takeIf { it.bookingStatus == Cas3BookingStatus.CONFIRMED }
+    val cas3NextAccommodation = cas3Application?.takeIf { it.submittedApplication?.latestBooking?.status == Cas3BookingStatus.CONFIRMED }
       ?.premises?.let {
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }

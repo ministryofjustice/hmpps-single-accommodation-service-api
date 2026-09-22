@@ -219,7 +219,6 @@ class EligibilityControllerIT : IntegrationTestBase() {
           ),
         ),
       ),
-      bookingStatus = Cas3BookingStatus.CONFIRMED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(
         buildCas3ExternalPreviousBooking(

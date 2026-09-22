@@ -10,10 +10,7 @@ data class Cas3Application(
   val applicationStatus: Cas3ApplicationStatus,
   val submittedApplication: Cas3SubmittedApplicationDto?,
   @Deprecated("Use submittedApplication instead")
-  val bookingStatus: Cas3BookingStatus?,
-  @Deprecated("Use submittedApplication instead")
   val bookingProvisionalOfferSentDate: LocalDate?,
-  @Deprecated("Use submittedApplication instead")
   val previousBookings: List<Cas3PreviousBookingDto>?,
   @Deprecated("Use submittedApplication instead")
   val premises: Cas3LatestBookingPremisesDto?,

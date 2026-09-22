@@ -166,7 +166,6 @@ fun buildCas3Application(
     Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> buildCas3SubmittedApplicationDto()
     Cas3ApplicationStatus.REJECTED -> buildCas3SubmittedApplicationDto()
   },
-  bookingStatus: Cas3BookingStatus? = null,
   premises: Cas3LatestBookingPremisesDto? = null,
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
   bookingProvisionalOfferSentDate: LocalDate? = null,
@@ -175,7 +174,6 @@ fun buildCas3Application(
   id = id,
   applicationStatus = applicationStatus,
   submittedApplication = submittedApplication,
-  bookingStatus = bookingStatus,
   premises = premises,
   uiUrl = uiUrl,
   bookingProvisionalOfferSentDate = bookingProvisionalOfferSentDate,
@@ -194,6 +192,26 @@ fun buildCas3SubmittedApplicationDto(
   assessmentStatus,
   assessmentRejectionReason,
   latestBooking,
+)
+
+fun buildCas3LatestBooking(
+  status: Cas3BookingStatus? = null,
+  provisionalOfferSentDate: LocalDate? = null,
+  premises: Cas3LatestBookingPremisesDto = buildCas3LatestBookingPremisesDto(),
+) = Cas3LatestBookingDto(
+  status = status,
+  provisionalOfferSentDate = provisionalOfferSentDate,
+  premises = premises,
+)
+
+fun buildCas3LatestBookingPremisesDto() = Cas3LatestBookingPremisesDto(
+  startDate = LocalDate.now().plusDays(1),
+  endDate = LocalDate.now().plusDays(10),
+  addressLine1 = "123 Test Street",
+  addressLine2 = "Test Village",
+  town = "Test Town",
+  postcode = "AB1 2CD",
+  name = "Test Premises",
 )
 
 fun buildCas3Staff(

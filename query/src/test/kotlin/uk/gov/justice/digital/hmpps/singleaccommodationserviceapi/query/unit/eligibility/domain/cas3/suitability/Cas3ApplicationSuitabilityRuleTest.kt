@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -26,11 +27,13 @@ class Cas3ApplicationSuitabilityRuleTest {
         submittedApplication = if (applicationStatus == Cas3ApplicationStatus.REJECTED) {
           buildCas3SubmittedApplicationDto(
             assessmentStatus = null,
+            latestBooking = buildCas3LatestBooking(
+              status = null,
+            ),
           )
         } else {
           null
         },
-        bookingStatus = null,
       ),
     )
 
@@ -52,8 +55,10 @@ class Cas3ApplicationSuitabilityRuleTest {
         applicationStatus = applicationStatus,
         submittedApplication = buildCas3SubmittedApplicationDto(
           assessmentStatus = null,
+          latestBooking = buildCas3LatestBooking(
+            status = null,
+          ),
         ),
-        bookingStatus = null,
       ),
     )
 
@@ -74,8 +79,10 @@ class Cas3ApplicationSuitabilityRuleTest {
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplicationDto(
           assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+          latestBooking = buildCas3LatestBooking(
+            status = null,
+          ),
         ),
-        bookingStatus = null,
       ),
     )
 
@@ -96,8 +103,10 @@ class Cas3ApplicationSuitabilityRuleTest {
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplicationDto(
           assessmentStatus = null,
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.ARRIVED,
+          ),
         ),
-        bookingStatus = Cas3BookingStatus.ARRIVED,
       ),
     )
 

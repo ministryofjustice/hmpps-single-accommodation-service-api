@@ -50,7 +50,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
   )
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
-    val bookingStatus = context.data.cas3Application?.bookingStatus
+    val bookingStatus = context.data.cas3Application?.submittedApplication?.latestBooking?.status
     return when (bookingStatus) {
       Cas3BookingStatus.PROVISIONAL -> outcome(bedspaceOffered)
       Cas3BookingStatus.CONFIRMED -> outcome(bookingConfirmed)

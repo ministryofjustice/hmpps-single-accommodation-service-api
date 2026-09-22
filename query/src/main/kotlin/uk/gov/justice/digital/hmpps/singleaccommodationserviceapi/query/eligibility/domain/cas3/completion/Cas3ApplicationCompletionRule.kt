@@ -12,7 +12,7 @@ class Cas3ApplicationCompletionRule : Rule {
   override val description = "FAIL if CAS3 application is not complete"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isCompleteBooking = data.cas3Application?.bookingStatus == Cas3BookingStatus.CONFIRMED
+    val isCompleteBooking = data.cas3Application?.submittedApplication?.latestBooking?.status == Cas3BookingStatus.CONFIRMED
 
     val ruleStatus = if (isCompleteBooking) RuleStatus.PASS else RuleStatus.FAIL
 

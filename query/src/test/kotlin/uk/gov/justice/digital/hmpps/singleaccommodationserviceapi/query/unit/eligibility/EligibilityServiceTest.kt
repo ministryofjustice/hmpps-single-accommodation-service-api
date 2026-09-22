@@ -50,6 +50,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -847,7 +848,6 @@ class EligibilityServiceTest {
         val cas3Application = s.cas3ApplicationStatus?.let {
           buildCas3Application(
             applicationStatus = it,
-            bookingStatus = s.cas3BookingStatus,
             submittedApplication = if (it != Cas3ApplicationStatus.IN_PROGRESS) {
               buildCas3SubmittedApplicationDto(
                 assessmentStatus = s.cas3AssessmentStatus,
@@ -856,6 +856,9 @@ class EligibilityServiceTest {
                 } else {
                   null
                 },
+                latestBooking = buildCas3LatestBooking(
+                  status = s.cas3BookingStatus,
+                ),
               )
             } else {
               null
@@ -1097,8 +1100,10 @@ class EligibilityServiceTest {
             applicationStatus = Cas3ApplicationStatus.SUBMITTED,
             submittedApplication = buildCas3SubmittedApplicationDto(
               assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+              latestBooking = buildCas3LatestBooking(
+                status = Cas3BookingStatus.CONFIRMED,
+              ),
             ),
-            bookingStatus = Cas3BookingStatus.CONFIRMED,
           )
         } else {
           null
@@ -1265,8 +1270,10 @@ class EligibilityServiceTest {
           applicationStatus = Cas3ApplicationStatus.SUBMITTED,
           submittedApplication = buildCas3SubmittedApplicationDto(
             assessmentStatus = null,
+            latestBooking = buildCas3LatestBooking(
+              status = null,
+            ),
           ),
-          bookingStatus = null,
         ),
       )
 

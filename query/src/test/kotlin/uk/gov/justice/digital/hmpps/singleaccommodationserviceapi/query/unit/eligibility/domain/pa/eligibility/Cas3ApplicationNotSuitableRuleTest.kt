@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
@@ -31,8 +32,10 @@ class Cas3ApplicationNotSuitableRuleTest {
       applicationStatus = status,
       submittedApplication = buildCas3SubmittedApplicationDto(
         assessmentStatus = null,
+        latestBooking = buildCas3LatestBooking(
+          status = null,
+        ),
       ),
-      bookingStatus = null,
     )
 
     val data = buildDomainData(
@@ -65,11 +68,13 @@ class Cas3ApplicationNotSuitableRuleTest {
       submittedApplication = if (status == Cas3ApplicationStatus.REJECTED) {
         buildCas3SubmittedApplicationDto(
           assessmentStatus = null,
+          latestBooking = buildCas3LatestBooking(
+            status = null,
+          ),
         )
       } else {
         null
       },
-      bookingStatus = null,
     )
 
     val data = buildDomainData(

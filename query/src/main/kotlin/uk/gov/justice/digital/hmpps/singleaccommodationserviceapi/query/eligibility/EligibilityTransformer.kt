@@ -51,6 +51,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBookingDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
@@ -198,7 +199,7 @@ object EligibilityTransformer {
       id = application.id,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
       assessmentStatus = toCas3AssessmentStatus(application.submittedApplication?.assessmentStatus),
-      bookingStatus = toCas3BookingStatus(application.bookingStatus),
+      bookingStatus = toCas3BookingStatus(application.submittedApplication?.latestBooking?.status),
       applicationSubmittedDate = application.submittedApplication?.submittedDate,
       applicationSubmittedBy = application.submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },
       applicationRejectedReason = application.submittedApplication?.assessmentRejectionReason,
@@ -274,7 +275,7 @@ object EligibilityTransformer {
   }
 
   private fun toPreviousBookings(
-    previousBookings: List<uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PreviousBookingDto>?,
+    previousBookings: List<Cas3PreviousBookingDto>?,
   ) = previousBookings?.map { booking ->
     Cas3ExternalPreviousBookingDto(
       bookingStatus = toCas3BookingStatus(booking.bookingStatus),

@@ -13,7 +13,7 @@ class Cas3ApplicationSuitabilityRule : Rule {
 
   override fun evaluate(data: DomainData): RuleResult {
     val ruleStatus = if (
-      data.cas3Application?.bookingStatus == null &&
+      data.cas3Application?.submittedApplication?.latestBooking?.status == null &&
       data.cas3Application?.submittedApplication?.assessmentStatus == null &&
       (
         data.cas3Application?.applicationStatus == Cas3ApplicationStatus.REJECTED ||
