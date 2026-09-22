@@ -168,7 +168,6 @@ fun buildCas3Application(
   },
   premises: Cas3LatestBookingPremisesDto? = null,
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
-  bookingProvisionalOfferSentDate: LocalDate? = null,
   previousBookings: List<Cas3PreviousBookingDto>? = emptyList(),
 ) = Cas3Application(
   id = id,
@@ -176,7 +175,6 @@ fun buildCas3Application(
   submittedApplication = submittedApplication,
   premises = premises,
   uiUrl = uiUrl,
-  bookingProvisionalOfferSentDate = bookingProvisionalOfferSentDate,
   previousBookings = previousBookings,
 )
 

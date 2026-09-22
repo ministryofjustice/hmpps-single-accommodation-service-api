@@ -305,9 +305,9 @@ class EligibilityTransformerTest {
         assessmentRejectionReason = "Problem with application",
         latestBooking = buildCas3LatestBooking(
           status = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
+          provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
         ),
       ),
-      bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       previousBookings = listOf(
         buildCas3ExternalPreviousBooking(
           bookingStatus = InfraCas3BookingStatus.DEPARTED,

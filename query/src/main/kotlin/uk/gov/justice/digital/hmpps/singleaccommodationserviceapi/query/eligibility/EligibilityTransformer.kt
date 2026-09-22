@@ -195,15 +195,19 @@ object EligibilityTransformer {
   private fun toCas3ApplicationDto(
     cas3Application: Cas3Application?,
   ) = cas3Application?.let { application ->
+
+    val submittedApplication = application.submittedApplication
+    val latestBooking = submittedApplication?.latestBooking
+
     Cas3ApplicationDto(
       id = application.id,
       applicationStatus = toCas3ApplicationStatus(application.applicationStatus),
-      assessmentStatus = toCas3AssessmentStatus(application.submittedApplication?.assessmentStatus),
-      bookingStatus = toCas3BookingStatus(application.submittedApplication?.latestBooking?.status),
-      applicationSubmittedDate = application.submittedApplication?.submittedDate,
-      applicationSubmittedBy = application.submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },
-      applicationRejectedReason = application.submittedApplication?.assessmentRejectionReason,
-      bookingProvisionalOfferSentDate = application.bookingProvisionalOfferSentDate,
+      assessmentStatus = toCas3AssessmentStatus(submittedApplication?.assessmentStatus),
+      bookingStatus = toCas3BookingStatus(latestBooking?.status),
+      applicationSubmittedDate = submittedApplication?.submittedDate,
+      applicationSubmittedBy = submittedApplication?.submittedBy?.let { toCas3StaffDto(it) },
+      applicationRejectedReason = submittedApplication?.assessmentRejectionReason,
+      bookingProvisionalOfferSentDate = latestBooking?.provisionalOfferSentDate,
       previousBookings = toPreviousBookings(application.previousBookings),
       premises = toCas3PremisesSummaryDto(application.premises),
       uiUrl = application.uiUrl,
