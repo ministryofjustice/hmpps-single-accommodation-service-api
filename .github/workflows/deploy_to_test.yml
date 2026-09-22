@@ -20,9 +20,6 @@ jobs:
 
   can_i_deploy:
     name: Can I deploy hmpps-single-accommodation-service-api to Test
-    # Uses the shared Pact Broker "can I deploy" workflow being added in
-    # https://github.com/ministryofjustice/hmpps-github-actions/pull/352 - update the
-    # @v2 ref once that PR has merged and been tagged.
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_can_i_deploy.yml@v2 # WORKFLOW_VERSION
     with:
       pacticipant: hmpps-single-accommodation-service-api
@@ -48,13 +45,10 @@ jobs:
     name: Record Pact Broker deployment
     needs:
       - deploy_test
-    # Uses the shared Pact Broker "record deployment" workflow being added in
-    # https://github.com/ministryofjustice/hmpps-github-actions/pull/352 - update the
-    # @v2 ref once that PR has merged and been tagged.
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
     with:
       app_version: '${{ needs.docker_build.outputs.app_version }}'
-      environment: 'Test'
+      environment: 'test'
       pacticipant: hmpps-single-accommodation-service-api
       pacticipant_version: ${{ github.sha }}
     secrets:

@@ -56,9 +56,6 @@ jobs:
       contents: read
     needs:
       - deploy_env
-    # Uses the shared Pact Broker "record deployment" workflow being added in
-    # https://github.com/ministryofjustice/hmpps-github-actions/pull/352 - update the
-    # @v2 ref once that PR has merged and been tagged.
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
     with:
       app_version: ${{ inputs.version }}
