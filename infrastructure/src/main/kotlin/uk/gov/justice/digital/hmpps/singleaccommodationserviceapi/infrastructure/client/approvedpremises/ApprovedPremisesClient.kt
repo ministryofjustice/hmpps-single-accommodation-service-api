@@ -13,7 +13,7 @@ interface ApprovedPremisesClient {
   fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary
 
   @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
-  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3PremisesSummary
+  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3LatestBookingPremisesDto
 
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application

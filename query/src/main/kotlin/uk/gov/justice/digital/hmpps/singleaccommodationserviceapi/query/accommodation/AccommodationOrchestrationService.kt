@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBookingPremisesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.Prisoner
@@ -89,7 +89,7 @@ class AccommodationOrchestrationService(
     val prisoner = results.getResult<Prisoner>(GET_PRISONER)
     val cpr = results.getResult<CorePersonRecord>(GET_CORE_PERSON_RECORD_BY_CRN)
     val cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES)
-    val cas3CurrentPremises = results.getResult<Cas3PremisesSummary>(GET_CAS_3_CURRENT_PREMISES)
+    val cas3CurrentPremises = results.getResult<Cas3LatestBookingPremisesDto>(GET_CAS_3_CURRENT_PREMISES)
 
     return OrchestrationResultDto(
       data = AccommodationOrchestrationDto(
@@ -122,7 +122,7 @@ class AccommodationOrchestrationService(
     val cas1Application = results.getResult<Cas1Application>(GET_CAS_1_APPLICATION)
     val cas3Application = results.getResult<Cas3Application>(GET_CAS_3_APPLICATION)
     val cas1CurrentPremises = results.getResult<Cas1PremisesSummary>(GET_CAS_1_CURRENT_PREMISES)
-    val cas3CurrentPremises = results.getResult<Cas3PremisesSummary>(GET_CAS_3_CURRENT_PREMISES)
+    val cas3CurrentPremises = results.getResult<Cas3LatestBookingPremisesDto>(GET_CAS_3_CURRENT_PREMISES)
 
     return OrchestrationResultDto(
       data = AccommodationOrchestrationDto(

@@ -1,24 +1,66 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.requireXor
 import java.time.LocalDate
 import java.util.UUID
 
 data class Cas3Application(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
+  val submittedApplication: Cas3SubmittedApplicationDto?,
+  @Deprecated("Use submittedApplication instead")
   val applicationSubmittedDate: LocalDate?,
+  @Deprecated("Use submittedApplication instead")
   val applicationSubmittedBy: Cas3Staff,
+  @Deprecated("Use submittedApplication instead")
   val applicationRejectedReason: String?,
+  @Deprecated("Use submittedApplication instead")
   val assessmentStatus: Cas3AssessmentStatus?,
+  @Deprecated("Use submittedApplication instead")
   val bookingStatus: Cas3BookingStatus?,
+  @Deprecated("Use submittedApplication instead")
   val bookingProvisionalOfferSentDate: LocalDate?,
-  val previousBookings: List<Cas3ExternalPreviousBooking>?,
-  val premises: Cas3PremisesSummary?,
+  @Deprecated("Use submittedApplication instead")
+  val previousBookings: List<Cas3PreviousBookingDto>?,
+  @Deprecated("Use submittedApplication instead")
+  val premises: Cas3LatestBookingPremisesDto?,
   val uiUrl: String,
+) {
+  init {
+    requireXor(
+      applicationStatus == Cas3ApplicationStatus.IN_PROGRESS,
+      submittedApplication != null,
+    ) {
+      "A submitted application is required for any status other than 'inProgress'"
+    }
+  }
+}
+
+data class Cas3SubmittedApplicationDto(
+  val submittedDate: LocalDate,
+  val submittedBy: Cas3Staff,
+  val assessmentStatus: Cas3AssessmentStatus?,
+  val assessmentRejectionReason: String?,
+  val latestBooking: Cas3LatestBookingDto?,
+) {
+  init {
+    requireXor(
+      assessmentStatus == Cas3AssessmentStatus.REJECTED,
+      assessmentRejectionReason == null,
+    ) {
+      "Assessment rejection reason can only be provided if status is `rejected`"
+    }
+  }
+}
+
+data class Cas3LatestBookingDto(
+  val status: Cas3BookingStatus?,
+  val provisionalOfferSentDate: LocalDate?,
+  val premises: Cas3LatestBookingPremisesDto,
 )
 
-data class Cas3ExternalPreviousBooking(
+data class Cas3PreviousBookingDto(
   val bookingStatus: Cas3BookingStatus?,
   val cancellation: Cas3ExternalPreviousBookingCancellation?,
 )
@@ -34,7 +76,7 @@ data class Cas3Staff(
   val staffCode: String,
 )
 
-data class Cas3PremisesSummary(
+data class Cas3LatestBookingPremisesDto(
   val name: String?,
   val startDate: LocalDate?,
   val endDate: LocalDate?,
