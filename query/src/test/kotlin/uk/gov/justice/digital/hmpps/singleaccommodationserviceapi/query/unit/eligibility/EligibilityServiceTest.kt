@@ -646,6 +646,16 @@ class EligibilityServiceTest {
               buildCas2SubmittedApplicationSummary(
                 latestAssessmentStatus = s.cas2ApplicationStatus,
                 submittedAt = s.submittedAt.atStartOfDay().atOffset(ZoneOffset.UTC),
+                cancelledReason = if (s.cas2ApplicationStatus == "cancelled") {
+                  "cancelled reason"
+                } else {
+                  null
+                },
+                offerDeclinedReason = if (s.cas2ApplicationStatus == "offerDeclined") {
+                  "offerDeclined reason"
+                } else {
+                  null
+                },
               )
             } else {
               null

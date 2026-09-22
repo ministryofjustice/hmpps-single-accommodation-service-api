@@ -17,7 +17,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ca
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResultWrapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2SubmittedApplicationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2UserTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3AssessmentStatus
@@ -47,7 +49,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UserType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ExternalPreviousBookingCancellation
@@ -248,8 +252,20 @@ object EligibilityTransformer {
       uiUrl = application.uiUrl,
       id = application.id,
       submittedApplication = toCas2SubmittedApplicationSummaryDto(application.submittedApplication),
+      createdAt = application.createdAt,
+      createdBy = toCas2StaffDto(application.createdBy),
     )
   }
+
+  private fun toCas2StaffDto(
+    staff: Cas2Staff,
+  ) = Cas2StaffDto(
+    name = staff.name,
+    username = staff.username,
+    deliusStaffCode = staff.deliusStaffCode,
+    nomisStaffId = staff.nomisStaffId,
+    userType = toCas1ApplicationStatus(staff.userType),
+  )
 
   private fun toCas1ApplicationDto(
     cas1Application: Cas1Application?,
@@ -313,6 +329,8 @@ object EligibilityTransformer {
     Cas2SubmittedApplicationSummaryDto(
       submittedAt = it.submittedAt,
       latestAssessmentStatus = it.latestAssessmentStatus,
+      offerDeclinedReason = it.offerDeclinedReason,
+      cancelledReason = it.cancelledReason,
     )
   }
 
@@ -454,6 +472,14 @@ object EligibilityTransformer {
     Cas1ApplicationStatusInfra.INAPPLICABLE -> Cas1ApplicationStatus.INAPPLICABLE
     Cas1ApplicationStatusInfra.WITHDRAWN -> Cas1ApplicationStatus.WITHDRAWN
     Cas1ApplicationStatusInfra.EXPIRED -> Cas1ApplicationStatus.EXPIRED
+  }
+
+  private fun toCas1ApplicationStatus(
+    userType: Cas2UserType,
+  ) = when (userType) {
+    Cas2UserType.NOMIS -> Cas2UserTypeDto.NOMIS
+    Cas2UserType.DELIUS -> Cas2UserTypeDto.DELIUS
+    Cas2UserType.EXTERNAL -> Cas2UserTypeDto.EXTERNAL
   }
 
   private fun toCas1RequestForPlacementStatus(

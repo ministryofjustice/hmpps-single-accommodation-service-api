@@ -29,6 +29,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1RequestForPlacementSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1StaffDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2ApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2StaffDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas2SubmittedApplicationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingCancellationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas3ExternalPreviousBookingDto
@@ -46,6 +48,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
@@ -212,7 +215,12 @@ class EligibilityTransformerTest {
     val today = LocalDate.now()
     val now = OffsetDateTime.now()
     val id = UUID.randomUUID()
-    val cas2Application = buildCas2Application()
+    val cas2Application = buildCas2Application(
+      submittedApplication = buildCas2SubmittedApplicationSummary(
+        latestAssessmentStatus = "cancelled",
+        cancelledReason = "cancelled reason",
+      ),
+    )
     val cas1Application = buildCas1Application(
       application = buildCas1ApplicationSummary(
         status = InfraCas1ApplicationStatus.REQUESTED_FURTHER_INFORMATION,
@@ -331,6 +339,13 @@ class EligibilityTransformerTest {
     val cas2ApplicationDto = buildCas2ApplicationDto(
       id = cas2Application.id,
       uiUrl = cas2Application.uiUrl,
+      createdAt = cas2Application.createdAt,
+      createdBy = buildCas2StaffDto(),
+      submittedApplication = buildCas2SubmittedApplicationSummaryDto(
+        latestAssessmentStatus = "cancelled",
+        cancelledReason = "cancelled reason",
+        submittedAt = cas2Application.submittedApplication!!.submittedAt,
+      ),
     )
     val cas1ApplicationDto = buildCas1ApplicationDto(
       application = buildCas1ApplicationSummaryDto(

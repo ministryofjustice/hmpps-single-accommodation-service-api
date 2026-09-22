@@ -12,7 +12,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UserType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -47,10 +49,40 @@ fun buildCas2Application(
   submittedApplication: Cas2SubmittedApplicationSummary? = null,
   id: UUID = UUID.randomUUID(),
   uiUrl: String = "https://cas2-ui/applications/$id",
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
+  createdBy: Cas2Staff = buildCas2Staff(),
 ) = Cas2Application(
   uiUrl = uiUrl,
   id = id,
   submittedApplication = submittedApplication,
+  createdAt = createdAt,
+  createdBy = createdBy,
+)
+
+fun buildCas2SubmittedApplicationSummary(
+  latestAssessmentStatus: String? = null,
+  submittedAt: OffsetDateTime = OffsetDateTime.now(),
+  offerDeclinedReason: String? = null,
+  cancelledReason: String? = null,
+) = Cas2SubmittedApplicationSummary(
+  submittedAt = submittedAt,
+  latestAssessmentStatus = latestAssessmentStatus,
+  offerDeclinedReason = offerDeclinedReason,
+  cancelledReason = cancelledReason,
+)
+
+fun buildCas2Staff(
+  name: String = "Test Tester",
+  username: String = "testTester@gov.uk",
+  deliusStaffCode: String? = "ABCD123",
+  nomisStaffId: Long? = null,
+  userType: Cas2UserType = Cas2UserType.NOMIS,
+) = Cas2Staff(
+  name = name,
+  username = username,
+  deliusStaffCode = deliusStaffCode,
+  nomisStaffId = nomisStaffId,
+  userType = userType,
 )
 
 fun buildCas1PlacementPair(
@@ -137,14 +169,6 @@ fun buildCas1ApplicationSummary(
   createdBy = createdBy,
   submittedAt = submittedAt,
   expiresAt = expiresAt,
-)
-
-fun buildCas2SubmittedApplicationSummary(
-  latestAssessmentStatus: String? = null,
-  submittedAt: OffsetDateTime = OffsetDateTime.now(),
-) = Cas2SubmittedApplicationSummary(
-  submittedAt = submittedAt,
-  latestAssessmentStatus = latestAssessmentStatus,
 )
 
 fun buildCas1Staff(
