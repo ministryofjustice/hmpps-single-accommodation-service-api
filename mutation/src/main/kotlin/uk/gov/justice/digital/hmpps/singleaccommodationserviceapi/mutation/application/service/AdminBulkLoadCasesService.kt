@@ -69,7 +69,7 @@ class AdminBulkLoadCasesService(
 
   private fun loadTeam(teamCode: String, dryRun: Boolean): TeamLoadResult {
     if (!dryRun) {
-      onboardedTeamRepository.createOnboardedTeam(teamCode)
+      onboardedTeamRepository.createOnboardedTeam(teamCode.uppercase())
     }
 
     val fetchStartedAt = System.nanoTime()
