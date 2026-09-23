@@ -803,63 +803,69 @@ class AccommodationSummaryCalculatorTest {
     @Test
     fun `should return current end date when status is RISK_OF_NO_FIXED_ABODE`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
-        caseAccommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE ,
+        caseAccommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
         currentAccommodation = buildAccommodationSummaryDto(endDate = LocalDate.now()),
         nextAccommodation = buildAccommodationSummaryDto(endDate = null),
-        addresses = listOf(buildAddress(endDate = null))
+        addresses = listOf(buildAddress(endDate = null)),
       )
       assertThat(result).isEqualTo(LocalDate.now())
     }
+
     @Test
     fun `should return current start date when status is TRANSIENT`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
-        caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT ,
+        caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A03")),
         nextAccommodation = buildAccommodationSummaryDto(startDate = null),
       )
       assertThat(result).isEqualTo(LocalDate.now())
     }
+
     @Test
     fun `should return next start date when status is TRANSIENT and current is not transient`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
-        caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT ,
+        caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A08")),
         nextAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now().plusDays(1)),
       )
       assertThat(result).isEqualTo(LocalDate.now().plusDays(1))
     }
+
     @Test
     fun `should return next start date when status is SETTLED`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
-        caseAccommodationStatus = CaseAccommodationStatus.SETTLED ,
+        caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now()),
         nextAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now().plusDays(1)),
       )
       assertThat(result).isEqualTo(LocalDate.now().plusDays(1))
     }
+
     @Test
     fun `should return current start date when status is SETTLED and next start date is null`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
-        caseAccommodationStatus = CaseAccommodationStatus.SETTLED ,
+        caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now()),
         nextAccommodation = buildAccommodationSummaryDto(startDate = null),
       )
       assertThat(result).isEqualTo(LocalDate.now())
     }
+
     @Test
     fun `should return most recent end date when status is NO_FIXED_ABODE`() {
-        val result = calculator.calculateCaseAccommodationStatusDate(
-          caseAccommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE ,
-          currentAccommodation = null,
-          nextAccommodation = null,
-          addresses = listOf(
-            buildAddress(endDate = LocalDate.now().minusDays(4).toString()),
-            buildAddress(endDate = LocalDate.now().minusDays(1).toString()),
-            buildAddress(endDate = LocalDate.now().minusDays(2).toString()))
-        )
-        assertThat(result).isEqualTo(LocalDate.now().minusDays(1))
+      val result = calculator.calculateCaseAccommodationStatusDate(
+        caseAccommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+        currentAccommodation = null,
+        nextAccommodation = null,
+        addresses = listOf(
+          buildAddress(endDate = LocalDate.now().minusDays(4).toString()),
+          buildAddress(endDate = LocalDate.now().minusDays(1).toString()),
+          buildAddress(endDate = LocalDate.now().minusDays(2).toString()),
+        ),
+      )
+      assertThat(result).isEqualTo(LocalDate.now().minusDays(1))
     }
-    }
+  }
 
   @Nested
   @TestInstance(TestInstance.Lifecycle.PER_CLASS)
