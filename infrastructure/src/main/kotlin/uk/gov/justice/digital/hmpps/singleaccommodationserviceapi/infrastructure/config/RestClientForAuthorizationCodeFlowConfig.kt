@@ -15,17 +15,24 @@ import kotlin.reflect.KClass
 
 @Configuration
 class RestClientForAuthorizationCodeFlowConfig(
-  private val restClientBuilder: RestClient.Builder,
   private val httpAuthService: HttpAuthService,
 ) {
 
   @Bean
-  fun nomisUserRolesClient(@Value($$"${service.nomis-user-roles.base-url}") baseUrl: String) = createClient(
+  fun nomisUserRolesClient(
+    restClientBuilder: RestClient.Builder,
+    @Value($$"${service.nomis-user-roles.base-url}") baseUrl: String,
+  ) = createClient(
+    restClientBuilder,
     baseUrl,
     type = NomisUserRolesClient::class,
   )
 
-  private fun <T : Any> createClient(baseUrl: String, type: KClass<T>): T {
+  private fun <T : Any> createClient(
+    restClientBuilder: RestClient.Builder,
+    baseUrl: String,
+    type: KClass<T>,
+  ): T {
     val client = restClientBuilder
       .requestFactory(withTimeouts(Duration.ofSeconds(1), Duration.ofSeconds(5)))
       .baseUrl(baseUrl)
