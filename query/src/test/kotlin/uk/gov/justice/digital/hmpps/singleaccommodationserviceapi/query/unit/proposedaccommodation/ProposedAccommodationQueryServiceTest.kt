@@ -49,9 +49,9 @@ class ProposedAccommodationQueryServiceTest {
 
     @Test
     fun `should return empty list when no accommodations exist`() {
-      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns emptyList()
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn, false) } returns emptyList()
 
-      val result = service.getProposedAccommodations(crn)
+      val result = service.getProposedAccommodations(crn, false)
 
       assertThat(result).isEmpty()
     }
@@ -71,11 +71,11 @@ class ProposedAccommodationQueryServiceTest {
         buildProposedAccommodationEntity(caseId = caseId, accommodationTypeEntity = accommodationTypeEntity, createdAt = olderDate, createdByUserId = createdByUserId),
       )
 
-      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns entitiesInDbOrder
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn, false) } returns entitiesInDbOrder
       every { userRepository.findAllById(any()) } returns listOf(createdByUser)
       every { accommodationTypeRepository.findAllById(any()) } returns listOf(accommodationTypeEntity)
 
-      val result = service.getProposedAccommodations(crn)
+      val result = service.getProposedAccommodations(crn, false)
 
       assertThat(result).hasSize(3)
       assertThat(result[0].createdAt).isEqualTo(newerDate)
@@ -95,11 +95,11 @@ class ProposedAccommodationQueryServiceTest {
         buildProposedAccommodationEntity(caseId = caseId2, accommodationTypeEntity = accommodationTypeEntity, createdByUserId = createdByUserId, createdAt = Instant.now())
       val entities = listOf(proposedAccommodationEntity1, proposedAccommodationEntity2)
 
-      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn) } returns entities
+      every { proposedAccommodationRepository.findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn, false) } returns entities
       every { userRepository.findAllById(any()) } returns listOf(createdByUser)
       every { accommodationTypeRepository.findAllById(any()) } returns listOf(accommodationTypeEntity)
 
-      val result = service.getProposedAccommodations(crn)
+      val result = service.getProposedAccommodations(crn, false)
 
       assertThat(result).hasSize(2)
       assertThat(result.first()).isEqualTo(toAccommodationDetail(proposedAccommodationEntity1, accommodationTypeEntity, crn, createdByUser.displayName()))
