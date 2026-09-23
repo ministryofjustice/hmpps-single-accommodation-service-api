@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkLoadCasesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkRefreshCasesByCrnRequestBody
@@ -52,6 +53,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   private lateinit var inboxEventRepository: InboxEventRepository
 
   @Autowired
+  private lateinit var onboardedTeamRepository: OnboardedTeamRepository
+
+  @Autowired
   private lateinit var inboxEventDispatcher: InboxEventDispatcher
 
   @Autowired
@@ -74,7 +78,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
     clock.freezeAt(now)
-    databaseUtils.truncate(DatabaseUtils.SasTables.INBOX_EVENT)
+    databaseUtils.truncate(DatabaseUtils.SasTables.INBOX_EVENT, DatabaseUtils.SasTables.ONBOARDED_TEAM)
   }
 
   @AfterEach
@@ -130,6 +134,8 @@ class AdminJobControllerIT : IntegrationTestBase() {
       assertThat(it.priority).isEqualTo(CaseRefreshPriority.BULK)
       assertThat(it.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     }
+
+    assertThat(onboardedTeamRepository.findAll().map { it.teamCode }).containsExactly(teamCode)
   }
 
   @Test
@@ -143,6 +149,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(result.casesAlreadyPresent).isEqualTo(2)
     assertThat(result.casesCreated).isZero()
     assertThat(caseRepository.findByCrns(crns)).hasSize(2)
+    assertThat(onboardedTeamRepository.findAll().map { it.teamCode }).containsExactly(teamCode)
   }
 
   @Test
@@ -160,6 +167,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findByCrns(crns)).isEmpty()
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(onboardedTeamRepository.findAll()).isEmpty()
   }
 
   @Test
@@ -178,6 +186,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(response.upstreamFailures).hasSize(1)
     assertThat(response.upstreamFailures.first().failureType).isEqualTo(UpstreamFailureType.UPSTREAM_HTTP_ERROR)
     assertThat(caseRepository.findByCrns(crns)).isEmpty()
+    assertThat(onboardedTeamRepository.findAll().map { it.teamCode }).containsExactly(teamCode)
   }
 
   @Test

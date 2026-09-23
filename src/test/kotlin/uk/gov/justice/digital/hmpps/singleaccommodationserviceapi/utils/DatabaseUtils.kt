@@ -20,6 +20,7 @@ class DatabaseUtils(
     PROPOSED_ACCOMMODATION("proposed_accommodation"),
     SAS_CASE_REFRESH_REQUEST("sas_case_refresh_request"),
     SAS_USER_CUSTOM_CASE_LIST("sas_user_custom_case_list"),
+    ONBOARDED_TEAM("onboarded_team"),
   }
 
   @Transactional
