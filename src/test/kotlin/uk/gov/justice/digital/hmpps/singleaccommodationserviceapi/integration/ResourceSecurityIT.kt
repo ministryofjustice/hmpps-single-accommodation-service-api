@@ -196,6 +196,7 @@ private val otherAccommodationReferralControllerMap: Map<String, Set<String>> =
   mapOf(
     "POST /cases/{crn}/other-accommodation-referral" to defaultRoles,
     "GET /cases/{crn}/other-accommodation-referral/{id}" to defaultRoles,
+    "GET /cases/{crn}/other-accommodation-referral/search" to defaultRoles,
     "PUT /cases/{crn}/other-accommodation-referral/{id}" to defaultRoles,
     "POST /cases/{crn}/other-accommodation-referral/{id}/notes" to defaultRoles,
     "GET /cases/{crn}/other-accommodation-referral/{id}/timeline" to defaultRoles,
