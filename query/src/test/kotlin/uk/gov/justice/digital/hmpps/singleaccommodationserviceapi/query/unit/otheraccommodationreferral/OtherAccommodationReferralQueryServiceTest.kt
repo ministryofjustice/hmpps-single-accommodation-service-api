@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheracc
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 @ExtendWith(MockKExtension::class)
 class OtherAccommodationReferralQueryServiceTest {
@@ -112,6 +113,72 @@ class OtherAccommodationReferralQueryServiceTest {
       assertThatThrownBy { service.getOtherAccommodationReferral(crn, id) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessage("OtherAccommodationReferralEntity not found for [id=$id, crn=$crn]")
+    }
+  }
+
+  @Nested
+  inner class SearchOtherAccommodationReferrals {
+
+    @Test
+    fun `should return empty list when no referrals found`() {
+      every {
+        otherAccommodationReferralRepository.searchByCrn(crn, null)
+      } returns emptyList()
+
+      val result = service.searchOtherAccommodationReferrals(crn, null)
+
+      assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `should filter by statuses and map to dto in descending submission date order`() {
+      val userEntity = buildUserEntity(id = createdByUserId, forename = "Joe", surname = "Bloggs", username = "JBLOGGS")
+      val localAuthorityAreaEntity = buildLocalAuthorityAreaEntity(id = localAuthorityAreaId, name = "Test Local Authority")
+      val newestEntity = buildOtherAccommodationReferralEntity(
+        caseId = caseId,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityAreaId,
+        createdByUserId = createdByUserId,
+        submissionDate = LocalDate.of(2026, 2, 1),
+      )
+      val oldestEntity = buildOtherAccommodationReferralEntity(
+        caseId = caseId,
+        crn = crn,
+        localAuthorityAreaId = localAuthorityAreaId,
+        createdByUserId = createdByUserId,
+        submissionDate = LocalDate.of(2026, 1, 1),
+      )
+
+      every {
+        otherAccommodationReferralRepository.searchByCrn(
+          crn,
+          listOf(EntityOtherAccommodationReferralStatus.SUBMITTED, EntityOtherAccommodationReferralStatus.ACCEPTED),
+        )
+      } returns listOf(newestEntity, oldestEntity)
+      every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
+      every { localAuthorityAreaRepository.findAllById(setOf(localAuthorityAreaId)) } returns listOf(localAuthorityAreaEntity)
+
+      val result = service.searchOtherAccommodationReferrals(
+        crn,
+        listOf(OtherAccommodationReferralStatus.SUBMITTED, OtherAccommodationReferralStatus.ACCEPTED),
+      )
+
+      assertThat(result).hasSize(2)
+      assertThat(result[0].submission.id).isEqualTo(newestEntity.id)
+      assertThat(result[1].submission.id).isEqualTo(oldestEntity.id)
+      assertThat(result[0].crn).isEqualTo(crn)
+      assertThat(result[0].submission.localAuthority.localAuthorityAreaName).isEqualTo("Test Local Authority")
+    }
+
+    @Test
+    fun `should treat an empty statuses list the same as no filter`() {
+      every {
+        otherAccommodationReferralRepository.searchByCrn(crn, null)
+      } returns emptyList()
+
+      val result = service.searchOtherAccommodationReferrals(crn, emptyList())
+
+      assertThat(result).isEmpty()
     }
   }
 

@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otherac
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 object OtherAccommodationReferralTransformer {
@@ -51,6 +53,8 @@ object OtherAccommodationReferralTransformer {
     organisationName = entity.organisationName,
     website = entity.website,
     submissionNote = entity.submissionNote,
+    outcomeReason = toOutcomeReason(entity.outcomeReason),
+    outcomeNote = entity.outcomeNote,
   )
 
   fun toSubmission(
@@ -68,6 +72,8 @@ object OtherAccommodationReferralTransformer {
     organisationName = entity.organisationName,
     website = entity.website,
     submissionNote = entity.submissionNote,
+    outcomeReason = toOutcomeReason(entity.outcomeReason),
+    outcomeNote = entity.outcomeNote,
   )
 
   fun toLocalAuthority(entity: OtherAccommodationReferralEntity, localAuthorityAreaName: String?) = LocalAuthorityDto(
@@ -76,4 +82,6 @@ object OtherAccommodationReferralTransformer {
   )
 
   fun toStatus(status: EntityOtherAccommodationReferralStatus): OtherAccommodationReferralStatus = OtherAccommodationReferralStatus.valueOf(status.name)
+
+  fun toOutcomeReason(outcomeReason: EntityOtherAccommodationReferralOutcomeReason?): OtherAccommodationReferralOutcomeReason? = outcomeReason?.let { OtherAccommodationReferralOutcomeReason.valueOf(it.name) }
 }

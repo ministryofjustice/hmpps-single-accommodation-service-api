@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
@@ -12,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheracc
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 class OtherAccommodationReferralTransformerTest {
@@ -115,6 +117,24 @@ class OtherAccommodationReferralTransformerTest {
     }
 
     @Test
+    fun `should map outcomeReason and outcomeNote when populated`() {
+      val entity = buildOtherAccommodationReferralEntity(
+        outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+        outcomeNote = "An outcome note",
+      )
+
+      val result = OtherAccommodationReferralTransformer.toSubmission(
+        entity,
+        createdByName,
+        createdByUsername,
+        null,
+      )
+
+      assertThat(result.outcomeReason).isEqualTo(OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+      assertThat(result.outcomeNote).isEqualTo("An outcome note")
+    }
+
+    @Test
     fun `should handle nullable fields correctly`() {
       val entity = buildOtherAccommodationReferralEntity(
         referenceNumber = null,
@@ -136,6 +156,8 @@ class OtherAccommodationReferralTransformerTest {
       assertThat(result.website).isNull()
       assertThat(result.submissionNote).isNull()
       assertThat(result.createdByUsername).isEqualTo(createdByUsername)
+      assertThat(result.outcomeReason).isNull()
+      assertThat(result.outcomeNote).isNull()
     }
   }
 
@@ -173,6 +195,18 @@ class OtherAccommodationReferralTransformerTest {
     fun `should map all OtherAccommodationReferralStatus values correctly`(entityStatus: EntityOtherAccommodationReferralStatus) {
       val result = OtherAccommodationReferralTransformer.toStatus(entityStatus)
       assertThat(result.name).isEqualTo(entityStatus.name)
+    }
+
+    @ParameterizedTest
+    @EnumSource(EntityOtherAccommodationReferralOutcomeReason::class)
+    fun `should map all OtherAccommodationReferralOutcomeReason values correctly`(entityOutcomeReason: EntityOtherAccommodationReferralOutcomeReason) {
+      val result = OtherAccommodationReferralTransformer.toOutcomeReason(entityOutcomeReason)
+      assertThat(result?.name).isEqualTo(entityOutcomeReason.name)
+    }
+
+    @Test
+    fun `should map null outcomeReason to null`() {
+      assertThat(OtherAccommodationReferralTransformer.toOutcomeReason(null)).isNull()
     }
   }
 }

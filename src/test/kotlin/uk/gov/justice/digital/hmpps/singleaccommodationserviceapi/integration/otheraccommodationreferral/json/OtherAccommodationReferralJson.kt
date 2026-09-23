@@ -131,3 +131,5 @@ fun expectedGetOtherAccommodationReferralResponseBody(
   website = website,
   submissionNote = submissionNote,
 )}}"""
+
+fun expectedSearchOtherAccommodationReferralResponseBody(referrals: List<String>): String = """{"data": [${referrals.joinToString(",")}]}"""

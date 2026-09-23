@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 private const val LOCAL_AUTHORITY_AREA_NAME = "localAuthorityAreaName"
 
@@ -38,6 +40,29 @@ class OtherAccommodationReferralQueryService(
       createdByUser = createdByUser!!,
       localAuthorityAreaName = localAuthorityArea?.name,
     )
+  }
+
+  fun searchOtherAccommodationReferrals(
+    crn: String,
+    statuses: List<OtherAccommodationReferralStatus>?,
+  ): List<OtherAccommodationReferralDto> {
+    val entities = otherAccommodationReferralRepository.searchByCrn(
+      crn = crn,
+      statuses = statuses?.takeIf { it.isNotEmpty() }?.map { EntityOtherAccommodationReferralStatus.valueOf(it.name) },
+    )
+    if (entities.isEmpty()) return emptyList()
+
+    val createdByUsers = userRepository.findAllById(entities.mapNotNull { it.createdByUserId }.toSet()).associateBy { it.id }
+    val localAuthorityAreas = localAuthorityAreaRepository.findAllById(entities.map { it.localAuthorityAreaId }.toSet()).associateBy { it.id }
+
+    return entities.map { entity ->
+      OtherAccommodationReferralTransformer.toOtherAccommodationReferralDto(
+        entity = entity,
+        crn = crn,
+        createdByUser = createdByUsers[entity.createdByUserId]!!,
+        localAuthorityAreaName = localAuthorityAreas[entity.localAuthorityAreaId]?.name,
+      )
+    }
   }
 
   fun getOtherAccommodationReferralTimeline(id: UUID, crn: String): ApiResponseDto<List<AuditRecordDto>> {
