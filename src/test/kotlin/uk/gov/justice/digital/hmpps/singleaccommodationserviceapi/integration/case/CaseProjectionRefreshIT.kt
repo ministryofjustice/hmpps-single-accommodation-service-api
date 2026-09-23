@@ -121,6 +121,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       }
 
       IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
+      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
       IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CANCELLED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
