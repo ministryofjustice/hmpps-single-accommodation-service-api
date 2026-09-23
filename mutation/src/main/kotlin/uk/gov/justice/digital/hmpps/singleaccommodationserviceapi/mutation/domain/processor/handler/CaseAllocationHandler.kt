@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
@@ -15,7 +15,7 @@ class CaseAllocationHandler(
   private val caseCreationService: CaseCreationService,
   private val inboxEventHelper: InboxEventHelper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
-  @field:Value($$"${case-list.onboarded-teams}") private val onboardedTeamsCodes: List<String>,
+  private val onboardedTeamRepository: OnboardedTeamRepository,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -32,7 +32,7 @@ class CaseAllocationHandler(
       "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
     }
     val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
-    val shouldProcess = onboardedTeamsCodes.contains(case.manager.team.code)
+    val shouldProcess = onboardedTeamRepository.existsById(case.manager.team.code.uppercase())
     if (shouldProcess) {
       caseCreationService.upsertCase(case.crn, case.nomsId)
     }
