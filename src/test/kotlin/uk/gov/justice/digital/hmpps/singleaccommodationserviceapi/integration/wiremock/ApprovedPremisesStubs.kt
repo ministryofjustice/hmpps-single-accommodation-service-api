@@ -91,6 +91,13 @@ object ApprovedPremisesStubs {
     )
   }
 
+  fun getCas2SuitableApplicationNotFoundResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
+        .willReturn(notFound()),
+    )
+  }
+
   fun getCas3SuitableApplicationNotFoundResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas3/external/cases/$crn/applications/suitable"))
@@ -101,6 +108,13 @@ object ApprovedPremisesStubs {
   fun getCas1SuitableApplicationNoContentResponse(crn: String) {
     sasWiremock.stubFor(
       get(urlPathEqualTo("/cas1/external/cases/$crn/applications/suitable"))
+        .willReturn(noContent()),
+    )
+  }
+
+  fun getCas2SuitableApplicationNoContentResponse(crn: String) {
+    sasWiremock.stubFor(
+      get(urlPathEqualTo("/cas2/external/cases/$crn/applications/suitable"))
         .willReturn(noContent()),
     )
   }
