@@ -23,16 +23,17 @@ import kotlin.reflect.KClass
 
 @Configuration
 class RestClientConfig(
-  private val restClientBuilder: RestClient.Builder,
   private val clientManager: OAuth2AuthorizedClientManager,
   @Value($$"${service.connection-timeout:1s}") private val connectionTimeout: Duration,
 ) {
 
   @Bean
   fun probationIntegrationSasDeliusClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.sas-and-delius.base-url}") baseUrl: String,
     @Value($$"${service.sas-and-delius.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     SasAndDeliusClient::class,
     readTimeout,
@@ -40,9 +41,11 @@ class RestClientConfig(
 
   @Bean
   fun probationIntegrationDeliusClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.approved-premises-and-delius.base-url}") baseUrl: String,
     @Value($$"${service.approved-premises-and-delius.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     ApprovedPremisesAndDeliusClient::class,
     readTimeout,
@@ -50,9 +53,11 @@ class RestClientConfig(
 
   @Bean
   fun approvedPremisesClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.approved-premises-api.base-url}") baseUrl: String,
     @Value($$"${service.approved-premises-api.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     ApprovedPremisesClient::class,
     readTimeout,
@@ -60,9 +65,11 @@ class RestClientConfig(
 
   @Bean
   fun corePersonRecordClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.core-person-record.base-url}") baseUrl: String,
     @Value($$"${service.core-person-record.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     CorePersonRecordClient::class,
     readTimeout,
@@ -70,9 +77,11 @@ class RestClientConfig(
 
   @Bean
   fun prisonerSearchClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.prisoner-search.base-url}") baseUrl: String,
     @Value($$"${service.prisoner-search.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     PrisonerSearchClient::class,
     readTimeout,
@@ -80,9 +89,11 @@ class RestClientConfig(
 
   @Bean
   fun commissionedRehabilitativeServicesClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.commissioned-rehabilitative-services-api.base-url}") baseUrl: String,
     @Value($$"${service.commissioned-rehabilitative-services-api.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     CommissionedRehabilitativeServicesClient::class,
     readTimeout,
@@ -90,9 +101,11 @@ class RestClientConfig(
 
   @Bean
   fun tierClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.tier.base-url}") baseUrl: String,
     @Value($$"${service.tier.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     TierClient::class,
     readTimeout,
@@ -100,15 +113,18 @@ class RestClientConfig(
 
   @Bean
   fun accommodationDataDomainClient(
+    restClientBuilder: RestClient.Builder,
     @Value($$"${service.accommodation-data-domain.base-url}") baseUrl: String,
     @Value($$"${service.accommodation-data-domain.read-timeout}") readTimeout: Duration,
   ) = createClient(
+    restClientBuilder,
     baseUrl,
     AccommodationDataDomainClient::class,
     readTimeout,
   )
 
   private fun <T : Any> createClient(
+    restClientBuilder: RestClient.Builder,
     baseUrl: String,
     type: KClass<T>,
     readTimeout: Duration,
