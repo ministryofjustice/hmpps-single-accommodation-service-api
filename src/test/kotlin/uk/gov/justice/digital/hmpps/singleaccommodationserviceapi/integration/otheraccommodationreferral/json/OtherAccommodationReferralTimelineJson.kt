@@ -7,8 +7,6 @@ fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
   otherAccommodationReferralId: UUID,
   caseId: UUID,
   crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String,
   createCommitTime: String,
   updateCommitTime: String,
   newStatus: String,
@@ -42,10 +40,7 @@ fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
                "value":"$outcomeNote",
                "oldValue":null
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$localAuthorityAreaName"
-         }
+         ]
       },
       {
          "type":"CREATE",
@@ -73,11 +68,6 @@ fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
                "oldValue":null
             },
             {
-               "field":"localAuthorityAreaId",
-               "value":"$localAuthorityAreaId",
-               "oldValue":null
-            },
-            {
                "field":"referenceNumber",
                "value":"REF-001",
                "oldValue":null
@@ -102,10 +92,7 @@ fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
                "value":"https://www.charity.org",
                "oldValue":null
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$localAuthorityAreaName"
-         }
+         ]
       }
    ]
 }
@@ -115,8 +102,6 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
   otherAccommodationReferralId: UUID,
   caseId: UUID,
   crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String,
   createCommitTime: String,
 ): String = """
 {
@@ -144,11 +129,6 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
             {
                "field":"caseId",
                "value":"$caseId",
-               "oldValue":null
-            },
-            {
-               "field":"localAuthorityAreaId",
-               "value":"$localAuthorityAreaId",
                "oldValue":null
             },
             {
@@ -181,10 +161,7 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
                "value":"A submission note",
                "oldValue":null
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$localAuthorityAreaName"
-         }
+         ]
       }
    ]
 }
@@ -195,10 +172,8 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
   otherAccommodationReferralId: UUID,
   caseId: UUID,
   crn: String,
-  initialLocalAuthorityAreaId: UUID,
-  initialLocalAuthorityAreaName: String,
-  updatedLocalAuthorityAreaId: UUID,
-  updatedLocalAuthorityAreaName: String,
+  referenceNumber: String,
+  previousReferenceNumber: String,
   createCommitTime: String,
   createNoteCommitTime: String,
   updateCommitTime: String,
@@ -216,19 +191,11 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
          "commitDate":"$updateCommitTime",
          "changes":[
             {
-               "field":"localAuthorityAreaId",
-               "value":"$updatedLocalAuthorityAreaId",
-               "oldValue":"$initialLocalAuthorityAreaId"
-            },
-            {
                "field":"referenceNumber",
-               "value":"REF-002",
-               "oldValue":"REF-001"
+               "value":"$referenceNumber",
+               "oldValue":"$previousReferenceNumber"
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$updatedLocalAuthorityAreaName"
-         }
+         ]
       },
       {
          "type":"NOTE",
@@ -273,13 +240,8 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
                "oldValue":null
             },
             {
-               "field":"localAuthorityAreaId",
-               "value":"$initialLocalAuthorityAreaId",
-               "oldValue":null
-            },
-            {
                "field":"referenceNumber",
-               "value":"REF-001",
+               "value":"$previousReferenceNumber",
                "oldValue":null
             },
             {
@@ -307,10 +269,7 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
                "value":"A submission note",
                "oldValue":null
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$initialLocalAuthorityAreaName"
-         }
+         ]
       }
    ]
 }

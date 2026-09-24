@@ -26,7 +26,6 @@ class OtherAccommodationReferralAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
   private val crn: String,
-  private var localAuthorityAreaId: UUID? = null,
   private var referenceNumber: String? = null,
   private var submissionDate: LocalDate? = null,
   private var status: OtherAccommodationReferralStatus? = null,
@@ -48,7 +47,6 @@ class OtherAccommodationReferralAggregate private constructor(
       id: UUID,
       caseId: UUID,
       crn: String,
-      localAuthorityAreaId: UUID,
       referenceNumber: String?,
       submissionDate: LocalDate,
       status: OtherAccommodationReferralStatus,
@@ -62,7 +60,6 @@ class OtherAccommodationReferralAggregate private constructor(
       id = id,
       caseId = caseId,
       crn = crn,
-      localAuthorityAreaId = localAuthorityAreaId,
       referenceNumber = referenceNumber,
       submissionDate = submissionDate,
       status = status,
@@ -97,7 +94,6 @@ class OtherAccommodationReferralAggregate private constructor(
   }
 
   fun updateOtherAccommodationReferral(
-    localAuthorityAreaId: UUID,
     submissionDate: LocalDate,
     referenceNumber: String?,
     status: OtherAccommodationReferralStatus,
@@ -109,7 +105,6 @@ class OtherAccommodationReferralAggregate private constructor(
   ) {
     validateOutcome(status, outcomeReason, outcomeNote)
 
-    this.localAuthorityAreaId = localAuthorityAreaId
     this.submissionDate = submissionDate
     this.referenceNumber = referenceNumber
     this.status = status
@@ -168,7 +163,6 @@ class OtherAccommodationReferralAggregate private constructor(
     id = id,
     caseId = caseId,
     crn = crn,
-    localAuthorityAreaId = localAuthorityAreaId!!,
     referenceNumber = referenceNumber,
     submissionDate = submissionDate!!,
     status = status!!,
@@ -184,7 +178,6 @@ class OtherAccommodationReferralAggregate private constructor(
     val id: UUID,
     val caseId: UUID,
     val crn: String,
-    val localAuthorityAreaId: UUID,
     val referenceNumber: String?,
     val submissionDate: LocalDate,
     val status: OtherAccommodationReferralStatus,

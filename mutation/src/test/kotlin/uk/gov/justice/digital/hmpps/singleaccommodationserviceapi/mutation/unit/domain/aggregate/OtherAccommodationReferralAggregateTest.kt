@@ -22,7 +22,6 @@ import kotlin.random.Random
 
 class OtherAccommodationReferralAggregateTest {
 
-  private val localAuthorityAreaId = UUID.randomUUID()
   private val submissionDate = LocalDate.of(2026, 1, 15)
 
   @Test
@@ -32,7 +31,6 @@ class OtherAccommodationReferralAggregateTest {
 
     val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = caseId, crn = crn)
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
       status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -46,7 +44,6 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(snapshot.id).isNotNull()
     assertThat(snapshot.caseId).isEqualTo(caseId)
     assertThat(snapshot.crn).isEqualTo(crn)
-    assertThat(snapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
     assertThat(snapshot.referenceNumber).isEqualTo("REF-001")
     assertThat(snapshot.submissionDate).isEqualTo(submissionDate)
     assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
@@ -60,14 +57,12 @@ class OtherAccommodationReferralAggregateTest {
     val id = UUID.randomUUID()
     val caseId = UUID.randomUUID()
     val crn = "X123456"
-    val newLocalAuthorityAreaId = UUID.randomUUID()
     val newSubmissionDate = LocalDate.of(2026, 3, 1)
 
     val aggregate = OtherAccommodationReferralAggregate.hydrateExisting(
       id = id,
       caseId = caseId,
       crn = crn,
-      localAuthorityAreaId = UUID.randomUUID(),
       referenceNumber = "REF-001",
       submissionDate = LocalDate.of(2026, 2, 20),
       status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -78,7 +73,6 @@ class OtherAccommodationReferralAggregateTest {
     )
 
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = newLocalAuthorityAreaId,
       submissionDate = newSubmissionDate,
       referenceNumber = "REF-002",
       status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -92,7 +86,6 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(snapshot.id).isEqualTo(id)
     assertThat(snapshot.caseId).isEqualTo(caseId)
     assertThat(snapshot.crn).isEqualTo(crn)
-    assertThat(snapshot.localAuthorityAreaId).isEqualTo(newLocalAuthorityAreaId)
     assertThat(snapshot.referenceNumber).isEqualTo("REF-002")
     assertThat(snapshot.submissionDate).isEqualTo(newSubmissionDate)
     assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
@@ -106,7 +99,6 @@ class OtherAccommodationReferralAggregateTest {
   fun `blank submission note is normalised to null`(note: String) {
     val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = UUID.randomUUID(),
       submissionDate = LocalDate.of(2026, 2, 20),
       referenceNumber = null,
       status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -129,7 +121,6 @@ class OtherAccommodationReferralAggregateTest {
 
     assertThat(aggregateSnapshot.notes.first().id).isNotNull
     assertThat(aggregateSnapshot.notes.first().note).isEqualTo(note)
-    assertThat(aggregateSnapshot.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
     assertThat(aggregateSnapshot.submissionDate).isEqualTo(submissionDate)
     assertThat(aggregateSnapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
   }
@@ -165,7 +156,6 @@ class OtherAccommodationReferralAggregateTest {
     val aggregate = hydrateAndCreateReferral()
 
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
       status = status,
@@ -188,7 +178,6 @@ class OtherAccommodationReferralAggregateTest {
 
     assertThrows<OtherAccommodationReferralOutcomeReasonRequiredException> {
       aggregate.updateOtherAccommodationReferral(
-        localAuthorityAreaId = localAuthorityAreaId,
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
         status = OtherAccommodationReferralStatus.ACCEPTED,
@@ -206,7 +195,6 @@ class OtherAccommodationReferralAggregateTest {
 
     assertThrows<OtherAccommodationReferralOutcomeReasonNotApplicableException> {
       aggregate.updateOtherAccommodationReferral(
-        localAuthorityAreaId = localAuthorityAreaId,
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
         status = OtherAccommodationReferralStatus.ACCEPTED,
@@ -224,7 +212,6 @@ class OtherAccommodationReferralAggregateTest {
 
     assertThrows<OtherAccommodationReferralOutcomeReasonNotApplicableException> {
       aggregate.updateOtherAccommodationReferral(
-        localAuthorityAreaId = localAuthorityAreaId,
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
         status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -242,7 +229,6 @@ class OtherAccommodationReferralAggregateTest {
 
     assertThrows<OtherAccommodationReferralOutcomeNoteNotApplicableException> {
       aggregate.updateOtherAccommodationReferral(
-        localAuthorityAreaId = localAuthorityAreaId,
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
         status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -258,7 +244,6 @@ class OtherAccommodationReferralAggregateTest {
   fun `updateOtherAccommodationReferral clears outcomeReason and outcomeNote when moving back to SUBMITTED`() {
     val aggregate = hydrateAndCreateReferral()
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
       status = OtherAccommodationReferralStatus.REJECTED,
@@ -270,7 +255,6 @@ class OtherAccommodationReferralAggregateTest {
     )
 
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
       status = OtherAccommodationReferralStatus.SUBMITTED,
@@ -293,7 +277,6 @@ class OtherAccommodationReferralAggregateTest {
   private fun hydrateAndCreateReferral(): OtherAccommodationReferralAggregate {
     val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
     aggregate.updateOtherAccommodationReferral(
-      localAuthorityAreaId = localAuthorityAreaId,
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
       status = OtherAccommodationReferralStatus.SUBMITTED,

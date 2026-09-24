@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.o
 import java.util.UUID
 
 fun createOtherAccommodationReferralRequestBody(
-  localAuthorityAreaId: UUID,
   submissionDate: String = "2026-02-20",
   referenceNumber: String? = "REF-001",
   status: String = "SUBMITTED",
@@ -14,7 +13,6 @@ fun createOtherAccommodationReferralRequestBody(
   outcomeNote: String? = null,
 ): String = """
 {
-  "localAuthorityAreaId": "$localAuthorityAreaId",
   "submissionDate": "$submissionDate",
   "status": "$status"${if (referenceNumber != null) {
   """,
@@ -55,8 +53,6 @@ fun expectedOtherAccommodationReferralResponseBody(
   id: UUID,
   caseId: UUID,
   crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String? = null,
   submissionDate: String = "2026-02-20",
   referenceNumber: String? = "REF-001",
   status: String = "SUBMITTED",
@@ -75,10 +71,6 @@ fun expectedOtherAccommodationReferralResponseBody(
   "status": "$status",
   "submission": {
     "id": "$id",
-    "localAuthority": {
-      "localAuthorityAreaId": "$localAuthorityAreaId",
-      "localAuthorityAreaName": ${if (localAuthorityAreaName != null) "\"$localAuthorityAreaName\"" else "null"}
-    },
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "createdBy": "$createdBy",
@@ -104,8 +96,6 @@ fun expectedGetOtherAccommodationReferralResponseBody(
   id: UUID,
   caseId: UUID,
   crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String? = null,
   submissionDate: String = "2026-02-20",
   referenceNumber: String? = "REF-001",
   status: String = "SUBMITTED",
@@ -119,8 +109,6 @@ fun expectedGetOtherAccommodationReferralResponseBody(
   id = id,
   caseId = caseId,
   crn = crn,
-  localAuthorityAreaId = localAuthorityAreaId,
-  localAuthorityAreaName = localAuthorityAreaName,
   submissionDate = submissionDate,
   referenceNumber = referenceNumber,
   status = status,

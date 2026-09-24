@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
@@ -19,7 +18,6 @@ object OtherAccommodationReferralMapper {
     id = snapshot.id,
     crn = snapshot.crn,
     caseId = snapshot.caseId,
-    localAuthorityAreaId = snapshot.localAuthorityAreaId,
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
     status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name),
@@ -31,7 +29,6 @@ object OtherAccommodationReferralMapper {
   )
 
   fun merge(snapshot: OtherAccommodationReferralSnapshot, entity: OtherAccommodationReferralEntity): OtherAccommodationReferralEntity {
-    entity.localAuthorityAreaId = snapshot.localAuthorityAreaId
     entity.referenceNumber = snapshot.referenceNumber
     entity.submissionDate = snapshot.submissionDate
     entity.status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name)
@@ -57,7 +54,6 @@ object OtherAccommodationReferralMapper {
     id = entity.id,
     caseId = entity.caseId,
     crn = entity.crn,
-    localAuthorityAreaId = entity.localAuthorityAreaId,
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
     status = OtherAccommodationReferralStatus.valueOf(entity.status.name),
@@ -79,17 +75,12 @@ object OtherAccommodationReferralMapper {
     createdBy: String,
     createdByUsername: String,
     createdAt: Instant,
-    localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralDto(
     caseId = snapshot.caseId,
     crn = snapshot.crn,
     status = OtherAccommodationReferralStatus.valueOf(snapshot.status.name),
     submission = OtherAccommodationReferralSubmissionDto(
       id = snapshot.id,
-      localAuthority = LocalAuthorityDto(
-        localAuthorityAreaId = snapshot.localAuthorityAreaId,
-        localAuthorityAreaName = localAuthorityAreaName,
-      ),
       referenceNumber = snapshot.referenceNumber,
       submissionDate = snapshot.submissionDate,
       createdBy = createdBy,

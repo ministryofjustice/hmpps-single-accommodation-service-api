@@ -29,7 +29,6 @@ class OtherAccommodationReferralMapperTest {
     assertThat(entity.id).isEqualTo(snapshot.id)
     assertThat(entity.crn).isEqualTo(snapshot.crn)
     assertThat(entity.caseId).isEqualTo(snapshot.caseId)
-    assertThat(entity.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
     assertThat(entity.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(entity.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(entity.status).isEqualTo(EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name))
@@ -50,22 +49,18 @@ class OtherAccommodationReferralMapperTest {
     val createdBy = "Joe Bloggs"
     val createdByUsername = "joe.bloggs"
     val createdAt = Instant.now()
-    val localAuthorityAreaName = "Test Local Authority"
 
     val dto = OtherAccommodationReferralMapper.toDto(
       snapshot = snapshot,
       createdBy = createdBy,
       createdByUsername = createdByUsername,
       createdAt = createdAt,
-      localAuthorityAreaName = localAuthorityAreaName,
     )
 
     assertThat(dto.caseId).isEqualTo(snapshot.caseId)
     assertThat(dto.crn).isEqualTo(snapshot.crn)
     assertThat(dto.status).isEqualTo(OtherAccommodationReferralStatus.REJECTED)
     assertThat(dto.submission.id).isEqualTo(snapshot.id)
-    assertThat(dto.submission.localAuthority.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
-    assertThat(dto.submission.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
     assertThat(dto.submission.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(dto.submission.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(dto.submission.createdBy).isEqualTo(createdBy)
@@ -108,7 +103,6 @@ class OtherAccommodationReferralMapperTest {
 
     assertThat(merged.id).isEqualTo(entityId)
     assertThat(merged.caseId).isEqualTo(caseId)
-    assertThat(merged.localAuthorityAreaId).isEqualTo(snapshot.localAuthorityAreaId)
     assertThat(merged.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(merged.submissionDate).isEqualTo(snapshot.submissionDate)
     assertThat(merged.status).isEqualTo(EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name))
@@ -123,7 +117,6 @@ class OtherAccommodationReferralMapperTest {
   @Test
   fun `toAggregate maps all fields correctly`() {
     val entity = buildOtherAccommodationReferralEntity(
-      localAuthorityAreaId = UUID.randomUUID(),
       referenceNumber = "OA-REF-001",
       status = EntityOtherAccommodationReferralStatus.REJECTED,
       outcomeReason = EntityOtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE,
@@ -150,7 +143,6 @@ class OtherAccommodationReferralMapperTest {
     assertThat(snapshot.id).isEqualTo(entity.id)
     assertThat(snapshot.caseId).isEqualTo(entity.caseId)
     assertThat(snapshot.crn).isEqualTo(entity.crn)
-    assertThat(snapshot.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
     assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.REJECTED)
     assertThat(snapshot.outcomeReason).isEqualTo(OtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE)
