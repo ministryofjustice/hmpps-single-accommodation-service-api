@@ -8,7 +8,7 @@ generic-service:
 
   env:
     SENTRY_ENVIRONMENT: preprod
-    JAVA_OPTS: "-Xmx2000m"
+    JAVA_TOOL_OPTIONS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: preprod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.nonprod.json"
     HMPPS_SQS_ENABLED: true
