@@ -68,10 +68,11 @@ class AccommodationSummaryCalculator(
       currentAccommodation = currentAccommodation,
     ).firstOrNull()
     val caseAccommodationStatus = calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation)
+    val caseAccommodationStatusDate = calculateCaseAccommodationStatusDate(caseAccommodationStatus, currentAccommodation, nextAccommodation, addresses)
 
     return AccommodationSummariesDto(
       caseAccommodationStatus,
-      caseAccommodationStatusDate = calculateCaseAccommodationStatusDate(caseAccommodationStatus, currentAccommodation, nextAccommodation, addresses),
+      caseAccommodationStatusDate,
       currentAccommodation,
       nextAccommodation,
     )
