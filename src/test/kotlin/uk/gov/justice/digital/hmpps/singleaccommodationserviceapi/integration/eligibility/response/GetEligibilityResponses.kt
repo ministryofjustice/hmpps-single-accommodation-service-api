@@ -251,6 +251,7 @@ fun expectedGetEligibilityResponse(
 
 fun expectedGetEligibilityUpstreamFailuresResponse(
   crn: String,
+  upstreamUrl: String,
 ): String = """
 {
    "data":{
@@ -334,7 +335,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
          "endpoint":"getTierByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message": "500 Internal Server Error from GET $upstreamUrl",
          "identifier":null
       }
    ]

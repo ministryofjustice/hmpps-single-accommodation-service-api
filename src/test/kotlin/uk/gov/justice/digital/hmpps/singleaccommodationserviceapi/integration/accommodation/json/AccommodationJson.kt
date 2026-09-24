@@ -62,7 +62,9 @@ fun expectedGetAccommodationHistoryResponse(): String = """
 }
 """.trimIndent()
 
-fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(): String = """
+fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(
+  upstreamUrl: String,
+): String = """
 {
    "data":[],
    "upstreamFailures":[
@@ -71,7 +73,7 @@ fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(): String = """
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "identifier":null,
-         "message":"500 Internal Server Error: [no body]"
+         "message": "500 Internal Server Error from GET $upstreamUrl"
       }
    ]
 }
@@ -278,7 +280,12 @@ fun expectedGetNextAccommodationProposedAccommodationResponse(
 }
 """.trimIndent()
 
-fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = """
+fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(
+  getPersonRecordUrl: String,
+  getCas1CurrentPremisesUrl: String,
+  getCas3CurrentPremisesUrl: String,
+  getPrisonerUrl: String,
+): String = """
 {
    "data":null,
    "upstreamFailures":[
@@ -286,28 +293,28 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = ""
          "endpoint":"getCorePersonRecordByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getPersonRecordUrl",
          "identifier":null
       },
       {
          "endpoint":"getCas1CurrentPremises",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getCas1CurrentPremisesUrl",
          "identifier":null
       },
             {
          "endpoint":"getCas3CurrentPremises",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getCas3CurrentPremisesUrl",
          "identifier":null
       },
       {
          "endpoint":"getPrisoner",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getPrisonerUrl",
          "identifier":null
       }
    ]
@@ -352,18 +359,20 @@ fun expectedGetAccommodationByIdResponse(
 }
 """.trimIndent()
 
-fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
+fun expectedGetNextAccommodationWithUpstreamFailureResponse(
+  upstreamUrl: String,
+): String = """
 {
-  "data":null,
-  "upstreamFailures":[
-  {
-    "endpoint":"getCorePersonRecordByCrn",
-    "failureType":"UPSTREAM_HTTP_ERROR",
-    "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-    "message":"500 Internal Server Error: [no body]",
-    "identifier":null
-  }
-  ]
+    "data": null,
+    "upstreamFailures": [
+        {
+            "endpoint": "getCorePersonRecordByCrn",
+            "failureType": "UPSTREAM_HTTP_ERROR",
+            "httpResponseStatus": "500 INTERNAL_SERVER_ERROR",
+            "message": "500 Internal Server Error from GET $upstreamUrl",
+            "identifier": null
+        }
+    ]
 }
 """.trimIndent()
 

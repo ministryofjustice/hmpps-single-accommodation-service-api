@@ -552,17 +552,24 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `get current accommodation should return no success when CPR Addresses call returns server error`() {
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    PrisonerSearchStubs.getPrisonerServerErrorResponse(prisonNumber)
-    ApprovedPremisesStubs.getCas1CurrentPremisesServerErrorResponse(crn)
-    ApprovedPremisesStubs.getCas3CurrentPremisesServerErrorResponse(crn)
+    val getPersonRecordUrl = CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    val getCas1CurrentPremisesUrl = ApprovedPremisesStubs.getCas1CurrentPremisesServerErrorResponse(crn)
+    val getCas3CurrentPremisesUrl = ApprovedPremisesStubs.getCas3CurrentPremisesServerErrorResponse(crn)
+    val getPrisonerUrl = PrisonerSearchStubs.getPrisonerServerErrorResponse(prisonNumber)
 
     restTestClient.get().uri("/cases/{crn}/accommodations/current", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCurrentAccommodationWithAllUpstreamFailureResponse())
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(
+            getPersonRecordUrl,
+            getCas1CurrentPremisesUrl,
+            getCas3CurrentPremisesUrl,
+            getPrisonerUrl,
+          ),
+        )
       }
   }
 
@@ -793,16 +800,20 @@ class AccommodationControllerIT : IntegrationTestBase() {
 
   @Test
   fun `get next accommodations should return partial success when CPR Addresses call returns server error`() {
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    val getPersonUpstreamUrl = CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
     ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
     ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
 
     restTestClient.get().uri("/cases/{crn}/accommodations/next", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetNextAccommodationWithUpstreamFailureResponse())
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetNextAccommodationWithUpstreamFailureResponse(
+            upstreamUrl = getPersonUpstreamUrl,
+          ),
+        )
       }
   }
 }

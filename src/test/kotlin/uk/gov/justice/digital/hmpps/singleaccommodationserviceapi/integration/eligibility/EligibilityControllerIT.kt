@@ -383,7 +383,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
 
   @Test
   fun `should send back upstream failures and a not eligible service result when there are upstream failures`() {
-    TierStubs.getTierServerErrorResponse(crn = crn)
+    val upstreamUrl = TierStubs.getTierServerErrorResponse(crn = crn)
 
     restTestClient.get().uri("/cases/{crn}/eligibility", crn)
       .withDeliusUserJwt()
@@ -392,7 +392,8 @@ class EligibilityControllerIT : IntegrationTestBase() {
       .value {
         assertThatJson(it!!).matchesExpectedJson(
           expectedGetEligibilityUpstreamFailuresResponse(
-            crn = crn,
+            crn,
+            upstreamUrl,
           ),
         )
       }

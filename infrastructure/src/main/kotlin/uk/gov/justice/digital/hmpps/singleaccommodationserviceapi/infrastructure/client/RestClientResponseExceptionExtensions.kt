@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client
 
-import org.springframework.http.HttpStatus
-import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 
 inline fun <T> getOrNullWhenNotFound(block: () -> T): T? = runCatching(block).getOrElse { throwable ->
-  if (throwable is RestClientResponseException && throwable.statusCode == HttpStatus.NOT_FOUND) {
+  if (throwable is WebClientResponseException.NotFound) {
     null
   } else {
     throw throwable
