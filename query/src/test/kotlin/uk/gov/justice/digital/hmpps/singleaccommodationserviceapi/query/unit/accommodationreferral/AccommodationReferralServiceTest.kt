@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.PLACEMENT_ALLOCATED
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus.REJECTED
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildReferralHistory
@@ -53,7 +54,7 @@ class AccommodationReferralServiceTest {
           buildReferralHistory(REJECTED, date = cas1Date, referredBy = buildDeliusUserDto()),
         ),
         cas2Referrals = listOf(
-          buildReferralHistory("cancelled", applicationSubmittedDate = cas2Date, referredBy = buildDeliusUserDto()),
+          buildReferralHistory(Cas2AssessmentStatus.CANCELLED, applicationSubmittedDate = cas2Date, referredBy = buildDeliusUserDto()),
         ),
         cas3Referrals = listOf(
           buildReferralHistory(
@@ -155,11 +156,11 @@ class AccommodationReferralServiceTest {
       )
 
       val cas2Cancelled = buildReferralHistory(
-        applicationStatus = "cancelled",
+        applicationStatus = Cas2AssessmentStatus.CANCELLED,
         referredBy = buildDeliusUserDto(),
       )
-      val cas2Pending = buildReferralHistory(
-        applicationStatus = "unknownStatus",
+      val cas2Accepted = buildReferralHistory(
+        applicationStatus = Cas2AssessmentStatus.OFFER_ACCEPTED,
         referredBy = buildDeliusUserDto(),
       )
 
@@ -184,7 +185,7 @@ class AccommodationReferralServiceTest {
 
       val orchestrationDto = buildAccommodationReferralOrchestrationDto(
         cas1Referrals = listOf(cas1Rejected, cas1Pending, cas1Accepted),
-        cas2Referrals = listOf(cas2Cancelled, cas2Pending),
+        cas2Referrals = listOf(cas2Cancelled, cas2Accepted),
         cas3Referrals = listOf(cas3Rejected, cas3Pending, cas3Accepted),
       )
 
@@ -194,7 +195,7 @@ class AccommodationReferralServiceTest {
       val result = service.getReferralHistory(crn)
 
       // Expected to keep: cas1Rejected, cas2Cancelled, cas3Rejected, dtrAccepted, dtrRejected
-      // Expected to filter: cas1Pending, cas1Accepted, cas2Pending, cas3Pending, cas3Accepted, dtrPending
+      // Expected to filter: cas1Pending, cas1Accepted, cas2Accepted, cas3Pending, cas3Accepted, dtrPending
       assertThat(result.data).hasSize(5)
       assertThat(result.data.map { it.id }).containsExactlyInAnyOrder(
         cas1Rejected.id,
