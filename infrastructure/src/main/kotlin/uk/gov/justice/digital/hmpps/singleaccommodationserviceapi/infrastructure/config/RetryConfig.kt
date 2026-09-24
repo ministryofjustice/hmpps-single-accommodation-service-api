@@ -11,15 +11,25 @@ import org.springframework.retry.annotation.EnableRetry
 import org.springframework.retry.annotation.Retryable
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.reactive.function.client.WebClientRequestException
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
 
 @Configuration
 @EnableRetry
 class RetryConfig {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  // read the retryable exception types from the annotation, for single source of truth
-  private val retryableExceptions: Set<Class<out Throwable>> =
-    RestClientRetry::class.java.getAnnotation(Retryable::class.java)?.value?.map { it.java }?.toSet().orEmpty()
+  object DefaultRetryDecider : RetryDecider {
+    override fun shouldRetry(throwable: Throwable): Boolean = when (throwable) {
+      // TODO: Once we have completed the switch to WebClient, we should remove the first two entries
+      is HttpServerErrorException -> true
+      is ResourceAccessException -> true
+      is WebClientRequestException -> throwable.isTimeout()
+      is WebClientResponseException -> throwable.statusCode.is5xxServerError
+      else -> false
+    }
+  }
 
   @Bean
   fun retryListener(): RetryListener = object : RetryListener {
@@ -29,7 +39,7 @@ class RetryConfig {
       callback: RetryCallback<T, E>,
       throwable: Throwable,
     ) {
-      if (retryableExceptions.none { it.isAssignableFrom(throwable.javaClass) }) return
+      if (!DefaultRetryDecider.shouldRetry(throwable)) return
 
       log.warn(
         "Retryable error occurred for {}. Retry attempt {} due to {}: {}",
@@ -40,6 +50,13 @@ class RetryConfig {
       )
     }
   }
+
+  @Bean
+  fun retryDecider(): RetryDecider = DefaultRetryDecider
+}
+
+interface RetryDecider {
+  fun shouldRetry(throwable: Throwable): Boolean
 }
 
 @Target(AnnotationTarget.CLASS)
@@ -51,9 +68,6 @@ class RetryConfig {
     multiplierExpression = $$"${spring.retry.rest-client.multiplier}",
     maxDelayExpression = $$"${spring.retry.rest-client.max-interval}",
   ),
-  value = [
-    HttpServerErrorException::class,
-    ResourceAccessException::class,
-  ],
+  exceptionExpression = "@retryDecider.shouldRetry(#root)",
 )
 annotation class RestClientRetry
