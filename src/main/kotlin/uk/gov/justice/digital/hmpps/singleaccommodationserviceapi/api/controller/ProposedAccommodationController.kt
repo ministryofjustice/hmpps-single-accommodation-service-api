@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,7 +36,6 @@ class ProposedAccommodationController(
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
   private val accommodationSyncService: AccommodationSyncService,
-  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
@@ -46,7 +44,7 @@ class ProposedAccommodationController(
     val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
       val result = caseQueryService.getCaseFromDelius(crn)
       handleUpstreamFailure(result.upstreamFailures)
-      caseCreationService.upsertCase(crn, result.data!!.nomsNumber, upsertData = caseListV2Enabled)
+      caseCreationService.upsertCase(crn, result.data!!.nomsNumber)
     }
     if (!persistedCase.hasSyncedCprProposedAccommodation) {
       val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)

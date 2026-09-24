@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
@@ -26,7 +25,6 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
-  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
@@ -71,29 +69,22 @@ class CaseQueryService(
 
         is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
-          if (caseListV2Enabled) {
-            personDto.toCaseDtoV2(
-              caseEntity = caseEntity,
-              currentAccommodation = caseEntity?.currentAccommodation,
-              nextAccommodation = caseEntity?.nextAccommodation,
-            )
-          } else {
-            personDto.toCaseDto(caseEntity = caseEntity)
-          }
+          personDto.toCaseDtoV2(
+            caseEntity = caseEntity,
+            currentAccommodation = caseEntity?.currentAccommodation,
+            nextAccommodation = caseEntity?.nextAccommodation,
+          )
         }
       }
     }
       .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
-    if (caseListV2Enabled) {
-      return when (peopleType) {
-        PeopleType.NFA_RISK ->
-          caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
-        PeopleType.HOUSED ->
-          caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
-        else -> caseDtos
-      }
+    return when (peopleType) {
+      PeopleType.NFA_RISK ->
+        caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
+      PeopleType.HOUSED ->
+        caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus == CaseAccommodationStatus.SETTLED }
+      else -> caseDtos
     }
-    return caseDtos
   }
 
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)

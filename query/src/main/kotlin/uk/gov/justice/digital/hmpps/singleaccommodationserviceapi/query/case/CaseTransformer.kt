@@ -41,30 +41,6 @@ object CaseTransformer {
     limitedAccess = this.limitedAccess,
   )
 
-  fun PersonDto.toCaseDto(
-    caseEntity: CaseEntity?,
-  ): CaseDto = when (this) {
-    is FullPersonDto -> {
-      CaseDto(
-        forename = forename,
-        middleNames = middleNames,
-        surname = surname,
-        dateOfBirth = dateOfBirth,
-        crn = crn,
-        prisonNumber = nomsNumber,
-        riskLevel = riskLevel,
-        pncReference = pncNumber,
-        assignedTo = assignedTo,
-        photoUrl = null,
-        tierScore = caseEntity?.tierScore,
-        userAccess = UserAccess.FULL,
-        limitedAccess = this.limitedAccess,
-      )
-    }
-
-    is LimitedPersonDto -> toLimitedCaseDto()
-  }
-
   fun PersonDto.toCaseDtoV2(
     caseEntity: CaseEntity?,
     currentAccommodation: AccommodationSummaryDto?,

@@ -86,7 +86,6 @@ hmpps:
 case-list:
   page-size: 200
   onboarded-prison-codes:
-  v2-enabled: false
 
 bulk-load:
   page-size: 10000
