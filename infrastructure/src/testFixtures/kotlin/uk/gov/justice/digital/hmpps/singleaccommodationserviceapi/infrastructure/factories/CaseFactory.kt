@@ -28,6 +28,7 @@ fun buildCaseEntity(
   currentAccommodation = accommodationSummariesDto?.currentAccommodation,
   nextAccommodation = accommodationSummariesDto?.nextAccommodation,
   accommodationStatus = accommodationSummariesDto?.caseAccommodationStatus,
+  accommodationStatusDate = accommodationSummariesDto?.caseAccommodationStatusDate,
 ).also { case ->
 
   if (customise != null) {
