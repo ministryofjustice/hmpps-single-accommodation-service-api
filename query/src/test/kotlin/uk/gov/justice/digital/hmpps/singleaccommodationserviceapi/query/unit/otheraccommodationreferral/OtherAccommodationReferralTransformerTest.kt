@@ -37,7 +37,6 @@ class OtherAccommodationReferralTransformerTest {
         crn,
         createdByName,
         createdByUsername,
-        "Test Local Authority",
       )
 
       assertThat(dto.caseId).isEqualTo(caseId)
@@ -62,7 +61,6 @@ class OtherAccommodationReferralTransformerTest {
         entity,
         crn,
         user,
-        "Test Local Authority",
       )
 
       assertThat(dto.caseId).isEqualTo(caseId)
@@ -82,11 +80,9 @@ class OtherAccommodationReferralTransformerTest {
     @Test
     fun `should map all fields correctly`() {
       val id = UUID.randomUUID()
-      val localAuthorityAreaId = UUID.randomUUID()
       val createdAt = Instant.parse("2026-02-20T10:00:00Z")
       val entity = buildOtherAccommodationReferralEntity(
         id = id,
-        localAuthorityAreaId = localAuthorityAreaId,
         referenceNumber = "REF-001",
         submissionDate = LocalDate.of(2026, 2, 20),
         organisationName = "Organisation name",
@@ -94,18 +90,14 @@ class OtherAccommodationReferralTransformerTest {
         submissionNote = "A submission note",
         createdAt = createdAt,
       )
-      val localAuthorityAreaName = "Test Local Authority"
 
       val result = OtherAccommodationReferralTransformer.toSubmission(
         entity,
         createdByName,
         createdByUsername,
-        localAuthorityAreaName,
       )
 
       assertThat(result.id).isEqualTo(id)
-      assertThat(result.localAuthority.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(result.localAuthority.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
       assertThat(result.referenceNumber).isEqualTo("REF-001")
       assertThat(result.submissionDate).isEqualTo(LocalDate.of(2026, 2, 20))
       assertThat(result.createdBy).isEqualTo(createdByName)
@@ -127,7 +119,6 @@ class OtherAccommodationReferralTransformerTest {
         entity,
         createdByName,
         createdByUsername,
-        null,
       )
 
       assertThat(result.outcomeReason).isEqualTo(OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
@@ -147,10 +138,8 @@ class OtherAccommodationReferralTransformerTest {
         entity,
         createdByName,
         createdByUsername,
-        null,
       )
 
-      assertThat(result.localAuthority.localAuthorityAreaName).isNull()
       assertThat(result.referenceNumber).isNull()
       assertThat(result.organisationName).isNull()
       assertThat(result.website).isNull()
@@ -158,32 +147,6 @@ class OtherAccommodationReferralTransformerTest {
       assertThat(result.createdByUsername).isEqualTo(createdByUsername)
       assertThat(result.outcomeReason).isNull()
       assertThat(result.outcomeNote).isNull()
-    }
-  }
-
-  @Nested
-  inner class ToLocalAuthority {
-
-    @Test
-    fun `should map all fields correctly`() {
-      val localAuthorityAreaId = UUID.randomUUID()
-      val entity = buildOtherAccommodationReferralEntity(localAuthorityAreaId = localAuthorityAreaId)
-      val localAuthorityAreaName = "Test Local Authority"
-
-      val result = OtherAccommodationReferralTransformer.toLocalAuthority(entity, localAuthorityAreaName)
-
-      assertThat(result.localAuthorityAreaId).isEqualTo(localAuthorityAreaId)
-      assertThat(result.localAuthorityAreaName).isEqualTo(localAuthorityAreaName)
-    }
-
-    @Test
-    fun `should handle null name`() {
-      val entity = buildOtherAccommodationReferralEntity()
-
-      val result = OtherAccommodationReferralTransformer.toLocalAuthority(entity, null)
-
-      assertThat(result.localAuthorityAreaId).isEqualTo(entity.localAuthorityAreaId)
-      assertThat(result.localAuthorityAreaName).isNull()
     }
   }
 

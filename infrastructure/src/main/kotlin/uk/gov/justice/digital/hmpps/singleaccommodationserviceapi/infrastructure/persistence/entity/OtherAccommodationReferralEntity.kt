@@ -19,7 +19,6 @@ open class OtherAccommodationReferralEntity(
   val id: UUID,
   val crn: String,
   val caseId: UUID,
-  var localAuthorityAreaId: UUID,
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)

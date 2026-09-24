@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LocalAuthorityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
@@ -17,34 +16,30 @@ object OtherAccommodationReferralTransformer {
     crn: String,
     createdByName: String,
     createdByUsername: String,
-    localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralDto(
     caseId = entity.caseId,
     crn = crn,
     status = toStatus(entity.status),
-    submission = toSubmission(entity, createdByName, createdByUsername, localAuthorityAreaName),
+    submission = toSubmission(entity, createdByName, createdByUsername),
   )
 
   fun toOtherAccommodationReferralDto(
     entity: OtherAccommodationReferralEntity,
     crn: String,
     createdByUser: UserEntity,
-    localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralDto(
     caseId = entity.caseId,
     crn = crn,
     status = toStatus(entity.status),
-    submission = toSubmission(entity, createdByUser, localAuthorityAreaName),
+    submission = toSubmission(entity, createdByUser),
   )
 
   fun toSubmission(
     entity: OtherAccommodationReferralEntity,
     createdByName: String,
     createdByUsername: String,
-    localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralSubmissionDto(
     id = entity.id,
-    localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
     createdBy = createdByName,
@@ -60,10 +55,8 @@ object OtherAccommodationReferralTransformer {
   fun toSubmission(
     entity: OtherAccommodationReferralEntity,
     createdByUser: UserEntity,
-    localAuthorityAreaName: String?,
   ) = OtherAccommodationReferralSubmissionDto(
     id = entity.id,
-    localAuthority = toLocalAuthority(entity, localAuthorityAreaName),
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
     createdBy = createdByUser.displayName(),
@@ -74,11 +67,6 @@ object OtherAccommodationReferralTransformer {
     submissionNote = entity.submissionNote,
     outcomeReason = toOutcomeReason(entity.outcomeReason),
     outcomeNote = entity.outcomeNote,
-  )
-
-  fun toLocalAuthority(entity: OtherAccommodationReferralEntity, localAuthorityAreaName: String?) = LocalAuthorityDto(
-    localAuthorityAreaId = entity.localAuthorityAreaId,
-    localAuthorityAreaName = localAuthorityAreaName,
   )
 
   fun toStatus(status: EntityOtherAccommodationReferralStatus): OtherAccommodationReferralStatus = OtherAccommodationReferralStatus.valueOf(status.name)

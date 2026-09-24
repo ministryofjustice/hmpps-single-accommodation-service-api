@@ -14,7 +14,6 @@ data class OtherAccommodationReferralDto(
 
 data class OtherAccommodationReferralSubmissionDto(
   val id: UUID,
-  val localAuthority: LocalAuthorityDto,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
   val createdBy: String,
@@ -33,7 +32,6 @@ data class OtherAccommodationReferralSubmissionDto(
 )
 
 data class OtherAccommodationReferralCommand(
-  val localAuthorityAreaId: UUID,
   val submissionDate: LocalDate,
   val referenceNumber: String?,
   val status: OtherAccommodationReferralStatus,
