@@ -195,7 +195,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
               currentDescription = currentAddress.usages.first().usageCode.description!!,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
-              caseAccommodationStatusDate = "\"2026-01-11\""
+              caseAccommodationStatusDate = "\"2026-01-11\"",
             ),
           )
         }
@@ -236,7 +236,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
               currentDescription = accommodationType.name,
               nextCode = accommodationType.code,
               nextDescription = accommodationType.name,
-              caseAccommodationStatusDate = "\"2026-01-11\""
+              caseAccommodationStatusDate = "\"2026-01-11\"",
             ),
           )
         }

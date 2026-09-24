@@ -381,7 +381,7 @@ fun expectedAccommodationStatusResponse(
   currentDescription: String,
   nextCode: String? = null,
   nextDescription: String? = null,
-  caseAccommodationStatusDate: String? = null
+  caseAccommodationStatusDate: String? = null,
 ) = """
   {
    "data":{
