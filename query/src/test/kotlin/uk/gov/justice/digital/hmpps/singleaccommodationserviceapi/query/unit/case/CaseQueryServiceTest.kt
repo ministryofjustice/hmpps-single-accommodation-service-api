@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.FullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
@@ -351,7 +350,7 @@ class CaseQueryServiceTest {
       limitedAccess = true,
     )
 
-    private fun setupFourCaseV2Scenario(): List<PersonDto> {
+    private fun setupFourCaseScenario(): List<PersonDto> {
       val crnList = listOf(crnOne, crnTwo, crnThree, crnFour)
 
       val staff = buildOfficer(username = username)
@@ -437,13 +436,13 @@ class CaseQueryServiceTest {
       assertThat(result).hasSize(3)
 
       assertThat(result[0]).isEqualTo(
-        personDto2.toCaseDtoV2(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
+        personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
       )
       assertThat(result[1])
         .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
         .containsExactly(limitedCrn, true, UserAccess.LIMITED)
       assertThat(result[2]).isEqualTo(
-        personDto1.toCaseDtoV2(
+        personDto1.toCaseDto(
           caseEntity = caseEntity1,
           currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
           nextAccommodation = null,
@@ -453,7 +452,7 @@ class CaseQueryServiceTest {
 
     @Test
     fun `should get cases as all cases from case table and sort them`() {
-      val personDtos = setupFourCaseV2Scenario()
+      val personDtos = setupFourCaseScenario()
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
@@ -474,7 +473,7 @@ class CaseQueryServiceTest {
       nullValues = ["<NULL>"],
     )
     fun `should get cases as all cases from case table and filter them`(peopleType: PeopleType?) {
-      val personDtos = setupFourCaseV2Scenario()
+      val personDtos = setupFourCaseScenario()
 
       val result = caseQueryService.getCases(personDtos = personDtos, peopleType = peopleType)
 

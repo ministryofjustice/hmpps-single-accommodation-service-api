@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.Username
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
@@ -69,7 +68,7 @@ class CaseQueryService(
 
         is FullPersonDto -> {
           val caseEntity = caseEntitiesByCrn[personDto.crn]
-          personDto.toCaseDtoV2(
+          personDto.toCaseDto(
             caseEntity = caseEntity,
             currentAccommodation = caseEntity?.currentAccommodation,
             nextAccommodation = caseEntity?.nextAccommodation,

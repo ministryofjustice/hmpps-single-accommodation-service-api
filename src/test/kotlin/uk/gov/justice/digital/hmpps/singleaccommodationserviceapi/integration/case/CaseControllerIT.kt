@@ -40,7 +40,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponseSorted
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponseSearch
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
@@ -199,7 +199,7 @@ class CaseControllerIT : IntegrationTestBase() {
 
     result.expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponseSorted())
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
 
     // verify we call case-list endpoint 20 times (once per CRN)

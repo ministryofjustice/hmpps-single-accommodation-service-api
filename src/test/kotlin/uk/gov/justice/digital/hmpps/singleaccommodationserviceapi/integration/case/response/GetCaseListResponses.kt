@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.TestData
 
 @TestData
-fun expectedGetCaseListResponseSorted(): String = """
+fun expectedGetCaseListResponse(): String = """
 {
    "data":[
       {

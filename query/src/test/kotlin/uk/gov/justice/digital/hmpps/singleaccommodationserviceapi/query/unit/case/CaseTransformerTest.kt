@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDtoV2
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
@@ -41,7 +40,7 @@ class CaseTransformerTest {
     val person = buildFullPersonDto(crn)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    val fromSasAndDelius = person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.FULL)
@@ -53,7 +52,7 @@ class CaseTransformerTest {
     val person = buildFullPersonDto(crn, limitedAccess = true)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    val fromSasAndDelius = person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.FULL, limitedAccess = true)
@@ -65,7 +64,7 @@ class CaseTransformerTest {
     val person = buildLimitedPersonDto(crn)
 
     val fromOrchestration = toCaseDto(crn = crn, person = person, cpr = null, tier = null)
-    val fromSasAndDelius = person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
 
     assertThat(fromOrchestration.crn).isEqualTo(crn)
     assertUserAccess(fromOrchestration, UserAccess.LIMITED, limitedAccess = true)
@@ -87,7 +86,7 @@ class CaseTransformerTest {
     assertThat(fromOrchestration.prisonNumber).isEqualTo(prisonNumber)
     assertUserAccess(fromOrchestration, UserAccess.FULL)
 
-    val fromSasAndDelius = person.toCaseDtoV2(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
+    val fromSasAndDelius = person.toCaseDto(caseEntity = null, currentAccommodation = null, nextAccommodation = null)
     assertThat(fromSasAndDelius.crn).isEqualTo(crn)
     assertThat(fromSasAndDelius.prisonNumber).isEqualTo(prisonNumber)
     assertUserAccess(fromSasAndDelius, UserAccess.FULL)
@@ -148,7 +147,7 @@ class CaseTransformerTest {
       ),
     )
     assertThat(
-      personDto.toCaseDtoV2(
+      personDto.toCaseDto(
         caseEntity = caseEntity,
         currentAccommodation = currentAccommodationDto,
         nextAccommodation = nextAccommodationDto,

@@ -41,7 +41,7 @@ object CaseTransformer {
     limitedAccess = this.limitedAccess,
   )
 
-  fun PersonDto.toCaseDtoV2(
+  fun PersonDto.toCaseDto(
     caseEntity: CaseEntity?,
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
