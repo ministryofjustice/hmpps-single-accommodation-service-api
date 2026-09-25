@@ -1,0 +1,11 @@
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions
+
+const val OAR_OUTCOME_REASON_REQUIRED_KEY = "oarOutcomeReasonRequired"
+const val OAR_OUTCOME_REASON_NOT_APPLICABLE_KEY = "oarOutcomeReasonNotApplicable"
+const val OAR_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "oarOutcomeNoteNotApplicable"
+
+class OtherAccommodationReferralOutcomeReasonRequiredException : DomainException(OAR_OUTCOME_REASON_REQUIRED_KEY)
+
+class OtherAccommodationReferralOutcomeReasonNotApplicableException : DomainException(OAR_OUTCOME_REASON_NOT_APPLICABLE_KEY)
+
+class OtherAccommodationReferralOutcomeNoteNotApplicableException : DomainException(OAR_OUTCOME_NOTE_NOT_APPLICABLE_KEY)

@@ -7,14 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.config.ClockConfig
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationConfirmedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(
   classes = [
     Cas3CompletionRuleSet::class,
-    Cas3ApplicationCompletionRule::class,
+    Cas3ApplicationConfirmedRule::class,
     ClockConfig::class,
   ],
 )
@@ -24,7 +24,7 @@ class Cas3CompletionRuleSetTest {
   lateinit var cas3CompletionRuleSet: Cas3CompletionRuleSet
 
   private val expectedCas3CompletionRuleNames = listOf(
-    Cas3ApplicationCompletionRule::class.simpleName,
+    Cas3ApplicationConfirmedRule::class.simpleName,
   )
 
   @Test

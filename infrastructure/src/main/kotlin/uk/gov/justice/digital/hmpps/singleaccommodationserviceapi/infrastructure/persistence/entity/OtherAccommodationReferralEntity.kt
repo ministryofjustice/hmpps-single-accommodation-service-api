@@ -19,7 +19,6 @@ open class OtherAccommodationReferralEntity(
   val id: UUID,
   val crn: String,
   val caseId: UUID,
-  var localAuthorityAreaId: UUID,
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)
@@ -27,6 +26,9 @@ open class OtherAccommodationReferralEntity(
   var organisationName: String?,
   var website: String?,
   var submissionNote: String?,
+  @Enumerated(EnumType.STRING)
+  var outcomeReason: OtherAccommodationReferralOutcomeReason?,
+  var outcomeNote: String?,
 
   @DiffIgnore
   @OneToMany(
@@ -41,4 +43,14 @@ open class OtherAccommodationReferralEntity(
 
 enum class OtherAccommodationReferralStatus {
   SUBMITTED,
+  ACCEPTED,
+  REJECTED,
+}
+
+enum class OtherAccommodationReferralOutcomeReason {
+  ACCEPTED_BY_ORGANISATION,
+  ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+  PERSON_NOT_SUITABLE,
+  NO_CAPACITY,
+  ANOTHER_REASON,
 }

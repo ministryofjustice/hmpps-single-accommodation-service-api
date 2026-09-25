@@ -1,24 +1,51 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.util.requireXor
 import java.time.LocalDate
 import java.util.UUID
 
 data class Cas3Application(
   val id: UUID,
   val applicationStatus: Cas3ApplicationStatus,
-  val applicationSubmittedDate: LocalDate?,
-  val applicationSubmittedBy: Cas3Staff,
-  val applicationRejectedReason: String?,
-  val assessmentStatus: Cas3AssessmentStatus?,
-  val bookingStatus: Cas3BookingStatus?,
-  val bookingProvisionalOfferSentDate: LocalDate?,
-  val previousBookings: List<Cas3ExternalPreviousBooking>?,
-  val premises: Cas3PremisesSummary?,
+  val submittedApplication: Cas3SubmittedApplication?,
   val uiUrl: String,
+) {
+  init {
+    requireXor(
+      applicationStatus == Cas3ApplicationStatus.IN_PROGRESS,
+      submittedApplication != null,
+    ) {
+      "A submitted application is required for any status other than 'inProgress'"
+    }
+  }
+}
+
+data class Cas3SubmittedApplication(
+  val submittedDate: LocalDate,
+  val submittedBy: Cas3Staff,
+  val assessmentStatus: Cas3AssessmentStatus?,
+  val assessmentRejectionReason: String?,
+  val latestBooking: Cas3LatestBooking?,
+  val previousBookings: List<Cas3PreviousBooking>?,
+) {
+  init {
+    requireXor(
+      assessmentStatus == Cas3AssessmentStatus.REJECTED,
+      assessmentRejectionReason == null,
+    ) {
+      "Assessment rejection reason can only be provided if status is `rejected`"
+    }
+  }
+}
+
+data class Cas3LatestBooking(
+  val status: Cas3BookingStatus?,
+  val provisionalOfferSentDate: LocalDate?,
+  val premises: Cas3BookingPremises,
 )
 
-data class Cas3ExternalPreviousBooking(
+data class Cas3PreviousBooking(
   val bookingStatus: Cas3BookingStatus?,
   val cancellation: Cas3ExternalPreviousBookingCancellation?,
 )
@@ -34,7 +61,7 @@ data class Cas3Staff(
   val staffCode: String,
 )
 
-data class Cas3PremisesSummary(
+data class Cas3BookingPremises(
   val name: String?,
   val startDate: LocalDate?,
   val endDate: LocalDate?,

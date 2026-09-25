@@ -38,3 +38,7 @@ enum class RiskLevel(val code: String) {
     fun findByCode(code: String) = RiskLevel.entries.firstOrNull { it.code == code }
   }
 }
+enum class PeopleType {
+  HOUSED,
+  NFA_RISK,
+}

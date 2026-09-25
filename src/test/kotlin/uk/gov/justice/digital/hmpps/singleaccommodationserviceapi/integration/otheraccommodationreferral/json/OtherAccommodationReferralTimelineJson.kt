@@ -2,12 +2,106 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.o
 
 import java.util.UUID
 
+@Suppress("LongParameterList")
+fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
+  otherAccommodationReferralId: UUID,
+  caseId: UUID,
+  crn: String,
+  createCommitTime: String,
+  updateCommitTime: String,
+  newStatus: String,
+  outcomeReason: String,
+  outcomeNote: String,
+): String = """
+{
+   "data":[
+      {
+         "type":"UPDATE",
+         "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
+         "commitDate":"$updateCommitTime",
+         "changes":[
+            {
+               "field":"status",
+               "value":"$newStatus",
+               "oldValue":"SUBMITTED"
+            },
+            {
+               "field":"outcomeReason",
+               "value":"$outcomeReason",
+               "oldValue":null
+            },
+            {
+               "field":"outcomeNote",
+               "value":"$outcomeNote",
+               "oldValue":null
+            }
+         ]
+      },
+      {
+         "type":"CREATE",
+         "author":"Delius User",
+         "authorDetails":{
+            "forename":"Delius",
+            "surname":"User",
+            "username":"DELIUS_USER"
+         },
+         "commitDate":"$createCommitTime",
+         "changes":[
+            {
+               "field":"id",
+               "value":"$otherAccommodationReferralId",
+               "oldValue":null
+            },
+            {
+               "field":"crn",
+               "value":"$crn",
+               "oldValue":null
+            },
+            {
+               "field":"caseId",
+               "value":"$caseId",
+               "oldValue":null
+            },
+            {
+               "field":"referenceNumber",
+               "value":"REF-001",
+               "oldValue":null
+            },
+            {
+               "field":"submissionDate",
+               "value":"2026-01-15",
+               "oldValue":null
+            },
+            {
+               "field":"status",
+               "value":"SUBMITTED",
+               "oldValue":null
+            },
+            {
+               "field":"organisationName",
+               "value":"Organisation name",
+               "oldValue":null
+            },
+            {
+               "field":"website",
+               "value":"https://www.charity.org",
+               "oldValue":null
+            }
+         ]
+      }
+   ]
+}
+""".trimIndent()
+
 fun expectedGetOtherAccommodationReferralTimelineResponse(
   otherAccommodationReferralId: UUID,
   caseId: UUID,
   crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String,
   createCommitTime: String,
 ): String = """
 {
@@ -35,11 +129,6 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
             {
                "field":"caseId",
                "value":"$caseId",
-               "oldValue":null
-            },
-            {
-               "field":"localAuthorityAreaId",
-               "value":"$localAuthorityAreaId",
                "oldValue":null
             },
             {
@@ -72,10 +161,7 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
                "value":"A submission note",
                "oldValue":null
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$localAuthorityAreaName"
-         }
+         ]
       }
    ]
 }
@@ -86,10 +172,8 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
   otherAccommodationReferralId: UUID,
   caseId: UUID,
   crn: String,
-  initialLocalAuthorityAreaId: UUID,
-  initialLocalAuthorityAreaName: String,
-  updatedLocalAuthorityAreaId: UUID,
-  updatedLocalAuthorityAreaName: String,
+  referenceNumber: String,
+  previousReferenceNumber: String,
   createCommitTime: String,
   createNoteCommitTime: String,
   updateCommitTime: String,
@@ -107,19 +191,11 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
          "commitDate":"$updateCommitTime",
          "changes":[
             {
-               "field":"localAuthorityAreaId",
-               "value":"$updatedLocalAuthorityAreaId",
-               "oldValue":"$initialLocalAuthorityAreaId"
-            },
-            {
                "field":"referenceNumber",
-               "value":"REF-002",
-               "oldValue":"REF-001"
+               "value":"$referenceNumber",
+               "oldValue":"$previousReferenceNumber"
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$updatedLocalAuthorityAreaName"
-         }
+         ]
       },
       {
          "type":"NOTE",
@@ -164,13 +240,8 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
                "oldValue":null
             },
             {
-               "field":"localAuthorityAreaId",
-               "value":"$initialLocalAuthorityAreaId",
-               "oldValue":null
-            },
-            {
                "field":"referenceNumber",
-               "value":"REF-001",
+               "value":"$previousReferenceNumber",
                "oldValue":null
             },
             {
@@ -198,10 +269,7 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
                "value":"A submission note",
                "oldValue":null
             }
-         ],
-         "extraInformation":{
-            "localAuthorityAreaName":"$initialLocalAuthorityAreaName"
-         }
+         ]
       }
    ]
 }

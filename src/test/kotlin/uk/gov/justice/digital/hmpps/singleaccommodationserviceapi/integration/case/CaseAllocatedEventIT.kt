@@ -29,8 +29,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OnboardedTeamEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.DutyToReferRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ApprovedPremisesStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -39,6 +41,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.INBOX_EVENT
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.ONBOARDED_TEAM
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.OUTBOX_EVENT
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import java.time.Instant
@@ -49,6 +52,9 @@ import java.util.UUID
 class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   @Autowired
   lateinit var dutyToReferRepository: DutyToReferRepository
+
+  @Autowired
+  lateinit var onboardedTeamRepository: OnboardedTeamRepository
 
   private val externalId: UUID = UUID.fromString("0418d8b8-3599-4224-9a69-49af02f806c5")
   lateinit var crn: String
@@ -61,7 +67,8 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   fun setup() {
     crn = UUID.randomUUID().toString()
     HmppsAuthStubs.stubGrantToken()
-    databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, INBOX_EVENT, OUTBOX_EVENT)
+    databaseUtils.truncate(SAS_CASE, DUTY_TO_REFER, INBOX_EVENT, OUTBOX_EVENT, ONBOARDED_TEAM)
+    onboardedTeamRepository.save(OnboardedTeamEntity(teamCode = buildTeam().code))
     createSasSystemUser()
   }
 
@@ -209,7 +216,7 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
     assertThat(case.firstName).isEqualTo(expectedCpr?.firstName)
     assertThat(case.lastName).isEqualTo(expectedCpr?.lastName)
     assertThat(case.dateOfBirth).isEqualTo(expectedCpr?.dateOfBirth)
-    assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE)
+    assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
     assertThat(case.roshLevelCode).isEqualTo("RMRH")
 
     val currentAccommodation = case.currentAccommodation!!

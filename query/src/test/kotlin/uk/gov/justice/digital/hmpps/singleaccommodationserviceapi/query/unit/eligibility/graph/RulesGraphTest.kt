@@ -3,6 +3,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
@@ -14,6 +15,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1ApplicationPresentRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityContextUpdater
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.CrsSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.graph.GraphEdge
@@ -53,6 +57,30 @@ class RulesGraphTest {
       val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
       assertThat(ruleSetNode.rules).extracting<String> { it.className }.containsExactly("StubRule")
       assertThat(ruleSetNode.rules).extracting<String> { it.description }.containsExactly("FAIL if example")
+    }
+
+    @Test
+    fun `walk records source paths from each class package`() {
+      val root = builder
+        .ruleSet(
+          "ExampleEligibility",
+          StubRuleSet(listOf(Cas1ApplicationPresentRule(), CrsSubmittedRule())),
+          Cas1SuitabilityContextUpdater(),
+        )
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .build()
+
+      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val ruleSetNode = graph.nodes.single { it.kind == GraphNodeKind.RULE_SET }
+
+      assertThat(ruleSetNode.rules.map { it.sourcePath }).containsExactly(
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt",
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/CrsSubmittedRule.kt",
+      )
+      assertThat(ruleSetNode.contextUpdater?.sourcePath).isEqualTo(
+        "../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt",
+      )
     }
 
     @Test
@@ -117,10 +145,75 @@ class RulesGraphTest {
 
       assertThat(markdown).contains("## EXAMPLE")
       assertThat(markdown).contains("flowchart TD")
+      assertThat(markdown).contains("ExampleEligibility[\"ExampleEligibility (1)\"]")
       assertThat(markdown).contains("ExampleEligibility -->|PASS| confirmed")
       assertThat(markdown).contains("ExampleEligibility -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).doesNotContain("[ExampleEligibility](#EXAMPLE-ExampleEligibility)")
       assertThat(markdown).contains("`StubRule`: FAIL if example")
+      assertThat(markdown).doesNotContain("- FAIL:")
       assertThat(markdown).contains("| StubRule | FAIL if example | ExampleEligibility | EXAMPLE |")
+    }
+
+    @Test
+    fun `render links to source files using each class package`() {
+      val root = builder
+        .ruleSet(
+          "ExampleEligibility",
+          StubRuleSet(listOf(Cas1ApplicationPresentRule(), CrsSubmittedRule())),
+          Cas1SuitabilityContextUpdater(),
+        )
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .build()
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("EXAMPLE", root)))
+
+      assertThat(markdown).contains(
+        "[`Cas1ApplicationPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1ApplicationPresentRule.kt)",
+      )
+      assertThat(markdown).contains(
+        "[`CrsSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/CrsSubmittedRule.kt)",
+      )
+      assertThat(markdown).contains(
+        "[`Cas1SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/suitability/Cas1SuitabilityContextUpdater.kt)",
+      )
+    }
+
+    @Test
+    fun `render lists named FAIL updater below the diagram and in the catalogue`() {
+      val root = builder
+        .ruleSet("Upcoming", StubRuleSet(listOf(StubRule("window"))), StubContextUpdater())
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .build()
+      val graph = RulesGraphWalker.walk("EXAMPLE", root)
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(graph))
+
+      assertThat(markdown).contains("Upcoming -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).contains("- FAIL: `StubContextUpdater` - StubContextUpdater")
+      assertThat(markdown).doesNotContain("[`StubContextUpdater`](#stubcontextupdater)")
+      assertThat(markdown).contains("Used by: Upcoming (EXAMPLE)")
+    }
+
+    @Test
+    fun `render describes constant FAIL updater without a mermaid node`() {
+      val root = builder
+        .ruleSet(
+          "PaCompletion",
+          StubRuleSet(listOf(StubRule("complete"))),
+          ServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED),
+        )
+        .onPass(builder.confirmed())
+        .onFail(builder.notEligible(AccommodationService.CAS1))
+        .build()
+      val markdown = RulesGraphMarkdownRenderer.render(listOf(RulesGraphWalker.walk("PA", root)))
+
+      assertThat(markdown).contains("PaCompletion -->|FAIL| notEligible")
+      assertThat(markdown).doesNotContain("_onFail")
+      assertThat(markdown).contains("- FAIL: Set CAS1_NOT_STARTED")
+      assertThat(markdown).contains("Used by: PaCompletion (PA)")
+      assertThat(markdown).contains("| CAS1_NOT_STARTED | START_APPROVED_PREMISE_APPLICATION (CAS1) | - |")
     }
 
     @Test

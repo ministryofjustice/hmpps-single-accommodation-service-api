@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
@@ -24,28 +22,27 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
   val submitted = "submitted"
 
   override val outcomes = mapOf(
-    bedspaceOffered to ServiceResultNew(
+    bedspaceOffered to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_BEDSPACE_OFFERED,
-      action = CaseAction(type = CaseActionType.REPLY_TO_CAS3_BEDSPACE_OFFER, service = AccommodationService.CAS3),
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
-    bookingConfirmed to ServiceResultNew(
+    bookingConfirmed to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_BOOKING_CONFIRMED,
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
-    notArrived to ServiceResultNew(
+    notArrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_NOT_ARRIVED,
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
-    bedspaceCancelled to ServiceResultNew(
+    bedspaceCancelled to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_BOOKING_CANCELLED,
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
-    submitted to ServiceResultNew(
+    submitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS3_SUBMITTED,
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
@@ -53,7 +50,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
   )
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
-    val bookingStatus = context.data.cas3Application?.bookingStatus
+    val bookingStatus = context.data.cas3Application?.submittedApplication?.latestBooking?.status
     return when (bookingStatus) {
       Cas3BookingStatus.PROVISIONAL -> outcome(bedspaceOffered)
       Cas3BookingStatus.CONFIRMED -> outcome(bookingConfirmed)

@@ -7,7 +7,7 @@ generic-service:
 
   env:
     SENTRY_ENVIRONMENT: prod
-    JAVA_OPTS: "-Xmx2000m"
+    JAVA_TOOL_OPTIONS: "-Xmx2000m"
     SPRING_PROFILES_ACTIVE: prod
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.json"
     HMPPS_SQS_ENABLED: true
