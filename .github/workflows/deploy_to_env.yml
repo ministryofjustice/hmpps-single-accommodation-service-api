@@ -27,42 +27,16 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
-  can_i_deploy:
-    name: Can I deploy?
-    permissions:
-      contents: read
-    needs:
-      - helm_lint
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/can_i_deploy.yml@v2 # WORKFLOW_VERSION
-    secrets: inherit
-    with:
-      environment: ${{ inputs.environment }}
-      app_version: ${{ inputs.version }}
   deploy_env:
     name: Deploy to environment
     permissions:
       contents: read
     needs:
       - helm_lint
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
       app_version: ${{ inputs.version }}
+      pact_consumer_deployment: true
       slack_notification: 'false' # if 'true', it needs a valid (NON)PROD_RELEASES_SLACK_CHANNEL variable to be set
-  record_deployment:
-    name: Record Pact Broker deployment
-    permissions:
-      contents: read
-    needs:
-      - deploy_env
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_record_deployment.yml@v2 # WORKFLOW_VERSION
-    with:
-      app_version: ${{ inputs.version }}
-      environment: ${{ inputs.environment }}
-      pacticipant: hmpps-single-accommodation-service-api
-      pacticipant_version: ${{ inputs.version }}
-    secrets:
-      PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
-      HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
-      HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}
