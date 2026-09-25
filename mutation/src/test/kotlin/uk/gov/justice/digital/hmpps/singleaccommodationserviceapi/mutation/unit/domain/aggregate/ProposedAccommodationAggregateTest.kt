@@ -741,8 +741,8 @@ class ProposedAccommodationAggregateTest {
         ),
         startDate = startDate,
         endDate = endDate,
-        verificationStatus = VerificationStatus.PASSED
-        )
+        verificationStatus = VerificationStatus.PASSED,
+      )
       val arrivalDate = LocalDate.of(2026, 2, 5)
 
       aggregate.arrivePersonAtProposedAccommodation(arrivalDate, ArrivalMethod.WITHOUT_VERIFICATION)
@@ -777,7 +777,7 @@ class ProposedAccommodationAggregateTest {
         ),
         startDate = startDate,
         endDate = endDate,
-        verificationStatus = VerificationStatus.NOT_CHECKED_YET
+        verificationStatus = VerificationStatus.NOT_CHECKED_YET,
       )
       val arrivalDate = LocalDate.of(2026, 2, 5)
 
@@ -809,7 +809,7 @@ class ProposedAccommodationAggregateTest {
         ),
         startDate = startDate,
         endDate = endDate,
-        verificationStatus = VerificationStatus.FAILED
+        verificationStatus = VerificationStatus.FAILED,
       )
 
       assertThrows<AccommodationPersonCannotArriveException> {

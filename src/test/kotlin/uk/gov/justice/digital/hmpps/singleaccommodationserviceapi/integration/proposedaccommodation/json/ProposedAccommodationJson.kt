@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.proposedaccommodation.json
 
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArrivalMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SingleAccommodationServiceDomainEventType
@@ -218,9 +219,11 @@ fun proposedAddressesRequestBody(
 
 fun proposedAccommodationArrivalRequestBody(
   arrivalDate: String = "2026-01-05",
+  arrivalMethod: ArrivalMethod? = null,
 ) = """
   {
-    "arrivalDate": "$arrivalDate"
+    "arrivalDate": "$arrivalDate",
+    "arrivalMethod": ${convertNullable(arrivalMethod?.name) }
   }
 """.trimIndent()
 
