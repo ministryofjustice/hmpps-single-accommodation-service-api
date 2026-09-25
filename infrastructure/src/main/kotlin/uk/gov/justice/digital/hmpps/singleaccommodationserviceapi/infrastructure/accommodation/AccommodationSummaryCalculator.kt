@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.AccommodationSettledType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.AccommodationTypeRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ProposedAccommodationRepository
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -66,11 +67,14 @@ class AccommodationSummaryCalculator(
       cas3Application = cas3Application,
       currentAccommodation = currentAccommodation,
     ).firstOrNull()
+    val caseAccommodationStatus = calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation)
+    val caseAccommodationStatusDate = calculateCaseAccommodationStatusDate(caseAccommodationStatus, currentAccommodation, nextAccommodation, addresses)
 
     return AccommodationSummariesDto(
+      caseAccommodationStatus = caseAccommodationStatus,
+      caseAccommodationStatusDate = caseAccommodationStatusDate,
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
-      caseAccommodationStatus = calculateCaseAccommodationStatus(currentAccommodation, nextAccommodation),
     )
   }
 
@@ -160,6 +164,22 @@ class AccommodationSummaryCalculator(
     isSettled(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.SETTLED
     isTransient(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+    else -> null
+  }
+  fun calculateCaseAccommodationStatusDate(
+    caseAccommodationStatus: CaseAccommodationStatus?,
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+    addresses: List<CanonicalAddress>?,
+  ): LocalDate? = when (caseAccommodationStatus) {
+    CaseAccommodationStatus.NO_FIXED_ABODE ->
+      addresses
+        ?.mapNotNull { it.endDate?.let(LocalDate::parse) }
+        ?.maxOrNull()
+    CaseAccommodationStatus.SETTLED -> nextAccommodation?.startDate ?: if (isSettledType(currentAccommodation)) currentAccommodation?.startDate else null
+    CaseAccommodationStatus.TRANSIENT if isTransientNotHomelessType(currentAccommodation) -> currentAccommodation?.startDate
+    CaseAccommodationStatus.TRANSIENT if !isTransientNotHomelessType(currentAccommodation) -> nextAccommodation?.startDate
+    CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE -> currentAccommodation?.endDate
     else -> null
   }
 

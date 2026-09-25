@@ -128,6 +128,7 @@ class CaseTransformerTest {
     val caseEntity = buildCaseEntity {
       withCrn(crn)
       accommodationStatus = CaseAccommodationStatus.SETTLED
+      accommodationStatusDate = LocalDate.now()
     }
     val name = buildName()
     val personDto = buildFullPersonDto(crn = crn, name = name)
@@ -141,7 +142,7 @@ class CaseTransformerTest {
       tierScore = caseEntity.tierScore!!,
       accommodationSummaries = buildAccommodationSummariesDto(
         caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
-        caseAccommodationStatusDate = null,
+        caseAccommodationStatusDate = LocalDate.now(),
         currentAccommodation = currentAccommodationDto,
         nextAccommodation = nextAccommodationDto,
       ),
