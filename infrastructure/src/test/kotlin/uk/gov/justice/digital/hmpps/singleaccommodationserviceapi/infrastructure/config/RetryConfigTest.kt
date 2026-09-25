@@ -6,19 +6,25 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.mockk
+import io.netty.channel.ConnectTimeoutException
+import io.netty.handler.timeout.ReadTimeoutException
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.FieldSource
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.retry.RetryCallback
 import org.springframework.retry.RetryContext
-import org.springframework.retry.annotation.Retryable
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.reactive.function.client.WebClientRequestException
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import java.net.ConnectException
+import java.net.URI
+import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 
 class RetryConfigTest {
@@ -54,17 +60,6 @@ class RetryConfigTest {
     }
   }
 
-  @Test
-  fun `RestClientRetry annotation includes all expected retryable exception types`() {
-    val retryable = RestClientRetry::class.java.getAnnotation(Retryable::class.java)
-    val configuredTypes = retryable.value.map { it.java }.toSet()
-
-    assertThat(configuredTypes).containsExactlyInAnyOrder(
-      HttpServerErrorException::class.java,
-      ResourceAccessException::class.java,
-    )
-  }
-
   private fun withLogCapture(block: (ListAppender<ILoggingEvent>) -> Unit) {
     val logger = LoggerFactory.getLogger(RetryConfig::class.java) as Logger
     val appender = ListAppender<ILoggingEvent>().apply { start() }
@@ -89,6 +84,38 @@ class RetryConfigTest {
         ByteArray(0),
         StandardCharsets.UTF_8,
       ),
+      WebClientRequestException(
+        ReadTimeoutException.INSTANCE,
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        ConnectTimeoutException(),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        UnknownHostException(),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        ConnectException(),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientResponseException.create(
+        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        "Internal Server Error",
+        HttpHeaders.EMPTY,
+        ByteArray(0),
+        StandardCharsets.UTF_8,
+      ),
+
     )
 
     @JvmField
@@ -103,6 +130,19 @@ class RetryConfigTest {
       HttpClientErrorException.create(
         HttpStatus.FORBIDDEN,
         "Forbidden",
+        HttpHeaders.EMPTY,
+        ByteArray(0),
+        StandardCharsets.UTF_8,
+      ),
+      WebClientRequestException(
+        IllegalStateException(),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientResponseException.create(
+        HttpStatus.BAD_REQUEST.value(),
+        "Bad Request",
         HttpHeaders.EMPTY,
         ByteArray(0),
         StandardCharsets.UTF_8,
