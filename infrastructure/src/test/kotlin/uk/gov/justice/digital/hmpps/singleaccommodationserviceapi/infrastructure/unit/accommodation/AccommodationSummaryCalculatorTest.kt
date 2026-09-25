@@ -817,6 +817,7 @@ class AccommodationSummaryCalculatorTest {
         caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A03")),
         nextAccommodation = buildAccommodationSummaryDto(startDate = null),
+        addresses = null,
       )
       assertThat(result).isEqualTo(LocalDate.now())
     }
@@ -827,6 +828,7 @@ class AccommodationSummaryCalculatorTest {
         caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A08")),
         nextAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now().plusDays(1)),
+        addresses = null,
       )
       assertThat(result).isEqualTo(LocalDate.now().plusDays(1))
     }
@@ -837,16 +839,18 @@ class AccommodationSummaryCalculatorTest {
         caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
         currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now()),
         nextAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now().plusDays(1)),
+        addresses = null,
       )
       assertThat(result).isEqualTo(LocalDate.now().plusDays(1))
     }
 
     @Test
-    fun `should return current start date when status is SETTLED and next start date is null`() {
+    fun `should return current settled start date when status is SETTLED and next settled accommodation is null`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
         caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
-        currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now()),
-        nextAccommodation = buildAccommodationSummaryDto(startDate = null),
+        currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A01A")),
+        nextAccommodation = null,
+        addresses = null,
       )
       assertThat(result).isEqualTo(LocalDate.now())
     }
