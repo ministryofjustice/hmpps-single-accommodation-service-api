@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArrivalMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationStatusDto
@@ -493,7 +494,9 @@ class ProposedAccommodationAggregateTest {
 
   @ParameterizedTest
   @EnumSource(value = NextAccommodationStatus::class, names = ["NO", "TO_BE_DECIDED"])
-  fun `should add AccommodationDeletedDomainEvent when registered with CPR and next accommodation changes`(nextAccommodationStatus: NextAccommodationStatus) {
+  fun `should add AccommodationDeletedDomainEvent when registered with CPR and next accommodation changes`(
+    nextAccommodationStatus: NextAccommodationStatus,
+  ) {
     val aggregate = hydrateAggregate(
       cprAddressId = UUID.randomUUID(),
       startDate = startDate,
@@ -617,7 +620,7 @@ class ProposedAccommodationAggregateTest {
     )
     val arrivalDate = LocalDate.of(2026, 2, 5)
 
-    aggregate.arrivePersonAtProposedAccommodation(arrivalDate)
+    aggregate.arrivePersonAtProposedAccommodation(arrivalDate, ArrivalMethod.STANDARD)
 
     val aggregateSnapshot = aggregate.snapshot()
     assertThat(aggregateSnapshot.accommodationStatus?.code).isEqualTo(AddressStatusCode.M.name)
@@ -648,7 +651,7 @@ class ProposedAccommodationAggregateTest {
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
-      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now(), ArrivalMethod.STANDARD)
     }
 
     assertThat(aggregate.pullDomainEvents()).isEmpty()
@@ -669,7 +672,7 @@ class ProposedAccommodationAggregateTest {
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
-      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now(), ArrivalMethod.STANDARD)
     }
 
     assertThat(aggregate.pullDomainEvents()).isEmpty()
@@ -690,7 +693,7 @@ class ProposedAccommodationAggregateTest {
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
-      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now(), arrivalMethod = ArrivalMethod.STANDARD)
     }
 
     assertThat(aggregate.pullDomainEvents()).isEmpty()
@@ -708,7 +711,7 @@ class ProposedAccommodationAggregateTest {
     )
 
     assertThrows<AccommodationPersonCannotArriveException> {
-      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now())
+      aggregate.arrivePersonAtProposedAccommodation(LocalDate.now(), ArrivalMethod.STANDARD)
     }
 
     assertThat(aggregate.pullDomainEvents()).isEmpty()

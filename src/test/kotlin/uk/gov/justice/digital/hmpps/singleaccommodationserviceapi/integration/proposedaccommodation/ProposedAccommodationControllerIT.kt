@@ -497,12 +497,13 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         uprn = "100023336956",
       )
 
-      val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
-        .returnResult()
-        .responseBody!!
+      val response =
+        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=true", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
 
       assertThat(response.data.size).isEqualTo(3)
 
@@ -643,12 +644,13 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         uprn = "100023336956",
       )
 
-      val response = restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
-        .withDeliusUserJwt()
-        .exchangeSuccessfully()
-        .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
-        .returnResult()
-        .responseBody!!
+      val response =
+        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?excludeVerificationFailed=false", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
 
       assertThat(response.data.size).isEqualTo(4)
 
@@ -1971,16 +1973,16 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
         ),
       )
 
-    restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        proposedAccommodationArrivalRequestBody(
-          arrivalDate = fixedInstant.toString(),
-        ),
-      )
-      .withDeliusUserJwt()
-      .exchange()
-      .expectStatus().isBadRequest
+      restTestClient.post().uri("/cases/$crn/proposed-accommodations/${existingEntity.id}/arrival")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          proposedAccommodationArrivalRequestBody(
+            arrivalDate = fixedInstant.toString(),
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isBadRequest
 
       assertThat(outboxEventRepository.findAll()).isEmpty()
       cacheHelper.assertCacheEntryExists(crn, GET_CORE_PERSON_RECORD_BY_CRN)
