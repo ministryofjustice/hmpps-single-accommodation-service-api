@@ -9,6 +9,8 @@ fun createOtherAccommodationReferralRequestBody(
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
   submissionNote: String? = null,
+  email: String? = null,
+  phoneNumber: String? = null,
   outcomeReason: String? = null,
   outcomeNote: String? = null,
 ): String = """
@@ -32,6 +34,16 @@ fun createOtherAccommodationReferralRequestBody(
 }}${if (submissionNote != null) {
   """,
   "submissionNote": "$submissionNote""""
+} else {
+  ""
+}}${if (email != null) {
+  """,
+  "email": "$email""""
+} else {
+  ""
+}}${if (phoneNumber != null) {
+  """,
+  "phoneNumber": "$phoneNumber""""
 } else {
   ""
 }}${if (outcomeReason != null) {
@@ -62,6 +74,8 @@ fun expectedOtherAccommodationReferralResponseBody(
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
   submissionNote: String? = null,
+  email: String? = null,
+  phoneNumber: String? = null,
   outcomeReason: String? = null,
   outcomeNote: String? = null,
 ): String = """
@@ -79,6 +93,8 @@ fun expectedOtherAccommodationReferralResponseBody(
     "organisationName": ${if (organisationName != null) "\"$organisationName\"" else "null"},
     "website": ${if (website != null) "\"$website\"" else "null"},
     "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"},
+    "email": ${if (email != null) "\"$email\"" else "null"},
+    "phoneNumber": ${if (phoneNumber != null) "\"$phoneNumber\"" else "null"},
     "outcomeReason": ${if (outcomeReason != null) "\"$outcomeReason\"" else "null"},
     "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
   }
@@ -105,6 +121,8 @@ fun expectedGetOtherAccommodationReferralResponseBody(
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
   submissionNote: String? = null,
+  email: String? = null,
+  phoneNumber: String? = null,
 ): String = """{"data": ${expectedOtherAccommodationReferralResponseBody(
   id = id,
   caseId = caseId,
@@ -118,6 +136,8 @@ fun expectedGetOtherAccommodationReferralResponseBody(
   organisationName = organisationName,
   website = website,
   submissionNote = submissionNote,
+  email = email,
+  phoneNumber = phoneNumber,
 )}}"""
 
 fun expectedSearchOtherAccommodationReferralResponseBody(referrals: List<String>): String = """{"data": [${referrals.joinToString(",")}]}"""

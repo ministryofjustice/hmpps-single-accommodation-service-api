@@ -48,6 +48,8 @@ object OtherAccommodationReferralTransformer {
     organisationName = entity.organisationName,
     website = entity.website,
     submissionNote = entity.submissionNote,
+    email = entity.email,
+    phoneNumber = entity.phoneNumber,
     outcomeReason = toOutcomeReason(entity.outcomeReason),
     outcomeNote = entity.outcomeNote,
   )
@@ -65,6 +67,8 @@ object OtherAccommodationReferralTransformer {
     organisationName = entity.organisationName,
     website = entity.website,
     submissionNote = entity.submissionNote,
+    email = entity.email,
+    phoneNumber = entity.phoneNumber,
     outcomeReason = toOutcomeReason(entity.outcomeReason),
     outcomeNote = entity.outcomeNote,
   )

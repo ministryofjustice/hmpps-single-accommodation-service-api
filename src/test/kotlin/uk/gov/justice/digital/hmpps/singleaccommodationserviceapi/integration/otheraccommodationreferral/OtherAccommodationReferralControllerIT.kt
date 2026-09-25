@@ -79,6 +79,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
             organisationName = "Organisation name",
             website = "https://www.charity.org",
             submissionNote = "A submission note",
+            email = "contact@example.com",
+            phoneNumber = "01234567890",
           ),
         )
         .withDeliusUserJwt()
@@ -103,6 +105,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
+          email = "contact@example.com",
+          phoneNumber = "01234567890",
         ),
       )
     }
@@ -176,6 +180,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
       assertThat(persistedRecord.organisationName).isEqualTo("Organisation name")
       assertThat(persistedRecord.website).isEqualTo("https://www.charity.org")
       assertThat(persistedRecord.submissionNote).isEqualTo("A submission note")
+      assertThat(persistedRecord.email).isEqualTo("contact@example.com")
+      assertThat(persistedRecord.phoneNumber).isEqualTo("01234567890")
       assertThat(persistedRecord.createdAt).isBetween(
         beforeTest.minusSeconds(1),
         Instant.now().plusSeconds(1),
@@ -523,6 +529,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
         organisationName = "Organisation name",
         website = "https://www.charity.org",
         submissionNote = "A submission note",
+        email = "contact@example.com",
+        phoneNumber = "01234567890",
       )
 
       val result = restTestClient.put().uri("/cases/$crn/other-accommodation-referral/${existingEntity.id}")
@@ -534,6 +542,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
             organisationName = "New organisation name",
             website = "https://www.new-charity.org",
             submissionNote = "An updated submission note",
+            email = "new-contact@example.com",
+            phoneNumber = "09876543210",
           ),
         )
         .withDeliusUserJwt()
@@ -547,6 +557,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
       assertThat(updatedRecord.organisationName).isEqualTo("New organisation name")
       assertThat(updatedRecord.website).isEqualTo("https://www.new-charity.org")
       assertThat(updatedRecord.submissionNote).isEqualTo("An updated submission note")
+      assertThat(updatedRecord.email).isEqualTo("new-contact@example.com")
+      assertThat(updatedRecord.phoneNumber).isEqualTo("09876543210")
 
       assertThatJson(result).matchesExpectedJson(
         expectedOtherAccommodationReferralResponseBody(
@@ -561,6 +573,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
           organisationName = "New organisation name",
           website = "https://www.new-charity.org",
           submissionNote = "An updated submission note",
+          email = "new-contact@example.com",
+          phoneNumber = "09876543210",
         ),
       )
     }
@@ -1058,6 +1072,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
     organisationName: String? = null,
     website: String? = null,
     submissionNote: String? = null,
+    email: String? = null,
+    phoneNumber: String? = null,
   ): OtherAccommodationReferralEntity = otherAccommodationReferralRepository.save(
     buildOtherAccommodationReferralEntity(
       crn = crn,
@@ -1068,6 +1084,8 @@ class OtherAccommodationReferralControllerIT : IntegrationTestBase() {
       organisationName = organisationName,
       website = website,
       submissionNote = submissionNote,
+      email = email,
+      phoneNumber = phoneNumber,
     ),
   )
 }
