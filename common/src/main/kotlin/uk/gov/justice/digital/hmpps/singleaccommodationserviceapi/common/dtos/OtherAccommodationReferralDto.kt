@@ -27,6 +27,8 @@ data class OtherAccommodationReferralSubmissionDto(
   val organisationName: String?,
   val website: String?,
   val submissionNote: String?,
+  val email: String? = null,
+  val phoneNumber: String? = null,
   val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
   val outcomeNote: String? = null,
 )
@@ -38,6 +40,8 @@ data class OtherAccommodationReferralCommand(
   val organisationName: String?,
   val website: String?,
   val submissionNote: String?,
+  val email: String? = null,
+  val phoneNumber: String? = null,
   val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
   val outcomeNote: String? = null,
 )

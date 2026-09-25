@@ -32,6 +32,8 @@ class OtherAccommodationReferralAggregate private constructor(
   private var organisationName: String? = null,
   private var website: String? = null,
   private var submissionNote: String? = null,
+  private var email: String? = null,
+  private var phoneNumber: String? = null,
   private var outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
   private var outcomeNote: String? = null,
   private var notes: MutableList<OtherAccommodationReferralNote> = mutableListOf(),
@@ -54,6 +56,8 @@ class OtherAccommodationReferralAggregate private constructor(
       website: String?,
       submissionNote: String?,
       notes: List<OtherAccommodationReferralNote>,
+      email: String? = null,
+      phoneNumber: String? = null,
       outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
       outcomeNote: String? = null,
     ) = OtherAccommodationReferralAggregate(
@@ -66,6 +70,8 @@ class OtherAccommodationReferralAggregate private constructor(
       organisationName = organisationName,
       website = website,
       submissionNote = submissionNote,
+      email = email,
+      phoneNumber = phoneNumber,
       outcomeReason = outcomeReason,
       outcomeNote = outcomeNote,
       notes = notes.toMutableList(),
@@ -100,6 +106,8 @@ class OtherAccommodationReferralAggregate private constructor(
     organisationName: String?,
     website: String?,
     submissionNote: String?,
+    email: String? = null,
+    phoneNumber: String? = null,
     outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
     outcomeNote: String? = null,
   ) {
@@ -111,6 +119,8 @@ class OtherAccommodationReferralAggregate private constructor(
     this.organisationName = organisationName
     this.website = website
     this.submissionNote = submissionNote?.takeUnless { it.isBlank() }
+    this.email = email?.takeUnless { it.isBlank() }
+    this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
 
     if (status == OtherAccommodationReferralStatus.ACCEPTED || status == OtherAccommodationReferralStatus.REJECTED) {
       this.outcomeReason = outcomeReason
@@ -169,6 +179,8 @@ class OtherAccommodationReferralAggregate private constructor(
     organisationName = organisationName,
     website = website,
     submissionNote = submissionNote,
+    email = email,
+    phoneNumber = phoneNumber,
     outcomeReason = outcomeReason,
     outcomeNote = outcomeNote,
     notes = notes.toList(),
@@ -184,6 +196,8 @@ class OtherAccommodationReferralAggregate private constructor(
     val organisationName: String? = null,
     val website: String? = null,
     val submissionNote: String? = null,
+    val email: String? = null,
+    val phoneNumber: String? = null,
     val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
     val outcomeNote: String? = null,
     val notes: List<OtherAccommodationReferralNote> = emptyList(),
