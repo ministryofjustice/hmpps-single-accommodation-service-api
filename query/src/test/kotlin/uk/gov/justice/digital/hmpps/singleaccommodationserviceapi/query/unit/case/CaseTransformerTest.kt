@@ -133,27 +133,27 @@ class CaseTransformerTest {
     val name = buildName()
     val personDto = buildFullPersonDto(crn = crn, name = name)
 
-      val expected = buildCaseDto(
-        crn = crn,
-        forename = caseEntity.firstName!!,
-        middleNames = null,
-        surname = caseEntity.lastName!!,
-        dateOfBirth = caseEntity.dateOfBirth!!,
-        tierScore = caseEntity.tierScore!!,
-        accommodationSummaries = buildAccommodationSummariesDto(
-          caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
-          caseAccommodationStatusDate = LocalDate.now(),
-          currentAccommodation = currentAccommodationDto,
-          nextAccommodation = nextAccommodationDto,
-        ),
-      )
-      assertThat(
-        personDto.toCaseDto(
-          caseEntity = caseEntity,
-          currentAccommodation = currentAccommodationDto,
-          nextAccommodation = nextAccommodationDto,
-        ),
-      ).isEqualTo(expected)
+    val expected = buildCaseDto(
+      crn = crn,
+      forename = caseEntity.firstName!!,
+      middleNames = null,
+      surname = caseEntity.lastName!!,
+      dateOfBirth = caseEntity.dateOfBirth!!,
+      tierScore = caseEntity.tierScore!!,
+      accommodationSummaries = buildAccommodationSummariesDto(
+        caseAccommodationStatus = CaseAccommodationStatus.SETTLED,
+        caseAccommodationStatusDate = LocalDate.now(),
+        currentAccommodation = currentAccommodationDto,
+        nextAccommodation = nextAccommodationDto,
+      ),
+    )
+    assertThat(
+      personDto.toCaseDto(
+        caseEntity = caseEntity,
+        currentAccommodation = currentAccommodationDto,
+        nextAccommodation = nextAccommodationDto,
+      ),
+    ).isEqualTo(expected)
   }
 
   private fun assertUserAccess(caseDto: CaseDto, expectedAccess: UserAccess, limitedAccess: Boolean? = null) {
