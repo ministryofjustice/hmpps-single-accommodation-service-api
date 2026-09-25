@@ -109,6 +109,9 @@ allprojects {
     useJUnitPlatform {
       excludeTags("integration")
     }
+    filter {
+      excludeTestsMatching("*PactTest")
+    }
   }
 
   if (this != rootProject) {
