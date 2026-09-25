@@ -2,6 +2,12 @@ generic-service:
   serviceAccountName: hmpps-community-accommodation-api-service-account
   replicaCount: 2
 
+  resources:
+    limits:
+      memory: 3Gi
+    requests:
+      memory: 2.5Gi
+
   ingress:
     host: single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-single-accommodation-service-api-preprod-cert
