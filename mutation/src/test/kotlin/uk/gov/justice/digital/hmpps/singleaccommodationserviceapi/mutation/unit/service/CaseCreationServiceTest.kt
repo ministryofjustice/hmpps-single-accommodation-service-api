@@ -12,8 +12,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -50,17 +48,14 @@ class CaseCreationServiceTest {
 
     @BeforeEach
     fun setUp() {
-      caseCreationService = buildService(caseListV2Enabled = false)
+      caseCreationService = CaseCreationService(
+        caseOrchestrationService = caseOrchestrationService,
+        caseSnapshotAssembler = caseSnapshotAssembler,
+        caseRepository = caseRepository,
+        caseMapper = caseMapper,
+        entityManager = entityManager,
+      )
     }
-
-    private fun buildService(caseListV2Enabled: Boolean) = CaseCreationService(
-      caseOrchestrationService = caseOrchestrationService,
-      caseSnapshotAssembler = caseSnapshotAssembler,
-      caseRepository = caseRepository,
-      caseMapper = caseMapper,
-      entityManager = entityManager,
-      caseListV2Enabled = caseListV2Enabled,
-    )
 
     private fun stubOrchestrationResult(crn: String) {
       every { caseOrchestrationService.getCurrentCaseResult(crn = crn, prisonNumber = any()) } returns
@@ -162,28 +157,7 @@ class CaseCreationServiceTest {
     inner class SaveUnpersistedCases {
 
       @Test
-      fun `persists only unpersisted Crns as blank record when caseListV2Enabled is false`() {
-        caseCreationService = buildService(caseListV2Enabled = false)
-        val first = CaseToCreate(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
-        val second = CaseToCreate(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
-        val third = CaseToCreate(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
-        val casesToCreate = listOf(first, second, third)
-        val entities = mutableListOf<CaseEntity>()
-
-        every { caseRepository.findUnpersistedCrns(any()) } returns listOf(first.crn, third.crn)
-        every { entityManager.persist(capture(entities)) } just runs
-
-        caseCreationService.saveUnpersistedCasesAsBlankRows(casesToCreate)
-
-        verify(exactly = 0) { caseSnapshotAssembler.upsertCase(any(), any()) }
-
-        assertThat(entities).hasSize(2)
-        assertThat(entities.map { it.latestCrn() }).containsExactly(first.crn, third.crn)
-      }
-
-      @Test
-      fun `persists only unpersisted Crns and populates all data on the record when caseListV2Enabled is true`() {
-        caseCreationService = buildService(caseListV2Enabled = true)
+      fun `persists only unpersisted Crns and populates all data on the record`() {
         val caseToCreate =
           CaseToCreate(crn = UUID.randomUUID().toString(), prisonNumber = UUID.randomUUID().toString())
 
@@ -198,10 +172,8 @@ class CaseCreationServiceTest {
         verify(exactly = 1) { caseSnapshotAssembler.upsertCase(any(), any()) }
       }
 
-      @ParameterizedTest
-      @ValueSource(booleans = [true, false])
-      fun `does not save when no cases to persist`(v2Enabled: Boolean) {
-        caseCreationService = buildService(caseListV2Enabled = v2Enabled)
+      @Test
+      fun `does not save when no cases to persist`() {
         val casesToCreate = List(3) {
           CaseToCreate(
             crn = UUID.randomUUID().toString(),

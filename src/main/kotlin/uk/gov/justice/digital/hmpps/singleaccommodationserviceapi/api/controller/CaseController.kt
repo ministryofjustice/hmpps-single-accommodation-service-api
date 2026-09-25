@@ -50,7 +50,7 @@ class CaseController(
 
     val filteredCaseList = caseQueryService.applyCaseListFilters(personDtos.data, searchTerm, riskLevel, normalizedTeamCode)
     val crnsToPrisonNumbers = filteredCaseList.map { CrnToPrisonNumber(it.crn, it.nomsNumber) }
-    caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = !caseQueryService.caseListV2Enabled)
+    caseApplicationService.createCases(crnsToPrisonNumbers, createAsBlankRecord = false)
     val caseDtos = caseQueryService.getCases(filteredCaseList, peopleType)
     return ResponseEntity.ok(ApiResponseDto(data = caseDtos, upstreamFailures = upstreamFailures))
   }
@@ -70,7 +70,7 @@ class CaseController(
 
     val crnToPrisonNumber = caseResponse.data?.let { CrnToPrisonNumber(it.crn, it.nomsNumber) }
     // TODO: Change this to upsertCases after MVP
-    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber), createAsBlankRecord = !caseQueryService.caseListV2Enabled)
+    caseApplicationService.createCases(listOfNotNull(crnToPrisonNumber), createAsBlankRecord = false)
     val caseDto = caseQueryService.getCases(listOfNotNull(caseResponse.data)).first()
     return ResponseEntity.ok(ApiResponseDto(data = caseDto, upstreamFailures = caseResponse.upstreamFailures))
   }
