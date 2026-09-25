@@ -144,7 +144,7 @@ data class Cas3ReferralHistory(
 data class Cas2ReferralHistory(
   val id: UUID,
   val applicationId: UUID,
-  val applicationStatus: String?,
+  val applicationStatus: Cas2AssessmentStatus?,
   val applicationSubmittedDate: LocalDate,
   val applicationLastUpdatedDate: LocalDate?,
   val referralRejectionReason: String?,
@@ -153,7 +153,26 @@ data class Cas2ReferralHistory(
   val referredBy: String,
   val placementAddress: String?,
   val uiUrl: String,
-) : CasReferralHistory
+) : CasReferralHistory {
+  enum class Cas2AssessmentStatus(@get:JsonValue val value: String) {
+    MORE_INFO_REQUESTED("moreInfoRequested"),
+    AWAITING_DECISION("awaitingDecision"),
+    ON_WAITING_LIST("onWaitingList"),
+    PLACE_OFFERED("placeOffered"),
+    OFFER_ACCEPTED("offerAccepted"),
+    OFFER_DECLINED("offerDeclined"),
+    WITHDRAWN("withdrawn"),
+    CANCELLED("cancelled"),
+    AWAITING_ARRIVAL("awaitingArrival"),
+    ;
+
+    companion object {
+      @JvmStatic
+      @JsonCreator
+      fun forValue(value: String): Cas2AssessmentStatus = entries.firstOrNull { it.value == value } ?: throw IllegalArgumentException("Unknown value: $value")
+    }
+  }
+}
 
 data class DeliusUserDto(
   val name: String,

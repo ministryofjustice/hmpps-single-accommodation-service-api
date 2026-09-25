@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
@@ -41,17 +42,16 @@ object AccommodationReferralStatusMapper {
     }
   }
 
-  // TODO: This is a temporary mapping until the CAS API is updated to return the status enums.
   fun toStatus(referral: Cas2ReferralHistory): AccommodationReferralStatus = when (referral.applicationStatus) {
-    "moreInfoRequested" -> AccommodationReferralStatus.MORE_INFORMATION_REQUESTED
-    "placeOffered" -> AccommodationReferralStatus.PLACE_OFFERED
-    "awaitingArrival" -> AccommodationReferralStatus.AWAITING_ARRIVAL
-    "cancelled" -> AccommodationReferralStatus.CANCELLED
-    "withdrawn" -> AccommodationReferralStatus.WITHDRAWN
-    "awaitingDecision" -> AccommodationReferralStatus.AWAITING_DECISION
-    "onWaitingList" -> AccommodationReferralStatus.ON_WAITING_LIST
-    "offerAccepted" -> AccommodationReferralStatus.ACCEPTED
-    "offerDeclined" -> AccommodationReferralStatus.OFFER_DECLINED_OR_WITHDRAWN
+    Cas2AssessmentStatus.MORE_INFO_REQUESTED -> AccommodationReferralStatus.MORE_INFORMATION_REQUESTED
+    Cas2AssessmentStatus.PLACE_OFFERED -> AccommodationReferralStatus.PLACE_OFFERED
+    Cas2AssessmentStatus.AWAITING_ARRIVAL -> AccommodationReferralStatus.AWAITING_ARRIVAL
+    Cas2AssessmentStatus.CANCELLED -> AccommodationReferralStatus.CANCELLED
+    Cas2AssessmentStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+    Cas2AssessmentStatus.AWAITING_DECISION -> AccommodationReferralStatus.AWAITING_DECISION
+    Cas2AssessmentStatus.ON_WAITING_LIST -> AccommodationReferralStatus.ON_WAITING_LIST
+    Cas2AssessmentStatus.OFFER_ACCEPTED -> AccommodationReferralStatus.ACCEPTED
+    Cas2AssessmentStatus.OFFER_DECLINED -> AccommodationReferralStatus.OFFER_DECLINED_OR_WITHDRAWN
     else -> AccommodationReferralStatus.PENDING
   }
 

@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.ac
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
@@ -11,6 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
@@ -246,24 +246,33 @@ class AccommodationReferralStatusMapperTest {
   }
 
   @ParameterizedTest
-  @CsvSource(
-    "moreInfoRequested, MORE_INFORMATION_REQUESTED",
-    "placeOffered, PLACE_OFFERED",
-    "awaitingArrival, AWAITING_ARRIVAL",
-    "cancelled, CANCELLED",
-    "withdrawn, WITHDRAWN",
-    "awaitingDecision, AWAITING_DECISION",
-    "onWaitingList, ON_WAITING_LIST",
-    "offerAccepted, ACCEPTED",
-    "offerDeclined, OFFER_DECLINED_OR_WITHDRAWN",
-    "unknown, PENDING",
-    ", PENDING",
-  )
-  fun `should transform CAS2 application status`(status: String?, expected: AccommodationReferralStatus) {
+  @EnumSource(Cas2AssessmentStatus::class)
+  fun `should transform CAS2 application status`(status: Cas2AssessmentStatus) {
+    val expected = when (status) {
+      Cas2AssessmentStatus.MORE_INFO_REQUESTED -> AccommodationReferralStatus.MORE_INFORMATION_REQUESTED
+      Cas2AssessmentStatus.PLACE_OFFERED -> AccommodationReferralStatus.PLACE_OFFERED
+      Cas2AssessmentStatus.AWAITING_ARRIVAL -> AccommodationReferralStatus.AWAITING_ARRIVAL
+      Cas2AssessmentStatus.CANCELLED -> AccommodationReferralStatus.CANCELLED
+      Cas2AssessmentStatus.WITHDRAWN -> AccommodationReferralStatus.WITHDRAWN
+      Cas2AssessmentStatus.AWAITING_DECISION -> AccommodationReferralStatus.AWAITING_DECISION
+      Cas2AssessmentStatus.ON_WAITING_LIST -> AccommodationReferralStatus.ON_WAITING_LIST
+      Cas2AssessmentStatus.OFFER_ACCEPTED -> AccommodationReferralStatus.ACCEPTED
+      Cas2AssessmentStatus.OFFER_DECLINED -> AccommodationReferralStatus.OFFER_DECLINED_OR_WITHDRAWN
+    }
+
     val referral = buildReferralHistory(
-      applicationStatus = status ?: "",
+      applicationStatus = status,
       referredBy = buildDeliusUserDto(),
     )
     assertThat(AccommodationReferralStatusMapper.toStatus(referral)).isEqualTo(expected)
+  }
+
+  @Test
+  fun `should transform CAS2 application status when null`() {
+    val referral = buildReferralHistory(
+      applicationStatus = null,
+      referredBy = buildDeliusUserDto(),
+    )
+    assertThat(AccommodationReferralStatusMapper.toStatus(referral)).isEqualTo(AccommodationReferralStatus.PENDING)
   }
 }
