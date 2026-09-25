@@ -24,6 +24,7 @@ class CaseMapper {
     currentAccommodation = entity.currentAccommodation,
     nextAccommodation = entity.nextAccommodation,
     accommodationStatus = entity.accommodationStatus,
+    accommodationStatusDate = entity.accommodationStatusDate,
     roshLevelCode = entity.roshLevelCode,
   )
 
@@ -38,6 +39,7 @@ class CaseMapper {
       currentAccommodation = snapshot.currentAccommodation,
       nextAccommodation = snapshot.nextAccommodation,
       accommodationStatus = snapshot.accommodationStatus,
+      accommodationStatusDate = snapshot.accommodationStatusDate,
       roshLevelCode = snapshot.roshLevelCode,
     )
     entity.addIdentifiers(buildIdentifiers(crn = crn, prisonNumber = prisonNumber))
@@ -57,6 +59,7 @@ class CaseMapper {
     entity.currentAccommodation = snapshot.currentAccommodation
     entity.nextAccommodation = snapshot.nextAccommodation
     entity.accommodationStatus = snapshot.accommodationStatus
+    entity.accommodationStatusDate = snapshot.accommodationStatusDate
     entity.roshLevelCode = snapshot.roshLevelCode
 
     identifiers?.let { entity.addIdentifiers(it) }

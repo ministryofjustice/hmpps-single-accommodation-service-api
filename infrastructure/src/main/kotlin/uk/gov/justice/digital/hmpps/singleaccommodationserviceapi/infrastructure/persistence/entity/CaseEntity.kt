@@ -39,6 +39,8 @@ class CaseEntity(
   @Enumerated(EnumType.STRING)
   var accommodationStatus: CaseAccommodationStatus? = null,
 
+  var accommodationStatusDate: LocalDate? = null,
+
   var roshLevelCode: String? = null,
 
   @OneToMany(

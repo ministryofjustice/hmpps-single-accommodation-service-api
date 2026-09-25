@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Us
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import java.time.LocalDate
 
 object CaseTransformer {
   fun toCaseDto(
@@ -64,6 +65,7 @@ object CaseTransformer {
         accommodationSummaries = caseEntity?.let {
           toAccommodationSummariesDto(
             accommodationStatus = it.accommodationStatus,
+            accommodationStatusDate = it.accommodationStatusDate,
             currentAccommodation = currentAccommodation,
             nextAccommodation = nextAccommodation,
           )
@@ -76,11 +78,12 @@ object CaseTransformer {
 
   fun toAccommodationSummariesDto(
     accommodationStatus: CaseAccommodationStatus?,
+    accommodationStatusDate: LocalDate?,
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ) = AccommodationSummariesDto(
     caseAccommodationStatus = accommodationStatus,
-    caseAccommodationStatusDate = null,
+    caseAccommodationStatusDate = accommodationStatusDate,
     currentAccommodation = currentAccommodation,
     nextAccommodation = nextAccommodation,
   )
