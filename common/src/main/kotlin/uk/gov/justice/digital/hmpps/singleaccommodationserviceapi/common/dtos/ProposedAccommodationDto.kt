@@ -30,7 +30,13 @@ data class ProposedAccommodationDetailCommand(
 
 data class ProposedAccommodationArrivalCommand(
   val arrivalDate: LocalDate,
+  val arrivalMethod: ArrivalMethod?,
 )
+
+enum class ArrivalMethod {
+  STANDARD,
+  WITHOUT_VERIFICATION,
+}
 
 enum class VerificationStatus(override val title: String) : TitleEnum {
   NOT_CHECKED_YET("Not checked"),
