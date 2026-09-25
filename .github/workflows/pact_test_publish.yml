@@ -41,8 +41,8 @@ jobs:
         with:
           name: pact-test-results
           path: |
-            build/test-results
-            build/reports/tests
+            '**/build/test-results'
+            '**/build/reports/tests'
       - name: Publish pacts
         run: ./gradlew pactPublish
         env:
