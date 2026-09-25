@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ac
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationStatusDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationTypeDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ArrivalMethod
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NextAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.VerificationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
@@ -183,8 +184,8 @@ class ProposedAccommodationAggregate private constructor(
     }
   }
 
-  fun arrivePersonAtProposedAccommodation(arrivalDate: LocalDate) {
-    if (!canPersonArrive()) {
+  fun arrivePersonAtProposedAccommodation(arrivalDate: LocalDate, arrivalMethod: ArrivalMethod?) {
+    if (!canPersonArrive(arrivalMethod)) {
       throw AccommodationPersonCannotArriveException()
     }
     startDate = arrivalDate
@@ -227,15 +228,15 @@ class ProposedAccommodationAggregate private constructor(
     }
   }
 
-  private fun canPersonArrive(): Boolean {
-    if (
+  private fun canPersonArrive(arrivalMethod: ArrivalMethod?): Boolean = when (arrivalMethod) {
+    ArrivalMethod.STANDARD, null ->
       isRegisteredWithCpr() &&
-      NextAccommodationStatus.YES == nextAccommodationStatus &&
-      accommodationStatus?.code.isProposedAccommodationStatus()
-    ) {
-      return true
-    }
-    return false
+        nextAccommodationStatus == NextAccommodationStatus.YES &&
+        accommodationStatus?.code.isProposedAccommodationStatus()
+
+    ArrivalMethod.WITHOUT_VERIFICATION ->
+      isRegisteredWithCpr() &&
+        accommodationStatus?.code.isProposedAccommodationStatus()
   }
 
   fun pullDomainEvents(): List<SingleAccommodationServiceDomainEvent> = domainEvents.toList().also { domainEvents.clear() }
