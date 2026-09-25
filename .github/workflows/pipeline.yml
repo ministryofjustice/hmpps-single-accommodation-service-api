@@ -56,6 +56,13 @@ jobs:
       gradle-command: './gradlew unitTest'
       artifact-name: 'unit-test-results'
     secrets: inherit
+  pact_test:
+    permissions:
+      contents: read
+    name: Pact Consumer Tests and Publish Contracts
+    needs: kotlin_validate
+    uses: ./.github/workflows/pact_test_publish.yml
+    secrets: inherit
   integration_test:
     permissions:
       contents: read
@@ -93,14 +100,16 @@ jobs:
     needs:
       - kotlin_validate
       - unit_test
+      - pact_test
       - integration_test
       - build
       - helm_lint
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'development'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pact_consumer_deployment: true
       slack_notification: 'false' # if 'true', it needs a valid NONPROD_RELEASES_SLACK_CHANNEL variable to be set
   sas_generate_types:
     needs: deploy_dev
@@ -117,11 +126,12 @@ jobs:
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'preprod'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pact_consumer_deployment: true
       slack_notification: 'true' # if 'true', it needs a valid NONPROD_RELEASES_SLACK_CHANNEL variable to be set
   deploy_prod:
     permissions:
@@ -131,9 +141,10 @@ jobs:
     needs:
       - build
       - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'prod'
       app_version: '${{ needs.build.outputs.app_version }}'
+      pact_consumer_deployment: true
       slack_notification: 'true' # if 'true', it needs a valid PROD_RELEASES_SLACK_CHANNEL variable to be set

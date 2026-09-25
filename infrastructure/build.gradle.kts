@@ -1,6 +1,24 @@
 plugins {
   `java-test-fixtures`
+  alias(libs.plugins.pact)
 }
+
+// Matches the conventions used by the hmpps-person-record provider (see its
+// pact_provider_verification.yml / record_deployment.yml on add-pact-record-deployment-step):
+// - broker auth via username/password secrets, not a bearer token
+// - pacticipant version pinned to the commit SHA so it lines up with "deployed"/"mainBranch" selectors
+// - branch recorded via GITHUB_BRANCH so provider verification can target a specific consumer branch
+pact {
+  publish {
+    pactDirectory = layout.buildDirectory.dir("pacts").get().asFile
+    pactBrokerUrl = System.getenv("PACT_BROKER_URL") ?: "https://pact-broker-prod.apps.live-1.cloud-platform.service.justice.gov.uk"
+    pactBrokerUsername = System.getenv("HMPPS_PACT_BROKER_USERNAME")
+    pactBrokerPassword = System.getenv("HMPPS_PACT_BROKER_PASSWORD")
+    consumerVersion = System.getenv("GITHUB_SHA") ?: "local"
+    consumerBranch = System.getenv("GITHUB_BRANCH") ?: "local"
+  }
+}
+
 dependencies {
   implementation(project(":common"))
   implementation(libs.hmpps.starter)
@@ -19,6 +37,7 @@ dependencies {
   testRuntimeOnly(libs.junit.platform.launcher)
   testImplementation(libs.hmpps.starter.test)
   testImplementation(libs.mockk)
+  testImplementation(libs.pact.consumer.junit5)
   testImplementation(testFixtures(project(":infrastructure")))
   testImplementation(testFixtures(project(":common")))
   testFixturesImplementation(libs.hmpps.starter)

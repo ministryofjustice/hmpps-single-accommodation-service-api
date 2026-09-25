@@ -22,8 +22,9 @@ jobs:
     name: Deploy to the test environment
     needs:
       - docker_build
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'test'
       app_version: '${{ needs.docker_build.outputs.app_version }}'
+      pact_consumer_deployment: false # Set to false here as there is no test environment for the Core Person Record service. Can-I-Deploy would always fail.
