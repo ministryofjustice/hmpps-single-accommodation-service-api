@@ -1,0 +1,117 @@
+domain,table,entity,column,sql_type,kotlin_type,nullable,key,enum_values,relationship,notes
+persistence,sas_case,CaseEntity,id,UUID,UUID,false,PK,,,"Renamed from cases in V0007"
+persistence,sas_case,CaseEntity,tier_score,TEXT,String,true,,,,"Originally column tier in V0006; renamed in V0014"
+persistence,sas_case,CaseEntity,cas1_application_placement_status,TEXT,Cas1PlacementStatus,true,,"ARRIVED|UPCOMING|DEPARTED|NOT_ARRIVED|CANCELLED",,"Enum stored as string"
+persistence,sas_case,CaseEntity,cas1_application_request_for_placement_status,TEXT,Cas1RequestForPlacementStatus,true,,"REQUEST_UNSUBMITTED|REQUEST_REJECTED|REQUEST_SUBMITTED|AWAITING_MATCH|REQUEST_WITHDRAWN|PLACEMENT_BOOKED",,"Enum stored as string"
+persistence,sas_case,CaseEntity,cas1_application_application_status,TEXT,Cas1ApplicationStatus,true,,"AWAITING_ASSESSMENT|UNALLOCATED_ASSESSMENT|ASSESSMENT_IN_PROGRESS|AWAITING_PLACEMENT|PLACEMENT_ALLOCATED|REQUEST_FOR_FURTHER_INFORMATION|PENDING_PLACEMENT_REQUEST|STARTED|REJECTED|INAPPLICABLE|WITHDRAWN|EXPIRED",,"Enum stored as string"
+persistence,sas_case,CaseEntity,cas1_application_id,UUID,UUID,true,,,,
+persistence,sas_case_identifier,CaseIdentifierEntity,id,UUID,UUID,false,PK,,,,
+persistence,sas_case_identifier,CaseIdentifierEntity,case_id,UUID,UUID,false,"FK -> sas_case.id",,,"Many identifiers to one case"
+persistence,sas_case_identifier,CaseIdentifierEntity,identifier,TEXT,String,false,,,,
+persistence,sas_case_identifier,CaseIdentifierEntity,identifier_type,TEXT,IdentifierType,false,,"CRN|PRISON_NUMBER",,"Unique with identifier"
+persistence,sas_case_identifier,CaseIdentifierEntity,created_at,TIMESTAMPTZ,Instant,false,,,,"Default now()"
+persistence,duty_to_refer,DutyToReferEntity,id,UUID,UUID,false,PK,,,,
+persistence,duty_to_refer,DutyToReferEntity,case_id,UUID,UUID,false,"FK -> sas_case.id",,,
+persistence,duty_to_refer,DutyToReferEntity,local_authority_area_id,UUID,UUID,false,"FK -> local_authority_area.id",,,
+persistence,duty_to_refer,DutyToReferEntity,reference_number,TEXT,String,true,,,,
+persistence,duty_to_refer,DutyToReferEntity,submission_date,DATE,LocalDate,false,,,,
+persistence,duty_to_refer,DutyToReferEntity,status,VARCHAR(80),DtrStatus,false,,"SUBMITTED|ACCEPTED|NOT_ACCEPTED|WITHDRAWN",,
+persistence,duty_to_refer,DutyToReferEntity,withdrawal_reason,VARCHAR(80),WithdrawalReason,true,,"NEW_REFERRAL|INCORRECT_LOCAL_AUTHORITY|NO_CONSENT|DISENGAGED|HOUSING_NEED_RESOLVED|NOT_ELIGIBLE|OTHER",,
+persistence,duty_to_refer,DutyToReferEntity,withdrawal_reason_other,TEXT,String,true,,,,
+persistence,duty_to_refer,DutyToReferEntity,outcome_reason,VARCHAR(80),OutcomeReason,true,,"PREVENTION_AND_RELIEF_DUTY|PRIORITY_NEED|NO_LOCAL_CONNECTION|INTENTIONALLY_HOMELESS|REJECTED_FOR_ANOTHER_REASON",,
+persistence,duty_to_refer,DutyToReferEntity,submission_note,TEXT,String,true,,,,
+persistence,duty_to_refer,DutyToReferEntity,outcome_note,TEXT,String,true,,,,
+persistence,duty_to_refer,DutyToReferEntity,created_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
+persistence,duty_to_refer,DutyToReferEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL/default now()"
+persistence,duty_to_refer,DutyToReferEntity,last_updated_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
+persistence,duty_to_refer,DutyToReferEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,id,UUID,UUID,false,PK,,,,
+persistence,duty_to_refer_note,DutyToReferNoteEntity,duty_to_refer_id,UUID,UUID,false,"FK -> duty_to_refer.id",,,
+persistence,duty_to_refer_note,DutyToReferNoteEntity,note,TEXT,String,false,,,,
+persistence,duty_to_refer_note,DutyToReferNoteEntity,created_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,duty_to_refer_note,DutyToReferNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation,ProposedAccommodationEntity,id,UUID,UUID,false,PK,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,case_id,UUID,UUID,false,"FK -> sas_case.id",,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,cpr_address_id,UUID,UUID,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,name,VARCHAR(200),String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,accommodation_type_id,UUID,UUID,false,"FK -> accommodation_type.id",,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,accommodation_status_id,UUID,UUID,true,"FK -> accommodation_status.id",,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,verification_status,VARCHAR(80),VerificationStatus,true,,"NOT_CHECKED_YET|FAILED|PASSED",,
+persistence,proposed_accommodation,ProposedAccommodationEntity,next_accommodation_status,VARCHAR(80),NextAccommodationStatus,true,,"YES|NO|TO_BE_DECIDED",,
+persistence,proposed_accommodation,ProposedAccommodationEntity,start_date,DATE,LocalDate,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,end_date,DATE,LocalDate,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,postcode,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,sub_building_name,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,building_name,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,building_number,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,throughfare_name,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,dependent_locality,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,post_town,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,county,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,country,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,uprn,TEXT,String,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,accommodation_source,VARCHAR(100),AccommodationSource,false,,"DELIUS|SAS",,"Default 'SAS'"
+persistence,proposed_accommodation,ProposedAccommodationEntity,no_fixed_abode,BOOLEAN,Boolean,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,type_verified,BOOLEAN,Boolean,true,,,,
+persistence,proposed_accommodation,ProposedAccommodationEntity,created_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
+persistence,proposed_accommodation,ProposedAccommodationEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL/default now()"
+persistence,proposed_accommodation,ProposedAccommodationEntity,last_updated_by_user_id,UUID,UUID,true,"FK -> sas_user.id",,,"Inherited from BaseAuditedEntity"
+persistence,proposed_accommodation,ProposedAccommodationEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,id,UUID,UUID,false,PK,,,,
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,proposed_accommodation_id,UUID,UUID,false,"FK -> proposed_accommodation.id",,,
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,note,TEXT,String,false,,,,
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,created_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,created_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,last_updated_by_user_id,UUID,UUID,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,proposed_accommodation_note,ProposedAccommodationNoteEntity,last_updated_at,TIMESTAMPTZ,Instant,true,,,,"Inherited from BaseAuditedEntity; Kotlin property is nullable; migration sets NOT NULL"
+persistence,accommodation_type,AccommodationTypeEntity,id,UUID,UUID,false,PK,,,,"Default gen_random_uuid()"
+persistence,accommodation_type,AccommodationTypeEntity,type_code,TEXT,String,false,UNIQUE,,,,
+persistence,accommodation_type,AccommodationTypeEntity,name,TEXT,String,false,UNIQUE,,,,
+persistence,accommodation_type,AccommodationTypeEntity,settled_type,VARCHAR(100),AccommodationSettledType,false,,"SETTLED|TRANSIENT",,
+persistence,accommodation_type,AccommodationTypeEntity,active,BOOLEAN,Boolean,false,,,,
+persistence,accommodation_type,AccommodationTypeEntity,is_proposed,BOOLEAN,Boolean,false,,,,
+persistence,accommodation_type,AccommodationTypeEntity,is_private,BOOLEAN,Boolean,false,,,,
+persistence,accommodation_type,AccommodationTypeEntity,is_prison,BOOLEAN,Boolean,false,,,,
+persistence,accommodation_type,AccommodationTypeEntity,is_cas1,BOOLEAN,Boolean,false,,,,
+persistence,accommodation_type,AccommodationTypeEntity,is_cas2,BOOLEAN,Boolean,false,,,,
+persistence,accommodation_status,AccommodationStatusEntity,id,UUID,UUID,false,PK,,,,"Default gen_random_uuid()"
+persistence,accommodation_status,AccommodationStatusEntity,status_code,TEXT,String,false,UNIQUE,,,,
+persistence,accommodation_status,AccommodationStatusEntity,name,TEXT,String,false,UNIQUE,,,,
+persistence,accommodation_status,AccommodationStatusEntity,active,BOOLEAN,Boolean,false,,,,
+persistence,local_authority_area,LocalAuthorityAreaEntity,id,UUID,UUID,false,PK,,,,"Default gen_random_uuid()"
+persistence,local_authority_area,LocalAuthorityAreaEntity,identifier,TEXT,String,false,UNIQUE,,,,
+persistence,local_authority_area,LocalAuthorityAreaEntity,name,TEXT,String,false,,,,
+persistence,local_authority_area,LocalAuthorityAreaEntity,active,BOOLEAN,Boolean,false,,,,"Default true"
+persistence,outbox_event,OutboxEventEntity,id,UUID,UUID,false,PK,,,,
+persistence,outbox_event,OutboxEventEntity,aggregate_id,UUID,UUID,false,,,,
+persistence,outbox_event,OutboxEventEntity,aggregate_type,TEXT,String,false,,,,
+persistence,outbox_event,OutboxEventEntity,domain_event_type,TEXT,String,false,,,,
+persistence,outbox_event,OutboxEventEntity,payload,TEXT,String,false,,,,
+persistence,outbox_event,OutboxEventEntity,created_at,TIMESTAMPTZ,Instant,false,,,,"Default now()"
+persistence,outbox_event,OutboxEventEntity,processed_status,VARCHAR(20),ProcessedStatus,false,,"PENDING|PROCESSED|NOT_PROCESSED|FAILED",,
+persistence,outbox_event,OutboxEventEntity,processed_at,TIMESTAMPTZ,Instant,true,,,,
+persistence,inbox_event,InboxEventEntity,id,UUID,UUID,false,PK,,,,
+persistence,inbox_event,InboxEventEntity,event_type,TEXT,String,false,,,,
+persistence,inbox_event,InboxEventEntity,event_detail_url,TEXT,String,true,,,,"Migration marks NOT NULL; entity allows nullable String"
+persistence,inbox_event,InboxEventEntity,event_occurred_at,TIMESTAMPTZ,OffsetDateTime,false,,,,
+persistence,inbox_event,InboxEventEntity,created_at,TIMESTAMPTZ,Instant,false,,,,"Default now()"
+persistence,inbox_event,InboxEventEntity,processed_status,VARCHAR(20),ProcessedStatus,false,,"PENDING|PROCESSED|NOT_PROCESSED|FAILED",,
+persistence,inbox_event,InboxEventEntity,processed_at,TIMESTAMPTZ,Instant,true,,,,
+persistence,inbox_event,InboxEventEntity,payload,JSONB,String,false,,,,"Stored JSON payload"
+persistence,sas_user,UserEntity,id,UUID,UUID,false,PK,,,,
+persistence,sas_user,UserEntity,username,TEXT,String,false,"UNIQUE INDEX (username, auth_source)",,,"Supersedes legacy unique(username)"
+persistence,sas_user,UserEntity,auth_source,VARCHAR(80),AuthSource,false,,"NOMIS|DELIUS",,
+persistence,sas_user,UserEntity,forename,TEXT,String,false,,,,
+persistence,sas_user,UserEntity,middle_names,TEXT,String,true,,,,
+persistence,sas_user,UserEntity,surname,TEXT,String,false,,,,
+persistence,sas_user,UserEntity,email,TEXT,String,true,,,,
+persistence,sas_user,UserEntity,telephone_number,TEXT,String,true,,,,
+persistence,sas_user,UserEntity,delius_staff_code,TEXT,String,true,,,,
+persistence,sas_user,UserEntity,nomis_staff_id,BIGINT,Long,true,,,,
+persistence,sas_user,UserEntity,nomis_account_type,TEXT,String,true,,,,
+persistence,sas_user,UserEntity,nomis_active_caseload_id,TEXT,String,true,,,,
+persistence,sas_user,UserEntity,is_enabled,BOOLEAN,Boolean,true,,,,
+persistence,sas_user,UserEntity,is_active,BOOLEAN,Boolean,false,,,,
+persistence,sas_user,UserEntity,created_at,TIMESTAMPTZ,(not mapped),,,,,"Column exists in DB (NOT NULL default now()); not mapped in UserEntity"
