@@ -27,4 +27,4 @@ jobs:
     with:
       environment: 'test'
       app_version: '${{ needs.docker_build.outputs.app_version }}'
-      pact_consumer_deployment: true
+      pact_consumer_deployment: false # Set to false here as there is no test environment for the Core Person Record service. Can-I-Deploy would always fail.
