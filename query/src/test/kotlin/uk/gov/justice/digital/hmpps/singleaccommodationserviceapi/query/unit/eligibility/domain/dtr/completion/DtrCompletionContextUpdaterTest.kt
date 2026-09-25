@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
@@ -32,7 +29,6 @@ class DtrCompletionContextUpdaterTest {
         data = data,
         currentResult = buildServiceResultNew(
           serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
-          action = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR),
           link = EligibilityKeys.ADD_OUTCOME,
         ),
       )

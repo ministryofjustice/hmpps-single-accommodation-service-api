@@ -3,16 +3,16 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.o
 import java.util.UUID
 
 fun createOtherAccommodationReferralRequestBody(
-  localAuthorityAreaId: UUID,
   submissionDate: String = "2026-02-20",
   referenceNumber: String? = "REF-001",
   status: String = "SUBMITTED",
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
-  submissionNote: String? = "A submission note",
+  submissionNote: String? = null,
+  outcomeReason: String? = null,
+  outcomeNote: String? = null,
 ): String = """
 {
-  "localAuthorityAreaId": "$localAuthorityAreaId",
   "submissionDate": "$submissionDate",
   "status": "$status"${if (referenceNumber != null) {
   """,
@@ -34,6 +34,16 @@ fun createOtherAccommodationReferralRequestBody(
   "submissionNote": "$submissionNote""""
 } else {
   ""
+}}${if (outcomeReason != null) {
+  """,
+  "outcomeReason": "$outcomeReason""""
+} else {
+  ""
+}}${if (outcomeNote != null) {
+  """,
+  "outcomeNote": "$outcomeNote""""
+} else {
+  ""
 }}
 }
 """.trimIndent()
@@ -43,8 +53,6 @@ fun expectedOtherAccommodationReferralResponseBody(
   id: UUID,
   caseId: UUID,
   crn: String,
-  localAuthorityAreaId: UUID,
-  localAuthorityAreaName: String? = null,
   submissionDate: String = "2026-02-20",
   referenceNumber: String? = "REF-001",
   status: String = "SUBMITTED",
@@ -53,7 +61,9 @@ fun expectedOtherAccommodationReferralResponseBody(
   createdAt: String,
   organisationName: String? = "Organisation name",
   website: String? = "https://www.charity.org",
-  submissionNote: String? = "A submission note",
+  submissionNote: String? = null,
+  outcomeReason: String? = null,
+  outcomeNote: String? = null,
 ): String = """
 {
   "caseId": "$caseId",
@@ -61,10 +71,6 @@ fun expectedOtherAccommodationReferralResponseBody(
   "status": "$status",
   "submission": {
     "id": "$id",
-    "localAuthority": {
-      "localAuthorityAreaId": "$localAuthorityAreaId",
-      "localAuthorityAreaName": ${if (localAuthorityAreaName != null) "\"$localAuthorityAreaName\"" else "null"}
-    },
     "referenceNumber": ${if (referenceNumber != null) "\"$referenceNumber\"" else "null"},
     "submissionDate": "$submissionDate",
     "createdBy": "$createdBy",
@@ -72,7 +78,9 @@ fun expectedOtherAccommodationReferralResponseBody(
     "createdAt": "$createdAt",
     "organisationName": ${if (organisationName != null) "\"$organisationName\"" else "null"},
     "website": ${if (website != null) "\"$website\"" else "null"},
-    "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"}
+    "submissionNote": ${if (submissionNote != null) "\"$submissionNote\"" else "null"},
+    "outcomeReason": ${if (outcomeReason != null) "\"$outcomeReason\"" else "null"},
+    "outcomeNote": ${if (outcomeNote != null) "\"$outcomeNote\"" else "null"}
   }
 }
 """.trimIndent()
@@ -82,3 +90,34 @@ fun otherAccommodationReferralNoteRequestBody(note: String): String = """
     "note" : "$note"
   }
 """.trimIndent()
+
+@Suppress("LongParameterList")
+fun expectedGetOtherAccommodationReferralResponseBody(
+  id: UUID,
+  caseId: UUID,
+  crn: String,
+  submissionDate: String = "2026-02-20",
+  referenceNumber: String? = "REF-001",
+  status: String = "SUBMITTED",
+  createdBy: String,
+  createdByUsername: String,
+  createdAt: String,
+  organisationName: String? = "Organisation name",
+  website: String? = "https://www.charity.org",
+  submissionNote: String? = null,
+): String = """{"data": ${expectedOtherAccommodationReferralResponseBody(
+  id = id,
+  caseId = caseId,
+  crn = crn,
+  submissionDate = submissionDate,
+  referenceNumber = referenceNumber,
+  status = status,
+  createdBy = createdBy,
+  createdByUsername = createdByUsername,
+  createdAt = createdAt,
+  organisationName = organisationName,
+  website = website,
+  submissionNote = submissionNote,
+)}}"""
+
+fun expectedSearchOtherAccommodationReferralResponseBody(referrals: List<String>): String = """{"data": [${referrals.joinToString(",")}]}"""

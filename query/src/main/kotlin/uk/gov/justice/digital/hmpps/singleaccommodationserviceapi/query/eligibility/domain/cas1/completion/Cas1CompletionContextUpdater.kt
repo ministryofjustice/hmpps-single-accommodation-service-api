@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
@@ -31,59 +29,52 @@ class Cas1CompletionContextUpdater : ContextUpdater() {
   val submitted = "submitted"
 
   override val outcomes = mapOf(
-    arrived to ServiceResultNew(
+    arrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_ARRIVED,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    notArrived to ServiceResultNew(
+    notArrived to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_NOT_ARRIVED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    cancelled to ServiceResultNew(
+    cancelled to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_CANCELLED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    placementRequestNotStarted to ServiceResultNew(
+    placementRequestNotStarted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    requestWithdrawn to ServiceResultNew(
+    requestWithdrawn to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    requestUnsubmitted to ServiceResultNew(
+    requestUnsubmitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    requestRejected to ServiceResultNew(
+    requestRejected to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED,
-      action = CaseAction(type = CaseActionType.CREATE_PLACEMENT, service = AccommodationService.CAS1),
       link = EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    placementRequestSubmitted to ServiceResultNew(
+    placementRequestSubmitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    infoRequested to ServiceResultNew(
+    infoRequested to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
-      action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1),
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
     ),
-    submitted to ServiceResultNew(
+    submitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,

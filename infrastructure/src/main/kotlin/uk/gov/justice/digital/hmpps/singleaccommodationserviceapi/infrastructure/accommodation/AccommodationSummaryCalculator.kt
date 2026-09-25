@@ -9,8 +9,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingPremises
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
@@ -28,10 +28,10 @@ class AccommodationSummaryCalculator(
 ) {
   private val proposedAccommodationStatuses = setOf(AddressStatusCode.PR.name, AddressStatusCode.PR1.name)
 
-  private val transientAccommodationTypeCodes: Set<String> by lazy {
+  private val transientNotHomelessAccommodationTypeCodes: Set<String> by lazy {
     accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
       AccommodationSettledType.TRANSIENT,
-    ).map { it.code }.toSet()
+    ).filter { !it.isHomeless }.map { it.code }.toSet()
   }
   private val settledAccommodationTypeCodes: Set<String> by lazy {
     accommodationTypeRepository.findAllBySettledTypeAndActiveIsTrue(
@@ -47,7 +47,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
-    cas3CurrentPremises: Cas3PremisesSummary?,
+    cas3CurrentPremises: Cas3BookingPremises?,
     cas1Application: Cas1Application?,
     cas3Application: Cas3Application?,
   ): AccommodationSummariesDto {
@@ -79,7 +79,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
     prisoner: Prisoner?,
     cas1CurrentPremises: Cas1PremisesSummary?,
-    cas3CurrentPremises: Cas3PremisesSummary?,
+    cas3CurrentPremises: Cas3BookingPremises?,
   ): AccommodationSummaryDto? = if (prisoner?.inOutStatus == InOutStatus.IN) {
     toAccommodationSummary(crn, prisoner, includePrisonNameInAddress = true)
   } else {
@@ -124,7 +124,8 @@ class AccommodationSummaryCalculator(
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
 
-    val cas3NextAccommodation = cas3Application?.takeIf { it.bookingStatus == Cas3BookingStatus.CONFIRMED }
+    val cas3LatestBooking = cas3Application?.submittedApplication?.latestBooking
+    val cas3NextAccommodation = cas3LatestBooking?.takeIf { it.status == Cas3BookingStatus.CONFIRMED }
       ?.premises?.let {
         toAccommodationSummary(crn, premises = it, currentAccommodation)
       }
@@ -155,13 +156,10 @@ class AccommodationSummaryCalculator(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ): CaseAccommodationStatus? = when {
-    isNoFixedAbode(currentAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
-
+    isNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.NO_FIXED_ABODE
+    isSettled(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.SETTLED
+    isTransient(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.TRANSIENT
     isRiskOfNoFixedAbode(currentAccommodation, nextAccommodation) -> CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-
-    isTransientType(currentAccommodation) -> CaseAccommodationStatus.TRANSIENT
-    isSettledType(currentAccommodation) -> CaseAccommodationStatus.SETTLED
-
     else -> null
   }
 
@@ -169,16 +167,36 @@ class AccommodationSummaryCalculator(
 
   private fun isAddressWithUsageCode(address: CanonicalAddress, usageCode: AddressUsageCode): Boolean = address.usages.find { it.usageCode.code == usageCode.name && it.isActive } != null
 
-  private fun isNoFixedAbode(currentAccommodation: AccommodationSummaryDto?) = currentAccommodation == null ||
-    isHomelessType(currentAccommodation)
+  private fun isNoFixedAbode(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = isMissingOrHomeless(currentAccommodation) && isMissingHomelessOrUnknown(nextAccommodation)
+
+  private fun isSettled(
+    currentAccommodation: AccommodationSummaryDto?,
+    nextAccommodation: AccommodationSummaryDto?,
+  ) = isSettledType(nextAccommodation) ||
+    (isSettledType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
+
+  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (isTransientNotHomelessType(nextAccommodation)) ||
+    (isTransientNotHomelessType(currentAccommodation) && !isMissingHomelessOrUnknown(nextAccommodation))
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
-  ) = (!isSettledType(currentAccommodation) && nextAccommodation == null) ||
-    ((isSettledType(currentAccommodation) && isHomelessType(nextAccommodation)) || isTransientType(nextAccommodation))
+  ) = currentAccommodation.hasEndDate() ||
+    !isSettledType(currentAccommodation) ||
+    (isHomelessType(nextAccommodation) || isUnknownType(nextAccommodation))
+
+  private fun AccommodationSummaryDto?.hasEndDate(): Boolean = this?.endDate != null
+  private fun isMissingOrHomeless(dto: AccommodationSummaryDto?): Boolean = dto == null || isHomelessType(dto)
+  private fun isMissingHomelessOrUnknown(dto: AccommodationSummaryDto?): Boolean = dto == null || isHomelessType(dto) || isUnknownType(dto)
+  private fun isUnknownType(dto: AccommodationSummaryDto?): Boolean = dto != null &&
+    !isHomelessType(dto) &&
+    !isSettledType(dto) &&
+    !isTransientNotHomelessType(dto)
 
   private fun isSettledType(dto: AccommodationSummaryDto?) = dto?.type?.code in settledAccommodationTypeCodes
-  private fun isTransientType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientAccommodationTypeCodes
   private fun isHomelessType(dto: AccommodationSummaryDto?) = dto?.type?.code in homelessAccommodationTypeCodes
+  private fun isTransientNotHomelessType(dto: AccommodationSummaryDto?) = dto?.type?.code in transientNotHomelessAccommodationTypeCodes
 }

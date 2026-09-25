@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas2ApplicationAwaitingArrivalRuleTest {
-  private val description = "FAIL if application is awaiting arrival"
+  private val description = "FAIL if application is not awaiting arrival"
 
   @Test
   fun `application is complete so rule passes`() {

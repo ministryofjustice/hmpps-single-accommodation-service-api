@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -15,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Au
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.OtherAccommodationReferralApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.OtherAccommodationReferralQueryService
 import java.util.UUID
@@ -24,6 +27,24 @@ class OtherAccommodationReferralController(
   private val otherAccommodationReferralApplicationService: OtherAccommodationReferralApplicationService,
   private val otherAccommodationReferralQueryService: OtherAccommodationReferralQueryService,
 ) {
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/cases/{crn}/other-accommodation-referral/{id}")
+  fun getByCrnAndId(@PathVariable crn: String, @PathVariable id: UUID): ResponseEntity<ApiResponseDto<OtherAccommodationReferralDto>> {
+    val referral = otherAccommodationReferralQueryService.getOtherAccommodationReferral(crn, id)
+    return ResponseEntity.ok(ApiResponseDto(data = referral))
+  }
+
+  @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
+  @GetMapping("/cases/{crn}/other-accommodation-referral/search")
+  fun searchOtherAccommodationReferrals(
+    @PathVariable crn: String,
+    @Parameter(description = "Filter results to only referrals with one of these statuses.")
+    @RequestParam(required = false) statuses: List<OtherAccommodationReferralStatus>?,
+  ): ResponseEntity<ApiResponseDto<List<OtherAccommodationReferralDto>>> {
+    val referrals = otherAccommodationReferralQueryService.searchOtherAccommodationReferrals(crn, statuses)
+    return ResponseEntity.ok(ApiResponseDto(referrals))
+  }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @PostMapping("/cases/{crn}/other-accommodation-referral")

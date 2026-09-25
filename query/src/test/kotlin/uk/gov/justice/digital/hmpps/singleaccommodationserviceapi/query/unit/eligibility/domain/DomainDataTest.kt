@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -55,8 +57,12 @@ class DomainDataTest {
     val cas3Application = buildCas3Application(
       UUID.randomUUID(),
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      bookingStatus = null,
-      assessmentStatus = null,
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        assessmentStatus = null,
+        latestBooking = buildCas3LatestBooking(
+          status = null,
+        ),
+      ),
     )
     val cpr = buildCorePersonRecord()
 

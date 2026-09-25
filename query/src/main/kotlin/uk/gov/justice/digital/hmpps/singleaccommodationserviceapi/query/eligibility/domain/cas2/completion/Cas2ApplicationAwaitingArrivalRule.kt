@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas2ApplicationAwaitingArrivalRule : Rule {
-  override val description = "FAIL if application is awaiting arrival"
+  override val description = "FAIL if application is not awaiting arrival"
 
   override fun evaluate(data: DomainData): RuleResult {
     val ruleStatus = if (data.cas2Application?.submittedApplication?.latestAssessmentStatus == "awaitingArrival") RuleStatus.PASS else RuleStatus.FAIL

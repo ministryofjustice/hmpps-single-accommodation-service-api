@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
@@ -51,7 +50,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -98,7 +99,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationConfirmedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
@@ -208,7 +209,7 @@ class EligibilityServiceTest {
     Cas3BookingSuitabilityRule(),
     Cas3AssessmentSuitabilityRule(),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationCompletionRule())
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationConfirmedRule())
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     CurrentAccommodationTypeRule(),
     NoNextAccommodationRule(),
@@ -498,75 +499,6 @@ class EligibilityServiceTest {
     }
   }
 
-  // helper for building expected action for upcoming service status scenarios
-  private fun expectedCas1Action(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.CAS1_UPCOMING) startDate else null,
-      service = AccommodationService.CAS1,
-    )
-  }
-
-  private fun expectedCas3Action(
-    type: CaseActionType?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = null,
-      service = AccommodationService.CAS3,
-    )
-  }
-
-  private fun expectedPaAction(
-    type: CaseActionType?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = null,
-      service = AccommodationService.PA,
-    )
-  }
-
-  private fun expectedCas2Action(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.CAS2_UPCOMING) startDate else null,
-      service = AccommodationService.CAS2,
-    )
-  }
-
-  private fun expectedCrsAction(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.CRS_UPCOMING) startDate else null,
-      service = AccommodationService.CRS,
-    )
-  }
-
-  private fun expectedDtrAction(
-    type: CaseActionType?,
-    status: ServiceStatusNew?,
-    startDate: LocalDate?,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatusNew.DTR_UPCOMING) startDate else null,
-      service = AccommodationService.DTR,
-    )
-  }
-
   @Nested
   inner class Cas1EligibilityScenarios {
 
@@ -643,7 +575,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
           .isEqualTo(s.expectedCas1Status)
 
-        assertThat(result.action).isEqualTo(expectedCas1Action(s.expectedCas1Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1)))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas1Action)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusYears(1)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS1)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
 
         val expectedUrl = when (s.expectedCas1Url) {
@@ -730,7 +670,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
           .isEqualTo(s.expectedCas2Status)
 
-        assertThat(result.action).isEqualTo(expectedCas2Action(s.expectedCas2Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1)))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas2Action)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusYears(1)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS2)
         assertThat(result.link).isEqualTo(s.expectedCas2Link)
 
         val expectedUrl = when (s.expectedCas2Url) {
@@ -825,7 +773,16 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedDtrStatus}")
           .isEqualTo(s.expectedDtrStatus)
-        assertThat(result.action).isEqualTo(expectedDtrAction(s.expectedDtrAction, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(8)))
+
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedDtrAction)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(8)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.DTR)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
         assertThat(result.url).isNull()
         assertThat(result.failureReasons)
@@ -891,8 +848,21 @@ class EligibilityServiceTest {
         val cas3Application = s.cas3ApplicationStatus?.let {
           buildCas3Application(
             applicationStatus = it,
-            bookingStatus = s.cas3BookingStatus,
-            assessmentStatus = s.cas3AssessmentStatus,
+            submittedApplication = if (it != Cas3ApplicationStatus.IN_PROGRESS) {
+              buildCas3SubmittedApplicationDto(
+                assessmentStatus = s.cas3AssessmentStatus,
+                assessmentRejectionReason = if (s.cas3AssessmentStatus == Cas3AssessmentStatus.REJECTED) {
+                  "the reason"
+                } else {
+                  null
+                },
+                latestBooking = buildCas3LatestBooking(
+                  status = s.cas3BookingStatus,
+                ),
+              )
+            } else {
+              null
+            },
           )
         }
 
@@ -958,7 +928,9 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
-        assertThat(result.action).isEqualTo(expectedCas3Action(s.expectedCas3Action))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas3Action)
+        assertThat(result.actionStartDate).isNull()
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS3)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
 
         val expectedUrl = when (s.expectedCas3Url) {
@@ -1051,7 +1023,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCrsStatus}")
           .isEqualTo(s.expectedCrsStatus)
 
-        assertThat(result.action).isEqualTo(expectedCrsAction(s.expectedCrsAction, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(12)))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCrsAction)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(12)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CRS)
         assertThat(result.link).isEqualTo(s.expectedCrsLink)
         if (s.expectedCrsLink == null) {
           assertThat(result.url).isNull()
@@ -1118,8 +1098,12 @@ class EligibilityServiceTest {
         val cas3Application = if (s.isSubmittedCas3.toBoolean()) {
           buildCas3Application(
             applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-            assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-            bookingStatus = Cas3BookingStatus.CONFIRMED,
+            submittedApplication = buildCas3SubmittedApplicationDto(
+              assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+              latestBooking = buildCas3LatestBooking(
+                status = Cas3BookingStatus.CONFIRMED,
+              ),
+            ),
           )
         } else {
           null
@@ -1144,7 +1128,9 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
           .isEqualTo(s.expectedPaStatus)
 
-        assertThat(result.action).isEqualTo(expectedPaAction(s.expectedPaAction))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedPaAction)
+        assertThat(result.actionStartDate).isNull()
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.PA)
         assertThat(result.link).isNull()
         assertThat(result.url).isNull()
 
@@ -1282,8 +1268,12 @@ class EligibilityServiceTest {
         cas1Application = null,
         cas3Application = buildCas3Application(
           applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-          assessmentStatus = null,
-          bookingStatus = null,
+          submittedApplication = buildCas3SubmittedApplicationDto(
+            assessmentStatus = null,
+            latestBooking = buildCas3LatestBooking(
+              status = null,
+            ),
+          ),
         ),
       )
 

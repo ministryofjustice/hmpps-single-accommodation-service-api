@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Bu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
 import java.time.Duration
 
@@ -16,6 +17,7 @@ class AdminBulkLoadCasesService(
   private val teamCaseOrchestrationService: TeamCaseOrchestrationService,
   private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
+  private val onboardedTeamRepository: OnboardedTeamRepository,
   private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
@@ -66,6 +68,10 @@ class AdminBulkLoadCasesService(
   }
 
   private fun loadTeam(teamCode: String, dryRun: Boolean): TeamLoadResult {
+    if (!dryRun) {
+      onboardedTeamRepository.createOnboardedTeam(teamCode.uppercase())
+    }
+
     val fetchStartedAt = System.nanoTime()
     val teamCasesResult = teamCaseOrchestrationService.getCasesByTeamCode(teamCode)
     log.info(

@@ -5,28 +5,41 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.ParameterizedTypeReference
+import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkRefreshCasesResultDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ReplayFailedInboxEventsResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.MutableTestClock
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildInboxEventEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.InboxEventRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkLoadCasesRequestBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.admin.json.bulkRefreshCasesByCrnRequestBody
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventDispatcher
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils
 import java.time.Duration
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.util.UUID
 
 class AdminJobControllerIT : IntegrationTestBase() {
 
@@ -35,6 +48,15 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
+  @Autowired
+  private lateinit var inboxEventRepository: InboxEventRepository
+
+  @Autowired
+  private lateinit var onboardedTeamRepository: OnboardedTeamRepository
+
+  @Autowired
+  private lateinit var inboxEventDispatcher: InboxEventDispatcher
 
   @Autowired
   private lateinit var clock: MutableTestClock
@@ -56,6 +78,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun setup() {
     HmppsAuthStubs.stubGrantToken()
     clock.freezeAt(now)
+    databaseUtils.truncate(DatabaseUtils.SasTables.INBOX_EVENT, DatabaseUtils.SasTables.ONBOARDED_TEAM)
   }
 
   @AfterEach
@@ -111,6 +134,8 @@ class AdminJobControllerIT : IntegrationTestBase() {
       assertThat(it.priority).isEqualTo(CaseRefreshPriority.BULK)
       assertThat(it.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
     }
+
+    assertThat(onboardedTeamRepository.findAll().map { it.teamCode }).containsExactly(teamCode)
   }
 
   @Test
@@ -124,6 +149,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
     assertThat(result.casesAlreadyPresent).isEqualTo(2)
     assertThat(result.casesCreated).isZero()
     assertThat(caseRepository.findByCrns(crns)).hasSize(2)
+    assertThat(onboardedTeamRepository.findAll().map { it.teamCode }).containsExactly(teamCode)
   }
 
   @Test
@@ -141,6 +167,7 @@ class AdminJobControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findByCrns(crns)).isEmpty()
     assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    assertThat(onboardedTeamRepository.findAll()).isEmpty()
   }
 
   @Test
@@ -152,15 +179,14 @@ class AdminJobControllerIT : IntegrationTestBase() {
       .body(bulkLoadCasesRequestBody(teamCodes = listOf(teamCode), dryRun = false))
       .withClientCredentialsJwt(roles = adminRoles)
       .exchangeSuccessfully()
-      .expectBody(object : ParameterizedTypeReference<ApiResponseDto<BulkLoadCasesResultDto>>() {})
-      .returnResult()
-      .responseBody!!
+      .expectApiResponse<BulkLoadCasesResultDto>()
 
     assertThat(response.data.teamsProcessed).isZero()
     assertThat(response.data.crnsFound).isZero()
     assertThat(response.upstreamFailures).hasSize(1)
     assertThat(response.upstreamFailures.first().failureType).isEqualTo(UpstreamFailureType.UPSTREAM_HTTP_ERROR)
     assertThat(caseRepository.findByCrns(crns)).isEmpty()
+    assertThat(onboardedTeamRepository.findAll().map { it.teamCode }).containsExactly(teamCode)
   }
 
   @Test
@@ -208,11 +234,118 @@ class AdminJobControllerIT : IntegrationTestBase() {
   }
 
   @Test
+  fun `should replay all failed inbox events`() {
+    val event = SnsDomainEvent(
+      eventType = IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED.typeName,
+      version = 1,
+      occurredAt = OffsetDateTime.now(),
+      personReference =
+      PersonReference(
+        identifiers = listOf(PersonIdentifier("CRN", UUID.randomUUID().toString())),
+      ),
+    )
+    val payload = jsonMapper.writeValueAsString(event)
+    val failedFirst = inboxEventRepository.save(
+      buildInboxEventEntity(
+        eventType = event.eventType,
+        payload = payload,
+        processedStatus = ProcessedStatus.FAILED,
+      ),
+    )
+    val failedSecond = inboxEventRepository.save(
+      buildInboxEventEntity(
+        eventType = event.eventType,
+        payload = payload,
+        processedStatus = ProcessedStatus.FAILED,
+      ),
+    )
+    val ignoredEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.IGNORED))
+
+    val expectedUpdatedCount = inboxEventRepository
+      .findAllByProcessedStatus(ProcessedStatus.FAILED, Pageable.unpaged())
+      .size
+
+    val response = replayFailedInboxEvents(replayAll = true)
+
+    assertThat(response.replayAll).isTrue()
+    assertThat(response.replayedCount).isEqualTo(expectedUpdatedCount)
+    assertThat(response.replayedMessageIds).containsExactlyInAnyOrder(failedFirst.id, failedSecond.id)
+
+    val updatedEvents = inboxEventRepository.findAllById(
+      listOf(failedFirst.id, failedSecond.id, ignoredEvent.id),
+    ).associateBy { it.id }
+    assertThat(updatedEvents.getValue(failedFirst.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(failedFirst.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(failedSecond.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(failedSecond.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(ignoredEvent.id).processedStatus).isEqualTo(ProcessedStatus.IGNORED)
+
+    // check the pending messages get picked up and processed.
+    inboxEventDispatcher.process()
+    waitFor {
+      assertThat(inboxEventRepository.findAll()).noneMatch {
+        it.processedStatus == ProcessedStatus.PENDING
+      }
+    }
+  }
+
+  @Test
+  fun `should replay only the supplied failed inbox events`() {
+    val firstFailed = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val secondFailed = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    val processedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.PROCESSED))
+
+    val response = replayFailedInboxEvents(inboxEventIds = listOf(firstFailed.id))
+
+    assertThat(response.replayAll).isFalse()
+    assertThat(response.replayedCount).isEqualTo(1)
+    assertThat(response.replayedMessageIds).containsExactlyInAnyOrder(firstFailed.id)
+
+    val updatedEvents = inboxEventRepository.findAllById(
+      listOf(firstFailed.id, secondFailed.id, processedEvent.id),
+    ).associateBy { it.id }
+    assertThat(updatedEvents.getValue(firstFailed.id).processedStatus).isEqualTo(ProcessedStatus.PENDING)
+    assertThat(updatedEvents.getValue(firstFailed.id).processedAt).isNull()
+    assertThat(updatedEvents.getValue(secondFailed.id).processedStatus).isEqualTo(ProcessedStatus.FAILED)
+    assertThat(updatedEvents.getValue(processedEvent.id).processedStatus).isEqualTo(ProcessedStatus.PROCESSED)
+  }
+
+  @Test
+  fun `should return 400 when replayAll is false and no inbox event ids are supplied`() {
+    val failedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+
+    buildReplayRequest(false, emptyList())
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage")
+      .isEqualTo("Validation failure: To replay selected messages, inboxEventIds must be provided")
+      .jsonPath("$.developerMessage").isEqualTo("To replay selected messages, inboxEventIds must be provided")
+
+    assertThat(inboxEventRepository.findById(failedEvent.id).get().processedStatus).isEqualTo(ProcessedStatus.FAILED)
+  }
+
+  @Test
+  fun `should return 400 when replayAll is true and inbox event ids are supplied`() {
+    val failedEvent = inboxEventRepository.save(buildInboxEventEntity(processedStatus = ProcessedStatus.FAILED))
+    buildReplayRequest(true, listOf(failedEvent.id))
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("$.userMessage").isEqualTo("Validation failure: To replay all messages, inboxEventIds must be empty")
+      .jsonPath("$.developerMessage").isEqualTo("To replay all messages, inboxEventIds must be empty")
+
+    assertThat(inboxEventRepository.findById(failedEvent.id).get().processedStatus).isEqualTo(ProcessedStatus.FAILED)
+  }
+
+  @Test
   fun `should stage a bulk refresh for the cases holding the crns`() {
     val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
     val otherCase = caseRepository.save(buildCaseEntity { withCrn(otherRefreshCrn) })
 
-    val result = bulkRefreshCasesByCrn(bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn), dryRun = false))
+    val result = bulkRefreshCasesByCrn(
+      bulkRefreshCasesByCrnRequestBody(crns = listOf(refreshCrn, otherRefreshCrn), dryRun = false),
+    )
 
     assertThat(result.dryRun).isFalse()
     assertThat(result.crnsRequested).isEqualTo(2)
@@ -234,7 +367,9 @@ class AdminJobControllerIT : IntegrationTestBase() {
   fun `should refresh the cases it holds and report the crns it does not`() {
     val case = caseRepository.save(buildCaseEntity { withCrn(refreshCrn) })
 
-    val result = bulkRefreshCasesByCrn(bulkRefreshCasesByCrnRequestBody(crns = listOf(" $refreshCrn ", otherRefreshCrn), dryRun = false))
+    val result = bulkRefreshCasesByCrn(
+      bulkRefreshCasesByCrnRequestBody(crns = listOf(" $refreshCrn ", otherRefreshCrn), dryRun = false),
+    )
 
     assertThat(result.casesFound).isEqualTo(1)
     assertThat(result.refreshesRequested).isEqualTo(1)
@@ -328,9 +463,23 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .body(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
-    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<BulkRefreshCasesResultDto>>() {})
-    .returnResult()
-    .responseBody!!
+    .expectApiResponse<BulkRefreshCasesResultDto>()
+    .data
+
+  private fun buildReplayRequest(
+    replayAll: Boolean = false,
+    inboxEventIds: List<UUID> = emptyList(),
+  ) = restTestClient.put().uri("/admin/replay-failed-inbox-events?replayAll=$replayAll")
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(jsonMapper.writeValueAsString(inboxEventIds))
+    .withClientCredentialsJwt(roles = adminRoles)
+
+  private fun replayFailedInboxEvents(
+    replayAll: Boolean = false,
+    inboxEventIds: List<UUID> = emptyList(),
+  ) = buildReplayRequest(replayAll, inboxEventIds)
+    .exchangeSuccessfully()
+    .expectApiResponse<ReplayFailedInboxEventsResponse>()
     .data
 
   private fun bulkLoadCases(requestBody: String) = restTestClient.post().uri("/admin/bulk-load-cases")
@@ -338,8 +487,6 @@ class AdminJobControllerIT : IntegrationTestBase() {
     .body(requestBody)
     .withClientCredentialsJwt(roles = adminRoles)
     .exchangeSuccessfully()
-    .expectBody(object : ParameterizedTypeReference<ApiResponseDto<BulkLoadCasesResultDto>>() {})
-    .returnResult()
-    .responseBody!!
+    .expectApiResponse<BulkLoadCasesResultDto>()
     .data
 }

@@ -124,9 +124,11 @@ class EligibilityNewToOldTransformerTest {
 
       Arguments.of(ServiceStatusNew.CRS_NOT_ELIGIBLE, ServiceStatus.NOT_ELIGIBLE),
       Arguments.of(ServiceStatusNew.CRS_NOT_REQUIRED, ServiceStatus.NOT_REQUIRED),
-      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED, ServiceStatus.NOT_STARTED),
+      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED_REFERRAL, ServiceStatus.NOT_STARTED),
       Arguments.of(ServiceStatusNew.CRS_SUBMITTED, ServiceStatus.SUBMITTED),
-      Arguments.of(ServiceStatusNew.CRS_UPCOMING, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusNew.CRS_UPCOMING_REFERRAL, ServiceStatus.UPCOMING),
+      Arguments.of(ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL, ServiceStatus.NOT_STARTED),
 
       Arguments.of(ServiceStatusNew.DTR_ACCEPTED, ServiceStatus.ACCEPTED),
       Arguments.of(ServiceStatusNew.DTR_NOT_ACCEPTED, ServiceStatus.NOT_ACCEPTED),
@@ -262,50 +264,42 @@ class EligibilityNewToOldTransformerTest {
 
     val crn = "FAKECRN1"
 
-    val cas1Action = CaseAction(type = CaseActionType.PROVIDE_INFORMATION, service = AccommodationService.CAS1)
-    val cas2Action = CaseAction(type = CaseActionType.START_CAS2_REFERRAL, service = AccommodationService.CAS2)
-    val cas3Action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3)
-    val dtrAction = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR)
-    val crsAction = CaseAction(type = CaseActionType.SUBMIT_CRS_REFERRAL, service = AccommodationService.CRS)
-    val paAction = CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, service = AccommodationService.PA)
     val crs = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
+      serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
       link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
-      action = crsAction,
       linkType = null,
       url = "crs/test",
+      actionStartDate = LocalDate.parse("2023-01-04"),
     )
     val cas1 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
-      action = cas1Action,
+      serviceStatus = ServiceStatusNew.CAS1_UPCOMING,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS1_VIEW_APPLICATION,
       url = "cas1/test",
+      actionStartDate = LocalDate.parse("2023-01-03"),
     )
     val cas2 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS2_AWAITING_ARRIVAL,
-      action = cas2Action,
+      serviceStatus = ServiceStatusNew.CAS2_UPCOMING,
       link = EligibilityKeys.VIEW_APPLICATION,
       linkType = LinkType.CAS2_VIEW_APPLICATION,
       url = "cas2/test",
+      actionStartDate = LocalDate.parse("2023-01-02"),
     )
     val cas3 = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
-      action = cas3Action,
+      serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
       url = "cas3/test",
     )
     val dtr = buildServiceResultNew(
-      serviceStatus = ServiceStatusNew.CAS1_SUBMITTED,
-      action = dtrAction,
+      serviceStatus = ServiceStatusNew.DTR_UPCOMING,
       link = EligibilityKeys.ADD_OUTCOME,
       linkType = null,
       url = "dtr/test",
+      actionStartDate = LocalDate.parse("2023-01-01"),
     )
     val pa = buildServiceResultNew(
-      action = paAction,
-      serviceStatus = ServiceStatusNew.PA_COMPLETED,
+      serviceStatus = ServiceStatusNew.PA_NOT_STARTED,
       linkType = null,
       url = "pa/test",
     )
@@ -313,35 +307,51 @@ class EligibilityNewToOldTransformerTest {
     val cas1ServiceResult = buildCas1ServiceResultNew(
       serviceResult = cas1,
       cas1Application = cas1ApplicationDto,
+      actionPosition = 1,
     )
     val cas2ServiceResult = buildCas2ServiceResultNew(
       serviceResult = cas2,
       cas2Application = cas2ApplicationDto,
+      actionPosition = 2,
     )
     val cas3ServiceResult = buildCas3ServiceResultNew(
       serviceResult = cas3,
       cas3Application = cas3ApplicationDto,
+      actionPosition = 4,
     )
     val dtrServiceResult = buildDtrServiceResultNew(
       serviceResult = dtr,
       caseId = dutyToReferDto.caseId,
       submission = dutyToReferDto.submission,
+      actionPosition = 0,
     )
     val crsServiceResult = buildCrsServiceResultNew(
       serviceResult = crs,
       commissionedRehabilitativeServices = commissionedRehabilitativeServicesDto,
+      actionPosition = 3,
     )
     val paServiceResult = buildPaServiceResultNew(
       serviceResult = pa,
+      actionPosition = 5,
     )
-    val caseActions = listOf(dtrAction, cas1Action, cas2Action)
-
+    val caseActions = listOf(
+      CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = AccommodationService.DTR),
+      CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = AccommodationService.CAS1),
+      CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.parse("2023-01-02"), service = AccommodationService.CAS2),
+      CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = AccommodationService.CRS),
+      CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = AccommodationService.CAS3),
+      CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = AccommodationService.PA),
+    )
     val eligibilityDtoOld = EligibilityDto(
       crn = crn,
       cas1 = Cas1ServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.INFO_REQUESTED,
-          action = cas1Action,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = cas1ServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = cas1ServiceResult.serviceResult.actionStartDate,
+            service = cas1ServiceResult.serviceResult.serviceStatus.service,
+          ),
           link = cas1.link,
           url = cas1.url,
           linkType = cas1.linkType,
@@ -352,8 +362,12 @@ class EligibilityNewToOldTransformerTest {
       ),
       cas2 = Cas2ServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.AWAITING_ARRIVAL,
-          action = cas2Action,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = cas2ServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = cas2ServiceResult.serviceResult.actionStartDate,
+            service = cas2ServiceResult.serviceResult.serviceStatus.service,
+          ),
           link = cas2.link,
           url = cas2.url,
           linkType = cas2.linkType,
@@ -364,8 +378,12 @@ class EligibilityNewToOldTransformerTest {
       ),
       cas3 = Cas3ServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.NOT_SUBMITTED,
-          action = cas3Action,
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          action = CaseAction(
+            type = cas3ServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = cas3ServiceResult.serviceResult.actionStartDate,
+            service = cas3ServiceResult.serviceResult.serviceStatus.service,
+          ),
           link = cas3.link,
           url = cas3.url,
           linkType = cas3.linkType,
@@ -376,8 +394,12 @@ class EligibilityNewToOldTransformerTest {
       ),
       dtr = DtrServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.SUBMITTED,
-          action = dtrAction,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = dtrServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = dtrServiceResult.serviceResult.actionStartDate,
+            service = dtrServiceResult.serviceResult.serviceStatus.service,
+          ),
           link = dtr.link,
           url = dtr.url,
           linkType = dtr.linkType,
@@ -389,8 +411,12 @@ class EligibilityNewToOldTransformerTest {
       ),
       crs = CrsServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.SUBMITTED,
-          action = crsAction,
+          serviceStatus = ServiceStatus.UPCOMING,
+          action = CaseAction(
+            type = crsServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = crsServiceResult.serviceResult.actionStartDate,
+            service = crsServiceResult.serviceResult.serviceStatus.service,
+          ),
           link = crs.link,
           url = crs.url,
           linkType = crs.linkType,
@@ -401,8 +427,12 @@ class EligibilityNewToOldTransformerTest {
       ),
       pa = PaServiceResult(
         serviceResult = ServiceResult(
-          serviceStatus = ServiceStatus.COMPLETED,
-          action = paAction,
+          serviceStatus = ServiceStatus.NOT_STARTED,
+          action = CaseAction(
+            type = paServiceResult.serviceResult.serviceStatus.proposedAction!!,
+            startDate = paServiceResult.serviceResult.actionStartDate,
+            service = paServiceResult.serviceResult.serviceStatus.service,
+          ),
           link = pa.link,
           url = pa.url,
           linkType = pa.linkType,
@@ -421,7 +451,6 @@ class EligibilityNewToOldTransformerTest {
       dtr = dtrServiceResult,
       crs = crsServiceResult,
       pa = paServiceResult,
-      caseActions = caseActions,
     )
 
     val result = toEligibilityDtoOld(

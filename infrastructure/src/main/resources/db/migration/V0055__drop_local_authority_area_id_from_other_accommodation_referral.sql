@@ -1,0 +1,3 @@
+ALTER TABLE other_accommodation_referral
+  DROP CONSTRAINT fk_other_accommodation_referral_local_authority_area,
+  DROP COLUMN local_authority_area_id;

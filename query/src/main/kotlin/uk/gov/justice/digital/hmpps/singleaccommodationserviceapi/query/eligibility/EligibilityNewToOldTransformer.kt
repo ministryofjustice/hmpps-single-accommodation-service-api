@@ -3,12 +3,14 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas2ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas3ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CrsServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.EligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PaServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 
@@ -62,9 +64,11 @@ object EligibilityNewToOldTransformer {
 
     ServiceStatusNew.CRS_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusNew.CRS_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
-    ServiceStatusNew.CRS_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusNew.CRS_NOT_STARTED_REFERRAL -> ServiceStatus.NOT_STARTED
     ServiceStatusNew.CRS_SUBMITTED -> ServiceStatus.SUBMITTED
-    ServiceStatusNew.CRS_UPCOMING -> ServiceStatus.UPCOMING
+    ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL -> ServiceStatus.UPCOMING
+    ServiceStatusNew.CRS_NOT_STARTED_ACCOMMODATION_REFERRAL -> ServiceStatus.NOT_STARTED
+    ServiceStatusNew.CRS_UPCOMING_REFERRAL -> ServiceStatus.UPCOMING
 
     ServiceStatusNew.DTR_ACCEPTED -> ServiceStatus.ACCEPTED
     ServiceStatusNew.DTR_NOT_ACCEPTED -> ServiceStatus.NOT_ACCEPTED
@@ -86,7 +90,7 @@ object EligibilityNewToOldTransformer {
     cas1 = Cas1ServiceResult(
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.cas1.serviceResult.serviceStatus),
-        action = eligibilityDto.cas1.serviceResult.action,
+        action = eligibilityDto.cas1.serviceResult.toCaseAction(),
         link = eligibilityDto.cas1.serviceResult.link,
         url = eligibilityDto.cas1.serviceResult.url,
         linkType = eligibilityDto.cas1.serviceResult.linkType,
@@ -98,7 +102,7 @@ object EligibilityNewToOldTransformer {
     cas2 = Cas2ServiceResult(
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.cas2.serviceResult.serviceStatus),
-        action = eligibilityDto.cas2.serviceResult.action,
+        action = eligibilityDto.cas2.serviceResult.toCaseAction(),
         link = eligibilityDto.cas2.serviceResult.link,
         url = eligibilityDto.cas2.serviceResult.url,
         linkType = eligibilityDto.cas2.serviceResult.linkType,
@@ -110,7 +114,7 @@ object EligibilityNewToOldTransformer {
     cas3 = Cas3ServiceResult(
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.cas3.serviceResult.serviceStatus),
-        action = eligibilityDto.cas3.serviceResult.action,
+        action = eligibilityDto.cas3.serviceResult.toCaseAction(),
         link = eligibilityDto.cas3.serviceResult.link,
         url = eligibilityDto.cas3.serviceResult.url,
         linkType = eligibilityDto.cas3.serviceResult.linkType,
@@ -122,7 +126,7 @@ object EligibilityNewToOldTransformer {
     dtr = DtrServiceResult(
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.dtr.serviceResult.serviceStatus),
-        action = eligibilityDto.dtr.serviceResult.action,
+        action = eligibilityDto.dtr.serviceResult.toCaseAction(),
         link = eligibilityDto.dtr.serviceResult.link,
         url = eligibilityDto.dtr.serviceResult.url,
         linkType = eligibilityDto.dtr.serviceResult.linkType,
@@ -135,7 +139,7 @@ object EligibilityNewToOldTransformer {
     crs = CrsServiceResult(
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.crs.serviceResult.serviceStatus),
-        action = eligibilityDto.crs.serviceResult.action,
+        action = eligibilityDto.crs.serviceResult.toCaseAction(),
         link = eligibilityDto.crs.serviceResult.link,
         url = eligibilityDto.crs.serviceResult.url,
         linkType = eligibilityDto.crs.serviceResult.linkType,
@@ -147,7 +151,7 @@ object EligibilityNewToOldTransformer {
     pa = PaServiceResult(
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.pa.serviceResult.serviceStatus),
-        action = eligibilityDto.pa.serviceResult.action,
+        action = eligibilityDto.pa.serviceResult.toCaseAction(),
         link = eligibilityDto.pa.serviceResult.link,
         url = eligibilityDto.pa.serviceResult.url,
         linkType = eligibilityDto.pa.serviceResult.linkType,
@@ -155,6 +159,26 @@ object EligibilityNewToOldTransformer {
         blockingStatusReason = eligibilityDto.pa.serviceResult.blockingStatusReason,
       ),
     ),
-    caseActions = eligibilityDto.caseActions,
+    caseActions = listOf(
+      eligibilityDto.dtr,
+      eligibilityDto.crs,
+      eligibilityDto.cas1,
+      eligibilityDto.cas2,
+      eligibilityDto.cas3,
+      eligibilityDto.pa,
+    )
+      .filter { it.actionPosition != -1 }
+      .sortedWith(compareBy(nullsLast()) { it.actionPosition })
+      .map { serviceResultWrapper ->
+        serviceResultWrapper.serviceResult.toCaseAction()!!
+      },
   )
+
+  fun ServiceResultNew.toCaseAction(): CaseAction? = serviceStatus.proposedAction?.let { action ->
+    CaseAction(
+      type = action,
+      startDate = actionStartDate,
+      service = serviceStatus.service,
+    )
+  }
 }
