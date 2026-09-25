@@ -1,9 +1,6 @@
 name: Pact consumer test and publish
 
 on:
-  push:
-    branches:
-      - feature/pact-cpr-consumer-tests
   workflow_dispatch:
   workflow_call:
     secrets:
