@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
@@ -57,9 +58,9 @@ class Cas2SuitabilityContextUpdater(
   override fun toServiceResult(context: EvaluationContext) = when {
     context.data.cas2Application == null -> outcome(notStarted)
     context.data.cas2Application.submittedApplication?.submittedAt == null -> outcome(notSubmitted)
-    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == "offerDeclined" -> outcome(offerDeclined)
-    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == "cancelled" -> outcome(cancelled)
-    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == "withdrawn" -> outcome(withdrawn)
+    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.OFFER_DECLINED -> outcome(offerDeclined)
+    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.CANCELLED -> outcome(cancelled)
+    context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.WITHDRAWN -> outcome(withdrawn)
     else -> outcome(unknown).also {
       val latestAssessmentStatus = context.data.cas2Application.submittedApplication?.latestAssessmentStatus
       sentryService.captureErrorMessage(
