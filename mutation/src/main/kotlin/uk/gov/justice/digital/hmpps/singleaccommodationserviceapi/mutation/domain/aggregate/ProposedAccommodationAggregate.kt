@@ -236,6 +236,7 @@ class ProposedAccommodationAggregate private constructor(
 
     ArrivalMethod.WITHOUT_VERIFICATION ->
       isRegisteredWithCpr() &&
+        verificationStatus != VerificationStatus.FAILED &&
         accommodationStatus?.code.isProposedAccommodationStatus()
   }
 

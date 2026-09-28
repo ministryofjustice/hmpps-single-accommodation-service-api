@@ -2042,7 +2042,7 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
           endDate = LocalDate.now().minusDays(10),
           verificationStatus = EntityVerificationStatus.FAILED,
           nextAccommodationStatus = EntityNextAccommodationStatus.NO,
-          accommodationStatusEntity = null,
+          accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue(AddressStatusCode.PR.name)!!,
           name = null,
           subBuildingName = address.subBuildingName,
           buildingName = address.buildingName,
