@@ -797,10 +797,46 @@ class ProposedAccommodationAggregateTest {
       assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregateSnapshot.id)
     }
 
+    @ParameterizedTest
+    @EnumSource(value = AddressStatusCode::class, names = ["PR", "PR1"])
+    fun `should arrive person at to be decided proposed accommodation when registered with CPR and proposed address status and not yet checked`(
+      addressStatusCode: AddressStatusCode,
+    ) {
+      val cprAddressId = UUID.randomUUID()
+      val aggregate = hydrateAggregate(
+        typeVerified = false,
+        cprAddressId = cprAddressId,
+        nextAccommodationStatus = NextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatus = AccommodationStatusDto(
+          code = addressStatusCode.name,
+          description = addressStatusCode.description,
+        ),
+        startDate = startDate,
+        endDate = endDate,
+        verificationStatus = VerificationStatus.NOT_CHECKED_YET,
+      )
+      val arrivalDate = LocalDate.of(2026, 2, 5)
+
+      aggregate.arrivePersonAtProposedAccommodation(arrivalDate, ArrivalMethod.WITHOUT_VERIFICATION)
+
+      val aggregateSnapshot = aggregate.snapshot()
+      assertThat(aggregateSnapshot.accommodationStatus?.code).isEqualTo(AddressStatusCode.M.name)
+      assertThat(aggregateSnapshot.accommodationStatus?.description).isEqualTo(AddressStatusCode.M.description)
+      assertThat(aggregateSnapshot.typeVerified).isTrue
+      assertThat(aggregateSnapshot.startDate).isEqualTo(arrivalDate)
+      assertThat(aggregateSnapshot.endDate).isNull()
+      assertThat(aggregateSnapshot.cprAddressId).isEqualTo(cprAddressId)
+
+      val domainEventsToPublish = aggregate.pullDomainEvents()
+      assertThat(domainEventsToPublish).hasSize(1)
+      assertThat(domainEventsToPublish.first()).isInstanceOf(AccommodationPersonArrivedDomainEvent::class.java)
+      assertThat(domainEventsToPublish.first().aggregateId).isEqualTo(aggregateSnapshot.id)
+    }
+
     @Test
     fun `should throw AccommodationPersonCannotArriveException when not next accommodation and checks failed`() {
       val aggregate = hydrateAggregate(
-        cprAddressId = null,
+        cprAddressId = UUID.randomUUID(),
         typeVerified = false,
         nextAccommodationStatus = NextAccommodationStatus.NO,
         accommodationStatus = AccommodationStatusDto(
