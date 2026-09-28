@@ -15,6 +15,7 @@ class CaseAggregate private constructor(
   private var currentAccommodation: AccommodationSummaryDto? = null,
   private var nextAccommodation: AccommodationSummaryDto? = null,
   private var accommodationStatus: CaseAccommodationStatus? = null,
+  private var accommodationStatusDate: LocalDate? = null,
   private var roshLevelCode: String? = null,
 ) {
 
@@ -26,6 +27,7 @@ class CaseAggregate private constructor(
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
     accommodationStatus: CaseAccommodationStatus?,
+    accommodationStatusDate: LocalDate?,
     roshLevelCode: String?,
   ): CaseAggregate {
     updateTier(tierScore)
@@ -35,6 +37,7 @@ class CaseAggregate private constructor(
     this.currentAccommodation = currentAccommodation
     this.nextAccommodation = nextAccommodation
     this.accommodationStatus = accommodationStatus
+    this.accommodationStatusDate = accommodationStatusDate
     this.roshLevelCode = roshLevelCode
     return this
   }
@@ -50,6 +53,7 @@ class CaseAggregate private constructor(
       currentAccommodation: AccommodationSummaryDto? = null,
       nextAccommodation: AccommodationSummaryDto? = null,
       accommodationStatus: CaseAccommodationStatus? = null,
+      accommodationStatusDate: LocalDate? = null,
       roshLevelCode: String? = null,
     ) = CaseAggregate(
       id = id,
@@ -61,6 +65,7 @@ class CaseAggregate private constructor(
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = accommodationStatus,
+      accommodationStatusDate = accommodationStatusDate,
       roshLevelCode = roshLevelCode,
     )
 
@@ -96,6 +101,7 @@ class CaseAggregate private constructor(
     val currentAccommodation: AccommodationSummaryDto?,
     val nextAccommodation: AccommodationSummaryDto?,
     val accommodationStatus: CaseAccommodationStatus?,
+    val accommodationStatusDate: LocalDate?,
     val roshLevelCode: String?,
   )
 
@@ -109,6 +115,7 @@ class CaseAggregate private constructor(
     currentAccommodation,
     nextAccommodation,
     accommodationStatus,
+    accommodationStatusDate,
     roshLevelCode,
   )
 }

@@ -2,6 +2,12 @@ generic-service:
   serviceAccountName: hmpps-community-accommodation-api-service-account
   replicaCount: 2
 
+  resources:
+    limits:
+      memory: 3Gi
+    requests:
+      memory: 2.5Gi
+
   ingress:
     host: single-accommodation-service-api-preprod.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-single-accommodation-service-api-preprod-cert
@@ -32,7 +38,6 @@ generic-service:
     SCHEDULING_ENABLED: true
     TIER_V3-ENABLED: false
     CASE-REFRESH_ENABLED: true
-    CASE-LIST_V2-ENABLED: true
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:

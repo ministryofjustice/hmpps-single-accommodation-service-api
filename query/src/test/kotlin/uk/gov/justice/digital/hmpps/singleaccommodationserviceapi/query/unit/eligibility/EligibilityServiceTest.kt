@@ -683,7 +683,7 @@ class EligibilityServiceTest {
 
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
-          "/applications/start" -> null
+          "/applications/start" -> cas2ApplicationStartUrl
           else -> cas2Application?.uiUrl
         }
         assertThat(result.url).isEqualTo(expectedUrl)

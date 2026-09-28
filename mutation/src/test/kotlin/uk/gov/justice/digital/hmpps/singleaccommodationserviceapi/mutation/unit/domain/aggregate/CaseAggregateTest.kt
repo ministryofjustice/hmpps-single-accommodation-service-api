@@ -93,6 +93,7 @@ class CaseAggregateTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+      accommodationStatusDate = LocalDate.now(),
       roshLevelCode = "RVHR",
     )
     val afterUpdate = aggregate.snapshot()
@@ -103,6 +104,7 @@ class CaseAggregateTest {
     assertThat(afterUpdate.currentAccommodation).isEqualTo(currentAccommodation)
     assertThat(afterUpdate.nextAccommodation).isEqualTo(nextAccommodation)
     assertThat(afterUpdate.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
+    assertThat(afterUpdate.accommodationStatusDate).isEqualTo(LocalDate.now())
     assertThat(afterUpdate.roshLevelCode).isEqualTo("RVHR")
   }
 }

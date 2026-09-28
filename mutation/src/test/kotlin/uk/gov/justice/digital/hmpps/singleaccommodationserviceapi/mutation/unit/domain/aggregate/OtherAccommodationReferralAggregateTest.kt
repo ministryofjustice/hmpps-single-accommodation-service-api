@@ -37,6 +37,8 @@ class OtherAccommodationReferralAggregateTest {
       organisationName = "Organisation name",
       website = "https://www.charity.org",
       submissionNote = "A submission note",
+      email = "contact@example.com",
+      phoneNumber = "01234567890",
     )
 
     val snapshot = aggregate.snapshot()
@@ -50,6 +52,28 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(snapshot.organisationName).isEqualTo("Organisation name")
     assertThat(snapshot.website).isEqualTo("https://www.charity.org")
     assertThat(snapshot.submissionNote).isEqualTo("A submission note")
+    assertThat(snapshot.email).isEqualTo("contact@example.com")
+    assertThat(snapshot.phoneNumber).isEqualTo("01234567890")
+  }
+
+  @Test
+  fun `blank contact email and contact number are treated as absent`() {
+    val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
+    aggregate.updateOtherAccommodationReferral(
+      submissionDate = submissionDate,
+      referenceNumber = "REF-001",
+      status = OtherAccommodationReferralStatus.SUBMITTED,
+      organisationName = "Organisation name",
+      website = "https://www.charity.org",
+      submissionNote = "A submission note",
+      email = "   ",
+      phoneNumber = "   ",
+    )
+
+    val snapshot = aggregate.snapshot()
+
+    assertThat(snapshot.email).isNull()
+    assertThat(snapshot.phoneNumber).isNull()
   }
 
   @Test

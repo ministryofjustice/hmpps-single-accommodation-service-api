@@ -24,6 +24,8 @@ object OtherAccommodationReferralMapper {
     organisationName = snapshot.organisationName,
     website = snapshot.website,
     submissionNote = snapshot.submissionNote,
+    email = snapshot.email,
+    phoneNumber = snapshot.phoneNumber,
     outcomeReason = snapshot.outcomeReason?.let { EntityOtherAccommodationReferralOutcomeReason.valueOf(it.name) },
     outcomeNote = snapshot.outcomeNote,
   )
@@ -35,6 +37,8 @@ object OtherAccommodationReferralMapper {
     entity.organisationName = snapshot.organisationName
     entity.website = snapshot.website
     entity.submissionNote = snapshot.submissionNote
+    entity.email = snapshot.email
+    entity.phoneNumber = snapshot.phoneNumber
     entity.outcomeReason = snapshot.outcomeReason?.let { EntityOtherAccommodationReferralOutcomeReason.valueOf(it.name) }
     entity.outcomeNote = snapshot.outcomeNote
     entity.addMissingNotes(snapshot.notes)
@@ -60,6 +64,8 @@ object OtherAccommodationReferralMapper {
     organisationName = entity.organisationName,
     website = entity.website,
     submissionNote = entity.submissionNote,
+    email = entity.email,
+    phoneNumber = entity.phoneNumber,
     outcomeReason = entity.outcomeReason?.let { OtherAccommodationReferralOutcomeReason.valueOf(it.name) },
     outcomeNote = entity.outcomeNote,
     notes = entity.notes.map {
@@ -89,6 +95,8 @@ object OtherAccommodationReferralMapper {
       organisationName = snapshot.organisationName,
       website = snapshot.website,
       submissionNote = snapshot.submissionNote,
+      email = snapshot.email,
+      phoneNumber = snapshot.phoneNumber,
       outcomeReason = snapshot.outcomeReason,
       outcomeNote = snapshot.outcomeNote,
     ),
