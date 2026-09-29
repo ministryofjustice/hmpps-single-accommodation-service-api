@@ -56,15 +56,6 @@ jobs:
       gradle-command: './gradlew unitTest'
       artifact-name: 'unit-test-results'
     secrets: inherit
-  pact_test:
-    permissions:
-      contents: read
-    name: Pact Consumer Tests and Publish Contracts
-    needs: kotlin_validate
-    uses: ./.github/workflows/pact_test_publish.yml
-    with:
-      app_version: '${{ needs.build.outputs.app_version }}'
-    secrets: inherit
   integration_test:
     permissions:
       contents: read
@@ -94,6 +85,15 @@ jobs:
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
       push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
       docker_multiplatform: false
+  pact_test:
+    permissions:
+      contents: read
+    name: Pact Consumer Tests and Publish Contracts
+    needs: kotlin_validate
+    uses: ./.github/workflows/pact_test_publish.yml
+    with:
+      app_version: '${{ needs.build.outputs.app_version }}'
+    secrets: inherit
   deploy_dev:
     permissions:
       contents: read
