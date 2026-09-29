@@ -319,6 +319,7 @@ class ProposedAccommodationApplicationService(
     )
     aggregate.arrivePersonAtProposedAccommodation(
       arrivalDate = proposedAccommodationArrivalCommand.arrivalDate,
+      arrivalMethod = proposedAccommodationArrivalCommand.arrivalMethod,
     )
     cacheEvictOnCorePersonRecordByCrnAndPullEventsAndPersistToOutbox(crn, aggregate)
     val merged = merge(
