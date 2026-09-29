@@ -1,20 +1,20 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralSubmissionDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralNoteEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate.OtherAccommodationReferralSnapshot
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate.ExternalReferralSnapshot
 import java.time.Instant
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
-object OtherAccommodationReferralMapper {
+object ExternalReferralMapper {
 
-  fun toEntity(snapshot: OtherAccommodationReferralSnapshot) = OtherAccommodationReferralEntity(
+  fun toEntity(snapshot: ExternalReferralSnapshot) = OtherAccommodationReferralEntity(
     id = snapshot.id,
     crn = snapshot.crn,
     caseId = snapshot.caseId,
@@ -30,7 +30,7 @@ object OtherAccommodationReferralMapper {
     outcomeNote = snapshot.outcomeNote,
   )
 
-  fun merge(snapshot: OtherAccommodationReferralSnapshot, entity: OtherAccommodationReferralEntity): OtherAccommodationReferralEntity {
+  fun merge(snapshot: ExternalReferralSnapshot, entity: OtherAccommodationReferralEntity): OtherAccommodationReferralEntity {
     entity.referenceNumber = snapshot.referenceNumber
     entity.submissionDate = snapshot.submissionDate
     entity.status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name)
@@ -45,7 +45,7 @@ object OtherAccommodationReferralMapper {
     return entity
   }
 
-  fun OtherAccommodationReferralEntity.addMissingNotes(snapshotNotes: List<OtherAccommodationReferralAggregate.OtherAccommodationReferralNote>) {
+  fun OtherAccommodationReferralEntity.addMissingNotes(snapshotNotes: List<ExternalReferralAggregate.ExternalReferralNote>) {
     val existingIds = notes.map { it.id }.toSet()
     notes.addAll(
       snapshotNotes
@@ -54,22 +54,22 @@ object OtherAccommodationReferralMapper {
     )
   }
 
-  fun toAggregate(entity: OtherAccommodationReferralEntity): OtherAccommodationReferralAggregate = OtherAccommodationReferralAggregate.hydrateExisting(
+  fun toAggregate(entity: OtherAccommodationReferralEntity): ExternalReferralAggregate = ExternalReferralAggregate.hydrateExisting(
     id = entity.id,
     caseId = entity.caseId,
     crn = entity.crn,
     referenceNumber = entity.referenceNumber,
     submissionDate = entity.submissionDate,
-    status = OtherAccommodationReferralStatus.valueOf(entity.status.name),
+    status = ExternalReferralStatus.valueOf(entity.status.name),
     organisationName = entity.organisationName,
     website = entity.website,
     submissionNote = entity.submissionNote,
     email = entity.email,
     phoneNumber = entity.phoneNumber,
-    outcomeReason = entity.outcomeReason?.let { OtherAccommodationReferralOutcomeReason.valueOf(it.name) },
+    outcomeReason = entity.outcomeReason?.let { ExternalReferralOutcomeReason.valueOf(it.name) },
     outcomeNote = entity.outcomeNote,
     notes = entity.notes.map {
-      OtherAccommodationReferralAggregate.OtherAccommodationReferralNote(
+      ExternalReferralAggregate.ExternalReferralNote(
         id = it.id,
         note = it.note,
       )
@@ -77,15 +77,15 @@ object OtherAccommodationReferralMapper {
   )
 
   fun toDto(
-    snapshot: OtherAccommodationReferralSnapshot,
+    snapshot: ExternalReferralSnapshot,
     createdBy: String,
     createdByUsername: String,
     createdAt: Instant,
-  ) = OtherAccommodationReferralDto(
+  ) = ExternalReferralDto(
     caseId = snapshot.caseId,
     crn = snapshot.crn,
-    status = OtherAccommodationReferralStatus.valueOf(snapshot.status.name),
-    submission = OtherAccommodationReferralSubmissionDto(
+    status = ExternalReferralStatus.valueOf(snapshot.status.name),
+    submission = ExternalReferralSubmissionDto(
       id = snapshot.id,
       referenceNumber = snapshot.referenceNumber,
       submissionDate = snapshot.submissionDate,

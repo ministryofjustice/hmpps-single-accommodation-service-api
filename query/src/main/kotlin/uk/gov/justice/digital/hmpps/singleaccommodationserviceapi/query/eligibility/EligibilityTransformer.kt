@@ -312,7 +312,7 @@ object EligibilityTransformer {
   ) = submittedApplication?.let {
     Cas2SubmittedApplicationSummaryDto(
       submittedAt = it.submittedAt,
-      latestAssessmentStatus = it.latestAssessmentStatus,
+      latestAssessmentStatus = it.latestAssessmentStatus?.value,
     )
   }
 
