@@ -24,6 +24,8 @@ open class OtherAccommodationReferralEntity(
   @Enumerated(EnumType.STRING)
   var status: OtherAccommodationReferralStatus,
   var organisationName: String?,
+  var email: String?,
+  var phoneNumber: String?,
   var website: String?,
   var submissionNote: String?,
   @Enumerated(EnumType.STRING)

@@ -33,6 +33,8 @@ class OtherAccommodationReferralApplicationService(
       organisationName = command.organisationName,
       website = command.website,
       submissionNote = command.submissionNote,
+      email = command.email,
+      phoneNumber = command.phoneNumber,
     )
 
     val persistedRecord = otherAccommodationReferralRepository.save(
@@ -62,6 +64,8 @@ class OtherAccommodationReferralApplicationService(
         organisationName = command.organisationName,
         website = command.website,
         submissionNote = command.submissionNote,
+        email = command.email,
+        phoneNumber = command.phoneNumber,
         outcomeReason = command.outcomeReason,
         outcomeNote = command.outcomeNote,
       )

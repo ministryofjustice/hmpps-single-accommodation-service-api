@@ -28,6 +28,7 @@ class CaseSnapshotAssembler(
       currentAccommodation = accommodationSummaries.currentAccommodation,
       nextAccommodation = accommodationSummaries.nextAccommodation,
       accommodationStatus = accommodationSummaries.caseAccommodationStatus,
+      accommodationStatusDate = accommodationSummaries.caseAccommodationStatusDate,
       roshLevelCode = caseMutationOrchestrationDto.case?.roshLevel?.code,
     )
   }

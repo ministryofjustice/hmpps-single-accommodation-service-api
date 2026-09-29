@@ -88,6 +88,8 @@ class OtherAccommodationReferralTransformerTest {
         organisationName = "Organisation name",
         website = "https://www.charity.org",
         submissionNote = "A submission note",
+        email = "contact@example.com",
+        phoneNumber = "01234567890",
         createdAt = createdAt,
       )
 
@@ -106,6 +108,8 @@ class OtherAccommodationReferralTransformerTest {
       assertThat(result.organisationName).isEqualTo("Organisation name")
       assertThat(result.website).isEqualTo("https://www.charity.org")
       assertThat(result.submissionNote).isEqualTo("A submission note")
+      assertThat(result.email).isEqualTo("contact@example.com")
+      assertThat(result.phoneNumber).isEqualTo("01234567890")
     }
 
     @Test
@@ -132,6 +136,8 @@ class OtherAccommodationReferralTransformerTest {
         organisationName = null,
         website = null,
         submissionNote = null,
+        email = null,
+        phoneNumber = null,
       )
 
       val result = OtherAccommodationReferralTransformer.toSubmission(
@@ -144,6 +150,8 @@ class OtherAccommodationReferralTransformerTest {
       assertThat(result.organisationName).isNull()
       assertThat(result.website).isNull()
       assertThat(result.submissionNote).isNull()
+      assertThat(result.email).isNull()
+      assertThat(result.phoneNumber).isNull()
       assertThat(result.createdByUsername).isEqualTo(createdByUsername)
       assertThat(result.outcomeReason).isNull()
       assertThat(result.outcomeNote).isNull()

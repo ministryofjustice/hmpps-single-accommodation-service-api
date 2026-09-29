@@ -20,6 +20,8 @@ fun buildOtherAccommodationReferralEntity(
   organisationName: String? = null,
   website: String? = null,
   submissionNote: String? = null,
+  email: String? = null,
+  phoneNumber: String? = null,
   outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
   outcomeNote: String? = null,
   createdByUserId: UUID? = null,
@@ -36,6 +38,8 @@ fun buildOtherAccommodationReferralEntity(
   organisationName = organisationName,
   website = website,
   submissionNote = submissionNote,
+  email = email,
+  phoneNumber = phoneNumber,
   outcomeReason = outcomeReason,
   outcomeNote = outcomeNote,
 ).apply {
