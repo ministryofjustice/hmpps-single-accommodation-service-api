@@ -7,20 +7,20 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeNoteNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.OtherAccommodationReferralOutcomeNoteNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.OtherAccommodationReferralOutcomeReasonNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.OtherAccommodationReferralOutcomeReasonRequiredException
 import java.time.LocalDate
 import java.util.UUID
 import java.util.stream.Stream
 import kotlin.random.Random
 
-class OtherAccommodationReferralAggregateTest {
+class ExternalReferralAggregateTest {
 
   private val submissionDate = LocalDate.of(2026, 1, 15)
 
@@ -29,11 +29,11 @@ class OtherAccommodationReferralAggregateTest {
     val caseId = UUID.randomUUID()
     val crn = "X123456"
 
-    val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = caseId, crn = crn)
-    aggregate.updateOtherAccommodationReferral(
+    val aggregate = ExternalReferralAggregate.hydrateNew(caseId = caseId, crn = crn)
+    aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = "Organisation name",
       website = "https://www.charity.org",
       submissionNote = "A submission note",
@@ -48,7 +48,7 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(snapshot.crn).isEqualTo(crn)
     assertThat(snapshot.referenceNumber).isEqualTo("REF-001")
     assertThat(snapshot.submissionDate).isEqualTo(submissionDate)
-    assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
     assertThat(snapshot.organisationName).isEqualTo("Organisation name")
     assertThat(snapshot.website).isEqualTo("https://www.charity.org")
     assertThat(snapshot.submissionNote).isEqualTo("A submission note")
@@ -58,11 +58,11 @@ class OtherAccommodationReferralAggregateTest {
 
   @Test
   fun `blank contact email and contact number are treated as absent`() {
-    val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
-    aggregate.updateOtherAccommodationReferral(
+    val aggregate = ExternalReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
+    aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = "Organisation name",
       website = "https://www.charity.org",
       submissionNote = "A submission note",
@@ -83,23 +83,23 @@ class OtherAccommodationReferralAggregateTest {
     val crn = "X123456"
     val newSubmissionDate = LocalDate.of(2026, 3, 1)
 
-    val aggregate = OtherAccommodationReferralAggregate.hydrateExisting(
+    val aggregate = ExternalReferralAggregate.hydrateExisting(
       id = id,
       caseId = caseId,
       crn = crn,
       referenceNumber = "REF-001",
       submissionDate = LocalDate.of(2026, 2, 20),
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = "Organisation name",
       website = "https://www.charity.org",
       submissionNote = "A submission note",
       notes = emptyList(),
     )
 
-    aggregate.updateOtherAccommodationReferral(
+    aggregate.updateExternalReferral(
       submissionDate = newSubmissionDate,
       referenceNumber = "REF-002",
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = "New organisation name",
       website = "https://www.new-charity.org",
       submissionNote = "An updated submission note",
@@ -112,7 +112,7 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(snapshot.crn).isEqualTo(crn)
     assertThat(snapshot.referenceNumber).isEqualTo("REF-002")
     assertThat(snapshot.submissionDate).isEqualTo(newSubmissionDate)
-    assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
     assertThat(snapshot.organisationName).isEqualTo("New organisation name")
     assertThat(snapshot.website).isEqualTo("https://www.new-charity.org")
     assertThat(snapshot.submissionNote).isEqualTo("An updated submission note")
@@ -121,11 +121,11 @@ class OtherAccommodationReferralAggregateTest {
   @ParameterizedTest
   @ValueSource(strings = ["", " ", "   ", "\t", "\n"])
   fun `blank submission note is normalised to null`(note: String) {
-    val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
-    aggregate.updateOtherAccommodationReferral(
+    val aggregate = ExternalReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
+    aggregate.updateExternalReferral(
       submissionDate = LocalDate.of(2026, 2, 20),
       referenceNumber = null,
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = null,
       website = null,
       submissionNote = note,
@@ -146,7 +146,7 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(aggregateSnapshot.notes.first().id).isNotNull
     assertThat(aggregateSnapshot.notes.first().note).isEqualTo(note)
     assertThat(aggregateSnapshot.submissionDate).isEqualTo(submissionDate)
-    assertThat(aggregateSnapshot.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+    assertThat(aggregateSnapshot.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
   }
 
   @ParameterizedTest
@@ -173,13 +173,13 @@ class OtherAccommodationReferralAggregateTest {
 
   @ParameterizedTest
   @MethodSource("validOutcomeReasonScenarios")
-  fun `updateOtherAccommodationReferral accepts a valid outcome reason for the given status`(
-    status: OtherAccommodationReferralStatus,
-    outcomeReason: OtherAccommodationReferralOutcomeReason,
+  fun `updateExternalReferral accepts a valid outcome reason for the given status`(
+    status: ExternalReferralStatus,
+    outcomeReason: ExternalReferralOutcomeReason,
   ) {
     val aggregate = hydrateAndCreateReferral()
 
-    aggregate.updateOtherAccommodationReferral(
+    aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
       status = status,
@@ -197,14 +197,14 @@ class OtherAccommodationReferralAggregateTest {
   }
 
   @Test
-  fun `updateOtherAccommodationReferral throws exception when status is ACCEPTED and outcomeReason is missing`() {
+  fun `updateExternalReferral throws exception when status is ACCEPTED and outcomeReason is missing`() {
     val aggregate = hydrateAndCreateReferral()
 
-    assertThrows<OtherAccommodationReferralOutcomeReasonRequiredException> {
-      aggregate.updateOtherAccommodationReferral(
+    assertThrows<ExternalReferralOutcomeReasonRequiredException> {
+      aggregate.updateExternalReferral(
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
-        status = OtherAccommodationReferralStatus.ACCEPTED,
+        status = ExternalReferralStatus.ACCEPTED,
         organisationName = null,
         website = null,
         submissionNote = null,
@@ -214,48 +214,48 @@ class OtherAccommodationReferralAggregateTest {
   }
 
   @Test
-  fun `updateOtherAccommodationReferral throws exception when status is ACCEPTED with a REJECTED outcome reason`() {
+  fun `updateExternalReferral throws exception when status is ACCEPTED with a REJECTED outcome reason`() {
     val aggregate = hydrateAndCreateReferral()
 
-    assertThrows<OtherAccommodationReferralOutcomeReasonNotApplicableException> {
-      aggregate.updateOtherAccommodationReferral(
+    assertThrows<ExternalReferralOutcomeReasonNotApplicableException> {
+      aggregate.updateExternalReferral(
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
-        status = OtherAccommodationReferralStatus.ACCEPTED,
+        status = ExternalReferralStatus.ACCEPTED,
         organisationName = null,
         website = null,
         submissionNote = null,
-        outcomeReason = OtherAccommodationReferralOutcomeReason.NO_CAPACITY,
+        outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
       )
     }
   }
 
   @Test
-  fun `updateOtherAccommodationReferral throws exception when status is SUBMITTED and an outcomeReason is provided`() {
+  fun `updateExternalReferral throws exception when status is SUBMITTED and an outcomeReason is provided`() {
     val aggregate = hydrateAndCreateReferral()
 
-    assertThrows<OtherAccommodationReferralOutcomeReasonNotApplicableException> {
-      aggregate.updateOtherAccommodationReferral(
+    assertThrows<ExternalReferralOutcomeReasonNotApplicableException> {
+      aggregate.updateExternalReferral(
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
-        status = OtherAccommodationReferralStatus.SUBMITTED,
+        status = ExternalReferralStatus.SUBMITTED,
         organisationName = null,
         website = null,
         submissionNote = null,
-        outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+        outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
       )
     }
   }
 
   @Test
-  fun `updateOtherAccommodationReferral throws exception when status is SUBMITTED and an outcomeNote is provided`() {
+  fun `updateExternalReferral throws exception when status is SUBMITTED and an outcomeNote is provided`() {
     val aggregate = hydrateAndCreateReferral()
 
-    assertThrows<OtherAccommodationReferralOutcomeNoteNotApplicableException> {
-      aggregate.updateOtherAccommodationReferral(
+    assertThrows<ExternalReferralOutcomeNoteNotApplicableException> {
+      aggregate.updateExternalReferral(
         submissionDate = submissionDate,
         referenceNumber = "REF-001",
-        status = OtherAccommodationReferralStatus.SUBMITTED,
+        status = ExternalReferralStatus.SUBMITTED,
         organisationName = null,
         website = null,
         submissionNote = null,
@@ -265,23 +265,23 @@ class OtherAccommodationReferralAggregateTest {
   }
 
   @Test
-  fun `updateOtherAccommodationReferral clears outcomeReason and outcomeNote when moving back to SUBMITTED`() {
+  fun `updateExternalReferral clears outcomeReason and outcomeNote when moving back to SUBMITTED`() {
     val aggregate = hydrateAndCreateReferral()
-    aggregate.updateOtherAccommodationReferral(
+    aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = OtherAccommodationReferralStatus.REJECTED,
+      status = ExternalReferralStatus.REJECTED,
       organisationName = null,
       website = null,
       submissionNote = null,
-      outcomeReason = OtherAccommodationReferralOutcomeReason.NO_CAPACITY,
+      outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
       outcomeNote = "An outcome note",
     )
 
-    aggregate.updateOtherAccommodationReferral(
+    aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = null,
       website = null,
       submissionNote = null,
@@ -298,12 +298,12 @@ class OtherAccommodationReferralAggregateTest {
     assertThat(aggregate.snapshot().notes.first().note).isEqualTo(note)
   }
 
-  private fun hydrateAndCreateReferral(): OtherAccommodationReferralAggregate {
-    val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
-    aggregate.updateOtherAccommodationReferral(
+  private fun hydrateAndCreateReferral(): ExternalReferralAggregate {
+    val aggregate = ExternalReferralAggregate.hydrateNew(caseId = UUID.randomUUID(), crn = "X123456")
+    aggregate.updateExternalReferral(
       submissionDate = submissionDate,
       referenceNumber = "REF-001",
-      status = OtherAccommodationReferralStatus.SUBMITTED,
+      status = ExternalReferralStatus.SUBMITTED,
       organisationName = null,
       website = null,
       submissionNote = null,
@@ -314,11 +314,11 @@ class OtherAccommodationReferralAggregateTest {
   companion object {
     @JvmStatic
     fun validOutcomeReasonScenarios(): Stream<Arguments> = Stream.of(
-      Arguments.of(OtherAccommodationReferralStatus.ACCEPTED, OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION),
-      Arguments.of(OtherAccommodationReferralStatus.ACCEPTED, OtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT),
-      Arguments.of(OtherAccommodationReferralStatus.REJECTED, OtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE),
-      Arguments.of(OtherAccommodationReferralStatus.REJECTED, OtherAccommodationReferralOutcomeReason.NO_CAPACITY),
-      Arguments.of(OtherAccommodationReferralStatus.REJECTED, OtherAccommodationReferralOutcomeReason.ANOTHER_REASON),
+      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION),
+      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT),
+      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE),
+      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.NO_CAPACITY),
+      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.ANOTHER_REASON),
     )
   }
 }

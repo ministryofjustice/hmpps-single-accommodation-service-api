@@ -12,8 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AuditRecordType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FieldChange
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.NotFoundException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAuditRecordDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditService
@@ -23,14 +23,14 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OtherAccommodationReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.OtherAccommodationReferralQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.ExternalReferralQueryService
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
 @ExtendWith(MockKExtension::class)
-class OtherAccommodationReferralQueryServiceTest {
+class ExternalReferralQueryServiceTest {
 
   @MockK
   lateinit var otherAccommodationReferralRepository: OtherAccommodationReferralRepository
@@ -42,7 +42,7 @@ class OtherAccommodationReferralQueryServiceTest {
   lateinit var auditService: AuditService
 
   @InjectMockKs
-  lateinit var service: OtherAccommodationReferralQueryService
+  lateinit var service: ExternalReferralQueryService
 
   private val caseId = UUID.randomUUID()
   private val id = UUID.randomUUID()
@@ -50,10 +50,10 @@ class OtherAccommodationReferralQueryServiceTest {
   private val createdByUserId = UUID.randomUUID()
 
   @Nested
-  inner class GetOtherAccommodationReferral {
+  inner class GetExternalReferral {
 
     @Test
-    fun `should return other accommodation referral when found by crn and id`() {
+    fun `should return external referral when found by crn and id`() {
       val entity = buildOtherAccommodationReferralEntity(
         id = id,
         caseId = caseId,
@@ -75,11 +75,11 @@ class OtherAccommodationReferralQueryServiceTest {
       every { otherAccommodationReferralRepository.findByIdAndCrn(id, crn) } returns entity
       every { userRepository.findByIdOrNull(createdByUserId) } returns userEntity
 
-      val result = service.getOtherAccommodationReferral(crn, id)
+      val result = service.getExternalReferral(crn, id)
 
       assertThat(result.crn).isEqualTo(crn)
       assertThat(result.caseId).isEqualTo(caseId)
-      assertThat(result.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+      assertThat(result.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
       assertThat(result.submission).isNotNull
       val submission = result.submission
       assertThat(submission.id).isEqualTo(id)
@@ -96,14 +96,14 @@ class OtherAccommodationReferralQueryServiceTest {
     fun `should throw NotFoundException when not found`() {
       every { otherAccommodationReferralRepository.findByIdAndCrn(id, crn) } returns null
 
-      assertThatThrownBy { service.getOtherAccommodationReferral(crn, id) }
+      assertThatThrownBy { service.getExternalReferral(crn, id) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessage("OtherAccommodationReferralEntity not found for [id=$id, crn=$crn]")
     }
   }
 
   @Nested
-  inner class SearchOtherAccommodationReferrals {
+  inner class SearchExternalReferrals {
 
     @Test
     fun `should return empty list when no referrals found`() {
@@ -111,7 +111,7 @@ class OtherAccommodationReferralQueryServiceTest {
         otherAccommodationReferralRepository.searchByCrn(crn, null)
       } returns emptyList()
 
-      val result = service.searchOtherAccommodationReferrals(crn, null)
+      val result = service.searchExternalReferrals(crn, null)
 
       assertThat(result).isEmpty()
     }
@@ -140,9 +140,9 @@ class OtherAccommodationReferralQueryServiceTest {
       } returns listOf(newestEntity, oldestEntity)
       every { userRepository.findAllById(setOf(createdByUserId)) } returns listOf(userEntity)
 
-      val result = service.searchOtherAccommodationReferrals(
+      val result = service.searchExternalReferrals(
         crn,
-        listOf(OtherAccommodationReferralStatus.SUBMITTED, OtherAccommodationReferralStatus.ACCEPTED),
+        listOf(ExternalReferralStatus.SUBMITTED, ExternalReferralStatus.ACCEPTED),
       )
 
       assertThat(result).hasSize(2)
@@ -157,14 +157,14 @@ class OtherAccommodationReferralQueryServiceTest {
         otherAccommodationReferralRepository.searchByCrn(crn, null)
       } returns emptyList()
 
-      val result = service.searchOtherAccommodationReferrals(crn, emptyList())
+      val result = service.searchExternalReferrals(crn, emptyList())
 
       assertThat(result).isEmpty()
     }
   }
 
   @Nested
-  inner class GetOtherAccommodationReferralTimeline {
+  inner class GetExternalReferralTimeline {
 
     @Test
     fun `should return empty list when there is no audit history and no notes`() {
@@ -172,7 +172,7 @@ class OtherAccommodationReferralQueryServiceTest {
       every { otherAccommodationReferralRepository.findByIdAndCrnWithNotes(otherAccommodationReferralEntity.id, crn) } returns otherAccommodationReferralEntity
       every { auditService.fullAuditHistory(otherAccommodationReferralEntity.id, OtherAccommodationReferralEntity::class.java) } returns emptyList()
 
-      val result = service.getOtherAccommodationReferralTimeline(otherAccommodationReferralEntity.id, crn)
+      val result = service.getExternalReferralTimeline(otherAccommodationReferralEntity.id, crn)
 
       assertThat(result.data).isEmpty()
     }
@@ -200,7 +200,7 @@ class OtherAccommodationReferralQueryServiceTest {
         auditService.fullAuditHistory(otherAccommodationReferralEntity.id, OtherAccommodationReferralEntity::class.java)
       } returns listOf(createRecord, updateRecord)
 
-      val result = service.getOtherAccommodationReferralTimeline(otherAccommodationReferralEntity.id, crn)
+      val result = service.getExternalReferralTimeline(otherAccommodationReferralEntity.id, crn)
 
       assertThat(result.data).hasSize(2)
       assertThat(result.data[0].commitDate).isEqualTo(updateRecord.commitDate)
@@ -253,7 +253,7 @@ class OtherAccommodationReferralQueryServiceTest {
       } returns listOf(createRecord, updateRecord)
       every { userRepository.findAllById(setOf(user1Id, user2Id)) } returns listOf(noteAuthor1, noteAuthor2)
 
-      val result = service.getOtherAccommodationReferralTimeline(otherAccommodationReferralEntity.id, crn)
+      val result = service.getExternalReferralTimeline(otherAccommodationReferralEntity.id, crn)
 
       assertThat(result.data).hasSize(4)
       assertThat(result.data[0].type).isEqualTo(AuditRecordType.NOTE)
@@ -279,7 +279,7 @@ class OtherAccommodationReferralQueryServiceTest {
       val id = UUID.randomUUID()
       every { otherAccommodationReferralRepository.findByIdAndCrnWithNotes(id, crn) } returns null
 
-      assertThatThrownBy { service.getOtherAccommodationReferralTimeline(id, crn) }
+      assertThatThrownBy { service.getExternalReferralTimeline(id, crn) }
         .isInstanceOf(NotFoundException::class.java)
         .hasMessage("OtherAccommodationReferralEntity not found for [id=$id, crn=$crn]")
     }

@@ -1,45 +1,45 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeNoteNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.OtherAccommodationReferralOutcomeNoteNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.OtherAccommodationReferralOutcomeReasonNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.OtherAccommodationReferralOutcomeReasonRequiredException
 import java.time.LocalDate
 import java.util.UUID
 
 private const val NOTE_MAX_LENGTH = 4000
 
 private val ACCEPTED_OUTCOME_REASONS = setOf(
-  OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
-  OtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+  ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+  ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
 )
 private val REJECTED_OUTCOME_REASONS = setOf(
-  OtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE,
-  OtherAccommodationReferralOutcomeReason.NO_CAPACITY,
-  OtherAccommodationReferralOutcomeReason.ANOTHER_REASON,
+  ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE,
+  ExternalReferralOutcomeReason.NO_CAPACITY,
+  ExternalReferralOutcomeReason.ANOTHER_REASON,
 )
 
-class OtherAccommodationReferralAggregate private constructor(
+class ExternalReferralAggregate private constructor(
   private val id: UUID,
   private val caseId: UUID,
   private val crn: String,
   private var referenceNumber: String? = null,
   private var submissionDate: LocalDate? = null,
-  private var status: OtherAccommodationReferralStatus? = null,
+  private var status: ExternalReferralStatus? = null,
   private var organisationName: String? = null,
   private var website: String? = null,
   private var submissionNote: String? = null,
   private var email: String? = null,
   private var phoneNumber: String? = null,
-  private var outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  private var outcomeReason: ExternalReferralOutcomeReason? = null,
   private var outcomeNote: String? = null,
-  private var notes: MutableList<OtherAccommodationReferralNote> = mutableListOf(),
+  private var notes: MutableList<ExternalReferralNote> = mutableListOf(),
 ) {
   companion object {
-    fun hydrateNew(caseId: UUID, crn: String) = OtherAccommodationReferralAggregate(
+    fun hydrateNew(caseId: UUID, crn: String) = ExternalReferralAggregate(
       id = UUID.randomUUID(),
       caseId = caseId,
       crn = crn,
@@ -51,16 +51,16 @@ class OtherAccommodationReferralAggregate private constructor(
       crn: String,
       referenceNumber: String?,
       submissionDate: LocalDate,
-      status: OtherAccommodationReferralStatus,
+      status: ExternalReferralStatus,
       organisationName: String?,
       website: String?,
       submissionNote: String?,
-      notes: List<OtherAccommodationReferralNote>,
+      notes: List<ExternalReferralNote>,
       email: String? = null,
       phoneNumber: String? = null,
-      outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+      outcomeReason: ExternalReferralOutcomeReason? = null,
       outcomeNote: String? = null,
-    ) = OtherAccommodationReferralAggregate(
+    ) = ExternalReferralAggregate(
       id = id,
       caseId = caseId,
       crn = crn,
@@ -80,7 +80,7 @@ class OtherAccommodationReferralAggregate private constructor(
 
   fun addNote(note: String) {
     validateNote(note)
-    notes += OtherAccommodationReferralNote(
+    notes += ExternalReferralNote(
       id = UUID.randomUUID(),
       note = note,
     )
@@ -99,16 +99,16 @@ class OtherAccommodationReferralAggregate private constructor(
     }
   }
 
-  fun updateOtherAccommodationReferral(
+  fun updateExternalReferral(
     submissionDate: LocalDate,
     referenceNumber: String?,
-    status: OtherAccommodationReferralStatus,
+    status: ExternalReferralStatus,
     organisationName: String?,
     website: String?,
     submissionNote: String?,
     email: String? = null,
     phoneNumber: String? = null,
-    outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+    outcomeReason: ExternalReferralOutcomeReason? = null,
     outcomeNote: String? = null,
   ) {
     validateOutcome(status, outcomeReason, outcomeNote)
@@ -122,7 +122,7 @@ class OtherAccommodationReferralAggregate private constructor(
     this.email = email?.takeUnless { it.isBlank() }
     this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
 
-    if (status == OtherAccommodationReferralStatus.ACCEPTED || status == OtherAccommodationReferralStatus.REJECTED) {
+    if (status == ExternalReferralStatus.ACCEPTED || status == ExternalReferralStatus.REJECTED) {
       this.outcomeReason = outcomeReason
       this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
     } else {
@@ -132,44 +132,44 @@ class OtherAccommodationReferralAggregate private constructor(
   }
 
   private fun validateOutcome(
-    status: OtherAccommodationReferralStatus,
-    outcomeReason: OtherAccommodationReferralOutcomeReason?,
+    status: ExternalReferralStatus,
+    outcomeReason: ExternalReferralOutcomeReason?,
     outcomeNote: String?,
   ) {
     when (status) {
-      OtherAccommodationReferralStatus.ACCEPTED -> validateOutcomeReason(outcomeReason, ACCEPTED_OUTCOME_REASONS)
-      OtherAccommodationReferralStatus.REJECTED -> validateOutcomeReason(outcomeReason, REJECTED_OUTCOME_REASONS)
-      OtherAccommodationReferralStatus.SUBMITTED -> validateNoOutcome(outcomeReason, outcomeNote)
+      ExternalReferralStatus.ACCEPTED -> validateOutcomeReason(outcomeReason, ACCEPTED_OUTCOME_REASONS)
+      ExternalReferralStatus.REJECTED -> validateOutcomeReason(outcomeReason, REJECTED_OUTCOME_REASONS)
+      ExternalReferralStatus.SUBMITTED -> validateNoOutcome(outcomeReason, outcomeNote)
     }
   }
 
   private fun validateOutcomeReason(
-    outcomeReason: OtherAccommodationReferralOutcomeReason?,
-    validReasons: Set<OtherAccommodationReferralOutcomeReason>,
+    outcomeReason: ExternalReferralOutcomeReason?,
+    validReasons: Set<ExternalReferralOutcomeReason>,
   ) {
     when {
       outcomeReason == null ->
-        throw OtherAccommodationReferralOutcomeReasonRequiredException()
+        throw ExternalReferralOutcomeReasonRequiredException()
 
       outcomeReason !in validReasons ->
-        throw OtherAccommodationReferralOutcomeReasonNotApplicableException()
+        throw ExternalReferralOutcomeReasonNotApplicableException()
     }
   }
 
   private fun validateNoOutcome(
-    outcomeReason: OtherAccommodationReferralOutcomeReason?,
+    outcomeReason: ExternalReferralOutcomeReason?,
     outcomeNote: String?,
   ) {
     if (outcomeReason != null) {
-      throw OtherAccommodationReferralOutcomeReasonNotApplicableException()
+      throw ExternalReferralOutcomeReasonNotApplicableException()
     }
 
     if (!outcomeNote.isNullOrBlank()) {
-      throw OtherAccommodationReferralOutcomeNoteNotApplicableException()
+      throw ExternalReferralOutcomeNoteNotApplicableException()
     }
   }
 
-  fun snapshot() = OtherAccommodationReferralSnapshot(
+  fun snapshot() = ExternalReferralSnapshot(
     id = id,
     caseId = caseId,
     crn = crn,
@@ -186,24 +186,24 @@ class OtherAccommodationReferralAggregate private constructor(
     notes = notes.toList(),
   )
 
-  data class OtherAccommodationReferralSnapshot(
+  data class ExternalReferralSnapshot(
     val id: UUID,
     val caseId: UUID,
     val crn: String,
     val referenceNumber: String?,
     val submissionDate: LocalDate,
-    val status: OtherAccommodationReferralStatus,
+    val status: ExternalReferralStatus,
     val organisationName: String? = null,
     val website: String? = null,
     val submissionNote: String? = null,
     val email: String? = null,
     val phoneNumber: String? = null,
-    val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+    val outcomeReason: ExternalReferralOutcomeReason? = null,
     val outcomeNote: String? = null,
-    val notes: List<OtherAccommodationReferralNote> = emptyList(),
+    val notes: List<ExternalReferralNote> = emptyList(),
   )
 
-  data class OtherAccommodationReferralNote(
+  data class ExternalReferralNote(
     val id: UUID,
     val note: String,
   )
