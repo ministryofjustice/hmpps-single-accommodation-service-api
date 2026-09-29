@@ -46,6 +46,28 @@ jobs:
 #      this runs detekt, ktlintCheck etc without any tests
       gradle-command: './gradlew check -x test'
     secrets: inherit
+  build_pr:
+    permissions:
+      contents: read
+      packages: write
+    name: Build docker image from hmpps-github-actions
+    if: github.event_name == 'pull_request'
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
+    with:
+      docker_registry: 'ghcr.io'
+      registry_org: 'ministryofjustice'
+      additional_docker_tag: ${{ inputs.additional_docker_tag }}
+      push: false
+      docker_multiplatform: false
+  pact_test_pr:
+    permissions:
+      contents: read
+    name: Pact Consumer Tests and Publish Contracts
+    needs: build_pr
+    uses: ./.github/workflows/pact_test_publish.yml
+    with:
+      app_version: '${{ needs.build_pr.outputs.app_version }}'
+    secrets: inherit
   unit_test:
     permissions:
       contents: read
