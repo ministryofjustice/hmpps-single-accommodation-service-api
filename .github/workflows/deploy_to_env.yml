@@ -33,7 +33,7 @@ jobs:
       contents: read
     needs:
       - helm_lint
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}

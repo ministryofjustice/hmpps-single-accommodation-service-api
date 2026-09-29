@@ -137,7 +137,7 @@ jobs:
       - integration_test
       - build
       - helm_lint
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'development'
@@ -159,7 +159,7 @@ jobs:
     needs:
       - build
       - deploy_dev
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'preprod'
@@ -174,7 +174,7 @@ jobs:
     needs:
       - build
       - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@v2 # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'prod'
