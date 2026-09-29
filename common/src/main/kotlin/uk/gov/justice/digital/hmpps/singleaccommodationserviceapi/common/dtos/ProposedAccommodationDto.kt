@@ -30,7 +30,7 @@ data class ProposedAccommodationDetailCommand(
 
 data class ProposedAccommodationArrivalCommand(
   val arrivalDate: LocalDate,
-  val arrivalMethod: ArrivalMethod?,
+  val arrivalMethod: ArrivalMethod? = null,
 )
 
 enum class ArrivalMethod {
