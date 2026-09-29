@@ -2,31 +2,31 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralNoteEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.OtherAccommodationReferralMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildOtherAccommodationReferralNote
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildOtherAccommodationReferralSnapshot
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ExternalReferralMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildExternalReferralNote
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildExternalReferralSnapshot
 import java.time.Instant
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
-class OtherAccommodationReferralMapperTest {
+class ExternalReferralMapperTest {
 
   @Test
   fun `toEntity maps all fields correctly`() {
-    val snapshot = buildOtherAccommodationReferralSnapshot(
-      status = OtherAccommodationReferralStatus.ACCEPTED,
-      outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+    val snapshot = buildExternalReferralSnapshot(
+      status = ExternalReferralStatus.ACCEPTED,
+      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
     )
 
-    val entity = OtherAccommodationReferralMapper.toEntity(snapshot)
+    val entity = ExternalReferralMapper.toEntity(snapshot)
 
     assertThat(entity.id).isEqualTo(snapshot.id)
     assertThat(entity.crn).isEqualTo(snapshot.crn)
@@ -45,9 +45,9 @@ class OtherAccommodationReferralMapperTest {
 
   @Test
   fun `toDto maps all fields correctly`() {
-    val snapshot = buildOtherAccommodationReferralSnapshot(
-      status = OtherAccommodationReferralStatus.REJECTED,
-      outcomeReason = OtherAccommodationReferralOutcomeReason.NO_CAPACITY,
+    val snapshot = buildExternalReferralSnapshot(
+      status = ExternalReferralStatus.REJECTED,
+      outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -56,7 +56,7 @@ class OtherAccommodationReferralMapperTest {
     val createdByUsername = "joe.bloggs"
     val createdAt = Instant.now()
 
-    val dto = OtherAccommodationReferralMapper.toDto(
+    val dto = ExternalReferralMapper.toDto(
       snapshot = snapshot,
       createdBy = createdBy,
       createdByUsername = createdByUsername,
@@ -65,7 +65,7 @@ class OtherAccommodationReferralMapperTest {
 
     assertThat(dto.caseId).isEqualTo(snapshot.caseId)
     assertThat(dto.crn).isEqualTo(snapshot.crn)
-    assertThat(dto.status).isEqualTo(OtherAccommodationReferralStatus.REJECTED)
+    assertThat(dto.status).isEqualTo(ExternalReferralStatus.REJECTED)
     assertThat(dto.submission.id).isEqualTo(snapshot.id)
     assertThat(dto.submission.referenceNumber).isEqualTo(snapshot.referenceNumber)
     assertThat(dto.submission.submissionDate).isEqualTo(snapshot.submissionDate)
@@ -97,19 +97,19 @@ class OtherAccommodationReferralMapperTest {
     entity.apply {
       notes.add(preExistingNoteEntity)
     }
-    val newNote1 = buildOtherAccommodationReferralNote(id = UUID.randomUUID(), note = "2222")
-    val newNote2 = buildOtherAccommodationReferralNote(id = UUID.randomUUID(), note = "3333")
-    val preExistingNote = buildOtherAccommodationReferralNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
-    val snapshot = buildOtherAccommodationReferralSnapshot(
-      status = OtherAccommodationReferralStatus.ACCEPTED,
-      outcomeReason = OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+    val newNote1 = buildExternalReferralNote(id = UUID.randomUUID(), note = "2222")
+    val newNote2 = buildExternalReferralNote(id = UUID.randomUUID(), note = "3333")
+    val preExistingNote = buildExternalReferralNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
+    val snapshot = buildExternalReferralSnapshot(
+      status = ExternalReferralStatus.ACCEPTED,
+      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
       notes = listOf(newNote1, newNote2, preExistingNote),
     )
 
-    val merged = OtherAccommodationReferralMapper.merge(snapshot, entity)
+    val merged = ExternalReferralMapper.merge(snapshot, entity)
 
     assertThat(merged.id).isEqualTo(entityId)
     assertThat(merged.caseId).isEqualTo(caseId)
@@ -151,15 +151,15 @@ class OtherAccommodationReferralMapperTest {
       notes.add(noteEntity2)
     }
 
-    val aggregate = OtherAccommodationReferralMapper.toAggregate(entity)
+    val aggregate = ExternalReferralMapper.toAggregate(entity)
     val snapshot = aggregate.snapshot()
 
     assertThat(snapshot.id).isEqualTo(entity.id)
     assertThat(snapshot.caseId).isEqualTo(entity.caseId)
     assertThat(snapshot.crn).isEqualTo(entity.crn)
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
-    assertThat(snapshot.status).isEqualTo(OtherAccommodationReferralStatus.REJECTED)
-    assertThat(snapshot.outcomeReason).isEqualTo(OtherAccommodationReferralOutcomeReason.PERSON_NOT_SUITABLE)
+    assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.REJECTED)
+    assertThat(snapshot.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE)
     assertThat(snapshot.outcomeNote).isEqualTo(entity.outcomeNote)
     assertThat(snapshot.email).isEqualTo(entity.email)
     assertThat(snapshot.phoneNumber).isEqualTo(entity.phoneNumber)

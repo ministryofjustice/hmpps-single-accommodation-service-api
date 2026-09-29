@@ -2,31 +2,31 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appl
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralCommand
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralCommand
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OtherAccommodationReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.OtherAccommodationReferralMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.OtherAccommodationReferralMapper.merge
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.OtherAccommodationReferralAggregate
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ExternalReferralMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ExternalReferralMapper.merge
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
 import java.util.UUID
 
 @Service
-class OtherAccommodationReferralApplicationService(
+class ExternalReferralApplicationService(
   private val otherAccommodationReferralRepository: OtherAccommodationReferralRepository,
   private val caseRepository: CaseRepository,
   private val userService: UserService,
 ) {
   @Transactional
-  fun createOtherAccommodationReferral(crn: String, command: OtherAccommodationReferralCommand): OtherAccommodationReferralDto {
+  fun createExternalReferral(crn: String, command: ExternalReferralCommand): ExternalReferralDto {
     val user = userService.authorizeAndRetrieveUser()
     val case = caseRepository.findByCrn(crn).orThrowNotFound("crn" to crn)
 
-    val aggregate = OtherAccommodationReferralAggregate.hydrateNew(caseId = case.id, crn = crn)
-    aggregate.updateOtherAccommodationReferral(
+    val aggregate = ExternalReferralAggregate.hydrateNew(caseId = case.id, crn = crn)
+    aggregate.updateExternalReferral(
       submissionDate = command.submissionDate,
       referenceNumber = command.referenceNumber,
       status = command.status,
@@ -38,10 +38,10 @@ class OtherAccommodationReferralApplicationService(
     )
 
     val persistedRecord = otherAccommodationReferralRepository.save(
-      OtherAccommodationReferralMapper.toEntity(aggregate.snapshot()),
+      ExternalReferralMapper.toEntity(aggregate.snapshot()),
     )
 
-    return OtherAccommodationReferralMapper.toDto(
+    return ExternalReferralMapper.toDto(
       snapshot = aggregate.snapshot(),
       createdBy = user.displayName(),
       createdByUsername = user.username,
@@ -50,14 +50,14 @@ class OtherAccommodationReferralApplicationService(
   }
 
   @Transactional
-  fun updateOtherAccommodationReferral(crn: String, id: UUID, command: OtherAccommodationReferralCommand): OtherAccommodationReferralDto {
+  fun updateExternalReferral(crn: String, id: UUID, command: ExternalReferralCommand): ExternalReferralDto {
     val referral = otherAccommodationReferralRepository.findByIdAndCrn(id, crn)
       .orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userService.findUserByUserId(referral.createdByUserId!!)
       .orThrowNotFound("id" to referral.createdByUserId!!)
 
-    val aggregate = OtherAccommodationReferralMapper.toAggregate(referral).also {
-      it.updateOtherAccommodationReferral(
+    val aggregate = ExternalReferralMapper.toAggregate(referral).also {
+      it.updateExternalReferral(
         submissionDate = command.submissionDate,
         referenceNumber = command.referenceNumber,
         status = command.status,
@@ -72,7 +72,7 @@ class OtherAccommodationReferralApplicationService(
     }
     val updatedRecord = otherAccommodationReferralRepository.save(merge(aggregate.snapshot(), referral))
 
-    return OtherAccommodationReferralMapper.toDto(
+    return ExternalReferralMapper.toDto(
       snapshot = aggregate.snapshot(),
       createdBy = createdByUser.displayName(),
       createdByUsername = createdByUser.username,
@@ -81,9 +81,9 @@ class OtherAccommodationReferralApplicationService(
   }
 
   @Transactional
-  fun createOtherAccommodationReferralNote(crn: String, id: UUID, noteCommand: NoteCommand) {
+  fun createExternalReferralNote(crn: String, id: UUID, noteCommand: NoteCommand) {
     val entity = otherAccommodationReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val aggregate = OtherAccommodationReferralMapper.toAggregate(entity)
+    val aggregate = ExternalReferralMapper.toAggregate(entity)
     aggregate.addNote(note = noteCommand.note)
     val merged = merge(aggregate.snapshot(), entity)
     otherAccommodationReferralRepository.save(merged)

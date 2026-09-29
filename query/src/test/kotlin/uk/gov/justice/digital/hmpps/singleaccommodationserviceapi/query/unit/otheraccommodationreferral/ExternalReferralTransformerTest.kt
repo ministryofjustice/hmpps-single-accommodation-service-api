@@ -5,21 +5,21 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.OtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.OtherAccommodationReferralTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.ExternalReferralTransformer
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
 
-class OtherAccommodationReferralTransformerTest {
+class ExternalReferralTransformerTest {
 
   @Nested
-  inner class ToOtherAccommodationReferralDto {
+  inner class ToExternalReferralDto {
     private val createdByName = "Joe Bloggs"
     private val createdByUsername = "JBLOGGS"
 
@@ -32,7 +32,7 @@ class OtherAccommodationReferralTransformerTest {
         status = EntityOtherAccommodationReferralStatus.SUBMITTED,
       )
 
-      val dto = OtherAccommodationReferralTransformer.toOtherAccommodationReferralDto(
+      val dto = ExternalReferralTransformer.toExternalReferralDto(
         entity,
         crn,
         createdByName,
@@ -41,7 +41,7 @@ class OtherAccommodationReferralTransformerTest {
 
       assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.crn).isEqualTo(crn)
-      assertThat(dto.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+      assertThat(dto.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
       assertThat(dto.submission).isNotNull()
       assertThat(dto.submission.createdBy).isEqualTo(createdByName)
       assertThat(dto.submission.createdByUsername).isEqualTo(createdByUsername)
@@ -57,7 +57,7 @@ class OtherAccommodationReferralTransformerTest {
         status = EntityOtherAccommodationReferralStatus.SUBMITTED,
       )
 
-      val dto = OtherAccommodationReferralTransformer.toOtherAccommodationReferralDto(
+      val dto = ExternalReferralTransformer.toExternalReferralDto(
         entity,
         crn,
         user,
@@ -65,7 +65,7 @@ class OtherAccommodationReferralTransformerTest {
 
       assertThat(dto.caseId).isEqualTo(caseId)
       assertThat(dto.crn).isEqualTo(crn)
-      assertThat(dto.status).isEqualTo(OtherAccommodationReferralStatus.SUBMITTED)
+      assertThat(dto.status).isEqualTo(ExternalReferralStatus.SUBMITTED)
       assertThat(dto.submission).isNotNull()
       assertThat(dto.submission.createdBy).isEqualTo(user.displayName())
       assertThat(dto.submission.createdByUsername).isEqualTo("JBLOGGS")
@@ -93,7 +93,7 @@ class OtherAccommodationReferralTransformerTest {
         createdAt = createdAt,
       )
 
-      val result = OtherAccommodationReferralTransformer.toSubmission(
+      val result = ExternalReferralTransformer.toSubmission(
         entity,
         createdByName,
         createdByUsername,
@@ -119,13 +119,13 @@ class OtherAccommodationReferralTransformerTest {
         outcomeNote = "An outcome note",
       )
 
-      val result = OtherAccommodationReferralTransformer.toSubmission(
+      val result = ExternalReferralTransformer.toSubmission(
         entity,
         createdByName,
         createdByUsername,
       )
 
-      assertThat(result.outcomeReason).isEqualTo(OtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+      assertThat(result.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
       assertThat(result.outcomeNote).isEqualTo("An outcome note")
     }
 
@@ -140,7 +140,7 @@ class OtherAccommodationReferralTransformerTest {
         phoneNumber = null,
       )
 
-      val result = OtherAccommodationReferralTransformer.toSubmission(
+      val result = ExternalReferralTransformer.toSubmission(
         entity,
         createdByName,
         createdByUsername,
@@ -163,21 +163,21 @@ class OtherAccommodationReferralTransformerTest {
 
     @ParameterizedTest
     @EnumSource(EntityOtherAccommodationReferralStatus::class)
-    fun `should map all OtherAccommodationReferralStatus values correctly`(entityStatus: EntityOtherAccommodationReferralStatus) {
-      val result = OtherAccommodationReferralTransformer.toStatus(entityStatus)
+    fun `should map all ExternalReferralStatus values correctly`(entityStatus: EntityOtherAccommodationReferralStatus) {
+      val result = ExternalReferralTransformer.toStatus(entityStatus)
       assertThat(result.name).isEqualTo(entityStatus.name)
     }
 
     @ParameterizedTest
     @EnumSource(EntityOtherAccommodationReferralOutcomeReason::class)
-    fun `should map all OtherAccommodationReferralOutcomeReason values correctly`(entityOutcomeReason: EntityOtherAccommodationReferralOutcomeReason) {
-      val result = OtherAccommodationReferralTransformer.toOutcomeReason(entityOutcomeReason)
+    fun `should map all ExternalReferralOutcomeReason values correctly`(entityOutcomeReason: EntityOtherAccommodationReferralOutcomeReason) {
+      val result = ExternalReferralTransformer.toOutcomeReason(entityOutcomeReason)
       assertThat(result?.name).isEqualTo(entityOutcomeReason.name)
     }
 
     @Test
     fun `should map null outcomeReason to null`() {
-      assertThat(OtherAccommodationReferralTransformer.toOutcomeReason(null)).isNull()
+      assertThat(ExternalReferralTransformer.toOutcomeReason(null)).isNull()
     }
   }
 }
