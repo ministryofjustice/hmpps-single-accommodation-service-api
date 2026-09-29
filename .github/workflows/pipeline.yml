@@ -68,6 +68,15 @@ jobs:
     with:
       app_version: '${{ needs.build_pr.outputs.app_version }}'
     secrets: inherit
+  trigger_pact_provider_verification:
+    permissions:
+      contents: read
+    name: Trigger Pact Provider Verification
+    needs: pact_test_pr
+    uses: ./.github/workflows/trigger_pact_provider_verification.yml
+    with:
+      app_version: '${{ needs.build_pr.outputs.app_version }}'
+    secrets: inherit
   unit_test:
     permissions:
       contents: read
