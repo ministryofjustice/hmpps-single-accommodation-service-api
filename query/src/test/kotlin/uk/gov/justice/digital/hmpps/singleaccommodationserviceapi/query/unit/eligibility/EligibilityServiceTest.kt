@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -615,7 +616,7 @@ class EligibilityServiceTest {
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             isApplicationPresent = row["isApplicationPresent"]!!,
             submittedAt = row["submittedAt"]?.toLocalDate(),
-            cas2ApplicationStatus = row["cas2ApplicationStatus"],
+            cas2ApplicationStatus = row["cas2ApplicationStatus"]?.let { Cas2AssessmentStatus.forValue(it) },
             expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
             expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
             expectedCas2Link = row["expectedCas2Link"],
@@ -1309,7 +1310,7 @@ data class Cas2Scenario(
   val currentAccommodationEndDate: LocalDate?,
   val isApplicationPresent: String,
   val submittedAt: LocalDate?,
-  val cas2ApplicationStatus: String?,
+  val cas2ApplicationStatus: Cas2AssessmentStatus?,
   val expectedCas2Status: ServiceStatusNew?,
   val expectedCas2Action: CaseActionType?,
   val expectedCas2Link: String?,

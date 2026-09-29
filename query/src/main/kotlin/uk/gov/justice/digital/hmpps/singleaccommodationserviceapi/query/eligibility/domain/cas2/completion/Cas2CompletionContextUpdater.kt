@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
@@ -62,11 +63,11 @@ class Cas2CompletionContextUpdater(
 
   override fun toServiceResult(context: EvaluationContext) = when (context.data.cas2Application?.submittedApplication?.latestAssessmentStatus) {
     null -> outcome(submitted)
-    "moreInfoRequested" -> outcome(moreInfoRequested)
-    "awaitingDecision" -> outcome(awaitingDecision)
-    "onWaitingList" -> outcome(onWaitingList)
-    "placeOffered" -> outcome(placeOffered)
-    "offerAccepted" -> outcome(offerAccepted)
+    Cas2AssessmentStatus.MORE_INFO_REQUESTED -> outcome(moreInfoRequested)
+    Cas2AssessmentStatus.AWAITING_DECISION -> outcome(awaitingDecision)
+    Cas2AssessmentStatus.ON_WAITING_LIST -> outcome(onWaitingList)
+    Cas2AssessmentStatus.PLACE_OFFERED -> outcome(placeOffered)
+    Cas2AssessmentStatus.OFFER_ACCEPTED -> outcome(offerAccepted)
     else -> outcome(unknown).also {
       val latestAssessmentStatus = context.data.cas2Application.submittedApplication?.latestAssessmentStatus
       sentryService.captureErrorMessage(
