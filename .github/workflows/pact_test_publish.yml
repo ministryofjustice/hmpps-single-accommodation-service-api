@@ -2,7 +2,17 @@ name: Pact consumer test and publish
 
 on:
   workflow_dispatch:
+    inputs:
+      app_version:
+        description: App version used for the Docker image tag / Helm deploy.
+        required: true
+        type: string
   workflow_call:
+    inputs:
+        app_version:
+            description: App version used for the Docker image tag / Helm deploy.
+            required: true
+            type: string
     secrets:
       GRADLE_CACHE_ENCRYPTION_KEY:
         required: false
@@ -46,8 +56,8 @@ jobs:
       - name: Publish pacts
         run: ./gradlew pactPublish
         env:
-          GITHUB_SHA: ${{ github.sha }}
           GITHUB_BRANCH: ${{ github.ref_name }}
+          APP_VERSION: ${{ inputs.app_version }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
           HMPPS_PACT_BROKER_PASSWORD: ${{ secrets.HMPPS_PACT_BROKER_PASSWORD }}

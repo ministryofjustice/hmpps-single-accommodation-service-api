@@ -62,6 +62,8 @@ jobs:
     name: Pact Consumer Tests and Publish Contracts
     needs: kotlin_validate
     uses: ./.github/workflows/pact_test_publish.yml
+    with:
+      app_version: '${{ needs.build.outputs.app_version }}'
     secrets: inherit
   integration_test:
     permissions:
