@@ -56,7 +56,7 @@ jobs:
       - name: Publish pacts
         run: ./gradlew pactPublish
         env:
-          GITHUB_BRANCH: ${{ github.ref_name }}
+          GITHUB_BRANCH: ${{ github.head_ref || github.ref_name }}
           APP_VERSION: ${{ inputs.app_version }}
           PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
           HMPPS_PACT_BROKER_USERNAME: ${{ secrets.HMPPS_PACT_BROKER_USERNAME }}
