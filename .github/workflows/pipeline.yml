@@ -51,7 +51,7 @@ jobs:
       contents: read
       packages: write
     name: Build docker image from hmpps-github-actions
-    if: github.event_name == 'pull_request'
+    if: github.ref != 'refs/heads/main'
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     with:
       docker_registry: 'ghcr.io'
@@ -72,7 +72,9 @@ jobs:
     permissions:
       contents: read
     name: Trigger Pact Provider Verification
-    needs: pact_test_pr
+    needs:
+      - build_pr
+      - pact_test_pr
     uses: ./.github/workflows/trigger_pact_provider_verification.yml
     with:
       app_version: '${{ needs.build_pr.outputs.app_version }}'
