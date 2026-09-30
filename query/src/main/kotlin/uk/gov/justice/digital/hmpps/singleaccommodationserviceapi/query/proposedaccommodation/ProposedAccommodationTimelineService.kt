@@ -103,7 +103,7 @@ class ProposedAccommodationTimelineService(
         type = AuditRecordType.NOTE,
         author = createdByUser!!.displayName(),
         authorDetails = createdByUser.toAssignedToDto(),
-        commitDate = it.createdAt!!,
+        commitDate = it.createdAt,
         changes = listOf(
           FieldChange(
             field = "note",

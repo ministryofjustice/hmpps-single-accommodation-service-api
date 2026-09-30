@@ -24,9 +24,9 @@ fun buildExternalReferralEntity(
   phoneNumber: String? = null,
   outcomeReason: ExternalReferralOutcomeReason? = null,
   outcomeNote: String? = null,
-  createdByUserId: UUID? = null,
+  createdByUserId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
-  lastUpdatedByUserId: UUID? = null,
+  lastUpdatedByUserId: UUID = UUID.randomUUID(),
   lastUpdatedAt: Instant = Instant.now(),
 ) = ExternalReferralEntity(
   id = id,
@@ -53,8 +53,10 @@ fun buildExternalReferralEntity(
 fun buildExternalReferralNoteEntity(
   id: UUID = UUID.randomUUID(),
   note: String = "Test note",
-  createdByUserId: UUID? = UUID.randomUUID(),
+  createdByUserId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
+  lastUpdatedByUserId: UUID = UUID.randomUUID(),
+  lastUpdatedAt: Instant = Instant.now(),
   externalReferralEntity: ExternalReferralEntity,
 ) = ExternalReferralNoteEntity(
   id,
@@ -63,4 +65,6 @@ fun buildExternalReferralNoteEntity(
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt
+  this.lastUpdatedByUserId = lastUpdatedByUserId
+  this.lastUpdatedAt = lastUpdatedAt
 }
