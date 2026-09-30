@@ -6,10 +6,12 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.getAdditionalInformation
@@ -22,7 +24,7 @@ class OffenderManagementAllocationChangedProperties(
 
 @Component
 class OffenderManagementAllocationChangedHandler(
-  private val caseCreationService: CaseCreationService,
+  private val caseApplicationService: CaseApplicationService,
   private val inboxEventHelper: InboxEventHelper,
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
@@ -42,7 +44,7 @@ class OffenderManagementAllocationChangedHandler(
    *  a) update - if the prisonNumber from the event is in the database, we will refresh the case.
    * -OR-
    *  b) create - if the prisonNumber is unknown but allocated user exists in the sas_users table, or if the team has
-   *  been onboarded. we create a populated entry into the SAS_CASE table.
+   *  been onboarded. we create a blank row in the SAS_CASE table and request a live refresh to populate it
    * -OR-
    *  c) ignore - if neither are known, we ignore the event.
    */
@@ -67,7 +69,10 @@ class OffenderManagementAllocationChangedHandler(
       require(identifiers?.crns?.size == 1) { "This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber]." }
 
       val crn = identifiers.crns.single()
-      caseCreationService.upsertCase(crn, prisonNumber)
+      caseApplicationService.createBlankCases(
+        listOf(CrnToPrisonNumber(crn, prisonNumber)),
+        refreshPriority = CaseRefreshPriority.LIVE,
+      )
       return InboxEventHandler.Result.PROCESSED
     } else {
       return InboxEventHandler.Result.IGNORED

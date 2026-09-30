@@ -20,11 +20,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.UserRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.OffenderManagementAllocationChangedHandler
@@ -36,7 +38,7 @@ import java.util.UUID
 class OffenderManagementAllocationChangedHandlerTest {
 
   @RelaxedMockK
-  private lateinit var caseCreationService: CaseCreationService
+  private lateinit var caseApplicationService: CaseApplicationService
 
   @RelaxedMockK
   private lateinit var inboxEventHelper: InboxEventHelper
@@ -100,7 +102,7 @@ class OffenderManagementAllocationChangedHandlerTest {
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseId) }
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
@@ -111,7 +113,7 @@ class OffenderManagementAllocationChangedHandlerTest {
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { corePersonRecordClient.getByPrisonNumber(any()) }
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
@@ -124,7 +126,7 @@ class OffenderManagementAllocationChangedHandlerTest {
     )
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 1) { caseCreationService.upsertCase(crn, prisonNumber) }
+    verify(exactly = 1) { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber(crn, prisonNumber)), CaseRefreshPriority.LIVE) }
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
 
@@ -141,7 +143,7 @@ class OffenderManagementAllocationChangedHandlerTest {
 
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 0) { userRepository.findByNomisStaffId(any()) }
-    verify(exactly = 1) { caseCreationService.upsertCase(crn, prisonNumber) }
+    verify(exactly = 1) { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber(crn, prisonNumber)), CaseRefreshPriority.LIVE) }
   }
 
   @Test
@@ -155,7 +157,7 @@ class OffenderManagementAllocationChangedHandlerTest {
     assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { userRepository.findByNomisStaffId(any()) }
     verify(exactly = 0) { corePersonRecordClient.getByPrisonNumber(any()) }
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
@@ -169,7 +171,7 @@ class OffenderManagementAllocationChangedHandlerTest {
       .isInstanceOf(IllegalArgumentException::class.java)
       .hasMessage("This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber].")
 
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
@@ -185,7 +187,7 @@ class OffenderManagementAllocationChangedHandlerTest {
       .isInstanceOf(IllegalArgumentException::class.java)
       .hasMessage("This requires a single CRN in cpr identifiers for prisonNumber: [$prisonNumber].")
 
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   private fun offenderAllocationChangedEvent(

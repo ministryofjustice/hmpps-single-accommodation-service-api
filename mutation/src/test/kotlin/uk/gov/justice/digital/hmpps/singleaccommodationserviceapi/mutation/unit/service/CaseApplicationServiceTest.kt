@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummaryName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
@@ -81,7 +82,7 @@ class CaseApplicationServiceTest {
         DataIntegrityViolationException("duplicate-2") andThenJust runs
       every { caseRepository.findByCrns(any()) } returns emptyList()
 
-      caseApplicationService.createCases(crnToPrisonNumbers, createAsBlankRecord = createAsBlankRecord)
+      createCases(crnToPrisonNumbers, createAsBlankRecord)
 
       // First and second call throws error, so retry, then 100 crns / 25 batch size = 4 calls == 6 calls in total
       if (createAsBlankRecord) {
@@ -111,7 +112,7 @@ class CaseApplicationServiceTest {
         DataIntegrityViolationException("duplicate-3")
 
       assertThrows<DataIntegrityViolationException> {
-        caseApplicationService.createCases(crnToPrisonNumbers, createAsBlankRecord = createAsBlankRecord)
+        createCases(crnToPrisonNumbers, createAsBlankRecord)
       }
 
       if (createAsBlankRecord) {
@@ -119,6 +120,12 @@ class CaseApplicationServiceTest {
       } else {
         verify(exactly = 3) { caseCreationService.saveUnpersistedCases(any()) }
       }
+    }
+
+    private fun createCases(crnToPrisonNumbers: List<CrnToPrisonNumber>, createAsBlankRecord: Boolean) = if (createAsBlankRecord) {
+      caseApplicationService.createBlankCases(crnToPrisonNumbers, CaseRefreshPriority.BULK)
+    } else {
+      caseApplicationService.createCases(crnToPrisonNumbers)
     }
   }
 
@@ -148,8 +155,8 @@ class CaseApplicationServiceTest {
     }
 
     @Test
-    fun `does not query for unpersisted crns or call delius when createCases is used`() {
-      caseApplicationService.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
+    fun `does not query for unpersisted crns or call delius when createBlankCases is used`() {
+      caseApplicationService.createBlankCases(crns.map { CrnToPrisonNumber(it, null) }, CaseRefreshPriority.BULK)
 
       verify(exactly = 0) { caseRepository.findUnpersistedCrns(any()) }
       verify(exactly = 0) { approvedPremisesAndDeliusCachingService.postCaseSummaries(any()) }
@@ -364,15 +371,23 @@ class CaseApplicationServiceTest {
     }
 
     @Test
-    fun `createCases() as blank records requests a bulk refresh for every given case`() {
-      caseApplicationService.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
+    fun `createBlankCases() with bulk priority requests a bulk refresh for every given case`() {
+      caseApplicationService.createBlankCases(crns.map { CrnToPrisonNumber(it, null) }, CaseRefreshPriority.BULK)
 
       verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
     }
 
     @Test
-    fun `createCases() not as blank records does not request a refresh`() {
-      caseApplicationService.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = false)
+    fun `createBlankCases() with live priority requests a live refresh for every given case`() {
+      caseApplicationService.createBlankCases(crns.map { CrnToPrisonNumber(it, null) }, CaseRefreshPriority.LIVE)
+
+      caseIds.forEach { verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(it) } }
+      verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
+    }
+
+    @Test
+    fun `createCases() does not request a refresh`() {
+      caseApplicationService.createCases(crns.map { CrnToPrisonNumber(it, null) })
 
       verify(exactly = 0) { caseRepository.findByCrns(any()) }
       verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }

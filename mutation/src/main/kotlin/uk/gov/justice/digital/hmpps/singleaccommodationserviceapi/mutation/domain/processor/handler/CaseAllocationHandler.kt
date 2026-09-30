@@ -5,14 +5,16 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 
 @Component
 class CaseAllocationHandler(
-  private val caseCreationService: CaseCreationService,
+  private val caseApplicationService: CaseApplicationService,
   private val inboxEventHelper: InboxEventHelper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
   private val onboardedTeamRepository: OnboardedTeamRepository,
@@ -34,7 +36,10 @@ class CaseAllocationHandler(
     val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
     val shouldProcess = onboardedTeamRepository.existsById(case.manager.team.code.uppercase())
     if (shouldProcess) {
-      caseCreationService.upsertCase(case.crn, case.nomsId)
+      caseApplicationService.createBlankCases(
+        listOf(CrnToPrisonNumber(case.crn, case.nomsId)),
+        refreshPriority = CaseRefreshPriority.LIVE,
+      )
     }
     log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
 

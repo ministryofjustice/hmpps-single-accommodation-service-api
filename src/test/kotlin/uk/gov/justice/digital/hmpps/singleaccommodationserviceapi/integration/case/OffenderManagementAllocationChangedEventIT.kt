@@ -68,7 +68,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
   }
 
   @Test
-  fun `case should be upserted and successfully processed when case is not known but user is`() {
+  fun `blank case should be created and refreshed when case is not known but user is`() {
     userRepository.save(
       buildUserEntity(
         username = "KNOWN_NOMIS_USER",
@@ -95,7 +95,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
   }
 
   @Test
-  fun `case should be upserted when prison is onboarded and staff code is missing`() {
+  fun `blank case should be created and refreshed when prison is onboarded and staff code is missing`() {
     val responses = WiremockStubber().setupCaseOrchestrationStubs(crn = crn, prisonNumber = prisonNumber)
     publishOffenderManagementAllocationChangedEvent(
       prisonNumber = prisonNumber,
