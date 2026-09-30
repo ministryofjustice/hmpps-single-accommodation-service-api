@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.otheraccommodationreferral
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.externalreferral
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
@@ -7,14 +7,14 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.otheraccommodationreferral.ExternalReferralTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.externalreferral.ExternalReferralTransformer
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
 
 class ExternalReferralTransformerTest {
 
@@ -27,9 +27,9 @@ class ExternalReferralTransformerTest {
     fun `should map all fields correctly`() {
       val caseId = UUID.randomUUID()
       val crn = UUID.randomUUID().toString()
-      val entity = buildOtherAccommodationReferralEntity(
+      val entity = buildExternalReferralEntity(
         caseId = caseId,
-        status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+        status = EntityExternalReferralStatus.SUBMITTED,
       )
 
       val dto = ExternalReferralTransformer.toExternalReferralDto(
@@ -52,9 +52,9 @@ class ExternalReferralTransformerTest {
       val caseId = UUID.randomUUID()
       val crn = UUID.randomUUID().toString()
       val user = buildUserEntity(forename = "Joe", surname = "Bloggs", username = "JBLOGGS")
-      val entity = buildOtherAccommodationReferralEntity(
+      val entity = buildExternalReferralEntity(
         caseId = caseId,
-        status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+        status = EntityExternalReferralStatus.SUBMITTED,
       )
 
       val dto = ExternalReferralTransformer.toExternalReferralDto(
@@ -81,7 +81,7 @@ class ExternalReferralTransformerTest {
     fun `should map all fields correctly`() {
       val id = UUID.randomUUID()
       val createdAt = Instant.parse("2026-02-20T10:00:00Z")
-      val entity = buildOtherAccommodationReferralEntity(
+      val entity = buildExternalReferralEntity(
         id = id,
         referenceNumber = "REF-001",
         submissionDate = LocalDate.of(2026, 2, 20),
@@ -114,8 +114,8 @@ class ExternalReferralTransformerTest {
 
     @Test
     fun `should map outcomeReason and outcomeNote when populated`() {
-      val entity = buildOtherAccommodationReferralEntity(
-        outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+      val entity = buildExternalReferralEntity(
+        outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
         outcomeNote = "An outcome note",
       )
 
@@ -131,7 +131,7 @@ class ExternalReferralTransformerTest {
 
     @Test
     fun `should handle nullable fields correctly`() {
-      val entity = buildOtherAccommodationReferralEntity(
+      val entity = buildExternalReferralEntity(
         referenceNumber = null,
         organisationName = null,
         website = null,
@@ -162,15 +162,15 @@ class ExternalReferralTransformerTest {
   inner class EnumMappings {
 
     @ParameterizedTest
-    @EnumSource(EntityOtherAccommodationReferralStatus::class)
-    fun `should map all ExternalReferralStatus values correctly`(entityStatus: EntityOtherAccommodationReferralStatus) {
+    @EnumSource(EntityExternalReferralStatus::class)
+    fun `should map all ExternalReferralStatus values correctly`(entityStatus: EntityExternalReferralStatus) {
       val result = ExternalReferralTransformer.toStatus(entityStatus)
       assertThat(result.name).isEqualTo(entityStatus.name)
     }
 
     @ParameterizedTest
-    @EnumSource(EntityOtherAccommodationReferralOutcomeReason::class)
-    fun `should map all ExternalReferralOutcomeReason values correctly`(entityOutcomeReason: EntityOtherAccommodationReferralOutcomeReason) {
+    @EnumSource(EntityExternalReferralOutcomeReason::class)
+    fun `should map all ExternalReferralOutcomeReason values correctly`(entityOutcomeReason: EntityExternalReferralOutcomeReason) {
       val result = ExternalReferralTransformer.toOutcomeReason(entityOutcomeReason)
       assertThat(result?.name).isEqualTo(entityOutcomeReason.name)
     }
