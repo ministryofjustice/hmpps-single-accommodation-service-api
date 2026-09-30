@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
@@ -26,7 +25,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.TeamCaseOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
-import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
 class AdminBulkLoadCasesServiceTest {
@@ -53,10 +51,8 @@ class AdminBulkLoadCasesServiceTest {
 
   @Test
   fun `creates the cases it does not hold and requests refreshes`() {
-    val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
     stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = "PN1"), CaseIdentifiers(crn = "CRN2", prisonerNumber = null))
     every { caseRepository.findUnpersistedCrns(any()) } returns listOf("CRN2")
-    every { caseRepository.findByCrns(listOf("CRN1", "CRN2")) } returns caseIds.map { buildCaseEntity(id = it) }
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
@@ -71,7 +67,6 @@ class AdminBulkLoadCasesServiceTest {
         eq(true),
       )
     }
-    verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
     verify(exactly = 1) { onboardedTeamRepository.createOnboardedTeam(teamCode) }
     assertThat(result.teamsProcessed).isEqualTo(1)
     assertThat(result.crnsFound).isEqualTo(2)
@@ -87,7 +82,6 @@ class AdminBulkLoadCasesServiceTest {
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
     verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
-    verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     assertThat(result.teamsProcessed).isEqualTo(1)
     assertThat(result.crnsFound).isZero()
   }
@@ -100,8 +94,6 @@ class AdminBulkLoadCasesServiceTest {
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = true).data
 
     verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
-    verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
-    verify(exactly = 0) { caseRepository.findByCrns(any()) }
     verify(exactly = 0) { onboardedTeamRepository.createOnboardedTeam(any()) }
     assertThat(result.dryRun).isTrue()
     assertThat(result.crnsFound).isEqualTo(2)
@@ -125,7 +117,6 @@ class AdminBulkLoadCasesServiceTest {
     val response = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false)
 
     verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
-    verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     verify(exactly = 1) { onboardedTeamRepository.createOnboardedTeam(teamCode) }
     assertThat(response.data.teamsProcessed).isZero()
     assertThat(response.data.errors).isEmpty()
@@ -139,8 +130,8 @@ class AdminBulkLoadCasesServiceTest {
     stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), teamCode = "BROKENTEAM")
     stubTeamCases(CaseIdentifiers(crn = "CRN2", prisonerNumber = null), teamCode = "OKTEAM")
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
-    every { caseRepository.findByCrns(listOf("CRN1")) } throws RuntimeException("error inserting case for this team")
-    every { caseRepository.findByCrns(listOf("CRN2")) } returns listOf(buildCaseEntity())
+    every { caseApplicationService.createCases(listOf(CrnToPrisonNumber("CRN1", null)), any()) } throws
+      RuntimeException("error inserting case for this team")
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf("BROKENTEAM", "OKTEAM"), dryRun = false).data
 
@@ -154,9 +145,6 @@ class AdminBulkLoadCasesServiceTest {
     stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), teamCode = "TEAM1")
     stubTeamCases(CaseIdentifiers(crn = "CRN2", prisonerNumber = null), CaseIdentifiers(crn = "CRN3", prisonerNumber = null), teamCode = "TEAM2")
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
-    every { caseRepository.findByCrns(any()) } answers {
-      firstArg<List<String>>().map { buildCaseEntity() }
-    }
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf("TEAM1", "TEAM2"), dryRun = false).data
 
