@@ -46,38 +46,36 @@ jobs:
 #      this runs detekt, ktlintCheck etc without any tests
       gradle-command: './gradlew check -x test'
     secrets: inherit
-  build_pr:
+  app_version:
     permissions:
       contents: read
-      packages: write
-    name: Build docker image from hmpps-github-actions
-    if: github.ref != 'refs/heads/main'
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
-    with:
-      docker_registry: 'ghcr.io'
-      registry_org: 'ministryofjustice'
-      additional_docker_tag: ${{ inputs.additional_docker_tag }}
-      push: false
-      docker_multiplatform: false
-  pact_test_pr:
+    name: Create app version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.app_version.outputs.version }}
+    steps:
+      - id: app_version
+        name: Create app version
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@85dea2c43d9d69b5143817f8b84b71cf30d15df5 # WORKFLOW_VERSION
+  pact_test:
     permissions:
       contents: read
     name: Pact Consumer Tests and Publish Contracts
-    needs: build_pr
+    needs: app_version
     uses: ./.github/workflows/pact_test_publish.yml
     with:
-      app_version: '${{ needs.build_pr.outputs.app_version }}'
+      app_version: '${{ needs.app_version.outputs.version }}'
     secrets: inherit
   trigger_pact_provider_verification:
     permissions:
       contents: read
     name: Trigger Pact Provider Verification
     needs:
-      - build_pr
-      - pact_test_pr
+      - app_version
+      - pact_test
     uses: ./.github/workflows/trigger_pact_provider_verification.yml
     with:
-      app_version: '${{ needs.build_pr.outputs.app_version }}'
+      app_version: '${{ needs.app_version.outputs.version }}'
     secrets: inherit
   unit_test:
     permissions:
@@ -111,22 +109,18 @@ jobs:
       packages: write
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
+    needs:
+      - app_version
+      - pact_test
+      - trigger_pact_provider_verification
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     with:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
+      image_version: '${{ needs.app_version.outputs.version }}'
       push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
       docker_multiplatform: false
-  pact_test:
-    permissions:
-      contents: read
-    name: Pact Consumer Tests and Publish Contracts
-    needs: build
-    uses: ./.github/workflows/pact_test_publish.yml
-    with:
-      app_version: '${{ needs.build.outputs.app_version }}'
-    secrets: inherit
   deploy_dev:
     permissions:
       contents: read
