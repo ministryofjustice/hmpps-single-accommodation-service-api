@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.LocalDate
+import kotlin.comparisons.nullsFirst
 
 @Service
 class CaseQueryService(
@@ -76,7 +78,9 @@ class CaseQueryService(
         }
       }
     }
-      .sortedWith(compareBy(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus })
+      .sortedWith(
+        sortByStatus4(),
+      )
     return when (peopleType) {
       PeopleType.NFA_RISK ->
         caseDtos.filter { it.accommodationSummaries?.caseAccommodationStatus != CaseAccommodationStatus.SETTLED }
@@ -86,6 +90,28 @@ class CaseQueryService(
     }
   }
 
+  private fun sortByStatus4(): Comparator<CaseDto> = compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) {
+    it.accommodationSummaries?.caseAccommodationStatus
+  }
+    .thenBy {
+      when (it.accommodationSummaries?.caseAccommodationStatus) {
+        CaseAccommodationStatus.TRANSIENT,
+        CaseAccommodationStatus.SETTLED,
+        -> {
+          it.accommodationSummaries?.caseAccommodationStatusDate?.let { date ->
+            if (!date.isBefore(LocalDate.now())) {
+              1
+            } else {
+              2
+            }
+          } ?: 0
+        }
+        else -> it.accommodationSummaries?.caseAccommodationStatusDate
+      }
+    }
+    .thenBy { it.crn }
+    .thenBy { it.forename }
+    .thenBy { it.surname }
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {

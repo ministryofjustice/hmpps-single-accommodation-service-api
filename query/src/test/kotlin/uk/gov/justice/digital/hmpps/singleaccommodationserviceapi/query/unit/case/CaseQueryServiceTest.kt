@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class CaseQueryServiceTest {
@@ -65,6 +67,9 @@ class CaseQueryServiceTest {
   private val crnTwo = "X12346"
   private val crnThree = "X12347"
   private val crnFour = "X12348"
+  private val crnFive = "X12349"
+  private val crnSix = "X12350"
+  private val crnSeven = "X12351"
   private val username = "user1"
 
   val assignedTo = AssignedToDto(
@@ -428,26 +433,24 @@ class CaseQueryServiceTest {
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
       val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
       val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
-
+      val caseDto1 = personDto1.toCaseDto(
+        caseEntity = caseEntity1,
+        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
+        nextAccommodation = null,
+      )
+      val caseDto2 = personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null)
+      val caseDto3 = personDto3.toCaseDto(caseEntity = caseEntity3, currentAccommodation = null, nextAccommodation = null)
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
       assertThat(result).hasSize(3)
-
-      assertThat(result[0]).isEqualTo(
-        personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
-      )
-      assertThat(result[1])
-        .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
-        .containsExactly(limitedCrn, true, UserAccess.LIMITED)
-      assertThat(result[2]).isEqualTo(
-        personDto1.toCaseDto(
-          caseEntity = caseEntity1,
-          currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
-          nextAccommodation = null,
-        ),
-      )
+      assertThat(result.map { it to it.limitedAccess to it.userAccess })
+        .contains(
+          caseDto1 to false to UserAccess.FULL,
+          caseDto2 to false to UserAccess.FULL,
+          caseDto3 to true to UserAccess.LIMITED,
+        )
     }
 
     @Test
@@ -464,6 +467,228 @@ class CaseQueryServiceTest {
           crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
           crnTwo to CaseAccommodationStatus.TRANSIENT,
           crnOne to CaseAccommodationStatus.SETTLED,
+        )
+    }
+
+    @Test
+    fun `should sort RISK_OF_NO_FIXED_ABODE by soonest status date, first name, last name, then crn`() {
+      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour, crnFive)
+
+      val staff = buildOfficer(username = username)
+      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
+      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
+      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
+      val personDto5 = buildFullPersonDto(crn = crnFive, staff = staff)
+
+      val case1ByDate = buildCaseEntity {
+        withCrn(crnSix)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now()
+        firstName = "Whisky"
+        lastName = "Tango"
+      }
+      val case2ByLastName = buildCaseEntity {
+        withCrn(crnTwo)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().plusDays(1)
+        firstName = "Zulu"
+        lastName = "Alpha"
+      }
+      val case3ByLastThenFirstName = buildCaseEntity {
+        withCrn(crnThree)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().plusDays(1)
+        firstName = "Beta"
+        lastName = "Beta"
+      }
+      val case4ByFirstName = buildCaseEntity {
+        withCrn(crnFour)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().plusDays(1)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+      val case5ByCrn = buildCaseEntity {
+        withCrn(crnFive)
+        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().plusDays(1)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+// list manually sorted in reverse order.
+      every { caseRepository.mapByCrns(crnList) } returns mapOf(
+        crnFive to case5ByCrn,
+        crnFour to case4ByFirstName,
+        crnThree to case3ByLastThenFirstName,
+        crnTwo to case2ByLastName,
+        crnOne to case1ByDate,
+      )
+      val personDtos = listOf(personDto1, personDto2, personDto3, personDto4, personDto5)
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertThat(result.map { it.crn })
+        .containsExactly(
+          crnOne,
+          crnTwo,
+          crnThree,
+          crnFour,
+          crnFive,
+        )
+    }
+
+    @Test
+    fun `should sort NO_FIXED_ABODE by oldest status date, first name, last name, then crn`() {
+      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour, crnFive)
+
+      val staff = buildOfficer(username = username)
+      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
+      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
+      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
+      val personDto5 = buildFullPersonDto(crn = crnFive, staff = staff)
+
+      val case1ByDate = buildCaseEntity {
+        withCrn(crnSix)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().minusDays(2)
+        firstName = "Whisky"
+        lastName = "Tango"
+      }
+      val case2ByLastName = buildCaseEntity {
+        withCrn(crnTwo)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().minusDays(1)
+        firstName = "Zulu"
+        lastName = "Alpha"
+      }
+      val case3ByLastThenFirstName = buildCaseEntity {
+        withCrn(crnThree)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().minusDays(1)
+        firstName = "Beta"
+        lastName = "Beta"
+      }
+      val case4ByFirstName = buildCaseEntity {
+        withCrn(crnFour)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().minusDays(1)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+      val case5ByCrn = buildCaseEntity {
+        withCrn(crnFive)
+        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+        accommodationStatusDate = LocalDate.now().minusDays(1)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+// list manually sorted in reverse order.
+      every { caseRepository.mapByCrns(crnList) } returns mapOf(
+        crnFive to case5ByCrn,
+        crnFour to case4ByFirstName,
+        crnThree to case3ByLastThenFirstName,
+        crnTwo to case2ByLastName,
+        crnOne to case1ByDate,
+      )
+      val personDtos = listOf(personDto1, personDto2, personDto3, personDto4, personDto5)
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertThat(result.map { it.crn })
+        .containsExactly(
+          crnOne,
+          crnTwo,
+          crnThree,
+          crnFour,
+          crnFive,
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
+    fun `should sort by oldest future status date, first name, last name, then crn, then same rules but for current status date`(status: CaseAccommodationStatus) {
+      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour, crnFive, crnSix, crnSeven)
+      val staff = buildOfficer(username = username)
+      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
+      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
+      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
+      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
+      val personDto5 = buildFullPersonDto(crn = crnFive, staff = staff)
+      val personDto6 = buildFullPersonDto(crn = crnSix, staff = staff)
+      val personDto7 = buildFullPersonDto(crn = crnSeven, staff = staff)
+
+      val case1ByDate = buildCaseEntity {
+        withCrn(crnOne)
+        accommodationStatus = status
+        accommodationStatusDate = LocalDate.now()
+        firstName = "Whisky"
+        lastName = "Tango"
+      }
+      val case2ByLastName = buildCaseEntity {
+        withCrn(crnTwo)
+        accommodationStatus = status
+        accommodationStatusDate = LocalDate.now().plusDays(1)
+        firstName = "Zulu"
+        lastName = "Alpha"
+      }
+      val case3ByLastThenFirstName = buildCaseEntity {
+        withCrn(crnThree)
+        accommodationStatus = status
+        accommodationStatusDate = LocalDate.now().plusDays(1)
+        firstName = "Beta"
+        lastName = "Beta"
+      }
+      val case4ByFirstName = buildCaseEntity {
+        withCrn(crnFour)
+        accommodationStatus = status
+        accommodationStatusDate = LocalDate.now().minusDays(2)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+      val case5ByCrn = buildCaseEntity {
+        withCrn(crnFive)
+        accommodationStatus = status
+        accommodationStatusDate = LocalDate.now().minusDays(2)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+      val case6ByCrn = buildCaseEntity {
+        withCrn(crnSix)
+        accommodationStatus = status
+        accommodationStatusDate = LocalDate.now().minusDays(1)
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+      val case7ByCrn = buildCaseEntity {
+        withCrn(crnSeven)
+        accommodationStatus = status
+        firstName = "Zulu"
+        lastName = "Beta"
+      }
+// list manually sorted in reverse order.
+      every { caseRepository.mapByCrns(crnList) } returns mapOf(
+        crnTwo to case2ByLastName,
+        crnFour to case4ByFirstName,
+        crnFive to case5ByCrn,
+        crnThree to case3ByLastThenFirstName,
+        crnOne to case1ByDate,
+        crnSeven to case7ByCrn,
+        crnSix to case6ByCrn,
+      )
+      val personDtos = listOf(personDto1, personDto2, personDto3, personDto4, personDto5, personDto6, personDto7)
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertThat(result.map { it.crn })
+        .containsExactly(
+          crnSeven,
+          crnOne,
+          crnTwo,
+          crnThree,
+          crnFour,
+          crnFive,
+          crnSix,
         )
     }
 
@@ -488,7 +713,7 @@ class CaseQueryServiceTest {
         PeopleType.NFA_RISK -> {
           assertThat(result).hasSize(3)
           assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-            .containsExactly(
+            .contains(
               crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
               crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
               crnTwo to CaseAccommodationStatus.TRANSIENT,
@@ -497,7 +722,7 @@ class CaseQueryServiceTest {
         else -> {
           assertThat(result).hasSize(4)
           assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-            .containsExactly(
+            .contains(
               crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
               crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
               crnTwo to CaseAccommodationStatus.TRANSIENT,
