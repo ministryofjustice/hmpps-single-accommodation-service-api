@@ -1,34 +1,34 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralNoteEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 @TestData
-fun buildOtherAccommodationReferralEntity(
+fun buildExternalReferralEntity(
   id: UUID = UUID.randomUUID(),
   crn: String = "X123456",
   caseId: UUID = UUID.randomUUID(),
   referenceNumber: String? = "OA-REF-001",
   submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
-  status: OtherAccommodationReferralStatus = OtherAccommodationReferralStatus.SUBMITTED,
+  status: ExternalReferralStatus = ExternalReferralStatus.SUBMITTED,
   organisationName: String? = null,
   website: String? = null,
   submissionNote: String? = null,
   email: String? = null,
   phoneNumber: String? = null,
-  outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  outcomeReason: ExternalReferralOutcomeReason? = null,
   outcomeNote: String? = null,
   createdByUserId: UUID? = null,
   createdAt: Instant = Instant.now(),
   lastUpdatedByUserId: UUID? = null,
   lastUpdatedAt: Instant = Instant.now(),
-) = OtherAccommodationReferralEntity(
+) = ExternalReferralEntity(
   id = id,
   crn = crn,
   caseId = caseId,
@@ -50,16 +50,16 @@ fun buildOtherAccommodationReferralEntity(
 }
 
 @TestData
-fun buildOtherAccommodationReferralNoteEntity(
+fun buildExternalReferralNoteEntity(
   id: UUID = UUID.randomUUID(),
   note: String = "Test note",
   createdByUserId: UUID? = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
-  otherAccommodationReferralEntity: OtherAccommodationReferralEntity,
-) = OtherAccommodationReferralNoteEntity(
+  externalReferralEntity: ExternalReferralEntity,
+) = ExternalReferralNoteEntity(
   id,
   note,
-  otherAccommodationReferralEntity,
+  externalReferralEntity,
 ).apply {
   this.createdByUserId = createdByUserId
   this.createdAt = createdAt

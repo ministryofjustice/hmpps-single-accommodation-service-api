@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.NoteCommand
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.exception.orThrowNotFound
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OtherAccommodationReferralRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ExternalReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ExternalReferralMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ExternalReferralMapper.merge
@@ -16,7 +16,7 @@ import java.util.UUID
 
 @Service
 class ExternalReferralApplicationService(
-  private val otherAccommodationReferralRepository: OtherAccommodationReferralRepository,
+  private val externalReferralRepository: ExternalReferralRepository,
   private val caseRepository: CaseRepository,
   private val userService: UserService,
 ) {
@@ -37,7 +37,7 @@ class ExternalReferralApplicationService(
       phoneNumber = command.phoneNumber,
     )
 
-    val persistedRecord = otherAccommodationReferralRepository.save(
+    val persistedRecord = externalReferralRepository.save(
       ExternalReferralMapper.toEntity(aggregate.snapshot()),
     )
 
@@ -51,7 +51,7 @@ class ExternalReferralApplicationService(
 
   @Transactional
   fun updateExternalReferral(crn: String, id: UUID, command: ExternalReferralCommand): ExternalReferralDto {
-    val referral = otherAccommodationReferralRepository.findByIdAndCrn(id, crn)
+    val referral = externalReferralRepository.findByIdAndCrn(id, crn)
       .orThrowNotFound("id" to id, "crn" to crn)
     val createdByUser = userService.findUserByUserId(referral.createdByUserId!!)
       .orThrowNotFound("id" to referral.createdByUserId!!)
@@ -70,7 +70,7 @@ class ExternalReferralApplicationService(
         outcomeNote = command.outcomeNote,
       )
     }
-    val updatedRecord = otherAccommodationReferralRepository.save(merge(aggregate.snapshot(), referral))
+    val updatedRecord = externalReferralRepository.save(merge(aggregate.snapshot(), referral))
 
     return ExternalReferralMapper.toDto(
       snapshot = aggregate.snapshot(),
@@ -82,10 +82,10 @@ class ExternalReferralApplicationService(
 
   @Transactional
   fun createExternalReferralNote(crn: String, id: UUID, noteCommand: NoteCommand) {
-    val entity = otherAccommodationReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
+    val entity = externalReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
     val aggregate = ExternalReferralMapper.toAggregate(entity)
     aggregate.addNote(note = noteCommand.note)
     val merged = merge(aggregate.snapshot(), entity)
-    otherAccommodationReferralRepository.save(merged)
+    externalReferralRepository.save(merged)
   }
 }

@@ -13,8 +13,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Entity
-@Table(name = "other_accommodation_referral")
-open class OtherAccommodationReferralEntity(
+@Table(name = "external_referral")
+open class ExternalReferralEntity(
   @Id
   val id: UUID,
   val crn: String,
@@ -22,34 +22,34 @@ open class OtherAccommodationReferralEntity(
   var referenceNumber: String?,
   var submissionDate: LocalDate,
   @Enumerated(EnumType.STRING)
-  var status: OtherAccommodationReferralStatus,
+  var status: ExternalReferralStatus,
   var organisationName: String?,
   var email: String?,
   var phoneNumber: String?,
   var website: String?,
   var submissionNote: String?,
   @Enumerated(EnumType.STRING)
-  var outcomeReason: OtherAccommodationReferralOutcomeReason?,
+  var outcomeReason: ExternalReferralOutcomeReason?,
   var outcomeNote: String?,
 
   @DiffIgnore
   @OneToMany(
-    mappedBy = "otherAccommodationReferral",
+    mappedBy = "externalReferral",
     fetch = FetchType.LAZY,
     cascade = [CascadeType.ALL],
     orphanRemoval = true,
   )
-  var notes: MutableList<OtherAccommodationReferralNoteEntity> = mutableListOf(),
+  var notes: MutableList<ExternalReferralNoteEntity> = mutableListOf(),
 
 ) : BaseAuditedEntity()
 
-enum class OtherAccommodationReferralStatus {
+enum class ExternalReferralStatus {
   SUBMITTED,
   ACCEPTED,
   REJECTED,
 }
 
-enum class OtherAccommodationReferralOutcomeReason {
+enum class ExternalReferralOutcomeReason {
   ACCEPTED_BY_ORGANISATION,
   ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
   PERSON_NOT_SUITABLE,
