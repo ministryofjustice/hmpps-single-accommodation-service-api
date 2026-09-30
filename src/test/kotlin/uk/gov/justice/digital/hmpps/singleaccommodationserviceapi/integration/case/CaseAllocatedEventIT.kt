@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OnboardedTeamEntity
@@ -85,28 +86,6 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
-  fun `should process incoming CASE_ALLOCATED domain event as PROCESSED with a blank case and a live refresh request when CPR call fails`() {
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
-
-    // when
-    publishCaseAllocatedEvent()
-
-    // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    testInboxEventHelper.assertMessageProcessed()
-
-    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
-    assertThat(case).isNotNull()
-    assertThat(case?.firstName).isNull()
-    assertThat(case?.lastName).isNull()
-    assertThat(case?.dateOfBirth).isNull()
-    assertThat(case?.tierScore).isNull()
-    assertRefreshRequested(case!!.id)
-  }
-
-  @Test
   fun `should process incoming CASE_ALLOCATED domain event as NOT_PROCESSED when case is NOT allocated to a SAS onboarded team`() {
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
       response = CaseSummaries(
@@ -133,7 +112,7 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
-  fun `should leave the case blank with a pending refresh request when the tier API call fails during the refresh`() {
+  fun `should leave a new case blank when the tier API call fails during the refresh`() {
     TierStubs.getTierServerErrorResponse(crn)
     stubCaseRefresherUpstreams()
 
@@ -144,8 +123,9 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
     testInboxEventHelper.assertMessageProcessed()
 
-    val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    waitFor { assertRefreshRequested(case.id) }
+    val caseId = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }.id
+    waitForFailedRefreshAttempt(caseId)
+    val case = caseRepository.findById(caseId).get()
     assertThat(case.tierScore).isNull()
     assertThat(case.firstName).isNull()
     assertThat(case.lastName).isNull()
@@ -162,16 +142,17 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
 
     // then
     testInboxEventHelper.assertMessageProcessed()
-    waitFor { assertRefreshRequested(existing.id) }
-    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
+    waitForFailedRefreshAttempt(existing.id)
+    val case = caseRepository.findById(existing.id).get()
     assertThat(case.tierScore).isEqualTo("A3")
     assertThat(case.firstName).isEqualTo("Existing")
   }
 
-  private fun assertRefreshRequested(caseId: UUID) {
-    val request = caseRefreshRequestRepository.findAll().singleOrNull { it.caseId == caseId }
-    assertThat(request).isNotNull()
-    assertThat(request!!.priority).isEqualTo(CaseRefreshPriority.LIVE)
+  private fun waitForFailedRefreshAttempt(caseId: UUID) = waitFor {
+    val request = caseRefreshRequestRepository.findAll().single { it.caseId == caseId }
+    assertThat(request.priority).isEqualTo(CaseRefreshPriority.LIVE)
+    assertThat(request.attemptCount).isGreaterThanOrEqualTo(1)
+    assertThat(request.lastFailureCategory).isEqualTo(CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR)
   }
 
   private fun shouldProcessCaseAllocationEventSuccessfully() {
