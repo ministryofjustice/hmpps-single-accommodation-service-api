@@ -341,6 +341,111 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
 }
 """.trimIndent()
 
+fun expectedGetEligibilityCasApplicationsNotFoundResponse(crn: String): String = """
+  {
+   "data":{
+      "crn":"$crn",
+      "cas1":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas1Application":null
+      },
+      "cas2":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas2Application":null
+      },
+      "cas3":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "cas3Application":null
+      },
+      "dtr":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "caseId":null,
+         "submission":null
+      },
+      "crs":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         },
+         "commissionedRehabilitativeServices":null
+      },
+      "pa":{
+         "serviceResult":{
+            "serviceStatus":"NOT_ELIGIBLE",
+            "action":null,
+            "link":null,
+            "url":null,
+            "linkType":null,
+            "failureReasons":[],
+            "blockingStatusReason":null
+         }
+      },
+      "caseActions":[]
+   },
+   "upstreamFailures":[
+      {
+         "endpoint":"getCas1Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas2Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      },
+      {
+         "endpoint":"getCas3Application",
+         "failureType":"UPSTREAM_HTTP_ERROR",
+         "httpResponseStatus":"404 NOT_FOUND",
+         "message":"404 Not Found: [no body]",
+         "identifier":null
+      }
+   ]
+}
+  
+""".trimIndent()
+
 fun expectedGetEligibilityResponseTierNotFound(
   crn: String,
   cas1ApplicationId: UUID,
