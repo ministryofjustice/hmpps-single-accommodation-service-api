@@ -10,7 +10,7 @@ import au.com.dius.pact.core.model.PactSpecVersion
 import au.com.dius.pact.core.model.RequestResponsePact
 import au.com.dius.pact.core.model.annotations.Pact
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.TestTemplate
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.web.client.RestClient
@@ -230,7 +230,7 @@ class CorePersonRecordClientPactTest {
     return proxyFactory.createClient(CorePersonRecordClient::class.java)
   }
 
-  @TestTemplate
+  @Test
   @PactTestFor(
     pactMethod = "getProbationPerson",
     pactVersion = PactSpecVersion.V3,
@@ -247,7 +247,7 @@ class CorePersonRecordClientPactTest {
     assertEquals(1, person.addresses.size)
   }
 
-  @TestTemplate
+  @Test
   @PactTestFor(
     pactMethod = "getProbationAddress",
     pactVersion = PactSpecVersion.V3,
@@ -283,7 +283,7 @@ class CorePersonRecordClientPactTest {
     )
   }
 
-  @TestTemplate
+  @Test
   @PactTestFor(
     pactMethod = "createProbationAddress",
     pactVersion = PactSpecVersion.V3,
