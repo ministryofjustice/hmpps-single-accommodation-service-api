@@ -112,13 +112,9 @@ class AdminBulkLoadCasesService(
 
     val writeStartedAt = System.nanoTime()
     caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) }, createAsBlankRecord = true)
-
-    val caseIds = caseRepository.findByCrns(teamCases.map { it.crn }).map { it.id }
-    caseRefreshRequestService?.requestBulkRefresh(caseIds)
     log.info(
-      "Team {}: requested refresh for {} of {} case(s) ({} created) in {}ms",
+      "Team {}: requested refresh for {} case(s) ({} created) in {}ms",
       teamCode,
-      caseIds.size,
       teamCases.size,
       unpersistedCrns.size,
       millisSince(writeStartedAt),
@@ -128,7 +124,7 @@ class AdminBulkLoadCasesService(
       crnsFound = teamCases.size,
       casesAlreadyPresent = casesAlreadyPresent,
       casesCreated = unpersistedCrns.size,
-      refreshesRequested = caseIds.size,
+      refreshesRequested = teamCases.size,
     )
   }
 

@@ -4,57 +4,57 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralSubmissionDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralNoteEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate.ExternalReferralSnapshot
 import java.time.Instant
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
 
 object ExternalReferralMapper {
 
-  fun toEntity(snapshot: ExternalReferralSnapshot) = OtherAccommodationReferralEntity(
+  fun toEntity(snapshot: ExternalReferralSnapshot) = ExternalReferralEntity(
     id = snapshot.id,
     crn = snapshot.crn,
     caseId = snapshot.caseId,
     referenceNumber = snapshot.referenceNumber,
     submissionDate = snapshot.submissionDate,
-    status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name),
+    status = EntityExternalReferralStatus.valueOf(snapshot.status.name),
     organisationName = snapshot.organisationName,
     website = snapshot.website,
     submissionNote = snapshot.submissionNote,
     email = snapshot.email,
     phoneNumber = snapshot.phoneNumber,
-    outcomeReason = snapshot.outcomeReason?.let { EntityOtherAccommodationReferralOutcomeReason.valueOf(it.name) },
+    outcomeReason = snapshot.outcomeReason?.let { EntityExternalReferralOutcomeReason.valueOf(it.name) },
     outcomeNote = snapshot.outcomeNote,
   )
 
-  fun merge(snapshot: ExternalReferralSnapshot, entity: OtherAccommodationReferralEntity): OtherAccommodationReferralEntity {
+  fun merge(snapshot: ExternalReferralSnapshot, entity: ExternalReferralEntity): ExternalReferralEntity {
     entity.referenceNumber = snapshot.referenceNumber
     entity.submissionDate = snapshot.submissionDate
-    entity.status = EntityOtherAccommodationReferralStatus.valueOf(snapshot.status.name)
+    entity.status = EntityExternalReferralStatus.valueOf(snapshot.status.name)
     entity.organisationName = snapshot.organisationName
     entity.website = snapshot.website
     entity.submissionNote = snapshot.submissionNote
     entity.email = snapshot.email
     entity.phoneNumber = snapshot.phoneNumber
-    entity.outcomeReason = snapshot.outcomeReason?.let { EntityOtherAccommodationReferralOutcomeReason.valueOf(it.name) }
+    entity.outcomeReason = snapshot.outcomeReason?.let { EntityExternalReferralOutcomeReason.valueOf(it.name) }
     entity.outcomeNote = snapshot.outcomeNote
     entity.addMissingNotes(snapshot.notes)
     return entity
   }
 
-  fun OtherAccommodationReferralEntity.addMissingNotes(snapshotNotes: List<ExternalReferralAggregate.ExternalReferralNote>) {
+  fun ExternalReferralEntity.addMissingNotes(snapshotNotes: List<ExternalReferralAggregate.ExternalReferralNote>) {
     val existingIds = notes.map { it.id }.toSet()
     notes.addAll(
       snapshotNotes
         .filter { it.id !in existingIds }
-        .map { OtherAccommodationReferralNoteEntity(id = it.id, note = it.note, otherAccommodationReferral = this) },
+        .map { ExternalReferralNoteEntity(id = it.id, note = it.note, externalReferral = this) },
     )
   }
 
-  fun toAggregate(entity: OtherAccommodationReferralEntity): ExternalReferralAggregate = ExternalReferralAggregate.hydrateExisting(
+  fun toAggregate(entity: ExternalReferralEntity): ExternalReferralAggregate = ExternalReferralAggregate.hydrateExisting(
     id = entity.id,
     caseId = entity.caseId,
     crn = entity.crn,
