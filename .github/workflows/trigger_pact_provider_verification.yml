@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: generate-token
         with:
           app-id: ${{ secrets.PACT_TRIGGER_APP_ID }}
@@ -30,7 +30,7 @@ jobs:
           repositories: hmpps-person-record
 
       - name: Trigger external Pact provider verification workflow
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           CONSUMER_NAME: ${{ github.event.repository.name }}
           CONSUMER_BRANCH: ${{ github.ref_name }}
