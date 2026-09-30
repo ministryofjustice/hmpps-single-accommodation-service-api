@@ -31,6 +31,9 @@ jobs:
 
       - name: Trigger external Pact provider verification workflow
         uses: actions/github-script@v9
+        env:
+          CONSUMER_NAME: ${{ github.event.repository.name }}
+          CONSUMER_BRANCH: ${{ github.ref_name }}
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
@@ -40,8 +43,8 @@ jobs:
               workflow_id: 'pact_provider_verification.yml',
               ref: 'main',
               inputs: {
-                consumerName: '${{ github.event.repository.name }}',
-                consumerBranch: '${{ github.ref_name }}',
+                consumerName: process.env.CONSUMER_NAME,
+                consumerBranch: process.env.CONSUMER_BRANCH,
                 publishResults: 'true',
               }
             })
