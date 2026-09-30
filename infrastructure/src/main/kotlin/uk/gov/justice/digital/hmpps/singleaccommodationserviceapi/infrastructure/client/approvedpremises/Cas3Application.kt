@@ -43,6 +43,7 @@ data class Cas3LatestBooking(
   val status: Cas3BookingStatus?,
   val provisionalOfferSentDate: LocalDate?,
   val premises: Cas3BookingPremises,
+  val cancellation: Cas3ExternalPreviousBookingCancellation?,
 )
 
 data class Cas3PreviousBooking(

@@ -195,10 +195,12 @@ fun buildCas3LatestBooking(
   status: Cas3BookingStatus? = null,
   provisionalOfferSentDate: LocalDate? = null,
   premises: Cas3BookingPremises = buildCas3LatestBookingPremisesDto(),
+  cancellation: Cas3ExternalPreviousBookingCancellation? = null,
 ) = Cas3LatestBooking(
   status = status,
   provisionalOfferSentDate = provisionalOfferSentDate,
   premises = premises,
+  cancellation = cancellation,
 )
 
 fun buildCas3LatestBookingPremisesDto() = Cas3BookingPremises(

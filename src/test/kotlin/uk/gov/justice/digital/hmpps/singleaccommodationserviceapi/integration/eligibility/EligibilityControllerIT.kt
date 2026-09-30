@@ -208,6 +208,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
         latestBooking = Cas3LatestBooking(
           status = Cas3BookingStatus.CONFIRMED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+          cancellation = null,
           premises = buildCas3PremisesSummary(
             name = "Test Premises",
             startDate = LocalDate.parse("2023-01-04"),
