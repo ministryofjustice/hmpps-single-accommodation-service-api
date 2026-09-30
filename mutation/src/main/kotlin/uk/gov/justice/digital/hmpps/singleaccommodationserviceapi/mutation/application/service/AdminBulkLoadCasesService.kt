@@ -18,7 +18,7 @@ class AdminBulkLoadCasesService(
   private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
   private val onboardedTeamRepository: OnboardedTeamRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 

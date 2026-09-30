@@ -386,20 +386,5 @@ class CaseApplicationServiceTest {
 
       verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
     }
-
-    @Test
-    fun `completes without requesting a refresh when the case refresh mechanism is not enabled`() {
-      val service = CaseApplicationService(
-        caseCreationService = caseCreationService,
-        caseRepository = caseRepository,
-        approvedPremisesAndDeliusCachingService = approvedPremisesAndDeliusCachingService,
-        caseRefreshRequestService = null,
-      )
-
-      service.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
-
-      verify(exactly = 1) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
-      verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
-    }
   }
 }

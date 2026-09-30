@@ -34,7 +34,6 @@ generic-service:
     EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/duty-to-refers/#id
     SCHEDULING_ENABLED: true
     TIER_V3-ENABLED: false
-    CASE-REFRESH_ENABLED: true
 
   namespace_secrets:
     hmpps-envoy-https-proxy-env:

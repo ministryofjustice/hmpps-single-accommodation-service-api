@@ -26,7 +26,7 @@ class OffenderManagementAllocationChangedHandler(
   private val inboxEventHelper: InboxEventHelper,
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
   private val corePersonRecordClient: CorePersonRecordClient,
   private val offenderManagementAllocationChangedProperties: OffenderManagementAllocationChangedProperties,
 ) : InboxEventHandler {
@@ -51,7 +51,7 @@ class OffenderManagementAllocationChangedHandler(
     val prisonNumber = getPartitionKey(inboxEvent)
     val case = caseRepository.findByPrisonNumber(prisonNumber)
     if (case != null) {
-      caseRefreshRequestService?.requestLiveRefresh(case.id)
+      caseRefreshRequestService.requestLiveRefresh(case.id)
       return InboxEventHandler.Result.PROCESSED
     }
 

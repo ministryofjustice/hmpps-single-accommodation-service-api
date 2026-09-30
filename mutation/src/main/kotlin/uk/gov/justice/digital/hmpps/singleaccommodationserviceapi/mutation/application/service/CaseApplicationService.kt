@@ -13,7 +13,7 @@ class CaseApplicationService(
   private val caseCreationService: CaseCreationService,
   private val caseRepository: CaseRepository,
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
   private val maxAttempts = 3

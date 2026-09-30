@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 @Service
 class AdminBulkRefreshCasesService(
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
