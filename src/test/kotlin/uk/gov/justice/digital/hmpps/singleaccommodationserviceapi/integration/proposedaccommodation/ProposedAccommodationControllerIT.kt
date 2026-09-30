@@ -682,6 +682,227 @@ class ProposedAccommodationControllerIT : DomainEventIntegrationTestBase() {
     }
 
     @Test
+    fun `should exclude unconfirmed proposed-accommodations sorted by createdAt descending with confirmedOnly=true`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("59899f60-3e10-4fca-b192-add8218ec288"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("f1029631-66fa-44f9-ab8a-e7eac9e5674d"),
+        postcode = "N1 7HD",
+        buildingNumber = "1298",
+        buildingName = null,
+        subBuildingName = "The Loft",
+        thoroughfareName = "Birmingham Road",
+        postTown = "London",
+        country = "England",
+        county = null,
+        dependentLocality = null,
+        startDate = LocalDate.parse("2022-09-19"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = null,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100927756956",
+      )
+
+      val response =
+        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=true", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(1)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+    }
+
+    @Test
+    fun `should get all proposed-accommodations sorted by createdAt descending with confirmedOnly=false`() {
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("39ff1627-9001-4517-bbba-efa7360c87cd"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("3d7a6f48-d79f-45e5-9caa-9a4443ea01fa"),
+        postcode = "V2 9FR",
+        buildingNumber = "123",
+        buildingName = null,
+        subBuildingName = "The Flat",
+        thoroughfareName = "Busy Road",
+        postTown = "Newcastle",
+        country = "England",
+        county = "Tyne and Wear",
+        dependentLocality = "Newcastle upon Tyne",
+        startDate = LocalDate.parse("2026-07-26"),
+        verificationStatus = null,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "903073336956",
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("3f86f7c2-6968-467a-ac0a-f83f6a78506e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("34a40354-f065-4c06-962f-f68cd23a5a5d"),
+        postcode = "A1 2BC",
+        buildingNumber = "11",
+        thoroughfareName = "Piccadilly Circus",
+        postTown = "London",
+        country = "England",
+        startDate = LocalDate.parse("2023-01-01"),
+        verificationStatus = EntityVerificationStatus.PASSED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.YES,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("c34371c6-35e5-4a28-bf66-175803a623c7"),
+        postcode = "D3 4EF",
+        buildingNumber = "12",
+        subBuildingName = "The Building",
+        thoroughfareName = "Trafalgar Square",
+        postTown = "London",
+        country = "England",
+        county = "Lancashire",
+        dependentLocality = "East Renfrewshire",
+        startDate = LocalDate.parse("2022-09-11"),
+        verificationStatus = EntityVerificationStatus.NOT_CHECKED_YET,
+        nextAccommodationStatus = EntityNextAccommodationStatus.TO_BE_DECIDED,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+      )
+
+      createAndSaveProposedAccommodation(
+        id = UUID.fromString("0c7375b0-ca97-417c-bb8c-b47be5efce9e"),
+        caseEntity = caseEntity,
+        accommodationSource = AccommodationSource.SAS,
+        cprAddressId = UUID.fromString("aafec91a-97cd-4948-98a7-f9db24237eab"),
+        postcode = "G5 6HI",
+        buildingNumber = "201",
+        buildingName = null,
+        subBuildingName = "The Office",
+        thoroughfareName = "Manchester Road",
+        postTown = "Glasgow",
+        country = "Scotland",
+        county = "Lanarkshire",
+        dependentLocality = "East Lothian",
+        startDate = LocalDate.parse("2025-12-12"),
+        verificationStatus = EntityVerificationStatus.FAILED,
+        nextAccommodationStatus = EntityNextAccommodationStatus.NO,
+        accommodationStatusEntity = accommodationStatusRepository.findByCodeAndActiveIsTrue("PR"),
+        uprn = "100023336956",
+      )
+
+      val response =
+        restTestClient.get().uri("/cases/{crn}/proposed-accommodations?confirmedOnly=false", crn)
+          .withDeliusUserJwt()
+          .exchangeSuccessfully()
+          .expectBody(object : ParameterizedTypeReference<ApiResponseDto<List<ProposedAccommodationDto>>>() {})
+          .returnResult()
+          .responseBody!!
+
+      assertThat(response.data.size).isEqualTo(4)
+
+      val firstAccommodation = response.data[0]
+      assertThat(firstAccommodation.id.toString()).isEqualTo("0c7375b0-ca97-417c-bb8c-b47be5efce9e")
+      assertThat(firstAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+
+      val secondAccommodation = response.data[1]
+      assertThat(secondAccommodation.id.toString()).isEqualTo("5d6fbf32-fc5d-4380-b99d-fcc2ebc7b52d")
+      assertThat(secondAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.TO_BE_DECIDED)
+
+      val thirdAccommodation = response.data[2]
+      assertThat(thirdAccommodation.id.toString()).isEqualTo("3f86f7c2-6968-467a-ac0a-f83f6a78506e")
+      assertThat(thirdAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.YES)
+
+      val fourthAccommodation = response.data[3]
+      assertThat(fourthAccommodation.id.toString()).isEqualTo("39ff1627-9001-4517-bbba-efa7360c87cd")
+      assertThat(fourthAccommodation.nextAccommodationStatus).isEqualTo(NextAccommodationStatus.NO)
+    }
+
+    @Test
     fun `should return empty list when no proposed-accommodations exist for crn`() {
       restTestClient.get().uri("/cases/{crn}/proposed-accommodations", crn)
         .withDeliusUserJwt()

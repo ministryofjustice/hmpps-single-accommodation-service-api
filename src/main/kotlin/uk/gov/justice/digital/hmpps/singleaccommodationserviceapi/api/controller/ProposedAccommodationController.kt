@@ -40,7 +40,11 @@ class ProposedAccommodationController(
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
-  fun getAll(@PathVariable crn: String, @RequestParam(required = false, defaultValue = "false") excludeVerificationFailed: Boolean): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
+  fun getAll(
+    @PathVariable crn: String,
+    @RequestParam(required = false, defaultValue = "false") excludeVerificationFailed: Boolean,
+    @RequestParam(required = false, defaultValue = "false") confirmedOnly: Boolean,
+  ): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
     val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
       val result = caseQueryService.getCaseFromDelius(crn)
       handleUpstreamFailure(result.upstreamFailures)
@@ -54,7 +58,7 @@ class ProposedAccommodationController(
         cprAccommodations.data,
       )
     }
-    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn, excludeVerificationFailed)))
+    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn, excludeVerificationFailed, confirmedOnly)))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
