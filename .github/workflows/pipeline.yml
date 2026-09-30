@@ -129,16 +129,14 @@ jobs:
     needs:
       - kotlin_validate
       - unit_test
-      - pact_test
       - integration_test
       - build
       - helm_lint
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/pact_deploy_env.yml@1cd277cf487926d2f86fa68c87049e62a461d55e # WORKFLOW_VERSION
+    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
       environment: 'development'
       app_version: '${{ needs.build.outputs.app_version }}'
-      pact_consumer_deployment: true
       slack_notification: 'false' # if 'true', it needs a valid NONPROD_RELEASES_SLACK_CHANNEL variable to be set
   sas_generate_types:
     needs: deploy_dev
