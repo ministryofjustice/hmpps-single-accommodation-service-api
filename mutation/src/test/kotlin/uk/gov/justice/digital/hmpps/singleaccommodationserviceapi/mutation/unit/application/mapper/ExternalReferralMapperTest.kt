@@ -20,7 +20,7 @@ class ExternalReferralMapperTest {
   fun `toEntity maps all fields correctly`() {
     val snapshot = buildExternalReferralSnapshot(
       status = ExternalReferralStatus.ACCEPTED,
-      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -47,7 +47,7 @@ class ExternalReferralMapperTest {
   fun `toDto maps all fields correctly`() {
     val snapshot = buildExternalReferralSnapshot(
       status = ExternalReferralStatus.REJECTED,
-      outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
+      outcomeReason = ExternalReferralOutcomeReason.REJECTED_NO_CAPACITY,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -102,7 +102,7 @@ class ExternalReferralMapperTest {
     val preExistingNote = buildExternalReferralNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
     val snapshot = buildExternalReferralSnapshot(
       status = ExternalReferralStatus.ACCEPTED,
-      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -118,7 +118,7 @@ class ExternalReferralMapperTest {
     assertThat(merged.status).isEqualTo(EntityExternalReferralStatus.valueOf(snapshot.status.name))
     assertThat(merged.email).isEqualTo(snapshot.email)
     assertThat(merged.phoneNumber).isEqualTo(snapshot.phoneNumber)
-    assertThat(merged.outcomeReason).isEqualTo(EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+    assertThat(merged.outcomeReason).isEqualTo(EntityExternalReferralOutcomeReason.ACCEPTED)
     assertThat(merged.outcomeNote).isEqualTo(snapshot.outcomeNote)
     assertThat(merged.notes).hasSize(3)
     assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
@@ -131,7 +131,7 @@ class ExternalReferralMapperTest {
     val entity = buildExternalReferralEntity(
       referenceNumber = "OA-REF-001",
       status = EntityExternalReferralStatus.REJECTED,
-      outcomeReason = EntityExternalReferralOutcomeReason.PERSON_NOT_SUITABLE,
+      outcomeReason = EntityExternalReferralOutcomeReason.REJECTED_PERSON_NOT_SUITABLE,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -159,7 +159,7 @@ class ExternalReferralMapperTest {
     assertThat(snapshot.crn).isEqualTo(entity.crn)
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
     assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.REJECTED)
-    assertThat(snapshot.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE)
+    assertThat(snapshot.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.REJECTED_PERSON_NOT_SUITABLE)
     assertThat(snapshot.outcomeNote).isEqualTo(entity.outcomeNote)
     assertThat(snapshot.email).isEqualTo(entity.email)
     assertThat(snapshot.phoneNumber).isEqualTo(entity.phoneNumber)

@@ -225,7 +225,58 @@ class ExternalReferralAggregateTest {
         organisationName = null,
         website = null,
         submissionNote = null,
-        outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
+        outcomeReason = ExternalReferralOutcomeReason.REJECTED_NO_CAPACITY,
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferral throws exception when status is WITHDRAWN and outcomeReason is missing`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralOutcomeReasonRequiredException> {
+      aggregate.updateExternalReferral(
+        submissionDate = submissionDate,
+        referenceNumber = "REF-001",
+        status = ExternalReferralStatus.WITHDRAWN,
+        organisationName = null,
+        website = null,
+        submissionNote = null,
+        outcomeReason = null,
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferral throws exception when status is WITHDRAWN with an ACCEPTED outcome reason`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralOutcomeReasonNotApplicableException> {
+      aggregate.updateExternalReferral(
+        submissionDate = submissionDate,
+        referenceNumber = "REF-001",
+        status = ExternalReferralStatus.WITHDRAWN,
+        organisationName = null,
+        website = null,
+        submissionNote = null,
+        outcomeReason = ExternalReferralOutcomeReason.ACCEPTED,
+      )
+    }
+  }
+
+  @Test
+  fun `updateExternalReferral throws exception when status is REJECTED with a WITHDRAWN outcome reason`() {
+    val aggregate = hydrateAndCreateReferral()
+
+    assertThrows<ExternalReferralOutcomeReasonNotApplicableException> {
+      aggregate.updateExternalReferral(
+        submissionDate = submissionDate,
+        referenceNumber = "REF-001",
+        status = ExternalReferralStatus.REJECTED,
+        organisationName = null,
+        website = null,
+        submissionNote = null,
+        outcomeReason = ExternalReferralOutcomeReason.WITHDRAWN_HOUSING_NEED_RESOLVED,
       )
     }
   }
@@ -242,7 +293,7 @@ class ExternalReferralAggregateTest {
         organisationName = null,
         website = null,
         submissionNote = null,
-        outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+        outcomeReason = ExternalReferralOutcomeReason.ACCEPTED,
       )
     }
   }
@@ -274,7 +325,7 @@ class ExternalReferralAggregateTest {
       organisationName = null,
       website = null,
       submissionNote = null,
-      outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
+      outcomeReason = ExternalReferralOutcomeReason.REJECTED_NO_CAPACITY,
       outcomeNote = "An outcome note",
     )
 
@@ -314,11 +365,13 @@ class ExternalReferralAggregateTest {
   companion object {
     @JvmStatic
     fun validOutcomeReasonScenarios(): Stream<Arguments> = Stream.of(
-      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION),
-      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT),
-      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE),
-      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.NO_CAPACITY),
-      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.ANOTHER_REASON),
+      Arguments.of(ExternalReferralStatus.ACCEPTED, ExternalReferralOutcomeReason.ACCEPTED),
+      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.REJECTED_PERSON_NOT_SUITABLE),
+      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.REJECTED_NO_CAPACITY),
+      Arguments.of(ExternalReferralStatus.REJECTED, ExternalReferralOutcomeReason.REJECTED_OTHER),
+      Arguments.of(ExternalReferralStatus.WITHDRAWN, ExternalReferralOutcomeReason.WITHDRAWN_APPLICANT_REJECTED_OFFER),
+      Arguments.of(ExternalReferralStatus.WITHDRAWN, ExternalReferralOutcomeReason.WITHDRAWN_HOUSING_NEED_RESOLVED),
+      Arguments.of(ExternalReferralStatus.WITHDRAWN, ExternalReferralOutcomeReason.WITHDRAWN_NO_RESPONSE_FROM_ORGANISATION),
     )
   }
 }
