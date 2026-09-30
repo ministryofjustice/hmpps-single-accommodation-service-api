@@ -48,43 +48,27 @@ private fun failureJson(
 }
 """.trimIndent()
 
-private fun cprServerErrorFailure(identifierCrn: String? = null) = failureJson(
-  endpoint = "getCorePersonRecordByCrn",
-  failureType = "UPSTREAM_HTTP_ERROR",
-  httpResponseStatus = "500 INTERNAL_SERVER_ERROR",
-  message = "500 Internal Server Error: [no body]",
-  identifierCrn = identifierCrn,
-)
-
-private fun tierServerErrorFailure(identifierCrn: String? = null) = failureJson(
+private fun tierServerErrorFailure(upstreamUrl: String) = failureJson(
   endpoint = "getTierByCrn",
   failureType = "UPSTREAM_HTTP_ERROR",
   httpResponseStatus = "500 INTERNAL_SERVER_ERROR",
-  message = "500 Internal Server Error: [no body]",
-  identifierCrn = identifierCrn,
+  message = "500 Internal Server Error from GET $upstreamUrl",
+  identifierCrn = null,
 )
 
-private fun tierTimeoutFailure(crn: String, identifierCrn: String? = null) = failureJson(
+private fun tierTimeoutFailure() = failureJson(
   endpoint = "getTierByCrn",
   failureType = "TIMEOUT",
-  message = "I/O error on GET request for \\\"http://localhost:PORT/v2/crn/$crn/tier\\\": Request cancelled",
-  identifierCrn = identifierCrn,
-)
-
-private fun tierNotFoundFailure(identifierCrn: String? = null) = failureJson(
-  endpoint = "getTierByCrn",
-  failureType = "UPSTREAM_HTTP_ERROR",
-  httpResponseStatus = "404 NOT_FOUND",
-  message = "404 Not Found: [no body]",
-  identifierCrn = identifierCrn,
+  message = "Request timed out",
+  identifierCrn = null,
 )
 
 @TestData
-fun expectedSingleCrnTierServerError(crn: String, prisonNumber: String) = """{ "data": ${caseJson(tierScore = null, crn = crn, prisonNumber = prisonNumber)}, 
-  |"upstreamFailures": [${tierServerErrorFailure()}] }
+fun expectedSingleCrnTierServerError(crn: String, prisonNumber: String, tierUpstreamUrl: String) = """{ "data": ${caseJson(tierScore = null, crn = crn, prisonNumber = prisonNumber)}, 
+  |"upstreamFailures": [${tierServerErrorFailure(tierUpstreamUrl)}] }
 """.trimMargin()
 
 @TestData
 fun expectedSingleCrnTierTimeout(crn: String, prisonNumber: String = "PRI1") = """{ "data": ${caseJson(tierScore = null, crn = crn, prisonNumber = prisonNumber)}, 
-  |"upstreamFailures": [${tierTimeoutFailure(crn)}] }
+  |"upstreamFailures": [${tierTimeoutFailure()}] }
 """.trimMargin()
