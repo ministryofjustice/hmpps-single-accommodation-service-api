@@ -18,13 +18,10 @@ class AdminBulkLoadCasesService(
   private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
   private val onboardedTeamRepository: OnboardedTeamRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
   fun bulkLoadCases(teamCodes: List<String>, dryRun: Boolean): ApiResponseDto<BulkLoadCasesResultDto> {
-    caseRefreshRequestService ?: throw IllegalStateException("Case refresh request service is not enabled")
-
     val normalizedTeamCodes = teamCodes.map { it.trim().uppercase() }
       .filter(String::isNotEmpty)
       .distinct()

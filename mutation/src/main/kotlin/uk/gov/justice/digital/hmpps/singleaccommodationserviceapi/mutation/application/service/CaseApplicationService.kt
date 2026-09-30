@@ -50,9 +50,8 @@ class CaseApplicationService(
   }
 
   private fun refreshCases(cases: List<CaseToCreate>) {
-    val refreshService = caseRefreshRequestService ?: return
     val caseIds = caseRepository.findByCrns(cases.map { it.crn }).map { it.id }
-    refreshService.requestBulkRefresh(caseIds)
+    caseRefreshRequestService.requestBulkRefresh(caseIds)
   }
 
   private fun validateUnpersistedCrns(crns: List<String>): Map<String, CaseSummary> {
