@@ -179,6 +179,10 @@ fun expectedGetEligibilityResponse(
         "applicationRejectedReason": "Oops",
         "assessmentStatus": "REJECTED",
         "bookingStatus": "CONFIRMED",
+        "cancellation": {
+              "cancellationDate": "2023-01-03",
+              "cancellationReason": "Mistake"
+        },
         "bookingProvisionalOfferSentDate": "2023-01-02",
         "previousBookings": [
           {
@@ -464,6 +468,7 @@ fun expectedGetEligibilityResponseTierNotFound(
         "applicationRejectedReason": null,
         "assessmentStatus": "UNALLOCATED",
         "bookingStatus": null,
+        "cancellation": null,
         "bookingProvisionalOfferSentDate": null,
         "previousBookings": [],
         "premises": null,
@@ -628,6 +633,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
         "applicationRejectedReason": null,
         "assessmentStatus": "UNALLOCATED",
         "bookingStatus": null,
+        "cancellation": null,
         "bookingProvisionalOfferSentDate": null,
         "previousBookings": [],
         "premises": null,
@@ -760,6 +766,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
         "applicationRejectedReason": null,
         "assessmentStatus": null,
         "bookingStatus": null,
+        "cancellation": null,
         "bookingProvisionalOfferSentDate": null,
         "previousBookings": [],
         "premises": null,
