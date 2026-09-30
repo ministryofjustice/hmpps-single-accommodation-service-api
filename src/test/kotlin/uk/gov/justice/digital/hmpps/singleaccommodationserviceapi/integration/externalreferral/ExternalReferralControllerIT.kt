@@ -15,10 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Ex
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildOtherAccommodationReferralEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OtherAccommodationReferralRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.ExternalReferralRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.NAME_OF_TEST_DATA_SETUP_USER
@@ -37,13 +37,13 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralOutcomeReason as EntityOtherAccommodationReferralOutcomeReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OtherAccommodationReferralStatus as EntityOtherAccommodationReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
 
 class ExternalReferralControllerIT : IntegrationTestBase() {
 
   @Autowired
-  private lateinit var otherAccommodationReferralRepository: OtherAccommodationReferralRepository
+  private lateinit var externalReferralRepository: ExternalReferralRepository
 
   @Autowired
   private lateinit var javers: Javers
@@ -57,7 +57,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
   fun setup() {
     beforeTest = Instant.now()
     databaseUtils.truncate(
-      SasTables.OTHER_ACCOMMODATION_REFERRAL,
+      SasTables.EXTERNAL_REFERRAL,
     )
     case = caseRepository.save(buildCaseEntity())
     crn = case.caseIdentifiers.first().identifier
@@ -88,7 +88,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .expectBody<String>()
         .returnResult().responseBody!!
 
-      val persistedRecord = otherAccommodationReferralRepository.findByCaseId(case.id)!!
+      val persistedRecord = externalReferralRepository.findByCaseId(case.id)!!
       assertPersistedExternalReferral(persistedRecord)
 
       assertThatJson(result).matchesExpectedJson(
@@ -128,7 +128,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .expectBody<String>()
         .returnResult().responseBody!!
 
-      val persistedRecord = otherAccommodationReferralRepository.findByCaseId(case.id)!!
+      val persistedRecord = externalReferralRepository.findByCaseId(case.id)!!
       assertThat(persistedRecord.referenceNumber).isNull()
       assertThat(persistedRecord.organisationName).isNull()
       assertThat(persistedRecord.website).isNull()
@@ -171,12 +171,12 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     private fun assertPersistedExternalReferral(
-      persistedRecord: OtherAccommodationReferralEntity,
+      persistedRecord: ExternalReferralEntity,
     ) {
       assertThat(persistedRecord.crn).isEqualTo(crn)
       assertThat(persistedRecord.referenceNumber).isEqualTo("REF-001")
       assertThat(persistedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 2, 20))
-      assertThat(persistedRecord.status).isEqualTo(EntityOtherAccommodationReferralStatus.SUBMITTED)
+      assertThat(persistedRecord.status).isEqualTo(EntityExternalReferralStatus.SUBMITTED)
       assertThat(persistedRecord.organisationName).isEqualTo("Organisation name")
       assertThat(persistedRecord.website).isEqualTo("https://www.charity.org")
       assertThat(persistedRecord.submissionNote).isEqualTo("A submission note")
@@ -193,8 +193,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
   inner class GetExternalReferral {
     @Test
     fun `should get external referral by crn and id`() {
-      val entity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val entity = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
           referenceNumber = "REF-001",
@@ -202,7 +202,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           organisationName = "Organisation name",
           website = "https://www.charity.org",
           submissionNote = "A submission note",
-          status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.SUBMITTED,
         ),
       )
 
@@ -232,8 +232,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should get external referral with only mandatory fields`() {
-      val entity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val entity = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
           referenceNumber = null,
@@ -241,7 +241,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           organisationName = null,
           website = null,
           submissionNote = null,
-          status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.SUBMITTED,
         ),
       )
 
@@ -281,8 +281,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 404 on get when crn does not match`() {
-      val entity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val entity = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
         ),
@@ -296,8 +296,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 403 on get when user does not have required role`() {
-      val entity = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val entity = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
         ),
@@ -314,20 +314,20 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
   inner class SearchExternalReferrals {
     @Test
     fun `should return referrals in descending order of submission date`() {
-      val oldest = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val oldest = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.SUBMITTED,
           submissionDate = LocalDate.of(2026, 6, 17),
           createdAt = Instant.parse("2026-07-22T00:00:00Z"),
         ),
       )
-      val newest = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val newest = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.ACCEPTED,
+          status = EntityExternalReferralStatus.ACCEPTED,
           submissionDate = LocalDate.of(2026, 7, 19),
           createdAt = Instant.parse("2026-07-22T00:00:00Z"),
         ),
@@ -347,19 +347,19 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should filter referrals by a single status`() {
-      val submitted = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val submitted = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.SUBMITTED,
         ),
       )
 
-      otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.REJECTED,
+          status = EntityExternalReferralStatus.REJECTED,
         ),
       )
 
@@ -374,27 +374,27 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should filter referrals by multiple statuses`() {
-      val submitted = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val submitted = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.SUBMITTED,
           submissionDate = LocalDate.of(2026, 1, 10),
         ),
       )
-      val accepted = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val accepted = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.ACCEPTED,
+          status = EntityExternalReferralStatus.ACCEPTED,
           submissionDate = LocalDate.of(2026, 1, 20),
         ),
       )
-      otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.REJECTED,
+          status = EntityExternalReferralStatus.REJECTED,
         ),
       )
 
@@ -413,20 +413,20 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return the correct created by user details for each referral`() {
-      val referralByTestDataSetupUser = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val referralByTestDataSetupUser = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.SUBMITTED,
+          status = EntityExternalReferralStatus.SUBMITTED,
           submissionDate = LocalDate.of(2026, 1, 1),
         ),
       )
       val referralByDeliusUser = AuditOverrideContext.withAuditorId(userIdOfLoggedInDeliusUser) {
-        otherAccommodationReferralRepository.save(
-          buildOtherAccommodationReferralEntity(
+        externalReferralRepository.save(
+          buildExternalReferralEntity(
             caseId = case.id,
             crn = crn,
-            status = EntityOtherAccommodationReferralStatus.ACCEPTED,
+            status = EntityExternalReferralStatus.ACCEPTED,
             submissionDate = LocalDate.of(2026, 2, 1),
           ),
         )
@@ -459,12 +459,12 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return populated outcomeReason and outcomeNote for an accepted referral`() {
-      val accepted = otherAccommodationReferralRepository.save(
-        buildOtherAccommodationReferralEntity(
+      val accepted = externalReferralRepository.save(
+        buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
-          status = EntityOtherAccommodationReferralStatus.ACCEPTED,
-          outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+          status = EntityExternalReferralStatus.ACCEPTED,
+          outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
           outcomeNote = "An outcome note",
         ),
       )
@@ -499,7 +499,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       .returnResult().responseBody!!
 
     private fun expectedResponseBodyFor(
-      entity: OtherAccommodationReferralEntity,
+      entity: ExternalReferralEntity,
       createdBy: String = NAME_OF_TEST_DATA_SETUP_USER,
       createdByUsername: String = USERNAME_OF_TEST_DATA_SETUP_USER,
     ): String = expectedExternalReferralResponseBody(
@@ -524,7 +524,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
   inner class UpdateExternalReferral {
     @Test
     fun `should update external referral and return 200 with updated data`() {
-      val existingEntity = createOtherAccommodationReferralEntity(
+      val existingEntity = createExternalReferralEntity(
         referenceNumber = "REF-001",
         organisationName = "Organisation name",
         website = "https://www.charity.org",
@@ -551,7 +551,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .expectBody<String>()
         .returnResult().responseBody!!
 
-      val updatedRecord = otherAccommodationReferralRepository.findByCaseId(case.id)!!
+      val updatedRecord = externalReferralRepository.findByCaseId(case.id)!!
       assertThat(updatedRecord.referenceNumber).isEqualTo("REF-002")
       assertThat(updatedRecord.submissionDate).isEqualTo(LocalDate.of(2026, 1, 20))
       assertThat(updatedRecord.organisationName).isEqualTo("New organisation name")
@@ -593,7 +593,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 404 when updating external referral with CRN that does not match`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/OTHERCRN/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -605,7 +605,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 403 when user does not have the required role for update`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -617,7 +617,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should accept external referral with an outcome reason and note`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       val result = restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -650,7 +650,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should reject external referral with an outcome reason and note`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       val result = restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -683,7 +683,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 400 when accepting external referral without an outcome reason`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -699,7 +699,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 400 when accepting external referral with a REJECTED-only outcome reason`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -716,7 +716,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 400 when providing an outcome reason for a SUBMITTED status`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
         .contentType(MediaType.APPLICATION_JSON)
@@ -736,7 +736,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
   inner class CreateExternalReferralNote {
     @Test
     fun `should create a note for external referral`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
       val note1Value = "Test note 1"
       val note2Value = "Test note 2"
 
@@ -746,7 +746,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .withDeliusUserJwt()
         .exchangeSuccessfully()
 
-      var persistedResult = otherAccommodationReferralRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
+      var persistedResult = externalReferralRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
       assertThat(persistedResult.notes.first().note).isEqualTo(note1Value)
 
       restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/notes")
@@ -755,7 +755,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .withDeliusUserJwt()
         .exchangeSuccessfully()
 
-      persistedResult = otherAccommodationReferralRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
+      persistedResult = externalReferralRepository.findByIdAndCrnWithNotes(existingEntity.id, crn)!!
       val sortedNotes = persistedResult.notes.sortedByDescending { it.createdAt }
       assertThat(sortedNotes.first().note).isEqualTo(note2Value)
       assertThat(sortedNotes[1].note).isEqualTo(note1Value)
@@ -773,7 +773,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should not create a note when crn not found`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.post().uri("/cases/${UUID.randomUUID()}/external-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -785,7 +785,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should fail with Bad Request for empty note`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -797,7 +797,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should fail with Bad Request for note exceeding 4000 characters`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -809,7 +809,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 403 for createNote when user does not have the required role`() {
-      val existingEntity = createOtherAccommodationReferralEntity()
+      val existingEntity = createExternalReferralEntity()
 
       restTestClient.post().uri("/cases/$crn/external-referral/${existingEntity.id}/notes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -896,7 +896,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
       val commitTimesAsc = getCommitTimesAsc(UUID.fromString(createdExternalReferralId))
       assertThat(commitTimesAsc).hasSize(2)
-      val createNoteCommitTime = otherAccommodationReferralRepository.findByIdAndCrnWithNotes(UUID.fromString(createdExternalReferralId), crn)!!
+      val createNoteCommitTime = externalReferralRepository.findByIdAndCrnWithNotes(UUID.fromString(createdExternalReferralId), crn)!!
         .notes.first().createdAt
 
       restTestClient.get().uri("/cases/{crn}/external-referral/{id}/timeline", crn, createdExternalReferralId)
@@ -942,8 +942,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createExternalReferralRequestBody(
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
-            status = EntityOtherAccommodationReferralStatus.ACCEPTED.name,
-            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+            status = EntityExternalReferralStatus.ACCEPTED.name,
+            outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -965,8 +965,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               crn = crn,
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
-              newStatus = EntityOtherAccommodationReferralStatus.ACCEPTED.name,
-              outcomeReason = EntityOtherAccommodationReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+              newStatus = EntityExternalReferralStatus.ACCEPTED.name,
+              outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
               outcomeNote = "An outcome note",
             ),
           )
@@ -996,8 +996,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createExternalReferralRequestBody(
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
-            status = EntityOtherAccommodationReferralStatus.REJECTED.name,
-            outcomeReason = EntityOtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+            status = EntityExternalReferralStatus.REJECTED.name,
+            outcomeReason = EntityExternalReferralOutcomeReason.NO_CAPACITY.name,
             outcomeNote = "Another outcome note",
           ),
         )
@@ -1019,8 +1019,8 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               crn = crn,
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
-              newStatus = EntityOtherAccommodationReferralStatus.REJECTED.name,
-              outcomeReason = EntityOtherAccommodationReferralOutcomeReason.NO_CAPACITY.name,
+              newStatus = EntityExternalReferralStatus.REJECTED.name,
+              outcomeReason = EntityExternalReferralOutcomeReason.NO_CAPACITY.name,
               outcomeNote = "Another outcome note",
             ),
           )
@@ -1037,7 +1037,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 404 for timeline when crn does not match`() {
-      val entity = createOtherAccommodationReferralEntity()
+      val entity = createExternalReferralEntity()
 
       restTestClient.get().uri("/cases/{crn}/external-referral/{id}/timeline", "OTHERCRN", entity.id)
         .withDeliusUserJwt()
@@ -1047,7 +1047,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
 
     @Test
     fun `should return 403 for timeline when user does not have the required role`() {
-      val entity = createOtherAccommodationReferralEntity()
+      val entity = createExternalReferralEntity()
 
       restTestClient.get().uri("/cases/{crn}/external-referral/{id}/timeline", crn, entity.id)
         .withDeliusUserJwt(roles = listOf("ROLE_SOME_OTHER_ROLE"))
@@ -1055,9 +1055,9 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .expectStatus().isForbidden
     }
 
-    private fun getCommitTimesAsc(otherAccommodationReferralId: UUID): List<Instant> {
+    private fun getCommitTimesAsc(externalReferralId: UUID): List<Instant> {
       val changes = javers.findChanges(
-        QueryBuilder.byInstanceId(otherAccommodationReferralId, OtherAccommodationReferralEntity::class.java).build(),
+        QueryBuilder.byInstanceId(externalReferralId, ExternalReferralEntity::class.java).build(),
       )
       return changes.groupBy { it.commitMetadata.get().id }.entries
         .map { (_, commitChanges) -> commitChanges.first().commitMetadata.get().commitDateInstant }
@@ -1065,17 +1065,17 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
   }
 
-  private fun createOtherAccommodationReferralEntity(
+  private fun createExternalReferralEntity(
     referenceNumber: String? = "OA-REF-001",
     submissionDate: LocalDate = LocalDate.of(2026, 1, 15),
-    status: EntityOtherAccommodationReferralStatus = EntityOtherAccommodationReferralStatus.SUBMITTED,
+    status: EntityExternalReferralStatus = EntityExternalReferralStatus.SUBMITTED,
     organisationName: String? = null,
     website: String? = null,
     submissionNote: String? = null,
     email: String? = null,
     phoneNumber: String? = null,
-  ): OtherAccommodationReferralEntity = otherAccommodationReferralRepository.save(
-    buildOtherAccommodationReferralEntity(
+  ): ExternalReferralEntity = externalReferralRepository.save(
+    buildExternalReferralEntity(
       crn = crn,
       caseId = case.id,
       referenceNumber = referenceNumber,

@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddressResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockUtils.resolveWireMockUrl
 import java.util.UUID
 
 object CorePersonRecordStubs {
@@ -46,11 +47,13 @@ object CorePersonRecordStubs {
     )
   }
 
-  fun getCorePersonRecordServerErrorResponse(crn: String) {
+  fun getCorePersonRecordServerErrorResponse(crn: String): String {
+    val path = "/person/probation/$crn"
     sasWiremock.stubFor(
-      get(WireMock.urlPathEqualTo("/person/probation/$crn"))
+      get(WireMock.urlPathEqualTo(path))
         .willReturn(serverError()),
     )
+    return resolveWireMockUrl(path)
   }
 
   fun getCorePersonRecordTimeoutResponse(crn: String) {
