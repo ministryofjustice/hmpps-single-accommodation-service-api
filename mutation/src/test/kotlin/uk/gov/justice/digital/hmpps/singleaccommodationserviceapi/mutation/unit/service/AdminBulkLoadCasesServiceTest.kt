@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.OrchestrationResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.CaseIdentifiers
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.AdminBulkLoadCasesService
@@ -57,14 +58,14 @@ class AdminBulkLoadCasesServiceTest {
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
     verify(exactly = 1) {
-      caseApplicationService.createCases(
+      caseApplicationService.createBlankCases(
         eq(
           listOf(
             CrnToPrisonNumber(crn = "CRN1", prisonNumber = "PN1"),
             CrnToPrisonNumber(crn = "CRN2", prisonNumber = null),
           ),
         ),
-        eq(true),
+        eq(CaseRefreshPriority.BULK),
       )
     }
     verify(exactly = 1) { onboardedTeamRepository.createOnboardedTeam(teamCode) }
@@ -81,7 +82,7 @@ class AdminBulkLoadCasesServiceTest {
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false).data
 
-    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
     assertThat(result.teamsProcessed).isEqualTo(1)
     assertThat(result.crnsFound).isZero()
   }
@@ -93,7 +94,7 @@ class AdminBulkLoadCasesServiceTest {
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = true).data
 
-    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
     verify(exactly = 0) { onboardedTeamRepository.createOnboardedTeam(any()) }
     assertThat(result.dryRun).isTrue()
     assertThat(result.crnsFound).isEqualTo(2)
@@ -116,7 +117,7 @@ class AdminBulkLoadCasesServiceTest {
 
     val response = adminBulkLoadCasesService.bulkLoadCases(listOf(teamCode), dryRun = false)
 
-    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
     verify(exactly = 1) { onboardedTeamRepository.createOnboardedTeam(teamCode) }
     assertThat(response.data.teamsProcessed).isZero()
     assertThat(response.data.errors).isEmpty()
@@ -130,7 +131,7 @@ class AdminBulkLoadCasesServiceTest {
     stubTeamCases(CaseIdentifiers(crn = "CRN1", prisonerNumber = null), teamCode = "BROKENTEAM")
     stubTeamCases(CaseIdentifiers(crn = "CRN2", prisonerNumber = null), teamCode = "OKTEAM")
     every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
-    every { caseApplicationService.createCases(listOf(CrnToPrisonNumber("CRN1", null)), any()) } throws
+    every { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber("CRN1", null)), any()) } throws
       RuntimeException("error inserting case for this team")
 
     val result = adminBulkLoadCasesService.bulkLoadCases(listOf("BROKENTEAM", "OKTEAM"), dryRun = false).data
@@ -183,7 +184,7 @@ class AdminBulkLoadCasesServiceTest {
     }
 
     verify(exactly = 0) { teamCaseOrchestrationService.getCasesByTeamCode(any()) }
-    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   private fun stubTeamCases(vararg cases: CaseIdentifiers, teamCode: String = this.teamCode) {
