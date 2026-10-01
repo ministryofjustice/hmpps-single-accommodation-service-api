@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.Cas
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.shared.ApiResponseTransformer.toApiResponseDto
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.comparisons.nullsFirst
 
@@ -26,8 +27,8 @@ class CaseQueryService(
   private val caseOrchestrationService: CaseOrchestrationService,
   private val userService: UserService,
   private val caseRepository: CaseRepository,
+  private val clock: Clock,
 ) {
-  val today: LocalDate = LocalDate.now()
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
@@ -98,6 +99,7 @@ class CaseQueryService(
   )
 
   private fun CaseDto.sortByStatusDate(): Comparable<*>? {
+    val today = LocalDate.now(clock)
     val statusDate = accommodationSummaries?.caseAccommodationStatusDate
 
     return when (accommodationSummaries?.caseAccommodationStatus) {

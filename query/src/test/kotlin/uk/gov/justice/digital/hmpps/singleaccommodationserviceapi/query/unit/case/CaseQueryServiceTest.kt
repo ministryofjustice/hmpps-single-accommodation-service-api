@@ -39,10 +39,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class CaseQueryServiceTest {
+  private val clock: Clock = Clock.fixed(Instant.parse("2026-10-01T00:00:00Z"), ZoneOffset.UTC)
+  private val today: LocalDate = LocalDate.now(clock)
+
   private data class SortCaseDefinition(
     val crn: String,
     val status: CaseAccommodationStatus,
@@ -69,6 +75,7 @@ class CaseQueryServiceTest {
       caseOrchestrationService = caseOrchestrationService,
       userService = userService,
       caseRepository = caseRepository,
+      clock = clock,
     )
   }
 
@@ -492,11 +499,11 @@ class CaseQueryServiceTest {
     @Test
     fun `should sort RISK_OF_NO_FIXED_ABODE by soonest status date, first name, last name, then crn`() {
       val personDtos = setupSortScenario(
-        sortCase(crn = crnFive, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now().plusDays(1), firstName = "Zulu", lastName = "Beta"),
-        sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now().plusDays(1), firstName = "Beta", lastName = "Beta"),
-        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now(), firstName = "Whisky", lastName = "Tango"),
-        sortCase(crn = crnFour, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now().plusDays(1), firstName = "Zulu", lastName = "Beta"),
-        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now().plusDays(1), firstName = "Zulu", lastName = "Alpha"),
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today, firstName = "Whisky", lastName = "Tango"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Alpha"),
       )
 
       val result = caseQueryService.getCases(personDtos = personDtos)
@@ -507,11 +514,11 @@ class CaseQueryServiceTest {
     @Test
     fun `should sort NO_FIXED_ABODE by oldest status date, first name, last name, then crn`() {
       val personDtos = setupSortScenario(
-        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(1), firstName = "Zulu", lastName = "Beta"),
-        sortCase(crn = crnOne, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(2), firstName = "Whisky", lastName = "Tango"),
-        sortCase(crn = crnFive, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(1), firstName = "Zulu", lastName = "Beta"),
-        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(1), firstName = "Beta", lastName = "Beta"),
-        sortCase(crn = crnTwo, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(1), firstName = "Zulu", lastName = "Alpha"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Whisky", lastName = "Tango"),
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Alpha"),
       )
 
       val result = caseQueryService.getCases(personDtos = personDtos)
@@ -523,13 +530,13 @@ class CaseQueryServiceTest {
     @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
     fun `should sort by oldest future status dates, then same rules but for past dates`(status: CaseAccommodationStatus) {
       val personDtos = setupSortScenario(
-        sortCase(crn = crnFive, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
-        sortCase(crn = crnSeven, status = status, statusDate = LocalDate.now(), firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnSix, status = status, statusDate = LocalDate.now().minusDays(1), firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnThree, status = status, statusDate = LocalDate.now().plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnFive, status = status, statusDate = today.minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
+        sortCase(crn = crnSeven, status = status, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnSix, status = status, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnThree, status = status, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
         sortCase(crn = crnOne, status = status, firstName = "Zulu", lastName = "Zulu"),
-        sortCase(crn = crnFour, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "beta", lastName = "beta"),
-        sortCase(crn = crnTwo, status = status, statusDate = LocalDate.now().plusDays(1), firstName = "Alpha", lastName = "Beta"),
+        sortCase(crn = crnFour, status = status, statusDate = today.minusDays(2), firstName = "beta", lastName = "beta"),
+        sortCase(crn = crnTwo, status = status, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Beta"),
       )
 
       val result = caseQueryService.getCases(personDtos = personDtos)
@@ -543,14 +550,14 @@ class CaseQueryServiceTest {
       val crnNine = "X12353"
 
       val personDtos = setupSortScenario(
-        sortCase(crn = crnEight, status = CaseAccommodationStatus.SETTLED, statusDate = LocalDate.now().plusDays(1), firstName = "Beta", lastName = "Beta"),
-        sortCase(crn = crnSix, status = CaseAccommodationStatus.TRANSIENT, statusDate = LocalDate.now(), firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(2), firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnEight, status = CaseAccommodationStatus.SETTLED, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnSix, status = CaseAccommodationStatus.TRANSIENT, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Zulu", lastName = "Zulu"),
         sortCase(crn = crnSeven, status = CaseAccommodationStatus.SETTLED, firstName = "Zulu", lastName = "Zulu"),
-        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now(), firstName = "Zulu", lastName = "Zulu"),
-        sortCase(crn = crnNine, status = CaseAccommodationStatus.SETTLED, statusDate = LocalDate.now(), firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = LocalDate.now().minusDays(1), firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = LocalDate.now().plusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnNine, status = CaseAccommodationStatus.SETTLED, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Alpha"),
         sortCase(crn = crnFive, status = CaseAccommodationStatus.TRANSIENT, firstName = "Zulu", lastName = "Zulu"),
       )
 
