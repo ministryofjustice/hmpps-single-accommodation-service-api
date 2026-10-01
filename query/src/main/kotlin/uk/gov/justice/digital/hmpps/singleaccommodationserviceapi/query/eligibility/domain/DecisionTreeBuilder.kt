@@ -2,8 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -32,7 +33,7 @@ class DecisionTreeBuilder(
   fun ruleSet(
     name: String,
     ruleSet: RuleSet,
-    onFailResult: ServiceResult,
+    onFailResult: ServiceResultNew,
   ) = ruleSet(name, ruleSet, ContextUpdater.constant(onFailResult))
 
   /**
@@ -45,21 +46,29 @@ class DecisionTreeBuilder(
   ) = ruleSet(name, ruleSet, ContextUpdater.identity())
 
   /** Creates a terminal outcome node that returns a fixed ServiceResult. */
-  fun outcome(name: String, result: ServiceResult) = OutcomeNode(name) { _ -> result }
+  fun outcome(name: String, result: ServiceResultNew) = OutcomeNode(name) { _ -> result }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult. */
   fun confirmed() = OutcomeNode("confirmed") { ctx ->
     val result = ctx.currentResult
-    if (result.serviceStatus == ServiceStatus.NOT_ELIGIBLE) {
-      result
-    } else {
-      result.copy(failureReasons = emptyList())
+    when (result.serviceStatus) {
+      ServiceStatusNew.CAS1_NOT_ELIGIBLE,
+      ServiceStatusNew.CAS2_NOT_ELIGIBLE,
+      ServiceStatusNew.CAS3_NOT_ELIGIBLE,
+      ServiceStatusNew.CRS_NOT_REQUIRED,
+      ServiceStatusNew.DTR_NOT_REQUIRED,
+      ServiceStatusNew.CRS_NOT_ELIGIBLE,
+      ServiceStatusNew.DTR_NOT_ELIGIBLE,
+      ServiceStatusNew.PA_NOT_ELIGIBLE,
+      -> result
+
+      else -> result.copy(failureReasons = emptyList())
     }
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible() = OutcomeNode("notEligible") { ctx -> toNotEligibleServiceStatus(ctx.currentResult.failureReasons) }
-  fun notRequired() = OutcomeNode("notRequired") { ctx -> toNotRequiredServiceStatus(ctx.currentResult.failureReasons) }
+  fun notEligible(service: AccommodationService) = OutcomeNode("notEligible") { ctx -> toNotEligibleServiceStatus(service, ctx.currentResult.failureReasons) }
+  fun notRequired(service: AccommodationService) = OutcomeNode("notRequired") { ctx -> toNotRequiredServiceStatus(service, ctx.currentResult.failureReasons) }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult with failure reasons. */
   fun currentOutcome() = OutcomeNode("currentOutcome") { ctx -> ctx.currentResult }

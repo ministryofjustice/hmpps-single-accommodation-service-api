@@ -13,7 +13,7 @@ interface ApprovedPremisesClient {
   fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary
 
   @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
-  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3PremisesSummary
+  fun getCas3CurrentPremises(@PathVariable crn: String): Cas3BookingPremises
 
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
@@ -26,6 +26,9 @@ interface ApprovedPremisesClient {
 
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
+
+  @GetExchange(value = "/cas2/external/referrals/{crn}")
+  fun getCas2ReferralHistory(@PathVariable crn: String): List<Cas2ReferralHistory>
 
   @GetExchange(value = "/cas3/external/referrals/{crn}")
   fun getCas3ReferralHistory(@PathVariable crn: String): List<Cas3ReferralHistory>
@@ -47,6 +50,9 @@ class ApprovedPremisesCachingService(
 ) {
   @Cacheable(ApiCallKeys.GET_CAS1_REFERRAL)
   fun getCas1ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas1Referral(crn) }
+
+  @Cacheable(ApiCallKeys.GET_CAS2_REFERRAL)
+  fun getCas2ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas2ReferralHistory(crn) }
 
   @Cacheable(ApiCallKeys.GET_CAS3_REFERRAL)
   fun getCas3ReferralHistory(crn: String) = getOrNullWhenNotFound { approvedPremisesClient.getCas3ReferralHistory(crn) }

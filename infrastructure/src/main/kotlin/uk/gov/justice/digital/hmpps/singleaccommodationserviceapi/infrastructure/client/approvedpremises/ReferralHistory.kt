@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.StaffDetailsDto
 import java.time.LocalDate
 import java.util.UUID
 
@@ -140,7 +141,42 @@ data class Cas3ReferralHistory(
   }
 }
 
+data class Cas2ReferralHistory(
+  val id: UUID,
+  val applicationId: UUID,
+  val applicationStatus: Cas2AssessmentStatus?,
+  val applicationSubmittedDate: LocalDate,
+  val applicationLastUpdatedDate: LocalDate?,
+  val referralRejectionReason: String?,
+  val localAuthorityArea: String?,
+  val pdu: String?,
+  val referredBy: String,
+  val placementAddress: String?,
+  val uiUrl: String,
+) : CasReferralHistory {
+  enum class Cas2AssessmentStatus(@get:JsonValue val value: String) {
+    MORE_INFO_REQUESTED("moreInfoRequested"),
+    AWAITING_DECISION("awaitingDecision"),
+    ON_WAITING_LIST("onWaitingList"),
+    PLACE_OFFERED("placeOffered"),
+    OFFER_ACCEPTED("offerAccepted"),
+    OFFER_DECLINED("offerDeclined"),
+    WITHDRAWN("withdrawn"),
+    CANCELLED("cancelled"),
+    AWAITING_ARRIVAL("awaitingArrival"),
+    UNKNOWN("unknown"),
+    ;
+
+    companion object {
+      @JvmStatic
+      @JsonCreator
+      fun forValue(value: String): Cas2AssessmentStatus = entries.firstOrNull { it.value == value } ?: UNKNOWN
+    }
+  }
+}
+
 data class DeliusUserDto(
   val name: String,
   val username: String? = null, // TODO make this non-nullable when refactoring
 )
+fun DeliusUserDto?.toStaffDetailsDto() = this?.let { StaffDetailsDto(it.name, it.username) }

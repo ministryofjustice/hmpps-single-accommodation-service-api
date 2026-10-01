@@ -251,6 +251,9 @@ class SubjectAccessRequestServiceTest {
         accommodationTypeEntity = accommodationType,
         createdByUserId = paCreator.id,
         lastUpdatedByUserId = paUpdater.id,
+        startDate = LocalDate.of(2026, 2, 1),
+        endDate = LocalDate.of(2026, 2, 28),
+        name = "Test Accommodation",
       )
 
       val note = buildProposedAccommodationNoteEntity(
@@ -301,6 +304,9 @@ class SubjectAccessRequestServiceTest {
       val pas = result["ProposedAccommodations"] as List<Map<String, Any?>>
       assertThat(pas[0]["createdBy"]).isEqualTo("pa.creator")
       assertThat(pas[0]["lastUpdatedBy"]).isEqualTo("pa.updater")
+      assertThat(pas[0]["name"]).isEqualTo("Test Accommodation")
+      assertThat(pas[0]["startDate"]).isEqualTo(LocalDate.of(2026, 2, 1))
+      assertThat(pas[0]["endDate"]).isEqualTo(LocalDate.of(2026, 2, 28))
 
       val notes = pas[0]["accommodation_notes"] as List<Map<String, Any?>>
       assertThat(notes[0]["createdBy"]).isEqualTo("note.creator")

@@ -1,12 +1,9 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr.completion
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -20,12 +17,11 @@ class DtrCompletionContextUpdater : ContextUpdater() {
   val submitted = "submitted"
 
   override val outcomes = mapOf(
-    notAccepted to ServiceResult(
-      serviceStatus = ServiceStatus.NOT_ACCEPTED,
+    notAccepted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.DTR_NOT_ACCEPTED,
     ),
-    submitted to ServiceResult(
-      serviceStatus = ServiceStatus.SUBMITTED,
-      action = CaseAction(type = CaseActionType.ADD_DTR_OUTCOME, service = AccommodationService.DTR),
+    submitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
       link = EligibilityKeys.ADD_OUTCOME,
     ),
   )

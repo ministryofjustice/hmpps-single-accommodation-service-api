@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,10 +13,6 @@ import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
-@ConditionalOnProperty(
-  name = ["case-refresh.enabled"],
-  havingValue = "true",
-)
 @Service
 class CaseRefreshRequestService(
   private val caseRefreshRequestRepository: CaseRefreshRequestRepository,

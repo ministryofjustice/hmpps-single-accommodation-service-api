@@ -7,7 +7,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Bu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
 import java.time.Duration
 
@@ -16,13 +18,11 @@ class AdminBulkLoadCasesService(
   private val teamCaseOrchestrationService: TeamCaseOrchestrationService,
   private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val onboardedTeamRepository: OnboardedTeamRepository,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
   fun bulkLoadCases(teamCodes: List<String>, dryRun: Boolean): ApiResponseDto<BulkLoadCasesResultDto> {
-    caseRefreshRequestService ?: throw IllegalStateException("Case refresh request service is not enabled")
-
     val normalizedTeamCodes = teamCodes.map { it.trim().uppercase() }
       .filter(String::isNotEmpty)
       .distinct()
@@ -66,6 +66,10 @@ class AdminBulkLoadCasesService(
   }
 
   private fun loadTeam(teamCode: String, dryRun: Boolean): TeamLoadResult {
+    if (!dryRun) {
+      onboardedTeamRepository.createOnboardedTeam(teamCode.uppercase())
+    }
+
     val fetchStartedAt = System.nanoTime()
     val teamCasesResult = teamCaseOrchestrationService.getCasesByTeamCode(teamCode)
     log.info(
@@ -105,14 +109,13 @@ class AdminBulkLoadCasesService(
     }
 
     val writeStartedAt = System.nanoTime()
-    caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) }, createAsBlankRecord = true)
-
-    val caseIds = caseRepository.findByCrns(teamCases.map { it.crn }).map { it.id }
-    caseRefreshRequestService?.requestBulkRefresh(caseIds)
+    caseApplicationService.createBlankCases(
+      teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) },
+      refreshPriority = CaseRefreshPriority.BULK,
+    )
     log.info(
-      "Team {}: requested refresh for {} of {} case(s) ({} created) in {}ms",
+      "Team {}: requested refresh for {} case(s) ({} created) in {}ms",
       teamCode,
-      caseIds.size,
       teamCases.size,
       unpersistedCrns.size,
       millisSince(writeStartedAt),
@@ -122,7 +125,7 @@ class AdminBulkLoadCasesService(
       crnsFound = teamCases.size,
       casesAlreadyPresent = casesAlreadyPresent,
       casesCreated = unpersistedCrns.size,
-      refreshesRequested = caseIds.size,
+      refreshesRequested = teamCases.size,
     )
   }
 

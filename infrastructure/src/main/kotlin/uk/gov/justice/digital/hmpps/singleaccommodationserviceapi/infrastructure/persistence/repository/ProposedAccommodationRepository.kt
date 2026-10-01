@@ -35,10 +35,16 @@ interface ProposedAccommodationRepository : JpaRepository<ProposedAccommodationE
     and (pa.endDate is null or pa.endDate > current_date) 
     and pa.postcode is not null 
     and pa.postcode != ''
+    and (:excludeVerificationFailed = false or pa.verificationStatus is null or pa.verificationStatus != 'FAILED')
+    and (:confirmedOnly = false or pa.nextAccommodationStatus = 'YES')
     order by pa.createdAt desc 
   """,
   )
-  fun findAllProposedAccommodationByCrnOrderByCreatedAtDesc(crn: String): List<ProposedAccommodationEntity>
+  fun findAllProposedAccommodationByCrnOrderByCreatedAtDesc(
+    crn: String,
+    excludeVerificationFailed: Boolean,
+    confirmedOnly: Boolean,
+  ): List<ProposedAccommodationEntity>
 
   @Query(
     """

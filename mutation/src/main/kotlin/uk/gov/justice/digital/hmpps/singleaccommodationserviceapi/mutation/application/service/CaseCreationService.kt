@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
 import jakarta.persistence.EntityManager
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -9,6 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.CaseAggregate
+import java.time.LocalDate
 
 @Service
 class CaseCreationService(
@@ -17,24 +17,27 @@ class CaseCreationService(
   private val caseRepository: CaseRepository,
   private val caseMapper: CaseMapper,
   private val entityManager: EntityManager,
-  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
+  fun saveUnpersistedCasesAsBlankRows(casesToCreate: List<CaseToCreate>) {
     val unpersistedCrns = caseRepository
-      .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
+      .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
       .toSet()
 
     if (unpersistedCrns.isEmpty()) {
       return
     }
 
-    crnsToPrisonNumbers
+    casesToCreate
       .filter { it.crn in unpersistedCrns }
       .map {
         caseMapper.create(
-          snapshot = CaseAggregate.hydrateNew().snapshot(),
+          snapshot = CaseAggregate.hydrateNew(
+            firstName = it.firstName,
+            lastName = it.lastName,
+            dateOfBirth = it.dateOfBirth,
+          ).snapshot(),
           crn = it.crn,
           prisonNumber = it.prisonNumber,
         )
@@ -43,30 +46,23 @@ class CaseCreationService(
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  fun saveUnpersistedCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
-    if (caseListV2Enabled) {
-      val unpersistedCrns = caseRepository
-        .findUnpersistedCrns(crnsToPrisonNumbers.map { it.crn }.toTypedArray())
-        .toSet()
+  fun saveUnpersistedCases(casesToCreate: List<CaseToCreate>) {
+    val unpersistedCrns = caseRepository
+      .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
+      .toSet()
 
-      if (unpersistedCrns.isEmpty()) {
-        return
-      }
-      crnsToPrisonNumbers
-        .filter { it.crn in unpersistedCrns }
-        .forEach {
-          upsertCase(it.crn, it.prisonNumber, upsertData = caseListV2Enabled)
-        }
-    } else {
-      saveUnpersistedCasesAsBlankRows(crnsToPrisonNumbers)
+    if (unpersistedCrns.isEmpty()) {
+      return
     }
+    casesToCreate
+      .filter { it.crn in unpersistedCrns }
+      .forEach {
+        upsertCase(it.crn, it.prisonNumber)
+      }
   }
 
   @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?) = upsertCase(crn = crn, prisonNumber = prisonNumber, upsertData = true)
-
-  @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?, upsertData: Boolean): CaseEntity {
+  fun upsertCase(crn: String, prisonNumber: String?): CaseEntity {
     val caseDto = caseOrchestrationService.getCurrentCaseResult(crn = crn, prisonNumber = prisonNumber).data
 
     val existingCase = caseRepository.findByIdentifiers(
@@ -75,9 +71,7 @@ class CaseCreationService(
     )
 
     val aggregate = existingCase?.let(caseMapper::toAggregate) ?: CaseAggregate.hydrateNew()
-    if (upsertData) {
-      caseSnapshotAssembler.upsertCase(aggregate, caseDto)
-    }
+    caseSnapshotAssembler.upsertCase(aggregate, caseDto)
 
     val entity = existingCase?.let {
       caseMapper.merge(it, aggregate.snapshot())
@@ -86,3 +80,11 @@ class CaseCreationService(
     return caseRepository.save(entity)
   }
 }
+
+data class CaseToCreate(
+  val crn: String,
+  val prisonNumber: String?,
+  val firstName: String? = null,
+  val lastName: String? = null,
+  val dateOfBirth: LocalDate? = null,
+)

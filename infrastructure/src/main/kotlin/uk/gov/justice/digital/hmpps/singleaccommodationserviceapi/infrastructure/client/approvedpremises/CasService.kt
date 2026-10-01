@@ -2,5 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 enum class CasService(val urlPath: String) {
   CAS1("cas1"),
+  CAS2("cas2"),
   CAS3("cas3"),
 }

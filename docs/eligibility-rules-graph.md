@@ -65,11 +65,11 @@ flowchart TD
   Cas2Upcoming["Cas2Upcoming"]
   Cas2Suitability["Cas2Suitability"]
   Cas2Completion["Cas2Completion"]
-  placementBooked["placementBooked"]
+  awaitingArrival["awaitingArrival"]
   confirmed["confirmed"]
   Cas2Eligibility["Cas2Eligibility"]
   notEligible["notEligible"]
-  Cas2Completion -->|PASS| placementBooked
+  Cas2Completion -->|PASS| awaitingArrival
   Cas2Completion -->|FAIL| confirmed
   Cas2Eligibility -->|PASS| confirmed
   Cas2Eligibility -->|FAIL| notEligible
@@ -86,14 +86,15 @@ flowchart TD
 
 
 **Cas2Suitability** (RuleSet)
-- `Cas2ApplicationPresentRule`: FAIL if candidate does not have an application
+- `Cas2ApplicationSubmittedRule`: FAIL if candidate does not have a submitted application
+- `Cas2SuitableStatusRule`: FAIL if candidate has an unsuitable status
 
 
 **Cas2Completion** (RuleSet)
-- `Cas2ApplicationCompletionRule`: FAIL if application is not complete
+- `Cas2ApplicationAwaitingArrivalRule`: FAIL if application is not awaiting arrival
 
 
-**placementBooked** (Outcome)
+**awaitingArrival** (Outcome)
 
 **confirmed** (Outcome)
 
@@ -135,7 +136,7 @@ flowchart TD
 
 
 **Cas3Completion** (RuleSet)
-- `Cas3ApplicationCompletionRule`: FAIL if CAS3 application is not complete
+- `Cas3ApplicationConfirmedRule`: FAIL if CAS3 application is not confirmed
 
 
 **bookingConfirmed** (Outcome)
@@ -279,9 +280,10 @@ flowchart TD
 | Cas1ApplicationRelevantExpiredRule | FAIL if expired application is not upcoming or arrived | Cas1Suitability | CAS1 |
 | Cas1ApplicationSuitabilityRule | FAIL if candidate does not have a suitable application | Cas1Suitability | CAS1 |
 | Cas1SexValidationRule | FAIL if candidate has no sex | Cas1Validation | CAS1 |
-| Cas2ApplicationCompletionRule | FAIL if application is not complete | Cas2Completion | CAS2 |
-| Cas2ApplicationPresentRule | FAIL if candidate does not have an application | Cas2Suitability | CAS2 |
-| Cas3ApplicationCompletionRule | FAIL if CAS3 application is not complete | Cas3Completion | CAS3 |
+| Cas2ApplicationAwaitingArrivalRule | FAIL if application is not awaiting arrival | Cas2Completion | CAS2 |
+| Cas2ApplicationSubmittedRule | FAIL if candidate does not have a submitted application | Cas2Suitability | CAS2 |
+| Cas2SuitableStatusRule | FAIL if candidate has an unsuitable status | Cas2Suitability | CAS2 |
+| Cas3ApplicationConfirmedRule | FAIL if CAS3 application is not confirmed | Cas3Completion | CAS3 |
 | Cas3ApplicationNotSuitableRule | FAIL if candidate has suitable CAS3 application | PaEligibility | PA |
 | Cas3ApplicationPresentSuitabilityRule | FAIL if CAS3 application is not present | Cas3Suitability | CAS3 |
 | Cas3ApplicationSuitabilityRule | FAIL if CAS3 application is not suitable | Cas3Suitability | CAS3 |

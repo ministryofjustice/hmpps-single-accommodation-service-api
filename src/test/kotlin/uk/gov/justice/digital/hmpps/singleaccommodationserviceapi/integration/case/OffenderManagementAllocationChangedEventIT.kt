@@ -68,7 +68,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
   }
 
   @Test
-  fun `case should be upserted and successfully processed when case is not known but user is`() {
+  fun `blank case should be created and refreshed when case is not known but user is`() {
     userRepository.save(
       buildUserEntity(
         username = "KNOWN_NOMIS_USER",
@@ -95,7 +95,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
   }
 
   @Test
-  fun `case should be upserted when prison is onboarded and staff code is missing`() {
+  fun `blank case should be created and refreshed when prison is onboarded and staff code is missing`() {
     val responses = WiremockStubber().setupCaseOrchestrationStubs(crn = crn, prisonNumber = prisonNumber)
     publishOffenderManagementAllocationChangedEvent(
       prisonNumber = prisonNumber,
@@ -143,7 +143,7 @@ class OffenderManagementAllocationChangedEventIT : DomainEventIntegrationTestBas
     waitFor {
       assertThat(testSentryService.exceptions).hasSize(1)
       assertThat(testSentryService.exceptions.single().message)
-        .contains("Unexpected error dispatching to handler")
+        .contains("Unexpected error dispatching event")
       assertThat(testSentryService.exceptions.single().cause?.message)
         .contains("This requires a single CRN in cpr identifiers for prisonNumber")
     }

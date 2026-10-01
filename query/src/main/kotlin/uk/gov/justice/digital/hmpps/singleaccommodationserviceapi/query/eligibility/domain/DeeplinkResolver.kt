@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.ApprovedPremisesCachingService
 
 @Component
@@ -12,15 +12,14 @@ class DeeplinkResolver(
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun resolve(result: ServiceResult, data: DomainData): ServiceResult {
+  fun resolve(result: ServiceResultNew, data: DomainData): ServiceResultNew {
     val url = when (result.linkType) {
       LinkType.CAS1_START_APPLICATION -> cas1UrlTemplates()?.cas1ApplicationStart
       LinkType.CAS1_VIEW_APPLICATION -> data.cas1Application?.uiUrl
 
-      // TODO: this endpoint doesn't exist in CAS yet.
-      LinkType.CAS2_START_APPLICATION -> null
-
+      LinkType.CAS2_START_APPLICATION -> cas2UrlTemplates()?.cas2ApplicationStart
       LinkType.CAS2_VIEW_APPLICATION -> data.cas2Application?.uiUrl
+
       LinkType.CAS3_START_REFERRAL -> cas3UrlTemplates()?.cas3ReferralStart
       LinkType.CAS3_VIEW_REFERRAL -> data.cas3Application?.uiUrl
       null -> return result

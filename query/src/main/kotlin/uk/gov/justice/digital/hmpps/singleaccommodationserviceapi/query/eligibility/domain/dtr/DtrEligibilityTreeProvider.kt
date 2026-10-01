@@ -2,10 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionNode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
@@ -36,13 +34,13 @@ class DtrEligibilityTreeProvider(
 
   override fun initialContext(data: DomainData): EvaluationContext = EvaluationContext(
     data = data,
-    currentResult = ServiceResult(serviceStatus = ServiceStatus.ACCEPTED),
+    currentResult = ServiceResultNew(serviceStatus = ServiceStatusNew.DTR_ACCEPTED),
   )
 
   private fun build(): DecisionNode {
     val confirmed = builder.confirmed()
-    val notRequired = builder.notRequired()
-    val accepted = builder.outcome("accepted", ServiceResult(ServiceStatus.ACCEPTED))
+    val notRequired = builder.notRequired(AccommodationService.DTR)
+    val accepted = builder.outcome("accepted", ServiceResultNew(ServiceStatusNew.DTR_ACCEPTED))
 
     val completionNode = builder
       .ruleSet("DtrCompletion", completion, completionContextUpdater)
@@ -69,9 +67,8 @@ class DtrEligibilityTreeProvider(
       .ruleSet(
         "DtrSuitability",
         suitability,
-        onFailResult = ServiceResult(
-          serviceStatus = ServiceStatus.NOT_STARTED,
-          action = CaseAction(type = CaseActionType.ADD_DTR_REFERRAL_DETAILS, service = AccommodationService.DTR),
+        onFailResult = ServiceResultNew(
+          serviceStatus = ServiceStatusNew.DTR_NOT_STARTED,
           link = EligibilityKeys.ADD_REFERRAL_DETAILS,
         ),
       )

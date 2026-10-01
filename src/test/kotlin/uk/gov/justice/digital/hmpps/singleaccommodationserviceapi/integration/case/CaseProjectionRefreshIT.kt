@@ -12,13 +12,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonIdentifier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.PersonReference
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.SnsDomainEvent
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OnboardedTeamEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.CorePersonRecordStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.ProbationIntegrationDeliusStubs
@@ -40,6 +43,9 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
 
   @Autowired
   lateinit var tierEventHandlerConfig: TierEventHandlerConfig
+
+  @Autowired
+  lateinit var onboardedTeamRepository: OnboardedTeamRepository
 
   private lateinit var crn: String
 
@@ -121,6 +127,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
       }
 
       IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_UPDATED,
+      IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED,
       IncomingHmppsDomainEventType.TIER_CALCULATION_CHANGED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CANCELLED,
       IncomingHmppsDomainEventType.APPROVED_PREMISES_BOOKING_CHANGED,
@@ -138,6 +145,7 @@ class CaseProjectionRefreshIT : DomainEventIntegrationTestBase() {
 
       IncomingHmppsDomainEventType.PERSON_COMMUNITY_MANAGER_ALLOCATED,
       -> {
+        onboardedTeamRepository.save(OnboardedTeamEntity(teamCode = buildTeam().code))
         ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
           CaseSummaries(listOf(buildCaseSummary(crn = crn, nomsId = prisonNumber))),
         )

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
@@ -10,13 +11,13 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas2ApplicationAwaitingArrivalRuleTest {
-  private val description = "FAIL if application is awaiting arrival"
+  private val description = "FAIL if application is not awaiting arrival"
 
   @Test
   fun `application is complete so rule passes`() {
     val cas2Application = buildCas2Application(
       submittedApplication = buildCas2SubmittedApplicationSummary(
-        latestAssessmentStatus = "awaitingArrival",
+        latestAssessmentStatus = Cas2AssessmentStatus.AWAITING_ARRIVAL,
       ),
     )
 
@@ -38,7 +39,7 @@ class Cas2ApplicationAwaitingArrivalRuleTest {
   fun `application not completed so rule fails`() {
     val cas2Application = buildCas2Application(
       submittedApplication = buildCas2SubmittedApplicationSummary(
-        latestAssessmentStatus = "STARTED",
+        latestAssessmentStatus = Cas2AssessmentStatus.PLACE_OFFERED,
       ),
     )
 

@@ -36,10 +36,12 @@ object ApiCallKeys {
 
   // approved-premises service - referrals
   const val GET_CAS1_REFERRAL = "getCas1ReferralByCrn"
+  const val GET_CAS2_REFERRAL = "getCas2ReferralByCrn"
   const val GET_CAS3_REFERRAL = "getCas3ReferralByCrn"
 
   val excludeUpstreamErrorWhen404 = listOf(
     GET_CAS1_REFERRAL,
+    GET_CAS2_REFERRAL,
     GET_CAS3_REFERRAL,
     GET_CAS_1_CURRENT_PREMISES,
     GET_CAS_3_CURRENT_PREMISES,

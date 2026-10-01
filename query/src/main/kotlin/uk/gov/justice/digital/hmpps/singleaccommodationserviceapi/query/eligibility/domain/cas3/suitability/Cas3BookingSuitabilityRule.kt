@@ -18,7 +18,7 @@ class Cas3BookingSuitabilityRule : Rule {
       Cas3BookingStatus.CLOSED,
     )
 
-    val ruleStatus = if (data.cas3Application?.bookingStatus in expiredStatuses) RuleStatus.FAIL else RuleStatus.PASS
+    val ruleStatus = if (data.cas3Application?.submittedApplication?.latestBooking?.status in expiredStatuses) RuleStatus.FAIL else RuleStatus.PASS
 
     return RuleResult(
       description = description,

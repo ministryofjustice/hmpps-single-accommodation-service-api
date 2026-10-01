@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability.Cas3AssessmentSuitabilityRule
@@ -21,8 +23,14 @@ class Cas3AssessmentSuitabilityRuleTest {
   fun `application has unsuitable assessment status so rule fails`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
-        assessmentStatus = assessmentStatus,
-        bookingStatus = null,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          assessmentStatus = assessmentStatus,
+          assessmentRejectionReason = if (assessmentStatus == Cas3AssessmentStatus.REJECTED) "Some reason" else null,
+          latestBooking = buildCas3LatestBooking(
+            status = null,
+          ),
+        ),
       ),
     )
 
@@ -41,8 +49,13 @@ class Cas3AssessmentSuitabilityRuleTest {
   fun `application does not have unsuitable assessment status so rule passes`(assessmentStatus: Cas3AssessmentStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
-        assessmentStatus = assessmentStatus,
-        bookingStatus = null,
+        applicationStatus = Cas3ApplicationStatus.SUBMITTED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          assessmentStatus = assessmentStatus,
+          latestBooking = buildCas3LatestBooking(
+            status = null,
+          ),
+        ),
       ),
     )
 
@@ -62,8 +75,13 @@ class Cas3AssessmentSuitabilityRuleTest {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-        assessmentStatus = assessmentStatus,
-        bookingStatus = Cas3BookingStatus.ARRIVED,
+        submittedApplication = buildCas3SubmittedApplicationDto(
+          assessmentStatus = assessmentStatus,
+          assessmentRejectionReason = if (assessmentStatus == Cas3AssessmentStatus.REJECTED) "Some reason" else null,
+          latestBooking = buildCas3LatestBooking(
+            status = Cas3BookingStatus.ARRIVED,
+          ),
+        ),
       ),
     )
 

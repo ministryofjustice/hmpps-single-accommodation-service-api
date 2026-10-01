@@ -7,6 +7,8 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
@@ -28,8 +30,12 @@ class Cas3ApplicationNotSuitableRuleTest {
     val cas3Application = buildCas3Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      assessmentStatus = null,
-      bookingStatus = null,
+      submittedApplication = buildCas3SubmittedApplicationDto(
+        assessmentStatus = null,
+        latestBooking = buildCas3LatestBooking(
+          status = null,
+        ),
+      ),
     )
 
     val data = buildDomainData(
@@ -59,8 +65,16 @@ class Cas3ApplicationNotSuitableRuleTest {
     val cas3Application = buildCas3Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      assessmentStatus = null,
-      bookingStatus = null,
+      submittedApplication = if (status == Cas3ApplicationStatus.REJECTED) {
+        buildCas3SubmittedApplicationDto(
+          assessmentStatus = null,
+          latestBooking = buildCas3LatestBooking(
+            status = null,
+          ),
+        )
+      } else {
+        null
+      },
     )
 
     val data = buildDomainData(

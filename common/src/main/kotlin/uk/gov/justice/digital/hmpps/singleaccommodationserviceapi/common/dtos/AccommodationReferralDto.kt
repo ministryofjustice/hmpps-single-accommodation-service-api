@@ -10,6 +10,7 @@ data class AccommodationReferralDto(
   val assessmentStatus: String?,
   val requestForPlacementStatus: String?,
   val date: LocalDate,
+  val applicationLastUpdatedDate: LocalDate?,
   val referralRejectionReason: String?,
   val referralRejectionReasonDetail: String?,
   val localAuthorityArea: String?,
@@ -33,6 +34,12 @@ enum class AccommodationReferralStatus {
   REQUEST_REJECTED,
   REQUEST_WITHDRAWN,
   ARCHIVED,
+  MORE_INFORMATION_REQUESTED,
+  PLACE_OFFERED,
+  AWAITING_ARRIVAL,
+  AWAITING_DECISION,
+  ON_WAITING_LIST,
+  OFFER_DECLINED_OR_WITHDRAWN,
 }
 
 enum class AccommodationService {

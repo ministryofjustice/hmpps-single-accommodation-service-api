@@ -11,11 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
@@ -28,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1UrlTemplates
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2UrlTemplates
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
@@ -51,7 +51,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -61,6 +63,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.dutytorefer.DutyToReferQueryService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityNewToOldTransformer.toEligibilityDtoOld
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityOrchestrationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityService
@@ -97,7 +100,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.upcoming.Cas2UpcomingRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.Cas3EligibilityTreeProvider
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationCompletionRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationConfirmedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.eligibility.Cas3EligibilityRuleSet
@@ -142,7 +145,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.DefaultRuleSetEvaluator
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildEligibilityDtoNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.CsvReader
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.utils.MutableClock
@@ -207,7 +210,7 @@ class EligibilityServiceTest {
     Cas3BookingSuitabilityRule(),
     Cas3AssessmentSuitabilityRule(),
   )
-  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationCompletionRule())
+  var cas3CompletionRuleSet = Cas3CompletionRuleSet(Cas3ApplicationConfirmedRule())
   var cas3EligibilityRuleSet = Cas3EligibilityRuleSet(
     CurrentAccommodationTypeRule(),
     NoNextAccommodationRule(),
@@ -487,26 +490,14 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.getEligibility(crn)
 
+      val eligibility = buildEligibilityDtoNew(crn)
+
       val expected = ApiResponseDto(
-        data = buildEligibilityDto(crn),
+        data = toEligibilityDtoOld(eligibility),
         upstreamFailures = listOf(toUpstreamFailureDto(upstreamFailure)),
       )
       assertThat(result).isEqualTo(expected)
     }
-  }
-
-  // helper for building expected action for upcoming service status scenarios
-  private fun expectedAction(
-    type: CaseActionType?,
-    status: ServiceStatus?,
-    startDate: LocalDate?,
-    service: AccommodationService,
-  ) = type?.let {
-    CaseAction(
-      type = it,
-      startDate = if (status == ServiceStatus.UPCOMING) startDate else null,
-      service = service,
-    )
   }
 
   @Nested
@@ -531,7 +522,7 @@ class EligibilityServiceTest {
               )
             },
             cas1PlacementStatus = row["cas1PlacementStatus"]?.let { Cas1PlacementStatus.valueOf(it) },
-            expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatus.valueOf(it) },
+            expectedCas1Status = row["expectedCas1Status"]?.let { ServiceStatusNew.valueOf(it) },
             expectedCas1Action = row["expectedCas1Action"]?.let { CaseActionType.valueOf(it) },
             expectedCas1Link = row["expectedCas1Link"],
             expectedCas1Url = row["expectedCas1Url"],
@@ -585,7 +576,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas1Status}")
           .isEqualTo(s.expectedCas1Status)
 
-        assertThat(result.action).isEqualTo(expectedAction(s.expectedCas1Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1), AccommodationService.CAS1))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas1Action)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusYears(1)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS1)
         assertThat(result.link).isEqualTo(s.expectedCas1Link)
 
         val expectedUrl = when (s.expectedCas1Url) {
@@ -617,8 +616,8 @@ class EligibilityServiceTest {
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             isApplicationPresent = row["isApplicationPresent"]!!,
             submittedAt = row["submittedAt"]?.toLocalDate(),
-            cas2ApplicationStatus = row["cas2ApplicationStatus"],
-            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatus.valueOf(it) },
+            cas2ApplicationStatus = row["cas2ApplicationStatus"]?.let { Cas2AssessmentStatus.forValue(it) },
+            expectedCas2Status = row["expectedCas2Status"]?.let { ServiceStatusNew.valueOf(it) },
             expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
             expectedCas2Link = row["expectedCas2Link"],
             expectedCas2Url = row["expectedCas2Url"],
@@ -672,12 +671,20 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedCas2Status}")
           .isEqualTo(s.expectedCas2Status)
 
-        assertThat(result.action).isEqualTo(expectedAction(s.expectedCas2Action, result.serviceStatus, s.currentAccommodationEndDate?.minusYears(1), AccommodationService.CAS2))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas2Action)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusYears(1)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS2)
         assertThat(result.link).isEqualTo(s.expectedCas2Link)
 
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
-          "/applications/start" -> null
+          "/applications/start" -> cas2ApplicationStartUrl
           else -> cas2Application?.uiUrl
         }
         assertThat(result.url).isEqualTo(expectedUrl)
@@ -705,7 +712,7 @@ class EligibilityServiceTest {
             hasNextAccommodation = row["hasNextAccommodation"]!!,
             dtrStatus = row["dtrStatus"]?.let { DtrStatus.valueOf(it) },
             dtrSubmissionDate = row["dtrSubmissionDate"]?.toLocalDate(),
-            expectedDtrStatus = row["expectedDtrStatus"]?.let { ServiceStatus.valueOf(it) },
+            expectedDtrStatus = row["expectedDtrStatus"]?.let { ServiceStatusNew.valueOf(it) },
             expectedDtrAction = row["expectedDtrAction"]?.let { CaseActionType.valueOf(it) },
             expectedDtrLink = row["expectedDtrLink"],
             expectedFailureReasons = row["expectedFailureReasons"]
@@ -768,7 +775,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Service Status: ${result.serviceStatus}, Expected Service Status: ${s.expectedDtrStatus}")
           .isEqualTo(s.expectedDtrStatus)
 
-        assertThat(result.action).isEqualTo(expectedAction(s.expectedDtrAction, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(8), AccommodationService.DTR))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedDtrAction)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(8)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.DTR)
         assertThat(result.link).isEqualTo(s.expectedDtrLink)
         assertThat(result.url).isNull()
         assertThat(result.failureReasons)
@@ -797,7 +812,7 @@ class EligibilityServiceTest {
             cas3ApplicationStatus = row["cas3ApplicationStatus"]?.let { Cas3ApplicationStatus.valueOf(it) },
             cas3AssessmentStatus = row["cas3AssessmentStatus"]?.let { Cas3AssessmentStatus.valueOf(it) },
             cas3BookingStatus = row["cas3BookingStatus"]?.let { Cas3BookingStatus.valueOf(it) },
-            expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatus.valueOf(it) },
+            expectedCas3Status = row["expectedCas3Status"]?.let { ServiceStatusNew.valueOf(it) },
             expectedCas3Action = row["expectedCas3Action"]?.let { CaseActionType.valueOf(it) },
             expectedCas3Link = row["expectedCas3Link"],
             expectedCas3Url = row["expectedCas3Url"]?.takeIf { it.isNotBlank() },
@@ -834,8 +849,21 @@ class EligibilityServiceTest {
         val cas3Application = s.cas3ApplicationStatus?.let {
           buildCas3Application(
             applicationStatus = it,
-            bookingStatus = s.cas3BookingStatus,
-            assessmentStatus = s.cas3AssessmentStatus,
+            submittedApplication = if (it != Cas3ApplicationStatus.IN_PROGRESS) {
+              buildCas3SubmittedApplicationDto(
+                assessmentStatus = s.cas3AssessmentStatus,
+                assessmentRejectionReason = if (s.cas3AssessmentStatus == Cas3AssessmentStatus.REJECTED) {
+                  "the reason"
+                } else {
+                  null
+                },
+                latestBooking = buildCas3LatestBooking(
+                  status = s.cas3BookingStatus,
+                ),
+              )
+            } else {
+              null
+            },
           )
         }
 
@@ -901,7 +929,9 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCas3Status}")
           .isEqualTo(s.expectedCas3Status)
 
-        assertThat(result.action).isEqualTo(expectedAction(s.expectedCas3Action, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(4), AccommodationService.CAS3))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas3Action)
+        assertThat(result.actionStartDate).isNull()
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS3)
         assertThat(result.link).isEqualTo(s.expectedCas3Link)
 
         val expectedUrl = when (s.expectedCas3Url) {
@@ -934,7 +964,7 @@ class EligibilityServiceTest {
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             currentAccommodationSettledType = row["currentAccommodationSettledType"]?.takeIf { it.isNotBlank() }?.let { AccommodationSettledType.valueOf(it) },
             crsStatus = row["crsStatus"]?.let { CrsReferralStatus.valueOf(it) },
-            expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatus.valueOf(it) },
+            expectedCrsStatus = row["expectedCrsStatus"]?.let { ServiceStatusNew.valueOf(it) },
             expectedCrsAction = row["expectedCrsAction"]?.let { CaseActionType.valueOf(it) },
             expectedCrsLink = row["expectedCrsLink"],
             crsSubmissionDate = row["crsSubmissionDate"]?.toLocalDate(),
@@ -994,7 +1024,15 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedCrsStatus}")
           .isEqualTo(s.expectedCrsStatus)
 
-        assertThat(result.action).isEqualTo(expectedAction(s.expectedCrsAction, result.serviceStatus, s.currentAccommodationEndDate?.minusWeeks(12), AccommodationService.CRS))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCrsAction)
+        assertThat(result.actionStartDate).isEqualTo(
+          if (result.serviceStatus.isUpcoming) {
+            s.currentAccommodationEndDate?.minusWeeks(12)
+          } else {
+            null
+          },
+        )
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CRS)
         assertThat(result.link).isEqualTo(s.expectedCrsLink)
         if (s.expectedCrsLink == null) {
           assertThat(result.url).isNull()
@@ -1022,7 +1060,7 @@ class EligibilityServiceTest {
             hasNextAccommodation = row["hasNextAccommodation"]!!,
             isSubmittedCas1 = row["isSubmittedCas1"]!!,
             isSubmittedCas3 = row["isSubmittedCas3"]!!,
-            expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatus.valueOf(it) },
+            expectedPaStatus = row["expectedPaStatus"]?.let { ServiceStatusNew.valueOf(it) },
             expectedPaAction = row["expectedPaAction"]?.let { CaseActionType.valueOf(it) },
             expectedFailureReasons = row["expectedFailureReasons"]
               ?.takeIf { it.isNotBlank() }
@@ -1061,8 +1099,12 @@ class EligibilityServiceTest {
         val cas3Application = if (s.isSubmittedCas3.toBoolean()) {
           buildCas3Application(
             applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-            assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
-            bookingStatus = Cas3BookingStatus.CONFIRMED,
+            submittedApplication = buildCas3SubmittedApplicationDto(
+              assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
+              latestBooking = buildCas3LatestBooking(
+                status = Cas3BookingStatus.CONFIRMED,
+              ),
+            ),
           )
         } else {
           null
@@ -1087,7 +1129,9 @@ class EligibilityServiceTest {
           .withFailMessage("${s.testCaseId} - ${s.description}, actual: ${result.serviceStatus}, expected: ${s.expectedPaStatus}")
           .isEqualTo(s.expectedPaStatus)
 
-        assertThat(result.action).isEqualTo(expectedAction(s.expectedPaAction, result.serviceStatus, null, AccommodationService.PA))
+        assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedPaAction)
+        assertThat(result.actionStartDate).isNull()
+        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.PA)
         assertThat(result.link).isNull()
         assertThat(result.url).isNull()
 
@@ -1115,7 +1159,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas1Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.S_TIER)
     }
 
@@ -1131,7 +1175,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas1Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.MALE_NOT_HIGH_RISK_TIER)
     }
 
@@ -1147,7 +1191,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas1Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
     }
 
@@ -1158,7 +1202,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas1Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.SEX_DATA_NOT_AVAILABLE)
     }
 
@@ -1177,7 +1221,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(cas3Tree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.INVALID_CURRENT_ACCOMMODATION_TYPE)
     }
 
@@ -1194,7 +1238,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(dtrTree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_REQUIRED)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
       assertThat(result.failureReasons).contains(FailureReason.HAS_NEXT_ACCOMMODATION)
     }
 
@@ -1214,7 +1258,7 @@ class EligibilityServiceTest {
 
       val result = eligibilityService.evaluate(paTree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.PA_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS1_APPLICATION)
     }
 
@@ -1225,14 +1269,18 @@ class EligibilityServiceTest {
         cas1Application = null,
         cas3Application = buildCas3Application(
           applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-          assessmentStatus = null,
-          bookingStatus = null,
+          submittedApplication = buildCas3SubmittedApplicationDto(
+            assessmentStatus = null,
+            latestBooking = buildCas3LatestBooking(
+              status = null,
+            ),
+          ),
         ),
       )
 
       val result = eligibilityService.evaluate(paTree, data)
 
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatus.NOT_ELIGIBLE)
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.PA_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.SUITABLE_CAS3_APPLICATION)
     }
   }
@@ -1248,7 +1296,7 @@ data class Cas1Scenario(
   val cas1ApplicationStatus: Cas1ApplicationStatus?,
   val cas1RequestForPlacementStatus: Cas1RequestForPlacementStatus?,
   val cas1PlacementStatus: Cas1PlacementStatus?,
-  val expectedCas1Status: ServiceStatus?,
+  val expectedCas1Status: ServiceStatusNew?,
   val expectedCas1Action: CaseActionType?,
   val expectedCas1Link: String?,
   val expectedCas1Url: String?,
@@ -1262,8 +1310,8 @@ data class Cas2Scenario(
   val currentAccommodationEndDate: LocalDate?,
   val isApplicationPresent: String,
   val submittedAt: LocalDate?,
-  val cas2ApplicationStatus: String?,
-  val expectedCas2Status: ServiceStatus?,
+  val cas2ApplicationStatus: Cas2AssessmentStatus?,
+  val expectedCas2Status: ServiceStatusNew?,
   val expectedCas2Action: CaseActionType?,
   val expectedCas2Link: String?,
   val expectedCas2Url: String?,
@@ -1278,7 +1326,7 @@ data class DtrScenario(
   val hasNextAccommodation: String,
   val dtrStatus: DtrStatus?,
   val dtrSubmissionDate: LocalDate?,
-  val expectedDtrStatus: ServiceStatus?,
+  val expectedDtrStatus: ServiceStatusNew?,
   val expectedDtrAction: CaseActionType?,
   val expectedDtrLink: String?,
   val expectedFailureReasons: List<FailureReason>,
@@ -1297,7 +1345,7 @@ data class Cas3Scenario(
   val cas3ApplicationStatus: Cas3ApplicationStatus?,
   val cas3AssessmentStatus: Cas3AssessmentStatus?,
   val cas3BookingStatus: Cas3BookingStatus?,
-  val expectedCas3Status: ServiceStatus?,
+  val expectedCas3Status: ServiceStatusNew?,
   val sexCode: SexCode?,
   val expectedCas3Action: CaseActionType?,
   val expectedCas3Link: String?,
@@ -1316,7 +1364,7 @@ data class CrsScenario(
   val currentAccommodationSettledType: AccommodationSettledType?,
   val crsSubmissionDate: LocalDate?,
   val crsStatus: CrsReferralStatus?,
-  val expectedCrsStatus: ServiceStatus?,
+  val expectedCrsStatus: ServiceStatusNew?,
   val expectedCrsAction: CaseActionType?,
   val expectedCrsLink: String?,
   val expectedFailureReasons: List<FailureReason>,
@@ -1328,7 +1376,7 @@ data class PaScenario(
   val hasNextAccommodation: String,
   val isSubmittedCas1: String,
   val isSubmittedCas3: String,
-  val expectedPaStatus: ServiceStatus?,
+  val expectedPaStatus: ServiceStatusNew?,
   val expectedPaAction: CaseActionType?,
   val expectedFailureReasons: List<FailureReason>,
 )

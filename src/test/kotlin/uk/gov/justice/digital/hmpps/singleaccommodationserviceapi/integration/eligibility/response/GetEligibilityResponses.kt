@@ -163,7 +163,7 @@ fun expectedGetEligibilityResponse(
           "staffCode": "Test1234"
         },
         "applicationRejectedReason": "Oops",
-        "assessmentStatus": "READY_TO_PLACE",
+        "assessmentStatus": "REJECTED",
         "bookingStatus": "CONFIRMED",
         "bookingProvisionalOfferSentDate": "2023-01-02",
         "previousBookings": [
@@ -251,6 +251,7 @@ fun expectedGetEligibilityResponse(
 
 fun expectedGetEligibilityUpstreamFailuresResponse(
   crn: String,
+  upstreamUrl: String,
 ): String = """
 {
    "data":{
@@ -334,7 +335,7 @@ fun expectedGetEligibilityUpstreamFailuresResponse(
          "endpoint":"getTierByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message": "500 Internal Server Error from GET $upstreamUrl",
          "identifier":null
       }
    ]
@@ -441,7 +442,7 @@ fun expectedGetEligibilityResponseTierNotFound(
       "cas3Application": {
         "id": "$cas3ApplicationId",
         "applicationStatus": "SUBMITTED",
-        "applicationSubmittedDate": null,
+        "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
           "name": "Test Tester",
           "username": "TestTester",
@@ -605,7 +606,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
       "cas3Application": {
         "id": "$cas3ApplicationId",
         "applicationStatus": "SUBMITTED",
-        "applicationSubmittedDate": null,
+        "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
           "name": "Test Tester",
           "username": "TestTester",
@@ -737,7 +738,7 @@ fun expectedGetEligibilityResponseCannotStartYet(
       "cas3Application": {
         "id": "$cas3ApplicationId",
         "applicationStatus": "REJECTED",
-        "applicationSubmittedDate": null,
+        "applicationSubmittedDate": "2025-01-02",
         "applicationSubmittedBy": {
           "name": "Test Tester",
           "username": "TestTester",

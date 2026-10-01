@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
@@ -65,7 +65,7 @@ class RestClientRetryIT : IntegrationTestBase() {
     fun `should fail after 3 attempts when getCase fails all times`() {
       SasAndDeliusStubs.stubGetCaseFailure(username, "crn")
 
-      val error = assertThrows<RestClientResponseException> {
+      val error = assertThrows<WebClientResponseException> {
         sasAndDeliusCachingService.getCase(username, "crn")
       }
 

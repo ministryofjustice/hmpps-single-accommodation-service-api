@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.suitability
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAction
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
@@ -25,36 +23,32 @@ class Cas3SuitabilityContextUpdater : ContextUpdater() {
   val startReferral = "startReferral"
 
   override val outcomes = mapOf(
-    startNewReferral to ServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
+    startNewReferral to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
       link = EligibilityKeys.START_NEW_REFERRAL,
       linkType = LinkType.CAS3_START_REFERRAL,
     ),
-    rejected to ServiceResult(
-      serviceStatus = ServiceStatus.REJECTED,
-      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
+    rejected to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS3_REJECTED,
       link = EligibilityKeys.START_NEW_REFERRAL,
       linkType = LinkType.CAS3_START_REFERRAL,
     ),
-    notSubmitted to ServiceResult(
-      serviceStatus = ServiceStatus.NOT_SUBMITTED,
-      action = CaseAction(type = CaseActionType.CONTINUE_CAS3_REFERRAL, service = AccommodationService.CAS3),
+    notSubmitted to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
       link = EligibilityKeys.CONTINUE_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
-    startReferral to ServiceResult(
-      serviceStatus = ServiceStatus.NOT_STARTED,
-      action = CaseAction(type = CaseActionType.START_CAS3_REFERRAL, service = AccommodationService.CAS3),
+    startReferral to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
       link = EligibilityKeys.START_REFERRAL,
       linkType = LinkType.CAS3_START_REFERRAL,
     ),
   )
 
-  override fun toServiceResult(context: EvaluationContext): ServiceResult {
+  override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
     val applicationStatus = context.data.cas3Application?.applicationStatus
-    val assessmentStatus = context.data.cas3Application?.assessmentStatus
-    val bookingStatus = context.data.cas3Application?.bookingStatus
+    val assessmentStatus = context.data.cas3Application?.submittedApplication?.assessmentStatus
+    val bookingStatus = context.data.cas3Application?.submittedApplication?.latestBooking?.status
     return when (bookingStatus) {
       Cas3BookingStatus.ARRIVED,
       Cas3BookingStatus.CLOSED,

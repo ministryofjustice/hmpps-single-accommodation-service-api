@@ -25,4 +25,6 @@ class ApprovedPremisesAndDeliusCachingService(
 
   @Cacheable(ApiCallKeys.GET_STAFF_DETAIL, key = "#username", sync = true)
   fun getStaffDetail(username: String) = approvedPremisesAndDeliusClient.getStaffDetail(username)
+
+  fun postCaseSummaries(crns: List<String>) = approvedPremisesAndDeliusClient.postCaseSummaries(crns)
 }

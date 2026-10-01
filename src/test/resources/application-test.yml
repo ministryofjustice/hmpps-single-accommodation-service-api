@@ -68,7 +68,6 @@ event:
     duty-to-refer-updated: http://api-host/duty-to-refers/#id
 
 case-refresh:
-  enabled: true
   worker:
     fixed-delay: 50ms
     max-requests-per-run: 10
@@ -101,6 +100,7 @@ hmpps:
               "core-person-record.probation.address.updated",
               "core-person-record.probation.address.deleted",
               "core-person-record.probation.record.updated",
+              "core-person-record.probation.record.merged",
               "prisoner-offender-search.prisoner.released",
               "prisoner-offender-search.prisoner.received",
               "prisoner-offender-search.prisoner.updated",
@@ -129,7 +129,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0051"
+      expected-flyway-schema-version: "0058"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:
@@ -140,7 +140,6 @@ test-data-setup:
 
 case-list:
   page-size: 1
-  onboarded-teams: 12345
   onboarded-prison-codes:
     - SAS
 

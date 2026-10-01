@@ -13,10 +13,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.client.RestTestClient
 import tools.jackson.databind.json.JsonMapper
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.SentryCaptureTestConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestCacheConfig
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.config.TestClockConfig
@@ -285,3 +287,7 @@ abstract class IntegrationTestBase {
     )
   }
 }
+
+inline fun <reified T> RestTestClient.ResponseSpec.expectApiResponse(): ApiResponseDto<T> = expectBody(object : ParameterizedTypeReference<ApiResponseDto<T>>() {})
+  .returnResult()
+  .responseBody!!
