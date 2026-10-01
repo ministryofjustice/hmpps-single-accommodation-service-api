@@ -113,8 +113,8 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should leave a new case blank when the tier API call fails during the refresh`() {
-    TierStubs.getTierServerErrorResponse(crn)
     stubCaseRefresherUpstreams()
+    TierStubs.getTierServerErrorResponse(crn)
 
     // when
     publishCaseAllocatedEvent()
@@ -134,8 +134,8 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   @Test
   fun `should not overwrite an existing case with a failed refresh when the tier API call fails`() {
     val existing = caseRepository.save(buildCaseEntity(tierScore = "A3", firstName = "Existing", lastName = "Case") { withCrn(crn) })
-    TierStubs.getTierServerErrorResponse(crn)
     stubCaseRefresherUpstreams()
+    TierStubs.getTierServerErrorResponse(crn)
 
     // when
     publishCaseAllocatedEvent()
