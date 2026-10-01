@@ -523,12 +523,12 @@ class CaseQueryServiceTest {
     @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
     fun `should sort by oldest future status dates, then same rules but for past dates`(status: CaseAccommodationStatus) {
       val personDtos = setupSortScenario(
-        sortCase(crn = crnSix, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnSix, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
         sortCase(crn = crnTwo, status = status, statusDate = LocalDate.now(), firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnSeven, status = status, statusDate = LocalDate.now().minusDays(1), firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnSeven, status = status, statusDate = LocalDate.now().minusDays(1), firstName = "Alpha", lastName = "Alpha"),
         sortCase(crn = crnFour, status = status, statusDate = LocalDate.now().plusDays(1), firstName = "Beta", lastName = "Beta"),
         sortCase(crn = crnOne, status = status, firstName = "Zulu", lastName = "Zulu"),
-        sortCase(crn = crnFive, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnFive, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "beta", lastName = "beta"),
         sortCase(crn = crnThree, status = status, statusDate = LocalDate.now().plusDays(1), firstName = "Alpha", lastName = "Beta"),
       )
 

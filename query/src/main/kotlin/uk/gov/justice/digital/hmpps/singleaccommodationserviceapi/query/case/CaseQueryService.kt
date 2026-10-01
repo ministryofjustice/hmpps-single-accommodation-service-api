@@ -91,8 +91,9 @@ class CaseQueryService(
   private fun List<CaseDto>.sortCases(): List<CaseDto> = sortedWith(
     compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus }
       .thenBy { it.sortByStatusDate() }
-      .thenBy { it.surname }
-      .thenBy { it.forename }
+      .thenBy { it.accommodationSummaries?.caseAccommodationStatusDate }
+      .thenBy { it.surname?.lowercase() }
+      .thenBy { it.forename?.lowercase() }
       .thenBy { it.crn },
   )
 
