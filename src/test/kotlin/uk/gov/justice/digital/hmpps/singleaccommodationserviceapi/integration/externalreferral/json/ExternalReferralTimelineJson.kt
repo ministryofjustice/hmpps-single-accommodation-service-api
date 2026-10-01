@@ -1,10 +1,10 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.otheraccommodationreferral.json
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.externalreferral.json
 
 import java.util.UUID
 
 @Suppress("LongParameterList")
-fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
-  otherAccommodationReferralId: UUID,
+fun expectedGetExternalReferralOutcomeTimelineResponse(
+  externalReferralId: UUID,
   caseId: UUID,
   crn: String,
   createCommitTime: String,
@@ -54,7 +54,7 @@ fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
          "changes":[
             {
                "field":"id",
-               "value":"$otherAccommodationReferralId",
+               "value":"$externalReferralId",
                "oldValue":null
             },
             {
@@ -98,8 +98,8 @@ fun expectedGetOtherAccommodationReferralOutcomeTimelineResponse(
 }
 """.trimIndent()
 
-fun expectedGetOtherAccommodationReferralTimelineResponse(
-  otherAccommodationReferralId: UUID,
+fun expectedGetExternalReferralTimelineResponse(
+  externalReferralId: UUID,
   caseId: UUID,
   crn: String,
   createCommitTime: String,
@@ -118,7 +118,7 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
          "changes":[
             {
                "field":"id",
-               "value":"$otherAccommodationReferralId",
+               "value":"$externalReferralId",
                "oldValue":null
             },
             {
@@ -168,8 +168,8 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
 """.trimIndent()
 
 @Suppress("LongParameterList")
-fun expectedGetOtherAccommodationReferralTimelineResponse(
-  otherAccommodationReferralId: UUID,
+fun expectedGetExternalReferralTimelineResponse(
+  externalReferralId: UUID,
   caseId: UUID,
   crn: String,
   referenceNumber: String,
@@ -226,7 +226,7 @@ fun expectedGetOtherAccommodationReferralTimelineResponse(
          "changes":[
             {
                "field":"id",
-               "value":"$otherAccommodationReferralId",
+               "value":"$externalReferralId",
                "oldValue":null
             },
             {

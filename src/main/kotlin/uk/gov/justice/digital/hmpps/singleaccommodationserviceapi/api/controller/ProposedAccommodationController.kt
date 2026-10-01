@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.api.controller
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,16 +36,19 @@ class ProposedAccommodationController(
   private val proposedAccommodationQueryService: ProposedAccommodationQueryService,
   private val proposedAccommodationTimelineService: ProposedAccommodationTimelineService,
   private val accommodationSyncService: AccommodationSyncService,
-  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")
   @GetMapping("/cases/{crn}/proposed-accommodations")
-  fun getAll(@PathVariable crn: String, @RequestParam(required = false, defaultValue = "false") excludeVerificationFailed: Boolean): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
+  fun getAll(
+    @PathVariable crn: String,
+    @RequestParam(required = false, defaultValue = "false") excludeVerificationFailed: Boolean,
+    @RequestParam(required = false, defaultValue = "false") confirmedOnly: Boolean,
+  ): ResponseEntity<ApiResponseDto<List<ProposedAccommodationDto>>> {
     val persistedCase = caseQueryService.getPersistedCase(crn) ?: run {
       val result = caseQueryService.getCaseFromDelius(crn)
       handleUpstreamFailure(result.upstreamFailures)
-      caseCreationService.upsertCase(crn, result.data!!.nomsNumber, upsertData = caseListV2Enabled)
+      caseCreationService.upsertCase(crn, result.data!!.nomsNumber)
     }
     if (!persistedCase.hasSyncedCprProposedAccommodation) {
       val cprAccommodations = accommodationQueryService.getAllAccommodations(crn)
@@ -56,7 +58,7 @@ class ProposedAccommodationController(
         cprAccommodations.data,
       )
     }
-    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn, excludeVerificationFailed)))
+    return ResponseEntity.ok(ApiResponseDto(data = proposedAccommodationQueryService.getProposedAccommodations(crn, excludeVerificationFailed, confirmedOnly)))
   }
 
   @PreAuthorize("hasAnyRole('SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER')")

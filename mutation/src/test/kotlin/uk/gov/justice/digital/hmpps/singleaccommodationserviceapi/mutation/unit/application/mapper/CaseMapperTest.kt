@@ -136,6 +136,7 @@ class CaseMapperTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+      accommodationStatusDate = LocalDate.now(),
       roshLevelCode = "RMRH",
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
@@ -162,6 +163,7 @@ class CaseMapperTest {
       { assertThat(mergedEntity.currentAccommodation).isEqualTo(currentAccommodation) },
       { assertThat(mergedEntity.nextAccommodation).isEqualTo(nextAccommodation) },
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE) },
+      { assertThat(mergedEntity.accommodationStatusDate).isEqualTo(LocalDate.now()) },
       { assertThat(mergedEntity.roshLevelCode).isEqualTo("RMRH") },
     )
   }
@@ -235,6 +237,7 @@ class CaseMapperTest {
       currentAccommodation = currentAccommodation,
       nextAccommodation = nextAccommodation,
       accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+      accommodationStatusDate = LocalDate.now(),
       roshLevelCode = "RVHR",
     )
     caseAggregate.markCaseAsSyncedWithCprProposedAccommodation()
@@ -266,6 +269,7 @@ class CaseMapperTest {
       { assertThat(mergedEntity.currentAccommodation).isEqualTo(currentAccommodation) },
       { assertThat(mergedEntity.nextAccommodation).isEqualTo(nextAccommodation) },
       { assertThat(mergedEntity.accommodationStatus).isEqualTo(CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE) },
+      { assertThat(mergedEntity.accommodationStatusDate).isEqualTo(LocalDate.now()) },
       { assertThat(mergedEntity.roshLevelCode).isEqualTo("RVHR") },
     )
   }

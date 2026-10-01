@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.a
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
@@ -116,13 +117,18 @@ class AccommodationHistoryControllerIT : IntegrationTestBase() {
 
   @Test
   fun `get accommodation history for crn should return partial success when CPR call returns server error`() {
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+    val upstreamUrl = CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
+
     restTestClient.get().uri("/cases/{crn}/accommodation-history", crn)
       .withDeliusUserJwt()
       .exchangeSuccessfully()
-      .expectBody(String::class.java)
+      .expectBody<String>()
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedGetAccommodationHistoryWithUpstreamFailureResponse())
+        assertThatJson(it!!).matchesExpectedJson(
+          expectedGetAccommodationHistoryWithUpstreamFailureResponse(
+            upstreamUrl,
+          ),
+        )
       }
   }
 }

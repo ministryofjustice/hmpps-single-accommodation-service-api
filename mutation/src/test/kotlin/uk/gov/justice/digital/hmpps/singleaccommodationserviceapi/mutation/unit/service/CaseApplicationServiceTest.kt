@@ -9,6 +9,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummaryName
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
@@ -27,6 +29,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseToCreate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
@@ -60,6 +63,9 @@ class CaseApplicationServiceTest {
     @MockK
     lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
+    @RelaxedMockK
+    lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `createCases() retries multiple times on DataIntegrityViolation exception`(createAsBlankRecord: Boolean) {
@@ -73,6 +79,7 @@ class CaseApplicationServiceTest {
       every { caseCreationService.saveUnpersistedCases(any()) } throws
         DataIntegrityViolationException("duplicate-1") andThenThrows
         DataIntegrityViolationException("duplicate-2") andThenJust runs
+      every { caseRepository.findByCrns(any()) } returns emptyList()
 
       caseApplicationService.createCases(crnToPrisonNumbers, createAsBlankRecord = createAsBlankRecord)
 
@@ -126,11 +133,19 @@ class CaseApplicationServiceTest {
     @MockK
     lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
+    @RelaxedMockK
+    lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
     @InjectMockKs
     lateinit var caseApplicationService: CaseApplicationService
 
     private val crns = listOf("A111111", "B222222", "C333333")
     private val dateOfBirth = LocalDate.of(1990, 1, 2)
+
+    @BeforeEach
+    fun setup() {
+      every { caseRepository.findByCrns(any()) } returns emptyList()
+    }
 
     @Test
     fun `does not query for unpersisted crns or call delius when createCases is used`() {
@@ -320,6 +335,71 @@ class CaseApplicationServiceTest {
       }
 
       assertThat(exception.message).isEqualTo("invalidCrns: A111111, B222222, C333333")
+    }
+  }
+
+  @Nested
+  inner class RequestRefresh {
+    @MockK
+    lateinit var caseRepository: CaseRepository
+
+    @RelaxedMockK
+    lateinit var caseCreationService: CaseCreationService
+
+    @MockK
+    lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
+
+    @RelaxedMockK
+    lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
+    @InjectMockKs
+    lateinit var caseApplicationService: CaseApplicationService
+
+    private val crns = listOf("A111111", "B222222")
+    private val caseIds = listOf(UUID.randomUUID(), UUID.randomUUID())
+
+    @BeforeEach
+    fun setup() {
+      every { caseRepository.findByCrns(crns) } returns caseIds.map { buildCaseEntity(id = it) }
+    }
+
+    @Test
+    fun `createCases() as blank records requests a bulk refresh for every given case`() {
+      caseApplicationService.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
+
+      verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
+    }
+
+    @Test
+    fun `createCases() not as blank records does not request a refresh`() {
+      caseApplicationService.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = false)
+
+      verify(exactly = 0) { caseRepository.findByCrns(any()) }
+      verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
+    }
+
+    @Test
+    fun `createValidatedCases() requests a bulk refresh for every given case`() {
+      every { caseRepository.findUnpersistedCrns(any()) } returns emptyList()
+
+      caseApplicationService.createValidatedCases(crns)
+
+      verify(exactly = 1) { caseRefreshRequestService.requestBulkRefresh(caseIds) }
+    }
+
+    @Test
+    fun `completes without requesting a refresh when the case refresh mechanism is not enabled`() {
+      val service = CaseApplicationService(
+        caseCreationService = caseCreationService,
+        caseRepository = caseRepository,
+        approvedPremisesAndDeliusCachingService = approvedPremisesAndDeliusCachingService,
+        caseRefreshRequestService = null,
+      )
+
+      service.createCases(crns.map { CrnToPrisonNumber(it, null) }, createAsBlankRecord = true)
+
+      verify(exactly = 1) { caseCreationService.saveUnpersistedCasesAsBlankRows(any()) }
+      verify(exactly = 0) { caseRefreshRequestService.requestBulkRefresh(any()) }
     }
   }
 }
