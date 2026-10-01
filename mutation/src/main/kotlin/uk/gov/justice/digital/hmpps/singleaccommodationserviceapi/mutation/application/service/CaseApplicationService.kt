@@ -13,7 +13,7 @@ class CaseApplicationService(
   private val caseCreationService: CaseCreationService,
   private val caseRepository: CaseRepository,
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
   private val maxAttempts = 3
@@ -50,9 +50,8 @@ class CaseApplicationService(
   }
 
   private fun refreshCases(cases: List<CaseToCreate>) {
-    val refreshService = caseRefreshRequestService ?: return
     val caseIds = caseRepository.findByCrns(cases.map { it.crn }).map { it.id }
-    refreshService.requestBulkRefresh(caseIds)
+    caseRefreshRequestService.requestBulkRefresh(caseIds)
   }
 
   private fun validateUnpersistedCrns(crns: List<String>): Map<String, CaseSummary> {

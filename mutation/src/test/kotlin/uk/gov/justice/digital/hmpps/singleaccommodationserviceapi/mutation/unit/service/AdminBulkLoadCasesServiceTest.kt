@@ -186,26 +186,6 @@ class AdminBulkLoadCasesServiceTest {
     verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
   }
 
-  @Test
-  fun `fails before doing anything when the case refresh mechanism is not enabled`() {
-    val service = AdminBulkLoadCasesService(
-      teamCaseOrchestrationService = teamCaseOrchestrationService,
-      caseApplicationService = caseApplicationService,
-      caseRepository = caseRepository,
-      onboardedTeamRepository = onboardedTeamRepository,
-      caseRefreshRequestService = null,
-    )
-
-    val exception = assertThrows<IllegalStateException> {
-      service.bulkLoadCases(listOf(teamCode), dryRun = false)
-    }
-
-    assertThat(exception.message).contains("not enabled")
-    verify(exactly = 0) { teamCaseOrchestrationService.getCasesByTeamCode(any()) }
-    verify(exactly = 0) { caseApplicationService.createCases(any(), any()) }
-    verify(exactly = 0) { onboardedTeamRepository.createOnboardedTeam(any()) }
-  }
-
   private fun stubTeamCases(vararg cases: CaseIdentifiers, teamCode: String = this.teamCode) {
     every { teamCaseOrchestrationService.getCasesByTeamCode(teamCode) } returns OrchestrationResultDto(
       data = cases.toList(),

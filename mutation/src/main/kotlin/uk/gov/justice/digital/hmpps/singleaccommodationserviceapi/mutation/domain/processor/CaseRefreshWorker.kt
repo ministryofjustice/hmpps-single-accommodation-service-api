@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.doma
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
@@ -15,10 +14,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import java.time.Duration
 
 @Component
-@ConditionalOnProperty(
-  name = ["case-refresh.enabled"],
-  havingValue = "true",
-)
 class CaseRefreshWorker(
   private val caseRefreshRequestService: CaseRefreshRequestService,
   private val caseRefreshProcessor: CaseRefreshProcessor,

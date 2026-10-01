@@ -91,7 +91,6 @@ bulk-load:
   page-size: 10000
 
 case-refresh:
-  enabled: true
   worker:
     fixed-delay: 500ms
     max-requests-per-run: 10

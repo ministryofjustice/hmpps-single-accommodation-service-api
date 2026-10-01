@@ -21,7 +21,7 @@ class CprProbationAddressCreatedHandler(
   private val caseRepository: CaseRepository,
   private val corePersonRecordClient: CorePersonRecordClient,
   private val inboxEventHelper: InboxEventHelper,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -39,7 +39,7 @@ class CprProbationAddressCreatedHandler(
     val crn = inboxEventHelper.findCrn(inboxEvent)
     val caseEntity = caseRepository.findByCrn(crn) ?: return InboxEventHandler.Result.IGNORED
     // this triggers a refresh regardless of whether processing the message fails later.
-    caseRefreshRequestService?.requestLiveRefresh(caseEntity.id)
+    caseRefreshRequestService.requestLiveRefresh(caseEntity.id)
 
     val cprAddressIdString = getPartitionKey(inboxEvent)
     val cprAddressId = UUID.fromString(cprAddressIdString)

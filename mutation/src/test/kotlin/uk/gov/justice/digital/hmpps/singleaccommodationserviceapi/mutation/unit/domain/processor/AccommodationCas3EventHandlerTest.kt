@@ -78,13 +78,4 @@ class AccommodationCas3EventHandlerTest {
     assertThat(accommodationCas3EventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
-
-  @Test
-  fun `should not refresh case and should process CAS3 message when refresh request service is null`() {
-    accommodationCas3EventHandler =
-      AccommodationCas3EventHandler(caseRepository, null, inboxEventHelper)
-
-    assertThat(accommodationCas3EventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
-  }
 }

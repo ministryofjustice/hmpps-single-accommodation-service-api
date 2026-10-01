@@ -104,24 +104,6 @@ class OffenderManagementAllocationChangedHandlerTest {
   }
 
   @Test
-  fun `should process OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is known and refresh request service is null`() {
-    offenderManagementAllocationChangedHandler = OffenderManagementAllocationChangedHandler(
-      caseCreationService = caseCreationService,
-      inboxEventHelper = inboxEventHelper,
-      userRepository = userRepository,
-      caseRepository = caseRepository,
-      caseRefreshRequestService = null,
-      corePersonRecordClient = corePersonRecordClient,
-      offenderManagementAllocationChangedProperties = offenderManagementAllocationChangedProperties,
-    )
-
-    every { caseRepository.findByPrisonNumber(prisonNumber) } returns mockk()
-
-    assertThat(offenderManagementAllocationChangedHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
-  }
-
-  @Test
   fun `should ignore OFFENDER_MANAGEMENT_ALLOCATION_CHANGED message when case is unknown and user does not exist`() {
     every { caseRepository.findByPrisonNumber(prisonNumber) } returns null
     every { inboxEventHelper.toDomainEvent(any()) } returns offenderAllocationChangedEvent(prisonId = nonOnboardedPrisonId)
