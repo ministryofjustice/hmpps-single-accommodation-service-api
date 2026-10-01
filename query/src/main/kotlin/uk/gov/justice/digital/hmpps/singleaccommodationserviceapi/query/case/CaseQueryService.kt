@@ -27,6 +27,7 @@ class CaseQueryService(
   private val userService: UserService,
   private val caseRepository: CaseRepository,
 ) {
+  val today: LocalDate = LocalDate.now()
   fun getCaseList(teamCode: String?): ApiResponseDto<List<PersonDto>> {
     val user = userService.authorizeAndRetrieveUser()
     val caseOrchestrationResult = caseOrchestrationService.getCaseList(user.username, teamCode)
@@ -96,7 +97,6 @@ class CaseQueryService(
   )
 
   private fun CaseDto.sortByStatusDate(): Comparable<*>? {
-    val today = LocalDate.now()
     val statusDate = accommodationSummaries?.caseAccommodationStatusDate
 
     return when (accommodationSummaries?.caseAccommodationStatus) {
