@@ -521,7 +521,7 @@ class CaseQueryServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
-    fun `should sort by oldest future status date, first name, last name, then crn, then same rules but for current status date`(status: CaseAccommodationStatus) {
+    fun `should sort by oldest future status dates, then same rules but for past dates`(status: CaseAccommodationStatus) {
       val personDtos = setupSortScenario(
         sortCase(crn = crnSix, status = status, statusDate = LocalDate.now().minusDays(2), firstName = "Beta", lastName = "Beta"),
         sortCase(crn = crnTwo, status = status, statusDate = LocalDate.now(), firstName = "Alpha", lastName = "Alpha"),
