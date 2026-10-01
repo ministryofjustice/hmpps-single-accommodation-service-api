@@ -86,6 +86,8 @@ class CaseQueryServiceTest {
   private val crnFive = "X12349"
   private val crnSix = "X12350"
   private val crnSeven = "X12351"
+  private val crnEight = "X12352"
+  private val crnNine = "X12353"
   private val username = "user1"
 
   val assignedTo = AssignedToDto(
@@ -497,7 +499,7 @@ class CaseQueryServiceTest {
     }
 
     @Test
-    fun `should sort RISK_OF_NO_FIXED_ABODE by soonest status date, first name, last name, then crn`() {
+    fun `should sort RISK_OF_NO_FIXED_ABODE by soonest status date, surname, firstname, then crn`() {
       val personDtos = setupSortScenario(
         sortCase(crn = crnFive, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
         sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
@@ -512,7 +514,7 @@ class CaseQueryServiceTest {
     }
 
     @Test
-    fun `should sort NO_FIXED_ABODE by oldest status date, first name, last name, then crn`() {
+    fun `should sort NO_FIXED_ABODE by oldest status date, surname, firstname, then crn`() {
       val personDtos = setupSortScenario(
         sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
         sortCase(crn = crnOne, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Whisky", lastName = "Tango"),
@@ -530,25 +532,23 @@ class CaseQueryServiceTest {
     @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
     fun `should sort by oldest future status dates, then same rules but for past dates`(status: CaseAccommodationStatus) {
       val personDtos = setupSortScenario(
-        sortCase(crn = crnFive, status = status, statusDate = today.minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
-        sortCase(crn = crnSeven, status = status, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
-        sortCase(crn = crnSix, status = status, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnSix, status = status, statusDate = today.minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
+        sortCase(crn = crnEight, status = status, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnSeven, status = status, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
         sortCase(crn = crnThree, status = status, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnFour, status = status, statusDate = today.plusDays(2), firstName = "Beta", lastName = "Beta"),
         sortCase(crn = crnOne, status = status, firstName = "Zulu", lastName = "Zulu"),
-        sortCase(crn = crnFour, status = status, statusDate = today.minusDays(2), firstName = "beta", lastName = "beta"),
+        sortCase(crn = crnFive, status = status, statusDate = today.minusDays(2), firstName = "beta", lastName = "beta"),
         sortCase(crn = crnTwo, status = status, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Beta"),
       )
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
-      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive, crnSix, crnSeven)
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive, crnSix, crnSeven, crnEight)
     }
 
     @Test
     fun `should sort each status group independently within the overall status ordering`() {
-      val crnEight = "X12352"
-      val crnNine = "X12353"
-
       val personDtos = setupSortScenario(
         sortCase(crn = crnEight, status = CaseAccommodationStatus.SETTLED, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
         sortCase(crn = crnSix, status = CaseAccommodationStatus.TRANSIENT, statusDate = today, firstName = "Alpha", lastName = "Alpha"),

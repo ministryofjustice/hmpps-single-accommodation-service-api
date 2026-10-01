@@ -89,19 +89,20 @@ class CaseQueryService(
       else -> caseDtos
     }
   }
-  private fun List<CaseDto>.sortCases(): List<CaseDto> = sortedWith(
-    compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus }
-      .thenBy { it.sortByStatusDate() }
-      .thenBy { it.accommodationSummaries?.caseAccommodationStatusDate }
-      .thenBy { it.surname?.lowercase() }
-      .thenBy { it.forename?.lowercase() }
-      .thenBy { it.crn },
-  )
-
-  private fun CaseDto.sortByStatusDate(): Comparable<*>? {
+  private fun List<CaseDto>.sortCases(): List<CaseDto> {
     val today = LocalDate.now(clock)
-    val statusDate = accommodationSummaries?.caseAccommodationStatusDate
+    return sortedWith(
+      compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus }
+        .thenBy { it.sortByStatusDate(today) }
+        .thenBy { it.accommodationSummaries?.caseAccommodationStatusDate }
+        .thenBy { it.surname?.lowercase() }
+        .thenBy { it.forename?.lowercase() }
+        .thenBy { it.crn },
+    )
+  }
 
+  private fun CaseDto.sortByStatusDate(today: LocalDate): Comparable<*>? {
+    val statusDate = accommodationSummaries?.caseAccommodationStatusDate
     return when (accommodationSummaries?.caseAccommodationStatus) {
       CaseAccommodationStatus.TRANSIENT,
       CaseAccommodationStatus.SETTLED,
