@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.Cas1SpaceBookingStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ReferralHistory.Cas3BookingStatus
@@ -73,6 +73,7 @@ class AccommodationReferralStatusMapperTest {
       ApprovedPremisesApplicationStatus.REJECTED,
       ApprovedPremisesApplicationStatus.INAPPLICABLE,
       -> AccommodationReferralStatus.REJECTED
+
       ApprovedPremisesApplicationStatus.STARTED,
       ApprovedPremisesApplicationStatus.AWAITING_ASSESSMENT,
       ApprovedPremisesApplicationStatus.UNALLOCATED_ASSESSMENT,
@@ -128,6 +129,7 @@ class AccommodationReferralStatusMapperTest {
       Cas3BookingStatus.ARRIVED,
       Cas3BookingStatus.CONFIRMED,
       -> AccommodationReferralStatus.ACCEPTED
+
       Cas3BookingStatus.PROVISIONAL,
       Cas3BookingStatus.CLOSED,
       -> AccommodationReferralStatus.PENDING
@@ -152,6 +154,7 @@ class AccommodationReferralStatusMapperTest {
       AssessmentStatus.IN_REVIEW,
       AssessmentStatus.READY_TO_PLACE,
       -> AccommodationReferralStatus.PENDING
+
       AssessmentStatus.CLOSED -> AccommodationReferralStatus.ARCHIVED
     }
 
@@ -172,6 +175,7 @@ class AccommodationReferralStatusMapperTest {
       AssessmentStatus.REJECTED,
       AssessmentStatus.CLOSED,
       -> AccommodationReferralStatus.ARCHIVED
+
       AssessmentStatus.UNALLOCATED,
       AssessmentStatus.IN_REVIEW,
       AssessmentStatus.READY_TO_PLACE,
