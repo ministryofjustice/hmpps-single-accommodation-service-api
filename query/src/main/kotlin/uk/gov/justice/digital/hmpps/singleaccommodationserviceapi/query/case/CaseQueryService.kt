@@ -79,7 +79,7 @@ class CaseQueryService(
       }
     }
       .sortedWith(
-        sortByStatus4(),
+        sortByStatus(),
       )
     return when (peopleType) {
       PeopleType.NFA_RISK ->
@@ -90,28 +90,30 @@ class CaseQueryService(
     }
   }
 
-  private fun sortByStatus4(): Comparator<CaseDto> = compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) {
-    it.accommodationSummaries?.caseAccommodationStatus
-  }
+  private fun sortByStatus(): Comparator<CaseDto> = compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus }
     .thenBy {
       when (it.accommodationSummaries?.caseAccommodationStatus) {
         CaseAccommodationStatus.TRANSIENT,
         CaseAccommodationStatus.SETTLED,
-        -> {
-          it.accommodationSummaries?.caseAccommodationStatusDate?.let { date ->
-            if (!date.isBefore(LocalDate.now())) {
-              1
-            } else {
-              2
-            }
-          } ?: 0
-        }
+        -> it.specialStatusDateSortOrder()
         else -> it.accommodationSummaries?.caseAccommodationStatusDate
       }
     }
-    .thenBy { it.crn }
-    .thenBy { it.forename }
     .thenBy { it.surname }
+    .thenBy { it.forename }
+    .thenBy { it.crn }
+
+  private fun CaseDto.specialStatusDateSortOrder(): Int {
+    val today = LocalDate.now()
+    val statusDate = accommodationSummaries?.caseAccommodationStatusDate
+
+    return when {
+      statusDate == null -> 0
+      statusDate.isEqual(today) -> 1
+      statusDate.isAfter(today) -> 2
+      else -> 3
+    }
+  }
   fun getPersistedCase(crn: String) = caseRepository.findByCrn(crn)
 
   fun getCase(crn: String): ApiResponseDto<CaseDto> {
