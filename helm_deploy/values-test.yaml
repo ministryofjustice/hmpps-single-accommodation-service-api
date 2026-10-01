@@ -2,13 +2,20 @@ generic-service:
   serviceAccountName: hmpps-community-accommodation-api-service-account
   replicaCount: 2
 
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      memory: 1.5Gi
+
   ingress:
     host: single-accommodation-service-api-test.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-single-accommodation-service-api-test-cert
 
   env:
     SENTRY_ENVIRONMENT: test
-    JAVA_OPTS: "-Xmx1000m"
+    APPLICATIONINSIGHTS_STATSBEAT_DISABLED: "true"
+    JAVA_TOOL_OPTIONS: "$(JAVA_PROXY_TOOL_OPTIONS) -Xmx1024m"
     SPRING_PROFILES_ACTIVE: dev
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: "applicationinsights.nonprod.json"
     HMPPS_SQS_ENABLED: true
@@ -27,8 +34,13 @@ generic-service:
     EVENT_DETAILS-URL_DUTY-TO-REFER-UPDATED: https://single-accommodation-service-api-test.hmpps.service.justice.gov.uk/duty-to-refers/#id
     SCHEDULING_ENABLED: true
     TIER_V3-ENABLED: false
-    CASE-REFRESH_ENABLED: true
-    CASE-LIST_V2-ENABLED: true
+
+  namespace_secrets:
+    hmpps-envoy-https-proxy-env:
+      HTTP_PROXY: "HTTP_PROXY"
+      HTTPS_PROXY: "HTTPS_PROXY"
+      NO_PROXY: "NO_PROXY"
+      JAVA_PROXY_TOOL_OPTIONS: "JAVA_PROXY_TOOL_OPTIONS"
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts

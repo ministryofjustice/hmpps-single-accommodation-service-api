@@ -12,7 +12,6 @@ class CustomCaseListApplicationService(
   private val userRepository: UserRepository,
   private val caseRepository: CaseRepository,
   private val userCustomCaseListRepository: UserCustomCaseListRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) {
   @Transactional
   fun createCustomCaseList(userId: UUID, crns: List<String>) {
@@ -25,7 +24,5 @@ class CustomCaseListApplicationService(
 
     userCustomCaseListRepository.deleteBySasUserId(userId)
     userCustomCaseListRepository.insertAll(userId, caseIds.toTypedArray())
-
-    caseRefreshRequestService?.requestBulkRefresh(caseIds)
   }
 }

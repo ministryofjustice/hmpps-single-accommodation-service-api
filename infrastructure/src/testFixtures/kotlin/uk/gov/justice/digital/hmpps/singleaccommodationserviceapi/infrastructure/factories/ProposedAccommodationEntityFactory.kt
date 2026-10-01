@@ -52,6 +52,7 @@ fun buildProposedAccommodationEntity(
   nextAccommodationStatus = nextAccommodationStatus,
   startDate = startDate,
   endDate = endDate,
+  name = name,
   postcode = postcode,
   subBuildingName = subBuildingName,
   buildingName = buildingName,

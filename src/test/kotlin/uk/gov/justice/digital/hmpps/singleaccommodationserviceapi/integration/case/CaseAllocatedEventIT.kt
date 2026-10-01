@@ -28,6 +28,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshFailureCategory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.IdentifierType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.OnboardedTeamEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ProcessedStatus
@@ -84,26 +86,6 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
-  fun `should process incoming CASE_ALLOCATED domain event as FAILED when CPR call fails (as we need CPR identifiers to ensure not creating duplicates)`() {
-    CorePersonRecordStubs.getCorePersonRecordServerErrorResponse(crn)
-    ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(response = CaseSummaries(listOf(buildCaseSummary(crn = crn))))
-    TierStubs.getTierOKResponse(crn, response = buildTier(tierScore = "A3"))
-
-    // when
-    publishCaseAllocatedEvent()
-
-    // then
-    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    testInboxEventHelper.assertMessageProcessed()
-
-    val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)
-    assertThat(case).isNotNull()
-    assertThat(case?.firstName).isNull()
-    assertThat(case?.lastName).isNull()
-    assertThat(case?.dateOfBirth).isNull()
-  }
-
-  @Test
   fun `should process incoming CASE_ALLOCATED domain event as NOT_PROCESSED when case is NOT allocated to a SAS onboarded team`() {
     ProbationIntegrationDeliusStubs.postCaseSummariesOKResponse(
       response = CaseSummaries(
@@ -130,20 +112,47 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   }
 
   @Test
-  fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when tier API call fails`() {
+  fun `should leave a new case blank when the tier API call fails during the refresh`() {
+    stubCaseRefresherUpstreams()
     TierStubs.getTierServerErrorResponse(crn)
-    val (cpr, cas1CurrentPremises) = stubCaseRefresherUpstreams()
 
     // when
     publishCaseAllocatedEvent()
 
     // then
     assertPublishedSNSEvent(detailUrl = eventDetailUrl())
-    assertSuccessful(
-      expectedCas1Premises = cas1CurrentPremises,
-      expectedTier = null,
-      expectedCpr = cpr,
-    )
+    testInboxEventHelper.assertMessageProcessed()
+
+    val caseId = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }.id
+    waitForFailedRefreshAttempt(caseId)
+    val case = caseRepository.findById(caseId).get()
+    assertThat(case.tierScore).isNull()
+    assertThat(case.firstName).isNull()
+    assertThat(case.lastName).isNull()
+  }
+
+  @Test
+  fun `should not overwrite an existing case with a failed refresh when the tier API call fails`() {
+    val existing = caseRepository.save(buildCaseEntity(tierScore = "A3", firstName = "Existing", lastName = "Case") { withCrn(crn) })
+    stubCaseRefresherUpstreams()
+    TierStubs.getTierServerErrorResponse(crn)
+
+    // when
+    publishCaseAllocatedEvent()
+
+    // then
+    testInboxEventHelper.assertMessageProcessed()
+    waitForFailedRefreshAttempt(existing.id)
+    val case = caseRepository.findById(existing.id).get()
+    assertThat(case.tierScore).isEqualTo("A3")
+    assertThat(case.firstName).isEqualTo("Existing")
+  }
+
+  private fun waitForFailedRefreshAttempt(caseId: UUID) = waitFor {
+    val request = caseRefreshRequestRepository.findAll().single { it.caseId == caseId }
+    assertThat(request.priority).isEqualTo(CaseRefreshPriority.LIVE)
+    assertThat(request.attemptCount).isGreaterThanOrEqualTo(1)
+    assertThat(request.lastFailureCategory).isEqualTo(CaseRefreshFailureCategory.UPSTREAM_SERVER_ERROR)
   }
 
   private fun shouldProcessCaseAllocationEventSuccessfully() {
@@ -211,24 +220,27 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
   ) {
     testInboxEventHelper.assertMessageProcessed()
 
-    val case = waitForEntity { caseRepository.findByIdentifier(crn, IdentifierType.CRN) }
-    assertThat(case.tierScore).isEqualTo(expectedTier)
-    assertThat(case.firstName).isEqualTo(expectedCpr?.firstName)
-    assertThat(case.lastName).isEqualTo(expectedCpr?.lastName)
-    assertThat(case.dateOfBirth).isEqualTo(expectedCpr?.dateOfBirth)
-    assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-    assertThat(case.roshLevelCode).isEqualTo("RMRH")
+    // the case is created blank and populated asynchronously by the case refresh worker
+    waitFor {
+      val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
+      assertThat(case.tierScore).isEqualTo(expectedTier)
+      assertThat(case.firstName).isEqualTo(expectedCpr?.firstName)
+      assertThat(case.lastName).isEqualTo(expectedCpr?.lastName)
+      assertThat(case.dateOfBirth).isEqualTo(expectedCpr?.dateOfBirth)
+      assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
+      assertThat(case.roshLevelCode).isEqualTo("RMRH")
 
-    val currentAccommodation = case.currentAccommodation!!
-    assertThat(currentAccommodation.address.postcode).isEqualTo("SW1A 1AA")
-    assertThat(currentAccommodation.type?.code).isEqualTo(AddressUsageCode.A02.name)
-    assertThat(currentAccommodation.startDate).isEqualTo(expectedCas1Premises.startDate)
-    assertThat(currentAccommodation.endDate).isEqualTo(expectedCas1Premises.endDate)
+      val currentAccommodation = case.currentAccommodation!!
+      assertThat(currentAccommodation.address.postcode).isEqualTo("SW1A 1AA")
+      assertThat(currentAccommodation.type?.code).isEqualTo(AddressUsageCode.A02.name)
+      assertThat(currentAccommodation.startDate).isEqualTo(expectedCas1Premises.startDate)
+      assertThat(currentAccommodation.endDate).isEqualTo(expectedCas1Premises.endDate)
 
-    val nextAccommodation = case.nextAccommodation!!
-    assertThat(nextAccommodation.address.postcode).isEqualTo("SW1A 1AD")
-    assertThat(nextAccommodation.startDate).isNull()
-    assertThat(nextAccommodation.endDate).isNull()
+      val nextAccommodation = case.nextAccommodation!!
+      assertThat(nextAccommodation.address.postcode).isEqualTo("SW1A 1AD")
+      assertThat(nextAccommodation.startDate).isNull()
+      assertThat(nextAccommodation.endDate).isNull()
+    }
   }
 
   private fun assertPublishedSNSEvent(

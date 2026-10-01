@@ -81,16 +81,4 @@ class ProbationCaseEventHandlerTest {
     assertThat(probationCaseEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
   }
-
-  @Test
-  fun `should not refresh case and should process probation case message when refresh request service is null`() {
-    probationCaseEventHandler =
-      ProbationCaseEventHandler(caseRepository, null, inboxEventHelper)
-
-    every { caseRepository.findByCrn(crn) } returns mockk()
-    every { inboxEventHelper.findCrn(any()) } returns crn
-
-    assertThat(probationCaseEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 0) { caseRefreshRequestService.requestLiveRefresh(any()) }
-  }
 }

@@ -15,8 +15,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.CaseAllocationHandler
@@ -26,7 +28,7 @@ import java.util.UUID
 class CaseAllocationHandlerTest {
 
   @RelaxedMockK
-  private lateinit var caseCreationService: CaseCreationService
+  private lateinit var caseApplicationService: CaseApplicationService
 
   @MockK
   private lateinit var inboxEventHelper: InboxEventHelper
@@ -55,12 +57,12 @@ class CaseAllocationHandlerTest {
   }
 
   @Test
-  fun `should create the case when it is allocated to an onboarded team`() {
+  fun `should create a blank case with a live refresh when it is allocated to an onboarded team`() {
     stubCaseAllocatedToTeam("TEAM1")
     every { onboardedTeamRepository.existsById("TEAM1") } returns true
 
     assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 1) { caseCreationService.upsertCase(crn, nomsId) }
+    verify(exactly = 1) { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber(crn, nomsId)), CaseRefreshPriority.LIVE) }
   }
 
   @Test
@@ -69,7 +71,7 @@ class CaseAllocationHandlerTest {
     every { onboardedTeamRepository.existsById("TEAM2") } returns false
 
     assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
-    verify(exactly = 0) { caseCreationService.upsertCase(any(), any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test

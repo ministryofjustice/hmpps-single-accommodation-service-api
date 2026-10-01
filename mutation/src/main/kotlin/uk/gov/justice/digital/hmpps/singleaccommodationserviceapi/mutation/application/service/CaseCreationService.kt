@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service
 
 import jakarta.persistence.EntityManager
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -18,7 +17,6 @@ class CaseCreationService(
   private val caseRepository: CaseRepository,
   private val caseMapper: CaseMapper,
   private val entityManager: EntityManager,
-  @param:Value($$"${case-list.v2-enabled}") val caseListV2Enabled: Boolean,
 ) {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -49,29 +47,22 @@ class CaseCreationService(
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   fun saveUnpersistedCases(casesToCreate: List<CaseToCreate>) {
-    if (caseListV2Enabled) {
-      val unpersistedCrns = caseRepository
-        .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
-        .toSet()
+    val unpersistedCrns = caseRepository
+      .findUnpersistedCrns(casesToCreate.map { it.crn }.toTypedArray())
+      .toSet()
 
-      if (unpersistedCrns.isEmpty()) {
-        return
-      }
-      casesToCreate
-        .filter { it.crn in unpersistedCrns }
-        .forEach {
-          upsertCase(it.crn, it.prisonNumber, upsertData = caseListV2Enabled)
-        }
-    } else {
-      saveUnpersistedCasesAsBlankRows(casesToCreate)
+    if (unpersistedCrns.isEmpty()) {
+      return
     }
+    casesToCreate
+      .filter { it.crn in unpersistedCrns }
+      .forEach {
+        upsertCase(it.crn, it.prisonNumber)
+      }
   }
 
   @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?) = upsertCase(crn = crn, prisonNumber = prisonNumber, upsertData = true)
-
-  @Transactional
-  fun upsertCase(crn: String, prisonNumber: String?, upsertData: Boolean): CaseEntity {
+  fun upsertCase(crn: String, prisonNumber: String?): CaseEntity {
     val caseDto = caseOrchestrationService.getCurrentCaseResult(crn = crn, prisonNumber = prisonNumber).data
 
     val existingCase = caseRepository.findByIdentifiers(
@@ -80,9 +71,7 @@ class CaseCreationService(
     )
 
     val aggregate = existingCase?.let(caseMapper::toAggregate) ?: CaseAggregate.hydrateNew()
-    if (upsertData) {
-      caseSnapshotAssembler.upsertCase(aggregate, caseDto)
-    }
+    caseSnapshotAssembler.upsertCase(aggregate, caseDto)
 
     val entity = existingCase?.let {
       caseMapper.merge(it, aggregate.snapshot())

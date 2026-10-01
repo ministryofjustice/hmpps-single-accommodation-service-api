@@ -68,7 +68,6 @@ event:
     duty-to-refer-updated: http://api-host/duty-to-refers/#id
 
 case-refresh:
-  enabled: true
   worker:
     fixed-delay: 50ms
     max-requests-per-run: 10
@@ -130,7 +129,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0055"
+      expected-flyway-schema-version: "0058"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:
