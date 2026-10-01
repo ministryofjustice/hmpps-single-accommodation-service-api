@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 class CprProbationRecordMergedHandler(
   private val caseRepository: CaseRepository,
   private val inboxEventHelper: InboxEventHelper,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) : InboxEventHandler {
 
   private val eventType = IncomingHmppsDomainEventType.CPR_PROBATION_RECORD_MERGED.typeName
@@ -26,7 +26,7 @@ class CprProbationRecordMergedHandler(
       null -> InboxEventHandler.Result.IGNORED
 
       else -> {
-        caseRefreshRequestService?.requestLiveRefresh(caseEntity.id)
+        caseRefreshRequestService.requestLiveRefresh(caseEntity.id)
         InboxEventHandler.Result.PROCESSED
       }
     }

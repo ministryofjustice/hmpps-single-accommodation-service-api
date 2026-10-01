@@ -20,7 +20,7 @@ class CprProbationAddressUpdatedHandler(
   private val corePersonRecordClient: CorePersonRecordClient,
   private val inboxEventHelper: InboxEventHelper,
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -39,7 +39,7 @@ class CprProbationAddressUpdatedHandler(
     val crn = inboxEventHelper.findCrn(inboxEvent)
     caseRepository.findByCrn(crn)?.let {
       // this triggers a refresh regardless of whether we successfully process this message.
-      caseRefreshRequestService?.requestLiveRefresh(it.id)
+      caseRefreshRequestService.requestLiveRefresh(it.id)
     }
     val cprAddressIdString = checkNotNull(getPartitionKey(inboxEvent))
     val cprAddressId = UUID.fromString(cprAddressIdString)

@@ -2,11 +2,7 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.c
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import io.mockk.every
-import io.mockk.spyk
-import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -14,12 +10,7 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -47,12 +38,9 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.security.UserService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponseSorted
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponse
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseResponseSearch
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.expectApiResponse
@@ -63,65 +51,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wi
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.TierStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.CaseMapper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseCreationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseMutationOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseSnapshotAssembler
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseQueryService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.DUTY_TO_REFER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.utils.DatabaseUtils.SasTables.SAS_CASE
 import java.time.LocalDate
 
-@Import(CaseControllerIT.CaseListV2FeatureFlagTestConfig::class)
 class CaseControllerIT : IntegrationTestBase() {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @TestConfiguration
-  class CaseListV2FeatureFlagTestConfig {
-    @Bean
-    @Primary
-    fun caseQueryService(
-      caseOrchestrationService: CaseOrchestrationService,
-      userService: UserService,
-      caseRepository: CaseRepository,
-    ): CaseQueryService = spyk(
-      CaseQueryService(
-        caseOrchestrationService = caseOrchestrationService,
-        userService = userService,
-        caseRepository = caseRepository,
-        caseListV2Enabled = false,
-      ),
-    )
-
-    @Bean
-    @Primary
-    fun caseCreationService(
-      caseOrchestrationService: CaseMutationOrchestrationService,
-      caseSnapshotAssembler: CaseSnapshotAssembler,
-      caseRepository: CaseRepository,
-      caseMapper: CaseMapper,
-      entityManager: EntityManager,
-    ): CaseCreationService = spyk(
-      CaseCreationService(
-        caseOrchestrationService = caseOrchestrationService,
-        caseSnapshotAssembler = caseSnapshotAssembler,
-        caseRepository = caseRepository,
-        caseMapper = caseMapper,
-        entityManager = entityManager,
-        caseListV2Enabled = false,
-      ),
-    )
-  }
-
   @Value("\${case-list.page-size:1}")
   private lateinit var pageSize: String
-
-  @Autowired
-  private lateinit var caseQueryService: CaseQueryService
-
-  @Autowired
-  private lateinit var caseCreationService: CaseCreationService
 
   private val crns = (1..20).map { "FAKECRN$it" }
   private val nomsNumbers = (1..20).map { "PRI$it" }
@@ -143,22 +81,8 @@ class CaseControllerIT : IntegrationTestBase() {
     TierStubs.getTierOKResponse(crns[1], tier)
   }
 
-  @AfterEach
-  fun resetCaseListV2Flag() {
-    every { caseQueryService.caseListV2Enabled } returns false
-    every { caseCreationService.caseListV2Enabled } returns false
-  }
-
-  private fun setCaseListV2Enabled(v2Enabled: Boolean) {
-    every { caseQueryService.caseListV2Enabled } returns v2Enabled
-    every { caseCreationService.caseListV2Enabled } returns v2Enabled
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `does not add identifiers from CorePersonRecord`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `does not add identifiers from CorePersonRecord`() {
     // case 1 identifiers
     val knownCrnForCase1 = "knownCrnForCase1"
 
@@ -254,27 +178,16 @@ class CaseControllerIT : IntegrationTestBase() {
       .containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should update existing, create new and return expected case list`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should update existing, create new and return expected case list`() {
     // there are 20 crns created and stubbed for the case list.
     val cases = stubCaseList()
 
-    val preSeededCount = if (v2Enabled) {
-      // v2 renders forename/surname/dateOfBirth from the DB CaseEntity, so pre-seed all
-      seedAllCaseEntitiesForV2(cases)
-      cases.size
-    } else {
-      // there are 10 added to the SAS database
-      seedCaseEntities()
-      tierScoresByCrn.size
-    }
-    // and 10 we will need to call CPR for. 2 of these are errors.
+    // forename/surname/dateOfBirth are rendered from the DB CaseEntity, so pre-seed all
+    seedAllCaseEntities(cases)
     stubAdditionalCorePersonRecords()
 
-    assertThat(caseRepository.findAll().size).isEqualTo(preSeededCount)
+    assertThat(caseRepository.findAll().size).isEqualTo(cases.size)
 
     val result = restTestClient.get().uri { it.path("/case-list").build() }
       .withDeliusUserJwt()
@@ -284,11 +197,9 @@ class CaseControllerIT : IntegrationTestBase() {
 
     assertThat(caseRepository.findAll().size).isEqualTo(20)
 
-    val expectedJson = if (v2Enabled) expectedGetCaseListResponseSorted() else expectedGetCaseListResponse()
-
     result.expectBody(String::class.java)
       .value {
-        assertThatJson(it!!).matchesExpectedJson(expectedJson)
+        assertThatJson(it!!).matchesExpectedJson(expectedGetCaseListResponse())
       }
 
     // verify we call case-list endpoint 20 times (once per CRN)
@@ -298,11 +209,8 @@ class CaseControllerIT : IntegrationTestBase() {
     )
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should sort case list by accommodation status when caseListV2Enabled is true`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should sort case list by accommodation status`() {
     val staff = buildOfficer(username = deliusUser.username)
     val settledCase = buildCase(
       crn = "X12345",
@@ -359,30 +267,17 @@ class CaseControllerIT : IntegrationTestBase() {
 
     val response = getCaseListResponse().data
 
-    if (v2Enabled) {
-      assertThat(response.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-        .containsExactly(
-          riskCase.crn to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
-          noFixedAbodeCase.crn to CaseAccommodationStatus.NO_FIXED_ABODE,
-          transientCase.crn to CaseAccommodationStatus.TRANSIENT,
-          settledCase.crn to CaseAccommodationStatus.SETTLED,
-        )
-    } else {
-      assertThat(response.map(CaseDto::crn))
-        .containsExactly(
-          settledCase.crn,
-          transientCase.crn,
-          riskCase.crn,
-          noFixedAbodeCase.crn,
-        )
-    }
+    assertThat(response.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
+      .containsExactly(
+        riskCase.crn to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
+        noFixedAbodeCase.crn to CaseAccommodationStatus.NO_FIXED_ABODE,
+        transientCase.crn to CaseAccommodationStatus.TRANSIENT,
+        settledCase.crn to CaseAccommodationStatus.SETTLED,
+      )
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [false, true])
-  fun `should hydrate a newly created case with real upstream data only when caseListV2Enabled is true`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should hydrate a newly created case with real upstream data`() {
     val crn = "X12345"
     val nomsNumber = "12345"
     val staff = buildOfficer(username = deliusUser.username)
@@ -433,42 +328,31 @@ class CaseControllerIT : IntegrationTestBase() {
       .jsonPath("$.data.length()").isEqualTo(1)
 
     val createdCase = caseRepository.findByCrn(crn)!!
-    if (!v2Enabled) {
-      assertThat(createdCase.tierScore).isNull()
-      assertThat(createdCase.firstName).isNull()
-      assertThat(createdCase.lastName).isNull()
-      assertThat(createdCase.currentAccommodation).isNull()
-      assertThat(createdCase.nextAccommodation).isNull()
-      assertThat(createdCase.accommodationStatus).isNull()
-    } else {
-      assertThat(createdCase.tierScore).isEqualTo("A2")
-      assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
-      assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
+    assertThat(createdCase.tierScore).isEqualTo("A2")
+    assertThat(createdCase.firstName).isEqualTo(deliusName.forename)
+    assertThat(createdCase.lastName).isEqualTo(deliusName.surname)
 
-      val currentAccommodation = createdCase.currentAccommodation!!
-      assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
-      assertThat(currentAccommodation.status?.code).isEqualTo("C")
-      assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
-      assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
+    val currentAccommodation = createdCase.currentAccommodation!!
+    assertThat(currentAccommodation.type?.code).isEqualTo("HMP")
+    assertThat(currentAccommodation.status?.code).isEqualTo("C")
+    assertThat(currentAccommodation.status?.description).isEqualTo("Custody")
+    assertThat(currentAccommodation.address.buildingName).isEqualTo("HMP Test Prison")
 
-      val nextAccommodation = createdCase.nextAccommodation!!
-      assertThat(nextAccommodation.type?.code).isEqualTo("A02")
-      assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
-      assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
-      assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
-      assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
-      assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
-      assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
-      assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
+    val nextAccommodation = createdCase.nextAccommodation!!
+    assertThat(nextAccommodation.type?.code).isEqualTo("A02")
+    assertThat(nextAccommodation.type?.description).isEqualTo("Approved Premises")
+    assertThat(nextAccommodation.status?.code).isEqualTo("PR1")
+    assertThat(nextAccommodation.status?.description).isEqualTo("Proposed for Resettlement")
+    assertThat(nextAccommodation.address.postcode).isEqualTo("AP1 1AP")
+    assertThat(nextAccommodation.address.thoroughfareName).isEqualTo("AP House")
+    assertThat(nextAccommodation.address.dependentLocality).isEqualTo("AP Area")
+    assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
 
-      assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
-    }
+    assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
   }
 
   @Test
-  fun `should source forename, surname, dateOfBirth, tierScore and accommodationSummaries from CaseEntity when caseListV2Enabled is true`() {
-    setCaseListV2Enabled(true)
-
+  fun `should source forename, surname, dateOfBirth, tierScore and accommodationSummaries from CaseEntity`() {
     val crn = "crnWithDivergentDbAndDeliusData"
     val staff = buildOfficer(username = deliusUser.username)
 
@@ -526,11 +410,8 @@ class CaseControllerIT : IntegrationTestBase() {
       .jsonPath("$.data[0].accommodationSummaries.nextAccommodation.type.description").isEqualTo("Friends/Family (transient)")
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should only save cases that match the filtered response`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should only save cases that match the filtered response`() {
     val team = buildCaseTeam("TestTeam")
     val staff = buildOfficer(username = deliusUser.username)
     val assignedCase = buildCase(crn = "crn1", staff = staff, team = team)
@@ -573,18 +454,15 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(caseRepository.findAll()).hasSize(2)
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = [true, false])
-  fun `should filter cases based on provided search parameters`(v2Enabled: Boolean) {
-    setCaseListV2Enabled(v2Enabled)
-
+  @Test
+  fun `should filter cases based on provided search parameters`() {
     val caseList = stubCaseList()
-    seedAllCaseEntitiesForV2(caseList)
+    seedAllCaseEntities(caseList)
     stubAdditionalCorePersonRecords()
 
     val failures = mutableListOf<String>()
 
-    caseListFilters(v2Enabled).forEach { filter ->
+    caseListFilters().forEach { filter ->
       val response = restTestClient.get().uri {
         it.path("/case-list")
           .queryParam(filter.queryParameter, filter.value).build()
@@ -612,12 +490,11 @@ class CaseControllerIT : IntegrationTestBase() {
   inner class SearchByCrn {
     @Test
     fun `should return a CaseDto for a case that exists`() {
-      setCaseListV2Enabled(true)
       val crn = "a123456"
       val normalisedCrn = crn.uppercase()
       val case = buildCase(crn = normalisedCrn, nomsNumber = nomsNumbers[5])
       SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = case.crn, response = case)
-      seedAllCaseEntitiesForV2(listOf(case), "A1")
+      seedAllCaseEntities(listOf(case), "A1")
 
       assertThat(caseRepository.findAll().size).isEqualTo(1)
       val result = restTestClient.get().uri { it.path("/search/$crn").build() }
@@ -682,7 +559,7 @@ class CaseControllerIT : IntegrationTestBase() {
       .isNotFound
   }
 
-  private fun caseListFilters(v2Enabled: Boolean) = listOf(
+  private fun caseListFilters() = listOf(
     CaseListFilter("searchTerm", "AAAAA", 0),
     CaseListFilter("searchTerm", "FAKECRN1", 1, listOf(containsNoLimitedCases())),
     CaseListFilter("searchTerm", "FIR", 17, listOf(containsNoLimitedCases())),
@@ -699,8 +576,8 @@ class CaseControllerIT : IntegrationTestBase() {
     CaseListFilter("teamCode", "", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "ABC123", 20, listOf(containsAllCaseTypes())),
     CaseListFilter("teamCode", "OTHERTEAM", 0),
-    CaseListFilter("peopleType", "HOUSED", if (v2Enabled) 18 else 20),
-    CaseListFilter("peopleType", "NFA_RISK", if (v2Enabled) 2 else 20),
+    CaseListFilter("peopleType", "HOUSED", 18),
+    CaseListFilter("peopleType", "NFA_RISK", 2),
   )
 
   private fun containsNoLimitedCases(): (List<CaseDto>) -> Unit = { response ->
@@ -850,18 +727,10 @@ class CaseControllerIT : IntegrationTestBase() {
     crns[14] to "D3",
   )
 
-  private fun seedCaseEntities() {
-    val entities = tierScoresByCrn.map { (crn, tierScore) ->
-      buildCaseEntity(tierScore = tierScore) { withCrn(crn) }
-    }
-
-    caseRepository.saveAll(entities)
-  }
-
-  // Under caseListV2Enabled, forename/surname/dateOfBirth are rendered from the CaseEntity in
+  // forename/surname/dateOfBirth are rendered from the CaseEntity in
   // the DB rather than the Delius/SAS stub, so pre-seed every crn with matching data to avoid
   // depending on the async CaseRefreshWorker to backfill newly created cases.
-  private fun seedAllCaseEntitiesForV2(cases: List<Case>, tierScore: String? = null) {
+  private fun seedAllCaseEntities(cases: List<Case>, tierScore: String? = null) {
     val entities = cases.map { case ->
       buildCaseEntity(
         tierScore = tierScore ?: tierScoresByCrn[case.crn],

@@ -17,7 +17,7 @@ data class TierEventHandlerConfig(
 @Component
 class TierCalculationChangedHandler(
   private val caseRepository: CaseRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
   private val inboxEventHelper: InboxEventHelper,
 ) : InboxEventHandler {
 
@@ -34,7 +34,7 @@ class TierCalculationChangedHandler(
       null -> InboxEventHandler.Result.IGNORED
 
       else -> {
-        caseRefreshRequestService?.requestLiveRefresh(case.id)
+        caseRefreshRequestService.requestLiveRefresh(case.id)
         log.info("Tier event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
         InboxEventHandler.Result.PROCESSED
       }

@@ -192,14 +192,14 @@ private val adminJobControllerMap: Map<String, Set<String>> =
     "PUT /admin/replay-failed-inbox-events" to setOf("SAS_ADMIN_RW"),
   )
 
-private val otherAccommodationReferralControllerMap: Map<String, Set<String>> =
+private val externalReferralControllerMap: Map<String, Set<String>> =
   mapOf(
-    "POST /cases/{crn}/other-accommodation-referral" to defaultRoles,
-    "GET /cases/{crn}/other-accommodation-referral/{id}" to defaultRoles,
-    "GET /cases/{crn}/other-accommodation-referral/search" to defaultRoles,
-    "PUT /cases/{crn}/other-accommodation-referral/{id}" to defaultRoles,
-    "POST /cases/{crn}/other-accommodation-referral/{id}/notes" to defaultRoles,
-    "GET /cases/{crn}/other-accommodation-referral/{id}/timeline" to defaultRoles,
+    "POST /cases/{crn}/external-referral" to defaultRoles,
+    "GET /cases/{crn}/external-referral/{id}" to defaultRoles,
+    "GET /cases/{crn}/external-referral/search" to defaultRoles,
+    "PUT /cases/{crn}/external-referral/{id}" to defaultRoles,
+    "POST /cases/{crn}/external-referral/{id}/notes" to defaultRoles,
+    "GET /cases/{crn}/external-referral/{id}/timeline" to defaultRoles,
   )
 
 private val controllerMap: Map<String, Map<String, Set<String>>> =
@@ -216,5 +216,5 @@ private val controllerMap: Map<String, Map<String, Set<String>>> =
     "AccommodationDataDomainController" to accommodationDataDomainControllerMap,
     "ReferenceDataController" to referenceDataControllerMap,
     "AdminJobController" to adminJobControllerMap,
-    "OtherAccommodationReferralController" to otherAccommodationReferralControllerMap,
+    "ExternalReferralController" to externalReferralControllerMap,
   )

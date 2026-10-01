@@ -17,7 +17,7 @@ class CprProbationAddressDeletedHandler(
   private val accommodationSyncService: AccommodationSyncService,
   private val proposedAccommodationRepository: ProposedAccommodationRepository,
   private val inboxEventHelper: InboxEventHelper,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
   private val caseRepository: CaseRepository,
 ) : InboxEventHandler {
 
@@ -32,7 +32,7 @@ class CprProbationAddressDeletedHandler(
     val crn = inboxEventHelper.findCrn(inboxEvent)
     caseRepository.findByCrn(crn)?.let {
       // this triggers a refresh regardless of whether we successfully process this message.
-      caseRefreshRequestService?.requestLiveRefresh(it.id)
+      caseRefreshRequestService.requestLiveRefresh(it.id)
     }
 
     val cprAddressIdString = getPartitionKey(inboxEvent)

@@ -5,14 +5,14 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-data class OtherAccommodationReferralDto(
+data class ExternalReferralDto(
   val caseId: UUID,
   val crn: String,
-  val status: OtherAccommodationReferralStatus,
-  val submission: OtherAccommodationReferralSubmissionDto,
+  val status: ExternalReferralStatus,
+  val submission: ExternalReferralSubmissionDto,
 )
 
-data class OtherAccommodationReferralSubmissionDto(
+data class ExternalReferralSubmissionDto(
   val id: UUID,
   val referenceNumber: String?,
   val submissionDate: LocalDate,
@@ -27,28 +27,32 @@ data class OtherAccommodationReferralSubmissionDto(
   val organisationName: String?,
   val website: String?,
   val submissionNote: String?,
-  val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  val email: String? = null,
+  val phoneNumber: String? = null,
+  val outcomeReason: ExternalReferralOutcomeReason? = null,
   val outcomeNote: String? = null,
 )
 
-data class OtherAccommodationReferralCommand(
+data class ExternalReferralCommand(
   val submissionDate: LocalDate,
   val referenceNumber: String?,
-  val status: OtherAccommodationReferralStatus,
+  val status: ExternalReferralStatus,
   val organisationName: String?,
   val website: String?,
   val submissionNote: String?,
-  val outcomeReason: OtherAccommodationReferralOutcomeReason? = null,
+  val email: String? = null,
+  val phoneNumber: String? = null,
+  val outcomeReason: ExternalReferralOutcomeReason? = null,
   val outcomeNote: String? = null,
 )
 
-enum class OtherAccommodationReferralStatus(override val title: String) : TitleEnum {
+enum class ExternalReferralStatus(override val title: String) : TitleEnum {
   SUBMITTED("Submitted"),
   ACCEPTED("Accepted"),
   REJECTED("Rejected"),
 }
 
-enum class OtherAccommodationReferralOutcomeReason {
+enum class ExternalReferralOutcomeReason {
   ACCEPTED_BY_ORGANISATION,
   ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
   PERSON_NOT_SUITABLE,

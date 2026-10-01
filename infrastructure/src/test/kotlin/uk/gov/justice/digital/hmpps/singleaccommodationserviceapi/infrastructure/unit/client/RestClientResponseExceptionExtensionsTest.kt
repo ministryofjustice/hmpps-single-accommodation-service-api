@@ -4,9 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.getOrNullWhenNotFound
 import java.nio.charset.StandardCharsets
 
@@ -27,7 +25,7 @@ class RestClientResponseExceptionExtensionsTest {
       getOrNullWhenNotFound<Any> {
         throw http403()
       }
-    }.isInstanceOf(HttpClientErrorException::class.java)
+    }.isInstanceOf(WebClientResponseException::class.java)
       .hasMessageContaining("Forbidden")
   }
 
@@ -37,28 +35,28 @@ class RestClientResponseExceptionExtensionsTest {
       getOrNullWhenNotFound<Any> {
         throw http500()
       }
-    }.isInstanceOf(HttpServerErrorException::class.java)
+    }.isInstanceOf(WebClientResponseException::class.java)
       .hasMessageContaining("Internal Server Error")
   }
 
-  private fun http404(): HttpClientErrorException = HttpClientErrorException.create(
-    HttpStatus.NOT_FOUND,
+  private fun http404(): WebClientResponseException = WebClientResponseException.create(
+    404,
     "Not Found",
     HttpHeaders.EMPTY,
     ByteArray(0),
     StandardCharsets.UTF_8,
   )
 
-  private fun http403(): HttpClientErrorException = HttpClientErrorException.create(
-    HttpStatus.FORBIDDEN,
+  private fun http403(): WebClientResponseException = WebClientResponseException.create(
+    403,
     "Forbidden",
     HttpHeaders.EMPTY,
     ByteArray(0),
     StandardCharsets.UTF_8,
   )
 
-  private fun http500(): HttpServerErrorException = HttpServerErrorException.create(
-    HttpStatus.INTERNAL_SERVER_ERROR,
+  private fun http500(): WebClientResponseException = WebClientResponseException.create(
+    500,
     "Internal Server Error",
     HttpHeaders.EMPTY,
     ByteArray(0),

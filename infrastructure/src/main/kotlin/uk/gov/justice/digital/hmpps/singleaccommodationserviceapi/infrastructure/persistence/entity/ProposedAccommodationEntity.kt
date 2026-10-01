@@ -39,6 +39,7 @@ open class ProposedAccommodationEntity(
   var startDate: LocalDate?,
   @DiffIgnore
   var endDate: LocalDate?,
+  var name: String? = null,
   var postcode: String?,
   var subBuildingName: String?,
   var buildingName: String?,

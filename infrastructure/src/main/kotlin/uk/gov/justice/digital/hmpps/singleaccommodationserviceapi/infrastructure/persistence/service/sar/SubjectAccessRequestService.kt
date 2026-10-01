@@ -153,6 +153,9 @@ class SubjectAccessRequestService(
       )
 
       val paMap = mapper.convertValue(paDto, Map::class.java).toMutableMap()
+      paMap["name"] = pa.name
+      paMap["startDate"] = pa.startDate
+      paMap["endDate"] = pa.endDate
       paMap["lastUpdatedBy"] = lastUpdatedByUser
       paMap["lastUpdatedAt"] = pa.lastUpdatedAt
       paMap["settledType"] = when (type?.settledType) {

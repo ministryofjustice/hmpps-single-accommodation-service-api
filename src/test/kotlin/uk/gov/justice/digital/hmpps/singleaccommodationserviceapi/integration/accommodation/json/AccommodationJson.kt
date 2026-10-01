@@ -62,7 +62,9 @@ fun expectedGetAccommodationHistoryResponse(): String = """
 }
 """.trimIndent()
 
-fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(): String = """
+fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(
+  upstreamUrl: String,
+): String = """
 {
    "data":[],
    "upstreamFailures":[
@@ -71,7 +73,7 @@ fun expectedGetAccommodationHistoryWithUpstreamFailureResponse(): String = """
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
          "identifier":null,
-         "message":"500 Internal Server Error: [no body]"
+         "message": "500 Internal Server Error from GET $upstreamUrl"
       }
    ]
 }
@@ -278,7 +280,12 @@ fun expectedGetNextAccommodationProposedAccommodationResponse(
 }
 """.trimIndent()
 
-fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = """
+fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(
+  getPersonRecordUrl: String,
+  getCas1CurrentPremisesUrl: String,
+  getCas3CurrentPremisesUrl: String,
+  getPrisonerUrl: String,
+): String = """
 {
    "data":null,
    "upstreamFailures":[
@@ -286,28 +293,28 @@ fun expectedGetCurrentAccommodationWithAllUpstreamFailureResponse(): String = ""
          "endpoint":"getCorePersonRecordByCrn",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getPersonRecordUrl",
          "identifier":null
       },
       {
          "endpoint":"getCas1CurrentPremises",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getCas1CurrentPremisesUrl",
          "identifier":null
       },
             {
          "endpoint":"getCas3CurrentPremises",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getCas3CurrentPremisesUrl",
          "identifier":null
       },
       {
          "endpoint":"getPrisoner",
          "failureType":"UPSTREAM_HTTP_ERROR",
          "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-         "message":"500 Internal Server Error: [no body]",
+         "message":"500 Internal Server Error from GET $getPrisonerUrl",
          "identifier":null
       }
    ]
@@ -352,18 +359,20 @@ fun expectedGetAccommodationByIdResponse(
 }
 """.trimIndent()
 
-fun expectedGetNextAccommodationWithUpstreamFailureResponse(): String = """
+fun expectedGetNextAccommodationWithUpstreamFailureResponse(
+  upstreamUrl: String,
+): String = """
 {
-  "data":null,
-  "upstreamFailures":[
-  {
-    "endpoint":"getCorePersonRecordByCrn",
-    "failureType":"UPSTREAM_HTTP_ERROR",
-    "httpResponseStatus":"500 INTERNAL_SERVER_ERROR",
-    "message":"500 Internal Server Error: [no body]",
-    "identifier":null
-  }
-  ]
+    "data": null,
+    "upstreamFailures": [
+        {
+            "endpoint": "getCorePersonRecordByCrn",
+            "failureType": "UPSTREAM_HTTP_ERROR",
+            "httpResponseStatus": "500 INTERNAL_SERVER_ERROR",
+            "message": "500 Internal Server Error from GET $upstreamUrl",
+            "identifier": null
+        }
+    ]
 }
 """.trimIndent()
 
@@ -371,7 +380,7 @@ val expectedNoFixedAbodeResponse =
   """{"data":{"caseAccommodationStatus":"NO_FIXED_ABODE","caseAccommodationStatusDate":null,"currentAccommodation":null,"nextAccommodation":null}}"""
 
 fun expectedRiskOfNoFixedAbodeResponse(crn: String) = """
-  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","caseAccommodationStatusDate":null,"currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":"2026-01-12","address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"proposedAccommodationId":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
+  {"data":{"caseAccommodationStatus":"RISK_OF_NO_FIXED_ABODE","caseAccommodationStatusDate":"2026-01-12","currentAccommodation":{"crn":"$crn","startDate":"2026-01-11","endDate":"2026-01-12","address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"M","description":"Main"},"type":{"code":"A07B","description":"Friends/Family (settled)"},"proposedAccommodationId":null},"nextAccommodation":{"crn":"$crn","startDate":null,"endDate":null,"proposedAccommodationId":null,"address":{"postcode":"SW1A 1AA","subBuildingName":null,"buildingName":null,"buildingNumber":"1","thoroughfareName":"Some Street","dependentLocality":null,"postTown":"London","county":null,"country":null,"uprn":null},"status":{"code":"PR","description":"Proposed"},"type":{"code":"A08A","description":"Homeless - Rough Sleeping"}}}}
 """.trimIndent()
 
 fun expectedAccommodationStatusResponse(
@@ -381,11 +390,12 @@ fun expectedAccommodationStatusResponse(
   currentDescription: String,
   nextCode: String? = null,
   nextDescription: String? = null,
+  caseAccommodationStatusDate: String? = null,
 ) = """
   {
    "data":{
       "caseAccommodationStatus":${settledType?.let { "\"$it\"" }},
-      "caseAccommodationStatusDate": null,
+      "caseAccommodationStatusDate": $caseAccommodationStatusDate,
       "currentAccommodation":{
          "crn":"$crn",
          "startDate":"2026-01-11",

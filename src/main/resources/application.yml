@@ -86,13 +86,11 @@ hmpps:
 case-list:
   page-size: 200
   onboarded-prison-codes:
-  v2-enabled: false
 
 bulk-load:
   page-size: 10000
 
 case-refresh:
-  enabled: true
   worker:
     fixed-delay: 500ms
     max-requests-per-run: 10
