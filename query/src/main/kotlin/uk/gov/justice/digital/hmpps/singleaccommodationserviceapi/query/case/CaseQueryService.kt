@@ -104,10 +104,9 @@ class CaseQueryService(
       CaseAccommodationStatus.TRANSIENT,
       CaseAccommodationStatus.SETTLED,
       -> when {
-        statusDate == null -> 0
-        statusDate.isEqual(today) -> 1
-        statusDate.isAfter(today) -> 2
-        else -> 3
+        statusDate?.isAfter(today) == true -> 1
+        statusDate != null -> 2
+        else -> 0
       }
       else -> statusDate
     }
