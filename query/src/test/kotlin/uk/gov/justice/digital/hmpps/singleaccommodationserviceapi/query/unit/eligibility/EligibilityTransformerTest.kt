@@ -425,7 +425,7 @@ class EligibilityTransformerTest {
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = Cas3AssessmentStatus.REJECTED,
-      bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,
+      bookingStatus = Cas3BookingStatus.CANCELLED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
       cancellation = buildCas3ExternalPreviousBookingCancellationDto(
         cancellationDate = LocalDate.parse("2023-01-04"),
