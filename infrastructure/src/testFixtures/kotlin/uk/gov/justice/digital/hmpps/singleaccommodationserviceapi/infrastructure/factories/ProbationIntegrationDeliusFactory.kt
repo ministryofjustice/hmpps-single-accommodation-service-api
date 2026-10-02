@@ -6,10 +6,12 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.Ldu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.Manager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.PersonName
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ProbationArea
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.Profile
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.StaffDetail
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.Team
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
+import java.lang.classfile.Attributes.code
 import java.time.LocalDate
 
 @TestData
@@ -78,6 +80,7 @@ fun buildStaffDetail(
   email: String = "test.user@justice.gov.uk",
   name: PersonName = buildPersonName(),
   teams: List<Team> = listOf(buildTeam()),
+  probationArea: ProbationArea = buildProbationArea(),
   code: String = "code",
   telephoneNumber: String? = null,
   active: Boolean = true,
@@ -89,9 +92,18 @@ fun buildStaffDetail(
   name = name,
   code = code,
   active = active,
+  probationArea = probationArea,
 )
 
 fun buildPersonName(
   forename: String = "Test",
   surname: String = "User",
 ) = PersonName(forename, surname)
+
+fun buildProbationArea(
+  code: String = "PA123",
+  description: String = "Probation Area 123",
+) = ProbationArea(
+  code = code,
+  description = description,
+)
