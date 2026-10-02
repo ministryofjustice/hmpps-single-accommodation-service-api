@@ -22,7 +22,7 @@ open class BaseAuditedEntity {
 
   @DiffIgnore
   @CreatedDate
-  @Column(name = "created_at")
+  @Column(name = "created_at", nullable = false)
   lateinit var createdAt: Instant
 
   @DiffIgnore
@@ -32,6 +32,6 @@ open class BaseAuditedEntity {
 
   @DiffIgnore
   @LastModifiedDate
-  @Column(name = "last_updated_at")
+  @Column(name = "last_updated_at", nullable = false)
   lateinit var lastUpdatedAt: Instant
 }
