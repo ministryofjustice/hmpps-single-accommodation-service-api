@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ContactType
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ProbationCreateAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddress
 import java.net.URI
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -191,37 +191,6 @@ class CorePersonRecordClientPactTest {
     address.stringType("county", "Greater London")
   }
 
-  private fun probationCreateAddress() = ProbationCreateAddress(
-    noFixedAbode = false,
-    typeVerified = false,
-    startDate = startDate.atStartOfDay(ZoneOffset.UTC),
-    endDate = endDate.atStartOfDay(ZoneOffset.UTC),
-    postcode = "SW1A 1AA",
-    uprn = "100023336956",
-    subBuildingName = "Flat 2",
-    buildingName = "Example House",
-    buildingNumber = "1",
-    thoroughfareName = "Some Street",
-    dependentLocality = "Westminster",
-    postTown = "London",
-    county = "Greater London",
-    comment = "Created by SAS",
-    statusCode = AddressStatusCode.PR,
-    usages = listOf(
-      AddressUsage(
-        usageCode = AddressUsageCode.A01A,
-        isActive = true,
-      ),
-    ),
-    contacts = listOf(
-      AddressContact(
-        typeCode = ContactType.MOBILE,
-        value = "07123456789",
-        extension = "123",
-      ),
-    ),
-  )
-
   private fun createCorePersonRecordClient(baseUrl: String): CorePersonRecordClient {
     val restClient = RestClient.builder()
       .baseUrl(baseUrl)
@@ -286,7 +255,35 @@ class CorePersonRecordClientPactTest {
   fun `create probation address for CRN`(mockServer: MockServer) {
     val client = createCorePersonRecordClient(mockServer.getUrl())
 
-    val response = client.createProbationAddress(crn, probationCreateAddress())
+    val response = client.createProbationAddress(
+      crn,
+      buildProbationCreateAddress(
+        startDate = startDate.atStartOfDay(ZoneOffset.UTC),
+        endDate = endDate.atStartOfDay(ZoneOffset.UTC),
+        postcode = "SW1A 1AA",
+        uprn = "100023336956",
+        subBuildingName = "Flat 2",
+        buildingName = "Example House",
+        buildingNumber = "1",
+        thoroughfareName = "Some Street",
+        dependentLocality = "Westminster",
+        postTown = "London",
+        county = "Greater London",
+        comment = "Created by SAS",
+        statusCode = AddressStatusCode.PR,
+        usage = AddressUsage(
+          usageCode = AddressUsageCode.A01A,
+          isActive = true,
+        ),
+        contacts = listOf(
+          AddressContact(
+            typeCode = ContactType.MOBILE,
+            value = "07123456789",
+            extension = "123",
+          ),
+        ),
+      ),
+    )
 
     assertEquals(crn, response.crn)
     assertEquals(cprAddressId, response.cprAddressId)
