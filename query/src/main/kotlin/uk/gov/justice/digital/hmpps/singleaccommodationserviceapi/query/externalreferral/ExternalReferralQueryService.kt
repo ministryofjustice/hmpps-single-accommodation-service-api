@@ -27,7 +27,7 @@ class ExternalReferralQueryService(
 
   fun getExternalReferral(crn: String, id: UUID): ExternalReferralDto {
     val entity = externalReferralRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val createdByUser = entity.createdByUserId?.let { userRepository.findByIdOrNull(it) }
+    val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId)
 
     return ExternalReferralTransformer.toExternalReferralDto(
       entity = entity,
@@ -46,7 +46,7 @@ class ExternalReferralQueryService(
     )
     if (entities.isEmpty()) return emptyList()
 
-    val createdByUsers = userRepository.findAllById(entities.mapNotNull { it.createdByUserId }.toSet()).associateBy { it.id }
+    val createdByUsers = userRepository.findAllById(entities.map { it.createdByUserId }.toSet()).associateBy { it.id }
 
     return entities.map { entity ->
       ExternalReferralTransformer.toExternalReferralDto(
@@ -74,7 +74,7 @@ class ExternalReferralQueryService(
   }
 
   private fun getExternalReferralNotesTimeline(externalReferralEntity: ExternalReferralEntity): List<AuditRecordDto> {
-    val createdByUserIds = externalReferralEntity.notes.mapNotNull { it.createdByUserId }.toSet()
+    val createdByUserIds = externalReferralEntity.notes.map { it.createdByUserId }.toSet()
     val createdByUsers = userRepository.findAllById(createdByUserIds).associateBy { it.id }
     return externalReferralEntity.notes.map {
       val createdByUser = createdByUsers[it.createdByUserId]
@@ -82,7 +82,7 @@ class ExternalReferralQueryService(
         type = AuditRecordType.NOTE,
         author = createdByUser!!.displayName(),
         authorDetails = createdByUser.toAssignedToDto(),
-        commitDate = it.createdAt!!,
+        commitDate = it.createdAt,
         changes = listOf(
           FieldChange(
             field = "note",
