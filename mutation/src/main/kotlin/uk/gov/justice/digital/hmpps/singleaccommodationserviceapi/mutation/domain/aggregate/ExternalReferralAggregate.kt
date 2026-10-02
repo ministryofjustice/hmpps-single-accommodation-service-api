@@ -13,13 +13,17 @@ import java.util.UUID
 private const val NOTE_MAX_LENGTH = 4000
 
 private val ACCEPTED_OUTCOME_REASONS = setOf(
-  ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
-  ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+  ExternalReferralOutcomeReason.ACCEPTED,
 )
 private val REJECTED_OUTCOME_REASONS = setOf(
-  ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE,
-  ExternalReferralOutcomeReason.NO_CAPACITY,
-  ExternalReferralOutcomeReason.ANOTHER_REASON,
+  ExternalReferralOutcomeReason.REJECTED_PERSON_NOT_SUITABLE,
+  ExternalReferralOutcomeReason.REJECTED_NO_CAPACITY,
+  ExternalReferralOutcomeReason.REJECTED_OTHER,
+)
+private val WITHDRAWN_OUTCOME_REASONS = setOf(
+  ExternalReferralOutcomeReason.WITHDRAWN_APPLICANT_REJECTED_OFFER,
+  ExternalReferralOutcomeReason.WITHDRAWN_HOUSING_NEED_RESOLVED,
+  ExternalReferralOutcomeReason.WITHDRAWN_NO_RESPONSE_FROM_ORGANISATION,
 )
 
 class ExternalReferralAggregate private constructor(
@@ -122,7 +126,7 @@ class ExternalReferralAggregate private constructor(
     this.email = email?.takeUnless { it.isBlank() }
     this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
 
-    if (status == ExternalReferralStatus.ACCEPTED || status == ExternalReferralStatus.REJECTED) {
+    if (status == ExternalReferralStatus.ACCEPTED || status == ExternalReferralStatus.REJECTED || status == ExternalReferralStatus.WITHDRAWN) {
       this.outcomeReason = outcomeReason
       this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
     } else {
@@ -139,6 +143,7 @@ class ExternalReferralAggregate private constructor(
     when (status) {
       ExternalReferralStatus.ACCEPTED -> validateOutcomeReason(outcomeReason, ACCEPTED_OUTCOME_REASONS)
       ExternalReferralStatus.REJECTED -> validateOutcomeReason(outcomeReason, REJECTED_OUTCOME_REASONS)
+      ExternalReferralStatus.WITHDRAWN -> validateOutcomeReason(outcomeReason, WITHDRAWN_OUTCOME_REASONS)
       ExternalReferralStatus.SUBMITTED -> validateNoOutcome(outcomeReason, outcomeNote)
     }
   }
