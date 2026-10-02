@@ -57,12 +57,17 @@ class CorePersonRecordClientPactTest {
     .body(
       newJsonBody { body ->
         body.stringType("firstName", "John")
+        body.stringType("middleNames", "James")
         body.stringType("lastName", "Smith")
         body.date(
           "dateOfBirth",
           "yyyy-MM-dd",
           LocalDate.of(1980, 1, 1),
         )
+        body.`object`("sex") { sex ->
+          sex.stringType("code", "M")
+          sex.stringType("description", "Male")
+        }
         body.`object`("identifiers") { identifiers ->
           identifiers.array("pncs") { pncs ->
             pncs.stringType("PNC123")
@@ -215,8 +220,11 @@ class CorePersonRecordClientPactTest {
     val person = client.getByCrn(crn)
 
     assertEquals("John", person.firstName)
+    assertEquals("James", person.middleNames)
     assertEquals("Smith", person.lastName)
     assertEquals(LocalDate.of(1980, 1, 1), person.dateOfBirth)
+    assertEquals(SexCode.M, person.sex?.code)
+    assertEquals("Male", person.sex?.description)
     assertEquals("PNC123", person.identifiers?.pncs?.firstOrNull())
     assertEquals(1, person.addresses.size)
   }
