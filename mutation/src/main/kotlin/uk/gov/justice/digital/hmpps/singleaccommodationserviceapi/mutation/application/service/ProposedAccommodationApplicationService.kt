@@ -76,7 +76,7 @@ class ProposedAccommodationApplicationService(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = user.displayName(),
-      createdAt = persistedRecord.createdAt!!,
+      createdAt = persistedRecord.createdAt,
     )
   }
 
@@ -199,7 +199,7 @@ class ProposedAccommodationApplicationService(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = createdByUser.displayName(),
-      createdAt = updatedRecord.createdAt!!,
+      createdAt = updatedRecord.createdAt,
     )
   }
 
