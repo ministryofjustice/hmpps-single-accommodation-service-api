@@ -28,7 +28,11 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+private const val CONSUMER = "hmpps-single-accommodation-service-api"
+private const val PROVIDER = "hmpps-person-record"
+
 @ExtendWith(PactConsumerTestExt::class)
+@PactTestFor(providerName = PROVIDER, pactVersion = PactSpecVersion.V3)
 class CorePersonRecordClientPactTest {
   private val crn = "X123456"
   private val cprAddressId = UUID.fromString("123e4567-e89b-12d3-a456-426614174001")
@@ -37,7 +41,7 @@ class CorePersonRecordClientPactTest {
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX")
   private val jsonHeaders = mapOf("Content-Type" to "application/json")
 
-  @Pact(consumer = "hmpps-single-accommodation-service-api", provider = "hmpps-person-record")
+  @Pact(consumer = CONSUMER, provider = PROVIDER)
   fun getProbationPerson(builder: PactDslWithProvider): RequestResponsePact = builder
     .given("A probation person exists for the requested CRN")
     .uponReceiving("a request for a probation person by CRN")
@@ -87,7 +91,7 @@ class CorePersonRecordClientPactTest {
     )
     .toPact()
 
-  @Pact(consumer = "hmpps-single-accommodation-service-api", provider = "hmpps-person-record")
+  @Pact(consumer = CONSUMER, provider = PROVIDER)
   fun getProbationAddress(builder: PactDslWithProvider): RequestResponsePact = builder
     .given("An address exists for the requested CRN and address ID")
     .uponReceiving("a request for a probation address by CRN and CPR address ID")
@@ -122,7 +126,7 @@ class CorePersonRecordClientPactTest {
     )
     .toPact()
 
-  @Pact(consumer = "hmpps-single-accommodation-service-api", provider = "hmpps-person-record")
+  @Pact(consumer = CONSUMER, provider = PROVIDER)
   fun createProbationAddress(builder: PactDslWithProvider): RequestResponsePact = builder
     .given("A probation address can be created for the requested CRN")
     .uponReceiving("a request to create a probation address for a CRN")
@@ -231,10 +235,7 @@ class CorePersonRecordClientPactTest {
   }
 
   @Test
-  @PactTestFor(
-    pactMethod = "getProbationPerson",
-    pactVersion = PactSpecVersion.V3,
-  )
+  @PactTestFor(pactMethod = "getProbationPerson")
   fun `get probation person by CRN`(mockServer: MockServer) {
     val client = createCorePersonRecordClient(mockServer.getUrl())
 
@@ -248,10 +249,7 @@ class CorePersonRecordClientPactTest {
   }
 
   @Test
-  @PactTestFor(
-    pactMethod = "getProbationAddress",
-    pactVersion = PactSpecVersion.V3,
-  )
+  @PactTestFor(pactMethod = "getProbationAddress")
   fun `get probation address by CRN and CPR address ID`(mockServer: MockServer) {
     val client = createCorePersonRecordClient(mockServer.getUrl())
 
@@ -284,10 +282,7 @@ class CorePersonRecordClientPactTest {
   }
 
   @Test
-  @PactTestFor(
-    pactMethod = "createProbationAddress",
-    pactVersion = PactSpecVersion.V3,
-  )
+  @PactTestFor(pactMethod = "createProbationAddress")
   fun `create probation address for CRN`(mockServer: MockServer) {
     val client = createCorePersonRecordClient(mockServer.getUrl())
 
