@@ -9,19 +9,23 @@ import au.com.dius.pact.consumer.junit5.PactTestFor
 import au.com.dius.pact.core.model.PactSpecVersion
 import au.com.dius.pact.core.model.RequestResponsePact
 import au.com.dius.pact.core.model.annotations.Pact
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.support.RestClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsage
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressContact
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsage
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.ContactType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildProbationCreateAddress
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import java.net.URI
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -225,29 +229,30 @@ class CorePersonRecordClientPactTest {
     val address = client.getProbationAddress(
       mockServer.getUrl().let { URI.create("$it/person/probation/$crn/address/$cprAddressId") },
     )
-    val usage = address.usages.single()
-
-    assertAll(
-      { assertEquals(cprAddressId.toString(), address.cprAddressId) },
-      { assertEquals(true, address.typeVerified) },
-      { assertEquals(false, address.noFixedAbode) },
-      { assertEquals(startDate.toString(), address.startDate) },
-      { assertEquals(endDate.toString(), address.endDate) },
-      { assertEquals("SW1A 1AA", address.postcode) },
-      { assertEquals("Flat 2", address.subBuildingName) },
-      { assertEquals("Example House", address.buildingName) },
-      { assertEquals("1", address.buildingNumber) },
-      { assertEquals("Some Street", address.thoroughfareName) },
-      { assertEquals("Westminster", address.dependentLocality) },
-      { assertEquals("London", address.postTown) },
-      { assertEquals("Greater London", address.county) },
-      { assertEquals("100023336956", address.uprn) },
-      { assertEquals("PR", address.status.code) },
-      { assertEquals("Proposed", address.status.description) },
-      { assertEquals("A01A", usage.usageCode.code) },
-      { assertEquals("Main residence", usage.usageCode.description) },
-      { assertEquals(true, usage.isActive) },
+    val expected = buildCanonicalAddress(
+      cprAddressId = cprAddressId,
+      noFixedAbode = false,
+      startDate = startDate,
+      endDate = endDate,
+      postcode = "SW1A 1AA",
+      subBuildingName = "Flat 2",
+      buildingName = "Example House",
+      buildingNumber = "1",
+      thoroughfareName = "Some Street",
+      dependentLocality = "Westminster",
+      postTown = "London",
+      county = "Greater London",
+      status = CanonicalAddressStatus(code = "PR", description = "Proposed"),
+      typeVerified = true,
+      usages = listOf(
+        CanonicalAddressUsage(
+          usageCode = CanonicalAddressUsageCode(code = "A01A", description = "Main residence"),
+          isActive = true,
+        ),
+      ),
+      uprn = "100023336956",
     )
+    assertThat(address).isEqualTo(expected)
   }
 
   @Test
