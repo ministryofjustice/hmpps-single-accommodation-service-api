@@ -6,7 +6,7 @@ plugins {
 // Matches the conventions used by the hmpps-person-record provider (see its
 // pact_provider_verification.yml / record_deployment.yml on add-pact-record-deployment-step):
 // - broker auth via username/password secrets, not a bearer token
-// - pacticipant version pinned to the commit SHA so it lines up with "deployed"/"mainBranch" selectors
+// - pacticipant version supplied via APP_VERSION so it lines up with the deployed app version
 // - branch recorded via GITHUB_BRANCH so provider verification can target a specific consumer branch
 pact {
   publish {
