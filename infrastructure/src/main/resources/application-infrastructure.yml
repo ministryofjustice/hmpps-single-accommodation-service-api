@@ -54,6 +54,9 @@ redis:
 service:
   connection-timeout: 1s
   # seconds must be whole numbers :)
+  http-client:
+    max-idle-time: 30s
+    background-eviction: 15s
   sas-and-delius:
     read-timeout: 15s
   approved-premises-and-delius:
