@@ -12,7 +12,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Application
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2ReferralHistory.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
@@ -48,10 +49,42 @@ fun buildCas2Application(
   submittedApplication: Cas2SubmittedApplicationSummary? = null,
   id: UUID = UUID.randomUUID(),
   uiUrl: String = "https://cas2-ui/applications/$id",
+  createdAt: OffsetDateTime = OffsetDateTime.now(),
+  createdBy: Cas2Staff = buildCas2Staff(),
+  cohort: String? = null,
 ) = Cas2Application(
   uiUrl = uiUrl,
   id = id,
   submittedApplication = submittedApplication,
+  createdAt = createdAt,
+  createdBy = createdBy,
+  cohort = cohort,
+)
+
+fun buildCas2SubmittedApplicationSummary(
+  latestAssessmentStatus: Cas2AssessmentStatus? = null,
+  submittedAt: OffsetDateTime = OffsetDateTime.now(),
+  offerDeclinedReason: String? = null,
+  cancelledReason: String? = null,
+) = Cas2SubmittedApplicationSummary(
+  submittedAt = submittedAt,
+  latestAssessmentStatus = latestAssessmentStatus,
+  offerDeclinedReason = offerDeclinedReason,
+  cancelledReason = cancelledReason,
+)
+
+fun buildCas2Staff(
+  name: String = "Test Tester",
+  username: String = "testTester@gov.uk",
+  deliusStaffCode: String? = "ABCD123",
+  nomisStaffId: Long? = null,
+  userType: String = "NOMIS",
+) = Cas2Staff(
+  name = name,
+  username = username,
+  deliusStaffCode = deliusStaffCode,
+  nomisStaffId = nomisStaffId,
+  userType = userType,
 )
 
 fun buildCas1PlacementPair(
@@ -140,14 +173,6 @@ fun buildCas1ApplicationSummary(
   expiresAt = expiresAt,
 )
 
-fun buildCas2SubmittedApplicationSummary(
-  latestAssessmentStatus: Cas2AssessmentStatus? = null,
-  submittedAt: OffsetDateTime = OffsetDateTime.now(),
-) = Cas2SubmittedApplicationSummary(
-  submittedAt = submittedAt,
-  latestAssessmentStatus = latestAssessmentStatus,
-)
-
 fun buildCas1Staff(
   name: String = "Test Tester",
   username: String = "testTester",
@@ -163,9 +188,9 @@ fun buildCas3Application(
   applicationStatus: Cas3ApplicationStatus = Cas3ApplicationStatus.IN_PROGRESS,
   submittedApplication: Cas3SubmittedApplication? = when (applicationStatus) {
     Cas3ApplicationStatus.IN_PROGRESS -> null
-    Cas3ApplicationStatus.SUBMITTED -> buildCas3SubmittedApplicationDto()
-    Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> buildCas3SubmittedApplicationDto()
-    Cas3ApplicationStatus.REJECTED -> buildCas3SubmittedApplicationDto()
+    Cas3ApplicationStatus.SUBMITTED -> buildCas3SubmittedApplication()
+    Cas3ApplicationStatus.REQUESTED_FURTHER_INFORMATION -> buildCas3SubmittedApplication()
+    Cas3ApplicationStatus.REJECTED -> buildCas3SubmittedApplication()
   },
   uiUrl: String = "https://cas3-ui/referrals/$id/full",
 ) = Cas3Application(
@@ -175,7 +200,7 @@ fun buildCas3Application(
   uiUrl = uiUrl,
 )
 
-fun buildCas3SubmittedApplicationDto(
+fun buildCas3SubmittedApplication(
   submittedDate: LocalDate = LocalDate.now(),
   submittedBy: Cas3Staff = buildCas3Staff(),
   assessmentStatus: Cas3AssessmentStatus? = null,

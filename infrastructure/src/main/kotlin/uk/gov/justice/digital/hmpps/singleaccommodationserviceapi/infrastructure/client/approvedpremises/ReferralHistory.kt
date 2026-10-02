@@ -153,25 +153,25 @@ data class Cas2ReferralHistory(
   val referredBy: String,
   val placementAddress: String?,
   val uiUrl: String,
-) : CasReferralHistory {
-  enum class Cas2AssessmentStatus(@get:JsonValue val value: String) {
-    MORE_INFO_REQUESTED("moreInfoRequested"),
-    AWAITING_DECISION("awaitingDecision"),
-    ON_WAITING_LIST("onWaitingList"),
-    PLACE_OFFERED("placeOffered"),
-    OFFER_ACCEPTED("offerAccepted"),
-    OFFER_DECLINED("offerDeclined"),
-    WITHDRAWN("withdrawn"),
-    CANCELLED("cancelled"),
-    AWAITING_ARRIVAL("awaitingArrival"),
-    UNKNOWN("unknown"),
-    ;
+) : CasReferralHistory
 
-    companion object {
-      @JvmStatic
-      @JsonCreator
-      fun forValue(value: String): Cas2AssessmentStatus = entries.firstOrNull { it.value == value } ?: UNKNOWN
-    }
+enum class Cas2AssessmentStatus(@get:JsonValue val value: String) {
+  MORE_INFO_REQUESTED("moreInfoRequested"),
+  AWAITING_DECISION("awaitingDecision"),
+  ON_WAITING_LIST("onWaitingList"),
+  PLACE_OFFERED("placeOffered"),
+  OFFER_ACCEPTED("offerAccepted"),
+  OFFER_DECLINED("offerDeclined"),
+  WITHDRAWN("withdrawn"),
+  CANCELLED("cancelled"),
+  AWAITING_ARRIVAL("awaitingArrival"),
+  UNKNOWN("unknown"),
+  ;
+
+  companion object {
+    @JvmStatic
+    @JsonCreator
+    fun forValue(value: String): Cas2AssessmentStatus = entries.firstOrNull { it.value == value } ?: UNKNOWN
   }
 }
 
@@ -179,4 +179,5 @@ data class DeliusUserDto(
   val name: String,
   val username: String? = null, // TODO make this non-nullable when refactoring
 )
+
 fun DeliusUserDto?.toStaffDetailsDto() = this?.let { StaffDetailsDto(it.name, it.username) }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
@@ -38,9 +39,25 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factorie
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildLimitedPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildUpstreamFailure
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class CaseQueryServiceTest {
+  private val clock: Clock = Clock.fixed(Instant.parse("2026-10-01T00:00:00Z"), ZoneOffset.UTC)
+  private val today: LocalDate = LocalDate.now(clock)
+
+  private data class SortCaseDefinition(
+    val crn: String,
+    val status: CaseAccommodationStatus,
+    val statusDate: LocalDate? = null,
+    val firstName: String = "First",
+    val lastName: String = "Last",
+    val hasCurrentAccommodation: Boolean = false,
+  )
+
   @MockK
   lateinit var caseOrchestrationService: CaseOrchestrationService
 
@@ -58,6 +75,7 @@ class CaseQueryServiceTest {
       caseOrchestrationService = caseOrchestrationService,
       userService = userService,
       caseRepository = caseRepository,
+      clock = clock,
     )
   }
 
@@ -65,6 +83,11 @@ class CaseQueryServiceTest {
   private val crnTwo = "X12346"
   private val crnThree = "X12347"
   private val crnFour = "X12348"
+  private val crnFive = "X12349"
+  private val crnSix = "X12350"
+  private val crnSeven = "X12351"
+  private val crnEight = "X12352"
+  private val crnNine = "X12353"
   private val username = "user1"
 
   val assignedTo = AssignedToDto(
@@ -337,6 +360,26 @@ class CaseQueryServiceTest {
   @Nested
   inner class GetCases {
 
+    private fun sortCase(
+      crn: String,
+      status: CaseAccommodationStatus,
+      statusDate: LocalDate? = null,
+      firstName: String = "First",
+      lastName: String = "Last",
+      hasCurrentAccommodation: Boolean = false,
+    ) = SortCaseDefinition(
+      crn = crn,
+      status = status,
+      statusDate = statusDate,
+      firstName = firstName,
+      lastName = lastName,
+      hasCurrentAccommodation = hasCurrentAccommodation,
+    )
+
+    private fun assertCrnOrder(result: List<CaseDto>, vararg expectedCrns: String) {
+      assertThat(result.map { it.crn }).containsExactly(*expectedCrns)
+    }
+
     private fun toLimitedCaseDto(crn: String) = CaseDto(
       dateOfBirth = null,
       crn = crn,
@@ -350,42 +393,32 @@ class CaseQueryServiceTest {
       limitedAccess = true,
     )
 
-    private fun setupFourCaseScenario(): List<PersonDto> {
-      val crnList = listOf(crnOne, crnTwo, crnThree, crnFour)
-
+    private fun setupSortScenario(vararg cases: SortCaseDefinition): List<PersonDto> {
       val staff = buildOfficer(username = username)
-      val personDto1 = buildFullPersonDto(crn = crnOne, staff = staff)
-      val personDto2 = buildFullPersonDto(crn = crnTwo, staff = staff)
-      val personDto3 = buildFullPersonDto(crn = crnThree, staff = staff)
-      val personDto4 = buildFullPersonDto(crn = crnFour, staff = staff)
+      val crnList = cases.map { it.crn }
 
-      val caseEntitySettled = buildCaseEntity {
-        withCrn(crnOne)
-        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne)
-        accommodationStatus = CaseAccommodationStatus.SETTLED
-      }
-      val caseEntityTransient = buildCaseEntity {
-        withCrn(crnTwo)
-        accommodationStatus = CaseAccommodationStatus.TRANSIENT
-      }
-      val caseEntityRisk = buildCaseEntity {
-        withCrn(crnThree)
-        accommodationStatus = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE
-      }
-      val caseEntityNo = buildCaseEntity {
-        withCrn(crnFour)
-        accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE
+      every { caseRepository.mapByCrns(crnList) } returns cases.associate { sortCase ->
+        sortCase.crn to buildCaseEntity {
+          withCrn(sortCase.crn)
+          accommodationStatus = sortCase.status
+          accommodationStatusDate = sortCase.statusDate
+          firstName = sortCase.firstName
+          lastName = sortCase.lastName
+          if (sortCase.hasCurrentAccommodation) {
+            currentAccommodation = buildAccommodationSummaryDto(crn = sortCase.crn)
+          }
+        }
       }
 
-      every { caseRepository.mapByCrns(crnList) } returns mapOf(
-        crnOne to caseEntitySettled,
-        crnTwo to caseEntityTransient,
-        crnThree to caseEntityRisk,
-        crnFour to caseEntityNo,
-      )
-
-      return listOf(personDto1, personDto2, personDto3, personDto4)
+      return cases.map { buildFullPersonDto(crn = it.crn, staff = staff) }
     }
+
+    private fun setupFourCaseScenario(): List<PersonDto> = setupSortScenario(
+      sortCase(crn = crnOne, status = CaseAccommodationStatus.SETTLED, hasCurrentAccommodation = true),
+      sortCase(crn = crnTwo, status = CaseAccommodationStatus.TRANSIENT),
+      sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE),
+      sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE),
+    )
 
     @BeforeEach
     fun setUp() {
@@ -428,26 +461,24 @@ class CaseQueryServiceTest {
       val caseEntity2 = buildCaseEntity { withCrn(crnTwo) }
       val caseEntity3 = buildCaseEntity { withCrn(limitedCrn) }
       val caseEntities = mapOf(crnOne to caseEntity1, crnTwo to caseEntity2, limitedCrn to caseEntity3)
-
+      val caseDto1 = personDto1.toCaseDto(
+        caseEntity = caseEntity1,
+        currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
+        nextAccommodation = null,
+      )
+      val caseDto2 = personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null)
+      val caseDto3 = personDto3.toCaseDto(caseEntity = caseEntity3, currentAccommodation = null, nextAccommodation = null)
       every { caseRepository.mapByCrns(crnList) } returns caseEntities
 
       val result = caseQueryService.getCases(personDtos = personDtos)
 
       assertThat(result).hasSize(3)
-
-      assertThat(result[0]).isEqualTo(
-        personDto2.toCaseDto(caseEntity = caseEntity2, currentAccommodation = null, nextAccommodation = null),
-      )
-      assertThat(result[1])
-        .extracting(CaseDto::crn, CaseDto::limitedAccess, CaseDto::userAccess)
-        .containsExactly(limitedCrn, true, UserAccess.LIMITED)
-      assertThat(result[2]).isEqualTo(
-        personDto1.toCaseDto(
-          caseEntity = caseEntity1,
-          currentAccommodation = buildAccommodationSummaryDto(crn = crnOne),
-          nextAccommodation = null,
-        ),
-      )
+      assertThat(result.map { it to it.limitedAccess to it.userAccess })
+        .contains(
+          caseDto1 to false to UserAccess.FULL,
+          caseDto2 to false to UserAccess.FULL,
+          caseDto3 to true to UserAccess.LIMITED,
+        )
     }
 
     @Test
@@ -465,6 +496,85 @@ class CaseQueryServiceTest {
           crnTwo to CaseAccommodationStatus.TRANSIENT,
           crnOne to CaseAccommodationStatus.SETTLED,
         )
+    }
+
+    @Test
+    fun `should sort RISK_OF_NO_FIXED_ABODE by soonest status date, surname, firstname, then crn`() {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today, firstName = "Whisky", lastName = "Tango"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Zulu", lastName = "Alpha"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive)
+    }
+
+    @Test
+    fun `should sort NO_FIXED_ABODE by oldest status date, surname, firstname, then crn`() {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Whisky", lastName = "Tango"),
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Beta"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Zulu", lastName = "Alpha"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseAccommodationStatus::class, names = ["TRANSIENT", "SETTLED"])
+    fun `should sort by oldest future status dates, then same rules but for past dates`(status: CaseAccommodationStatus) {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnSix, status = status, statusDate = today.minusDays(2), firstName = "CHARLIE", lastName = "CHARLIE"),
+        sortCase(crn = crnEight, status = status, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnSeven, status = status, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnThree, status = status, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnFour, status = status, statusDate = today.plusDays(2), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnOne, status = status, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnFive, status = status, statusDate = today.minusDays(2), firstName = "beta", lastName = "beta"),
+        sortCase(crn = crnTwo, status = status, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Beta"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(result, crnOne, crnTwo, crnThree, crnFour, crnFive, crnSix, crnSeven, crnEight)
+    }
+
+    @Test
+    fun `should sort each status group independently within the overall status ordering`() {
+      val personDtos = setupSortScenario(
+        sortCase(crn = crnEight, status = CaseAccommodationStatus.SETTLED, statusDate = today.plusDays(1), firstName = "Beta", lastName = "Beta"),
+        sortCase(crn = crnSix, status = CaseAccommodationStatus.TRANSIENT, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnThree, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(2), firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnSeven, status = CaseAccommodationStatus.SETTLED, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnOne, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today, firstName = "Zulu", lastName = "Zulu"),
+        sortCase(crn = crnNine, status = CaseAccommodationStatus.SETTLED, statusDate = today, firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnFour, status = CaseAccommodationStatus.NO_FIXED_ABODE, statusDate = today.minusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnTwo, status = CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE, statusDate = today.plusDays(1), firstName = "Alpha", lastName = "Alpha"),
+        sortCase(crn = crnFive, status = CaseAccommodationStatus.TRANSIENT, firstName = "Zulu", lastName = "Zulu"),
+      )
+
+      val result = caseQueryService.getCases(personDtos = personDtos)
+
+      assertCrnOrder(
+        result,
+        crnOne,
+        crnTwo,
+        crnThree,
+        crnFour,
+        crnFive,
+        crnSix,
+        crnSeven,
+        crnEight,
+        crnNine,
+      )
     }
 
     @ParameterizedTest
@@ -488,7 +598,7 @@ class CaseQueryServiceTest {
         PeopleType.NFA_RISK -> {
           assertThat(result).hasSize(3)
           assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-            .containsExactly(
+            .contains(
               crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
               crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
               crnTwo to CaseAccommodationStatus.TRANSIENT,
@@ -497,7 +607,7 @@ class CaseQueryServiceTest {
         else -> {
           assertThat(result).hasSize(4)
           assertThat(result.map { it.crn to it.accommodationSummaries?.caseAccommodationStatus })
-            .containsExactly(
+            .contains(
               crnThree to CaseAccommodationStatus.RISK_OF_NO_FIXED_ABODE,
               crnFour to CaseAccommodationStatus.NO_FIXED_ABODE,
               crnTwo to CaseAccommodationStatus.TRANSIENT,

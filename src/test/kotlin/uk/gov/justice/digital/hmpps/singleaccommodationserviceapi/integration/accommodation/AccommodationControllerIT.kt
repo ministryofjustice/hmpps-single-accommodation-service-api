@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildIdentifiers
@@ -724,7 +724,7 @@ class AccommodationControllerIT : IntegrationTestBase() {
     )
     val cas3Application = buildCas3Application(
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      submittedApplication = buildCas3SubmittedApplicationDto(
+      submittedApplication = buildCas3SubmittedApplication(
         latestBooking = buildCas3LatestBooking(
           status = Cas3BookingStatus.CONFIRMED,
           premises = buildCas3PremisesSummary(

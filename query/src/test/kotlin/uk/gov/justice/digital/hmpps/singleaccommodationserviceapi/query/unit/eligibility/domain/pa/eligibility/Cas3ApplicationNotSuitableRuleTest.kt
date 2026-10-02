@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Fa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.pa.eligibility.Cas3ApplicationNotSuitableRule
@@ -30,7 +30,7 @@ class Cas3ApplicationNotSuitableRuleTest {
     val cas3Application = buildCas3Application(
       id = UUID.randomUUID(),
       applicationStatus = status,
-      submittedApplication = buildCas3SubmittedApplicationDto(
+      submittedApplication = buildCas3SubmittedApplication(
         assessmentStatus = null,
         latestBooking = buildCas3LatestBooking(
           status = null,
@@ -66,7 +66,7 @@ class Cas3ApplicationNotSuitableRuleTest {
       id = UUID.randomUUID(),
       applicationStatus = status,
       submittedApplication = if (status == Cas3ApplicationStatus.REJECTED) {
-        buildCas3SubmittedApplicationDto(
+        buildCas3SubmittedApplication(
           assessmentStatus = null,
           latestBooking = buildCas3LatestBooking(
             status = null,

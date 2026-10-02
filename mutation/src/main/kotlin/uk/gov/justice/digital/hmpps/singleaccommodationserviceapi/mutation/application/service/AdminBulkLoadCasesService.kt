@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Bu
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BulkLoadCasesResultDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UpstreamFailureDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.aggregator.UpstreamFailureTransformer
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.TeamCodesRequiredException
@@ -18,13 +19,10 @@ class AdminBulkLoadCasesService(
   private val caseApplicationService: CaseApplicationService,
   private val caseRepository: CaseRepository,
   private val onboardedTeamRepository: OnboardedTeamRepository,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
   fun bulkLoadCases(teamCodes: List<String>, dryRun: Boolean): ApiResponseDto<BulkLoadCasesResultDto> {
-    caseRefreshRequestService ?: throw IllegalStateException("Case refresh request service is not enabled")
-
     val normalizedTeamCodes = teamCodes.map { it.trim().uppercase() }
       .filter(String::isNotEmpty)
       .distinct()
@@ -111,7 +109,10 @@ class AdminBulkLoadCasesService(
     }
 
     val writeStartedAt = System.nanoTime()
-    caseApplicationService.createCases(teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) }, createAsBlankRecord = true)
+    caseApplicationService.createBlankCases(
+      teamCases.map { CrnToPrisonNumber(it.crn, it.prisonerNumber) },
+      refreshPriority = CaseRefreshPriority.BULK,
+    )
     log.info(
       "Team {}: requested refresh for {} case(s) ({} created) in {}ms",
       teamCode,

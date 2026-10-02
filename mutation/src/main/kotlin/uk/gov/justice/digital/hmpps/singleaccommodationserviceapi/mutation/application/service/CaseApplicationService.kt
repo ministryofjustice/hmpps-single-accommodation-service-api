@@ -5,6 +5,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummary
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.InvalidCrnsException
 
@@ -13,15 +14,20 @@ class CaseApplicationService(
   private val caseCreationService: CaseCreationService,
   private val caseRepository: CaseRepository,
   private val approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService,
-  private val caseRefreshRequestService: CaseRefreshRequestService?,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) {
   private val log = LoggerFactory.getLogger(CaseApplicationService::class.java)
   private val maxAttempts = 3
 
-  fun createCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>, createAsBlankRecord: Boolean) {
+  fun createCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>) {
     val casesToCreate = crnsToPrisonNumbers.map { CaseToCreate(crn = it.crn, prisonNumber = it.prisonNumber) }
-    saveCases(casesToCreate, createAsBlankRecord)
-    if (createAsBlankRecord) refreshCases(casesToCreate)
+    saveCases(casesToCreate, createAsBlankRecord = false)
+  }
+
+  fun createBlankCases(crnsToPrisonNumbers: List<CrnToPrisonNumber>, refreshPriority: CaseRefreshPriority) {
+    val casesToCreate = crnsToPrisonNumbers.map { CaseToCreate(crn = it.crn, prisonNumber = it.prisonNumber) }
+    saveCases(casesToCreate, createAsBlankRecord = true)
+    refreshCases(casesToCreate, refreshPriority)
   }
 
   fun createValidatedCases(crns: List<String>) {
@@ -40,7 +46,7 @@ class CaseApplicationService(
     }
 
     saveCases(casesToCreate, createAsBlankRecord = true)
-    refreshCases(casesToCreate)
+    refreshCases(casesToCreate, CaseRefreshPriority.BULK)
   }
 
   private fun saveCases(casesToCreate: List<CaseToCreate>, createAsBlankRecord: Boolean) {
@@ -49,10 +55,12 @@ class CaseApplicationService(
     }
   }
 
-  private fun refreshCases(cases: List<CaseToCreate>) {
-    val refreshService = caseRefreshRequestService ?: return
+  private fun refreshCases(cases: List<CaseToCreate>, priority: CaseRefreshPriority) {
     val caseIds = caseRepository.findByCrns(cases.map { it.crn }).map { it.id }
-    refreshService.requestBulkRefresh(caseIds)
+    when (priority) {
+      CaseRefreshPriority.LIVE -> caseIds.forEach { caseRefreshRequestService.requestLiveRefresh(it) }
+      CaseRefreshPriority.BULK -> caseRefreshRequestService.requestBulkRefresh(caseIds)
+    }
   }
 
   private fun validateUnpersistedCrns(crns: List<String>): Map<String, CaseSummary> {

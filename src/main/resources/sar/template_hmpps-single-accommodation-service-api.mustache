@@ -1,4 +1,4 @@
-<h1 class="title">Single Accommodation Service</h1>
+<h1 class="title">Find and manage accommodation</h1>
 {{#ProposedAccommodations}}
     <h2>Proposed Accommodation</h2>
 
@@ -64,23 +64,15 @@
     <table class="data-table">
         <tr>
             <td class="data-column-25">Dependent locality</td>
-            <td class="data-column-25">Unique Property Reference Number</td>
+            <td class="data-column-25">Name</td>
             <td class="data-column-25">Start Date</td>
             <td class="data-column-25">End Date</td>
         </tr>
         <tr>
             <td>{{ optionalValue address.dependentLocality }}</td>
-            <td>{{ optionalValue address.uprn }}</td>
+            <td>{{ optionalValue name }}</td>
             <td>{{ optionalValue (formatDate startDate) }}</td>
             <td>{{ optionalValue (formatDate endDate) }}</td>
-        </tr>
-    </table>
-    <table class="data-table">
-        <tr>
-            <td class="data-column-50">Name</td>
-        </tr>
-        <tr>
-            <td>{{ optionalValue name }}</td>
         </tr>
     </table>
 

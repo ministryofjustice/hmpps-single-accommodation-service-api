@@ -129,19 +129,33 @@ fun expectedGetEligibilityResponse(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "NOT_STARTED",
-        "action": {
-          "type": "START_CAS2_REFERRAL",
-          "startDate": null,
-          "service": "CAS2"
-        },
-        "link": "Start application",
+        "serviceStatus": "CANCELLED",
+        "action": null,
+        "link": "Start new application",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
         "blockingStatusReason": null
       },
-      "cas2Application": null
+      "cas2Application": {
+        "uiUrl": "https://cas2-ui/applications/e6b202ce-c214-4b87-98f7-111111111111",
+        "id": "e6b202ce-c214-4b87-98f7-111111111111",
+        "createdAt": "2024-01-01T12:00:00Z",
+        "createdBy": {
+          "name": "Anne",
+          "username": "anne.smith",
+          "deliusStaffCode": "ANNE",
+          "nomisStaffId": null,
+          "userType": "DELIUS"
+        },
+        "submittedApplication": {
+          "latestAssessmentStatus": "CANCELLED",
+          "offerDeclinedReason": null,
+          "cancelledReason": "cancelled reason",
+          "submittedAt": "2024-01-02T12:00:00Z"
+        },
+        "cohort":"INTENSIVE_SUPERVISION_COURTS"
+      }
     },
     "cas3": {
       "serviceResult": {
@@ -242,8 +256,7 @@ fun expectedGetEligibilityResponse(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
-         {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }

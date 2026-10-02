@@ -8,12 +8,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.ass
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3BookingStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3LatestBooking
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
@@ -27,12 +25,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Application
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2Staff
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas2SubmittedApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3ExternalPreviousBookingCancellation
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3LatestBooking
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplicationDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCorePersonRecord
@@ -70,12 +72,14 @@ class EligibilityControllerIT : IntegrationTestBase() {
   private val crn = "FAKECRN1"
   private val prisonNumber = "PRI1"
   private val cas1ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111111")
+  private val cas2ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f7-111111111111")
   private val cas3ApplicationId = UUID.fromString("e6b202ce-c214-4b87-98f6-111111111111")
   private val dutyToReferCaseId = UUID.fromString("e6b202ce-c214-4b87-98f5-111111111112")
 
   private val crsSubmissionDate = LocalDate.now()
 
   private val cas1ApplicationUiUrl = "https://cas1-ui/applications/$cas1ApplicationId"
+  private val cas2ApplicationUiUrl = "https://cas2-ui/applications/$cas2ApplicationId"
   private val cas3ReferralUiUrl = "https://cas3-ui/referrals/$cas3ApplicationId/full"
 
   @Value($$"${service.commissioned-rehabilitative-services-ui.base-url}")
@@ -108,19 +112,20 @@ class EligibilityControllerIT : IntegrationTestBase() {
     val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      submittedApplication = buildCas3SubmittedApplicationDto(
+      submittedApplication = buildCas3SubmittedApplication(
         assessmentStatus = Cas3AssessmentStatus.UNALLOCATED,
         submittedDate = LocalDate.of(2025, 1, 2),
       ),
       uiUrl = cas3ReferralUiUrl,
     )
 
+    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+
     HmppsAuthStubs.stubGrantToken()
     createTestDataSetupUserAndDeliusUser()
 
     CorePersonRecordStubs.getCorePersonRecordOKResponse(crn = crn, response = corePersonRecord)
     PrisonerSearchStubs.getPrisonerOKResponse(prisonNumber = prisonNumber, response = buildPrisoner(prisonNumber = prisonNumber))
-    ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
     CommissionedRehabilitativeServicesStubs.getCrsOkResponse(
       crn = crn,
       response = listOf(
@@ -197,15 +202,35 @@ class EligibilityControllerIT : IntegrationTestBase() {
       ),
     )
 
-    val cas3Application = Cas3Application(
+    val cas2Application = buildCas2Application(
+      uiUrl = cas2ApplicationUiUrl,
+      id = cas2ApplicationId,
+      createdAt = OffsetDateTime.parse("2024-01-01T12:00:00.000Z"),
+      createdBy = buildCas2Staff(
+        name = "Anne",
+        username = "anne.smith",
+        deliusStaffCode = "ANNE",
+        nomisStaffId = null,
+        userType = "DELIUS",
+      ),
+      submittedApplication = buildCas2SubmittedApplicationSummary(
+        latestAssessmentStatus = Cas2AssessmentStatus.CANCELLED,
+        offerDeclinedReason = null,
+        cancelledReason = "cancelled reason",
+        submittedAt = OffsetDateTime.parse("2024-01-02T12:00:00.000Z"),
+      ),
+      cohort = "isc",
+    )
+
+    val cas3Application = buildCas3Application(
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.SUBMITTED,
-      submittedApplication = Cas3SubmittedApplication(
+      submittedApplication = buildCas3SubmittedApplication(
         submittedDate = LocalDate.parse("2023-01-01"),
         submittedBy = buildCas3Staff(),
         assessmentStatus = Cas3AssessmentStatus.REJECTED,
         assessmentRejectionReason = "Oops",
-        latestBooking = Cas3LatestBooking(
+        latestBooking = buildCas3LatestBooking(
           status = Cas3BookingStatus.CONFIRMED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
           premises = buildCas3PremisesSummary(
@@ -231,8 +256,9 @@ class EligibilityControllerIT : IntegrationTestBase() {
       uiUrl = cas3ReferralUiUrl,
     )
 
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
     ApprovedPremisesStubs.getCas3SuitableApplicationOKResponse(crn = crn, response = cas3Application)
+    ApprovedPremisesStubs.getCas2SuitableApplicationOKResponse(crn = crn, response = cas2Application)
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(crn = crn, response = cas1Application)
 
     TierStubs.getTierOKResponse(crn = crn, tier)
 
@@ -302,7 +328,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
       id = cas3ApplicationId,
       applicationStatus = Cas3ApplicationStatus.REJECTED,
       uiUrl = cas3ReferralUiUrl,
-      submittedApplication = buildCas3SubmittedApplicationDto(
+      submittedApplication = buildCas3SubmittedApplication(
         submittedDate = LocalDate.of(2025, 1, 2),
       ),
     )
