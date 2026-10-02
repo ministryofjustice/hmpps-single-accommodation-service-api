@@ -216,6 +216,7 @@ object EligibilityTransformer {
       previousBookings = toPreviousBookings(submittedApplication?.previousBookings),
       premises = latestBooking?.let { toCas3PremisesSummaryDto(it.premises) },
       uiUrl = application.uiUrl,
+      cancellation = toCancellation(application.submittedApplication?.latestBooking?.cancellation),
     )
   }
 
