@@ -23,6 +23,7 @@ class RetryConfig {
 
   object DefaultRetryDecider : RetryDecider {
     override fun shouldRetry(throwable: Throwable): Boolean = when (throwable) {
+      // TODO: Once we have completed the switch to WebClient, we should remove the first two entries
       is HttpServerErrorException -> true
       is ResourceAccessException -> true
       is WebClientRequestException -> throwable.isRetryableConnectionError() || throwable.isTimeout()
