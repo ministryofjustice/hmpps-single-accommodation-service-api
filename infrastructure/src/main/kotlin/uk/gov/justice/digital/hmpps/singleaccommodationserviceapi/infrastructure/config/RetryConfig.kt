@@ -13,7 +13,7 @@ import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isConnectionError
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isRetryableConnectionError
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.util.isTimeout
 
 @Configuration
@@ -23,10 +23,9 @@ class RetryConfig {
 
   object DefaultRetryDecider : RetryDecider {
     override fun shouldRetry(throwable: Throwable): Boolean = when (throwable) {
-      // TODO: Once we have completed the switch to WebClient, we should remove the first two entries
       is HttpServerErrorException -> true
       is ResourceAccessException -> true
-      is WebClientRequestException -> throwable.isConnectionError() || throwable.isTimeout()
+      is WebClientRequestException -> throwable.isRetryableConnectionError() || throwable.isTimeout()
       is WebClientResponseException -> throwable.statusCode.is5xxServerError
       else -> false
     }
