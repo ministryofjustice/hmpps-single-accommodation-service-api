@@ -174,7 +174,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
   ): LocalDate? = when (caseAccommodationStatus) {
     CaseAccommodationStatus.NO_FIXED_ABODE ->
-      addresses
+      currentAccommodation?.startDate ?: addresses
         ?.mapNotNull { it.endDate?.let(LocalDate::parse) }
         ?.maxOrNull()
 
