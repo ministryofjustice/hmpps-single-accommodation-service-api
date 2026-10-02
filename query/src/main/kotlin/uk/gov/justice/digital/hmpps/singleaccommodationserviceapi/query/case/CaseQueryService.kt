@@ -92,7 +92,7 @@ class CaseQueryService(
   private fun List<CaseDto>.sortCases(): List<CaseDto> {
     val today = LocalDate.now(clock)
     return sortedWith(
-      compareBy<CaseDto, CaseAccommodationStatus?>(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus }
+      compareBy<CaseDto, Int?>(nullsFirst()) { it.accommodationSummaries?.caseAccommodationStatus?.sortOrder }
         .thenBy { it.sortByStatusDate(today) }
         .thenBy { it.accommodationSummaries?.caseAccommodationStatusDate }
         .thenBy { it.surname?.lowercase() }
