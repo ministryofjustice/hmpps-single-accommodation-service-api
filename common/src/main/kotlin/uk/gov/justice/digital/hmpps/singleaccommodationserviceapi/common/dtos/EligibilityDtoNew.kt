@@ -19,7 +19,6 @@ data class ServiceResultNew(
   val actionStartDate: LocalDate? = null,
   val url: String? = null,
   val failureReasons: List<FailureReason> = emptyList(),
-  val blockingStatusReason: BlockingReason? = null,
 ) {
   init {
     requireXor(
@@ -34,14 +33,12 @@ data class ServiceResultNew(
 data class ServiceResultSpec(
   val serviceStatus: ServiceStatusNew,
   val url: String? = null,
-  val blockingStatusReason: BlockingReason? = null,
   val failureReasons: List<FailureReason> = emptyList(),
 ) {
   fun toResult(actionStartDate: LocalDate? = null) = ServiceResultNew(
     serviceStatus = serviceStatus,
     actionStartDate = actionStartDate,
     url = url,
-    blockingStatusReason = blockingStatusReason,
     failureReasons = failureReasons,
   )
 }
@@ -120,6 +117,7 @@ enum class ServiceStatusNew(
   val proposedAction: CaseActionType? = null,
   val link: Link? = null,
   val isUpcoming: Boolean = false,
+  val blockingStatusReason: BlockingReason? = null,
 ) {
 
   // CAS1 Service Statuses
@@ -326,8 +324,25 @@ enum class ServiceStatusNew(
     service = AccommodationService.CAS3,
     link = Link(text = EligibilityKeys.VIEW_REFERRAL, type = LinkType.CAS3_VIEW_REFERRAL),
   ),
-  CAS3_CANNOT_START_YET(
+  CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION(
     service = AccommodationService.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3,
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS(
+    service = AccommodationService.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3,
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION(
+    service = AccommodationService.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3,
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_CRS(
+    service = AccommodationService.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_CRS_BEFORE_CAS3,
+  ),
+  CAS3_CANNOT_START_YET_SUBMIT_DTR(
+    service = AccommodationService.CAS3,
+    blockingStatusReason = BlockingReason.SUBMIT_DTR_BEFORE_CAS3,
   ),
   CAS3_NOT_ELIGIBLE(
     service = AccommodationService.CAS3,
@@ -434,6 +449,7 @@ enum class FailureReason {
   SUITABLE_CAS1_APPLICATION,
   SUITABLE_CAS3_APPLICATION,
   IS_SETTLED,
+  INELIGIBLE_DATE_OF_BIRTH,
   UNDER_18,
 }
 

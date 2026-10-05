@@ -42,8 +42,8 @@ class Cas3PrerequisiteContextUpdaterTest {
 
       val result = updater.update(context)
 
-      assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
-      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.currentResult.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+      assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR)
     }
 
     @Nested
@@ -66,7 +66,7 @@ class Cas3PrerequisiteContextUpdaterTest {
         fun `returns SUBMIT_DTR_BEFORE_CAS3`(sex: SexCode) {
           val result = updater.update(context(sex), listOf(FailureReason.DTR_REFERRAL_EXPIRED))
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
+          assertThat(result.currentResult.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_BEFORE_CAS3)
         }
       }
 
@@ -79,7 +79,7 @@ class Cas3PrerequisiteContextUpdaterTest {
             listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_MALE),
           )
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
+          assertThat(result.currentResult.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_ACCOMMODATION_BEFORE_CAS3)
         }
 
         @ParameterizedTest
@@ -90,7 +90,7 @@ class Cas3PrerequisiteContextUpdaterTest {
             listOf(FailureReason.DTR_REFERRAL_EXPIRED, FailureReason.CRS_NOT_SUBMITTED_NON_MALE),
           )
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
+          assertThat(result.currentResult.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_DTR_AND_CRS_BEFORE_CAS3)
         }
       }
 
@@ -100,7 +100,7 @@ class Cas3PrerequisiteContextUpdaterTest {
         fun `returns SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3 for male`() {
           val result = updater.update(context(SexCode.M), listOf(FailureReason.CRS_NOT_SUBMITTED_MALE))
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
+          assertThat(result.currentResult.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_ACCOMMODATION_BEFORE_CAS3)
         }
 
         @ParameterizedTest
@@ -108,7 +108,7 @@ class Cas3PrerequisiteContextUpdaterTest {
         fun `returns SUBMIT_CRS_BEFORE_CAS3 for non-male`(sex: SexCode) {
           val result = updater.update(context(sex), listOf(FailureReason.CRS_NOT_SUBMITTED_NON_MALE))
 
-          assertThat(result.currentResult.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
+          assertThat(result.currentResult.serviceStatus.blockingStatusReason).isEqualTo(BlockingReason.SUBMIT_CRS_BEFORE_CAS3)
         }
       }
     }

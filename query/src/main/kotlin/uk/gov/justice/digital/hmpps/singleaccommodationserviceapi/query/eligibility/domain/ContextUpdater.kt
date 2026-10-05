@@ -37,7 +37,6 @@ abstract class ContextUpdater {
         "constant" to ServiceResultSpec(
           serviceStatus = result.serviceStatus,
           url = result.url,
-          blockingStatusReason = result.blockingStatusReason,
           failureReasons = result.failureReasons,
         ),
       )
