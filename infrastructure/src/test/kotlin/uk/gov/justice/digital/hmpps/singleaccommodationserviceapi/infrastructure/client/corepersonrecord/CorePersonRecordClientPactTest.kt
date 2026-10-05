@@ -7,7 +7,7 @@ import au.com.dius.pact.consumer.dsl.PactDslWithProvider
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt
 import au.com.dius.pact.consumer.junit5.PactTestFor
 import au.com.dius.pact.core.model.PactSpecVersion
-import au.com.dius.pact.core.model.RequestResponsePact
+import au.com.dius.pact.core.model.V4Pact
 import au.com.dius.pact.core.model.annotations.Pact
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -36,7 +36,7 @@ private const val CONSUMER = "hmpps-single-accommodation-service-api"
 private const val PROVIDER = "hmpps-person-record"
 
 @ExtendWith(PactConsumerTestExt::class)
-@PactTestFor(providerName = PROVIDER, pactVersion = PactSpecVersion.V3)
+@PactTestFor(providerName = PROVIDER, pactVersion = PactSpecVersion.V4)
 class CorePersonRecordClientPactTest {
   private val crn = "X123456"
   private val cprAddressId = UUID.fromString("123e4567-e89b-12d3-a456-426614174001")
@@ -46,7 +46,7 @@ class CorePersonRecordClientPactTest {
   private val jsonHeaders = mapOf("Content-Type" to "application/json")
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun getProbationPerson(builder: PactDslWithProvider): RequestResponsePact = builder
+  fun getProbationPerson(builder: PactDslWithProvider): V4Pact = builder
     .given("A probation person exists for the requested CRN")
     .uponReceiving("a request for a probation person by CRN")
     .pathFromProviderState("/person/probation/\${crn}", "/person/probation/$crn")
@@ -98,10 +98,10 @@ class CorePersonRecordClientPactTest {
         }
       }.build(),
     )
-    .toPact()
+    .toPact(V4Pact::class.java)
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun getProbationAddress(builder: PactDslWithProvider): RequestResponsePact = builder
+  fun getProbationAddress(builder: PactDslWithProvider): V4Pact = builder
     .given("An address exists for the requested CRN and address ID")
     .uponReceiving("a request for a probation address by CRN and CPR address ID")
     .pathFromProviderState(
@@ -133,10 +133,10 @@ class CorePersonRecordClientPactTest {
         }
       }.build(),
     )
-    .toPact()
+    .toPact(V4Pact::class.java)
 
   @Pact(consumer = CONSUMER, provider = PROVIDER)
-  fun createProbationAddress(builder: PactDslWithProvider): RequestResponsePact = builder
+  fun createProbationAddress(builder: PactDslWithProvider): V4Pact = builder
     .given("A probation address can be created for the requested CRN")
     .uponReceiving("a request to create a probation address for a CRN")
     .pathFromProviderState(
@@ -186,7 +186,7 @@ class CorePersonRecordClientPactTest {
         response.uuid("cprAddressId", cprAddressId)
       }.build(),
     )
-    .toPact()
+    .toPact(V4Pact::class.java)
 
   private fun addAddressLocationMatchers(address: LambdaDslObject) {
     address.stringType("postcode", "SW1A 1AA")
