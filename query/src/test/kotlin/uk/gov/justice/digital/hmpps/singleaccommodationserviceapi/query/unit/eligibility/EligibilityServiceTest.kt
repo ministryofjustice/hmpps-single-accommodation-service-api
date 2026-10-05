@@ -89,6 +89,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Cas2EligibilityRuleSet
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.eligibility.Under18Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2ApplicationSubmittedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.suitability.Cas2SuitabilityRuleSet
@@ -190,7 +191,9 @@ class EligibilityServiceTest {
 
   var cas2CompletionRuleSet = Cas2CompletionRuleSet(Cas2ApplicationAwaitingArrivalRule())
   var cas2SuitabilityRuleSet = Cas2SuitabilityRuleSet(Cas2ApplicationSubmittedRule(), Cas2SuitableStatusRule())
-  var cas2EligibilityRuleSet = Cas2EligibilityRuleSet()
+  var cas2EligibilityRuleSet = Cas2EligibilityRuleSet(
+    Under18Rule(clock),
+  )
   val cas2UpcomingContextUpdater = Cas2UpcomingContextUpdater()
   var cas2UpcomingRuleSet = Cas2UpcomingRuleSet(ReleaseWithinOneYearRule(clock))
   val cas2SuitabilityContextUpdater = Cas2SuitabilityContextUpdater(sentryService)
@@ -354,6 +357,7 @@ class EligibilityServiceTest {
       val cas3CurrentPremises = buildCas3PremisesSummary()
       val cas3Application = buildCas3Application()
       val cpr = buildCorePersonRecord(
+        dateOfBirth = LocalDate.of(1990, 1, 1),
         addresses = listOf(
           buildCanonicalAddress(
             status = CanonicalAddressStatus(
@@ -405,6 +409,7 @@ class EligibilityServiceTest {
         crn = crn,
         tierScore = expectedTier,
         sex = cpr.sex!!.code,
+        dob = cpr.dateOfBirth,
         currentAccommodation = currentAccommodation,
         currentAccommodationTypeEntity = accommodationTypeEntity,
         nextAccommodations = emptyList(),
@@ -616,6 +621,7 @@ class EligibilityServiceTest {
             expectedCas2Action = row["expectedCas2Action"]?.let { CaseActionType.valueOf(it) },
             expectedCas2Link = row["expectedCas2Link"],
             expectedCas2Url = row["expectedCas2Url"],
+            u18 = row["u18"]?.toBoolean(),
             expectedFailureReasons = row["expectedFailureReasons"]
               ?.takeIf { it.isNotBlank() }
               ?.split(",")
@@ -670,6 +676,9 @@ class EligibilityServiceTest {
           )
         }
 
+        val aged18 = LocalDate.now(clock).minusYears(18)
+        val under18 = LocalDate.now(clock).minusYears(18).plusDays(1)
+
         val data = buildDomainData(
           crn = s.testCaseId,
           currentAccommodation = currentAccommodation,
@@ -681,6 +690,13 @@ class EligibilityServiceTest {
               isPrison = it == "HMP",
               isCas2 = it == "A10" || it == "A11",
             )
+          },
+          dob = if (s.u18 == null) {
+            null
+          } else if (s.u18) {
+            under18
+          } else {
+            aged18
           },
         )
 
@@ -1234,6 +1250,104 @@ class EligibilityServiceTest {
     }
 
     @Test
+    fun `Cas3 surfaces CRS_NOT_SUBMITTED_MALE when a male candidate has no CRS referral`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.M,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
+        commissionedRehabilitativeServices = null,
+      )
+
+      val result = eligibilityService.evaluate(cas3Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED_MALE)
+    }
+
+    @Test
+    fun `Cas3 surfaces CRS_NOT_SUBMITTED_NON_MALE when a non-male candidate has no CRS referral`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.F,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(submission = buildDtrSubmission(submissionDate = today)),
+        commissionedRehabilitativeServices = null,
+      )
+
+      val result = eligibilityService.evaluate(cas3Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.failureReasons).contains(FailureReason.CRS_NOT_SUBMITTED_NON_MALE)
+    }
+
+    @Test
+    fun `Cas3 surfaces DTR_REFERRAL_EXPIRED when DTR was submitted more than 26 weeks ago`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        sex = SexCode.M,
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusDays(1)),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(isPrison = true),
+        cas3Application = null,
+        dutyToRefer = buildDutyToReferDto(
+          submission = buildDtrSubmission(submissionDate = today.minusWeeks(26).minusDays(1)),
+        ),
+        commissionedRehabilitativeServices = buildCommissionedRehabilitativeServices(status = CrsReferralStatus.LIVE),
+      )
+
+      val result = eligibilityService.evaluate(cas3Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS3_CANNOT_START_YET)
+      assertThat(result.failureReasons).contains(FailureReason.DTR_REFERRAL_EXPIRED)
+    }
+
+    @Test
+    fun `Crs surfaces IS_SETTLED when candidate has settled accommodation`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        currentAccommodation = buildAccommodationSummaryDto(endDate = today.plusWeeks(13)),
+        currentAccommodationTypeEntity = buildAccommodationTypeEntity(settledType = AccommodationSettledType.SETTLED),
+      )
+
+      val result = eligibilityService.evaluate(crsTree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CRS_NOT_REQUIRED)
+      assertThat(result.failureReasons).contains(FailureReason.IS_SETTLED)
+    }
+
+    @Test
+    fun `Cas2 surfaces UNDER_18 when candidate is under 18`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        dob = today.minusYears(18).plusDays(1),
+        cas2Application = null,
+      )
+
+      val result = eligibilityService.evaluate(cas2Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_ELIGIBLE)
+      assertThat(result.failureReasons).contains(FailureReason.UNDER_18)
+    }
+
+    @Test
+    fun `Cas2 allows candidate with no date of birth`() {
+      clock.setNow(today)
+      val data = buildDomainData(
+        dob = null,
+        cas2Application = null,
+      )
+
+      val result = eligibilityService.evaluate(cas2Tree, data)
+
+      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS2_NOT_STARTED_COMMUNITY)
+      assertThat(result.failureReasons).isEmpty()
+    }
+
+    @Test
     fun `Dtr surfaces HAS_NEXT_ACCOMMODATION when candidate has next accommodation`() {
       clock.setNow(today)
       val data = buildDomainData(
@@ -1314,6 +1428,7 @@ data class Cas1Scenario(
 data class Cas2Scenario(
   val testCaseId: String,
   val description: String?,
+  val u18: Boolean?,
   val referenceDate: LocalDate,
   val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
