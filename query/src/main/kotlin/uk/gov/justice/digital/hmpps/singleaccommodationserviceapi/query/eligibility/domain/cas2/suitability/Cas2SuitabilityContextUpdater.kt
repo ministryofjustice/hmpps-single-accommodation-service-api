@@ -17,7 +17,9 @@ class Cas2SuitabilityContextUpdater(
 
   override val description = set("Not started and start CAS2 application")
 
-  val notStarted = "notStarted"
+  val notStartedCommunity = "notStartedCommunity"
+  val notStartedPrison = "notStartedPrison"
+  val notStartedCas1 = "notStartedCas1"
   val notSubmitted = "notSubmitted"
   val offerDeclined = "offerDeclined"
   val cancelled = "cancelled"
@@ -25,8 +27,18 @@ class Cas2SuitabilityContextUpdater(
   val unknown = "unknown"
 
   override val outcomes = mapOf(
-    notStarted to ServiceResultSpec(
-      serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
+    notStartedCommunity to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_COMMUNITY,
+      link = EligibilityKeys.START_REFERRAL,
+      linkType = LinkType.CAS2_START_APPLICATION,
+    ),
+    notStartedPrison to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_PRISON,
+      link = EligibilityKeys.START_APPLICATION,
+      linkType = LinkType.CAS2_START_APPLICATION,
+    ),
+    notStartedCas1 to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
       link = EligibilityKeys.START_APPLICATION,
       linkType = LinkType.CAS2_START_APPLICATION,
     ),
@@ -55,8 +67,14 @@ class Cas2SuitabilityContextUpdater(
     ),
   )
 
+  fun toNotStartedServiceResult(context: EvaluationContext) = when {
+    context.data.currentAccommodationTypeEntity?.isCas1 == true -> outcome(notStartedCas1)
+    context.data.currentAccommodationTypeEntity?.isPrison == true -> outcome(notStartedPrison)
+    else -> outcome(notStartedCommunity)
+  }
+
   override fun toServiceResult(context: EvaluationContext) = when {
-    context.data.cas2Application == null -> outcome(notStarted)
+    context.data.cas2Application == null -> toNotStartedServiceResult(context)
     context.data.cas2Application.submittedApplication?.submittedAt == null -> outcome(notSubmitted)
     context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.OFFER_DECLINED -> outcome(offerDeclined)
     context.data.cas2Application.submittedApplication?.latestAssessmentStatus == Cas2AssessmentStatus.CANCELLED -> outcome(cancelled)

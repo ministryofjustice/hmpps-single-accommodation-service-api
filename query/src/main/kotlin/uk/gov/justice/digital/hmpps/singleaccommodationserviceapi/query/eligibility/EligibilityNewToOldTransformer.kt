@@ -40,7 +40,9 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS2_CANCELLED -> ServiceStatus.CANCELLED
     ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED -> ServiceStatus.MORE_INFORMATION_NEEDED
     ServiceStatusNew.CAS2_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
-    ServiceStatusNew.CAS2_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusNew.CAS2_NOT_STARTED_PRISON -> ServiceStatus.CAS2_NOT_STARTED_PRISON
+    ServiceStatusNew.CAS2_NOT_STARTED_COMMUNITY -> ServiceStatus.CAS2_NOT_STARTED_COMMUNITY
+    ServiceStatusNew.CAS2_NOT_STARTED_CAS1 -> ServiceStatus.CAS2_NOT_STARTED_CAS1
     ServiceStatusNew.CAS2_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
     ServiceStatusNew.CAS2_OFFER_ACCEPTED -> ServiceStatus.OFFER_ACCEPTED
     ServiceStatusNew.CAS2_OFFER_DECLINED_OR_WITHDRAWN -> ServiceStatus.OFFER_DECLINED_OR_WITHDRAWN

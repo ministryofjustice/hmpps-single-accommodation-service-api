@@ -432,13 +432,9 @@ fun expectedGetEligibilityResponseTierNotFound(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "NOT_STARTED",
-        "action": {
-          "type": "START_CAS2_REFERRAL",
-          "startDate": null,
-          "service": "CAS2"
-        },
-        "link": "Start application",
+        "serviceStatus": "CAS2_NOT_STARTED_COMMUNITY",
+        "action": null,
+        "link": "Start referral",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
@@ -533,8 +529,7 @@ fun expectedGetEligibilityResponseTierNotFound(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
-         {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }
@@ -597,13 +592,9 @@ fun expectedGetEligibilityNotEligibleSTierFail(
     },
     "cas2": {
       "serviceResult": {
-        "serviceStatus": "NOT_STARTED",
-        "action": {
-          "type": "START_CAS2_REFERRAL",
-          "startDate": null,
-          "service": "CAS2"
-        },
-        "link": "Start application",
+        "serviceStatus": "CAS2_NOT_STARTED_COMMUNITY",
+        "action": null,
+        "link": "Start referral",
         "url": null,
         "linkType": "CAS2_START_APPLICATION",
         "failureReasons": [],
@@ -697,8 +688,7 @@ fun expectedGetEligibilityNotEligibleSTierFail(
          }
       },
       "caseActions":[
-         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"},
-         {"type": "START_CAS2_REFERRAL", "startDate": null, "service": "CAS2"}
+         {"type":"ADD_DTR_OUTCOME","startDate":null, "service": "DTR"}
       ]
    }
 }
@@ -728,13 +718,12 @@ fun expectedGetEligibilityResponseCannotStartYet(
       },
       "cas2": {
         "serviceResult": {
-          "serviceStatus": "NOT_STARTED",
-          "action": {
-            "type": "START_CAS2_REFERRAL",
-            "startDate": null,
-            "service": "CAS2"
+          "serviceStatus": "CAS2_NOT_STARTED_PRISON",
+          "action":{
+          "type":"START_CAS2_REFERRAL",
+          "startDate":null,"service":"CAS2"
           },
-          "link": "Start application",
+          "link":"Start application",
           "url": null,
           "linkType": "CAS2_START_APPLICATION",
           "failureReasons": [],

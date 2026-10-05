@@ -613,6 +613,7 @@ class EligibilityServiceTest {
             testCaseId = row["testCaseId"]!!,
             description = row["description"],
             referenceDate = row["referenceDate"]!!.toLocalDate(),
+            currentAccommodationType = row["currentAccommodationType"],
             currentAccommodationEndDate = row["currentAccommodationEndDate"]?.toLocalDate(),
             isApplicationPresent = row["isApplicationPresent"]!!,
             submittedAt = row["submittedAt"]?.toLocalDate(),
@@ -666,13 +667,26 @@ class EligibilityServiceTest {
           null
         }
 
-        val currentAccommodation = s.currentAccommodationEndDate?.let {
-          buildAccommodationSummaryDto(endDate = it)
+        val currentAccommodation = s.currentAccommodationType?.let {
+          buildAccommodationSummaryDto(
+            endDate = s.currentAccommodationEndDate,
+            type = buildAccommodationTypeDto(
+              code = s.currentAccommodationType,
+            ),
+          )
         }
+
         val data = buildDomainData(
           crn = s.testCaseId,
           currentAccommodation = currentAccommodation,
           cas2Application = cas2Application,
+          currentAccommodationTypeEntity = s.currentAccommodationType?.let {
+            buildAccommodationTypeEntity(
+              code = it,
+              isCas1 = it == "A02",
+              isPrison = it == "HMP",
+            )
+          },
         )
 
         val result = eligibilityService.evaluate(cas2Tree, data)
@@ -1317,6 +1331,7 @@ data class Cas2Scenario(
   val testCaseId: String,
   val description: String?,
   val referenceDate: LocalDate,
+  val currentAccommodationType: String?,
   val currentAccommodationEndDate: LocalDate?,
   val isApplicationPresent: String,
   val submittedAt: LocalDate?,
