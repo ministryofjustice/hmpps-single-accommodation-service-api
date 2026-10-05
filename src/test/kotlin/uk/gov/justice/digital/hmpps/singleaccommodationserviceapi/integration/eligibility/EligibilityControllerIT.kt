@@ -233,6 +233,10 @@ class EligibilityControllerIT : IntegrationTestBase() {
         latestBooking = buildCas3LatestBooking(
           status = Cas3BookingStatus.CONFIRMED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+          cancellation = buildCas3ExternalPreviousBookingCancellation(
+            cancellationDate = LocalDate.parse("2023-01-03"),
+            cancellationReason = "Mistake",
+          ),
           premises = buildCas3PremisesSummary(
             name = "Test Premises",
             startDate = LocalDate.parse("2023-01-04"),
@@ -297,7 +301,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             submissionDate = existingEntity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
@@ -396,7 +400,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             submissionDate = existingEntity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             cas1ApplicationUrl = cas1ApplicationUiUrl,
             crsUrl = crsUrl,
@@ -472,7 +476,7 @@ class EligibilityControllerIT : IntegrationTestBase() {
             submissionDate = existingEntity.submissionDate.toString(),
             referenceNumber = "DTR-REF-001",
             createdBy = NAME_OF_TEST_DATA_SETUP_USER,
-            createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+            createdAt = existingEntity.createdAt.truncatedTo(ChronoUnit.SECONDS).toString(),
             crsSubmissionDate = crsSubmissionDate.toString(),
             crsUrl = crsUrl,
             cas3ReferralUrl = cas3ReferralUiUrl,
