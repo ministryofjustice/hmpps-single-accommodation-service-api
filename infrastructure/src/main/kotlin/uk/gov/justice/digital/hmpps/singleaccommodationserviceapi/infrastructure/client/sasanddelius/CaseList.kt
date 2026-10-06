@@ -22,6 +22,7 @@ data class Case(
   val userRestricted: Boolean?,
   val exclusionMessage: String?,
   val restrictionMessage: String?,
+  // this flag shows if there are any restrictions or exclusions on the case, regardless of the users access.
   val limitedAccess: Boolean?,
 )
 
