@@ -175,7 +175,15 @@ enum class ServiceStatusNew(
     service = AccommodationService.CAS2,
     proposedAction = null,
   ),
-  CAS2_NOT_STARTED(
+  CAS2_NOT_STARTED_COMMUNITY(
+    service = AccommodationService.CAS2,
+    proposedAction = null,
+  ),
+  CAS2_NOT_STARTED_PRISON(
+    service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.START_CAS2_REFERRAL,
+  ),
+  CAS2_NOT_STARTED_CAS1(
     service = AccommodationService.CAS2,
     proposedAction = CaseActionType.START_CAS2_REFERRAL,
   ),

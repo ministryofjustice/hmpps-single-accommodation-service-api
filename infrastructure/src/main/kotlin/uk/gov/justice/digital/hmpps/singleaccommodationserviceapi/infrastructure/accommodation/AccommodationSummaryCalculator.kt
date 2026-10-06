@@ -174,7 +174,7 @@ class AccommodationSummaryCalculator(
     addresses: List<CanonicalAddress>?,
   ): LocalDate? = when (caseAccommodationStatus) {
     CaseAccommodationStatus.NO_FIXED_ABODE ->
-      addresses
+      currentAccommodation?.startDate ?: addresses
         ?.mapNotNull { it.endDate?.let(LocalDate::parse) }
         ?.maxOrNull()
 
@@ -200,8 +200,8 @@ class AccommodationSummaryCalculator(
   ) = isSettledType(nextAccommodation) ||
     (isSettledType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
-  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = (isTransientNotHomelessType(nextAccommodation)) ||
-    (isTransientNotHomelessType(currentAccommodation) && !isMissingHomelessOrUnknown(nextAccommodation))
+  private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = isTransientNotHomelessType(nextAccommodation) ||
+    (isTransientNotHomelessType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,

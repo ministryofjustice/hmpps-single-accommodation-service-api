@@ -101,7 +101,7 @@ class EligibilityTransformerTest {
         serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
       )
       val cas2 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
+        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
       )
       val cas3 = buildServiceResultNew(
         serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
@@ -316,7 +316,7 @@ class EligibilityTransformerTest {
         assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
         assessmentRejectionReason = "Problem with application",
         latestBooking = buildCas3LatestBooking(
-          status = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
+          status = InfraCas3BookingStatus.CANCELLED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
           premises = buildCas3PremisesSummary(
             name = "123 Main St",
@@ -326,6 +326,10 @@ class EligibilityTransformerTest {
             addressLine2 = "Apt 1",
             town = "Lincoln",
             postcode = "SW1A 1AX",
+          ),
+          cancellation = buildCas3ExternalPreviousBookingCancellation(
+            cancellationDate = LocalDate.parse("2023-01-04"),
+            cancellationReason = "Booking cancelled again",
           ),
         ),
         previousBookings = listOf(
@@ -441,8 +445,12 @@ class EligibilityTransformerTest {
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = Cas3AssessmentStatus.REJECTED,
-      bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,
+      bookingStatus = Cas3BookingStatus.CANCELLED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+      cancellation = buildCas3ExternalPreviousBookingCancellationDto(
+        cancellationDate = LocalDate.parse("2023-01-04"),
+        cancellationReason = "Booking cancelled again",
+      ),
       previousBookings = listOf(
         buildCas3ExternalPreviousBookingDto(
           bookingStatus = Cas3BookingStatus.DEPARTED,
