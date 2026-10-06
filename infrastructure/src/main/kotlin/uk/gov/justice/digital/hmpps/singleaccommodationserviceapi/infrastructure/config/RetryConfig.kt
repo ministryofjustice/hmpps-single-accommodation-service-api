@@ -60,7 +60,7 @@ interface RetryDecider {
   fun shouldRetry(throwable: Throwable): Boolean
 }
 
-@Target(AnnotationTarget.CLASS)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @Retryable(
   maxAttemptsExpression = $$"${spring.retry.rest-client.max-attempts}",
@@ -71,4 +71,4 @@ interface RetryDecider {
   ),
   exceptionExpression = "@retryDecider.shouldRetry(#root)",
 )
-annotation class RestClientRetry
+annotation class WebClientRetry
