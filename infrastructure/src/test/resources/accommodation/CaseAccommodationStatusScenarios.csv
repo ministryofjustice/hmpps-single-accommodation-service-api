@@ -44,7 +44,7 @@ id,testName,currentType,currentEndDate,nextType,nextEndDate,expectedStatus
 43,current_settled_with_end__next_transient_with_end,SETTLED,2026-01-01,TRANSIENT,2026-01-01,TRANSIENT
 44,current_settled_with_end__next_unknown_no_end,SETTLED,2026-01-01,UNKNOWN,,RISK_OF_NO_FIXED_ABODE
 45,current_settled_with_end__next_unknown_with_end,SETTLED,2026-01-01,UNKNOWN,2026-03-01,RISK_OF_NO_FIXED_ABODE
-46,current_transient_no_end__next_null,TRANSIENT,,,,RISK_OF_NO_FIXED_ABODE
+46,current_transient_no_end__next_null,TRANSIENT,,,,TRANSIENT
 47,current_transient_no_end__next_homeless_no_end,TRANSIENT,,HOMELESS,,RISK_OF_NO_FIXED_ABODE
 48,current_transient_no_end__next_homeless_with_end,TRANSIENT,,HOMELESS,2026-02-01,RISK_OF_NO_FIXED_ABODE
 49,current_transient_no_end__next_settled_no_end,TRANSIENT,,SETTLED,,SETTLED
