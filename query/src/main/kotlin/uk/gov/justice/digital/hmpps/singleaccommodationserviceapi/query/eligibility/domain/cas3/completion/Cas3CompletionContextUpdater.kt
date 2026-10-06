@@ -20,6 +20,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
   val notArrived = "notArrived"
   val bedspaceCancelled = "bedspaceCancelled"
   val submitted = "submitted"
+  val arrived = "arrived"
 
   override val outcomes = mapOf(
     bedspaceOffered to ServiceResultSpec(
@@ -47,6 +48,11 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
       link = EligibilityKeys.VIEW_REFERRAL,
       linkType = LinkType.CAS3_VIEW_REFERRAL,
     ),
+    arrived to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS3_ARRIVED,
+      link = EligibilityKeys.VIEW_REFERRAL,
+      linkType = LinkType.CAS3_VIEW_REFERRAL,
+    ),
   )
 
   override fun toServiceResult(context: EvaluationContext): ServiceResultNew {
@@ -56,6 +62,7 @@ class Cas3CompletionContextUpdater : ContextUpdater() {
       Cas3BookingStatus.CONFIRMED -> outcome(bookingConfirmed)
       Cas3BookingStatus.NOT_MINUS_ARRIVED -> outcome(notArrived)
       Cas3BookingStatus.CANCELLED -> outcome(bedspaceCancelled)
+      Cas3BookingStatus.ARRIVED -> outcome(arrived)
       else -> outcome(submitted)
     }
   }

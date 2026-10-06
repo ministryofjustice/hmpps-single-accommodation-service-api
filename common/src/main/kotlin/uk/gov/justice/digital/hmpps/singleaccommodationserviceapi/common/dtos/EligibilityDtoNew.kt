@@ -262,6 +262,10 @@ enum class ServiceStatusNew(
     service = AccommodationService.CAS3,
     proposedAction = null,
   ),
+  CAS3_ARRIVED(
+    service = AccommodationService.CAS3,
+    proposedAction = null,
+  ),
   CAS3_BOOKING_CANCELLED(
     service = AccommodationService.CAS3,
     proposedAction = null,
