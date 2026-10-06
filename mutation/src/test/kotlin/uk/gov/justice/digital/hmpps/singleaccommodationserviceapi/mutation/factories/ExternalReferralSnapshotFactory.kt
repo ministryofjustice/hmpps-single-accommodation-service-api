@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate.ExternalReferralNote
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate.ExternalReferralSnapshot
 import java.time.LocalDate
@@ -19,7 +19,8 @@ fun buildExternalReferralSnapshot(
   submissionNote: String? = "A submission note",
   email: String? = null,
   phoneNumber: String? = null,
-  outcomeReason: ExternalReferralOutcomeReason? = null,
+  withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  withdrawalNote: String? = null,
   outcomeNote: String? = null,
   notes: List<ExternalReferralNote> = emptyList(),
 ) = ExternalReferralSnapshot(
@@ -34,7 +35,8 @@ fun buildExternalReferralSnapshot(
   submissionNote = submissionNote,
   email = email,
   phoneNumber = phoneNumber,
-  outcomeReason = outcomeReason,
+  withdrawalReason = withdrawalReason,
+  withdrawalNote = withdrawalNote,
   outcomeNote = outcomeNote,
   notes = notes,
 )
