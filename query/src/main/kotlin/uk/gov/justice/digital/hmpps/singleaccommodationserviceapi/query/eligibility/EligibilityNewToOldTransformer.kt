@@ -63,6 +63,7 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS3_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
     ServiceStatusNew.CAS3_REJECTED -> ServiceStatus.REJECTED
     ServiceStatusNew.CAS3_SUBMITTED -> ServiceStatus.SUBMITTED
+    ServiceStatusNew.CAS3_ARRIVED -> ServiceStatus.ARRIVED
 
     ServiceStatusNew.CRS_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusNew.CRS_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED

@@ -12,27 +12,27 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationConfirmedRule
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas3.completion.Cas3ApplicationArrivedRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
-class Cas3ApplicationConfirmedRuleTest {
-  private val description = "FAIL if CAS3 application is not confirmed"
+class Cas3ApplicationArrivedRuleTest {
+  private val description = "FAIL if CAS3 application is not arrived"
 
   @Test
-  fun `application is completed so rule passes`() {
+  fun `application is arrived so rule passes`() {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
         submittedApplication = buildCas3SubmittedApplication(
           assessmentStatus = Cas3AssessmentStatus.READY_TO_PLACE,
           latestBooking = buildCas3LatestBooking(
-            status = Cas3BookingStatus.CONFIRMED,
+            status = Cas3BookingStatus.ARRIVED,
           ),
         ),
       ),
     )
 
-    val result = Cas3ApplicationConfirmedRule().evaluate(data)
+    val result = Cas3ApplicationArrivedRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -43,8 +43,8 @@ class Cas3ApplicationConfirmedRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["CONFIRMED"])
-  fun `application is not completed so rule fails`(bookingStatus: Cas3BookingStatus) {
+  @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["ARRIVED"])
+  fun `application is not arrived so rule fails`(bookingStatus: Cas3BookingStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
         applicationStatus = Cas3ApplicationStatus.SUBMITTED,
@@ -57,7 +57,7 @@ class Cas3ApplicationConfirmedRuleTest {
       ),
     )
 
-    val result = Cas3ApplicationConfirmedRule().evaluate(data)
+    val result = Cas3ApplicationArrivedRule().evaluate(data)
 
     assertThat(result).isEqualTo(
       RuleResult(
@@ -69,6 +69,6 @@ class Cas3ApplicationConfirmedRuleTest {
 
   @Test
   fun `rule has correct description`() {
-    assertThat(Cas3ApplicationConfirmedRule().description).isEqualTo(description)
+    assertThat(Cas3ApplicationArrivedRule().description).isEqualTo(description)
   }
 }

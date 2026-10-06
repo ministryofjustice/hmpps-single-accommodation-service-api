@@ -166,13 +166,13 @@ flowchart TD
 flowchart TD
   Cas3Suitability{"Cas3Suitability (4)"}
   Cas3Completion{"Cas3Completion (1)"}
-  bookingConfirmed["bookingConfirmed"]
+  arrived["arrived"]
   confirmed["confirmed"]
   Cas3Eligibility["Cas3Eligibility (2)"]
   Cas3Prerequisite{"Cas3Prerequisite (3)"}
   currentOutcome["currentOutcome"]
   notEligible["notEligible"]
-  Cas3Completion -->|PASS| bookingConfirmed
+  Cas3Completion -->|PASS| arrived
   Cas3Completion -->|FAIL| confirmed
   Cas3Prerequisite -->|PASS| confirmed
   Cas3Prerequisite -->|FAIL| currentOutcome
@@ -187,7 +187,7 @@ flowchart TD
 **Cas3Suitability** (RuleSet)
 - [`Cas3ApplicationSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationSuitabilityRule.kt): FAIL if CAS3 application is not suitable
 - [`Cas3ApplicationPresentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationPresentSuitabilityRule.kt): FAIL if CAS3 application is not present
-- [`Cas3BookingSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3BookingSuitabilityRule.kt): FAIL if booking is arrived, departed or closed
+- [`Cas3BookingSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3BookingSuitabilityRule.kt): FAIL if booking is departed or closed
 - [`Cas3AssessmentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3AssessmentSuitabilityRule.kt): FAIL if CAS3 assessment is rejected or closed
 - FAIL: [`Cas3SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3SuitabilityContextUpdater.kt) - Set status from referral
 
@@ -200,7 +200,7 @@ flowchart TD
 
 
 **Cas3Completion** (RuleSet)
-- [`Cas3ApplicationConfirmedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/completion/Cas3ApplicationConfirmedRule.kt): FAIL if CAS3 application is not confirmed
+- [`Cas3ApplicationArrivedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/completion/Cas3ApplicationArrivedRule.kt): FAIL if CAS3 application is not arrived
 - FAIL: [`Cas3CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/completion/Cas3CompletionContextUpdater.kt) - Set status from booking
 
 | Status | Action | Link type |
@@ -210,9 +210,10 @@ flowchart TD
 | CAS3_NOT_ARRIVED | - | CAS3_VIEW_REFERRAL |
 | CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
 | CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
+| CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
 
 
-**bookingConfirmed** (Outcome)
+**arrived** (Outcome)
 
 **confirmed** (Outcome)
 
@@ -398,12 +399,12 @@ flowchart TD
 | Cas2ApplicationAwaitingArrivalRule | FAIL if application is not awaiting arrival | Cas2Completion | CAS2 |
 | Cas2ApplicationSubmittedRule | FAIL if candidate does not have a submitted application | Cas2Suitability | CAS2 |
 | Cas2SuitableStatusRule | FAIL if candidate has an unsuitable status | Cas2Suitability | CAS2 |
-| Cas3ApplicationConfirmedRule | FAIL if CAS3 application is not confirmed | Cas3Completion | CAS3 |
+| Cas3ApplicationArrivedRule | FAIL if CAS3 application is not arrived | Cas3Completion | CAS3 |
 | Cas3ApplicationNotSuitableRule | FAIL if candidate has suitable CAS3 application | PaEligibility | PA |
 | Cas3ApplicationPresentSuitabilityRule | FAIL if CAS3 application is not present | Cas3Suitability | CAS3 |
 | Cas3ApplicationSuitabilityRule | FAIL if CAS3 application is not suitable | Cas3Suitability | CAS3 |
 | Cas3AssessmentSuitabilityRule | FAIL if CAS3 assessment is rejected or closed | Cas3Suitability | CAS3 |
-| Cas3BookingSuitabilityRule | FAIL if booking is arrived, departed or closed | Cas3Suitability | CAS3 |
+| Cas3BookingSuitabilityRule | FAIL if booking is departed or closed | Cas3Suitability | CAS3 |
 | CrsSubmittedRule | FAIL if no live CRS referral | CrsCompletion | CRS |
 | CrsSubmittedRuleMale | FAIL if CRS not submitted and male | Cas3Prerequisite | CAS3 |
 | CrsSubmittedRuleNonMale | FAIL if CRS not submitted and not male | Cas3Prerequisite | CAS3 |
@@ -514,6 +515,7 @@ Used by: Cas3Completion (CAS3)
 | CAS3_NOT_ARRIVED | - | CAS3_VIEW_REFERRAL |
 | CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
 | CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
+| CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
 
 
 Set Cannot start yet from outstanding DTR/CRS

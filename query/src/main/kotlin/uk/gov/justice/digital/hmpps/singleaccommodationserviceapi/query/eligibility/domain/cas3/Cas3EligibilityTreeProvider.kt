@@ -44,8 +44,8 @@ class Cas3EligibilityTreeProvider(
     val confirmed = builder.confirmed()
     val notEligible = builder.notEligible(AccommodationService.CAS3)
     val cannotStartYet = builder.currentOutcome()
-    val bookingConfirmed = builder.outcome(
-      "bookingConfirmed",
+    val arrived = builder.outcome(
+      "arrived",
       serviceResult(),
     )
 
@@ -63,7 +63,7 @@ class Cas3EligibilityTreeProvider(
 
     val completionNode = builder
       .ruleSet("Cas3Completion", completion, completionContextUpdater)
-      .onPass(bookingConfirmed)
+      .onPass(arrived)
       .onFail(confirmed)
       .build()
 
@@ -75,7 +75,7 @@ class Cas3EligibilityTreeProvider(
   }
 
   private fun serviceResult(): ServiceResultNew = ServiceResultNew(
-    serviceStatus = ServiceStatusNew.CAS3_BOOKING_CONFIRMED,
+    serviceStatus = ServiceStatusNew.CAS3_ARRIVED,
     link = EligibilityKeys.VIEW_REFERRAL,
     linkType = LinkType.CAS3_VIEW_REFERRAL,
   )
