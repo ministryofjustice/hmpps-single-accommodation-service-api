@@ -27,8 +27,8 @@ object ProbationAccessControlStubs {
     username,
     UserCaseAccess(
       accessibleCrns.map { CaseAccess(crn = it, userExcluded = false, userRestricted = false) } +
-        excludedCrns.map { CaseAccess(crn = it, userExcluded = true, userRestricted = false, exclusionMessage = "excluded") } +
-        restrictedCrns.map { CaseAccess(crn = it, userExcluded = false, userRestricted = true, restrictionMessage = "restricted") },
+        excludedCrns.map { CaseAccess(crn = it, userExcluded = true, userRestricted = false) } +
+        restrictedCrns.map { CaseAccess(crn = it, userExcluded = false, userRestricted = true) },
     ),
   )
 
