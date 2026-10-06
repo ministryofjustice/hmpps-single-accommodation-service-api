@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.client.RestTestClient
 import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
@@ -101,9 +100,6 @@ abstract class IntegrationTestBase {
 
   @Autowired
   protected lateinit var restTestClient: RestTestClient
-
-  @Autowired
-  protected lateinit var webTestClient: WebTestClient
 
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
@@ -254,20 +250,6 @@ abstract class IntegrationTestBase {
     username: String = USERNAME_OF_LOGGED_IN_DELIUS_USER,
     roles: List<String> = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
   ): RestTestClient.RequestHeadersSpec<*> = this.headers {
-    it.setBearerAuth(
-      jwtAuthHelper.createJwtAccessToken(
-        grantType = GrantType.AUTHORIZATION_CODE.type,
-        username = username,
-        roles = roles,
-        authSource = AuthSource.DELIUS.source,
-      ),
-    )
-  }
-
-  fun WebTestClient.RequestHeadersSpec<*>.withDeliusUserJwt(
-    username: String = USERNAME_OF_LOGGED_IN_DELIUS_USER,
-    roles: List<String> = listOf("SINGLE_ACCOMMODATION_SERVICE_PROBATION_PRACTITIONER"),
-  ): WebTestClient.RequestHeadersSpec<*> = this.headers {
     it.setBearerAuth(
       jwtAuthHelper.createJwtAccessToken(
         grantType = GrantType.AUTHORIZATION_CODE.type,
