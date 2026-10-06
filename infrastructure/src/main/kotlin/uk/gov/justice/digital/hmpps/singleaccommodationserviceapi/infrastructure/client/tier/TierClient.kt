@@ -6,15 +6,15 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface TierClient {
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/v2/crn/{crn}/tier")
   fun getTier(@PathVariable crn: String): Tier
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/v3/crn/{crn}/tier")
   fun getTierV3(@PathVariable crn: String): Tier
 }

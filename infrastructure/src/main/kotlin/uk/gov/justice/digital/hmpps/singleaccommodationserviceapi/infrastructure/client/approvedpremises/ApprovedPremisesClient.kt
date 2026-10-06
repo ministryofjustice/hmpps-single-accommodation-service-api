@@ -6,50 +6,50 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.getOrNullWhenNotFound
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface ApprovedPremisesClient {
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/premises/current")
   fun getCas1CurrentPremises(@PathVariable crn: String): Cas1PremisesSummary
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/premises/current")
   fun getCas3CurrentPremises(@PathVariable crn: String): Cas3BookingPremises
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/cases/{crn}/applications/suitable")
   fun getSuitableCas1ApplicationInternal(@PathVariable crn: String): Cas1Application
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/cases/{crn}/applications/suitable")
   fun getSuitableCas2ApplicationInternal(@PathVariable crn: String): Cas2Application
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/cases/{crn}/applications/suitable")
   fun getSuitableCas3ApplicationInternal(@PathVariable crn: String): Cas3Application
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/referrals/{crn}")
   fun getCas1Referral(@PathVariable crn: String): List<Cas1ReferralHistory>
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/referrals/{crn}")
   fun getCas2ReferralHistory(@PathVariable crn: String): List<Cas2ReferralHistory>
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/referrals/{crn}")
   fun getCas3ReferralHistory(@PathVariable crn: String): List<Cas3ReferralHistory>
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas1/external/url-templates")
   fun getCas1UrlTemplatesInternal(): Cas1UrlTemplates
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas2/external/url-templates")
   fun getCas2UrlTemplatesInternal(): Cas2UrlTemplates
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/cas3/external/url-templates")
   fun getCas3UrlTemplatesInternal(): Cas3UrlTemplates
 }

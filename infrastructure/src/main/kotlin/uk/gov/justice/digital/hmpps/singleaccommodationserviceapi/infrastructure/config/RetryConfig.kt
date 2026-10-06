@@ -71,4 +71,4 @@ interface RetryDecider {
   ),
   exceptionExpression = "@retryDecider.shouldRetry(#root)",
 )
-annotation class RestClientRetry
+annotation class WebClientRetry

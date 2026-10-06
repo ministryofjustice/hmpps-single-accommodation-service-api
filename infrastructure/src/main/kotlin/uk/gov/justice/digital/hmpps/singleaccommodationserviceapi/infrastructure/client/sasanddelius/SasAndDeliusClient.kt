@@ -7,22 +7,22 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface SasAndDeliusClient {
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/case-list/{username}")
   fun getCaseList(@PathVariable username: String, @RequestParam(required = false) teamCode: String?, @RequestParam page: Long, @RequestParam size: Long): CaseList
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/case/{username}/{crn}")
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/team/{teamCode}/case-list")
   fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
 
-  @RestClientRetry
+  @WebClientRetry
   @GetExchange(value = "/case/{crn}")
   fun getCase(@PathVariable crn: String): Case
 }
