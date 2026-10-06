@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CommissionedRehabilitativeServicesClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecordClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.probationaccesscontrol.ProbationAccessControlClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.TierClient
 import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
@@ -105,6 +106,18 @@ class HttpServiceProxiesConfig(
     webClientBuilder,
     baseUrl,
     TierClient::class,
+    readTimeout,
+  )
+
+  @Bean
+  fun probationAccessControlClient(
+    webClientBuilder: WebClient.Builder,
+    @Value($$"${service.probation-access-control.base-url}") baseUrl: String,
+    @Value($$"${service.probation-access-control.read-timeout}") readTimeout: Duration,
+  ) = createClient(
+    webClientBuilder,
+    baseUrl,
+    ProbationAccessControlClient::class,
     readTimeout,
   )
 

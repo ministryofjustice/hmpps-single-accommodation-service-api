@@ -2,8 +2,10 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummariesDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationSummaryDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssignedToDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.RiskLevel
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.UserAccess
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.CorePersonRecord
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.tier.Tier
@@ -47,34 +49,54 @@ object CaseTransformer {
     currentAccommodation: AccommodationSummaryDto?,
     nextAccommodation: AccommodationSummaryDto?,
   ): CaseDto = when (this) {
-    is FullPersonDto -> {
-      CaseDto(
-        forename = caseEntity?.firstName,
-        middleNames = null,
-        surname = caseEntity?.lastName,
-        dateOfBirth = caseEntity?.dateOfBirth,
-        crn = crn,
-        prisonNumber = nomsNumber,
-        riskLevel = riskLevel,
-        pncReference = pncNumber,
-        assignedTo = assignedTo,
-        photoUrl = null,
-        tierScore = caseEntity?.tierScore,
-        userAccess = UserAccess.FULL,
-        limitedAccess = this.limitedAccess,
-        accommodationSummaries = caseEntity?.let {
-          toAccommodationSummariesDto(
-            accommodationStatus = it.accommodationStatus,
-            accommodationStatusDate = it.accommodationStatusDate,
-            currentAccommodation = currentAccommodation,
-            nextAccommodation = nextAccommodation,
-          )
-        },
-      )
-    }
+    is FullPersonDto -> toCaseDto(
+      caseEntity = caseEntity,
+      crn = crn,
+      prisonNumber = nomsNumber,
+      riskLevel = riskLevel,
+      pncReference = pncNumber,
+      assignedTo = assignedTo,
+      limitedAccess = limitedAccess,
+      currentAccommodation = currentAccommodation,
+      nextAccommodation = nextAccommodation,
+    )
 
     is LimitedPersonDto -> toLimitedCaseDto()
   }
+
+  fun toCaseDto(
+    caseEntity: CaseEntity?,
+    crn: String,
+    prisonNumber: String?,
+    riskLevel: RiskLevel?,
+    pncReference: String?,
+    assignedTo: AssignedToDto?,
+    limitedAccess: Boolean?,
+    currentAccommodation: AccommodationSummaryDto? = caseEntity?.currentAccommodation,
+    nextAccommodation: AccommodationSummaryDto? = caseEntity?.nextAccommodation,
+  ) = CaseDto(
+    forename = caseEntity?.firstName,
+    middleNames = null,
+    surname = caseEntity?.lastName,
+    dateOfBirth = caseEntity?.dateOfBirth,
+    crn = crn,
+    prisonNumber = prisonNumber,
+    riskLevel = riskLevel,
+    pncReference = pncReference,
+    assignedTo = assignedTo,
+    photoUrl = null,
+    tierScore = caseEntity?.tierScore,
+    userAccess = UserAccess.FULL,
+    limitedAccess = limitedAccess,
+    accommodationSummaries = caseEntity?.let {
+      toAccommodationSummariesDto(
+        accommodationStatus = it.accommodationStatus,
+        accommodationStatusDate = it.accommodationStatusDate,
+        currentAccommodation = currentAccommodation,
+        nextAccommodation = nextAccommodation,
+      )
+    },
+  )
 
   fun toAccommodationSummariesDto(
     accommodationStatus: CaseAccommodationStatus?,
@@ -88,7 +110,9 @@ object CaseTransformer {
     nextAccommodation = nextAccommodation,
   )
 
-  fun PersonDto.toLimitedCaseDto() = CaseDto(
+  fun PersonDto.toLimitedCaseDto() = toLimitedCaseDto(crn)
+
+  fun toLimitedCaseDto(crn: String) = CaseDto(
     crn = crn,
     userAccess = UserAccess.LIMITED,
     limitedAccess = true,

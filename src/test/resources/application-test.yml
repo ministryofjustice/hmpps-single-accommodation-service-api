@@ -8,6 +8,7 @@ management.endpoint:
 wiremock:
   service-names:
     - sas-and-delius
+    - probation-access-control
     - approved-premises-and-delius
     - approved-premises-api
     - core-person-record
@@ -18,6 +19,8 @@ wiremock:
 
 service:
   sas-and-delius:
+    read-timeout: 300ms
+  probation-access-control:
     read-timeout: 300ms
   approved-premises-and-delius:
     read-timeout: 300ms

@@ -9,6 +9,8 @@ import java.util.UUID
 
 @Repository
 interface UserCustomCaseListRepository : JpaRepository<UserCustomCaseListEntity, UUID> {
+  fun findAllBySasUserId(sasUserId: UUID): List<UserCustomCaseListEntity>
+
   @Modifying
   @Query("delete from UserCustomCaseListEntity e where e.sasUserId = :sasUserId")
   fun deleteBySasUserId(sasUserId: UUID)
