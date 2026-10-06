@@ -231,7 +231,7 @@ class ExternalReferralAggregateTest {
   }
 
   @Test
-  fun `updateExternalReferral throws exception when status is SUBMITTED and an withdrawalReason is provided`() {
+  fun `updateExternalReferral throws exception when status is SUBMITTED and a withdrawalReason is provided`() {
     val aggregate = hydrateAndCreateReferral()
 
     assertThrows<ExternalReferralWithdrawalReasonNotApplicableException> {
