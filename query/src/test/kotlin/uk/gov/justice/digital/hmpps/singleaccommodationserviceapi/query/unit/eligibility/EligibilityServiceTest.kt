@@ -685,6 +685,7 @@ class EligibilityServiceTest {
               code = it,
               isCas1 = it == "A02",
               isPrison = it == "HMP",
+              isCas2 = it == "A10" || it == "A11",
             )
           },
         )
