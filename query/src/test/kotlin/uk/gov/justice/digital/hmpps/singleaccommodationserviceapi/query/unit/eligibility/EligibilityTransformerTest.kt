@@ -60,7 +60,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.getServiceResultActionOrder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
@@ -484,23 +483,18 @@ class EligibilityTransformerTest {
     val crn = "FAKECRN1"
     val crs = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
-      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
     val cas1 = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas2 = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
-      link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas3 = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
-      link = EligibilityKeys.VIEW_REFERRAL,
     )
     val dtr = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
-      link = EligibilityKeys.ADD_OUTCOME,
     )
     val pa = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.PA_COMPLETED,
@@ -570,13 +564,11 @@ class EligibilityTransformerTest {
     val dtr = if (serviceStatus.isUpcoming) {
       buildServiceResultNew(
         serviceStatus = serviceStatus,
-        link = EligibilityKeys.ADD_REFERRAL_DETAILS,
         actionStartDate = LocalDate.parse("2023-01-01"),
       )
     } else {
       buildServiceResultNew(
         serviceStatus = serviceStatus,
-        link = EligibilityKeys.ADD_REFERRAL_DETAILS,
       )
     }
 
@@ -623,7 +615,6 @@ class EligibilityTransformerTest {
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
-      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
       actionStartDate = LocalDate.parse("2023-01-01"),
     )
 

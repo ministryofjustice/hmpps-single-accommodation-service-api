@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
@@ -22,7 +21,6 @@ class DtrCompletionContextUpdater : ContextUpdater() {
     ),
     submitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
-      link = EligibilityKeys.ADD_OUTCOME,
     ),
   )
 

@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultSpec
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas2AssessmentStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.sentry.SentryService
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 
@@ -28,33 +26,21 @@ class Cas2CompletionContextUpdater(
   override val outcomes = mapOf(
     submitted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_SUBMITTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
     moreInfoRequested to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
     awaitingDecision to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_AWAITING_DECISION,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
     onWaitingList to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_ON_WAITING_LIST,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
     placeOffered to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_PLACE_OFFERED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
     offerAccepted to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_OFFER_ACCEPTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
-      linkType = LinkType.CAS2_VIEW_APPLICATION,
     ),
     unknown to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_UNKNOWN,
