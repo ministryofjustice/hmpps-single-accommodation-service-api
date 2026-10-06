@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions
 
-const val ER_OUTCOME_REASON_REQUIRED_KEY = "erOutcomeReasonRequired"
-const val ER_OUTCOME_REASON_NOT_APPLICABLE_KEY = "erOutcomeReasonNotApplicable"
+const val ER_WITHDRAWAL_REASON_REQUIRED_KEY = "erWithdrawalReasonRequired"
+const val ER_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY = "erWithdrawalReasonNotApplicable"
 const val ER_OUTCOME_NOTE_NOT_APPLICABLE_KEY = "erOutcomeNoteNotApplicable"
 
-class ExternalReferralOutcomeReasonRequiredException : DomainException(ER_OUTCOME_REASON_REQUIRED_KEY)
+class ExternalReferralWithdrawalReasonRequiredException : DomainException(ER_WITHDRAWAL_REASON_REQUIRED_KEY)
 
-class ExternalReferralOutcomeReasonNotApplicableException : DomainException(ER_OUTCOME_REASON_NOT_APPLICABLE_KEY)
+class ExternalReferralWithdrawalReasonNotApplicableException : DomainException(ER_WITHDRAWAL_REASON_NOT_APPLICABLE_KEY)
 
 class ExternalReferralOutcomeNoteNotApplicableException : DomainException(ER_OUTCOME_NOTE_NOT_APPLICABLE_KEY)

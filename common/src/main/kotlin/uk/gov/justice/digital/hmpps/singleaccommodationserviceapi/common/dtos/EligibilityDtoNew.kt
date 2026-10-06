@@ -187,6 +187,10 @@ enum class ServiceStatusNew(
     service = AccommodationService.CAS2,
     proposedAction = CaseActionType.START_CAS2_REFERRAL,
   ),
+  CAS2_NOT_STARTED_CAS2(
+    service = AccommodationService.CAS2,
+    proposedAction = CaseActionType.START_CAS2_REFERRAL,
+  ),
   CAS2_NOT_SUBMITTED(
     service = AccommodationService.CAS2,
     proposedAction = CaseActionType.CONTINUE_A_CAS2_REFERRAL,

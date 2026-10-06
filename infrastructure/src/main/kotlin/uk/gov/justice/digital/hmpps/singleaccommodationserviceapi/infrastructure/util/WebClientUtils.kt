@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import io.netty.channel.ConnectTimeoutException
 import io.netty.handler.timeout.ReadTimeoutException
-import org.springframework.http.HttpMethod
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import java.io.IOException
 import java.net.ConnectException
@@ -13,7 +12,7 @@ fun WebClientRequestException.isConnectionError() = cause.isConnectionErrorCause
 
 fun WebClientRequestException.isRetryableConnectionError() = when (cause) {
   is UnknownHostException, is ConnectException -> true
-  else -> method == HttpMethod.GET && isConnectionError()
+  else -> isConnectionError()
 }
 
 fun WebClientRequestException.isTimeout() = cause is ReadTimeoutException || cause is ConnectTimeoutException

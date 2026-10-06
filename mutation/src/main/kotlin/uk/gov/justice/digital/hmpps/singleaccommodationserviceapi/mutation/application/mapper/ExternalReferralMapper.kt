@@ -1,16 +1,16 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralDto
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralSubmissionDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate.ExternalReferralAggregate.ExternalReferralSnapshot
 import java.time.Instant
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 object ExternalReferralMapper {
 
@@ -26,7 +26,8 @@ object ExternalReferralMapper {
     submissionNote = snapshot.submissionNote,
     email = snapshot.email,
     phoneNumber = snapshot.phoneNumber,
-    outcomeReason = snapshot.outcomeReason?.let { EntityExternalReferralOutcomeReason.valueOf(it.name) },
+    withdrawalReason = snapshot.withdrawalReason?.let { EntityExternalReferralWithdrawalReason.valueOf(it.name) },
+    withdrawalNote = snapshot.withdrawalNote,
     outcomeNote = snapshot.outcomeNote,
   )
 
@@ -39,7 +40,8 @@ object ExternalReferralMapper {
     entity.submissionNote = snapshot.submissionNote
     entity.email = snapshot.email
     entity.phoneNumber = snapshot.phoneNumber
-    entity.outcomeReason = snapshot.outcomeReason?.let { EntityExternalReferralOutcomeReason.valueOf(it.name) }
+    entity.withdrawalReason = snapshot.withdrawalReason?.let { EntityExternalReferralWithdrawalReason.valueOf(it.name) }
+    entity.withdrawalNote = snapshot.withdrawalNote
     entity.outcomeNote = snapshot.outcomeNote
     entity.addMissingNotes(snapshot.notes)
     return entity
@@ -66,7 +68,8 @@ object ExternalReferralMapper {
     submissionNote = entity.submissionNote,
     email = entity.email,
     phoneNumber = entity.phoneNumber,
-    outcomeReason = entity.outcomeReason?.let { ExternalReferralOutcomeReason.valueOf(it.name) },
+    withdrawalReason = entity.withdrawalReason?.let { ExternalReferralWithdrawalReason.valueOf(it.name) },
+    withdrawalNote = entity.withdrawalNote,
     outcomeNote = entity.outcomeNote,
     notes = entity.notes.map {
       ExternalReferralAggregate.ExternalReferralNote(
@@ -97,7 +100,8 @@ object ExternalReferralMapper {
       submissionNote = snapshot.submissionNote,
       email = snapshot.email,
       phoneNumber = snapshot.phoneNumber,
-      outcomeReason = snapshot.outcomeReason,
+      withdrawalReason = snapshot.withdrawalReason,
+      withdrawalNote = snapshot.withdrawalNote,
       outcomeNote = snapshot.outcomeNote,
     ),
   )

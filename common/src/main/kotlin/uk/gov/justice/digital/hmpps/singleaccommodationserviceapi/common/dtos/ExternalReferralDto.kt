@@ -29,7 +29,8 @@ data class ExternalReferralSubmissionDto(
   val submissionNote: String?,
   val email: String? = null,
   val phoneNumber: String? = null,
-  val outcomeReason: ExternalReferralOutcomeReason? = null,
+  val withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  val withdrawalNote: String? = null,
   val outcomeNote: String? = null,
 )
 
@@ -42,7 +43,8 @@ data class ExternalReferralCommand(
   val submissionNote: String?,
   val email: String? = null,
   val phoneNumber: String? = null,
-  val outcomeReason: ExternalReferralOutcomeReason? = null,
+  val withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  val withdrawalNote: String? = null,
   val outcomeNote: String? = null,
 )
 
@@ -52,7 +54,7 @@ enum class ExternalReferralStatus(override val title: String) : TitleEnum {
   REJECTED("Rejected"),
 }
 
-enum class ExternalReferralOutcomeReason {
+enum class ExternalReferralWithdrawalReason {
   ACCEPTED_BY_ORGANISATION,
   ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
   PERSON_NOT_SUITABLE,

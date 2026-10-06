@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.aggregate
 
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeNoteNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonNotApplicableException
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralOutcomeReasonRequiredException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonNotApplicableException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.ExternalReferralWithdrawalReasonRequiredException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsEmptyException
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.exceptions.NoteIsGreaterThanMaxLengthException
 import java.time.LocalDate
@@ -12,14 +12,14 @@ import java.util.UUID
 
 private const val NOTE_MAX_LENGTH = 4000
 
-private val ACCEPTED_OUTCOME_REASONS = setOf(
-  ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
-  ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+private val ACCEPTED_WITHDRAWAL_REASONS = setOf(
+  ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
+  ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
 )
-private val REJECTED_OUTCOME_REASONS = setOf(
-  ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE,
-  ExternalReferralOutcomeReason.NO_CAPACITY,
-  ExternalReferralOutcomeReason.ANOTHER_REASON,
+private val REJECTED_WITHDRAWAL_REASONS = setOf(
+  ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+  ExternalReferralWithdrawalReason.NO_CAPACITY,
+  ExternalReferralWithdrawalReason.ANOTHER_REASON,
 )
 
 class ExternalReferralAggregate private constructor(
@@ -34,7 +34,8 @@ class ExternalReferralAggregate private constructor(
   private var submissionNote: String? = null,
   private var email: String? = null,
   private var phoneNumber: String? = null,
-  private var outcomeReason: ExternalReferralOutcomeReason? = null,
+  private var withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  private var withdrawalNote: String? = null,
   private var outcomeNote: String? = null,
   private var notes: MutableList<ExternalReferralNote> = mutableListOf(),
 ) {
@@ -58,7 +59,8 @@ class ExternalReferralAggregate private constructor(
       notes: List<ExternalReferralNote>,
       email: String? = null,
       phoneNumber: String? = null,
-      outcomeReason: ExternalReferralOutcomeReason? = null,
+      withdrawalReason: ExternalReferralWithdrawalReason? = null,
+      withdrawalNote: String? = null,
       outcomeNote: String? = null,
     ) = ExternalReferralAggregate(
       id = id,
@@ -72,7 +74,8 @@ class ExternalReferralAggregate private constructor(
       submissionNote = submissionNote,
       email = email,
       phoneNumber = phoneNumber,
-      outcomeReason = outcomeReason,
+      withdrawalReason = withdrawalReason,
+      withdrawalNote = withdrawalNote,
       outcomeNote = outcomeNote,
       notes = notes.toMutableList(),
     )
@@ -108,10 +111,11 @@ class ExternalReferralAggregate private constructor(
     submissionNote: String?,
     email: String? = null,
     phoneNumber: String? = null,
-    outcomeReason: ExternalReferralOutcomeReason? = null,
+    withdrawalReason: ExternalReferralWithdrawalReason? = null,
+    withdrawalNote: String? = null,
     outcomeNote: String? = null,
   ) {
-    validateOutcome(status, outcomeReason, outcomeNote)
+    validateOutcome(status, withdrawalReason, outcomeNote)
 
     this.submissionDate = submissionDate
     this.referenceNumber = referenceNumber
@@ -123,45 +127,47 @@ class ExternalReferralAggregate private constructor(
     this.phoneNumber = phoneNumber?.takeUnless { it.isBlank() }
 
     if (status == ExternalReferralStatus.ACCEPTED || status == ExternalReferralStatus.REJECTED) {
-      this.outcomeReason = outcomeReason
+      this.withdrawalReason = withdrawalReason
+      this.withdrawalNote = withdrawalNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
       this.outcomeNote = outcomeNote?.takeUnless { it.isBlank() }?.also { validateNoteLength(it) }
     } else {
-      this.outcomeReason = null
+      this.withdrawalReason = null
+      this.withdrawalNote = null
       this.outcomeNote = null
     }
   }
 
   private fun validateOutcome(
     status: ExternalReferralStatus,
-    outcomeReason: ExternalReferralOutcomeReason?,
+    withdrawalReason: ExternalReferralWithdrawalReason?,
     outcomeNote: String?,
   ) {
     when (status) {
-      ExternalReferralStatus.ACCEPTED -> validateOutcomeReason(outcomeReason, ACCEPTED_OUTCOME_REASONS)
-      ExternalReferralStatus.REJECTED -> validateOutcomeReason(outcomeReason, REJECTED_OUTCOME_REASONS)
-      ExternalReferralStatus.SUBMITTED -> validateNoOutcome(outcomeReason, outcomeNote)
+      ExternalReferralStatus.ACCEPTED -> validateWithdrawalReason(withdrawalReason, ACCEPTED_WITHDRAWAL_REASONS)
+      ExternalReferralStatus.REJECTED -> validateWithdrawalReason(withdrawalReason, REJECTED_WITHDRAWAL_REASONS)
+      ExternalReferralStatus.SUBMITTED -> validateNoOutcome(withdrawalReason, outcomeNote)
     }
   }
 
-  private fun validateOutcomeReason(
-    outcomeReason: ExternalReferralOutcomeReason?,
-    validReasons: Set<ExternalReferralOutcomeReason>,
+  private fun validateWithdrawalReason(
+    withdrawalReason: ExternalReferralWithdrawalReason?,
+    validReasons: Set<ExternalReferralWithdrawalReason>,
   ) {
     when {
-      outcomeReason == null ->
-        throw ExternalReferralOutcomeReasonRequiredException()
+      withdrawalReason == null ->
+        throw ExternalReferralWithdrawalReasonRequiredException()
 
-      outcomeReason !in validReasons ->
-        throw ExternalReferralOutcomeReasonNotApplicableException()
+      withdrawalReason !in validReasons ->
+        throw ExternalReferralWithdrawalReasonNotApplicableException()
     }
   }
 
   private fun validateNoOutcome(
-    outcomeReason: ExternalReferralOutcomeReason?,
+    withdrawalReason: ExternalReferralWithdrawalReason?,
     outcomeNote: String?,
   ) {
-    if (outcomeReason != null) {
-      throw ExternalReferralOutcomeReasonNotApplicableException()
+    if (withdrawalReason != null) {
+      throw ExternalReferralWithdrawalReasonNotApplicableException()
     }
 
     if (!outcomeNote.isNullOrBlank()) {
@@ -181,7 +187,8 @@ class ExternalReferralAggregate private constructor(
     submissionNote = submissionNote,
     email = email,
     phoneNumber = phoneNumber,
-    outcomeReason = outcomeReason,
+    withdrawalReason = withdrawalReason,
+    withdrawalNote = withdrawalNote,
     outcomeNote = outcomeNote,
     notes = notes.toList(),
   )
@@ -198,7 +205,8 @@ class ExternalReferralAggregate private constructor(
     val submissionNote: String? = null,
     val email: String? = null,
     val phoneNumber: String? = null,
-    val outcomeReason: ExternalReferralOutcomeReason? = null,
+    val withdrawalReason: ExternalReferralWithdrawalReason? = null,
+    val withdrawalNote: String? = null,
     val outcomeNote: String? = null,
     val notes: List<ExternalReferralNote> = emptyList(),
   )
