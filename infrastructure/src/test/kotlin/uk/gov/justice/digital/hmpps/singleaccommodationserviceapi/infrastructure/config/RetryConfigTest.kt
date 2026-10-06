@@ -115,6 +115,12 @@ class RetryConfigTest {
         URI.create("https://example.com/api/test"),
         HttpHeaders.EMPTY,
       ),
+      WebClientRequestException(
+        SocketException("Connection reset by peer"),
+        HttpMethod.POST,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
       WebClientResponseException.create(
         HttpStatus.INTERNAL_SERVER_ERROR.value(),
         "Internal Server Error",
@@ -144,12 +150,6 @@ class RetryConfigTest {
       WebClientRequestException(
         IllegalStateException(),
         HttpMethod.GET,
-        URI.create("https://example.com/api/test"),
-        HttpHeaders.EMPTY,
-      ),
-      WebClientRequestException(
-        SocketException("Connection reset by peer"),
-        HttpMethod.POST,
         URI.create("https://example.com/api/test"),
         HttpHeaders.EMPTY,
       ),

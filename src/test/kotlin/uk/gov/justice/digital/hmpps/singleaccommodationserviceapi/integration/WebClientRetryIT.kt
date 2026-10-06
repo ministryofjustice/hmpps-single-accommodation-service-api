@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -9,8 +10,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusCachingService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.SasAndDeliusCachingService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCase
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.HmppsAuthStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.SasAndDeliusStubs
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.wiremock.WireMockInitializer.Companion.sasWiremock
@@ -19,6 +23,9 @@ class WebClientRetryIT : IntegrationTestBase() {
 
   @Autowired
   private lateinit var sasAndDeliusCachingService: SasAndDeliusCachingService
+
+  @Autowired
+  private lateinit var approvedPremisesAndDeliusCachingService: ApprovedPremisesAndDeliusCachingService
 
   private val username = "TEST_USER"
 
@@ -75,6 +82,44 @@ class WebClientRetryIT : IntegrationTestBase() {
         3,
         WireMock.getRequestedFor(
           WireMock.urlPathEqualTo("/case/$username/crn"),
+        ),
+      )
+    }
+  }
+
+  @Nested
+  inner class PostCaseSummariesRetry {
+    @Test
+    fun `should retry once and then return case summaries when postCaseSummaries connection resets first time`() {
+      val crn = "crn"
+      val scenario = "post-case-summaries-retry-success"
+      val expectedResponse = CaseSummaries(listOf(buildCaseSummary(crn = crn, nomsId = null)))
+
+      sasWiremock.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
+          .inScenario(scenario)
+          .whenScenarioStateIs(STARTED)
+          .willReturn(
+            WireMock.aResponse()
+              .withFault(Fault.CONNECTION_RESET_BY_PEER),
+          )
+          .willSetStateTo("success"),
+      )
+
+      sasWiremock.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/probation-cases/summaries"))
+          .inScenario(scenario)
+          .whenScenarioStateIs("success")
+          .willReturn(WireMock.okJson(jsonMapper.writeValueAsString(expectedResponse))),
+      )
+
+      val result = approvedPremisesAndDeliusCachingService.postCaseSummaries(listOf(crn))
+
+      assertThat(result.cases).containsExactlyElementsOf(expectedResponse.cases)
+      sasWiremock.verify(
+        2,
+        WireMock.postRequestedFor(
+          WireMock.urlPathEqualTo("/probation-cases/summaries"),
         ),
       )
     }
