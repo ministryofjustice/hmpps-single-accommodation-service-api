@@ -19,8 +19,6 @@ service:
     base-url: https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk
   tier:
     base-url: https://hmpps-tier-dev.hmpps.service.justice.gov.uk
-  accommodation-data-domain:
-    base-url: https://accommodation-data-domain-api-dev.hmpps.service.justice.gov.uk
   nomis-user-roles:
     base-url: https://nomis-user-roles-api-dev.prison.service.justice.gov.uk
 
