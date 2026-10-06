@@ -115,7 +115,7 @@ class ExternalReferralTransformerTest {
     @Test
     fun `should map outcomeReason and outcomeNote when populated`() {
       val entity = buildExternalReferralEntity(
-        outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+        outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED,
         outcomeNote = "An outcome note",
       )
 
@@ -125,7 +125,7 @@ class ExternalReferralTransformerTest {
         createdByUsername,
       )
 
-      assertThat(result.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+      assertThat(result.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.ACCEPTED)
       assertThat(result.outcomeNote).isEqualTo("An outcome note")
     }
 
