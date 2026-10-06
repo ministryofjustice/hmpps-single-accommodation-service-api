@@ -20,6 +20,7 @@ class Cas2SuitabilityContextUpdater(
   val notStartedCommunity = "notStartedCommunity"
   val notStartedPrison = "notStartedPrison"
   val notStartedCas1 = "notStartedCas1"
+  val notStartedCas2 = "notStartedCas2"
   val notSubmitted = "notSubmitted"
   val offerDeclined = "offerDeclined"
   val cancelled = "cancelled"
@@ -39,6 +40,11 @@ class Cas2SuitabilityContextUpdater(
     ),
     notStartedCas1 to ServiceResultSpec(
       serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
+      link = EligibilityKeys.START_APPLICATION,
+      linkType = LinkType.CAS2_START_APPLICATION,
+    ),
+    notStartedCas2 to ServiceResultSpec(
+      serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS2,
       link = EligibilityKeys.START_APPLICATION,
       linkType = LinkType.CAS2_START_APPLICATION,
     ),
@@ -69,6 +75,7 @@ class Cas2SuitabilityContextUpdater(
 
   fun toNotStartedServiceResult(context: EvaluationContext) = when {
     context.data.currentAccommodationTypeEntity?.isCas1 == true -> outcome(notStartedCas1)
+    context.data.currentAccommodationTypeEntity?.isCas2 == true -> outcome(notStartedCas2)
     context.data.currentAccommodationTypeEntity?.isPrison == true -> outcome(notStartedPrison)
     else -> outcome(notStartedCommunity)
   }
