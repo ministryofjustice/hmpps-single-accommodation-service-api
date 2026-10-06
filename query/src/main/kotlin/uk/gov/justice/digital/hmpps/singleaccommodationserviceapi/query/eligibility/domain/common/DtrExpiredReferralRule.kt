@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.dtr
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.common
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
