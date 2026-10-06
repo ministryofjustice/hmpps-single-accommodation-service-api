@@ -201,7 +201,7 @@ class AccommodationSummaryCalculator(
     (isSettledType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
   private fun isTransient(currentAccommodation: AccommodationSummaryDto?, nextAccommodation: AccommodationSummaryDto?) = isTransientNotHomelessType(nextAccommodation) ||
-    ((isTransientNotHomelessType(currentAccommodation) && currentAccommodation?.endDate == null && nextAccommodation == null))
+    (isTransientNotHomelessType(currentAccommodation) && !currentAccommodation.hasEndDate() && nextAccommodation == null)
 
   private fun isRiskOfNoFixedAbode(
     currentAccommodation: AccommodationSummaryDto?,
