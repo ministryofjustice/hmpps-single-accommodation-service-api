@@ -10,14 +10,15 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 interface TierClient {
 
+  @RestClientRetry
   @GetExchange(value = "/v2/crn/{crn}/tier")
   fun getTier(@PathVariable crn: String): Tier
 
+  @RestClientRetry
   @GetExchange(value = "/v3/crn/{crn}/tier")
   fun getTierV3(@PathVariable crn: String): Tier
 }
 
-@RestClientRetry
 @Service
 class TierCachingService(
   val tierClient: TierClient,

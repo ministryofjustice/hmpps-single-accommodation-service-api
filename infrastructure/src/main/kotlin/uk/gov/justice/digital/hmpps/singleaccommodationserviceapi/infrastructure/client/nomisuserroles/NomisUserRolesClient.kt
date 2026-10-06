@@ -7,11 +7,11 @@ import org.springframework.web.service.annotation.GetExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface NomisUserRolesClient {
+  @RestClientRetry
   @GetExchange(value = "/me")
   fun getUserDetailsForMe(@RequestHeader(value = "Authorization", required = false) authorization: String?): NomisUserDetail?
 }
 
-@RestClientRetry
 @Service
 class NomisUserRolesService(
   private val nomisUserRolesClient: NomisUserRolesClient,

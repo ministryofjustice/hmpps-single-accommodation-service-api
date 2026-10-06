@@ -16,20 +16,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import java.net.URI
 
 interface CorePersonRecordClient {
+
+  @RestClientRetry
   @GetExchange(value = "/person/probation/{crn}")
   fun getByCrn(@PathVariable crn: String): CorePersonRecord
 
+  @RestClientRetry
   @GetExchange(value = "/person/prison/{prisonNumber}")
   fun getByPrisonNumber(@PathVariable prisonNumber: String): CorePersonRecord
 
   @PostExchange(value = "/person/probation/{crn}/address")
   fun createProbationAddress(@PathVariable crn: String, @RequestBody address: ProbationCreateAddress): ProbationCreateAddressResponse
 
+  @RestClientRetry
   @GetExchange
   fun getProbationAddress(uri: URI): CanonicalAddress
 }
 
-@RestClientRetry
 @Service
 class CorePersonRecordCachingService(
   private val corePersonRecordClient: CorePersonRecordClient,

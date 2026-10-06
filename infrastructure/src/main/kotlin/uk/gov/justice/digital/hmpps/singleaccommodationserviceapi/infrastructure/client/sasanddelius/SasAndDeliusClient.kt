@@ -10,20 +10,23 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface SasAndDeliusClient {
+  @RestClientRetry
   @GetExchange(value = "/case-list/{username}")
   fun getCaseList(@PathVariable username: String, @RequestParam(required = false) teamCode: String?, @RequestParam page: Long, @RequestParam size: Long): CaseList
 
+  @RestClientRetry
   @GetExchange(value = "/case/{username}/{crn}")
   fun getCase(@PathVariable username: String, @PathVariable crn: String): Case
 
+  @RestClientRetry
   @GetExchange(value = "/team/{teamCode}/case-list")
   fun getCasesByTeamCode(@PathVariable teamCode: String, @RequestParam page: Long, @RequestParam size: Long): TeamCaseList
 
+  @RestClientRetry
   @GetExchange(value = "/case/{crn}")
   fun getCase(@PathVariable crn: String): Case
 }
 
-@RestClientRetry
 @Service
 class SasAndDeliusCachingService(
   val sasAndDeliusClient: SasAndDeliusClient,

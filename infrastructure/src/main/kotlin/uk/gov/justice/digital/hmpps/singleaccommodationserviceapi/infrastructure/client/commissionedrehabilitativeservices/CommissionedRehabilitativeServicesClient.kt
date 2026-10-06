@@ -10,11 +10,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 
 interface CommissionedRehabilitativeServicesClient {
 
+  @RestClientRetry
   @GetExchange(value = "/sas-referral-details/{crn}")
   fun getCrs(@PathVariable crn: String): List<CommissionedRehabilitativeServices>
 }
 
-@RestClientRetry
 @Service
 class CommissionedRehabilitativeServicesCachingService(
   val commissionedRehabilitativeServicesClient: CommissionedRehabilitativeServicesClient,

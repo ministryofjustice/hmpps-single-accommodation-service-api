@@ -13,6 +13,7 @@ const val PRISONER_SEARCH_RESPONSE_FIELDS: String =
   "prisonerNumber,releaseDate,confirmedReleaseDate,inOutStatus,prisonId,prisonName,status"
 
 interface PrisonerSearchClient {
+  @RestClientRetry
   @GetExchange(value = "/prisoner/{prisonNumber}")
   fun getPrisoner(
     @PathVariable prisonNumber: String,
@@ -20,7 +21,6 @@ interface PrisonerSearchClient {
   ): Prisoner
 }
 
-@RestClientRetry
 @Service
 class PrisonerSearchCachingService(
   private val prisonerSearchClient: PrisonerSearchClient,

@@ -10,14 +10,16 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
 
 interface ApprovedPremisesAndDeliusClient {
+  // this post request is safe to retry as it does not create data
+  @RestClientRetry
   @PostExchange(value = "/probation-cases/summaries")
   fun postCaseSummaries(@RequestBody crns: List<String>): CaseSummaries
 
+  @RestClientRetry
   @GetExchange(value = "/staff/{username}")
   fun getStaffDetail(@PathVariable username: String): StaffDetail?
 }
 
-@RestClientRetry
 @Service
 class ApprovedPremisesAndDeliusCachingService(
   val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
