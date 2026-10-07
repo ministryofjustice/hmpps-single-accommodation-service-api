@@ -24,6 +24,9 @@ class CaseAggregateTest {
       lastName = "Last",
       dateOfBirth = dateOfBirth,
       roshLevelCode = "RMRH",
+      assignedToForename = "Firstname",
+      assignedToSurname = "Surname",
+      assignedToUsername = "user1",
     )
 
     assertThat(hydrated.snapshot()).satisfies(
@@ -35,6 +38,9 @@ class CaseAggregateTest {
         assertThat(it.lastName).isEqualTo("Last")
         assertThat(it.dateOfBirth).isEqualTo(dateOfBirth)
         assertThat(it.roshLevelCode).isEqualTo("RMRH")
+        assertThat(it.assignedToForename).isEqualTo("Firstname")
+        assertThat(it.assignedToSurname).isEqualTo("Surname")
+        assertThat(it.assignedToUsername).isEqualTo("user1")
       },
     )
   }
@@ -49,6 +55,9 @@ class CaseAggregateTest {
     assertThat(newAggregate.snapshot().lastName).isNull()
     assertThat(newAggregate.snapshot().dateOfBirth).isNull()
     assertThat(newAggregate.snapshot().roshLevelCode).isNull()
+    assertThat(newAggregate.snapshot().assignedToForename).isNull()
+    assertThat(newAggregate.snapshot().assignedToSurname).isNull()
+    assertThat(newAggregate.snapshot().assignedToUsername).isNull()
   }
 
   @Test
@@ -95,6 +104,9 @@ class CaseAggregateTest {
       accommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
       accommodationStatusDate = LocalDate.now(),
       roshLevelCode = "RVHR",
+      assignedToForename = "Firstname",
+      assignedToSurname = "Surname",
+      assignedToUsername = "user1",
     )
     val afterUpdate = aggregate.snapshot()
     assertThat(afterUpdate.tierScore).isEqualTo("A1")
@@ -106,5 +118,8 @@ class CaseAggregateTest {
     assertThat(afterUpdate.accommodationStatus).isEqualTo(CaseAccommodationStatus.NO_FIXED_ABODE)
     assertThat(afterUpdate.accommodationStatusDate).isEqualTo(LocalDate.now())
     assertThat(afterUpdate.roshLevelCode).isEqualTo("RVHR")
+    assertThat(afterUpdate.assignedToForename).isEqualTo("Firstname")
+    assertThat(afterUpdate.assignedToSurname).isEqualTo("Surname")
+    assertThat(afterUpdate.assignedToUsername).isEqualTo("user1")
   }
 }
