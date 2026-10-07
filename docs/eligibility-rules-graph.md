@@ -8,7 +8,6 @@ Diamond RuleSet nodes have a FAIL context updater.
 
 ```mermaid
 flowchart TD
-  Cas1Validation["Cas1Validation (1)"]
   Cas1Upcoming{"Cas1Upcoming (1)"}
   Cas1Suitability{"Cas1Suitability (3)"}
   Cas1Completion{"Cas1Completion (1)"}
@@ -24,15 +23,9 @@ flowchart TD
   Cas1Suitability -->|FAIL| Cas1Eligibility
   Cas1Upcoming -->|PASS| Cas1Suitability
   Cas1Upcoming -->|FAIL| Cas1Eligibility
-  Cas1Validation -->|PASS| Cas1Upcoming
-  Cas1Validation -->|FAIL| notEligible
 ```
 
 ### Nodes
-
-**Cas1Validation** (RuleSet)
-- [`Cas1SexValidationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/validation/Cas1SexValidationRule.kt): FAIL if candidate has no sex
-
 
 **Cas1Upcoming** (RuleSet)
 - [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
@@ -396,7 +389,6 @@ flowchart TD
 | Cas1ApplicationPresentRule | FAIL if candidate does not have an application | Cas1Suitability | CAS1 |
 | Cas1ApplicationRelevantExpiredRule | FAIL if expired application is not upcoming or arrived | Cas1Suitability | CAS1 |
 | Cas1ApplicationSuitabilityRule | FAIL if candidate does not have a suitable application | Cas1Suitability | CAS1 |
-| Cas1SexValidationRule | FAIL if candidate has no sex | Cas1Validation | CAS1 |
 | Cas2ApplicationAwaitingArrivalRule | FAIL if application is not awaiting arrival | Cas2Completion | CAS2 |
 | Cas2ApplicationSubmittedRule | FAIL if candidate does not have a submitted application | Cas2Suitability | CAS2 |
 | Cas2SuitableStatusRule | FAIL if candidate has an unsuitable status | Cas2Suitability | CAS2 |
