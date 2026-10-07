@@ -10,6 +10,7 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseAccommodationStatus
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factori
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1PlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.prisonersearch.InOutStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Case
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Name
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PlacementSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
@@ -37,7 +39,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTier
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withPrisonNumber
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshRequestStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.UserEntity
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRefreshRequestRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.USERNAME_OF_LOGGED_IN_DELIUS_USER
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.integration.case.response.expectedGetCaseListResponse
@@ -65,6 +70,9 @@ class CaseControllerIT : IntegrationTestBase() {
   private val nomsNumbers = (1..20).map { "PRI$it" }
 
   lateinit var deliusUser: UserEntity
+
+  @Autowired
+  private lateinit var caseRefreshRequestRepository: CaseRefreshRequestRepository
 
   @BeforeEach
   fun setup() {
@@ -280,43 +288,13 @@ class CaseControllerIT : IntegrationTestBase() {
   fun `should hydrate a newly created case with real upstream data`() {
     val crn = "X12345"
     val nomsNumber = "12345"
-    val staff = buildOfficer(username = deliusUser.username)
     val deliusName = buildName("NewForename", "NewSurname")
-    val dateOfBirth = LocalDate.of(1980, 3, 20)
-    val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
+    val case = stubNewCase(crn = crn, nomsNumber = nomsNumber, deliusName = deliusName)
 
     SasAndDeliusStubs.stubCaseList(
       deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
       cases = listOf(case),
       pageSize = pageSize.toInt(),
-    )
-
-    stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
-    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A2"))
-    PrisonerSearchStubs.getPrisonerOKResponse(
-      prisonNumber = nomsNumber,
-      response = buildPrisoner(
-        prisonNumber = nomsNumber,
-        inOutStatus = InOutStatus.IN,
-        prisonName = "HMP Test Prison",
-        releaseDate = LocalDate.of(2027, 1, 1),
-      ),
-    )
-    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
-      crn = crn,
-      response = buildCas1Application(
-        placement = buildCas1PlacementSummary(
-          status = Cas1PlacementStatus.UPCOMING,
-          premises = buildCas1PremisesSummary(
-            postcode = "AP1 1AP",
-            addressLine1 = "AP House",
-            addressLine2 = "AP Area",
-            town = "AP Town",
-            startDate = LocalDate.of(2026, 6, 1),
-            endDate = null,
-          ),
-        ),
-      ),
     )
 
     assertThat(caseRepository.findByCrn(crn)).isNull()
@@ -349,6 +327,80 @@ class CaseControllerIT : IntegrationTestBase() {
     assertThat(nextAccommodation.address.postTown).isEqualTo("AP Town")
 
     assertThat(createdCase.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
+    assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+  }
+
+  @Nested
+  inner class UpstreamFailuresWhenCreatingCases {
+    private val crn = "X543211"
+    private val nomsNumber = "543211"
+
+    @BeforeEach
+    fun setup() {
+      val case = stubNewCase(crn = crn, nomsNumber = nomsNumber, deliusName = buildName("NewForename", "NewSurname"))
+      SasAndDeliusStubs.stubCaseList(
+        deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+        cases = listOf(case),
+        pageSize = pageSize.toInt(),
+      )
+      SasAndDeliusStubs.stubGetCase(deliusUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER, crn = crn, response = case)
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh on case-list when the tier API returns a server error`() {
+      TierStubs.getTierServerErrorResponse(crn)
+
+      getCaseListResponse()
+
+      assertPartialCaseWithLiveRefreshRequest()
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh on case-list when the tier API returns not found`() {
+      TierStubs.getTierNotFoundResponse(crn)
+
+      getCaseListResponse()
+
+      assertPartialCaseWithLiveRefreshRequest()
+    }
+
+    @Test
+    fun `should create a populated case without a refresh request on case-list when CAS1 and CAS3 return not found`() {
+      ApprovedPremisesStubs.getCas1SuitableApplicationNotFoundResponse(crn)
+      ApprovedPremisesStubs.getCas3SuitableApplicationNotFoundResponse(crn)
+
+      getCaseListResponse()
+
+      val createdCase = caseRepository.findByCrn(crn)!!
+      assertThat(createdCase.tierScore).isEqualTo("A2")
+      assertThat(createdCase.firstName).isEqualTo("NewForename")
+      assertThat(caseRefreshRequestRepository.findAll()).isEmpty()
+    }
+
+    @Test
+    fun `should create a partial case and request a refresh on search when the tier API returns a server error`() {
+      TierStubs.getTierServerErrorResponse(crn)
+
+      restTestClient.get().uri("/search/$crn")
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+
+      assertPartialCaseWithLiveRefreshRequest()
+    }
+
+    private fun assertPartialCaseWithLiveRefreshRequest() {
+      val createdCase = caseRepository.findByCrn(crn)!!
+      assertThat(createdCase.tierScore).isNull()
+      assertThat(createdCase.firstName).isEqualTo("NewForename")
+      assertThat(createdCase.lastName).isEqualTo("NewSurname")
+      assertThat(createdCase.currentAccommodation).isNotNull
+      assertThat(createdCase.nextAccommodation).isNotNull
+
+      val refreshRequest = caseRefreshRequestRepository.findAll().single()
+      assertThat(refreshRequest.caseId).isEqualTo(createdCase.id)
+      assertThat(refreshRequest.priority).isEqualTo(CaseRefreshPriority.LIVE)
+      assertThat(refreshRequest.status).isEqualTo(CaseRefreshRequestStatus.PENDING)
+    }
   }
 
   @Test
@@ -757,6 +809,42 @@ class CaseControllerIT : IntegrationTestBase() {
         additionalCrns = listOf("ADDITIONAL$it"),
       )
     }
+  }
+
+  private fun stubNewCase(crn: String, nomsNumber: String, deliusName: Name): Case {
+    val staff = buildOfficer(username = deliusUser.username)
+    val dateOfBirth = LocalDate.of(1980, 3, 20)
+    val case = buildCase(crn = crn, nomsNumber = nomsNumber, staff = staff, name = deliusName, dateOfBirth = dateOfBirth)
+
+    stubCorePersonRecord(crn = crn, prisonNumber = nomsNumber, firstName = deliusName.forename, lastName = deliusName.surname)
+    TierStubs.getTierOKResponse(crn, buildTier(tierScore = "A2"))
+    PrisonerSearchStubs.getPrisonerOKResponse(
+      prisonNumber = nomsNumber,
+      response = buildPrisoner(
+        prisonNumber = nomsNumber,
+        inOutStatus = InOutStatus.IN,
+        prisonName = "HMP Test Prison",
+        releaseDate = LocalDate.of(2027, 1, 1),
+      ),
+    )
+    ApprovedPremisesStubs.getCas1SuitableApplicationOKResponse(
+      crn = crn,
+      response = buildCas1Application(
+        placement = buildCas1PlacementSummary(
+          status = Cas1PlacementStatus.UPCOMING,
+          premises = buildCas1PremisesSummary(
+            postcode = "AP1 1AP",
+            addressLine1 = "AP House",
+            addressLine2 = "AP Area",
+            town = "AP Town",
+            startDate = LocalDate.of(2026, 6, 1),
+            endDate = null,
+          ),
+        ),
+      ),
+    )
+
+    return case
   }
 
   private fun stubCorePersonRecord(

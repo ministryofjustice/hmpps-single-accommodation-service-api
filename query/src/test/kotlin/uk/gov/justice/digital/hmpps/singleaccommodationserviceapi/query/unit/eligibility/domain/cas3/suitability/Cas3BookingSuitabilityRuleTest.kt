@@ -16,10 +16,10 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
 
 class Cas3BookingSuitabilityRuleTest {
-  private val description = "FAIL if booking is arrived, departed or closed"
+  private val description = "FAIL if booking is departed or closed"
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, names = ["ARRIVED", "CLOSED", "DEPARTED"])
+  @EnumSource(value = Cas3BookingStatus::class, names = ["CLOSED", "DEPARTED"])
   fun `application has expired booking status so rule fails`(bookingStatus: Cas3BookingStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(
@@ -44,7 +44,7 @@ class Cas3BookingSuitabilityRuleTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["ARRIVED", "CLOSED", "DEPARTED"])
+  @EnumSource(value = Cas3BookingStatus::class, mode = EnumSource.Mode.EXCLUDE, names = ["CLOSED", "DEPARTED"])
   fun `application has non-expired booking status so rule passes`(bookingStatus: Cas3BookingStatus) {
     val data = buildDomainData(
       cas3Application = buildCas3Application(

@@ -23,6 +23,7 @@ import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.net.ConnectException
+import java.net.SocketException
 import java.net.URI
 import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
@@ -105,6 +106,18 @@ class RetryConfigTest {
       WebClientRequestException(
         ConnectException(),
         HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        SocketException("Connection reset by peer"),
+        HttpMethod.GET,
+        URI.create("https://example.com/api/test"),
+        HttpHeaders.EMPTY,
+      ),
+      WebClientRequestException(
+        SocketException("Connection reset by peer"),
+        HttpMethod.POST,
         URI.create("https://example.com/api/test"),
         HttpHeaders.EMPTY,
       ),

@@ -45,7 +45,7 @@ class ExternalReferralApplicationService(
       snapshot = aggregate.snapshot(),
       createdBy = user.displayName(),
       createdByUsername = user.username,
-      createdAt = persistedRecord.createdAt!!,
+      createdAt = persistedRecord.createdAt,
     )
   }
 
@@ -53,8 +53,8 @@ class ExternalReferralApplicationService(
   fun updateExternalReferral(crn: String, id: UUID, command: ExternalReferralCommand): ExternalReferralDto {
     val referral = externalReferralRepository.findByIdAndCrn(id, crn)
       .orThrowNotFound("id" to id, "crn" to crn)
-    val createdByUser = userService.findUserByUserId(referral.createdByUserId!!)
-      .orThrowNotFound("id" to referral.createdByUserId!!)
+    val createdByUser = userService.findUserByUserId(referral.createdByUserId)
+      .orThrowNotFound("id" to referral.createdByUserId)
 
     val aggregate = ExternalReferralMapper.toAggregate(referral).also {
       it.updateExternalReferral(
@@ -66,7 +66,8 @@ class ExternalReferralApplicationService(
         submissionNote = command.submissionNote,
         email = command.email,
         phoneNumber = command.phoneNumber,
-        outcomeReason = command.outcomeReason,
+        withdrawalReason = command.withdrawalReason,
+        withdrawalNote = command.withdrawalNote,
         outcomeNote = command.outcomeNote,
       )
     }
@@ -76,7 +77,7 @@ class ExternalReferralApplicationService(
       snapshot = aggregate.snapshot(),
       createdBy = createdByUser.displayName(),
       createdByUsername = createdByUser.username,
-      createdAt = updatedRecord.createdAt!!,
+      createdAt = updatedRecord.createdAt,
     )
   }
 

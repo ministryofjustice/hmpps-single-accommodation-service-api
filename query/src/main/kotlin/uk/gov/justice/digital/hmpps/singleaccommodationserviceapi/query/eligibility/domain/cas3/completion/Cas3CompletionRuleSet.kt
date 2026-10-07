@@ -6,8 +6,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 
 @Component
 class Cas3CompletionRuleSet(
-  applicationCompletion: Cas3ApplicationConfirmedRule,
+  applicationArrived: Cas3ApplicationArrivedRule,
 ) : RuleSet {
-  private val rules: List<Rule> = listOf(applicationCompletion)
+  private val rules: List<Rule> = listOf(applicationArrived)
   override fun getRules(): List<Rule> = rules
 }

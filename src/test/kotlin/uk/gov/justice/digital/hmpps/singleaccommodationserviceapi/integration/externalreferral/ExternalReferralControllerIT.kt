@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
@@ -37,8 +37,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 class ExternalReferralControllerIT : IntegrationTestBase() {
 
@@ -458,13 +458,13 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return populated outcomeReason and outcomeNote for an accepted referral`() {
+    fun `should return populated withdrawalReason and outcomeNote for an accepted referral`() {
       val accepted = externalReferralRepository.save(
         buildExternalReferralEntity(
           caseId = case.id,
           crn = crn,
           status = EntityExternalReferralStatus.ACCEPTED,
-          outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+          withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
           outcomeNote = "An outcome note",
         ),
       )
@@ -515,7 +515,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       organisationName = entity.organisationName,
       website = entity.website,
       submissionNote = entity.submissionNote,
-      outcomeReason = entity.outcomeReason?.name,
+      withdrawalReason = entity.withdrawalReason?.name,
       outcomeNote = entity.outcomeNote,
     )
   }
@@ -624,7 +624,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.ACCEPTED.name,
-            outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+            withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -642,7 +642,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
           createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+          withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
           outcomeNote = "An outcome note",
         ),
       )
@@ -657,7 +657,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.REJECTED.name,
-            outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY.name,
+            withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -675,7 +675,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
           createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY.name,
+          withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY.name,
           outcomeNote = "An outcome note",
         ),
       )
@@ -706,7 +706,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.ACCEPTED.name,
-            outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY.name,
+            withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY.name,
           ),
         )
         .withDeliusUserJwt()
@@ -723,7 +723,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.SUBMITTED.name,
-            outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION.name,
+            withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION.name,
           ),
         )
         .withDeliusUserJwt()
@@ -943,7 +943,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
             status = EntityExternalReferralStatus.ACCEPTED.name,
-            outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+            withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -966,7 +966,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
               newStatus = EntityExternalReferralStatus.ACCEPTED.name,
-              outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
+              withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
               outcomeNote = "An outcome note",
             ),
           )
@@ -997,7 +997,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
             status = EntityExternalReferralStatus.REJECTED.name,
-            outcomeReason = EntityExternalReferralOutcomeReason.NO_CAPACITY.name,
+            withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
             outcomeNote = "Another outcome note",
           ),
         )
@@ -1020,7 +1020,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
               newStatus = EntityExternalReferralStatus.REJECTED.name,
-              outcomeReason = EntityExternalReferralOutcomeReason.NO_CAPACITY.name,
+              withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
               outcomeNote = "Another outcome note",
             ),
           )

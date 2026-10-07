@@ -35,7 +35,7 @@ flowchart TD
 
 
 **Cas1Upcoming** (RuleSet)
-- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
+- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
 - FAIL: [`Cas1UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/Cas1UpcomingContextUpdater.kt) - Set Upcoming and start Approved Premise application
 
 | Status | Action | Link type |
@@ -67,7 +67,7 @@ flowchart TD
 | CAS1_PLACEMENT_CANCELLED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_NOT_STARTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_WITHDRAWN | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_NOT_STARTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
+| CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_REJECTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_SUBMITTED | - | CAS1_VIEW_APPLICATION |
 | CAS1_INFO_REQUESTED | PROVIDE_INFORMATION (CAS1) | CAS1_VIEW_APPLICATION |
@@ -110,7 +110,7 @@ flowchart TD
 ### Nodes
 
 **Cas2Upcoming** (RuleSet)
-- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas1/upcoming/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
+- [`ReleaseWithinOneYearRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/ReleaseWithinOneYearRule.kt): FAIL if not within 1 year of release from current accommodation
 - FAIL: [`Cas2UpcomingContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas2/upcoming/Cas2UpcomingContextUpdater.kt) - Set Upcoming and start CAS2 application
 
 | Status | Action | Link type |
@@ -125,7 +125,10 @@ flowchart TD
 
 | Status | Action | Link type |
 | --- | --- | --- |
-| CAS2_NOT_STARTED | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_COMMUNITY | - | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_PRISON | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_CAS1 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_CAS2 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
 | CAS2_NOT_SUBMITTED | CONTINUE_A_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
 | CAS2_OFFER_DECLINED_OR_WITHDRAWN | - | CAS2_START_APPLICATION |
 | CAS2_CANCELLED | - | CAS2_START_APPLICATION |
@@ -164,13 +167,13 @@ flowchart TD
 flowchart TD
   Cas3Suitability{"Cas3Suitability (4)"}
   Cas3Completion{"Cas3Completion (1)"}
-  bookingConfirmed["bookingConfirmed"]
+  arrived["arrived"]
   confirmed["confirmed"]
   Cas3Eligibility["Cas3Eligibility (2)"]
   Cas3Prerequisite{"Cas3Prerequisite (3)"}
   currentOutcome["currentOutcome"]
   notEligible["notEligible"]
-  Cas3Completion -->|PASS| bookingConfirmed
+  Cas3Completion -->|PASS| arrived
   Cas3Completion -->|FAIL| confirmed
   Cas3Prerequisite -->|PASS| confirmed
   Cas3Prerequisite -->|FAIL| currentOutcome
@@ -185,20 +188,20 @@ flowchart TD
 **Cas3Suitability** (RuleSet)
 - [`Cas3ApplicationSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationSuitabilityRule.kt): FAIL if CAS3 application is not suitable
 - [`Cas3ApplicationPresentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3ApplicationPresentSuitabilityRule.kt): FAIL if CAS3 application is not present
-- [`Cas3BookingSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3BookingSuitabilityRule.kt): FAIL if booking is arrived, departed or closed
+- [`Cas3BookingSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3BookingSuitabilityRule.kt): FAIL if booking is departed or closed
 - [`Cas3AssessmentSuitabilityRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3AssessmentSuitabilityRule.kt): FAIL if CAS3 assessment is rejected or closed
 - FAIL: [`Cas3SuitabilityContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/suitability/Cas3SuitabilityContextUpdater.kt) - Set status from referral
 
 | Status | Action | Link type |
 | --- | --- | --- |
-| CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
+| CAS3_NOT_STARTED_NEW | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 | CAS3_REJECTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 | CAS3_NOT_SUBMITTED | CONTINUE_CAS3_REFERRAL (CAS3) | CAS3_VIEW_REFERRAL |
 | CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 
 
 **Cas3Completion** (RuleSet)
-- [`Cas3ApplicationConfirmedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/completion/Cas3ApplicationConfirmedRule.kt): FAIL if CAS3 application is not confirmed
+- [`Cas3ApplicationArrivedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/completion/Cas3ApplicationArrivedRule.kt): FAIL if CAS3 application is not arrived
 - FAIL: [`Cas3CompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/completion/Cas3CompletionContextUpdater.kt) - Set status from booking
 
 | Status | Action | Link type |
@@ -208,19 +211,20 @@ flowchart TD
 | CAS3_NOT_ARRIVED | - | CAS3_VIEW_REFERRAL |
 | CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
 | CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
+| CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
 
 
-**bookingConfirmed** (Outcome)
+**arrived** (Outcome)
 
 **confirmed** (Outcome)
 
 **Cas3Eligibility** (RuleSet)
 - [`CurrentAccommodationTypeRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/eligibility/CurrentAccommodationTypeRule.kt): FAIL if current accommodation is not Approved Premise (CAS1), CAS2, or Prison
-- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/accommodation/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
+- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 
 
 **Cas3Prerequisite** (RuleSet)
-- [`DtrExpiredReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/DtrExpiredReferralRule.kt): FAIL if DTR is submitted more than 26 weeks ago.
+- [`DtrExpiredReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/DtrExpiredReferralRule.kt): FAIL if DTR is submitted more than 26 weeks ago.
 - [`CrsSubmittedRuleMale`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/CrsSubmittedRuleMale.kt): FAIL if CRS not submitted and male
 - [`CrsSubmittedRuleNonMale`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/CrsSubmittedRuleNonMale.kt): FAIL if CRS not submitted and not male
 - FAIL: [`Cas3PrerequisiteContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/cas3/prerequisite/Cas3PrerequisiteContextUpdater.kt) - Set Cannot start yet from outstanding DTR/CRS
@@ -268,7 +272,7 @@ flowchart TD
 
 
 **CrsCompletion** (RuleSet)
-- [`CrsSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/CrsSubmittedRule.kt): FAIL if no live CRS referral
+- [`CrsSubmittedRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsSubmittedRule.kt): FAIL if no live CRS referral
 - FAIL: [`CrsCompletionContextUpdater`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/completion/CrsCompletionContextUpdater.kt) - Set Not started and submit CRS referral
 
 | Status | Action | Link type |
@@ -280,7 +284,7 @@ flowchart TD
 **confirmed** (Outcome)
 
 **CrsEligibility** (RuleSet)
-- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/accommodation/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
+- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 - [`IsSettledRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/crs/eligibility/IsSettledRule.kt): FAIL if candidate is settled
 
 
@@ -312,7 +316,7 @@ flowchart TD
 **DtrSuitability** (RuleSet)
 - [`DtrPresentRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/suitability/DtrPresentRule.kt): FAIL if DTR status is not present
 - [`DtrNotWithdrawnRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/suitability/DtrNotWithdrawnRule.kt): FAIL if DTR referral has been withdrawn
-- [`DtrExpiredReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/dtr/DtrExpiredReferralRule.kt): FAIL if DTR is submitted more than 26 weeks ago.
+- [`DtrExpiredReferralRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/DtrExpiredReferralRule.kt): FAIL if DTR is submitted more than 26 weeks ago.
 - FAIL: Set DTR_NOT_STARTED
 
 | Status | Action | Link type |
@@ -335,7 +339,7 @@ flowchart TD
 **confirmed** (Outcome)
 
 **DtrEligibility** (RuleSet)
-- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/accommodation/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
+- [`NoNextAccommodationRule`](../query/src/main/kotlin/uk/gov/justice/digital/hmpps/singleaccommodationserviceapi/query/eligibility/domain/common/NoNextAccommodationRule.kt): FAIL if candidate has next accommodation
 
 
 **DtrUpcoming** (RuleSet)
@@ -396,12 +400,12 @@ flowchart TD
 | Cas2ApplicationAwaitingArrivalRule | FAIL if application is not awaiting arrival | Cas2Completion | CAS2 |
 | Cas2ApplicationSubmittedRule | FAIL if candidate does not have a submitted application | Cas2Suitability | CAS2 |
 | Cas2SuitableStatusRule | FAIL if candidate has an unsuitable status | Cas2Suitability | CAS2 |
-| Cas3ApplicationConfirmedRule | FAIL if CAS3 application is not confirmed | Cas3Completion | CAS3 |
+| Cas3ApplicationArrivedRule | FAIL if CAS3 application is not arrived | Cas3Completion | CAS3 |
 | Cas3ApplicationNotSuitableRule | FAIL if candidate has suitable CAS3 application | PaEligibility | PA |
 | Cas3ApplicationPresentSuitabilityRule | FAIL if CAS3 application is not present | Cas3Suitability | CAS3 |
 | Cas3ApplicationSuitabilityRule | FAIL if CAS3 application is not suitable | Cas3Suitability | CAS3 |
 | Cas3AssessmentSuitabilityRule | FAIL if CAS3 assessment is rejected or closed | Cas3Suitability | CAS3 |
-| Cas3BookingSuitabilityRule | FAIL if booking is arrived, departed or closed | Cas3Suitability | CAS3 |
+| Cas3BookingSuitabilityRule | FAIL if booking is departed or closed | Cas3Suitability | CAS3 |
 | CrsSubmittedRule | FAIL if no live CRS referral | CrsCompletion | CRS |
 | CrsSubmittedRuleMale | FAIL if CRS not submitted and male | Cas3Prerequisite | CAS3 |
 | CrsSubmittedRuleNonMale | FAIL if CRS not submitted and not male | Cas3Prerequisite | CAS3 |
@@ -434,7 +438,7 @@ Used by: Cas1Completion (CAS1)
 | CAS1_PLACEMENT_CANCELLED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_NOT_STARTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_WITHDRAWN | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
-| CAS1_PLACEMENT_REQUEST_NOT_STARTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
+| CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_REJECTED | CREATE_PLACEMENT (CAS1) | CAS1_VIEW_APPLICATION |
 | CAS1_PLACEMENT_REQUEST_SUBMITTED | - | CAS1_VIEW_APPLICATION |
 | CAS1_INFO_REQUESTED | PROVIDE_INFORMATION (CAS1) | CAS1_VIEW_APPLICATION |
@@ -482,7 +486,10 @@ Used by: Cas2Suitability (CAS2)
 
 | Status | Action | Link type |
 | --- | --- | --- |
-| CAS2_NOT_STARTED | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_COMMUNITY | - | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_PRISON | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_CAS1 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
+| CAS2_NOT_STARTED_CAS2 | START_CAS2_REFERRAL (CAS2) | CAS2_START_APPLICATION |
 | CAS2_NOT_SUBMITTED | CONTINUE_A_CAS2_REFERRAL (CAS2) | CAS2_VIEW_APPLICATION |
 | CAS2_OFFER_DECLINED_OR_WITHDRAWN | - | CAS2_START_APPLICATION |
 | CAS2_CANCELLED | - | CAS2_START_APPLICATION |
@@ -510,6 +517,7 @@ Used by: Cas3Completion (CAS3)
 | CAS3_NOT_ARRIVED | - | CAS3_VIEW_REFERRAL |
 | CAS3_BOOKING_CANCELLED | - | CAS3_VIEW_REFERRAL |
 | CAS3_SUBMITTED | - | CAS3_VIEW_REFERRAL |
+| CAS3_ARRIVED | - | CAS3_VIEW_REFERRAL |
 
 
 Set Cannot start yet from outstanding DTR/CRS
@@ -531,7 +539,7 @@ Used by: Cas3Suitability (CAS3)
 
 | Status | Action | Link type |
 | --- | --- | --- |
-| CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
+| CAS3_NOT_STARTED_NEW | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 | CAS3_REJECTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |
 | CAS3_NOT_SUBMITTED | CONTINUE_CAS3_REFERRAL (CAS3) | CAS3_VIEW_REFERRAL |
 | CAS3_NOT_STARTED | START_CAS3_REFERRAL (CAS3) | CAS3_START_REFERRAL |

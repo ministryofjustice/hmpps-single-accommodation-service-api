@@ -60,7 +60,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3Staff
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas3SubmittedApplication
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCommissionedRehabilitativeServices
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.getServiceResultActionOrder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toEligibilityDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toFailedEligibilityDto
@@ -101,7 +100,7 @@ class EligibilityTransformerTest {
         serviceStatus = ServiceStatusNew.CAS1_NOT_STARTED,
       )
       val cas2 = buildServiceResultNew(
-        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED,
+        serviceStatus = ServiceStatusNew.CAS2_NOT_STARTED_CAS1,
       )
       val cas3 = buildServiceResultNew(
         serviceStatus = ServiceStatusNew.CAS3_NOT_STARTED,
@@ -316,7 +315,7 @@ class EligibilityTransformerTest {
         assessmentStatus = InfraCas3AssessmentStatus.REJECTED,
         assessmentRejectionReason = "Problem with application",
         latestBooking = buildCas3LatestBooking(
-          status = InfraCas3BookingStatus.NOT_MINUS_ARRIVED,
+          status = InfraCas3BookingStatus.CANCELLED,
           provisionalOfferSentDate = LocalDate.parse("2023-01-02"),
           premises = buildCas3PremisesSummary(
             name = "123 Main St",
@@ -326,6 +325,10 @@ class EligibilityTransformerTest {
             addressLine2 = "Apt 1",
             town = "Lincoln",
             postcode = "SW1A 1AX",
+          ),
+          cancellation = buildCas3ExternalPreviousBookingCancellation(
+            cancellationDate = LocalDate.parse("2023-01-04"),
+            cancellationReason = "Booking cancelled again",
           ),
         ),
         previousBookings = listOf(
@@ -441,8 +444,12 @@ class EligibilityTransformerTest {
       applicationSubmittedBy = buildCas3StaffDto(),
       applicationRejectedReason = "Problem with application",
       assessmentStatus = Cas3AssessmentStatus.REJECTED,
-      bookingStatus = Cas3BookingStatus.NOT_MINUS_ARRIVED,
+      bookingStatus = Cas3BookingStatus.CANCELLED,
       bookingProvisionalOfferSentDate = LocalDate.parse("2023-01-02"),
+      cancellation = buildCas3ExternalPreviousBookingCancellationDto(
+        cancellationDate = LocalDate.parse("2023-01-04"),
+        cancellationReason = "Booking cancelled again",
+      ),
       previousBookings = listOf(
         buildCas3ExternalPreviousBookingDto(
           bookingStatus = Cas3BookingStatus.DEPARTED,
@@ -476,23 +483,18 @@ class EligibilityTransformerTest {
     val crn = "FAKECRN1"
     val crs = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CRS_SUBMITTED,
-      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
     )
     val cas1 = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CAS1_INFO_REQUESTED,
-      link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas2 = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CAS2_MORE_INFORMATION_NEEDED,
-      link = EligibilityKeys.VIEW_APPLICATION,
     )
     val cas3 = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CAS3_NOT_SUBMITTED,
-      link = EligibilityKeys.VIEW_REFERRAL,
     )
     val dtr = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.DTR_SUBMITTED,
-      link = EligibilityKeys.ADD_OUTCOME,
     )
     val pa = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.PA_COMPLETED,
@@ -562,13 +564,11 @@ class EligibilityTransformerTest {
     val dtr = if (serviceStatus.isUpcoming) {
       buildServiceResultNew(
         serviceStatus = serviceStatus,
-        link = EligibilityKeys.ADD_REFERRAL_DETAILS,
         actionStartDate = LocalDate.parse("2023-01-01"),
       )
     } else {
       buildServiceResultNew(
         serviceStatus = serviceStatus,
-        link = EligibilityKeys.ADD_REFERRAL_DETAILS,
       )
     }
 
@@ -615,7 +615,6 @@ class EligibilityTransformerTest {
     val data = buildDomainData(commissionedRehabilitativeServices = commissionedRehabilitativeServices)
     val crs = buildServiceResultNew(
       serviceStatus = ServiceStatusNew.CRS_UPCOMING_ACCOMMODATION_REFERRAL,
-      link = EligibilityKeys.VIEW_REFER_AND_MONITOR,
       actionStartDate = LocalDate.parse("2023-01-01"),
     )
 

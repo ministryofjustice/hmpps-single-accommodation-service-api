@@ -8,17 +8,19 @@ management.endpoint:
 wiremock:
   service-names:
     - sas-and-delius
+    - probation-access-control
     - approved-premises-and-delius
     - approved-premises-api
     - core-person-record
     - commissioned-rehabilitative-services-api
     - tier
-    - accommodation-data-domain
     - nomis-user-roles
     - prisoner-search
 
 service:
   sas-and-delius:
+    read-timeout: 300ms
+  probation-access-control:
     read-timeout: 300ms
   approved-premises-and-delius:
     read-timeout: 300ms
@@ -29,8 +31,6 @@ service:
   commissioned-rehabilitative-services-api:
     read-timeout: 300ms
   tier:
-    read-timeout: 300ms
-  accommodation-data-domain:
     read-timeout: 300ms
   nomis-user-roles:
     read-timeout: 300ms
@@ -129,7 +129,7 @@ hmpps:
       enabled: true
     tests:
       attachments-expected: false
-      expected-flyway-schema-version: "0058"
+      expected-flyway-schema-version: "0061"
       expected-jpa-entity-schema:
         path: /sar/sas-entities-schema.json
       expected-render-result:

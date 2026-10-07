@@ -857,7 +857,7 @@ class AccommodationSummaryCalculatorTest {
     }
 
     @Test
-    fun `should return most recent end date when status is NO_FIXED_ABODE`() {
+    fun `should return most recent end date when no current start date and status is NO_FIXED_ABODE`() {
       val result = calculator.calculateCaseAccommodationStatusDate(
         caseAccommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
         currentAccommodation = null,
@@ -869,6 +869,21 @@ class AccommodationSummaryCalculatorTest {
         ),
       )
       assertThat(result).isEqualTo(LocalDate.now().minusDays(1))
+    }
+
+    @Test
+    fun `should return most current start date when status is NO_FIXED_ABODE`() {
+      val result = calculator.calculateCaseAccommodationStatusDate(
+        caseAccommodationStatus = CaseAccommodationStatus.NO_FIXED_ABODE,
+        currentAccommodation = buildAccommodationSummaryDto(startDate = LocalDate.now(), type = buildAccommodationTypeDto(code = "A08")),
+        nextAccommodation = null,
+        addresses = listOf(
+          buildAddress(endDate = LocalDate.now().minusDays(4).toString()),
+          buildAddress(endDate = LocalDate.now().minusDays(1).toString()),
+          buildAddress(endDate = LocalDate.now().minusDays(2).toString()),
+        ),
+      )
+      assertThat(result).isEqualTo(LocalDate.now())
     }
   }
 

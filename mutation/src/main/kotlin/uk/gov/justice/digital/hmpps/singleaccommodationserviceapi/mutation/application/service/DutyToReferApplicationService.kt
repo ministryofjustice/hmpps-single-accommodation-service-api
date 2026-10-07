@@ -54,7 +54,7 @@ class DutyToReferApplicationService(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = user.displayName(),
-      createdAt = persistedRecord.createdAt!!,
+      createdAt = persistedRecord.createdAt,
       localAuthorityAreaName = localAuthorityArea.name,
     )
   }
@@ -88,7 +88,7 @@ class DutyToReferApplicationService(
       snapshot = aggregate.snapshot(),
       crn = crn,
       createdBy = createdByUser.displayName(),
-      createdAt = updatedRecord.createdAt!!,
+      createdAt = updatedRecord.createdAt,
       localAuthorityAreaName = localAuthorityArea.name,
     )
   }

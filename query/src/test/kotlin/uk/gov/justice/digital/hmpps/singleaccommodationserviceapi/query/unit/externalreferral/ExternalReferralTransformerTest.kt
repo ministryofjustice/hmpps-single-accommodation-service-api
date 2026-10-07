@@ -5,16 +5,16 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildUserEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.externalreferral.ExternalReferralTransformer
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 class ExternalReferralTransformerTest {
 
@@ -113,9 +113,9 @@ class ExternalReferralTransformerTest {
     }
 
     @Test
-    fun `should map outcomeReason and outcomeNote when populated`() {
+    fun `should map withdrawalReason and outcomeNote when populated`() {
       val entity = buildExternalReferralEntity(
-        outcomeReason = EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+        withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
         outcomeNote = "An outcome note",
       )
 
@@ -125,7 +125,7 @@ class ExternalReferralTransformerTest {
         createdByUsername,
       )
 
-      assertThat(result.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+      assertThat(result.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION)
       assertThat(result.outcomeNote).isEqualTo("An outcome note")
     }
 
@@ -153,7 +153,7 @@ class ExternalReferralTransformerTest {
       assertThat(result.email).isNull()
       assertThat(result.phoneNumber).isNull()
       assertThat(result.createdByUsername).isEqualTo(createdByUsername)
-      assertThat(result.outcomeReason).isNull()
+      assertThat(result.withdrawalReason).isNull()
       assertThat(result.outcomeNote).isNull()
     }
   }
@@ -169,15 +169,15 @@ class ExternalReferralTransformerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(EntityExternalReferralOutcomeReason::class)
-    fun `should map all ExternalReferralOutcomeReason values correctly`(entityOutcomeReason: EntityExternalReferralOutcomeReason) {
-      val result = ExternalReferralTransformer.toOutcomeReason(entityOutcomeReason)
-      assertThat(result?.name).isEqualTo(entityOutcomeReason.name)
+    @EnumSource(EntityExternalReferralWithdrawalReason::class)
+    fun `should map all ExternalReferralWithdrawalReason values correctly`(entityWithdrawalReason: EntityExternalReferralWithdrawalReason) {
+      val result = ExternalReferralTransformer.toWithdrawalReason(entityWithdrawalReason)
+      assertThat(result?.name).isEqualTo(entityWithdrawalReason.name)
     }
 
     @Test
-    fun `should map null outcomeReason to null`() {
-      assertThat(ExternalReferralTransformer.toOutcomeReason(null)).isNull()
+    fun `should map null withdrawalReason to null`() {
+      assertThat(ExternalReferralTransformer.toWithdrawalReason(null)).isNull()
     }
   }
 }
