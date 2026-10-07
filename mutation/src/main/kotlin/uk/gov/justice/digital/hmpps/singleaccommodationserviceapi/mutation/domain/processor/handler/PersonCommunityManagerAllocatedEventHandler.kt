@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domai
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
 
 @Component
-class CaseAllocationHandler(
+class PersonCommunityManagerAllocatedEventHandler(
   private val caseApplicationService: CaseApplicationService,
   private val inboxEventHelper: InboxEventHelper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,

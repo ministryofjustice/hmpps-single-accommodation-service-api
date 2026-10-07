@@ -25,11 +25,11 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.appli
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.CaseAllocationHandler
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.handler.PersonCommunityManagerAllocatedEventHandler
 import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
-class CaseAllocationHandlerTest {
+class PersonCommunityManagerAllocatedEventHandlerTest {
 
   @RelaxedMockK
   private lateinit var caseApplicationService: CaseApplicationService
@@ -50,7 +50,7 @@ class CaseAllocationHandlerTest {
   private lateinit var caseRefreshRequestService: CaseRefreshRequestService
 
   @InjectMockKs
-  private lateinit var caseAllocationHandler: CaseAllocationHandler
+  private lateinit var personCommunityManagerAllocatedEventHandler: PersonCommunityManagerAllocatedEventHandler
 
   private val crn = "X123456"
   private val nomsId = "A1234BC"
@@ -72,7 +72,7 @@ class CaseAllocationHandlerTest {
     val caseEntity = buildCaseEntity { withCrn(crn) }
     every { caseRepository.findByCrn(crn) } returns caseEntity
 
-    assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
 
     verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
     verify(exactly = 0) { approvedPremisesAndDeliusClient.postCaseSummaries(any()) }
@@ -84,7 +84,7 @@ class CaseAllocationHandlerTest {
     stubCaseAllocatedToTeam("TEAM1")
     every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("TEAM1") } returns true
 
-    assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 1) {
       caseApplicationService.createBlankCases(
         listOf(CrnToPrisonNumber(crn, nomsId)),
@@ -98,7 +98,7 @@ class CaseAllocationHandlerTest {
     stubCaseAllocatedToTeam("TEAM2")
     every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("TEAM2") } returns false
 
-    assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
+    assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
@@ -107,7 +107,7 @@ class CaseAllocationHandlerTest {
     stubCaseAllocatedToTeam("team1")
     every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("team1") } returns true
 
-    assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    assertThat(personCommunityManagerAllocatedEventHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
     verify(exactly = 1) { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("team1") }
   }
 
