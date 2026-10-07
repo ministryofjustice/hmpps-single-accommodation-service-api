@@ -6,8 +6,10 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.messaging.event.IncomingHmppsDomainEventType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
@@ -18,6 +20,8 @@ class CaseAllocationHandler(
   private val inboxEventHelper: InboxEventHelper,
   private val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,
   private val onboardedTeamRepository: OnboardedTeamRepository,
+  private val caseRepository: CaseRepository,
+  private val caseRefreshRequestService: CaseRefreshRequestService,
 ) : InboxEventHandler {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -28,22 +32,20 @@ class CaseAllocationHandler(
 
   @Transactional
   override fun handle(inboxEvent: InboxEventHandler.InboxEvent): InboxEventHandler.Result {
-    log.info("Processing CaseAllocation event [inboxEventId={}]", inboxEvent.id)
+    val crn = getPartitionKey(inboxEvent)
 
-    val crn = checkNotNull(getPartitionKey(inboxEvent)) {
-      "CRN not found in event payload [inboxEventId=${inboxEvent.id}]"
+    caseRepository.findByCrn(crn)?.let {
+      caseRefreshRequestService.requestLiveRefresh(it.id)
+      return InboxEventHandler.Result.PROCESSED
     }
-    val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.first()
-    val shouldProcess = onboardedTeamRepository.existsById(case.manager.team.code.uppercase())
-    if (shouldProcess) {
+
+    val case = approvedPremisesAndDeliusClient.postCaseSummaries(crns = listOf(crn)).cases.single()
+    return if (onboardedTeamRepository.existsByTeamCodeIsIgnoreCase(case.manager.team.code)) {
+      log.info("Creating case from PERSON_COMMUNITY_MANAGER_ALLOCATED inbox event: [{}]", inboxEvent.id)
       caseApplicationService.createBlankCases(
         listOf(CrnToPrisonNumber(case.crn, case.nomsId)),
         refreshPriority = CaseRefreshPriority.LIVE,
       )
-    }
-    log.info("CaseAllocation event processed successfully [inboxEventId={}, crn={}]", inboxEvent.id, crn)
-
-    return if (shouldProcess) {
       InboxEventHandler.Result.PROCESSED
     } else {
       InboxEventHandler.Result.IGNORED

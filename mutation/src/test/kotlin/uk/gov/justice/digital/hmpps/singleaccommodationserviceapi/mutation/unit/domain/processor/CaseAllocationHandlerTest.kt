@@ -12,12 +12,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.ApprovedPremisesAndDeliusClient
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremisesanddelius.CaseSummaries
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildManager
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildTeam
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.CaseRefreshPriority
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.CaseRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.repository.OnboardedTeamRepository
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseApplicationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CaseRefreshRequestService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.service.CrnToPrisonNumber
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHandler
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.domain.processor.InboxEventHelper
@@ -39,6 +43,12 @@ class CaseAllocationHandlerTest {
   @MockK
   private lateinit var onboardedTeamRepository: OnboardedTeamRepository
 
+  @RelaxedMockK
+  private lateinit var caseRepository: CaseRepository
+
+  @RelaxedMockK
+  private lateinit var caseRefreshRequestService: CaseRefreshRequestService
+
   @InjectMockKs
   private lateinit var caseAllocationHandler: CaseAllocationHandler
 
@@ -54,32 +64,51 @@ class CaseAllocationHandlerTest {
   @BeforeEach
   fun setUp() {
     every { inboxEventHelper.findCrn(inboxEvent) } returns crn
+    every { caseRepository.findByCrn(crn) } returns null
+  }
+
+  @Test
+  fun `should request a live refresh when the case already exists`() {
+    val caseEntity = buildCaseEntity { withCrn(crn) }
+    every { caseRepository.findByCrn(crn) } returns caseEntity
+
+    assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+
+    verify(exactly = 1) { caseRefreshRequestService.requestLiveRefresh(caseEntity.id) }
+    verify(exactly = 0) { approvedPremisesAndDeliusClient.postCaseSummaries(any()) }
+    verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
   fun `should create a blank case with a live refresh when it is allocated to an onboarded team`() {
     stubCaseAllocatedToTeam("TEAM1")
-    every { onboardedTeamRepository.existsById("TEAM1") } returns true
+    every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("TEAM1") } returns true
 
     assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
-    verify(exactly = 1) { caseApplicationService.createBlankCases(listOf(CrnToPrisonNumber(crn, nomsId)), CaseRefreshPriority.LIVE) }
+    verify(exactly = 1) {
+      caseApplicationService.createBlankCases(
+        listOf(CrnToPrisonNumber(crn, nomsId)),
+        CaseRefreshPriority.LIVE,
+      )
+    }
   }
 
   @Test
   fun `should ignore the event when the case is allocated to a team that is not onboarded`() {
     stubCaseAllocatedToTeam("TEAM2")
-    every { onboardedTeamRepository.existsById("TEAM2") } returns false
+    every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("TEAM2") } returns false
 
     assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.IGNORED)
     verify(exactly = 0) { caseApplicationService.createBlankCases(any(), any()) }
   }
 
   @Test
-  fun `should look up the uppercased teamcode as it is stored by the bulk load`() {
+  fun `should look up the team code case insensitively`() {
     stubCaseAllocatedToTeam("team1")
-    every { onboardedTeamRepository.existsById("TEAM1") } returns true
+    every { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("team1") } returns true
 
     assertThat(caseAllocationHandler.handle(inboxEvent)).isEqualTo(InboxEventHandler.Result.PROCESSED)
+    verify(exactly = 1) { onboardedTeamRepository.existsByTeamCodeIsIgnoreCase("team1") }
   }
 
   private fun stubCaseAllocatedToTeam(teamCode: String) {
