@@ -1,22 +1,23 @@
-package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation
+package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.crs.completion
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.commissionedrehabilitativeservices.CrsReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DomainData
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.Rule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.RuleStatus
 
 @Component
-class Cas1SexValidationRule : Rule {
-  override val description = "FAIL if candidate has no sex"
+class CrsSubmittedRule : Rule {
+  override val description = "FAIL if no live CRS referral"
 
   override fun evaluate(data: DomainData): RuleResult {
-    val isFail = data.sex == null
+    val isFail = data.commissionedRehabilitativeServices?.status != CrsReferralStatus.LIVE
     return RuleResult(
       description = description,
       ruleStatus = if (isFail) RuleStatus.FAIL else RuleStatus.PASS,
-      failureReason = if (isFail) FailureReason.SEX_DATA_NOT_AVAILABLE else null,
+      failureReason = if (isFail) FailureReason.CRS_NOT_SUBMITTED else null,
     )
   }
 }
