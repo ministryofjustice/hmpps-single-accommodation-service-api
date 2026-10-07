@@ -36,9 +36,7 @@ abstract class ContextUpdater {
       override val outcomes = mapOf(
         "constant" to ServiceResultSpec(
           serviceStatus = result.serviceStatus,
-          link = result.link,
           url = result.url,
-          linkType = result.linkType,
           blockingStatusReason = result.blockingStatusReason,
           failureReasons = result.failureReasons,
         ),

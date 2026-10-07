@@ -55,7 +55,7 @@ class DutyToReferQueryService(
       .filter { it.id != activeDtrId }
     if (dtrEntities.isEmpty()) return emptyList()
 
-    val createdByUserIds = dtrEntities.mapNotNull { it.createdByUserId }.toSet()
+    val createdByUserIds = dtrEntities.map { it.createdByUserId }.toSet()
     val localAuthorityAreaIds = dtrEntities.map { it.localAuthorityAreaId }.toSet()
 
     val users = userRepository.findAllById(createdByUserIds).associateBy { it.id }
@@ -70,14 +70,14 @@ class DutyToReferQueryService(
 
   fun getDutyToRefer(caseEntity: CaseEntity, crn: String): DutyToReferDto? = dutyToReferRepository.findFirstByCaseIdOrderByCreatedAtDesc(caseEntity.id)
     ?.let { dtrEntity ->
-      val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
+      val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
       val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
       DutyToReferTransformer.toDutyToReferDto(dtrEntity, crn, createdByUser!!.displayName(), localAuthorityArea!!.name)
     }
 
   fun getDutyToRefer(crn: String, id: UUID): DutyToReferDto {
     val entity = dutyToReferRepository.findByIdAndCrn(id, crn).orThrowNotFound("id" to id, "crn" to crn)
-    val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId!!)
+    val createdByUser = userRepository.findByIdOrNull(entity.createdByUserId)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(entity.localAuthorityAreaId)
 
     return DutyToReferTransformer.toDutyToReferDto(
@@ -92,7 +92,7 @@ class DutyToReferQueryService(
   fun getDutyToRefer(id: UUID): DutyToReferDto {
     val dtrEntity = dutyToReferRepository.findByIdOrNull(id).orThrowNotFound("id" to id)
     val caseEntity = caseRepository.findWithIdentifiersById(dtrEntity.caseId).orThrowNotFound("id" to id)
-    val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId!!)
+    val createdByUser = userRepository.findByIdOrNull(dtrEntity.createdByUserId)
     val localAuthorityArea = localAuthorityAreaRepository.findByIdOrNull(dtrEntity.localAuthorityAreaId)
 
     return DutyToReferTransformer.toDutyToReferDto(
@@ -150,7 +150,7 @@ class DutyToReferQueryService(
   }
 
   private fun getDutyToReferNotesTimeline(dtrEntity: DutyToReferEntity): List<AuditRecordDto> {
-    val createdByUserIds = dtrEntity.notes.mapNotNull { it.createdByUserId }.toSet()
+    val createdByUserIds = dtrEntity.notes.map { it.createdByUserId }.toSet()
     val createdByUsers = userRepository.findAllById(createdByUserIds).associateBy { it.id }
     return dtrEntity.notes.map {
       val createdByUser = createdByUsers[it.createdByUserId]

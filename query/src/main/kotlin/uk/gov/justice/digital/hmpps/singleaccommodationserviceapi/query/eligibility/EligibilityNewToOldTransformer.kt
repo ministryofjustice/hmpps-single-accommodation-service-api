@@ -34,6 +34,7 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN -> ServiceStatus.PLACEMENT_REQUEST_WITHDRAWN
     ServiceStatusNew.CAS1_SUBMITTED -> ServiceStatus.SUBMITTED
     ServiceStatusNew.CAS1_UPCOMING -> ServiceStatus.UPCOMING
+    ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED -> ServiceStatus.PLACEMENT_REQUEST_NOT_STARTED
 
     ServiceStatusNew.CAS2_AWAITING_ARRIVAL -> ServiceStatus.AWAITING_ARRIVAL
     ServiceStatusNew.CAS2_AWAITING_DECISION -> ServiceStatus.AWAITING_DECISION
@@ -61,6 +62,7 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS3_NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
     ServiceStatusNew.CAS3_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusNew.CAS3_NOT_STARTED -> ServiceStatus.NOT_STARTED
+    ServiceStatusNew.CAS3_NOT_STARTED_NEW -> ServiceStatus.NOT_STARTED
     ServiceStatusNew.CAS3_NOT_SUBMITTED -> ServiceStatus.NOT_SUBMITTED
     ServiceStatusNew.CAS3_REJECTED -> ServiceStatus.REJECTED
     ServiceStatusNew.CAS3_SUBMITTED -> ServiceStatus.SUBMITTED
@@ -95,9 +97,9 @@ object EligibilityNewToOldTransformer {
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.cas1.serviceResult.serviceStatus),
         action = eligibilityDto.cas1.serviceResult.toCaseAction(),
-        link = eligibilityDto.cas1.serviceResult.link,
+        link = eligibilityDto.cas1.serviceResult.serviceStatus.link?.text,
         url = eligibilityDto.cas1.serviceResult.url,
-        linkType = eligibilityDto.cas1.serviceResult.linkType,
+        linkType = eligibilityDto.cas1.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.cas1.serviceResult.failureReasons,
         blockingStatusReason = eligibilityDto.cas1.serviceResult.blockingStatusReason,
       ),
@@ -107,9 +109,9 @@ object EligibilityNewToOldTransformer {
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.cas2.serviceResult.serviceStatus),
         action = eligibilityDto.cas2.serviceResult.toCaseAction(),
-        link = eligibilityDto.cas2.serviceResult.link,
+        link = eligibilityDto.cas2.serviceResult.serviceStatus.link?.text,
         url = eligibilityDto.cas2.serviceResult.url,
-        linkType = eligibilityDto.cas2.serviceResult.linkType,
+        linkType = eligibilityDto.cas2.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.cas2.serviceResult.failureReasons,
         blockingStatusReason = eligibilityDto.cas2.serviceResult.blockingStatusReason,
       ),
@@ -119,9 +121,9 @@ object EligibilityNewToOldTransformer {
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.cas3.serviceResult.serviceStatus),
         action = eligibilityDto.cas3.serviceResult.toCaseAction(),
-        link = eligibilityDto.cas3.serviceResult.link,
+        link = eligibilityDto.cas3.serviceResult.serviceStatus.link?.text,
         url = eligibilityDto.cas3.serviceResult.url,
-        linkType = eligibilityDto.cas3.serviceResult.linkType,
+        linkType = eligibilityDto.cas3.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.cas3.serviceResult.failureReasons,
         blockingStatusReason = eligibilityDto.cas3.serviceResult.blockingStatusReason,
       ),
@@ -131,9 +133,9 @@ object EligibilityNewToOldTransformer {
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.dtr.serviceResult.serviceStatus),
         action = eligibilityDto.dtr.serviceResult.toCaseAction(),
-        link = eligibilityDto.dtr.serviceResult.link,
+        link = eligibilityDto.dtr.serviceResult.serviceStatus.link?.text,
         url = eligibilityDto.dtr.serviceResult.url,
-        linkType = eligibilityDto.dtr.serviceResult.linkType,
+        linkType = eligibilityDto.dtr.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.dtr.serviceResult.failureReasons,
         blockingStatusReason = eligibilityDto.dtr.serviceResult.blockingStatusReason,
       ),
@@ -144,9 +146,9 @@ object EligibilityNewToOldTransformer {
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.crs.serviceResult.serviceStatus),
         action = eligibilityDto.crs.serviceResult.toCaseAction(),
-        link = eligibilityDto.crs.serviceResult.link,
+        link = eligibilityDto.crs.serviceResult.serviceStatus.link?.text,
         url = eligibilityDto.crs.serviceResult.url,
-        linkType = eligibilityDto.crs.serviceResult.linkType,
+        linkType = eligibilityDto.crs.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.crs.serviceResult.failureReasons,
         blockingStatusReason = eligibilityDto.crs.serviceResult.blockingStatusReason,
       ),
@@ -156,9 +158,9 @@ object EligibilityNewToOldTransformer {
       serviceResult = ServiceResult(
         serviceStatus = toServiceStatusOld(eligibilityDto.pa.serviceResult.serviceStatus),
         action = eligibilityDto.pa.serviceResult.toCaseAction(),
-        link = eligibilityDto.pa.serviceResult.link,
+        link = eligibilityDto.pa.serviceResult.serviceStatus.link?.text,
         url = eligibilityDto.pa.serviceResult.url,
-        linkType = eligibilityDto.pa.serviceResult.linkType,
+        linkType = eligibilityDto.pa.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.pa.serviceResult.failureReasons,
         blockingStatusReason = eligibilityDto.pa.serviceResult.blockingStatusReason,
       ),

@@ -585,7 +585,7 @@ class EligibilityServiceTest {
           },
         )
         assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS1)
-        assertThat(result.link).isEqualTo(s.expectedCas1Link)
+        assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas1Link)
 
         val expectedUrl = when (s.expectedCas1Url) {
           null -> null
@@ -705,7 +705,7 @@ class EligibilityServiceTest {
           },
         )
         assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS2)
-        assertThat(result.link).isEqualTo(s.expectedCas2Link)
+        assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas2Link)
 
         val expectedUrl = when (s.expectedCas2Url) {
           null -> null
@@ -809,7 +809,7 @@ class EligibilityServiceTest {
           },
         )
         assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.DTR)
-        assertThat(result.link).isEqualTo(s.expectedDtrLink)
+        assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedDtrLink)
         assertThat(result.url).isNull()
         assertThat(result.failureReasons)
           .withFailMessage("${s.testCaseId} - ${s.description}, Actual Failure reasons: ${result.failureReasons}, Expected Failure reasons: ${s.expectedFailureReasons}")
@@ -957,7 +957,7 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas3Action)
         assertThat(result.actionStartDate).isNull()
         assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS3)
-        assertThat(result.link).isEqualTo(s.expectedCas3Link)
+        assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas3Link)
 
         val expectedUrl = when (s.expectedCas3Url) {
           null -> null
@@ -1058,7 +1058,7 @@ class EligibilityServiceTest {
           },
         )
         assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CRS)
-        assertThat(result.link).isEqualTo(s.expectedCrsLink)
+        assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCrsLink)
         if (s.expectedCrsLink == null) {
           assertThat(result.url).isNull()
         } else {
@@ -1157,7 +1157,7 @@ class EligibilityServiceTest {
         assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedPaAction)
         assertThat(result.actionStartDate).isNull()
         assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.PA)
-        assertThat(result.link).isNull()
+        assertThat(result.serviceStatus.link?.text).isNull()
         assertThat(result.url).isNull()
 
         assertThat(result.failureReasons)
