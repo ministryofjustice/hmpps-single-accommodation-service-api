@@ -176,7 +176,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `notEligible carries failureReasons from current context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
+    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
@@ -233,7 +233,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `notRequired carries failureReasons from current context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
+    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(
@@ -251,7 +251,7 @@ class DecisionTreeBuilderTest {
   @Test
   fun `currentOutcome carries context`() {
     val builder = DecisionTreeBuilder(engine)
-    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.SEX_DATA_NOT_AVAILABLE)
+    val failureReasons = listOf(FailureReason.S_TIER, FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
     val context = EvaluationContext(
       data = buildDomainData(),
       currentResult = buildServiceResultNew(

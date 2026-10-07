@@ -84,8 +84,6 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibil
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.suitability.Cas1SuitabilityRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.upcoming.Cas1UpcomingRuleSet
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1SexValidationRule
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.validation.Cas1ValidationRuleSet
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.Cas2EligibilityTreeProvider
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2ApplicationAwaitingArrivalRule
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas2.completion.Cas2CompletionContextUpdater
@@ -175,9 +173,6 @@ class EligibilityServiceTest {
   // CAS1
   var cas1ApplicationStartUrl = "CAS1_APPLICATION_START_URL"
   var cas1CompletionContextUpdater = Cas1CompletionContextUpdater()
-  var cas1ValidationRuleSet = Cas1ValidationRuleSet(
-    Cas1SexValidationRule(),
-  )
   var cas1CompletionRuleSet = Cas1CompletionRuleSet(Cas1ApplicationCompletionRule())
   var cas1SuitabilityRuleSet = Cas1SuitabilityRuleSet(Cas1ApplicationPresentRule(), Cas1ApplicationSuitabilityRule(), Cas1ApplicationRelevantExpiredRule())
   var cas1EligibilityRuleSet = Cas1EligibilityRuleSet(
@@ -262,7 +257,6 @@ class EligibilityServiceTest {
 
   private val cas1Tree = Cas1EligibilityTreeProvider(
     builder = builder,
-    validation = cas1ValidationRuleSet,
     upcoming = cas1UpcomingRuleSet,
     upcomingContextUpdater = cas1UpcomingContextUpdater,
     suitability = cas1SuitabilityRuleSet,
@@ -1218,17 +1212,6 @@ class EligibilityServiceTest {
 
       assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
       assertThat(result.failureReasons).contains(FailureReason.NON_MALE_NOT_HIGH_RISK_TIER)
-    }
-
-    @Test
-    fun `Cas1 surfaces SEX_DATA_NOT_AVAILABLE when candidate has no sex`() {
-      clock.setNow(today)
-      val data = buildDomainData(sex = null)
-
-      val result = eligibilityService.evaluate(cas1Tree, data)
-
-      assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
-      assertThat(result.failureReasons).contains(FailureReason.SEX_DATA_NOT_AVAILABLE)
     }
 
     @Test
