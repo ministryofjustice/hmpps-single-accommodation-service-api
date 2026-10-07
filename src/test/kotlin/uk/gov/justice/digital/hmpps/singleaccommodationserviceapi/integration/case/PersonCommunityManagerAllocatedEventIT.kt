@@ -47,7 +47,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @TestPropertySource(properties = ["scheduling.enabled=true"])
-class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
+class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() {
   @Autowired
   lateinit var onboardedTeamRepository: OnboardedTeamRepository
 
@@ -74,8 +74,23 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
 
   @Test
   fun `should process incoming CASE_ALLOCATED domain event as PROCESSED when case already exists - this is duplicate event scenario to prove idempotency`() {
-    caseRepository.save(buildCaseEntity(tierScore = "A3") { withCrn(crn) })
-    shouldProcessCaseAllocationEventSuccessfully()
+    val existing = caseRepository.save(buildCaseEntity(tierScore = "A3") { withCrn(crn) })
+    val responses = WiremockStubber().setupCaseOrchestrationStubs(crn, prisonNumber)
+    val (cpr, cas1CurrentPremises) = stubCurrentAndNextAddresses()
+
+    // when
+    publishCaseAllocatedEvent()
+
+    // then
+    assertPublishedSNSEvent(detailUrl = eventDetailUrl())
+    assertSuccessful(
+      expectedCas1Premises = cas1CurrentPremises,
+      expectedTier = responses.tier!!.tierScore,
+      expectedCpr = cpr,
+      expectedRoshLevelCode = responses.case!!.roshLevel!!.code,
+      expectedCaseId = existing.id,
+    )
+    assertThat(testSentryService.exceptions).isEmpty()
   }
 
   @Test
@@ -85,11 +100,7 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
         listOf(
           buildCaseSummary(
             crn = crn,
-            manager = buildManager(
-              team = buildTeam(
-                code = "NOT_ONBOARDED",
-              ),
-            ),
+            manager = buildManager(team = buildTeam(code = "NOT_ONBOARDED")),
           ),
         ),
       ),
@@ -219,12 +230,14 @@ class CaseAllocatedEventIT : DomainEventIntegrationTestBase() {
     expectedTier: String,
     expectedCpr: CorePersonRecord,
     expectedRoshLevelCode: String,
+    expectedCaseId: UUID? = null,
   ) {
     testInboxEventHelper.assertMessageProcessed()
 
     // the case is created blank and populated asynchronously by the case refresh worker
     waitFor {
       val case = caseRepository.findByIdentifier(crn, IdentifierType.CRN)!!
+      assertThat(case.id).isEqualTo(expectedCaseId ?: case.id)
       assertThat(case.tierScore).isEqualTo(expectedTier)
       assertThat(case.firstName).isEqualTo(expectedCpr.firstName)
       assertThat(case.lastName).isEqualTo(expectedCpr.lastName)

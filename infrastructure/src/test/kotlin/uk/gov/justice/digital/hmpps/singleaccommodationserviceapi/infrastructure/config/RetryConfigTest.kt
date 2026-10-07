@@ -17,6 +17,8 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.retry.RetryCallback
 import org.springframework.retry.RetryContext
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException
+import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
@@ -77,6 +79,7 @@ class RetryConfigTest {
 
     @JvmField
     val retryableExceptions = listOf(
+      OAuth2AuthorizationException(OAuth2Error("invalid_token_response")),
       ResourceAccessException("socket timeout"),
       HttpServerErrorException.create(
         HttpStatus.INTERNAL_SERVER_ERROR,
