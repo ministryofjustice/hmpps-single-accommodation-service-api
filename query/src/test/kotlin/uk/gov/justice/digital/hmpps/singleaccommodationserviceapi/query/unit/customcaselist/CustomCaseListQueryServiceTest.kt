@@ -98,8 +98,8 @@ class CustomCaseListQueryServiceTest {
       dateOfBirth = LocalDate.of(1990, 1, 2),
       roshLevelCode = RiskLevel.HIGH.code,
       assignedToForename = "Probation",
-      assignedToSurname = "Practioner",
-      assignedToUsername = "PROBATION.PRACTIONER",
+      assignedToSurname = "Practitioner",
+      assignedToUsername = "PROBATION.PRACTITIONER",
       accommodationSummariesDto = accommodationSummaries,
     ) {
       withCrn("A123456")
@@ -119,7 +119,7 @@ class CustomCaseListQueryServiceTest {
     assertThat(caseDto.riskLevel).isEqualTo(RiskLevel.HIGH)
     assertThat(caseDto.userAccess).isEqualTo(UserAccess.FULL)
     assertThat(caseDto.limitedAccess).isFalse()
-    assertThat(caseDto.assignedTo).isEqualTo(AssignedToDto(forename = "Probation", surname = "Practioner", username = "PROBATION.PRACTIONER"))
+    assertThat(caseDto.assignedTo).isEqualTo(AssignedToDto(forename = "Probation", surname = "Practitioner", username = "PROBATION.PRACTITIONER"))
     assertThat(caseDto.pncReference).isNull()
     assertThat(caseDto.accommodationSummaries).isEqualTo(accommodationSummaries)
   }
