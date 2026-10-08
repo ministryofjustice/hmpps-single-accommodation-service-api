@@ -261,6 +261,7 @@ class EligibilityTransformerTest {
         status = InfraCas1PlacementStatus.DEPARTED,
         actualArrivalDate = today.plusDays(7),
         actualDepartureDate = today.plusDays(8),
+        expectedDepartureDate = today.plusDays(9),
         cancellationReason = "cancellation reason",
         premises = buildCas1PremisesSummary(
           startDate = today.plusDays(9),
@@ -293,6 +294,7 @@ class EligibilityTransformerTest {
             actualArrivalDate = today.plusDays(14),
             actualDepartureDate = today.plusDays(15),
             cancellationReason = "cancellation reason 2",
+            expectedDepartureDate = today.plusDays(17),
             premises = buildCas1PremisesSummary(
               startDate = today.plusDays(16),
               endDate = today.plusDays(17),
@@ -389,6 +391,7 @@ class EligibilityTransformerTest {
         durationDays = 12,
       ),
       placement = buildCas1PlacementSummaryDto(
+        expectedDepartureDate = today.plusDays(9),
         status = Cas1PlacementStatus.DEPARTED,
         actualArrivalDate = today.plusDays(7),
         actualDepartureDate = today.plusDays(8),
@@ -423,6 +426,7 @@ class EligibilityTransformerTest {
             status = Cas1PlacementStatus.UPCOMING,
             actualArrivalDate = today.plusDays(14),
             actualDepartureDate = today.plusDays(15),
+            expectedDepartureDate = today.plusDays(17),
             cancellationReason = "cancellation reason 2",
             premises = buildCas1PremisesSummaryDto(
               startDate = today.plusDays(16),
