@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.unit.el
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.ContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.DecisionTreeBuilder
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
@@ -36,8 +36,8 @@ class DecisionTreeBuilderTest {
     val expectedResult = buildServiceResultNew(serviceStatus = ServiceStatusNew.CAS1_PLACEMENT_BOOKED)
 
     assertThat(builder.confirmed().name).isEqualTo("confirmed")
-    assertThat(builder.notEligible(AccommodationService.CAS1).name).isEqualTo("notEligible")
-    assertThat(builder.notRequired(AccommodationService.DTR).name).isEqualTo("notRequired")
+    assertThat(builder.notEligible(ServiceType.CAS1).name).isEqualTo("notEligible")
+    assertThat(builder.notRequired(ServiceType.DTR).name).isEqualTo("notRequired")
     assertThat(builder.currentOutcome().name).isEqualTo("currentOutcome")
     assertThat(builder.outcome("placementBooked", expectedResult).name).isEqualTo("placementBooked")
   }
@@ -138,7 +138,7 @@ class DecisionTreeBuilderTest {
   fun `notEligible creates OutcomeNode with NOT_ELIGIBLE status`() {
     val builder = DecisionTreeBuilder(engine)
 
-    val result = builder.notEligible(AccommodationService.CAS1)
+    val result = builder.notEligible(ServiceType.CAS1)
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
     val evaluationContext =
@@ -164,7 +164,7 @@ class DecisionTreeBuilderTest {
         currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_SUBMITTED),
       )
 
-    val notEligibleNode = builder.notEligible(AccommodationService.CAS1)
+    val notEligibleNode = builder.notEligible(ServiceType.CAS1)
 
     val result1 = notEligibleNode.eval(context1)
     val result2 = notEligibleNode.eval(context2)
@@ -185,7 +185,7 @@ class DecisionTreeBuilderTest {
       ),
     )
 
-    val result = builder.notEligible(AccommodationService.CAS1).eval(context)
+    val result = builder.notEligible(ServiceType.CAS1).eval(context)
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_NOT_ELIGIBLE)
     assertThat(result.failureReasons).isEqualTo(failureReasons)
@@ -195,7 +195,7 @@ class DecisionTreeBuilderTest {
   fun `notRequired creates OutcomeNode with NOT_REQUIRED status`() {
     val builder = DecisionTreeBuilder(engine)
 
-    val result = builder.notRequired(AccommodationService.DTR)
+    val result = builder.notRequired(ServiceType.DTR)
 
     assertThat(result).isInstanceOf(OutcomeNode::class.java)
     val evaluationContext =
@@ -221,7 +221,7 @@ class DecisionTreeBuilderTest {
         currentResult = buildServiceResultNew(ServiceStatusNew.CAS1_SUBMITTED),
       )
 
-    val notRequiredNode = builder.notRequired(AccommodationService.DTR)
+    val notRequiredNode = builder.notRequired(ServiceType.DTR)
 
     val result1 = notRequiredNode.eval(context1)
     val result2 = notRequiredNode.eval(context2)
@@ -242,7 +242,7 @@ class DecisionTreeBuilderTest {
       ),
     )
 
-    val result = builder.notRequired(AccommodationService.DTR).eval(context)
+    val result = builder.notRequired(ServiceType.DTR).eval(context)
 
     assertThat(result.serviceStatus).isEqualTo(ServiceStatusNew.DTR_NOT_REQUIRED)
     assertThat(result.failureReasons).isEqualTo(failureReasons)

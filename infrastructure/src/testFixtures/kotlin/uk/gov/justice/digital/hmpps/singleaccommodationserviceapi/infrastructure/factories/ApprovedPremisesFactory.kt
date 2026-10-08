@@ -117,12 +117,14 @@ fun buildCas1PlacementSummary(
   status: Cas1PlacementStatus? = null,
   cancellationReason: String? = null,
   actualDepartureDate: LocalDate? = null,
+  expectedDepartureDate: LocalDate? = null,
   actualArrivalDate: LocalDate? = null,
   premises: Cas1PremisesSummary? = null,
 ) = Cas1PlacementSummary(
   status = status,
   actualArrivalDate = actualArrivalDate,
   actualDepartureDate = actualDepartureDate,
+  expectedDepartureDate = expectedDepartureDate,
   cancellationReason = cancellationReason,
   premises = premises,
 )

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility
 
 import org.slf4j.LoggerFactory
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
@@ -40,6 +39,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pa
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationSummary
@@ -136,53 +136,53 @@ object EligibilityTransformer {
   ) = EligibilityDtoNew(
     crn = crn,
     cas1 = Cas1ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(AccommodationService.CAS1),
+      serviceResult = toNotEligibleServiceStatus(ServiceType.CAS1),
       cas1Application = null,
       actionPosition = -1,
     ),
     cas2 = Cas2ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(AccommodationService.CAS2),
+      serviceResult = toNotEligibleServiceStatus(ServiceType.CAS2),
       cas2Application = null,
       actionPosition = -1,
     ),
     cas3 = Cas3ServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(AccommodationService.CAS3),
+      serviceResult = toNotEligibleServiceStatus(ServiceType.CAS3),
       cas3Application = null,
       actionPosition = -1,
     ),
     dtr = DtrServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(AccommodationService.DTR),
+      serviceResult = toNotEligibleServiceStatus(ServiceType.DTR),
       caseId = null,
       submission = null,
       actionPosition = -1,
     ),
     crs = CrsServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(AccommodationService.CRS),
+      serviceResult = toNotEligibleServiceStatus(ServiceType.CRS),
       commissionedRehabilitativeServices = null,
       actionPosition = -1,
     ),
     pa = PaServiceResultWrapper(
-      serviceResult = toNotEligibleServiceStatus(AccommodationService.PA),
+      serviceResult = toNotEligibleServiceStatus(ServiceType.PA),
       actionPosition = -1,
     ),
   )
 
-  fun toNotEligibleServiceStatus(service: AccommodationService, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+  fun toNotEligibleServiceStatus(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
     serviceStatus = when (service) {
-      AccommodationService.CAS2 -> ServiceStatusNew.CAS2_NOT_ELIGIBLE
-      AccommodationService.CAS3 -> ServiceStatusNew.CAS3_NOT_ELIGIBLE
-      AccommodationService.CAS1 -> ServiceStatusNew.CAS1_NOT_ELIGIBLE
-      AccommodationService.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
-      AccommodationService.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
-      AccommodationService.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
+      ServiceType.CAS2 -> ServiceStatusNew.CAS2_NOT_ELIGIBLE
+      ServiceType.CAS3 -> ServiceStatusNew.CAS3_NOT_ELIGIBLE
+      ServiceType.CAS1 -> ServiceStatusNew.CAS1_NOT_ELIGIBLE
+      ServiceType.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
+      ServiceType.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
+      ServiceType.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
     },
     failureReasons = failureReasons,
   )
 
-  fun toNotRequiredServiceStatus(service: AccommodationService, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
+  fun toNotRequiredServiceStatus(service: ServiceType, failureReasons: List<FailureReason> = emptyList()) = ServiceResultNew(
     serviceStatus = when (service) {
-      AccommodationService.DTR -> ServiceStatusNew.DTR_NOT_REQUIRED
-      AccommodationService.CRS -> ServiceStatusNew.CRS_NOT_REQUIRED
+      ServiceType.DTR -> ServiceStatusNew.DTR_NOT_REQUIRED
+      ServiceType.CRS -> ServiceStatusNew.CRS_NOT_REQUIRED
       else -> throw IllegalArgumentException("Unexpected not required service: $service")
     },
     failureReasons = failureReasons,
@@ -394,6 +394,7 @@ object EligibilityTransformer {
       actualDepartureDate = it.actualDepartureDate,
       cancellationReason = it.cancellationReason,
       premises = toCas1PremisesSummaryDto(it.premises),
+      expectedDepartureDate = it.expectedDepartureDate,
     )
   }
 

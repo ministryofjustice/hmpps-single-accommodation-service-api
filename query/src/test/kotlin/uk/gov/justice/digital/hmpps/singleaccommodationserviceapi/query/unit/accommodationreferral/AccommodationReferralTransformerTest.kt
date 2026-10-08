@@ -4,8 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationReferralStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDutyToReferDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildExternalReferralSubmissionDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildStaffDetailDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ReferralHistory.ApprovedPremisesApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildDeliusUserDto
@@ -22,6 +26,7 @@ class AccommodationReferralTransformerTest {
     val result = AccommodationReferralTransformer.transformReferrals(
       orchestrationDto,
       listOf(buildDutyToReferDto(submission = buildDtrSubmission(createdByUsername = "TEST_USER"))),
+      emptyList(),
     )
 
     assertThat(result).hasSize(4)
@@ -98,9 +103,48 @@ class AccommodationReferralTransformerTest {
     val result = AccommodationReferralTransformer.transformReferrals(
       orchestrationDto,
       emptyList(),
+      emptyList(),
     )
 
     assertThat(result).hasSize(1)
     assertThat(result.first().withdrawalReason).isEqualTo("DuplicatePlacementRequest")
+  }
+
+  @Test
+  fun `should transform external referral to accommodation referral dto`() {
+    val orchestrationDto = buildAccommodationReferralOrchestrationDto(cas1Referrals = emptyList(), cas2Referrals = emptyList(), cas3Referrals = emptyList())
+    val externalReferral = buildExternalReferralDto(
+      status = ExternalReferralStatus.REJECTED,
+      submission = buildExternalReferralSubmissionDto(
+        createdBy = "Joe Bloggs",
+        createdByUsername = "JBLOGGS",
+        organisationName = "Some charity",
+        withdrawalReason = ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
+        withdrawalNote = "Some reason for rejection",
+      ),
+    )
+
+    val result = AccommodationReferralTransformer.transformReferrals(
+      orchestrationDto,
+      emptyList(),
+      listOf(externalReferral),
+    )
+
+    assertThat(result).hasSize(1)
+    val externalReferralResult = result.first()
+    assertThat(externalReferralResult.id).isEqualTo(externalReferral.submission.id)
+    assertThat(externalReferralResult.type).isEqualTo(AccommodationService.ER)
+    assertThat(externalReferralResult.status).isEqualTo(AccommodationReferralStatus.REJECTED)
+    assertThat(externalReferralResult.date).isEqualTo(externalReferral.submission.submissionDate)
+    assertThat(externalReferralResult.referralRejectionReason).isNull()
+    assertThat(externalReferralResult.referralRejectionReasonDetail).isNull()
+    assertThat(externalReferralResult.localAuthorityArea).isNull()
+    assertThat(externalReferralResult.pdu).isNull()
+    assertThat(externalReferralResult.placementAddress).isNull()
+    assertThat(externalReferralResult.placementStatus).isNull()
+    assertThat(externalReferralResult.uiUrl).isNull()
+    assertThat(externalReferralResult.referredBy).isEqualTo(buildStaffDetailDto(name = "Joe Bloggs", username = "JBLOGGS"))
+    assertThat(externalReferralResult.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE.name)
+    assertThat(externalReferralResult.withdrawalNote).isEqualTo("Some reason for rejection")
   }
 }
