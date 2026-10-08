@@ -58,7 +58,6 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS3_BEDSPACE_OFFERED -> ServiceStatus.BEDSPACE_OFFERED
     ServiceStatusNew.CAS3_BOOKING_CANCELLED -> ServiceStatus.BOOKING_CANCELLED
     ServiceStatusNew.CAS3_BOOKING_CONFIRMED -> ServiceStatus.BOOKING_CONFIRMED
-    ServiceStatusNew.CAS3_CANNOT_START_YET -> ServiceStatus.CANNOT_START_YET
     ServiceStatusNew.CAS3_NOT_ARRIVED -> ServiceStatus.NOT_ARRIVED
     ServiceStatusNew.CAS3_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusNew.CAS3_NOT_STARTED -> ServiceStatus.NOT_STARTED
@@ -67,6 +66,11 @@ object EligibilityNewToOldTransformer {
     ServiceStatusNew.CAS3_REJECTED -> ServiceStatus.REJECTED
     ServiceStatusNew.CAS3_SUBMITTED -> ServiceStatus.SUBMITTED
     ServiceStatusNew.CAS3_ARRIVED -> ServiceStatus.ARRIVED
+    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR_CRS -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS_ACCOMMODATION -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_CRS -> ServiceStatus.CANNOT_START_YET
+    ServiceStatusNew.CAS3_CANNOT_START_YET_SUBMIT_DTR -> ServiceStatus.CANNOT_START_YET
 
     ServiceStatusNew.CRS_NOT_ELIGIBLE -> ServiceStatus.NOT_ELIGIBLE
     ServiceStatusNew.CRS_NOT_REQUIRED -> ServiceStatus.NOT_REQUIRED
@@ -103,7 +107,7 @@ object EligibilityNewToOldTransformer {
         url = eligibilityDto.cas1.serviceResult.url,
         linkType = eligibilityDto.cas1.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.cas1.serviceResult.failureReasons,
-        blockingStatusReason = eligibilityDto.cas1.serviceResult.blockingStatusReason,
+        blockingStatusReason = eligibilityDto.cas1.serviceResult.serviceStatus.blockingStatusReason,
       ),
       cas1Application = eligibilityDto.cas1.cas1Application,
     ),
@@ -115,7 +119,7 @@ object EligibilityNewToOldTransformer {
         url = eligibilityDto.cas2.serviceResult.url,
         linkType = eligibilityDto.cas2.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.cas2.serviceResult.failureReasons,
-        blockingStatusReason = eligibilityDto.cas2.serviceResult.blockingStatusReason,
+        blockingStatusReason = eligibilityDto.cas2.serviceResult.serviceStatus.blockingStatusReason,
       ),
       cas2Application = eligibilityDto.cas2.cas2Application,
     ),
@@ -127,7 +131,7 @@ object EligibilityNewToOldTransformer {
         url = eligibilityDto.cas3.serviceResult.url,
         linkType = eligibilityDto.cas3.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.cas3.serviceResult.failureReasons,
-        blockingStatusReason = eligibilityDto.cas3.serviceResult.blockingStatusReason,
+        blockingStatusReason = eligibilityDto.cas3.serviceResult.serviceStatus.blockingStatusReason,
       ),
       cas3Application = eligibilityDto.cas3.cas3Application,
     ),
@@ -139,7 +143,7 @@ object EligibilityNewToOldTransformer {
         url = eligibilityDto.dtr.serviceResult.url,
         linkType = eligibilityDto.dtr.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.dtr.serviceResult.failureReasons,
-        blockingStatusReason = eligibilityDto.dtr.serviceResult.blockingStatusReason,
+        blockingStatusReason = eligibilityDto.dtr.serviceResult.serviceStatus.blockingStatusReason,
       ),
       caseId = eligibilityDto.dtr.caseId,
       submission = eligibilityDto.dtr.submission,
@@ -152,7 +156,7 @@ object EligibilityNewToOldTransformer {
         url = eligibilityDto.crs.serviceResult.url,
         linkType = eligibilityDto.crs.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.crs.serviceResult.failureReasons,
-        blockingStatusReason = eligibilityDto.crs.serviceResult.blockingStatusReason,
+        blockingStatusReason = eligibilityDto.crs.serviceResult.serviceStatus.blockingStatusReason,
       ),
       commissionedRehabilitativeServices = eligibilityDto.crs.commissionedRehabilitativeServices,
     ),
@@ -164,7 +168,7 @@ object EligibilityNewToOldTransformer {
         url = eligibilityDto.pa.serviceResult.url,
         linkType = eligibilityDto.pa.serviceResult.serviceStatus.link?.type,
         failureReasons = eligibilityDto.pa.serviceResult.failureReasons,
-        blockingStatusReason = eligibilityDto.pa.serviceResult.blockingStatusReason,
+        blockingStatusReason = eligibilityDto.pa.serviceResult.serviceStatus.blockingStatusReason,
       ),
     ),
     caseActions = listOf(
