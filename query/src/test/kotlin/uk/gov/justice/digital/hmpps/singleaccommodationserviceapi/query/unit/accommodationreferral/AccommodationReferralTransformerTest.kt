@@ -119,8 +119,7 @@ class AccommodationReferralTransformerTest {
         createdBy = "Joe Bloggs",
         createdByUsername = "JBLOGGS",
         organisationName = "Some charity",
-        withdrawalReason = ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
-        withdrawalNote = "Some reason for rejection",
+        outcomeNote = "Some reason for rejection",
       ),
     )
 

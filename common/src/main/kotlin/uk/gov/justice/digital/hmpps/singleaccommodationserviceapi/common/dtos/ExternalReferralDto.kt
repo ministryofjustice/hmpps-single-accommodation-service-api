@@ -29,8 +29,6 @@ data class ExternalReferralSubmissionDto(
   val submissionNote: String?,
   val email: String? = null,
   val phoneNumber: String? = null,
-  val withdrawalReason: ExternalReferralWithdrawalReason? = null,
-  val withdrawalNote: String? = null,
   val outcomeNote: String? = null,
 )
 
@@ -43,8 +41,6 @@ data class ExternalReferralCommand(
   val submissionNote: String?,
   val email: String? = null,
   val phoneNumber: String? = null,
-  val withdrawalReason: ExternalReferralWithdrawalReason? = null,
-  val withdrawalNote: String? = null,
   val outcomeNote: String? = null,
 )
 

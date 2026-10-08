@@ -50,8 +50,6 @@ object ExternalReferralTransformer {
     submissionNote = entity.submissionNote,
     email = entity.email,
     phoneNumber = entity.phoneNumber,
-    withdrawalReason = toWithdrawalReason(entity.withdrawalReason),
-    withdrawalNote = entity.withdrawalNote,
     outcomeNote = entity.outcomeNote,
   )
 
@@ -70,8 +68,6 @@ object ExternalReferralTransformer {
     submissionNote = entity.submissionNote,
     email = entity.email,
     phoneNumber = entity.phoneNumber,
-    withdrawalReason = toWithdrawalReason(entity.withdrawalReason),
-    withdrawalNote = entity.withdrawalNote,
     outcomeNote = entity.outcomeNote,
   )
 

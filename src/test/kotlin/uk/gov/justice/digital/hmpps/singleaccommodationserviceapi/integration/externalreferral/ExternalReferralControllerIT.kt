@@ -7,12 +7,13 @@ import org.javers.repository.jql.QueryBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.expectBody
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.assertions.assertThatJson
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.audit.AuditOverrideContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
@@ -111,12 +112,14 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       )
     }
 
-    @Test
-    fun `should create external referral with only mandatory fields`() {
+    @ParameterizedTest
+    @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+    fun `should create external referral with only mandatory fields`(status: ExternalReferralStatus) {
       val result = restTestClient.post().uri("/cases/$crn/external-referral")
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           createExternalReferralRequestBody(
+            status = status.name,
             referenceNumber = null,
             organisationName = null,
             website = null,
@@ -133,12 +136,16 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       assertThat(persistedRecord.organisationName).isNull()
       assertThat(persistedRecord.website).isNull()
       assertThat(persistedRecord.submissionNote).isNull()
+      assertThat(persistedRecord.status.name).isEqualTo(status.name)
+      assertThat(persistedRecord.withdrawalReason).isNull()
+      assertThat(persistedRecord.outcomeNote).isNull()
 
       assertThatJson(result).matchesExpectedJson(
         expectedExternalReferralResponseBody(
           id = persistedRecord.id,
           caseId = case.id,
           crn = crn,
+          status = status.name,
           referenceNumber = null,
           organisationName = null,
           website = null,
@@ -146,6 +153,41 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
           createdByUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
           createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+        ),
+      )
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+    fun `should create external referral with an outcome note and no reason`(status: ExternalReferralStatus) {
+      val result = restTestClient.post().uri("/cases/$crn/external-referral")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createExternalReferralRequestBody(
+            status = status.name,
+            outcomeNote = "An outcome note",
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchangeSuccessfully()
+        .expectBody<String>()
+        .returnResult().responseBody!!
+
+      val persistedRecord = externalReferralRepository.findByCaseId(case.id)!!
+      assertThat(persistedRecord.status.name).isEqualTo(status.name)
+      assertThat(persistedRecord.withdrawalReason).isNull()
+      assertThat(persistedRecord.outcomeNote).isEqualTo("An outcome note")
+
+      assertThatJson(result).matchesExpectedJson(
+        expectedExternalReferralResponseBody(
+          id = persistedRecord.id,
+          caseId = case.id,
+          crn = crn,
+          status = status.name,
+          createdBy = NAME_OF_LOGGED_IN_DELIUS_USER,
+          createdByUsername = USERNAME_OF_LOGGED_IN_DELIUS_USER,
+          createdAt = persistedRecord.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
+          outcomeNote = "An outcome note",
         ),
       )
     }
@@ -458,7 +500,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return populated withdrawalReason and outcomeNote for an accepted referral`() {
+    fun `should return populated outcomeNote for an accepted referral`() {
       val accepted = externalReferralRepository.save(
         buildExternalReferralEntity(
           caseId = case.id,
@@ -515,7 +557,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
       organisationName = entity.organisationName,
       website = entity.website,
       submissionNote = entity.submissionNote,
-      withdrawalReason = entity.withdrawalReason?.name,
       outcomeNote = entity.outcomeNote,
     )
   }
@@ -616,7 +657,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should accept external referral with an outcome reason and note`() {
+    fun `should accept external referral with an outcome note and no reason`() {
       val existingEntity = createExternalReferralEntity()
 
       val result = restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
@@ -624,7 +665,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.ACCEPTED.name,
-            withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -642,14 +682,13 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
           createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
           outcomeNote = "An outcome note",
         ),
       )
     }
 
     @Test
-    fun `should reject external referral with an outcome reason and note`() {
+    fun `should reject external referral with an outcome note and no reason`() {
       val existingEntity = createExternalReferralEntity()
 
       val result = restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
@@ -657,7 +696,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.REJECTED.name,
-            withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -675,14 +713,35 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
           createdBy = NAME_OF_TEST_DATA_SETUP_USER,
           createdByUsername = USERNAME_OF_TEST_DATA_SETUP_USER,
           createdAt = existingEntity.createdAt!!.truncatedTo(ChronoUnit.SECONDS).toString(),
-          withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY.name,
           outcomeNote = "An outcome note",
         ),
       )
     }
 
+    @ParameterizedTest
+    @EnumSource(value = ExternalReferralStatus::class, names = ["SUBMITTED", "ACCEPTED", "REJECTED"])
+    fun `should update external referral status without an outcome reason or note`(status: ExternalReferralStatus) {
+      val existingEntity = createExternalReferralEntity()
+
+      restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          createExternalReferralRequestBody(
+            status = status.name,
+          ),
+        )
+        .withDeliusUserJwt()
+        .exchange()
+        .expectStatus().isOk
+
+      val updatedRecord = externalReferralRepository.findByCaseId(case.id)!!
+      assertThat(updatedRecord.status.name).isEqualTo(status.name)
+      assertThat(updatedRecord.withdrawalReason).isNull()
+      assertThat(updatedRecord.outcomeNote).isNull()
+    }
+
     @Test
-    fun `should return 400 when accepting external referral without an outcome reason`() {
+    fun `should return 400 when an outcome note exceeds the maximum length`() {
       val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
@@ -690,6 +749,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.ACCEPTED.name,
+            outcomeNote = "a".repeat(4001),
           ),
         )
         .withDeliusUserJwt()
@@ -698,24 +758,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return 400 when accepting external referral with a REJECTED-only outcome reason`() {
-      val existingEntity = createExternalReferralEntity()
-
-      restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-          createExternalReferralRequestBody(
-            status = ExternalReferralStatus.ACCEPTED.name,
-            withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY.name,
-          ),
-        )
-        .withDeliusUserJwt()
-        .exchange()
-        .expectStatus().isBadRequest
-    }
-
-    @Test
-    fun `should return 400 when providing an outcome reason for a SUBMITTED status`() {
+    fun `should allow an outcome note for a SUBMITTED status`() {
       val existingEntity = createExternalReferralEntity()
 
       restTestClient.put().uri("/cases/$crn/external-referral/${existingEntity.id}")
@@ -723,12 +766,16 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
         .body(
           createExternalReferralRequestBody(
             status = ExternalReferralStatus.SUBMITTED.name,
-            withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION.name,
+            outcomeNote = "An outcome note",
           ),
         )
         .withDeliusUserJwt()
         .exchange()
-        .expectStatus().isBadRequest
+        .expectStatus().isOk
+
+      val updatedRecord = externalReferralRepository.findByCaseId(case.id)!!
+      assertThat(updatedRecord.status).isEqualTo(EntityExternalReferralStatus.SUBMITTED)
+      assertThat(updatedRecord.outcomeNote).isEqualTo("An outcome note")
     }
   }
 
@@ -920,7 +967,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return external referral timeline when it is accepted with an outcome reason and note`() {
+    fun `should return external referral timeline when it is accepted with an outcome note`() {
       val createdExternalReferral = restTestClient.post().uri("/cases/{crn}/external-referral", crn)
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -943,7 +990,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
             status = EntityExternalReferralStatus.ACCEPTED.name,
-            withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
             outcomeNote = "An outcome note",
           ),
         )
@@ -966,7 +1012,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
               newStatus = EntityExternalReferralStatus.ACCEPTED.name,
-              withdrawalReason = EntityExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT.name,
               outcomeNote = "An outcome note",
             ),
           )
@@ -974,7 +1019,7 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
     }
 
     @Test
-    fun `should return external referral timeline when it is rejected with an outcome reason and note`() {
+    fun `should return external referral timeline when it is rejected with an outcome note`() {
       val createdExternalReferral = restTestClient.post().uri("/cases/{crn}/external-referral", crn)
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -997,7 +1042,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
             submissionDate = "2026-01-15",
             referenceNumber = "REF-001",
             status = EntityExternalReferralStatus.REJECTED.name,
-            withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
             outcomeNote = "Another outcome note",
           ),
         )
@@ -1020,7 +1064,6 @@ class ExternalReferralControllerIT : IntegrationTestBase() {
               createCommitTime = commitTimesAsc.first().truncatedTo(ChronoUnit.SECONDS).toString(),
               updateCommitTime = commitTimesAsc[1].truncatedTo(ChronoUnit.SECONDS).toString(),
               newStatus = EntityExternalReferralStatus.REJECTED.name,
-              withdrawalReason = EntityExternalReferralWithdrawalReason.NO_CAPACITY.name,
               outcomeNote = "Another outcome note",
             ),
           )
