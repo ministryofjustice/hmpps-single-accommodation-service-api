@@ -99,7 +99,7 @@ case-refresh:
     max-backoff: 30m
     abandoned-claim-timeout: 10m
   failed-monitor:
-    cron: "0 0 12 * * *" #runs at midday, daily. This should be increased once we handle 503 errors.
+    cron: "0 0 0 * * *"
     zone: UTC
 
 scheduling:
@@ -107,19 +107,25 @@ scheduling:
   fixed-delay: 500ms
 
 shedlock:
-  default-lock-at-most-for: PT2M
-  outbox-event-publisher:
-    lock-at-most-for: PT2M
-    lock-at-least-for: PT1S
-  inbox-event-dispatcher:
-    lock-at-most-for: PT2M
-    lock-at-least-for: PT1S
-  case-refresh-failure-monitor:
-    lock-at-most-for: PT1H
-    lock-at-least-for: PT1M
-  case-refresh-worker:
-    lock-at-most-for: PT2M
-    lock-at-least-for: PT1S
+   default-lock-at-most-for: PT2M
+   outbox-event-publisher:
+     lock-at-most-for: PT2M
+     lock-at-least-for: PT1S
+   inbox-event-dispatcher:
+     lock-at-most-for: PT2M
+     lock-at-least-for: PT1S
+   case-refresh-failure-monitor:
+     lock-at-most-for: PT30M
+     lock-at-least-for: PT5M
+   inbox-event-failure-monitor:
+     lock-at-most-for: PT30M
+     lock-at-least-for: PT5M
+   outbox-event-failure-monitor:
+     lock-at-most-for: PT30M
+     lock-at-least-for: PT5M
+   case-refresh-worker:
+     lock-at-most-for: PT2M
+     lock-at-least-for: PT1S
 
 tier:
   v3-enabled: false
