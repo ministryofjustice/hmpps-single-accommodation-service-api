@@ -98,6 +98,9 @@ case-refresh:
     initial-backoff: 1m
     max-backoff: 30m
     abandoned-claim-timeout: 10m
+  failed-monitor:
+    cron: "0 0 12 * * *" #runs at midday, daily. This should be increased once we handle 503 errors.
+    zone: UTC
 
 scheduling:
   enabled: true
@@ -111,6 +114,9 @@ shedlock:
   inbox-event-dispatcher:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
+  case-refresh-failure-monitor:
+    lock-at-most-for: PT1H
+    lock-at-least-for: PT1M
   case-refresh-worker:
     lock-at-most-for: PT2M
     lock-at-least-for: PT1S
