@@ -395,6 +395,7 @@ object EligibilityTransformer {
       actualDepartureDate = it.actualDepartureDate,
       cancellationReason = it.cancellationReason,
       premises = toCas1PremisesSummaryDto(it.premises),
+      expectedDepartureDate = it.expectedDepartureDate,
     )
   }
 
