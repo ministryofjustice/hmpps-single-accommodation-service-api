@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibi
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotEligibleServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityTransformer.toNotRequiredServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.engine.RulesEngine
@@ -67,8 +67,8 @@ class DecisionTreeBuilder(
   }
 
   /** Creates a terminal outcome node for NOT_ELIGIBLE status */
-  fun notEligible(service: AccommodationService) = OutcomeNode("notEligible") { ctx -> toNotEligibleServiceStatus(service, ctx.currentResult.failureReasons) }
-  fun notRequired(service: AccommodationService) = OutcomeNode("notRequired") { ctx -> toNotRequiredServiceStatus(service, ctx.currentResult.failureReasons) }
+  fun notEligible(service: ServiceType) = OutcomeNode("notEligible") { ctx -> toNotEligibleServiceStatus(service, ctx.currentResult.failureReasons) }
+  fun notRequired(service: ServiceType) = OutcomeNode("notRequired") { ctx -> toNotRequiredServiceStatus(service, ctx.currentResult.failureReasons) }
 
   /** Creates a terminal outcome node that returns the current context's ServiceResult with failure reasons. */
   fun currentOutcome() = OutcomeNode("currentOutcome") { ctx -> ctx.currentResult }

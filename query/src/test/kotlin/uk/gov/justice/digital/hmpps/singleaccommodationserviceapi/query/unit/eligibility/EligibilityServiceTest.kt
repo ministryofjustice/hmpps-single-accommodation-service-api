@@ -8,13 +8,13 @@ import org.assertj.core.api.AssertionsForClassTypes.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ApiResponseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.BlockingReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.CaseActionType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.DtrStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.FailureReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationSummaryDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildAccommodationTypeDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildDtrSubmission
@@ -583,7 +583,7 @@ class EligibilityServiceTest {
             null
           },
         )
-        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS1)
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS1)
         assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas1Link)
 
         val expectedUrl = when (s.expectedCas1Url) {
@@ -714,7 +714,7 @@ class EligibilityServiceTest {
             null
           },
         )
-        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS2)
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS2)
         assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas2Link)
 
         val expectedUrl = when (s.expectedCas2Url) {
@@ -818,7 +818,7 @@ class EligibilityServiceTest {
             null
           },
         )
-        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.DTR)
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.DTR)
         assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedDtrLink)
         assertThat(result.url).isNull()
         assertThat(result.failureReasons)
@@ -966,7 +966,7 @@ class EligibilityServiceTest {
 
         assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedCas3Action)
         assertThat(result.actionStartDate).isNull()
-        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CAS3)
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CAS3)
         assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCas3Link)
 
         val expectedUrl = when (s.expectedCas3Url) {
@@ -1067,7 +1067,7 @@ class EligibilityServiceTest {
             null
           },
         )
-        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.CRS)
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.CRS)
         assertThat(result.serviceStatus.link?.text).isEqualTo(s.expectedCrsLink)
         if (s.expectedCrsLink == null) {
           assertThat(result.url).isNull()
@@ -1166,7 +1166,7 @@ class EligibilityServiceTest {
 
         assertThat(result.serviceStatus.proposedAction).isEqualTo(s.expectedPaAction)
         assertThat(result.actionStartDate).isNull()
-        assertThat(result.serviceStatus.service).isEqualTo(AccommodationService.PA)
+        assertThat(result.serviceStatus.service).isEqualTo(ServiceType.PA)
         assertThat(result.serviceStatus.link?.text).isNull()
         assertThat(result.url).isNull()
 

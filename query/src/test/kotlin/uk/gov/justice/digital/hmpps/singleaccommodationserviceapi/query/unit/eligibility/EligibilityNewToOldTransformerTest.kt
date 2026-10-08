@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
@@ -28,6 +27,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Pl
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResult
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
@@ -326,12 +326,12 @@ class EligibilityNewToOldTransformerTest {
       actionPosition = 5,
     )
     val caseActions = listOf(
-      CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = AccommodationService.DTR),
-      CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = AccommodationService.CAS1),
-      CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.parse("2023-01-02"), service = AccommodationService.CAS2),
-      CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = AccommodationService.CRS),
-      CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = AccommodationService.CAS3),
-      CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = AccommodationService.PA),
+      CaseAction(type = CaseActionType.SUBMIT_DTR_REFERRAL, startDate = LocalDate.parse("2023-01-01"), service = ServiceType.DTR),
+      CaseAction(type = CaseActionType.START_APPROVED_PREMISE_APPLICATION, startDate = LocalDate.parse("2023-01-03"), service = ServiceType.CAS1),
+      CaseAction(type = CaseActionType.START_CAS2_REFERRAL, startDate = LocalDate.parse("2023-01-02"), service = ServiceType.CAS2),
+      CaseAction(type = CaseActionType.SUBMIT_CRS_ACCOMMODATION_REFERRAL, startDate = LocalDate.parse("2023-01-04"), service = ServiceType.CRS),
+      CaseAction(type = CaseActionType.START_CAS3_REFERRAL, startDate = null, service = ServiceType.CAS3),
+      CaseAction(type = CaseActionType.ADD_AND_CONFIRM_PROPOSED_ADDRESS, startDate = null, service = ServiceType.PA),
     )
     val eligibilityDtoOld = EligibilityDto(
       crn = crn,
