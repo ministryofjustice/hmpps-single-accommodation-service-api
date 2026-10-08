@@ -52,9 +52,12 @@ enum class ExternalReferralStatus(override val title: String) : TitleEnum {
   SUBMITTED("Submitted"),
   ACCEPTED("Accepted"),
   REJECTED("Rejected"),
+  COMPLETED("Completed"),
+  ARCHIVED("Archived"),
 }
 
 enum class ExternalReferralWithdrawalReason {
+  PLACEMENT_COMPLETE,
   ACCEPTED_BY_ORGANISATION,
   ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
   PERSON_NOT_SUITABLE,

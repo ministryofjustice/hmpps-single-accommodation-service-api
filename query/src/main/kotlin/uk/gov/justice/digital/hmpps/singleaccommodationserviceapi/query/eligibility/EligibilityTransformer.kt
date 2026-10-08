@@ -175,6 +175,7 @@ object EligibilityTransformer {
       AccommodationService.PA -> ServiceStatusNew.PA_NOT_ELIGIBLE
       AccommodationService.DTR -> ServiceStatusNew.DTR_NOT_ELIGIBLE
       AccommodationService.CRS -> ServiceStatusNew.CRS_NOT_ELIGIBLE
+      AccommodationService.ER -> ServiceStatusNew.ER_NOT_ELIGIBLE
     },
     failureReasons = failureReasons,
   )

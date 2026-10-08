@@ -394,6 +394,12 @@ enum class ServiceStatusNew(
     service = AccommodationService.DTR,
   ),
 
+  // External referrals
+  ER_NOT_ELIGIBLE(
+    service = AccommodationService.ER,
+    proposedAction = null,
+  ),
+
   // PA Service Statuses
   PA_NOT_STARTED(
     service = AccommodationService.PA,
