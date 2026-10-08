@@ -66,7 +66,8 @@ class ExternalReferralApplicationService(
         submissionNote = command.submissionNote,
         email = command.email,
         phoneNumber = command.phoneNumber,
-        outcomeReason = command.outcomeReason,
+        withdrawalReason = command.withdrawalReason,
+        withdrawalNote = command.withdrawalNote,
         outcomeNote = command.outcomeNote,
       )
     }

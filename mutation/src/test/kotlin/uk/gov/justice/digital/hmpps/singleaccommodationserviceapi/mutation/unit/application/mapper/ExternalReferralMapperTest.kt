@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.unit
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildExternalReferralNoteEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.application.mapper.ExternalReferralMapper
@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.facto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.mutation.factories.buildExternalReferralSnapshot
 import java.time.Instant
 import java.util.UUID
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason as EntityExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus as EntityExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason as EntityExternalReferralWithdrawalReason
 
 class ExternalReferralMapperTest {
 
@@ -20,7 +20,7 @@ class ExternalReferralMapperTest {
   fun `toEntity maps all fields correctly`() {
     val snapshot = buildExternalReferralSnapshot(
       status = ExternalReferralStatus.ACCEPTED,
-      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
+      withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_WITH_ACCOMMODATION_PLACEMENT,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -39,7 +39,7 @@ class ExternalReferralMapperTest {
     assertThat(entity.submissionNote).isEqualTo(snapshot.submissionNote)
     assertThat(entity.email).isEqualTo(snapshot.email)
     assertThat(entity.phoneNumber).isEqualTo(snapshot.phoneNumber)
-    assertThat(entity.outcomeReason).isEqualTo(EntityExternalReferralOutcomeReason.valueOf(snapshot.outcomeReason!!.name))
+    assertThat(entity.withdrawalReason).isEqualTo(EntityExternalReferralWithdrawalReason.valueOf(snapshot.withdrawalReason!!.name))
     assertThat(entity.outcomeNote).isEqualTo(snapshot.outcomeNote)
   }
 
@@ -47,7 +47,7 @@ class ExternalReferralMapperTest {
   fun `toDto maps all fields correctly`() {
     val snapshot = buildExternalReferralSnapshot(
       status = ExternalReferralStatus.REJECTED,
-      outcomeReason = ExternalReferralOutcomeReason.NO_CAPACITY,
+      withdrawalReason = ExternalReferralWithdrawalReason.NO_CAPACITY,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -77,7 +77,7 @@ class ExternalReferralMapperTest {
     assertThat(dto.submission.submissionNote).isEqualTo(snapshot.submissionNote)
     assertThat(dto.submission.email).isEqualTo(snapshot.email)
     assertThat(dto.submission.phoneNumber).isEqualTo(snapshot.phoneNumber)
-    assertThat(dto.submission.outcomeReason).isEqualTo(snapshot.outcomeReason)
+    assertThat(dto.submission.withdrawalReason).isEqualTo(snapshot.withdrawalReason)
     assertThat(dto.submission.outcomeNote).isEqualTo(snapshot.outcomeNote)
   }
 
@@ -102,7 +102,7 @@ class ExternalReferralMapperTest {
     val preExistingNote = buildExternalReferralNote(id = preExistingNoteEntity.id, note = preExistingNoteEntity.note)
     val snapshot = buildExternalReferralSnapshot(
       status = ExternalReferralStatus.ACCEPTED,
-      outcomeReason = ExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION,
+      withdrawalReason = ExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -118,7 +118,7 @@ class ExternalReferralMapperTest {
     assertThat(merged.status).isEqualTo(EntityExternalReferralStatus.valueOf(snapshot.status.name))
     assertThat(merged.email).isEqualTo(snapshot.email)
     assertThat(merged.phoneNumber).isEqualTo(snapshot.phoneNumber)
-    assertThat(merged.outcomeReason).isEqualTo(EntityExternalReferralOutcomeReason.ACCEPTED_BY_ORGANISATION)
+    assertThat(merged.withdrawalReason).isEqualTo(EntityExternalReferralWithdrawalReason.ACCEPTED_BY_ORGANISATION)
     assertThat(merged.outcomeNote).isEqualTo(snapshot.outcomeNote)
     assertThat(merged.notes).hasSize(3)
     assertThat(merged.notes.first().note).isEqualTo(preExistingNoteEntity.note)
@@ -131,7 +131,7 @@ class ExternalReferralMapperTest {
     val entity = buildExternalReferralEntity(
       referenceNumber = "OA-REF-001",
       status = EntityExternalReferralStatus.REJECTED,
-      outcomeReason = EntityExternalReferralOutcomeReason.PERSON_NOT_SUITABLE,
+      withdrawalReason = EntityExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE,
       outcomeNote = "An outcome note",
       email = "contact@example.com",
       phoneNumber = "01234567890",
@@ -159,7 +159,7 @@ class ExternalReferralMapperTest {
     assertThat(snapshot.crn).isEqualTo(entity.crn)
     assertThat(snapshot.referenceNumber).isEqualTo(entity.referenceNumber)
     assertThat(snapshot.status).isEqualTo(ExternalReferralStatus.REJECTED)
-    assertThat(snapshot.outcomeReason).isEqualTo(ExternalReferralOutcomeReason.PERSON_NOT_SUITABLE)
+    assertThat(snapshot.withdrawalReason).isEqualTo(ExternalReferralWithdrawalReason.PERSON_NOT_SUITABLE)
     assertThat(snapshot.outcomeNote).isEqualTo(entity.outcomeNote)
     assertThat(snapshot.email).isEqualTo(entity.email)
     assertThat(snapshot.phoneNumber).isEqualTo(entity.phoneNumber)

@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructur
 
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralEntity
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralNoteEntity
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralOutcomeReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralStatus
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.persistence.entity.ExternalReferralWithdrawalReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.utils.TestData
 import java.time.Instant
 import java.time.LocalDate
@@ -22,7 +22,8 @@ fun buildExternalReferralEntity(
   submissionNote: String? = null,
   email: String? = null,
   phoneNumber: String? = null,
-  outcomeReason: ExternalReferralOutcomeReason? = null,
+  withdrawalReason: ExternalReferralWithdrawalReason? = null,
+  withdrawalNote: String? = null,
   outcomeNote: String? = null,
   createdByUserId: UUID = UUID.randomUUID(),
   createdAt: Instant = Instant.now(),
@@ -40,7 +41,8 @@ fun buildExternalReferralEntity(
   submissionNote = submissionNote,
   email = email,
   phoneNumber = phoneNumber,
-  outcomeReason = outcomeReason,
+  withdrawalReason = withdrawalReason,
+  withdrawalNote = withdrawalNote,
   outcomeNote = outcomeNote,
 ).apply {
   this.createdByUserId = createdByUserId

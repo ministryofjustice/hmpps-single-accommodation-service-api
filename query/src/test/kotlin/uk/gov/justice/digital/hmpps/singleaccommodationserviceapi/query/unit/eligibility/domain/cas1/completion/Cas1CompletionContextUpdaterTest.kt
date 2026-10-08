@@ -6,14 +6,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.LinkType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.approvedpremises.Cas1RequestForPlacementStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1Application
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1ApplicationSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1RequestForPlacementSummary
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.EligibilityKeys
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.EvaluationContext
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.eligibility.domain.cas1.completion.Cas1CompletionContextUpdater
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildDomainData
@@ -42,8 +40,6 @@ class Cas1CompletionContextUpdaterTest {
       val result = updater.update(context)
 
       assertThat(result.currentResult.serviceStatus).isEqualTo(ServiceStatusNew.CAS1_SUBMITTED)
-      assertThat(result.currentResult.link).isEqualTo(EligibilityKeys.VIEW_APPLICATION)
-      assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS1_VIEW_APPLICATION)
       assertThat(result.currentResult.url).isNull()
     }
   }
@@ -53,7 +49,6 @@ class Cas1CompletionContextUpdaterTest {
   fun `PLACEMENT_ALLOCATED with no live placement maps on the next placement request`(
     requestForPlacementStatus: Cas1RequestForPlacementStatus,
     expectedServiceStatus: ServiceStatusNew,
-    expectedLink: String,
   ) {
     val data = buildDomainData(
       cas1Application = buildCas1Application(
@@ -70,8 +65,6 @@ class Cas1CompletionContextUpdaterTest {
     val result = updater.update(context)
 
     assertThat(result.currentResult.serviceStatus).isEqualTo(expectedServiceStatus)
-    assertThat(result.currentResult.link).isEqualTo(expectedLink)
-    assertThat(result.currentResult.linkType).isEqualTo(LinkType.CAS1_VIEW_APPLICATION)
     assertThat(result.currentResult.url).isNull()
   }
 
@@ -81,27 +74,22 @@ class Cas1CompletionContextUpdaterTest {
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_REJECTED,
         ServiceStatusNew.CAS1_PLACEMENT_REQUEST_REJECTED,
-        EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_WITHDRAWN,
         ServiceStatusNew.CAS1_PLACEMENT_REQUEST_WITHDRAWN,
-        EligibilityKeys.CREATE_NEW_PLACEMENT_REQUEST,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_UNSUBMITTED,
-        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_STARTED,
-        EligibilityKeys.CREATE_PLACEMENT_REQUEST,
+        ServiceStatusNew.CAS1_PLACEMENT_REQUEST_NOT_SUBMITTED,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.AWAITING_MATCH,
         ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
-        EligibilityKeys.VIEW_APPLICATION,
       ),
       Arguments.of(
         Cas1RequestForPlacementStatus.REQUEST_SUBMITTED,
         ServiceStatusNew.CAS1_PLACEMENT_REQUEST_SUBMITTED,
-        EligibilityKeys.VIEW_APPLICATION,
       ),
     )
   }

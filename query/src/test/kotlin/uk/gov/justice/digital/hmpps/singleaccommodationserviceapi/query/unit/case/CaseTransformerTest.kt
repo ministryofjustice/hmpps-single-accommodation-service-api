@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.withCrn
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toCaseDto
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.CaseTransformer.toLimitedCaseDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.case.PersonTransformer.toPersonDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildCaseOrchestrationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.query.factories.buildFullPersonDto
@@ -154,6 +155,65 @@ class CaseTransformerTest {
         nextAccommodation = nextAccommodationDto,
       ),
     ).isEqualTo(expected)
+  }
+
+  @Test
+  fun `should transform from case entity and supplied person fields to case dto`() {
+    val accommodationSummaries = buildAccommodationSummariesDto(
+      caseAccommodationStatus = CaseAccommodationStatus.TRANSIENT,
+      caseAccommodationStatusDate = LocalDate.now(),
+    )
+    val caseEntity = buildCaseEntity(accommodationSummariesDto = accommodationSummaries) { withCrn(crn) }
+    val assignedTo = AssignedToDto(forename = "Staff", surname = "Member", username = "staff.member")
+
+    val result = toCaseDto(
+      caseEntity = caseEntity,
+      crn = crn,
+      prisonNumber = "A1234AA",
+      riskLevel = RiskLevel.HIGH,
+      pncReference = "PNC123",
+      assignedTo = assignedTo,
+      limitedAccess = false,
+    )
+
+    assertThat(result).isEqualTo(
+      CaseDto(
+        forename = caseEntity.firstName,
+        middleNames = null,
+        surname = caseEntity.lastName,
+        dateOfBirth = caseEntity.dateOfBirth,
+        crn = crn,
+        prisonNumber = "A1234AA",
+        photoUrl = null,
+        tierScore = caseEntity.tierScore,
+        riskLevel = RiskLevel.HIGH,
+        pncReference = "PNC123",
+        assignedTo = assignedTo,
+        userAccess = UserAccess.FULL,
+        limitedAccess = false,
+        accommodationSummaries = accommodationSummaries,
+      ),
+    )
+  }
+
+  @Test
+  fun `should transform to case dto with only the supplied person fields when there is no case entity`() {
+    val result = toCaseDto(
+      caseEntity = null,
+      crn = crn,
+      prisonNumber = null,
+      riskLevel = null,
+      pncReference = null,
+      assignedTo = null,
+      limitedAccess = null,
+    )
+
+    assertThat(result).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.FULL, limitedAccess = null))
+  }
+
+  @Test
+  fun `should transform a crn to a limited case dto`() {
+    assertThat(toLimitedCaseDto(crn)).isEqualTo(CaseDto(crn = crn, userAccess = UserAccess.LIMITED, limitedAccess = true))
   }
 
   private fun assertUserAccess(caseDto: CaseDto, expectedAccess: UserAccess, limitedAccess: Boolean? = null) {

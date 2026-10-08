@@ -15,4 +15,6 @@ interface OnboardedTeamRepository : JpaRepository<OnboardedTeamEntity, String> {
     value = "INSERT INTO onboarded_team (team_code) VALUES (:teamCode) ON CONFLICT (team_code) DO NOTHING",
   )
   fun createOnboardedTeam(teamCode: String)
+
+  fun existsByTeamCodeIsIgnoreCase(teamCode: String): Boolean
 }

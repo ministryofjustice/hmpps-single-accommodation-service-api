@@ -7,17 +7,19 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.PostExchange
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.ApiCallKeys
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.RestClientRetry
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.config.WebClientRetry
 
 interface ApprovedPremisesAndDeliusClient {
+  // this post request is safe to retry as it does not create data
+  @WebClientRetry
   @PostExchange(value = "/probation-cases/summaries")
   fun postCaseSummaries(@RequestBody crns: List<String>): CaseSummaries
 
+  @WebClientRetry
   @GetExchange(value = "/staff/{username}")
   fun getStaffDetail(@PathVariable username: String): StaffDetail?
 }
 
-@RestClientRetry
 @Service
 class ApprovedPremisesAndDeliusCachingService(
   val approvedPremisesAndDeliusClient: ApprovedPremisesAndDeliusClient,

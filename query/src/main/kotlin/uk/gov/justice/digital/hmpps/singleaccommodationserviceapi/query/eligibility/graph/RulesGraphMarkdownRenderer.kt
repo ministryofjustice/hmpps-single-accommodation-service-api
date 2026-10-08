@@ -200,7 +200,7 @@ object RulesGraphMarkdownRenderer {
         val cells = buildList {
           add(escapeTable(result.serviceStatus.name))
           add(escapeTable(actionCell(result)))
-          add(escapeTable(result.linkType?.name ?: "-"))
+          add(escapeTable(result.serviceStatus.link?.type?.name ?: "-"))
           if (includeBlocking) add(escapeTable(result.blockingStatusReason?.name ?: "-"))
         }
         appendLine("| ${cells.joinToString(" | ")} |")
@@ -219,6 +219,7 @@ object RulesGraphMarkdownRenderer {
 
   private fun updaterCatalogueRows(graphs: List<RulesGraph>): List<UpdaterCatalogueRow> {
     data class Key(val name: String, val description: String, val outcomes: Map<String, ServiceResultSpec>)
+
     val byUpdater = linkedMapOf<Key, MutableList<UpdaterUse>>()
     graphs.sortedBy { it.treeName }.forEach { graph ->
       graph.nodes.forEach { node ->
@@ -240,6 +241,7 @@ object RulesGraphMarkdownRenderer {
 
   private fun catalogueRows(graphs: List<RulesGraph>): List<CatalogueRow> {
     data class Key(val className: String, val description: String)
+
     val byRule = linkedMapOf<Key, MutableList<Pair<String, String>>>()
     graphs.sortedBy { it.treeName }.forEach { graph ->
       graph.nodes.forEach { node ->
@@ -284,7 +286,7 @@ internal fun updaterAnchor(updater: ContextUpdaterInfo): String {
   val raw = if (updater.name == "constant") {
     val result = updater.outcomes.values.firstOrNull()
     val action = result?.serviceStatus?.proposedAction?.name ?: "no-action"
-    val link = result?.link ?: "no-link"
+    val link = result?.serviceStatus?.link?.text ?: "no-link"
     "${updater.name}-${updater.description}-$action-$link"
   } else {
     updater.name
