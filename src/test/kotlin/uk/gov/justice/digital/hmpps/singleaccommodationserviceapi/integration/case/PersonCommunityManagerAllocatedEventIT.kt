@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.canonical.CanonicalAddressUsageCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressStatusCode
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.corepersonrecord.probation.AddressUsageCode
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.client.sasanddelius.Officer
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCanonicalAddress
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCas1PremisesSummary
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.infrastructure.factories.buildCaseEntity
@@ -88,6 +89,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
       expectedTier = responses.tier!!.tierScore,
       expectedCpr = cpr,
       expectedRoshLevelCode = responses.case!!.roshLevel!!.code,
+      expectedAssignedTo = responses.case!!.staff,
       expectedCaseId = existing.id,
     )
     assertThat(testSentryService.exceptions).isEmpty()
@@ -179,6 +181,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
       expectedTier = responses.tier!!.tierScore,
       expectedCpr = cpr,
       expectedRoshLevelCode = responses.case!!.roshLevel!!.code,
+      expectedAssignedTo = responses.case!!.staff,
     )
     assertThat(testSentryService.exceptions).isEmpty()
   }
@@ -230,6 +233,7 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
     expectedTier: String,
     expectedCpr: CorePersonRecord,
     expectedRoshLevelCode: String,
+    expectedAssignedTo: Officer,
     expectedCaseId: UUID? = null,
   ) {
     testInboxEventHelper.assertMessageProcessed()
@@ -244,6 +248,9 @@ class PersonCommunityManagerAllocatedEventIT : DomainEventIntegrationTestBase() 
       assertThat(case.dateOfBirth).isEqualTo(expectedCpr.dateOfBirth)
       assertThat(case.accommodationStatus).isEqualTo(CaseAccommodationStatus.TRANSIENT)
       assertThat(case.roshLevelCode).isEqualTo(expectedRoshLevelCode)
+      assertThat(case.assignedToForename).isEqualTo(expectedAssignedTo.name.forename)
+      assertThat(case.assignedToSurname).isEqualTo(expectedAssignedTo.name.surname)
+      assertThat(case.assignedToUsername).isEqualTo(expectedAssignedTo.username)
 
       val currentAccommodation = case.currentAccommodation!!
       assertThat(currentAccommodation.address.postcode).isEqualTo("SW1A 1AA")
