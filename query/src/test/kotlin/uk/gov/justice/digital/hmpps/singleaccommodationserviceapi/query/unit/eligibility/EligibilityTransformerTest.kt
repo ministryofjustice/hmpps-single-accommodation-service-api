@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AccommodationService
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.AssessmentDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1ApplicationStatus
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Cas1PlacementStatus
@@ -21,6 +20,7 @@ import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.Dt
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.PlacementApplicationDecision
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceResultNew
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceStatusNew
+import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.ServiceType
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.dtos.WithdrawPlacementRequestReason
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationDto
 import uk.gov.justice.digital.hmpps.singleaccommodationserviceapi.common.factories.buildCas1ApplicationSummaryDto
@@ -671,7 +671,7 @@ class EligibilityTransformerTest {
   fun `should transform to not eligible service status`() {
     val expectedServiceStatus = buildServiceResultNew()
 
-    val actualEligibility = toNotEligibleServiceStatus(AccommodationService.CAS1)
+    val actualEligibility = toNotEligibleServiceStatus(ServiceType.CAS1)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
@@ -680,7 +680,7 @@ class EligibilityTransformerTest {
   fun `should transform to not required service status`() {
     val expectedServiceStatus = buildServiceResultNew(ServiceStatusNew.DTR_NOT_REQUIRED)
 
-    val actualEligibility = toNotRequiredServiceStatus(AccommodationService.DTR)
+    val actualEligibility = toNotRequiredServiceStatus(ServiceType.DTR)
 
     assertThat(actualEligibility).isEqualTo(expectedServiceStatus)
   }
